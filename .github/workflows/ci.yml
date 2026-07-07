@@ -37,25 +37,6 @@ jobs:
           echo "Lua 5.1 syntax OK — $total file(s) checked."
 
   # ─────────────────────────────────────────────────────────────
-  # Formatting check — stylua (see stylua.toml). REPORT-ONLY for now
-  # (continue-on-error): the codebase predates stylua and a reviewed
-  # baseline reformat + config sign-off is a dedicated follow-up before
-  # this gate becomes blocking.
-  # ─────────────────────────────────────────────────────────────
-  stylua:
-    name: Stylua Format Check (report-only)
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check Lua formatting
-        uses: JohnnyMorganz/stylua-action@v4
-        with:
-          token: ${{ github.token }}
-          version: latest
-          args: --check src/ tests/
-
-  # ─────────────────────────────────────────────────────────────
   # Secret scanning — gitleaks (public repo, free). See .gitleaks.toml.
   # ─────────────────────────────────────────────────────────────
   gitleaks:
@@ -119,8 +100,9 @@ jobs:
       - name: Enforce coverage ratchet
         run: |
           luacov
-          # The luacov Total line is: "Total  <hits> <missed> <pct>%" — take the last field.
-          total=$(awk '/^Total/ { v=$NF; sub("%","",v); print v }' luacov.report.out | tail -1)
+          # The luacov Total line is: "Total  <hits> <missed> <pct>%" — take the last field,
+          # tolerant of integer-only percentages and spacing changes.
+          total=$(awk '/^Total/ { gsub("%","",$NF); print $NF }' luacov.report.out | tail -1)
           if [ -z "$total" ]; then
             echo "::error::Could not parse coverage total from luacov.report.out"
             tail -20 luacov.report.out || true

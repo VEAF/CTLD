@@ -17,8 +17,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - **Coverage ratchet** — the busted job measures coverage and enforces a floor that only ever
   rises (`COVERAGE_FLOOR`).
 - **Secret scanning** — gitleaks runs on push and PR.
-- **Formatting** — a `stylua` check (report-only for now) and a `stylua.toml`; a reviewed baseline
-  reformat will make it blocking in a dedicated follow-up.
+- **Formatting** — added `stylua.toml`; CI enforcement is deferred to a dedicated stylua-adoption
+  lot (style-config sign-off + reviewed baseline reformat) rather than a noisy report-only job.
 - **Repo hygiene** — `dependabot.yml` (github-actions), `CODEOWNERS`, issue/PR templates.
 - **Removed the broken `docs` job** — docs publication moves to the DOC-MKDOCS lot (no `mkdocs.yml`
   exists yet).
