@@ -52,6 +52,9 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   `F10 → CTLD → …`, stale config keys, dead request-vehicle branch, AA template counts, legacy
   wrapper signatures, no `EXZ` prefix, etc.). The monolith removed; nav gains Pilot + Mission Maker
   sections; broken links fixed; `mkdocs build --strict` clean.
+- **Completed FR coverage** — added the missing French versions of the site home (`docs/index.fr.md`)
+  and the Integration Testing page (`docs/recette-procedure.fr.md`), so the FR site no longer falls
+  back to English on any page.
 
 ### Fixed
 

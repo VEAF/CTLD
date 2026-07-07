@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `DOC-USER-ROLES` | 🚧 in progress | Split the monolithic user guide by role → bilingual `docs/pilot/` + `docs/mission-maker/`. | `feature/doc-user-roles` |
+| _(none)_ | | | |
 
 ### Planned lots
 
@@ -37,6 +37,7 @@ authored **per lot, when the lot is started** (not in batch).
 | `RELEASE` ✅ | `release` skill + `release.yml` (tag `published-v*`); release job moved out of ci.yml (PR #7). |
 | `DOC-MKDOCS` ✅ | mkdocs-material infra (i18n EN+FR, mike) + `docs.yml` → gh-pages live at veaf.github.io/CTLD (PR #8). |
 | `DOC-TECH` ✅ | Bilingual `docs/developer/` consolidation (20 EN + 20 FR pages) + workflow page; old sources + `migration/specs/` removed (PR #11). |
+| `DOC-USER-ROLES` ✅ | Bilingual role split of the user guide → `docs/pilot/` + `docs/mission-maker/` (19 EN + 19 FR pages); monolith removed (PR #12). |
 
 ## Dropped lots
 

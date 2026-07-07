@@ -1,6 +1,6 @@
 # 02 — Pilot section (EN)
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 ## What to build

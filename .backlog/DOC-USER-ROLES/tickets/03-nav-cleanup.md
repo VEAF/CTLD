@@ -1,6 +1,6 @@
 # 03 — Nav rewire, remove monolith & fix links (EN)
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 ## What to build

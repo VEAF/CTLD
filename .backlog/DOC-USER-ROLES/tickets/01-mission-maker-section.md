@@ -1,6 +1,6 @@
 # 01 — Mission Maker section (EN)
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 ## What to build

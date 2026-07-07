@@ -1,6 +1,6 @@
 # 04 — French translation (pilot + mission-maker)
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 ## What to build
