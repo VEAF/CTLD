@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `RELEASE` | 🔄 in-progress | `release` skill (community notes + version bump + release PR) + `release.yml` (tag `published-v*`) | `feature/release` |
+| _(none)_ | | | |
 
 ### Planned lots
 
@@ -37,6 +37,7 @@ authored **per lot, when the lot is started** (not in batch).
 | `CONTEXT-ADR` ✅ | Retroactive ADRs 0001–0005 in `dev/adr/` (PR #4). |
 | `CLAUDE-AUTOMATIONS` ✅ | Project hooks (block protected paths, luacheck-on-edit) + subagents lua51/parity (PR #5). |
 | `DCS-DATAMINE-VENDOR` ✅ | Vendored DCS type set (not shipped) + offline config type linter (PR #6). |
+| `RELEASE` ✅ | `release` skill + `release.yml` (tag `published-v*`); release job moved out of ci.yml (PR #7). |
 
 ## Dropped lots
 
