@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "WebFetch(domain:wiki.hoggitworld.com)",
+      "WebFetch(domain:github.com)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
+    ]
+  }
+}

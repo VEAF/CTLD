@@ -1,0 +1,3 @@
+# Temporary diagnostic scripts — not part of the test suite
+_diag_*.lua
+CTLD.log
