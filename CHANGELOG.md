@@ -28,6 +28,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - **Architecture Decision Records** — added `dev/adr/` with the key retroactive decisions of the
   v2.0.0 rewrite (modular tree + build, OOP Manager/Entity, MIST removal, legacy API, repack→pack).
 
+### Tooling
+
+- **Offline config type linter** — a vendored set of known DCS type names
+  (`tests/data/dcs_types.lua`, generated from Quaggles/dcs-lua-datamine by
+  `tools/dcs-data/gen_dcs_types.py`, not shipped) + a busted spec that reports configured type
+  names not in the stock set (likely typos). Runtime `CTLD_modValidator` is unchanged.
+
 ### Claude Code automations (project)
 
 - **Protective hooks** — a PreToolUse hook blocks edits to `migration/source/**` and the generated
