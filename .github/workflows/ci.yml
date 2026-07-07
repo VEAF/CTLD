@@ -16,7 +16,7 @@ jobs:
     name: Lua 5.1 Syntax Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Lua 5.1
         run: sudo apt-get install -y lua5.1
       - name: Syntax-check src/ with luac5.1
@@ -42,7 +42,7 @@ jobs:
     name: Secret Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Install gitleaks
@@ -60,7 +60,7 @@ jobs:
     name: Merge Build
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build CTLD.lua
         run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1
         shell: pwsh
@@ -70,7 +70,7 @@ jobs:
           if ((Get-Item CTLD.lua).Length -eq 0) { Write-Host "::error::CTLD.lua is empty"; exit 1 }
         shell: pwsh
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CTLD
           path: CTLD.lua
@@ -88,7 +88,7 @@ jobs:
       # First measured coverage was 61.56%; floor seeded at measured - ~2.5 (ticket 04).
       COVERAGE_FLOOR: '59'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Lua + LuaRocks + busted + luacov
         run: |
           sudo apt-get install -y lua5.1 liblua5.1-dev luarocks
