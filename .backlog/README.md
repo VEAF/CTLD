@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `CONTEXT-ADR` | 🔄 in-progress | Retroactive ADRs in `dev/adr/` (0001–0005) + domain memory | `feature/context-adr` |
+| _(none)_ | | | |
 
 ### Planned lots
 
@@ -38,6 +38,7 @@ authored **per lot, when the lot is started** (not in batch).
 | `REPO-BOOTSTRAP` | New VEAF repo, clean history, Git Flow `develop`/`master` |
 | `PROCESS-SCAFFOLD` | Lean `CLAUDE.md`, `.backlog/`, `CONTEXT.md`, `dev/agents/`, `dcs-runtime-debug` skill, history cleanup |
 | `CI-REVAMP` ✅ | CI on `develop`, single build source, coverage ratchet (59%/61.56%), gitleaks, hygiene (PR #1). stylua deferred to a dedicated lot. |
+| `CONTEXT-ADR` ✅ | Retroactive ADRs 0001–0005 in `dev/adr/` (PR #4). |
 
 ## Archived lots
 
