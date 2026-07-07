@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| _(none)_ | | | |
+| `CLAUDE-AUTOMATIONS` | 🔄 in-progress | PreToolUse block hook (`migration/source/`, `CTLD_Next.lua`), PostToolUse luacheck, subagents lua51/parity | `feature/claude-automations` |
 
 ### Planned lots
 
@@ -28,7 +28,6 @@ authored **per lot, when the lot is started** (not in batch).
 | `INTEGRATION-TEST-TAGS` | `-- @tier: auto\|auto-check\|ia` header convention, pre-tag the ~267 scenarios |
 | `INTEGRATION-TEST-RUNNER` | Python runner over dcs-serve REST (`/api/exec`), tier filtering, JUnit report, "run without AI" |
 | `DCS-DATAMINE-VENDOR` | Vendor DCS type/unit data from Quaggles/dcs-lua-datamine for `CTLD_modValidator` |
-| `CLAUDE-AUTOMATIONS` | Hooks (block `migration/source/` + `CTLD_Next.lua`, luacheck on edit), subagents (lua51-compliance, legacy-parity) |
 | `STYLUA-ADOPTION` | Sign off on `stylua.toml` style, reviewed baseline reformat, then make the stylua CI check blocking |
 
 ### Delivered (socle, this program)
