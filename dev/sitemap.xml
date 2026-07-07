@@ -1,73 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
-        <loc>https://veaf.github.io/CTLD_Next/dev/</loc>
+        <loc>https://veaf.github.io/CTLD/dev/</loc>
         <lastmod>2026-07-07</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD_Next/dev/"/>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD_Next/devfr/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/dev/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/devfr/"/>
     </url>
     <url>
-        <loc>https://veaf.github.io/CTLD_Next/dev/api-reference/</loc>
+        <loc>https://veaf.github.io/CTLD/dev/api-reference/</loc>
         <lastmod>2026-07-07</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD_Next/dev/api-reference/"/>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD_Next/devfr/api-reference/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/dev/api-reference/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/devfr/api-reference/"/>
     </url>
     <url>
-        <loc>https://veaf.github.io/CTLD_Next/dev/dev-guide/</loc>
+        <loc>https://veaf.github.io/CTLD/dev/dev-guide/</loc>
         <lastmod>2026-07-07</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD_Next/dev/dev-guide/"/>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD_Next/devfr/dev-guide/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/dev/dev-guide/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/devfr/dev-guide/"/>
     </url>
     <url>
-        <loc>https://veaf.github.io/CTLD_Next/dev/missionmaker_guide/</loc>
+        <loc>https://veaf.github.io/CTLD/dev/missionmaker_guide/</loc>
         <lastmod>2026-07-07</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD_Next/dev/missionmaker_guide/"/>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD_Next/devfr/missionmaker_guide/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/dev/missionmaker_guide/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/devfr/missionmaker_guide/"/>
     </url>
     <url>
-        <loc>https://veaf.github.io/CTLD_Next/dev/recette-procedure/</loc>
+        <loc>https://veaf.github.io/CTLD/dev/recette-procedure/</loc>
         <lastmod>2026-07-07</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD_Next/dev/recette-procedure/"/>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD_Next/devfr/recette-procedure/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/dev/recette-procedure/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/devfr/recette-procedure/"/>
     </url>
     <url>
-        <loc>https://veaf.github.io/CTLD_Next/dev/fr/</loc>
+        <loc>https://veaf.github.io/CTLD/dev/fr/</loc>
         <lastmod>2026-07-07</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD_Next/dev/fr/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD_Next/dev"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/dev/fr/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/dev"/>
     </url>
     <url>
-        <loc>https://veaf.github.io/CTLD_Next/dev/fr/api-reference/</loc>
+        <loc>https://veaf.github.io/CTLD/dev/fr/api-reference/</loc>
         <lastmod>2026-07-07</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD_Next/dev/fr/api-reference/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD_Next/devapi-reference/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/dev/fr/api-reference/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/devapi-reference/"/>
     </url>
     <url>
-        <loc>https://veaf.github.io/CTLD_Next/dev/fr/dev-guide/</loc>
+        <loc>https://veaf.github.io/CTLD/dev/fr/dev-guide/</loc>
         <lastmod>2026-07-07</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD_Next/dev/fr/dev-guide/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD_Next/devdev-guide/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/dev/fr/dev-guide/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/devdev-guide/"/>
     </url>
     <url>
-        <loc>https://veaf.github.io/CTLD_Next/dev/fr/missionmaker_guide/</loc>
+        <loc>https://veaf.github.io/CTLD/dev/fr/missionmaker_guide/</loc>
         <lastmod>2026-07-07</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD_Next/dev/fr/missionmaker_guide/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD_Next/devmissionmaker_guide/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/dev/fr/missionmaker_guide/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/devmissionmaker_guide/"/>
     </url>
     <url>
-        <loc>https://veaf.github.io/CTLD_Next/dev/fr/recette-procedure/</loc>
+        <loc>https://veaf.github.io/CTLD/dev/fr/recette-procedure/</loc>
         <lastmod>2026-07-07</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD_Next/dev/fr/recette-procedure/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD_Next/devrecette-procedure/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/dev/fr/recette-procedure/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/devrecette-procedure/"/>
     </url>
 </urlset>
