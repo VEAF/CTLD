@@ -14,7 +14,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build CTLD.lua
         run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1

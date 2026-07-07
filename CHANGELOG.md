@@ -20,6 +20,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - **Formatting** — added `stylua.toml`; CI enforcement is deferred to a dedicated stylua-adoption
   lot (style-config sign-off + reviewed baseline reformat) rather than a noisy report-only job.
 - **Repo hygiene** — `dependabot.yml` (github-actions), `CODEOWNERS`, issue/PR templates.
+- **Bumped GitHub Actions** — `actions/checkout` and `actions/upload-artifact` v4 → v7.
 - **Removed the broken `docs` job** — docs publication moves to the DOC-MKDOCS lot (no `mkdocs.yml`
   exists yet).
 
