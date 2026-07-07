@@ -17,7 +17,7 @@ Deliverable: single `.lua` file produced by `tools/build/merge_CTLD.ps1`.
 
 | # | Topic | Decision |
 | - | ----- | -------- |
-| 1 | Module split | ✅ **Done** — `src/` files concatenated → `CTLD_Next.lua` by `tools/build/merge_CTLD.ps1`. Order: `tools/build/listToMerge.txt` |
+| 1 | Module split | ✅ **Done** — `src/` files concatenated → `CTLD.lua` by `tools/build/merge_CTLD.ps1`. Order: `tools/build/listToMerge.txt` |
 | 2 | OOP | ✅ **Done** — `src/core/class.lua` created (P1). All entity classes refactored. |
 | 3 | MIST | ✅ **Done** — all `mist.*` calls replaced by `ctld.utils.*`. No active `mist.*` call in `src/` |
 | 4 | Legacy API | ✅ **Done** — `src/legacy/legacy_api.lua` (22 wrappers, thin delegates) [2026-04-15] |
@@ -443,7 +443,7 @@ Deliverable: single `.lua` file produced by `tools/build/merge_CTLD.ps1`.
             définitivement tout ID passé à removeMark — réutilisation = mark invisible)
         Recette F-115 : 11/11 PASS [2026-04-27]
 
-✅  FG  Shutdown propre des boucles timer.scheduleFunction à la réinjection CTLD_Next [2026-05-12]
+✅  FG  Shutdown propre des boucles timer.scheduleFunction à la réinjection CTLD [2026-05-12]
         Implémentation :
           ✅ (A+B) `ctld.scheduler` (CTLD_utils.lua) : registre central register/cancel/cancelAll
           ✅ beacon refresh loop : return-t+interval + guard B (zombie auto-stop) + register "beacon_refresh"
@@ -883,7 +883,7 @@ Deliverable: single `.lua` file produced by `tools/build/merge_CTLD.ps1`.
 ✅  Q3  GitHub Actions CI  [2026-04-15]
         .github/workflows/ci.yml créé
         Job 1 — lua-lint : choco install lua 5.4 → loadfile() syntax-check sur tous src/**/*.lua
-        Job 2 — build    : merge PowerShell (replique merger.cmd sans pause interactif) → CTLD_Next.lua
+        Job 2 — build    : merge PowerShell (replique merger.cmd sans pause interactif) → CTLD.lua
           - fichiers manquants (AA scenes, userConfig) → warning seulement (parité merger.cmd)
           - artifact uploadé 7 jours (actions/upload-artifact@v4)
         Triggers : push sur master + feature_* , PR vers master
@@ -892,7 +892,7 @@ Deliverable: single `.lua` file produced by `tools/build/merge_CTLD.ps1`.
         Déplacements : build/ → tools/build/,
           documentation/ + Specs/ → docs/, *.ogg → assets/, *.png → docs/,
           *.miz → missions/, CTLD.lua (v1) → source/
-        .gitignore : ajout CTLD_Next.lua
+        .gitignore : ajout CTLD.lua
         ci.yml : chemin corrigé tools/build/listToMerge.txt
 ✅  Q4b source/ dead code cleanup  [2026-04-16]
         Supprimés : CTLD_beacon.lua, CTLD_config.lua, CTLD_core.lua, CTLD_i18n.lua,
@@ -951,7 +951,7 @@ Deliverable: single `.lua` file produced by `tools/build/merge_CTLD.ps1`.
 
 ### 0.4 — Build infrastructure ✅
 
-- `tools/build/merge_CTLD.ps1`: concatenates `src/` → `CTLD_Next.lua`
+- `tools/build/merge_CTLD.ps1`: concatenates `src/` → `CTLD.lua`
 - `tools/build/listToMerge.txt`: canonical load order
 - `tools/build/generate_i18n_dicts.ps1`: syncs i18n keys across languages
 
@@ -1059,10 +1059,10 @@ Each wrapper logs a deprecation warning and delegates to the v2 manager.
 
 | Task | Status | Detail |
 | ---- | ------ | ------ |
-| 6.1 | ✅ Done | `tools/build/merge_CTLD.ps1` → `CTLD_Next.lua` |
+| 6.1 | ✅ Done | `tools/build/merge_CTLD.ps1` → `CTLD.lua` |
 | 6.2 | ✅ Done | GitHub Actions — run busted tests [2026-04-15] |
-| 6.3 | ✅ Done | GitHub Actions — build `CTLD_Next.lua` on push [2026-04-15] |
-| 6.4 | ✅ Done | GitHub Actions — release artifact on tag `v*` → GitHub Release + CTLD_Next.lua [2026-04-16] |
+| 6.3 | ✅ Done | GitHub Actions — build `CTLD.lua` on push [2026-04-15] |
+| 6.4 | ✅ Done | GitHub Actions — release artifact on tag `v*` → GitHub Release + CTLD.lua [2026-04-16] |
 | 6.5 | ✅ Done | GitHub Actions — MkDocs deploy to GitHub Pages (push master → gh-pages) [2026-04-16] |
 | 6.6 | ✅ Done | i18n lint: `tools/build/generate_i18n_dicts.ps1` |
 
@@ -1486,14 +1486,14 @@ F-120→F-123 (vehicle load/unload), F-140→F-146 (multi-group) — ~45 tests
 #### L3 — noPlayer (DCS + Witchcraft, pas de slot joueur)
 
 1. Lancer DCS avec la mission de test, Witchcraft activé
-2. Injecter `CTLD_Next.lua` (après rebuild si src/ modifié) + attendre 3–5 s
+2. Injecter `CTLD.lua` (après rebuild si src/ modifié) + attendre 3–5 s
 3. Injecter le script `tests/dcs/noPlayer/F-xxx.lua` ou `scenario_xxx.lua`
 4. Lire `tests/dcs/CTLD.log` : `fail=0` + aucun `[FAIL]`
 
 #### L4 — pilotPassive (DCS + joueur en cockpit, script pilote)
 
 1. Prendre un slot transport BLUE (UH-1H ou équivalent)
-2. Injecter `CTLD_Next.lua` + attendre init
+2. Injecter `CTLD.lua` + attendre init
 3. Injecter le scénario `tests/dcs/pilotPassive/scenario_xxx.lua`
 4. Observer — aucune action F10 requise
 5. Vérifier `[PASS]` sur tous les steps + contrôles visuels
@@ -1501,7 +1501,7 @@ F-120→F-123 (vehicle load/unload), F-140→F-146 (multi-group) — ~45 tests
 #### L5 — pilotActive (DCS + joueur doit agir au menu F10)
 
 1. Prendre un slot transport BLUE
-2. Injecter `CTLD_Next.lua` + attendre init
+2. Injecter `CTLD.lua` + attendre init
 3. Injecter le scénario `tests/dcs/pilotActive/scenario_xxx.lua`
 4. Suivre les instructions à l'écran — effectuer les actions F10 demandées
 5. Vérifier `[PASS]` + validation visuelle menu

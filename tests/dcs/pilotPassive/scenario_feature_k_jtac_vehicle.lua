@@ -18,7 +18,7 @@
 
 -- ── Witchcraft guard ─────────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[FEAT-K] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[FEAT-K] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

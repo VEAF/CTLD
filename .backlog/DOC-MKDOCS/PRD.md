@@ -2,7 +2,7 @@
 
 Status: ✅ done
 Branch: feature/doc-mkdocs → PR → develop
-Program: re-tooling CTLD_Next on the VMCT model (see `.backlog/README.md`)
+Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 
 ## Problem Statement
 
@@ -40,4 +40,4 @@ role-based restructure (pilot / mission-maker / developer), FR translations, and
 ## Further Notes
 
 One-time repo setting after the first deploy creates `gh-pages`: enable GitHub Pages with source =
-`gh-pages` branch (root). Site URL: https://veaf.github.io/CTLD_Next/.
+`gh-pages` branch (root). Site URL: https://veaf.github.io/CTLD/.

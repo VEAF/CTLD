@@ -89,7 +89,7 @@ Reach out to [Zip on Discord](https://discordapp.com/users/421317390807203850) t
 - **i18n** — English (default), French, Spanish, Korean; fully translatable via key files
 - **No MIST dependency** — v2 runs standalone (all MIST utilities replaced internally)
 - **Events API** — 38 typed events via `EventDispatcher`; subscribe per-event with callbacks
-- **CI-built** — every commit produces a validated `CTLD_Next.lua`; releases published on GitHub Releases
+- **CI-built** — every commit produces a validated `CTLD.lua`; releases published on GitHub Releases
 
 ---
 
@@ -97,16 +97,16 @@ Reach out to [Zip on Discord](https://discordapp.com/users/421317390807203850) t
 
 ### Static load (production)
 
-1. Download `CTLD_Next.lua` from the [latest GitHub Release](../../releases/latest).
-2. In the DCS Mission Editor, add a **MISSION START → DO SCRIPT FILE** trigger pointing to `CTLD_Next.lua`.
+1. Download `CTLD.lua` from the [latest GitHub Release](../../releases/latest).
+2. In the DCS Mission Editor, add a **MISSION START → DO SCRIPT FILE** trigger pointing to `CTLD.lua`.
 3. Optionally add a second trigger loading your `CTLD_userConfig.lua` (configuration overrides).
 
 ### Dynamic load (development)
 
 For live development without rebuilding the `.miz` each time:
 
-1. Run `tools/build/merge_CTLD.ps1` after each source edit to regenerate `CTLD_Next.lua`.
-2. Place `CTLD_Next.lua` in a fixed local path and use a `DO SCRIPT` trigger with `dofile("your/path/CTLD_Next.lua")`.
+1. Run `tools/build/merge_CTLD.ps1` after each source edit to regenerate `CTLD.lua`.
+2. Place `CTLD.lua` in a fixed local path and use a `DO SCRIPT` trigger with `dofile("your/path/CTLD.lua")`.
 3. Reload the mission in DCS (`Left Shift + R`) — no `.miz` re-packaging needed.
 
 ### Required sound files
@@ -1130,7 +1130,7 @@ cd tools/build
 powershell -ExecutionPolicy Bypass -File tools/build/merge_CTLD.ps1
 ```
 
-Output: `CTLD_Next.lua` at repo root.
+Output: `CTLD.lua` at repo root.
 
 **Testing:**
 
@@ -1144,4 +1144,4 @@ busted tests/
 
 Tests live in `tests/unit/` (L1 — unit) and `tests/functional/` (L2 — functional). DCS stubs and module loaders are in `tests/helpers/`. See `docs/dev-guide.md §8` for the full testing guide including Witchcraft live-DCS tests (L3/L4).
 
-**CI:** every push to `master` or `feature_*` branches runs Lua lint, merge build, and busted tests automatically. Every `v*` tag creates a GitHub Release with `CTLD_Next.lua` attached.
+**CI:** every push to `master` or `feature_*` branches runs Lua lint, merge build, and busted tests automatically. Every `v*` tag creates a GitHub Release with `CTLD.lua` attached.

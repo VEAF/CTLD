@@ -1,10 +1,10 @@
 -- ============================================================
 -- CTLD_userConfig.lua
--- User configuration — load AFTER CTLD_Next.lua in the mission.
+-- User configuration — load AFTER CTLD.lua in the mission.
 --
 -- HOW TO USE
 --   In the Mission Editor, add a trigger "MISSION START → DO SCRIPT FILE"
---   and select this file.  It must run AFTER CTLD_Next.lua.
+--   and select this file.  It must run AFTER CTLD.lua.
 --
 -- All values below are the factory defaults.
 -- Uncomment and edit only the lines you want to change.
@@ -969,7 +969,7 @@ end
 -- AUTO-START
 -- Boots all CTLD singletons after config is applied.
 -- Set ctld.dontInitialize = true in your mission script BEFORE
--- loading CTLD_Next.lua if you need to call ctld.initialize()
+-- loading CTLD.lua if you need to call ctld.initialize()
 -- manually (e.g. to run additional setup between loading and starting).
 -- ============================================================
 

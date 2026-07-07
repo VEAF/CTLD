@@ -11,7 +11,7 @@
 --   5. Verifies a scene was started (CTLDSceneManager._active not empty)
 --
 -- Prerequisites:
---   - CTLD_Next.lua injected (>= 3 s before this script)
+--   - CTLD.lua injected (>= 3 s before this script)
 --   - No position constraints (crates spawned at DROP_POS below)
 -- =============================================================================
 

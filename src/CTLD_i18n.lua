@@ -189,7 +189,7 @@ end
 -- Translator audit helper — call from a DO SCRIPT trigger (dev/QA only)
 -- =====================================================================
 --[[
--- Run after CTLD_Next.lua to get a per-language gap report in DCS.log:
+-- Run after CTLD.lua to get a per-language gap report in DCS.log:
 --
 --   local results = ctld.i18n_auditAll()
 --   for lang, r in pairs(results) do

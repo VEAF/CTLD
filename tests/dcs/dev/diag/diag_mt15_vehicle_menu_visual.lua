@@ -14,7 +14,7 @@
 --
 -- Prérequis :
 --   - Slot "Batumi_UH-1H_0-1" occupé
---   - CTLD_Next.lua injecté (≥3 s avant ce script)
+--   - CTLD.lua injecté (≥3 s avant ce script)
 -- =============================================================================
 
 local PLAYER_SLOT = "Batumi_UH-1H_0-1"

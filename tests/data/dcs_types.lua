@@ -1,7 +1,7 @@
 -- DCS type-name set (units + statics + heliports).
 -- GENERATED from https://github.com/Quaggles/dcs-lua-datamine.git @ dc7d15e8e34150441b109346eea4ca18eb0104a7
 -- by tools/dcs-data/gen_dcs_types.py. DO NOT EDIT BY HAND.
--- NOT shipped in CTLD_Next.lua; used only by the offline config linter.
+-- NOT shipped in CTLD.lua; used only by the offline config linter.
 -- 1143 types.
 return {
     [".Ammunition depot"] = true,

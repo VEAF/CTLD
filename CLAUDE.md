@@ -1,9 +1,9 @@
-# CTLD_Next — Claude Code Instructions
+# CTLD — Claude Code Instructions
 
-> CTLD_Next is a modular, testable rewrite of the CTLD (Combined Transport and Logistics
+> CTLD is a modular, testable rewrite of the CTLD (Combined Transport and Logistics
 > Dispatcher) script for DCS World. Pure Lua 5.1 source in `src/` is merged into a single
-> deliverable `CTLD_Next.lua` by a PowerShell build. Tooling (build, test runner, docs) may use
-> PowerShell / Python / Node; **only `CTLD_Next.lua` must be pure Lua 5.1**.
+> deliverable `CTLD.lua` by a PowerShell build. Tooling (build, test runner, docs) may use
+> PowerShell / Python / Node; **only `CTLD.lua` must be pure Lua 5.1**.
 
 ## Language
 
@@ -25,8 +25,8 @@
 - **Lua 5.1 only** — no 5.2+ syntax (`goto`, `<const>`, `table.move`, `utf8.*`, `math.type`…).
   Enforced by CI `lua-lint` (`luac5.1 -p`).
 - **luacheck** `--config .luacheckrc src/` must be clean (rely on CI if not installed locally).
-- **Build**: `powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1` → `CTLD_Next.lua`
-  in UTF-8 without BOM. `CTLD_Next.lua` is **generated — never hand-edit**; rebuild after any
+- **Build**: `powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1` → `CTLD.lua`
+  in UTF-8 without BOM. `CTLD.lua` is **generated — never hand-edit**; rebuild after any
   `src/` change.
 - **TDD**: write a failing busted test first, make it pass, refactor. New/changed logic ships with
   tests. Coverage gate is a ratchet — it only ever goes up.

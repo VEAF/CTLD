@@ -120,7 +120,7 @@ touches that perimeter.
 - Mission with group `red_FARP` containing unit `red_FARP-1` (RED coalition FARP)
 - Player in BLUE coalition transport (UH-1H recommended)
 - Scripts injected **in order**:
-  1. `CTLD_Next.lua` — wait 3-5 s
+  1. `CTLD.lua` — wait 3-5 s
   2. `recette/enable_debug.lua` — sets `debug=true` **and** `reconEnabled=true`
   3. `recette/inject_red_fob.lua` — spawns RED FOB ~300 m north of red_FARP, registers it in CTLDFOBManager
 

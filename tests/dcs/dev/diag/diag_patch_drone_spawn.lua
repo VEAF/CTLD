@@ -1,6 +1,6 @@
 -- diag_patch_drone_spawn.lua
 -- Monkey-patch CTLDVehicleSpawner:_spawnGroundUnit to handle drone types.
--- Run this before diag_spawn_drone.lua when CTLD_Next.lua is an older build.
+-- Run this before diag_spawn_drone.lua when CTLD.lua is an older build.
 
 local _DRONE_TYPES = { ["MQ-9 Reaper"] = true, ["RQ-1A Predator"] = true }
 

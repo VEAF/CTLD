@@ -1,4 +1,4 @@
-# CONTEXT — CTLD_Next ubiquitous language
+# CONTEXT — CTLD ubiquitous language
 
 Canonical glossary of the CTLD domain. Keep terms consistent across code, tests and docs. New or
 redefined terms are added here in the same move as the decision that introduces them (see
@@ -7,10 +7,10 @@ redefined terms are added here in the same move as the decision that introduces 
 ## Core concept
 
 - **CTLD** — Combined Transport and Logistics Dispatcher: a DCS World mission script letting
-  helicopter/transport crews move troops, vehicles and supply crates around the battlefield.
-- **CTLD_Next** — the modular OOP rewrite (this project). Source in `src/`, merged into the single
-  deliverable `CTLD_Next.lua`.
-- **Legacy / `source`** — the original monolithic `CTLD.lua` in `migration/source/`, kept as the
+  helicopter/transport crews move troops, vehicles and supply crates around the battlefield. This
+  project is its modular OOP rewrite (targeting **v2.0.0**): source in `src/`, merged into the
+  single deliverable `CTLD.lua`.
+- **Legacy / `source`** — the original monolithic v1 `CTLD.lua` in `migration/source/`, kept as the
   immutable functional-parity reference.
 
 ## Architecture terms

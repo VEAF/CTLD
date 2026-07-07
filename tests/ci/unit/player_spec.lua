@@ -201,13 +201,13 @@ describe("CTLDPlayerManager _detectCapabilities", function()
         return u
     end
 
-    -- UH-1H: in capabilitiesByType, canTransportWholeVehicle=true (CTLD_Next config)
+    -- UH-1H: in capabilitiesByType, canTransportWholeVehicle=true (CTLD config)
     it("UH-1H: isTransport == true", function()
         local isT, _ = mgr:_detectCapabilities(mockUnit("UH-1H"))
         assert.is_true(isT)
     end)
 
-    it("UH-1H: canCarryVehicles == true (CTLD_Next config)", function()
+    it("UH-1H: canCarryVehicles == true (CTLD config)", function()
         local _, canV = mgr:_detectCapabilities(mockUnit("UH-1H"))
         assert.is_true(canV)
     end)

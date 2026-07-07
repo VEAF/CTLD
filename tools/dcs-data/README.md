@@ -7,7 +7,7 @@ type names (units + statics + heliports), extracted from
 
 - **Not shipped**: `tests/data/dcs_types.lua` is used only by the offline config linter
   (`tests/ci/unit/config_types_lint_spec.lua`); it is never added to
-  `tools/build/listToMerge.txt`, so `CTLD_Next.lua` stays lean.
+  `tools/build/listToMerge.txt`, so `CTLD.lua` stays lean.
 - **Extraction**: in the datamine dump each unit is `_G/db/Units/<Category>/<Type>/<TypeName>.lua`
   and the basename equals the DCS spawn `type` id — so the set is just those basenames
   (purely-numeric helper files excluded).

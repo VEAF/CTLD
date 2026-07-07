@@ -5,7 +5,7 @@ Claude Code on this repo). They are **inert for anyone not using Claude Code**.
 
 | Hook | Event | What it does |
 |------|-------|--------------|
-| `block-protected-paths.sh` | PreToolUse (Edit/Write/MultiEdit) | Blocks edits to `migration/source/**` (immutable legacy reference) and `CTLD_Next.lua` (generated artifact). Exits 2 to veto the edit. |
+| `block-protected-paths.sh` | PreToolUse (Edit/Write/MultiEdit) | Blocks edits to `migration/source/**` (immutable legacy reference) and `CTLD.lua` (generated artifact). Exits 2 to veto the edit. |
 | `luacheck-on-edit.sh` | PostToolUse (Edit/Write/MultiEdit) | Runs `luacheck` on an edited `src/**/*.lua` file. Best-effort and non-blocking — no-op if `luacheck` is absent (e.g. Windows without it installed). |
 
 ## Requirements & behavior
@@ -18,4 +18,4 @@ Claude Code on this repo). They are **inert for anyone not using Claude Code**.
 
 The scripts read the tool-call JSON on stdin and extract `file_path` (handling both `/` and `\`
 paths). They were tested against representative inputs (protected paths blocked, `src/` files
-allowed, no false positive on `src/...CTLD_Next...` names).
+allowed, no false positive on `src/...CTLD...` names).

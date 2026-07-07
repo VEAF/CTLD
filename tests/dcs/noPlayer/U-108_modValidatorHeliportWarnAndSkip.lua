@@ -6,7 +6,7 @@
 --   C2: isStaticInvalid("SINGLE_HELIPAD") → false (type not probed, not in cache as invalid)
 --   C3: a WARN log is emitted for each Heliport type found in registry
 --   C4: other probe types (GROUND/STATIC) still function normally
--- Requires: DCS active, CTLD_Next injected
+-- Requires: DCS active, CTLD injected
 
 local _t = { pass=0, fail=0, msgs={} }
 local function chk(label, cond)

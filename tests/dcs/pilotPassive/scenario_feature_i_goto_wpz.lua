@@ -13,13 +13,13 @@
 --
 -- Pre-requisites:
 --   - BLUE player slot occupied (any aircraft)
---   - CTLD fully initialised (inject CTLD_Next.lua + 5s wait before this scenario)
+--   - CTLD fully initialised (inject CTLD.lua + 5s wait before this scenario)
 --   - recette/enable_debug.lua injected before this scenario
 -- =============================================================================
 
 -- ── Witchcraft guard ─────────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[FI-WPZ] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[FI-WPZ] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

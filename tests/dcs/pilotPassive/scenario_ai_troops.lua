@@ -12,7 +12,7 @@
 --   - Zone DCS trigger "AIZ_base_B_P_5"  (rayon ~200 m, centré sur WP1)
 --   - Zone DCS trigger "AIZ_front_B_D"   (rayon ~200 m, centré sur WP3)
 --   - Slot BLUE occupé (joueur humain en slot pour MenuManager)
---   - CTLD_Next.lua injecté avant ce script (attendre 3-5 s)
+--   - CTLD.lua injecté avant ce script (attendre 3-5 s)
 --
 -- Cinématique (4 steps, injection unique) :
 --   S1 [auto]  Init + activation héli AI
@@ -27,7 +27,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[MT-07] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[MT-07] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

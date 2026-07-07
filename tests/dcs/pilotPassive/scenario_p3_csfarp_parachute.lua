@@ -14,7 +14,7 @@
 --
 -- Prérequis :
 --   - UH-1H BLUE au sol
---   - Inject CTLD_Next.lua first, wait 3–5 s for init.
+--   - Inject CTLD.lua first, wait 3–5 s for init.
 --
 -- @scenario  P3-CSFARP
 -- @version   3.0 — 2026-06-30
@@ -23,7 +23,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[P3-CSFARP] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[P3-CSFARP] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

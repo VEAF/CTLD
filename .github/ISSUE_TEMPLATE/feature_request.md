@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an improvement or new capability for CTLD_Next
+about: Suggest an improvement or new capability for CTLD
 title: "[feature] "
 labels: enhancement
 ---
@@ -11,7 +11,7 @@ What are you trying to achieve? What is missing or awkward today?
 
 ## Proposed solution
 
-What would you like CTLD_Next to do?
+What would you like CTLD to do?
 
 ## Alternatives considered
 

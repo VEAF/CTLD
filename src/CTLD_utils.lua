@@ -1823,7 +1823,7 @@ end
 -- Keep ctld.debug=false on standard sanitized DCS installations.
 -- ====================================================================================================
 
--- File handle stored in ctld namespace so it survives CTLD_Next.lua re-injections.
+-- File handle stored in ctld namespace so it survives CTLD.lua re-injections.
 -- (A local upvalue would be reset to nil on every re-injection of the merged script.)
 -- ctld.__logFile is set by initLog(), cleared by closeLog(), never reset at module level.
 
@@ -2195,7 +2195,7 @@ end
 --   local fid = timer.scheduleFunction(myLoop, nil, timer.getTime() + 5)
 --   ctld.scheduler.register("my_loop_name", fid)
 --
--- Shutdown (inject tests/dcs/util/shutdown_ctld.lua before re-injecting CTLD_Next):
+-- Shutdown (inject tests/dcs/util/shutdown_ctld.lua before re-injecting CTLD):
 --   ctld.scheduler.cancelAll()
 -- ============================================================
 
@@ -2223,7 +2223,7 @@ function ctld.scheduler.cancel(name)
     end
 end
 
---- Cancel all registered loops (call before re-injecting CTLD_Next.lua).
+--- Cancel all registered loops (call before re-injecting CTLD.lua).
 function ctld.scheduler.cancelAll()
     local n = 0
     for name, fid in pairs(ctld.scheduler._ids) do

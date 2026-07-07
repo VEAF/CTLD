@@ -18,7 +18,7 @@
 -- Prérequis :
 --   - Helicopter group "uh1" / unit "uh1-1" present and on ground near Batumi
 --   - JTAC_dropEnabled = true, BLUE coalition
---   - Inject CTLD_Next.lua first, wait 3–5 s for init.
+--   - Inject CTLD.lua first, wait 3–5 s for init.
 --
 -- @scenario  JTAC-DRONE
 -- @version   3.0 — 2026-06-30
@@ -27,7 +27,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[JTAC-DRONE] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[JTAC-DRONE] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

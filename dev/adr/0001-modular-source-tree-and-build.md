@@ -13,7 +13,7 @@ one file.
 ## Decision
 
 Split the source into a modular tree under `src/` (~32 focused files, one per domain plus a
-`core/` foundation), and concatenate them into a single deliverable `CTLD_Next.lua` via a
+`core/` foundation), and concatenate them into a single deliverable `CTLD.lua` via a
 PowerShell build (`tools/build/merge_CTLD.ps1`). Concatenation order is controlled by
 `tools/build/listToMerge.txt`. The output is written in **UTF-8 without BOM** (required by the DCS
 Lua engine) and is a **generated artifact — never hand-edited**.

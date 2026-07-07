@@ -1194,7 +1194,7 @@ Récapitulatif des paginations :
 | Fichier | Rôle |
 |---|---|
 | `listToMerge.txt` | Liste ordonnée des fichiers source à fusionner |
-| `merge_CTLD.ps1` | Script PowerShell de fusion : concatène les fichiers → `CTLD_Next.lua` |
+| `merge_CTLD.ps1` | Script PowerShell de fusion : concatène les fichiers → `CTLD.lua` |
 
 > Build : `powershell -ExecutionPolicy Bypass -File "tools\\build\\merge_CTLD.ps1"`
 

@@ -2,7 +2,7 @@
 .idea/encodings.xml
 *.xml
 
-# CTLD_Next.lua is intentionally tracked — available at repo root for DCS missions.
+# CTLD.lua is intentionally tracked — available at repo root for DCS missions.
 # Do NOT add it to .gitignore.
 
 # ── Local-only recette scratch files (never commit) ──────────────────────────

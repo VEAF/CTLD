@@ -2,7 +2,7 @@
 -- tests/unit/troop_manager_spec.lua
 -- busted specs for CTLDTroopGroup and CTLDTroopManager
 -- Reference: live_tests/unit/U-035 through U-038, U-076 through U-081
--- CTLD_Next adaptations vs DCS-CTLD_FG references:
+-- CTLD adaptations vs DCS-CTLD_FG references:
 --   * STATE.TRZ_LOADED (not LOADED) is the initial state
 --   * isInTransit() = true for TRZ_LOADED | FIELD_LOADED
 --   * _inTransit[unitName] = list of groups (not single group)
