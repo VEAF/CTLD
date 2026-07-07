@@ -35,7 +35,11 @@ _OUT = _REPO_ROOT / "tests" / "data" / "dcs_types.lua"
 
 
 def _run(args: list[str], cwd: Path) -> None:
-    subprocess.run(args, cwd=cwd, check=True, stdout=subprocess.DEVNULL)
+    # Safe: fixed git argv list (no shell=True), and all dynamic values (ref, sparse
+    # paths) are validated against _REF_RE by the callers before reaching here.
+    subprocess.run(  # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit
+        args, cwd=cwd, check=True, stdout=subprocess.DEVNULL
+    )
 
 
 def clone_units(dest: Path, ref: str = DATAMINE_REF) -> Path:
