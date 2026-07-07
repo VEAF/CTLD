@@ -23,6 +23,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - **Removed the broken `docs` job** — docs publication moves to the DOC-MKDOCS lot (no `mkdocs.yml`
   exists yet).
 
+### Documentation (internal)
+
+- **Architecture Decision Records** — added `dev/adr/` with the key retroactive decisions of the
+  v2.0.0 rewrite (modular tree + build, OOP Manager/Entity, MIST removal, legacy API, repack→pack).
+
 ---
 
 ## [2.0.0] — 2026-07-06
