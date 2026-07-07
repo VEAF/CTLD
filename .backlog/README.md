@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| _(none)_ | | | |
+| `DCS-DATAMINE-VENDOR` | 🔄 in-progress | Vendored DCS type set (datamine, not shipped) + offline config type linter | `feature/dcs-datamine-vendor` |
 
 ### Planned lots
 
@@ -27,8 +27,6 @@ authored **per lot, when the lot is started** (not in batch).
 | `DCS-BRIDGE-MCP` | Wire VEAF-dcs-bridge (`.mcp.json`, `dcs-client mcp`), integration-testing skill, retire Witchcraft |
 | `INTEGRATION-TEST-TAGS` | `-- @tier: auto\|auto-check\|ia` header convention, pre-tag the ~267 scenarios |
 | `INTEGRATION-TEST-RUNNER` | Python runner over dcs-serve REST (`/api/exec`), tier filtering, JUnit report, "run without AI" |
-| `DCS-DATAMINE-VENDOR` | Vendor DCS type/unit data from Quaggles/dcs-lua-datamine for `CTLD_modValidator` |
-| `STYLUA-ADOPTION` | Sign off on `stylua.toml` style, reviewed baseline reformat, then make the stylua CI check blocking |
 
 ### Delivered (socle, this program)
 
@@ -36,9 +34,15 @@ authored **per lot, when the lot is started** (not in batch).
 |-----|-------------|
 | `REPO-BOOTSTRAP` | New VEAF repo, clean history, Git Flow `develop`/`master` |
 | `PROCESS-SCAFFOLD` | Lean `CLAUDE.md`, `.backlog/`, `CONTEXT.md`, `dev/agents/`, `dcs-runtime-debug` skill, history cleanup |
-| `CI-REVAMP` ✅ | CI on `develop`, single build source, coverage ratchet (59%/61.56%), gitleaks, hygiene (PR #1). stylua deferred to a dedicated lot. |
+| `CI-REVAMP` ✅ | CI on `develop`, single build source, coverage ratchet (59%/61.56%), gitleaks, hygiene (PR #1). |
 | `CONTEXT-ADR` ✅ | Retroactive ADRs 0001–0005 in `dev/adr/` (PR #4). |
 | `CLAUDE-AUTOMATIONS` ✅ | Project hooks (block protected paths, luacheck-on-edit) + subagents lua51/parity (PR #5). |
+
+## Dropped lots
+
+| Lot | Status | Reason |
+|-----|--------|--------|
+| `STYLUA-ADOPTION` | 🚫 wontfix | Adoption would reformat ~500 files for marginal benefit (code already consistent + luacheck-clean), and requires first untangling pre-existing CRLF blobs against a global `core.autocrlf=true`. Not worth it; `stylua.toml` removed. luacheck stays the sole Lua gate. |
 
 ## Archived lots
 
