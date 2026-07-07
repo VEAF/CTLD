@@ -3,7 +3,6 @@ name: CI
 on:
   push:
     branches: [develop, master]
-    tags: ['v*']            # release job (owned by the RELEASE lot)
   pull_request:
     branches: [develop, master]
   workflow_dispatch:        # manual trigger from the Actions UI
@@ -114,28 +113,4 @@ jobs:
             exit 1
           }
 
-  # ─────────────────────────────────────────────────────────────
-  # GitHub Release (version tags v*) — OWNED BY THE RELEASE LOT.
-  # Left as-is for now; the RELEASE lot will consolidate its build with
-  # tools/build/merge_CTLD.ps1 and add release notes.
-  # ─────────────────────────────────────────────────────────────
-  release:
-    name: GitHub Release
-    runs-on: windows-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build CTLD_Next.lua
-        run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1
-        shell: pwsh
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $tag = "${{ github.ref_name }}"
-          gh release create $tag CTLD_Next.lua `
-            --title "CTLD $tag" `
-            --notes "Build produced automatically from ``src/`` by the CI pipeline."
-        shell: pwsh
+  # Releases are handled by .github/workflows/release.yml (tag published-v*).
