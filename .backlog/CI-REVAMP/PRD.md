@@ -1,7 +1,7 @@
 # Lot CI-REVAMP — professional-grade CI for CTLD_Next
 
-Status: ⬜ ready
-Branch: feature/ci-revamp → PR → develop
+Status: ✅ done
+Branch: feature/ci-revamp → PR #1 → develop (merged)
 Program: re-tooling CTLD_Next on the VMCT model (see `.backlog/README.md`)
 
 ## Problem Statement

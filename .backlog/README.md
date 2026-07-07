@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `CI-REVAMP` | ⬜ ready | Cover `develop`, factor the merge, coverage ratchet, stylua, gitleaks/dependabot/CODEOWNERS, PR/issue templates (PRD + 7 tickets) | `feature/ci-revamp` (tbd) |
+| _(none)_ | | | |
 
 ### Planned lots
 
@@ -30,6 +30,7 @@ authored **per lot, when the lot is started** (not in batch).
 | `INTEGRATION-TEST-RUNNER` | Python runner over dcs-serve REST (`/api/exec`), tier filtering, JUnit report, "run without AI" |
 | `DCS-DATAMINE-VENDOR` | Vendor DCS type/unit data from Quaggles/dcs-lua-datamine for `CTLD_modValidator` |
 | `CLAUDE-AUTOMATIONS` | Hooks (block `migration/source/` + `CTLD_Next.lua`, luacheck on edit), subagents (lua51-compliance, legacy-parity) |
+| `STYLUA-ADOPTION` | Sign off on `stylua.toml` style, reviewed baseline reformat, then make the stylua CI check blocking |
 
 ### Delivered (socle, this program)
 
@@ -37,6 +38,7 @@ authored **per lot, when the lot is started** (not in batch).
 |-----|-------------|
 | `REPO-BOOTSTRAP` | New VEAF repo, clean history, Git Flow `develop`/`master` |
 | `PROCESS-SCAFFOLD` | Lean `CLAUDE.md`, `.backlog/`, `CONTEXT.md`, `dev/agents/`, `dcs-runtime-debug` skill, history cleanup |
+| `CI-REVAMP` ✅ | CI on `develop`, single build source, coverage ratchet (59%/61.56%), gitleaks, hygiene (PR #1). stylua deferred to a dedicated lot. |
 
 ## Archived lots
 
