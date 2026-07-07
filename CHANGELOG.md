@@ -6,6 +6,25 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased]
+
+### CI / tooling
+
+- **CI covers `develop`** — pushes to `develop` and PRs targeting `develop` now run the full
+  pipeline (previously only `master`/`feature_*`).
+- **Single build source** — the CI build job calls `tools/build/merge_CTLD.ps1` instead of a
+  duplicated inline merge, so `CTLD_Next.lua` is produced one canonical way.
+- **Coverage ratchet** — the busted job measures coverage and enforces a floor that only ever
+  rises (`COVERAGE_FLOOR`).
+- **Secret scanning** — gitleaks runs on push and PR.
+- **Formatting** — added `stylua.toml`; CI enforcement is deferred to a dedicated stylua-adoption
+  lot (style-config sign-off + reviewed baseline reformat) rather than a noisy report-only job.
+- **Repo hygiene** — `dependabot.yml` (github-actions), `CODEOWNERS`, issue/PR templates.
+- **Removed the broken `docs` job** — docs publication moves to the DOC-MKDOCS lot (no `mkdocs.yml`
+  exists yet).
+
+---
+
 ## [2.0.0] — 2026-07-06
 
 Complete ground-up modular rewrite of DCS-CTLD as a maintainable, testable, and extensible Lua project.
