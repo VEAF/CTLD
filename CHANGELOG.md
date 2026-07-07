@@ -42,6 +42,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   verified against current `src/` and corrected for drift (stale method names, TRZ naming, dead
   states, `Repack`→`pack`, etc.). Old sources and `migration/specs/` removed; broken links and
   gaps fixed; `mkdocs build --strict` is clean.
+- **User guide split by role (DOC-USER-ROLES)** — split the 2062-line monolithic
+  `docs/missionmaker_guide.md` into two **bilingual (EN + FR)** role-based sections:
+  `docs/pilot/` (in-flight F10 operations — troop transport, crates, vehicles, sling-load,
+  parachute, JTAC, recon, beacons, smoke, pack) and `docs/mission-maker/` (Mission Editor + config
+  setup — configuration, zones, scenes & FOB, crate catalogue, minefield, translations, legacy API).
+  Mixed sections were reorganised by subsection (config → mission-maker, F10 actions → pilot).
+  Every page was verified against current `src/` and corrected for drift (menu paths
+  `F10 → CTLD → …`, stale config keys, dead request-vehicle branch, AA template counts, legacy
+  wrapper signatures, no `EXZ` prefix, etc.). The monolith removed; nav gains Pilot + Mission Maker
+  sections; broken links fixed; `mkdocs build --strict` clean.
 
 ### Fixed
 

@@ -1,6 +1,6 @@
 # 02 — Subsystems page (EN)
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 ## What to build

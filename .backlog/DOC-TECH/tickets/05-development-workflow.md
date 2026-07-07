@@ -1,6 +1,6 @@
 # 05 — Development workflow page (NEW, required deliverable)
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 ## What to build

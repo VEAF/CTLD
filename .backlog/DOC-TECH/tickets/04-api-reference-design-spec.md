@@ -1,6 +1,6 @@
 # 04 — API reference & design spec pages (EN)
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 ## What to build
