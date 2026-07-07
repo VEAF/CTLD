@@ -1,6 +1,6 @@
 # Lot DOC-USER-ROLES — split the user guide by role
 
-Status: 🚧 in progress
+Status: ✅ done
 Branch: feature/doc-user-roles → PR → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 
