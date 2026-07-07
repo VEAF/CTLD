@@ -14,13 +14,12 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| _(none)_ | | | |
+| `CONTEXT-ADR` | 🔄 in-progress | Retroactive ADRs in `dev/adr/` (0001–0005) + domain memory | `feature/context-adr` |
 
 ### Planned lots
 
 | Lot | Description |
 |-----|-------------|
-| `CONTEXT-ADR` | Retroactive ADRs in `dev/adr/` (OOP split, MIST removal, Legacy API, scene engine, repack→pack) + refine `CONTEXT.md` |
 | `RELEASE` | Interactive `release` skill + `release.yml` (tag `published-v*`), release-notes workflow |
 | `DOC-MKDOCS` | mkdocs-material infra, EN default + FR (i18n), `mike`, Pages deploy |
 | `DOC-TECH` | Technical doc refonte: consolidate `docs/dev-guide`+`api-reference` and `migration/specs/`, fill gaps → `docs/developer/` |
