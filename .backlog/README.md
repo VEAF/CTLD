@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `DCS-DATAMINE-VENDOR` | 🔄 in-progress | Vendored DCS type set (datamine, not shipped) + offline config type linter | `feature/dcs-datamine-vendor` |
+| _(none)_ | | | |
 
 ### Planned lots
 
@@ -37,6 +37,7 @@ authored **per lot, when the lot is started** (not in batch).
 | `CI-REVAMP` ✅ | CI on `develop`, single build source, coverage ratchet (59%/61.56%), gitleaks, hygiene (PR #1). |
 | `CONTEXT-ADR` ✅ | Retroactive ADRs 0001–0005 in `dev/adr/` (PR #4). |
 | `CLAUDE-AUTOMATIONS` ✅ | Project hooks (block protected paths, luacheck-on-edit) + subagents lua51/parity (PR #5). |
+| `DCS-DATAMINE-VENDOR` ✅ | Vendored DCS type set (not shipped) + offline config type linter (PR #6). |
 
 ## Dropped lots
 
