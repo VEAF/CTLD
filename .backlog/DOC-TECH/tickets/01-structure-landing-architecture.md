@@ -1,6 +1,6 @@
 # 01 — Developer section: structure, landing & architecture (EN)
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 ## What to build

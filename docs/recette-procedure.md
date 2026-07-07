@@ -217,4 +217,4 @@ Before tagging `vX.Y`:
 - [ ] L5 passed if any F10 menu structure changed.
 - [ ] `tests/recette.md` updated (new rows + coverage summary).
 - [ ] `migration/MODERNIZATION-PLAN.md` feature statuses up to date.
-- [ ] `docs/missionmaker_guide.md` updated if any mission-maker-visible behavior changed.
+- [ ] `docs/pilot/` and `docs/mission-maker/` updated if any user-visible behavior changed.

@@ -1,6 +1,6 @@
 # Lot DOC-TECH — technical documentation refonte
 
-Status: 🚧 in progress
+Status: ✅ done
 Branch: feature/doc-tech → PR → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 

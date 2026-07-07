@@ -59,12 +59,32 @@ extra:
     provider: mike
     default: dev
 
-# NOTE: the Developer section is the consolidated, bilingual (EN + FR) technical
-# docs (DOC-TECH). The Mission Maker guide role-split and its FR translation land
-# in DOC-USER-ROLES; the Integration Testing page is revised in DCS-BRIDGE-MCP.
+# NOTE: docs are role-based and bilingual (EN + FR). Pilot + Mission Maker sections
+# are the user-facing guides (DOC-USER-ROLES); Developer is the technical docs
+# (DOC-TECH); the Integration Testing page is revised in DCS-BRIDGE-MCP.
 nav:
   - Home: index.md
-  - Mission Maker: missionmaker_guide.md
+  - Pilot:
+    - Overview: pilot/index.md
+    - Troop transport: pilot/troop-transport.md
+    - Crates: pilot/crates.md
+    - Vehicles: pilot/vehicles.md
+    - Sling-load: pilot/slingload.md
+    - Parachute: pilot/parachute.md
+    - JTAC: pilot/jtac.md
+    - Recon: pilot/recon.md
+    - Beacons: pilot/beacons.md
+    - Smoke: pilot/smoke.md
+    - Pack: pilot/pack.md
+  - Mission Maker:
+    - Overview: mission-maker/index.md
+    - Configuration: mission-maker/configuration.md
+    - Zone setup: mission-maker/zones.md
+    - Scenes & FOB: mission-maker/scenes-fob.md
+    - Crate catalogue: mission-maker/crates-catalogue.md
+    - Minefield: mission-maker/minefield.md
+    - Translations: mission-maker/translations.md
+    - Legacy API: mission-maker/legacy-api.md
   - Developer:
     - Overview: developer/index.md
     - Development workflow: developer/workflow.md

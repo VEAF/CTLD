@@ -1,6 +1,6 @@
 # 07 — French translation of the developer docs
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 ## What to build

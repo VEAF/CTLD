@@ -1,6 +1,6 @@
 # 06 — mkdocs nav, link fixes & retire old sources (EN)
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 ## What to build
