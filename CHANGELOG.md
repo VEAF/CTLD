@@ -28,6 +28,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - **Architecture Decision Records** — added `dev/adr/` with the key retroactive decisions of the
   v2.0.0 rewrite (modular tree + build, OOP Manager/Entity, MIST removal, legacy API, repack→pack).
 
+### Claude Code automations (project)
+
+- **Protective hooks** — a PreToolUse hook blocks edits to `migration/source/**` and the generated
+  `CTLD_Next.lua`; a PostToolUse hook runs luacheck on edited `src/` Lua (best-effort). See
+  `tools/hooks/README.md`.
+- **Review subagents** — `lua51-compliance-reviewer` and `legacy-parity-checker` under `.claude/agents/`.
+
 ---
 
 ## [2.0.0] — 2026-07-06
