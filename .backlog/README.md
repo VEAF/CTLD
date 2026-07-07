@@ -22,7 +22,7 @@ authored **per lot, when the lot is started** (not in batch).
 |-----|-------------|
 | `RELEASE` | Interactive `release` skill + `release.yml` (tag `published-v*`), release-notes workflow |
 | `DOC-MKDOCS` | mkdocs-material infra, EN default + FR (i18n), `mike`, Pages deploy |
-| `DOC-TECH` | Technical doc refonte: consolidate `docs/dev-guide`+`api-reference` and `migration/specs/`, fill gaps → `docs/developer/` |
+| `DOC-TECH` | Technical doc refonte: consolidate `docs/dev-guide`+`api-reference` and `migration/specs/`, fill gaps → `docs/developer/`. MUST include a "Development workflow" page documenting the backlog process and the Matt Pocock skills used (`grill-with-docs`, `to-prd`, `to-issues`). |
 | `DOC-USER-ROLES` | Split the monolithic user guide by role → `docs/pilot/`, `docs/mission-maker/` |
 | `DCS-BRIDGE-MCP` | Wire VEAF-dcs-bridge (`.mcp.json`, `dcs-client mcp`), integration-testing skill, retire Witchcraft |
 | `INTEGRATION-TEST-TAGS` | `-- @tier: auto\|auto-check\|ia` header convention, pre-tag the ~267 scenarios |
