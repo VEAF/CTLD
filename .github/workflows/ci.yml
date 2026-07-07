@@ -105,8 +105,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Coverage ratchet floor (%). RULE: only ever increase, never decrease.
-      # Seeded conservatively; bump to (measured - 2) after the first green run (ticket 04).
-      COVERAGE_FLOOR: '50'
+      # First measured coverage was 61.56%; floor seeded at measured - ~2.5 (ticket 04).
+      COVERAGE_FLOOR: '59'
     steps:
       - uses: actions/checkout@v4
       - name: Install Lua + LuaRocks + busted + luacov
@@ -119,7 +119,8 @@ jobs:
       - name: Enforce coverage ratchet
         run: |
           luacov
-          total=$(grep -Eo '^Total[[:space:]]+[0-9]+\.[0-9]+%' luacov.report.out | grep -Eo '[0-9]+\.[0-9]+' | tail -1)
+          # The luacov Total line is: "Total  <hits> <missed> <pct>%" — take the last field.
+          total=$(awk '/^Total/ { v=$NF; sub("%","",v); print v }' luacov.report.out | tail -1)
           if [ -z "$total" ]; then
             echo "::error::Could not parse coverage total from luacov.report.out"
             tail -20 luacov.report.out || true
