@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `CLAUDE-AUTOMATIONS` | 🔄 in-progress | PreToolUse block hook (`migration/source/`, `CTLD_Next.lua`), PostToolUse luacheck, subagents lua51/parity | `feature/claude-automations` |
+| _(none)_ | | | |
 
 ### Planned lots
 
@@ -38,6 +38,7 @@ authored **per lot, when the lot is started** (not in batch).
 | `PROCESS-SCAFFOLD` | Lean `CLAUDE.md`, `.backlog/`, `CONTEXT.md`, `dev/agents/`, `dcs-runtime-debug` skill, history cleanup |
 | `CI-REVAMP` ✅ | CI on `develop`, single build source, coverage ratchet (59%/61.56%), gitleaks, hygiene (PR #1). stylua deferred to a dedicated lot. |
 | `CONTEXT-ADR` ✅ | Retroactive ADRs 0001–0005 in `dev/adr/` (PR #4). |
+| `CLAUDE-AUTOMATIONS` ✅ | Project hooks (block protected paths, luacheck-on-edit) + subagents lua51/parity (PR #5). |
 
 ## Archived lots
 
