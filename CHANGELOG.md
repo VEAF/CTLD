@@ -28,6 +28,12 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - **Architecture Decision Records** — added `dev/adr/` with the key retroactive decisions of the
   v2.0.0 rewrite (modular tree + build, OOP Manager/Entity, MIST removal, legacy API, repack→pack).
 
+### Documentation
+
+- **Docs publishing infrastructure** — `mkdocs.yml` (material, `mkdocs-static-i18n` EN default + FR,
+  `mike` versioning) + a `docs.yml` workflow deploying to the repo's `gh-pages` (`develop` → `dev`,
+  `master` → `latest`). Content restructure/translation is deferred to the DOC-TECH / DOC-USER-ROLES lots.
+
 ### Release
 
 - **Release process** — a `release` skill (consolidates the CHANGELOG into community-oriented

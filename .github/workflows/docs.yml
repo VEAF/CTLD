@@ -1,0 +1,48 @@
+name: Docs
+
+# Build and publish the mkdocs site to the repo's gh-pages branch via mike.
+#   develop -> version/alias "dev"      (site default)
+#   master  -> version/alias "latest"
+on:
+  push:
+    branches: [develop, master]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & deploy docs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # mike needs the full gh-pages history
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install docs dependencies
+        run: pip install -r docs/requirements.txt
+
+      - name: Configure git identity for mike
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Deploy (develop -> dev)
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          mike deploy --push --update-aliases dev
+          mike set-default --push dev
+
+      - name: Deploy (master -> latest)
+        if: github.ref == 'refs/heads/master'
+        run: |
+          mike deploy --push --update-aliases latest
+          mike set-default --push latest
