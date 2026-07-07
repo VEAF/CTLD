@@ -2,33 +2,27 @@ name: CI
 
 on:
   push:
-    branches: [master, 'feature_*']
-    tags: ['v*']
+    branches: [develop, master]
+    tags: ['v*']            # release job (owned by the RELEASE lot)
   pull_request:
-    branches: [master]
-  workflow_dispatch:    # allows manual trigger from GitHub Actions UI (no PR needed)
+    branches: [develop, master]
+  workflow_dispatch:        # manual trigger from the Actions UI
 
 jobs:
   # ─────────────────────────────────────────────────────────────
-  # Job 1 — Lua 5.1 syntax check (all src/**/*.lua)
-  # Uses luac5.1 -p (parse-only compile) to enforce Lua 5.1 syntax.
-  # This catches constructs invalid in DCS (goto, <<, >>, //, integer
-  # suffixes, etc.) that Lua 5.4 would silently accept.
+  # Lua 5.1 syntax check (all src/**/*.lua) — luac5.1 -p (parse-only)
+  # Catches constructs invalid in DCS (goto, <const>, integer suffixes…).
   # ─────────────────────────────────────────────────────────────
   lua-lint:
     name: Lua 5.1 Syntax Check
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Lua 5.1
         run: sudo apt-get install -y lua5.1
-
       - name: Syntax-check src/ with luac5.1
         run: |
-          failed=0
-          total=0
+          failed=0; total=0
           while IFS= read -r -d '' f; do
             total=$((total + 1))
             if ! luac5.1 -p "$f" 2>/tmp/luac_err; then
@@ -36,7 +30,6 @@ jobs:
               failed=$((failed + 1))
             fi
           done < <(find src -name "*.lua" -print0)
-          echo ""
           if [ "$failed" -gt 0 ]; then
             echo "::error::$failed / $total Lua file(s) failed Lua 5.1 syntax check."
             exit 1
@@ -44,61 +37,54 @@ jobs:
           echo "Lua 5.1 syntax OK — $total file(s) checked."
 
   # ─────────────────────────────────────────────────────────────
-  # Job 2 — Merge build (produces CTLD_Next.lua)
-  # Replicates build/merger.cmd logic in PowerShell so that
-  # the CI runner does not block on the interactive 'pause'.
-  # Missing files → warning (same behaviour as the local .cmd).
+  # Formatting check — stylua (see stylua.toml). REPORT-ONLY for now
+  # (continue-on-error): the codebase predates stylua and a reviewed
+  # baseline reformat + config sign-off is a dedicated follow-up before
+  # this gate becomes blocking.
+  # ─────────────────────────────────────────────────────────────
+  stylua:
+    name: Stylua Format Check (report-only)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Lua formatting
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ github.token }}
+          version: latest
+          args: --check src/ tests/
+
+  # ─────────────────────────────────────────────────────────────
+  # Secret scanning — gitleaks (public repo, free). See .gitleaks.toml.
+  # ─────────────────────────────────────────────────────────────
+  gitleaks:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  # ─────────────────────────────────────────────────────────────
+  # Merge build — single source of truth: tools/build/merge_CTLD.ps1.
   # ─────────────────────────────────────────────────────────────
   build:
     name: Merge Build
     runs-on: windows-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Build CTLD_Next.lua
-        id: merge
-        run: |
-          $listFile = "tools\build\listToMerge.txt"
-          $srcDir   = "src"
-          $outFile  = "CTLD_Next.lua"
-
-          # Header (mirrors merger.cmd)
-          Set-Content $outFile -Value '---@meta', '---@diagnostic disable', '' -Encoding utf8NoBOM
-
-          $warnings = 0
-          $merged   = 0
-
-          foreach ($line in (Get-Content $listFile)) {
-            # Skip comment lines and blank lines
-            if ($line -match '^\s*(--|$)') { continue }
-
-            $file = Join-Path $srcDir $line
-            if (-not (Test-Path $file)) {
-              Write-Host "::warning::File not yet in src/: $line"
-              $warnings++
-              continue
-            }
-
-            "-- ====================================================================================================" | Add-Content $outFile
-            "-- Start : $line" | Add-Content $outFile
-            Get-Content $file | Add-Content $outFile
-            ""                | Add-Content $outFile
-            "-- End : $line"  | Add-Content $outFile
-            $merged++
-          }
-
-          $size = (Get-Item $outFile).Length
-          Write-Host ""
-          Write-Host "Merged : $merged file(s)  |  Skipped (missing): $warnings"
-          Write-Host "Output : $outFile ($size bytes)"
-
-          if ($merged -eq 0) {
-            Write-Host "::error::No files were merged — output is empty."
-            exit 1
-          }
+        run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1
         shell: pwsh
-
+      - name: Verify output exists and is non-empty
+        run: |
+          if (-not (Test-Path CTLD_Next.lua)) { Write-Host "::error::CTLD_Next.lua not produced"; exit 1 }
+          if ((Get-Item CTLD_Next.lua).Length -eq 0) { Write-Host "::error::CTLD_Next.lua is empty"; exit 1 }
+        shell: pwsh
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -107,94 +93,56 @@ jobs:
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────
-  # Job 3 — busted tests (tests/ci/**/*_spec.lua)
-  # Covers: tests/ci/unit/ (L1), tests/ci/functional/ (L2).
-  # Runs entirely without DCS — DCS API is stubbed in tests/ci/helpers/.
+  # busted tests (tests/ci/**/*_spec.lua) with coverage ratchet.
+  # DCS API is stubbed in tests/ci/helpers/. Coverage floor only goes up.
   # ─────────────────────────────────────────────────────────────
   busted:
     name: busted Tests
     runs-on: ubuntu-latest
-
+    env:
+      # Coverage ratchet floor (%). RULE: only ever increase, never decrease.
+      # Seeded conservatively; bump to (measured - 2) after the first green run (ticket 04).
+      COVERAGE_FLOOR: '50'
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Lua + LuaRocks + busted
+      - name: Install Lua + LuaRocks + busted + luacov
         run: |
           sudo apt-get install -y lua5.1 liblua5.1-dev luarocks
           sudo luarocks install busted
-
-      - name: Run busted
-        run: busted tests/ci/
-
-  # ─────────────────────────────────────────────────────────────
-  # Job 4 — MkDocs deploy to GitHub Pages (master branch only)
-  # Builds the docs/ site with mkdocs-material and pushes to
-  # the gh-pages branch. Requires GitHub Pages enabled on the
-  # repo (Settings → Pages → Source: Deploy from branch gh-pages).
-  # ─────────────────────────────────────────────────────────────
-  docs:
-    name: Deploy Docs
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0   # full history needed for mkdocs git-revision-date
-
-      - name: Install MkDocs Material
-        run: pip install mkdocs-material
-
-      - name: Deploy to GitHub Pages
-        run: mkdocs gh-deploy --force
+          sudo luarocks install luacov
+      - name: Run busted with coverage
+        run: busted --coverage tests/ci/
+      - name: Enforce coverage ratchet
+        run: |
+          luacov
+          total=$(grep -Eo '^Total[[:space:]]+[0-9]+\.[0-9]+%' luacov.report.out | grep -Eo '[0-9]+\.[0-9]+' | tail -1)
+          if [ -z "$total" ]; then
+            echo "::error::Could not parse coverage total from luacov.report.out"
+            tail -20 luacov.report.out || true
+            exit 1
+          fi
+          echo "Coverage: ${total}%  (floor: ${COVERAGE_FLOOR}%)"
+          awk -v t="$total" -v f="$COVERAGE_FLOOR" 'BEGIN { exit !(t >= f) }' || {
+            echo "::error::Coverage ${total}% is below the ratchet floor ${COVERAGE_FLOOR}%."
+            exit 1
+          }
 
   # ─────────────────────────────────────────────────────────────
-  # Job 5 — GitHub Release (runs only on version tags: v*)
-  # Builds CTLD_Next.lua and attaches it to a new GitHub Release.
-  # Trigger: git tag v2.0 && git push origin v2.0
+  # GitHub Release (version tags v*) — OWNED BY THE RELEASE LOT.
+  # Left as-is for now; the RELEASE lot will consolidate its build with
+  # tools/build/merge_CTLD.ps1 and add release notes.
   # ─────────────────────────────────────────────────────────────
   release:
     name: GitHub Release
     runs-on: windows-latest
     if: startsWith(github.ref, 'refs/tags/v')
-
     permissions:
       contents: write
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Build CTLD_Next.lua
-        run: |
-          $listFile = "tools\build\listToMerge.txt"
-          $srcDir   = "src"
-          $outFile  = "CTLD_Next.lua"
-
-          Set-Content $outFile -Value '---@meta', '---@diagnostic disable', '' -Encoding utf8NoBOM
-
-          $merged = 0
-          foreach ($line in (Get-Content $listFile)) {
-            if ($line -match '^\s*(--|$)') { continue }
-            $file = Join-Path $srcDir $line
-            if (-not (Test-Path $file)) {
-              Write-Host "::warning::File not yet in src/: $line"
-              continue
-            }
-            "-- ====================================================================================================" | Add-Content $outFile
-            "-- Start : $line" | Add-Content $outFile
-            Get-Content $file  | Add-Content $outFile
-            ""                 | Add-Content $outFile
-            "-- End : $line"   | Add-Content $outFile
-            $merged++
-          }
-
-          if ($merged -eq 0) { Write-Host "::error::No files merged."; exit 1 }
-          Write-Host "Merged $merged file(s) → $outFile"
+        run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1
         shell: pwsh
-
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -202,5 +150,5 @@ jobs:
           $tag = "${{ github.ref_name }}"
           gh release create $tag CTLD_Next.lua `
             --title "CTLD $tag" `
-            --notes "## CTLD $tag`n`nBuild produced automatically from \`src/\` by the CI pipeline.`n`n**Installation:** drop \`CTLD_Next.lua\` into your DCS mission trigger as a DO SCRIPT FILE."
+            --notes "Build produced automatically from ``src/`` by the CI pipeline."
         shell: pwsh
