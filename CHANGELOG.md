@@ -34,6 +34,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - **Docs publishing infrastructure** — `mkdocs.yml` (material, `mkdocs-static-i18n` EN default + FR,
   `mike` versioning) + a `docs.yml` workflow deploying to the repo's `gh-pages` (`develop` → `dev`,
   `master` → `latest`). Content restructure/translation is deferred to the DOC-TECH / DOC-USER-ROLES lots.
+- **Developer documentation refonte (DOC-TECH)** — consolidated `docs/dev-guide.md`,
+  `docs/api-reference.md` and `migration/specs/` into a single, coherent, **bilingual (EN + FR)**
+  `docs/developer/` section: `index`, `workflow` (new — backlog process, Git Flow, TDD, quality
+  gates, authoring skills), `architecture`, ten `subsystems/` pages, `events`, `i18n`,
+  `building-and-testing`, `migration-v1-v2`, `api-reference`, `design-spec`. Every page was
+  verified against current `src/` and corrected for drift (stale method names, TRZ naming, dead
+  states, `Repack`→`pack`, etc.). Old sources and `migration/specs/` removed; broken links and
+  gaps fixed; `mkdocs build --strict` is clean.
+
+### Fixed
+
+- **Stale i18n header comments** — `src/CTLD_i18n*.lua` headers said translation version `1.7`
+  (actual `1.8`) and referenced regenerating a non-existent "loader"; corrected to match the code.
 
 ### Release
 

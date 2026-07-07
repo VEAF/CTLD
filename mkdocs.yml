@@ -59,12 +59,32 @@ extra:
     provider: mike
     default: dev
 
-# NOTE: docs are currently flat, EN-only. The role-based restructure
-# (pilot / mission-maker / developer) and FR translations land in the
-# DOC-TECH and DOC-USER-ROLES lots.
+# NOTE: the Developer section is the consolidated, bilingual (EN + FR) technical
+# docs (DOC-TECH). The Mission Maker guide role-split and its FR translation land
+# in DOC-USER-ROLES; the Integration Testing page is revised in DCS-BRIDGE-MCP.
 nav:
   - Home: index.md
   - Mission Maker: missionmaker_guide.md
-  - Developer: dev-guide.md
-  - API Reference: api-reference.md
+  - Developer:
+    - Overview: developer/index.md
+    - Development workflow: developer/workflow.md
+    - Architecture: developer/architecture.md
+    - Subsystems:
+      - Overview: developer/subsystems/index.md
+      - Scene engine: developer/subsystems/scenes.md
+      - Crate spawn pipeline: developer/subsystems/crates.md
+      - Troop + JTAC lifecycle: developer/subsystems/troops-jtac.md
+      - Zone management: developer/subsystems/zones.md
+      - Vehicle system: developer/subsystems/vehicles.md
+      - Beacon system: developer/subsystems/beacons.md
+      - Recon system: developer/subsystems/recon.md
+      - F10 menu system: developer/subsystems/menu.md
+      - Player tracking: developer/subsystems/players.md
+      - AA system assembly: developer/subsystems/aa.md
+    - Events: developer/events.md
+    - Internationalisation: developer/i18n.md
+    - Building & testing: developer/building-and-testing.md
+    - Migration v1 → v2: developer/migration-v1-v2.md
+    - API reference: developer/api-reference.md
+    - Design spec: developer/design-spec.md
   - Integration Testing: recette-procedure.md

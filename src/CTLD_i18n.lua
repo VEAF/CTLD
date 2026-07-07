@@ -8,8 +8,8 @@
         CTLD_i18n_es.lua  — Spanish
         CTLD_i18n_ko.lua  — Korean
 
-    To add a new language: create CTLD_i18n_XX.lua following the EN template,
-    add it to tools/build/listToMerge.txt, and regenerate the loader.
+    To add a new language: create CTLD_i18n_XX.lua following the EN template
+    and add it to tools/build/listToMerge.txt so the build merges it.
 
     Translators: edit only the CTLD_i18n_XX.lua files. Never edit this file.
     Run tools/build/generate_i18n_dicts.ps1 after any ctld.tr() change in scripts.

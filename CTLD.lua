@@ -1209,8 +1209,8 @@ CTLDConfig.reset()  -- class method (dot notation)
         CTLD_i18n_es.lua  — Spanish
         CTLD_i18n_ko.lua  — Korean
 
-    To add a new language: create CTLD_i18n_XX.lua following the EN template,
-    add it to tools/build/listToMerge.txt, and regenerate the loader.
+    To add a new language: create CTLD_i18n_XX.lua following the EN template
+    and add it to tools/build/listToMerge.txt so the build merges it.
 
     Translators: edit only the CTLD_i18n_XX.lua files. Never edit this file.
     Run tools/build/generate_i18n_dicts.ps1 after any ctld.tr() change in scripts.
@@ -1421,7 +1421,7 @@ end
 -- Start : CTLD_i18n_en.lua
 --[[
     CTLD — English dictionary (reference)
-    Translation version: 1.7
+    Translation version: 1.8
 
     All values equal their key (English is the reference language).
     The ctld.tr() fallback chain already uses the key as last resort,
@@ -1902,7 +1902,7 @@ ctld.i18n["en"]["CTLDZoneManager: zone config valid"]                           
 -- Start : CTLD_i18n_fr.lua
 --[[
     CTLD — French dictionary
-    Translation version: 1.7
+    Translation version: 1.8
 
     Translator: FullGas1
     To update: run tools/build/generate_i18n_dicts.ps1 after any ctld.tr() change.
@@ -2379,7 +2379,7 @@ ctld.i18n["fr"]["CTLDZoneManager: zone config valid"]                           
 -- Start : CTLD_i18n_es.lua
 --[[
     CTLD — Spanish dictionary
-    Translation version: 1.7
+    Translation version: 1.8
 
     Translator: FullGas1
     Deduplicated from source: where duplicate keys existed the last occurrence is kept (Lua semantics).

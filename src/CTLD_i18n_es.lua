@@ -1,6 +1,6 @@
 --[[
     CTLD — Spanish dictionary
-    Translation version: 1.7
+    Translation version: 1.8
 
     Translator: FullGas1
     Deduplicated from source: where duplicate keys existed the last occurrence is kept (Lua semantics).

@@ -1,6 +1,6 @@
 --[[
     CTLD — French dictionary
-    Translation version: 1.7
+    Translation version: 1.8
 
     Translator: FullGas1
     To update: run tools/build/generate_i18n_dicts.ps1 after any ctld.tr() change.
