@@ -5,7 +5,7 @@ L1 and L2 run automatically via GitHub Actions CI.
 L3 to L5 require a live DCS session with Witchcraft active.
 L6 is purely manual (player + checklist).
 
-For Witchcraft injection setup (commands, debug config, CTLD.log), see [`docs/dev-guide.md`](dev-guide.md) §8 Testing.
+For debug configuration and CTLD.log setup, see [Building & testing](developer/building-and-testing.md).
 
 ---
 

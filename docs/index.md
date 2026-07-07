@@ -8,7 +8,7 @@ operate JTACs, and much more — all driven by an F10 menu and a modular Lua v2 
 ## Quick links
 
 - [Mission Maker Guide](missionmaker_guide.md) — configure CTLD in your mission
-- [Developer Guide](dev-guide.md) — architecture, new modules, events, build & test
+- [Developer documentation](developer/index.md) — architecture, subsystems, events, build & test
 
 ## Installation
 

@@ -1,6 +1,6 @@
 --[[
     CTLD — English dictionary (reference)
-    Translation version: 1.7
+    Translation version: 1.8
 
     All values equal their key (English is the reference language).
     The ctld.tr() fallback chain already uses the key as last resort,

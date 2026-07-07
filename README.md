@@ -735,7 +735,7 @@ EventDispatcher.getInstance():subscribe("OnCrateSpawned", function(evt)
 end)
 ```
 
-Full event catalogue: [`docs/specs/CTLD_Events.md`](docs/specs/CTLD_Events.md)
+Full event catalogue: [`docs/developer/events.md`](docs/developer/events.md)
 
 Selected events:
 
@@ -1094,7 +1094,7 @@ local ok, result = mineFieldScene.setLandMineAuto(Unit.getByName("helo1"), 30, 5
 
 All 22 legacy `ctld.*` functions are preserved as thin wrappers in `src/legacy/legacy_api.lua`. Each wrapper logs a deprecation warning and delegates to the equivalent v2 manager method. **Existing missions continue to work without changes.**
 
-Selected migration table (full table in [`docs/dev-guide.md`](docs/dev-guide.md)):
+Selected migration table (full table in [`docs/developer/migration-v1-v2.md`](docs/developer/migration-v1-v2.md)):
 
 | v1 call | v2 equivalent |
 |---------|--------------|
@@ -1107,13 +1107,13 @@ Selected migration table (full table in [`docs/dev-guide.md`](docs/dev-guide.md)
 | `ctld.activatePickupZone(zone)` | `CTLDZoneManager.getInstance():activatePickupZone(zone)` |
 | `ctld.addCallback(fn)` | `EventDispatcher.getInstance():subscribe("OnEventName", fn)` |
 
-For the full migration guide including the v1 `addCallback` → typed events transition, see [`docs/dev-guide.md §7`](docs/dev-guide.md).
+For the full migration guide including the v1 `addCallback` → typed events transition, see [`docs/developer/migration-v1-v2.md`](docs/developer/migration-v1-v2.md).
 
 ---
 
 ## Developer Guide
 
-See [`docs/dev-guide.md`](docs/dev-guide.md) for:
+See the [Developer documentation](docs/developer/index.md) for:
 
 - Repository structure (`src/`, `tests/`, `tools/`, `docs/`, `source/`)
 - Architecture overview (singleton managers, EventDispatcher)
@@ -1142,6 +1142,6 @@ luarocks install busted
 busted tests/
 ```
 
-Tests live in `tests/unit/` (L1 — unit) and `tests/functional/` (L2 — functional). DCS stubs and module loaders are in `tests/helpers/`. See `docs/dev-guide.md §8` for the full testing guide including Witchcraft live-DCS tests (L3/L4).
+Tests live in `tests/ci/unit/` (L1 — unit) and `tests/ci/functional/` (L2 — functional). DCS stubs and module loaders are in `tests/ci/helpers/`. See [`docs/developer/building-and-testing.md`](docs/developer/building-and-testing.md) for the full build and testing guide.
 
 **CI:** every push to `master` or `feature_*` branches runs Lua lint, merge build, and busted tests automatically. Every `v*` tag creates a GitHub Release with `CTLD.lua` attached.
