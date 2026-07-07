@@ -2,7 +2,7 @@
 -- tests/unit/jtac_manager_spec.lua
 -- busted specs for CTLDJTAC entity, CTLDJTACDetector, CTLDJTACManager, CTLDSceneManager
 -- Reference: live_tests/unit/U-039 through U-043
--- CTLD_Next adaptations vs DCS-CTLD_FG references:
+-- CTLD adaptations vs DCS-CTLD_FG references:
 --   * CTLDJTACManager.get() is an alias for getInstance() — both valid
 --   * No built-in scenes registered in CTLDSceneManager._registerBuiltins()
 --   * Always pass smokeColor=0 to avoid nil trigger.smokeColor.Red

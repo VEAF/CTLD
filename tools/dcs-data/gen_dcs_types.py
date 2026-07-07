@@ -10,7 +10,7 @@ basenames -- no Lua parsing required.
 Output: ``tests/data/dcs_types.lua`` -- a Lua module returning a lookup set
 ``{ ["BMP-2"] = true, ... }``. It is used ONLY by the offline config linter
 (``tests/ci/unit/config_types_lint_spec.lua``); it is NOT part of the shipped
-``CTLD_Next.lua`` (never added to ``tools/build/listToMerge.txt``).
+``CTLD.lua`` (never added to ``tools/build/listToMerge.txt``).
 
 Usage (from repo root): ``python tools/dcs-data/gen_dcs_types.py``
 To refresh against a newer DCS dump: bump ``DATAMINE_REF``, re-run, commit.
@@ -70,7 +70,7 @@ def render_lua(names: list[str], ref: str) -> str:
         "-- DCS type-name set (units + statics + heliports).",
         f"-- GENERATED from {DATAMINE_REPO} @ {ref}",
         "-- by tools/dcs-data/gen_dcs_types.py. DO NOT EDIT BY HAND.",
-        "-- NOT shipped in CTLD_Next.lua; used only by the offline config linter.",
+        "-- NOT shipped in CTLD.lua; used only by the offline config linter.",
         f"-- {len(names)} types.",
         "return {",
     ]

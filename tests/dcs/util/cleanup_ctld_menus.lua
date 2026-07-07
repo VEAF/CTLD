@@ -27,7 +27,7 @@ if CTLDPlayerManager and CTLDPlayerManager._instance then
     CTLDPlayerManager._instance._players = {}
 end
 
--- Nuke all CTLD singletons so the next CTLD_Next.lua injection creates fresh instances.
+-- Nuke all CTLD singletons so the next CTLD.lua injection creates fresh instances.
 if CTLDCoreManager    then CTLDCoreManager._instance    = nil end
 if CTLDPlayerManager  then CTLDPlayerManager._instance  = nil end
 if CTLDCrateManager   then CTLDCrateManager._instance   = nil end
@@ -38,5 +38,5 @@ if CTLDSceneManager   then CTLDSceneManager._instance   = nil end
 if CTLDFOBManager     then CTLDFOBManager._instance     = nil end
 if CTLDBeaconManager  then CTLDBeaconManager._instance  = nil end
 
-trigger.action.outText("[CTLD-CLEAN] Menus wiped (" .. removed .. " handles removed). Inject CTLD_Next.lua now.", 8)
+trigger.action.outText("[CTLD-CLEAN] Menus wiped (" .. removed .. " handles removed). Inject CTLD.lua now.", 8)
 return Witchcraft

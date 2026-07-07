@@ -70,7 +70,7 @@ tests/dcs/CTLD.log           ← fichier de log (gitignored dans tests/dcs/.giti
 
 ```lua
 -- Trigger MISSION START → DO SCRIPT (local à la machine, jamais commité)
-cfg.settings["ctldLogPath"] = "C:\\Users\\Moi\\Documents\\GitHub\\CTLD_Next\\tests\\dcs\\"
+cfg.settings["ctldLogPath"] = "C:\\Users\\Moi\\Documents\\GitHub\\CTLD\\tests\\dcs\\"
 ```
 
 ### Méthode alternative — activation live (si ctldLogPath vide en session)
@@ -88,7 +88,7 @@ node bridge.js "c:/tmp/get_log_path.lua"
 
 ```lua
 -- c:/tmp/init_log.lua
-local logPath = "C:\\Users\\Moi\\Documents\\GitHub\\CTLD_Next\\tests\\dcs\\"
+local logPath = "C:\\Users\\Moi\\Documents\\GitHub\\CTLD\\tests\\dcs\\"
 CTLDConfig.get().settings["ctldLogPath"] = logPath
 CTLDConfig.get().settings["debug"] = true
 ctld.utils.initLog()
@@ -97,7 +97,7 @@ return logPath .. "CTLD.log"
 
 Après injection, `tests/dcs/CTLD.log` est créé et les logs suivants y sont écrits.
 
-> **Règle** : en début de session recette interactive, toujours vérifier `ctldLogPath` et activer le log live si absent, avant d'injecter CTLD_Next.lua ou les scenarios.
+> **Règle** : en début de session recette interactive, toujours vérifier `ctldLogPath` et activer le log live si absent, avant d'injecter CTLD.lua ou les scenarios.
 > Ce chemin est **local à la machine**. Le définir dans le `.miz` ou via `init_log.lua`. Ne jamais commiter.
 
 ---
@@ -165,8 +165,8 @@ DCS.log   →  %USERPROFILE%\Saved Games\DCS\Logs\DCS.log
 4. REBUILD   si src/ modifié :
              powershell -ExecutionPolicy Bypass -File "tools\build\merge_CTLD.ps1"
 
-5. INJECTER  CTLD_Next.lua :
-             node bridge.js "C:\...\CTLD_Next.lua"
+5. INJECTER  CTLD.lua :
+             node bridge.js "C:\...\CTLD.lua"
              puis ATTENDRE 3-5 secondes (initialisation CTLD)
 
 6. INJECTER  le scenario :
@@ -192,9 +192,9 @@ Les scenarios interactifs utilisent **`debug=true` + `debugScreenLog=false`** :
 
 ```bash
 # Lire le log après run (PowerShell ou bash)
-tail -50 "c:/Users/Moi/Documents/GitHub/CTLD_Next/tests/dcs/CTLD.log"
+tail -50 "c:/Users/Moi/Documents/GitHub/CTLD/tests/dcs/CTLD.log"
 # Filtrer sur le tag du scenario
-grep "\[CMFV-VIS\]" "c:/Users/Moi/Documents/GitHub/CTLD_Next/tests/dcs/CTLD.log"
+grep "\[CMFV-VIS\]" "c:/Users/Moi/Documents/GitHub/CTLD/tests/dcs/CTLD.log"
 ```
 
 ---
@@ -278,7 +278,7 @@ node bridge.js "tests/dcs/util/_reset_steps.lua"
 |----------|---------------|----------|
 | `[SUCCESS] nil` mais rien dans CTLD.log | `debug=false` ou `ctldLogPath` absent | Vérifier les deux en tête de script |
 | `[SUCCESS] nil` mais rien à l'écran | `debugScreenLog=false` | Activer `cfg.settings["debugScreenLog"]=true` ou utiliser `trigger.action.outText` direct |
-| `attempt to call field 'getInstance' (a nil value)` | CTLD non encore initialisé | Attendre 3-5s après injection CTLD_Next.lua ; utiliser `wait_ctld_ready.lua` |
+| `attempt to call field 'getInstance' (a nil value)` | CTLD non encore initialisé | Attendre 3-5s après injection CTLD.lua ; utiliser `wait_ctld_ready.lua` |
 | `CTLDJTACManager` introuvable | Ce manager utilise `get()` et non `getInstance()` | Appeler `CTLDJTACManager.get()` |
 | CTLD.log non créé | `ctldLogPath` non défini dans le .miz | Vérifier le trigger MISSION START |
 | `[ERR]` côté Witchcraft | Erreur Lua non capturée avant pcall | Vérifier la syntaxe + structure pcall |

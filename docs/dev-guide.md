@@ -9,7 +9,7 @@ src/              Source modules (OOP, one class per file)
   compat/         Legacy v1 API wrappers (thin delegates, deprecated)
 source/           Reference — original monolithic v1 CTLD.lua (read-only)
 tools/
-  merger/      Build tooling: merge src/ → CTLD_Next.lua
+  merger/      Build tooling: merge src/ → CTLD.lua
 tests/            busted unit tests (no DCS required)
   helpers/        DCS stubs + module loader
   specs/          *_spec.lua test files
@@ -256,7 +256,7 @@ _spawnUnpacked(desc, pos, coa, cId, playerName)
 ```
 powershell -ExecutionPolicy Bypass -File tools/build/merge_CTLD.ps1
 ```
-Output: `CTLD_Next.lua` at repo root (gitignored). UTF-8 without BOM (required by DCS).
+Output: `CTLD.lua` at repo root (gitignored). UTF-8 without BOM (required by DCS).
 
 **CI (GitHub Actions):** automatic on push — see `.github/workflows/ci.yml`.
 
@@ -264,7 +264,7 @@ Output: `CTLD_Next.lua` at repo root (gitignored). UTF-8 without BOM (required b
 
 ## 7.1 Dynamic loading in DCS mission (dev workflow)
 
-By default, `CTLD_Next.lua` must be embedded inside the `.miz` archive (as a DO SCRIPT FILE action). Re-embedding after each build is tedious during active development. The **dynamic loading pattern** avoids this: DCS reads `CTLD_Next.lua` directly from a local path on disk at mission start via `dofile()`, so only a rebuild is needed — no .miz re-packaging.
+By default, `CTLD.lua` must be embedded inside the `.miz` archive (as a DO SCRIPT FILE action). Re-embedding after each build is tedious during active development. The **dynamic loading pattern** avoids this: DCS reads `CTLD.lua` directly from a local path on disk at mission start via `dofile()`, so only a rebuild is needed — no .miz re-packaging.
 
 > This is a **developer-only** setup. Do not ship `.miz` files to players with dynamic loading enabled — they would need the file at the same local path on their machine.
 
@@ -289,7 +289,7 @@ This sets `ctld.path`. The flag `setToFlagIsFalseToEnable` acts as a toggle: lea
 
 - Type: `MISSION START`
 - Condition: `LUA PREDICATE (return ctld == nil or ctld.path == nil)`
-- Action: `DO SCRIPT FILE` → embedded `CTLD_Next.lua`
+- Action: `DO SCRIPT FILE` → embedded `CTLD.lua`
 
 This fires only when `ctld.path` is **not** set — i.e., when dynamic loading is disabled. It loads the version baked into the .miz.
 
@@ -302,10 +302,10 @@ This fires only when `ctld.path` is **not** set — i.e., when dynamic loading i
   2. `DO SCRIPT`
 
 ```lua
-assert(dofile(ctld.path.."CTLD_Next.lua"))
+assert(dofile(ctld.path.."CTLD.lua"))
 ```
 
-This fires only when `ctld.path` is defined and loads `CTLD_Next.lua` directly from disk.
+This fires only when `ctld.path` is defined and loads `CTLD.lua` directly from disk.
 
 ### Screenshots
 
@@ -315,13 +315,13 @@ This fires only when `ctld.path` is defined and loads `CTLD_Next.lua` directly f
 
 ![Trigger 3 — Load CTLD dynamic](assets/trigger-dynamic-loading2.png)
 
-> Trigger 3: LUA PREDICATE on `ctld.path ~= nil` → `dofile(ctld.path.."CTLD_Next.lua")`.
+> Trigger 3: LUA PREDICATE on `ctld.path ~= nil` → `dofile(ctld.path.."CTLD.lua")`.
 
 ### Dev cycle
 
 ```
 1. Edit src/
-2. Run build  →  CTLD_Next.lua updated on disk
+2. Run build  →  CTLD.lua updated on disk
 3. Restart mission in DCS  →  dofile() picks up new version automatically
 4. No .miz re-packaging needed
 ```
@@ -374,7 +374,7 @@ VS Code shortcut: **Shift+Ctrl+B** → `DCS-Witchcraft: Execute Global`.
 powershell -ExecutionPolicy Bypass -File "tools\build\merge_CTLD.ps1"
 ```
 
-- Inject `CTLD_Next.lua`.
+- Inject `CTLD.lua`.
 - Wait **3–5 seconds** for CTLD initialization to complete before injecting any test script.
 
 ### 8.3 CTLD.log setup
@@ -415,7 +415,7 @@ Success criterion: `fail=0` in the result line, no `[FAIL]` lines in `CTLD.log`.
 ### 8.6 Cleanup between test runs
 
 If CTLD is already active in the mission, inject the cleanup script before re-injecting
-`CTLD_Next.lua`:
+`CTLD.lua`:
 
 ```bash
 node bridge.js "tests/dcs/dev/shutdown_ctld.lua"
@@ -621,7 +621,7 @@ ctld.i18n_overrides = {
 **Runtime sequence:**
 
 ```
-1. CTLD_Next.lua loads → dictionaries populated:
+1. CTLD.lua loads → dictionaries populated:
      ctld.i18n["en"]["Troops loaded"] = "Troops loaded"
      ctld.i18n["fr"]["Troops loaded"] = "Troupes chargées"
 

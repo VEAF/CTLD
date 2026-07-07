@@ -14,14 +14,14 @@
 --
 -- Pre-requisites:
 --   - BLUE player slot occupied (any aircraft), on ground level (no occlusion)
---   - CTLD fully initialised (inject CTLD_Next.lua + 5s wait before this scenario)
+--   - CTLD fully initialised (inject CTLD.lua + 5s wait before this scenario)
 --   - recette/enable_debug.lua injected before this scenario
 --   - Mission terrain must be flat near player (no ridge blocking LOS at 300 m)
 -- =============================================================================
 
 -- ── Witchcraft guard ─────────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[FI-ATK] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[FI-ATK] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

@@ -8,7 +8,7 @@
 -- (vérifications visuelles humaines).
 --
 -- Prérequis :
---   - Inject CTLD_Next.lua first, wait 3–5 s for init.
+--   - Inject CTLD.lua first, wait 3–5 s for init.
 --   - Slot BLUE occupé (hélico ou avion selon le scénario).
 --   - Config CTLD appropriée au scénario (activer les features testées).
 --
@@ -24,7 +24,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[SCN-XXX] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[SCN-XXX] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

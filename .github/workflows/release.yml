@@ -2,7 +2,7 @@ name: Release
 
 # Triggered by pushing a version tag `published-vX.Y.Z` (done manually after the
 # release PR is merged — see the `release` skill). Builds the deliverable and
-# publishes a GitHub Release with CTLD_Next.lua attached.
+# publishes a GitHub Release with CTLD.lua attached.
 on:
   push:
     tags: ['published-v*']
@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build CTLD_Next.lua
+      - name: Build CTLD.lua
         run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1
         shell: pwsh
 
@@ -35,5 +35,5 @@ jobs:
           $version = "${{ steps.ver.outputs.version }}"
           $tag     = "${{ github.ref_name }}"
           $notes   = if (Test-Path "RELEASE_NOTES.md") { "--notes-file", "RELEASE_NOTES.md" } else { "--generate-notes" }
-          gh release create $tag CTLD_Next.lua --title "CTLD v$version" @notes
+          gh release create $tag CTLD.lua --title "CTLD v$version" @notes
         shell: pwsh

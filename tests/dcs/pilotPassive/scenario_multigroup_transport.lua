@@ -17,7 +17,7 @@
 --   S3 [auto]  F-144 _menuCheckCargo
 --
 -- Pre-requisites:
---   - CTLD fully initialised (inject CTLD_Next.lua + 5s wait)
+--   - CTLD fully initialised (inject CTLD.lua + 5s wait)
 --   - multiGroupTransport must be true in config
 --
 -- @scenario  MG-TRANSPORT
@@ -27,7 +27,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[MG-TRANSPORT] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[MG-TRANSPORT] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

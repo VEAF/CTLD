@@ -1,6 +1,6 @@
 ---
 name: release
-description: Consolidate a CTLD_Next release — draft community release notes from the CHANGELOG, bump the version, open a release PR, and guide the final tag. Use when the user wants to cut a release.
+description: Consolidate a CTLD release — draft community release notes from the CHANGELOG, bump the version, open a release PR, and guide the final tag. Use when the user wants to cut a release.
 disable-model-invocation: true
 ---
 
@@ -15,7 +15,7 @@ operations or push without an explicit go.
 - **PR target: `develop`** (not `master`; `master` is reserved for stable milestone merges).
 - Version lives in `src/CTLD_config.lua` as `ctld.VERSION = "x.y.z"`; the build extracts it.
 - The tag `published-vx.y.z` is pushed **manually by the user after merge** — pushing it triggers
-  `.github/workflows/release.yml`, which rebuilds `CTLD_Next.lua` and publishes the GitHub Release.
+  `.github/workflows/release.yml`, which rebuilds `CTLD.lua` and publishes the GitHub Release.
 
 ## Steps
 
@@ -41,7 +41,7 @@ operations or push without an explicit go.
      (the version changed in `src/`).
 
 5. **Git** (after the user's go): create `release/x.y.z` from `develop`, commit
-   (`RELEASE_NOTES.md`, `CHANGELOG.md`, `src/CTLD_config.lua`, `CTLD_Next.lua`), push, open a PR
+   (`RELEASE_NOTES.md`, `CHANGELOG.md`, `src/CTLD_config.lua`, `CTLD.lua`), push, open a PR
    targeting `develop`, report the URL. Wait for CI + review, then merge.
 
 6. **Final tag** (give the user these commands to run after merge — pushing the tag is irreversible

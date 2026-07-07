@@ -1,7 +1,7 @@
 -- diag_spawn_metal_farp.lua
 -- Spawns the Metal FARP scene directly on unit "uh1-1" for visual positioning validation.
 -- Does NOT require a crate — calls playScene directly.
--- Inject via Witchcraft after CTLD_Next.lua is loaded.
+-- Inject via Witchcraft after CTLD.lua is loaded.
 
 return (function()
     local unitName = "uh1-1"

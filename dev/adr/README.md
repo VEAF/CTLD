@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-Structural decisions for CTLD_Next. Format: Nygard-style (Context / Decision / Consequences).
+Structural decisions for CTLD. Format: Nygard-style (Context / Decision / Consequences).
 Retroactive ADRs document decisions already made during the v2.0.0 rewrite.
 
 | ADR | Title | Status |

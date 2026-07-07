@@ -1,7 +1,7 @@
 ---@diagnostic disable
 -- U-107: CTLDModValidator — _probeStatic valid and invalid type detection
 -- Checks: C1 valid type cached true, C2 invalid cached false, C3/C4 cache hits (no re-spawn)
--- Requires: DCS active, CTLD_Next injected
+-- Requires: DCS active, CTLD injected
 
 local _t = { pass=0, fail=0, msgs={} }
 local function chk(label, cond)

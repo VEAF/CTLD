@@ -12,8 +12,8 @@ operate JTACs, and much more — all driven by an F10 menu and a modular Lua v2 
 
 ## Installation
 
-1. Download `CTLD_Next.lua` from the [latest release](../../releases/latest).
-2. Add a **DO SCRIPT FILE** trigger in the DCS Mission Editor pointing to `CTLD_Next.lua`.
+1. Download `CTLD.lua` from the [latest release](../../releases/latest).
+2. Add a **DO SCRIPT FILE** trigger in the DCS Mission Editor pointing to `CTLD.lua`.
 3. Optionally add a second trigger with your `CTLD_userConfig.lua` to override defaults.
 
 ## Compatibility

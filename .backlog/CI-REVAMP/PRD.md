@@ -1,8 +1,8 @@
-# Lot CI-REVAMP — professional-grade CI for CTLD_Next
+# Lot CI-REVAMP — professional-grade CI for CTLD
 
 Status: ✅ done
 Branch: feature/ci-revamp → PR #1 → develop (merged)
-Program: re-tooling CTLD_Next on the VMCT model (see `.backlog/README.md`)
+Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 
 ## Problem Statement
 
@@ -29,10 +29,10 @@ the standard hygiene a VEAF open-source repo expects — without regressing the 
 
 ## User Stories
 
-1. As a CTLD_Next maintainer, I want CI to run on every push to `develop` and every PR targeting
+1. As a CTLD maintainer, I want CI to run on every push to `develop` and every PR targeting
    `develop`, so that the main working branch always has feedback.
 2. As a maintainer, I want the CI build to call `tools/build/merge_CTLD.ps1` rather than a private
-   copy of the merge logic, so that there is a single source of truth for how `CTLD_Next.lua` is
+   copy of the merge logic, so that there is a single source of truth for how `CTLD.lua` is
    produced.
 3. As a maintainer, I want the busted job to enforce a coverage floor that only ever rises, so
    that test coverage cannot silently regress.
@@ -56,7 +56,7 @@ the standard hygiene a VEAF open-source repo expects — without regressing the 
 - **Triggers**: cover `develop` and `master` on push, and `pull_request` targeting `develop` (and
   `master`). Keep `workflow_dispatch`. Tag-based release triggers move to the RELEASE lot.
 - **Single build source**: the build job invokes `tools/build/merge_CTLD.ps1` (on a Windows
-  runner) and uploads `CTLD_Next.lua` as an artifact. The inline PowerShell re-implementation is
+  runner) and uploads `CTLD.lua` as an artifact. The inline PowerShell re-implementation is
   deleted. The release-time build is out of scope (RELEASE lot).
 - **Keep** the `lua-lint` job (`luac5.1 -p` over `src/**/*.lua`) and the `busted` job
   (`busted tests/ci/`) — they are correct and aligned with the Lua 5.1 constraint.

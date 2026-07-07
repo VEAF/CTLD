@@ -61,19 +61,19 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build CTLD_Next.lua
+      - name: Build CTLD.lua
         run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1
         shell: pwsh
       - name: Verify output exists and is non-empty
         run: |
-          if (-not (Test-Path CTLD_Next.lua)) { Write-Host "::error::CTLD_Next.lua not produced"; exit 1 }
-          if ((Get-Item CTLD_Next.lua).Length -eq 0) { Write-Host "::error::CTLD_Next.lua is empty"; exit 1 }
+          if (-not (Test-Path CTLD.lua)) { Write-Host "::error::CTLD.lua not produced"; exit 1 }
+          if ((Get-Item CTLD.lua).Length -eq 0) { Write-Host "::error::CTLD.lua is empty"; exit 1 }
         shell: pwsh
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CTLD_Next
-          path: CTLD_Next.lua
+          name: CTLD
+          path: CTLD.lua
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────

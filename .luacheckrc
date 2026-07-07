@@ -1,6 +1,6 @@
--- .luacheckrc — CTLD_Next project
+-- .luacheckrc — CTLD project
 -- Target runtime: DCS World (Lua 5.1 strict)
--- Run: luacheck src/ tests/ CTLD_Next.lua
+-- Run: luacheck src/ tests/ CTLD.lua
 
 std = "lua51"
 

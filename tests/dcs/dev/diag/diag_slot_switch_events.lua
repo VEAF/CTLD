@@ -18,7 +18,7 @@
 -- Re-inject this script to STOP the handler and print a final state dump.
 --
 -- Prerequisites:
---   - CTLD_Next.lua injected (>= 3 s before this script)
+--   - CTLD.lua injected (>= 3 s before this script)
 --   - At least one player in a slot
 -- =============================================================================
 

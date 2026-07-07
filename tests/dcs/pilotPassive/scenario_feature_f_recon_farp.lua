@@ -4,7 +4,7 @@
 -- Feature F — RECON layer FARP/FOB : CTLDStaticWatcher + coalition rendering
 --
 -- Pre-requisites:
---   - CTLD_Next.lua injected and initialised (wait 3-5 s)
+--   - CTLD.lua injected and initialised (wait 3-5 s)
 --   - enable_debug.lua injected
 --   - Mission "red_FARP" group / "red_FARP-1" present (RED)
 --   - inject_red_fob.lua already executed (adds red FOB to CTLDFOBManager)
@@ -24,7 +24,7 @@
 
 -- ── Witchcraft guard ─────────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[FARP] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[FARP] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

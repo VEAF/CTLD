@@ -61,7 +61,7 @@ git push  ->  CI L1/L2 runs automatically
     | (CI green)
 PR  ->  merge to master
     |
-git tag vX.Y  ->  CI Release job builds and publishes CTLD_Next.lua
+git tag vX.Y  ->  CI Release job builds and publishes CTLD.lua
 ```
 
 > **Rule:** L3 to L5 must pass **before** the push. CI (L1/L2) uses DCS stubs and cannot

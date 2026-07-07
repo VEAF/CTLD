@@ -1,10 +1,10 @@
-# Backlog — CTLD_Next
+# Backlog — CTLD
 
 Local markdown backlog. One lot = one directory `<LOT-ID>/` (`PRD.md` + `tickets/`). This file is
 the hand-maintained index. See `dev/agents/issue-tracker.md` for conventions and
 `dev/agents/triage-labels.md` for the `Status:` vocabulary.
 
-## Program — re-tooling CTLD_Next on the VMCT model
+## Program — re-tooling CTLD on the VMCT model
 
 The codebase is mature (v2.0.0). This program installs a professional process/tooling layer around
 it and migrates DCS integration testing from Witchcraft to VEAF-dcs-bridge. PRDs and tickets are
@@ -37,7 +37,7 @@ authored **per lot, when the lot is started** (not in batch).
 | `CLAUDE-AUTOMATIONS` ✅ | Project hooks (block protected paths, luacheck-on-edit) + subagents lua51/parity (PR #5). |
 | `DCS-DATAMINE-VENDOR` ✅ | Vendored DCS type set (not shipped) + offline config type linter (PR #6). |
 | `RELEASE` ✅ | `release` skill + `release.yml` (tag `published-v*`); release job moved out of ci.yml (PR #7). |
-| `DOC-MKDOCS` ✅ | mkdocs-material infra (i18n EN+FR, mike) + `docs.yml` → gh-pages live at veaf.github.io/CTLD_Next (PR #8). |
+| `DOC-MKDOCS` ✅ | mkdocs-material infra (i18n EN+FR, mike) + `docs.yml` → gh-pages live at veaf.github.io/CTLD (PR #8). |
 
 ## Dropped lots
 

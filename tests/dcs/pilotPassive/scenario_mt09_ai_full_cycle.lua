@@ -13,7 +13,7 @@
 --   - AIZ_livraison_B_D_G    : zone dropoff, r~274m
 --   - Hummers BLUE (veh_mm_*) placés à proximité de AIZ_depot (~200m du centre)
 --   - Slot BLUE occupé (joueur humain pour MenuManager)
---   - CTLD_Next.lua injecté avant ce script (attendre 3-5 s)
+--   - CTLD.lua injecté avant ce script (attendre 3-5 s)
 --
 -- Cinématique (4 steps, injection unique) :
 --   S1 [auto]  Init + vérification zones + enregistrement héli
@@ -28,7 +28,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[MT-09] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[MT-09] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

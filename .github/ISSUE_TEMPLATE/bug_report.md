@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a problem with CTLD_Next in DCS World
+about: Report a problem with CTLD in DCS World
 title: "[bug] "
 labels: bug
 ---
@@ -21,7 +21,7 @@ A clear description of the bug.
 
 ## Environment
 
-- CTLD_Next version:
+- CTLD version:
 - DCS World version:
 - Aircraft / mods involved:
 

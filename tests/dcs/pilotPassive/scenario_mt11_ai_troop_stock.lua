@@ -13,7 +13,7 @@
 --   - Zone DCS trigger "AIZ_mt11_B_D"   (rayon ~200 m)
 --   - troopStock = { ["Standard Group"]=3, ["Anti Tank"]=2 } dans la config zone
 --   - Slot BLUE occupé (joueur humain pour MenuManager)
---   - CTLD_Next.lua injecté avant ce script (attendre 3-5 s)
+--   - CTLD.lua injecté avant ce script (attendre 3-5 s)
 --
 -- Cinématique (4 steps, injection unique) :
 --   S1 [auto]  Init + vérification zones + stocks initiaux
@@ -28,7 +28,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[MT-11] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[MT-11] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

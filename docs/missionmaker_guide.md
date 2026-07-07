@@ -52,7 +52,7 @@ Your triggers must fire in this order:
 | Order | Action | File |
 |---|---|---|
 | 1 | DO SCRIPT FILE | `CTLD_userConfig.lua` |
-| 2 | DO SCRIPT FILE | `CTLD_Next.lua` |
+| 2 | DO SCRIPT FILE | `CTLD.lua` |
 
 ### Customising parameters — `CTLD_userConfig.lua`
 
@@ -910,7 +910,7 @@ Enable the dedicated CTLD log file to isolate CTLD messages from the DCS standar
 -- CTLD_userConfig.lua
 ctld.yamlConfigDatas = [[
   ctld.debug: true
-  ctld.ctldLogPath: "C:\\Users\\<you>\\path\\to\\CTLD_Next\\tests\\dcs\\"
+  ctld.ctldLogPath: "C:\\Users\\<you>\\path\\to\\CTLD\\tests\\dcs\\"
 ]]
 ```
 

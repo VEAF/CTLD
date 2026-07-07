@@ -1,8 +1,8 @@
-site_name: CTLD_Next
+site_name: CTLD
 site_description: Combined Transport and Logistics Dispatcher for DCS World — modular rewrite.
-site_url: https://veaf.github.io/CTLD_Next/
-repo_url: https://github.com/VEAF/CTLD_Next
-repo_name: VEAF/CTLD_Next
+site_url: https://veaf.github.io/CTLD/
+repo_url: https://github.com/VEAF/CTLD
+repo_name: VEAF/CTLD
 docs_dir: docs
 edit_uri: blob/develop/docs/
 

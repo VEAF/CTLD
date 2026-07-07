@@ -5,7 +5,7 @@
 --   C2: invalid HELIPORT type → cache=false
 --   C3: ghost off-map (world.getAirbases count near Batumi unchanged vs before probe)
 --   C4: cache hit valid → no new probe
--- Requires: DCS active, CTLD_Next injected
+-- Requires: DCS active, CTLD injected
 -- User check: verify F10 map — no FARP marker visible near Batumi / play area
 
 local _t = { pass=0, fail=0, msgs={} }

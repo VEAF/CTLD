@@ -2,7 +2,7 @@
 
 Status: ✅ done
 Branch: feature/dcs-datamine-vendor → PR → develop
-Program: re-tooling CTLD_Next on the VMCT model (see `.backlog/README.md`)
+Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 
 ## Problem Statement
 
@@ -14,7 +14,7 @@ mission is ever launched.
 ## Solution
 
 Vendor the set of known stock DCS type names (from Quaggles/dcs-lua-datamine, pinned) into the repo
-— **not** into the shipped `CTLD_Next.lua` — and add an offline busted linter that cross-checks the
+— **not** into the shipped `CTLD.lua` — and add an offline busted linter that cross-checks the
 configured type names against that set, reporting any that are unknown.
 
 Decision (see investigation): NOT shipped in the deliverable. `CTLD_modValidator` runtime probing
@@ -38,7 +38,7 @@ set cannot know). The datamine set adds value only offline.
 
 ## Out of Scope
 
-- Shipping the type set into `CTLD_Next.lua` (rejected: ~13k-line bloat for marginal runtime value).
+- Shipping the type set into `CTLD.lua` (rejected: ~13k-line bloat for marginal runtime value).
 - Changing `CTLD_modValidator` runtime behavior.
 - Full unit attribute data (only type-name strings are needed here).
 

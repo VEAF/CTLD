@@ -16,7 +16,7 @@
 --   - mt10_enemy_RED       : groupe sol RED, <3 km de AIZ_livraison, LOS dégagée
 --   - ctldLogPath défini dans le .miz (trigger MISSION START)
 --   - Slot BLUE occupé (joueur humain pour MenuManager)
---   - CTLD_Next.lua injecté avant ce script (attendre 3-5 s)
+--   - CTLD.lua injecté avant ce script (attendre 3-5 s)
 --
 -- Cinématique (6 steps, injection unique) :
 --   S1 [auto]  Setup A : vérifie prérequis, spawne clone mt10a_run, force template WPZ
@@ -33,7 +33,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[MT-10] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[MT-10] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

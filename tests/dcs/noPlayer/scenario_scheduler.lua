@@ -17,8 +17,8 @@
 --   S4 [auto] F-139 : cancelAll + re-registration
 --
 -- Prérequis :
---   - CTLD fully initialised (inject CTLD_Next.lua + 5s wait)
---   - Inject CTLD_Next.lua first, wait 3–5 s for init.
+--   - CTLD fully initialised (inject CTLD.lua + 5s wait)
+--   - Inject CTLD.lua first, wait 3–5 s for init.
 --
 -- @scenario  SCHED
 -- @version   3.0 — 2026-06-30
@@ -27,7 +27,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[SCHED] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[SCHED] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

@@ -14,7 +14,7 @@
 --   - AUCUN groupe DCS véhicule dans AIZ_mt12_B_P_V (sinon C1 prend le dessus sur C2)
 --   - vehicleStock = { ["Hummer"] = 2 } dans la config zone
 --   - Slot BLUE occupé (joueur humain pour MenuManager)
---   - CTLD_Next.lua injecté avant ce script (attendre 3-5 s)
+--   - CTLD.lua injecté avant ce script (attendre 3-5 s)
 --
 -- Cinématique (4 steps, injection unique) :
 --   S1 [auto]  Init + vérification zones + vehicleStock initial
@@ -29,7 +29,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[MT-12] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[MT-12] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

@@ -2,7 +2,7 @@
 
 Status: ✅ done
 Branch: feature/release → PR → develop
-Program: re-tooling CTLD_Next on the VMCT model (see `.backlog/README.md`)
+Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 
 ## Problem Statement
 
@@ -17,7 +17,7 @@ and cut a tagged release in a repeatable way.
   community-oriented `RELEASE_NOTES.md`, bumps `ctld.VERSION`, rebuilds the deliverable, and opens a
   `release/x.y.z` PR targeting `develop`.
 - A dedicated **`release.yml`** workflow triggered by the `published-v*` tag that rebuilds
-  `CTLD_Next.lua` and publishes a GitHub Release (attaching the deliverable, using `RELEASE_NOTES.md`
+  `CTLD.lua` and publishes a GitHub Release (attaching the deliverable, using `RELEASE_NOTES.md`
   when present).
 
 ## Scope

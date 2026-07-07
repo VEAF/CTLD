@@ -13,7 +13,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - **CI covers `develop`** — pushes to `develop` and PRs targeting `develop` now run the full
   pipeline (previously only `master`/`feature_*`).
 - **Single build source** — the CI build job calls `tools/build/merge_CTLD.ps1` instead of a
-  duplicated inline merge, so `CTLD_Next.lua` is produced one canonical way.
+  duplicated inline merge, so `CTLD.lua` is produced one canonical way.
 - **Coverage ratchet** — the busted job measures coverage and enforces a floor that only ever
   rises (`COVERAGE_FLOOR`).
 - **Secret scanning** — gitleaks runs on push and PR.
@@ -38,7 +38,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 - **Release process** — a `release` skill (consolidates the CHANGELOG into community-oriented
   `RELEASE_NOTES.md`, bumps `ctld.VERSION`, opens a `release/x.y.z` PR) and a dedicated
-  `release.yml` workflow triggered by the `published-v*` tag (rebuilds `CTLD_Next.lua` and publishes
+  `release.yml` workflow triggered by the `published-v*` tag (rebuilds `CTLD.lua` and publishes
   the GitHub Release). The old `release` job and `v*` trigger were moved out of `ci.yml`.
 
 ### Tooling
@@ -51,7 +51,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ### Claude Code automations (project)
 
 - **Protective hooks** — a PreToolUse hook blocks edits to `migration/source/**` and the generated
-  `CTLD_Next.lua`; a PostToolUse hook runs luacheck on edited `src/` Lua (best-effort). See
+  `CTLD.lua`; a PostToolUse hook runs luacheck on edited `src/` Lua (best-effort). See
   `tools/hooks/README.md`.
 - **Review subagents** — `lua51-compliance-reviewer` and `legacy-parity-checker` under `.claude/agents/`.
 
@@ -60,7 +60,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ## [2.0.0] — 2026-07-06
 
 Complete ground-up modular rewrite of DCS-CTLD as a maintainable, testable, and extensible Lua project.
-Single-file deliverable (`CTLD_Next.lua`) produced by the build system from `src/`.
+Single-file deliverable (`CTLD.lua`) produced by the build system from `src/`.
 Backward compatible with missions using the v1 scripting API via the legacy compatibility layer.
 
 ### Architecture
@@ -141,7 +141,7 @@ Backward compatible with missions using the v1 scripting API via the legacy comp
 - **DCS integration scenarios** — `tests/dcs/` Witchcraft-injected scenarios for
   pilotPassive (noPlayer) and interactive recettes.
 - **Build header** — `merge_CTLD.ps1` injects version, date, and source URL into
-  `CTLD_Next.lua` output.
+  `CTLD.lua` output.
 
 ### Documentation
 

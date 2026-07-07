@@ -6,7 +6,7 @@
 -- Pre-requisites:
 --   - BLUE player slot occupied (UH-1H or any transport)
 --   - TRZ zone "TRZ_alpha_B_10_nil_0" in mission
---   - ctldLogPath set via patch_logpath.lua after each CTLD_Next injection
+--   - ctldLogPath set via patch_logpath.lua after each CTLD injection
 --
 -- Steps:
 --   1. Spawn 4 RED Hummers ~300m south + create "Test2JTAC" template (inf=4, jtac=2)
@@ -23,7 +23,7 @@
 
 -- ── Witchcraft guard ─────────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[TFC] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[TFC] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

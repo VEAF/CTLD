@@ -2,7 +2,7 @@
 
 Status: ✅ done
 Branch: feature/context-adr → PR → develop
-Program: re-tooling CTLD_Next on the VMCT model (see `.backlog/README.md`)
+Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 
 ## Problem Statement
 

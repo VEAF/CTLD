@@ -12,7 +12,7 @@
 --   S1 [auto]  Toutes les vérifications menu F-145/F-146
 --
 -- Pre-requisites:
---   - CTLD fully initialised (inject CTLD_Next.lua + 5s wait)
+--   - CTLD fully initialised (inject CTLD.lua + 5s wait)
 --
 -- @scenario  EXTRACT-MENU
 -- @version   3.0 — 2026-06-30
@@ -21,7 +21,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[EXTRACT-MENU] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[EXTRACT-MENU] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

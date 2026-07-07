@@ -17,7 +17,7 @@
 --
 -- Prerequisites:
 --   - UH-1H BLUE slot "Batumi_UH-1H_0-1" occupied AND on the ground
---   - CTLD_Next.lua injected (wait ≥3 s before injecting this script)
+--   - CTLD.lua injected (wait ≥3 s before injecting this script)
 --   - ctldLogPath set in .miz MISSION START trigger (private, not committed)
 --   - Witchcraft bridge running
 -- =============================================================================
@@ -26,7 +26,7 @@
 
 -- ── Witchcraft guard ────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[MT-15] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[MT-15] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 local cfg = CTLDConfig.get()

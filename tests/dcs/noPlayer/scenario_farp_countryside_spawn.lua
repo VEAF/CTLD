@@ -8,7 +8,7 @@
 --
 -- Prérequis :
 --   - Static object "coord_farp-1" présent dans la mission
---   - Inject CTLD_Next.lua first, wait 3–5 s for init.
+--   - Inject CTLD.lua first, wait 3–5 s for init.
 --
 -- @scenario  CS-FARP-SPAWN
 -- @version   3.0 — 2026-06-30
@@ -16,7 +16,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[CS-FARP-SPAWN] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[CS-FARP-SPAWN] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 

@@ -4,7 +4,7 @@
 -- CTLD Scenario Template — v2.0 [2026-06-30]
 --
 -- Usage:
---   1. Inject CTLD_Next.lua first, wait 3-5 s for init.
+--   1. Inject CTLD.lua first, wait 3-5 s for init.
 --   2. Inject this scenario (Claude via Witchcraft).
 --   3. For human steps: use the "CTLD Recette" F10 menu to respond.
 --   4. Re-inject to restart (cleanup is automatic at end of run).
@@ -23,7 +23,7 @@
 
 -- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
-    trigger.action.outText("[SCN-XXX] ABORT: CTLD not initialized. Inject CTLD_Next.lua first.", 15)
+    trigger.action.outText("[SCN-XXX] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
     return Witchcraft
 end
 
