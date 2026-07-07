@@ -28,6 +28,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - **Architecture Decision Records** — added `dev/adr/` with the key retroactive decisions of the
   v2.0.0 rewrite (modular tree + build, OOP Manager/Entity, MIST removal, legacy API, repack→pack).
 
+### Release
+
+- **Release process** — a `release` skill (consolidates the CHANGELOG into community-oriented
+  `RELEASE_NOTES.md`, bumps `ctld.VERSION`, opens a `release/x.y.z` PR) and a dedicated
+  `release.yml` workflow triggered by the `published-v*` tag (rebuilds `CTLD_Next.lua` and publishes
+  the GitHub Release). The old `release` job and `v*` trigger were moved out of `ci.yml`.
+
 ### Tooling
 
 - **Offline config type linter** — a vendored set of known DCS type names

@@ -1,0 +1,39 @@
+name: Release
+
+# Triggered by pushing a version tag `published-vX.Y.Z` (done manually after the
+# release PR is merged — see the `release` skill). Builds the deliverable and
+# publishes a GitHub Release with CTLD_Next.lua attached.
+on:
+  push:
+    tags: ['published-v*']
+
+jobs:
+  release:
+    name: Publish GitHub Release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build CTLD_Next.lua
+        run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1
+        shell: pwsh
+
+      - name: Resolve version from tag
+        id: ver
+        run: |
+          $tag = "${{ github.ref_name }}"          # e.g. published-v2.1.0
+          $version = $tag -replace '^published-v', ''
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        shell: pwsh
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = "${{ steps.ver.outputs.version }}"
+          $tag     = "${{ github.ref_name }}"
+          $notes   = if (Test-Path "RELEASE_NOTES.md") { "--notes-file", "RELEASE_NOTES.md" } else { "--generate-notes" }
+          gh release create $tag CTLD_Next.lua --title "CTLD v$version" @notes
+        shell: pwsh

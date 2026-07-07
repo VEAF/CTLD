@@ -14,13 +14,12 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| _(none)_ | | | |
+| `RELEASE` | 🔄 in-progress | `release` skill (community notes + version bump + release PR) + `release.yml` (tag `published-v*`) | `feature/release` |
 
 ### Planned lots
 
 | Lot | Description |
 |-----|-------------|
-| `RELEASE` | Interactive `release` skill + `release.yml` (tag `published-v*`), release-notes workflow |
 | `DOC-MKDOCS` | mkdocs-material infra, EN default + FR (i18n), `mike`, Pages deploy |
 | `DOC-TECH` | Technical doc refonte: consolidate `docs/dev-guide`+`api-reference` and `migration/specs/`, fill gaps → `docs/developer/`. MUST include a "Development workflow" page documenting the backlog process and the Matt Pocock skills used (`grill-with-docs`, `to-prd`, `to-issues`). |
 | `DOC-USER-ROLES` | Split the monolithic user guide by role → `docs/pilot/`, `docs/mission-maker/` |
