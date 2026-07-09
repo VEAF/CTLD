@@ -1,16 +1,17 @@
 ---@diagnostic disable
 -- ============================================================
 -- F-121 — GAP-1 : findLoadedVehicles + unloadVehicle menu_ctld
--- Witchcraft in-DCS test (UH-1H BLUE player required)
+-- dcs-bridge in-DCS test (UH-1H BLUE player required)
 -- ============================================================
 
 local pass, fail = 0, 0
+local failReasons = {}
 local function assert_eq(label, a, b)
     if a == b then
         ctld.utils.log("INFO", "[F-121 PASS] " .. label); pass = pass + 1
     else
         ctld.utils.log("INFO", string.format("[F-121 FAIL] %s  expected=%s  got=%s", label, tostring(b), tostring(a)))
-        fail = fail + 1
+        fail = fail + 1; failReasons[#failReasons+1] = label
     end
 end
 
@@ -25,8 +26,12 @@ end
 
 local transport = getTransport()
 if not transport then
-    ctld.utils.log("INFO", "[F-121 SKIP] No active player unit found"); return
+    ctld.utils.log("INFO", "[F-121 SKIP] No active player unit found")
+    _SCN_F121_RESULT = "[F-121] ABORT: no active player unit"
+    return _SCN_F121_RESULT
 end
+
+_SCN_F121_RESULT = "[F-121] STARTED"
 
 local _cfg     = CTLDConfig.get()
 local _origVTE = _cfg.settings["vehicleTransportEnabled"]
@@ -96,3 +101,10 @@ spawner._vehicles["f121_other"] = nil
 _cfg.settings["vehicleTransportEnabled"] = _origVTE
 
 ctld.utils.log("INFO", string.format("[F-121 RESULT] pass=%d fail=%d", pass, fail))
+local total = pass + fail
+if fail == 0 then
+    _SCN_F121_RESULT = "[F-121] PASS " .. pass .. "/" .. total
+else
+    _SCN_F121_RESULT = "[F-121] FAIL " .. fail .. "/" .. total .. ": " .. table.concat(failReasons, "; ")
+end
+return _SCN_F121_RESULT

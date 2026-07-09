@@ -22,10 +22,11 @@
 --   F-158  CTLDStaticWatcher fires onDeadFn when checkFn returns false
 -- =============================================================================
 
--- ── Witchcraft guard ─────────────────────────────────────────────────────────
+-- ── CTLD-ready guard ─────────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[FARP] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_FARP_RESULT = "[FARP] ABORT: CTLD not initialized"
+    return _SCN_FARP_RESULT
 end
 
 local TAG  = "[FARP]"
@@ -290,8 +291,15 @@ cfg.settings["debug"] = _saved_dbg
 cfg.settings["debugScreenLog"] = _savedDebugScreenLog
 
 if not ok then
-    ctld.utils.log("ERROR", TAG .. " step=" .. step .. " FAIL: " .. tostring(result))
-    return TAG .. " step=" .. step .. " FAIL: " .. tostring(result)
+    _SCN_FARP_RESULT = TAG .. " FAIL: step=" .. step .. " — " .. tostring(result)
+    ctld.utils.log("ERROR", _SCN_FARP_RESULT)
+    return _SCN_FARP_RESULT
 end
 trigger.action.outText(TAG .. " ✅ DONE", 20, true)
-return result
+if type(result) == "string" and result:find("ALL PASS") then
+    _SCN_FARP_RESULT = TAG .. " PASS"
+else
+    -- intermediate step of a multi-step re-injection scenario
+    _SCN_FARP_RESULT = TAG .. " RUNNING: " .. tostring(result):gsub("^%[FARP%] ", "")
+end
+return _SCN_FARP_RESULT

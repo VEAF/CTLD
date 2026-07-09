@@ -1,6 +1,6 @@
 ---@diagnostic disable
 -- scenarios/diag_crate_load.lua
--- Écriture directe dans CTLD.log via io (contexte DCS Witchcraft)
+-- Écriture directe dans CTLD.log via io (contexte DCS dcs-bridge)
 
 local LOG = (ctld and ctld.path or "") .. "CTLD.log"
 local function log(msg)

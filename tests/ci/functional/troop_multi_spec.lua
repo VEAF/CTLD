@@ -1,7 +1,7 @@
 ---@diagnostic disable
 -- tests/functional/troop_multi_spec.lua
 -- busted specs for CTLDTroopManager multi-group features
--- Reference: live_tests/functional/F-140→F-146 (Witchcraft DCS)
+-- Reference: live_tests/functional/F-140→F-146 (dcs-bridge DCS)
 -- ============================================================
 
 local function makeUnit(name)

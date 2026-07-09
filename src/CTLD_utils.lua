@@ -733,8 +733,8 @@ end
 -- All Draw API callers (RECON, Beacon, drawQuad) share this counter to avoid collisions.
 -- Encoded IDs use markId * 10 + offset (1–3 elements per logical mark).
 -- Stored on ctld (persistent table via "ctld = ctld or {}") so it survives
--- ctld.utils table re-creation on each Witchcraft re-injection.
--- Start at 10000 to stay far from any IDs burned by previous Witchcraft re-injections.
+-- ctld.utils table re-creation on each dcs-bridge re-injection.
+-- Start at 10000 to stay far from any IDs burned by previous dcs-bridge re-injections.
 if not ctld._markIdCounter then ctld._markIdCounter = 10000 end
 
 --- Allocate the next unique mark ID for DCS Draw API calls.

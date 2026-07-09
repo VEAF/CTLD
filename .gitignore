@@ -20,3 +20,9 @@ site/
 # ── IDE / editor local config (machine-specific paths) ───────────────────────
 .vscode/settings.json
 .claude/settings.local.json
+
+# ── dcs-bridge local client config (holds the machine-local API key) ─────────
+dcs-client.yaml
+
+# ── dcs-bridge local venv (installed by tools/dcs-bridge/install.ps1) ────────
+tools/dcs-bridge/venv/

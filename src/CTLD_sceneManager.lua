@@ -280,7 +280,7 @@ function CTLDSceneManager:registerSceneModel(model)
     end
     self._models[model.name] = model
     ctld.utils.log("INFO", "CTLDSceneManager: registered scene model '%s'", model.name)
-    -- If CTLDCrateManager is already initialized (late scene registration, e.g. Witchcraft injection),
+    -- If CTLDCrateManager is already initialized (late scene registration, e.g. dcs-bridge injection),
     -- inject the crate descriptor immediately so it appears in the Request Equipment menu.
     if model.crate and CTLDCrateManager and CTLDCrateManager._instance then
         CTLDCrateManager._instance:_injectSceneCrate(model.name, model)

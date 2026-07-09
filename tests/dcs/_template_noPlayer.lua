@@ -3,15 +3,20 @@
 -- live_tests/scenarios/_template_auto.lua
 -- CTLD Auto Scenario Template — v1.0 [2026-06-30]
 --
--- Usage:
---   1. Inject CTLD.lua first, wait 3-5 s for init.
---   2. Inject this scenario (Witchcraft).
---   3. Result appears on DCS screen + Witchcraft terminal.
+-- Usage (via VEAF-dcs-bridge exec_lua — see the integration-testing skill):
+--   1. exec_lua CTLD.lua first, wait 3-5 s for init.
+--   2. exec_lua this scenario.
+--   3. Result appears on DCS screen + the exec return value.
 --   4. Re-inject to restart.
 --
 -- Pattern:
 --   Single pcall — all assertions run synchronously.
 --   No human interaction, no timers, no F10 menu.
+--
+-- Return contract: the exec return / _SCN_XXX_RESULT global is one of
+--   "[SCN-XXX] PASS <p>/<t>"
+--   "[SCN-XXX] FAIL: <reason>"
+--   "[SCN-XXX] ABORT: <msg>"      (preconditions unmet)
 --
 -- @scenario  SCN-XXX
 -- @version   1.0 — YYYY-MM-DD
@@ -19,18 +24,20 @@
 -- @result    expected: [OK]
 -- =============================================================================
 
--- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
+-- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[SCN-XXX] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_XXX_RESULT = "[SCN-XXX] ABORT: CTLD not initialized"
+    return _SCN_XXX_RESULT
 end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_XXX_RUNNING then
     trigger.action.outText("[SCN-XXX] already running — wait or restart DCS.", 10)
-    return Witchcraft
+    return _SCN_XXX_RESULT or "[SCN-XXX] RUNNING"
 end
 _SCN_XXX_RUNNING = true
+_SCN_XXX_RESULT  = "[SCN-XXX] STARTED"
 
 do  -- isolation scope
 -- ── 3. Debug ON ──────────────────────────────────────────────────────────────
@@ -87,14 +94,15 @@ pcall(cleanup)
 _SCN_XXX_RUNNING = false
 
 if not _ok then
+    _SCN_XXX_RESULT = TAG .. " FAIL: " .. tostring(_err)
     trigger.action.outText(TAG .. " ❌ FAIL: " .. tostring(_err), 60, true)
-    return TAG .. " FAIL: " .. tostring(_err)
+    return _SCN_XXX_RESULT
 end
 
 local total   = passed + failed
-local summary = TAG .. " ✅ " .. passed .. "/" .. total .. " PASS (" .. _ms .. "ms)"
-trigger.action.outText(summary, 30, true)
-return summary
+_SCN_XXX_RESULT = TAG .. " PASS " .. passed .. "/" .. total .. " (" .. _ms .. "ms)"
+trigger.action.outText(_SCN_XXX_RESULT, 30, true)
+return _SCN_XXX_RESULT
 
 end  -- do isolation scope
-return Witchcraft
+return _SCN_XXX_RESULT

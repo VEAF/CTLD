@@ -22,18 +22,20 @@
 -- Famille   : auto
 -- =============================================================================
 
--- ── Witchcraft guard ───────────────────────────────────────────────────────
+-- ── CTLD-ready guard ───────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[FEAT-P] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_FEAT_P_RESULT = "[FEAT-P] ABORT: CTLD not initialized"
+    return _SCN_FEAT_P_RESULT
 end
 
 -- ── Double-injection guard ─────────────────────────────────────────────
 if _SCN_FEAT_P_RUNNING then
     trigger.action.outText("[FEAT-P] already running.", 10)
-    return Witchcraft
+    return _SCN_FEAT_P_RESULT or "[FEAT-P] RUNNING"
 end
 _SCN_FEAT_P_RUNNING = true
+_SCN_FEAT_P_RESULT = "[FEAT-P] STARTED"
 
 do  -- isolation scope
 trigger.action.outText("[FEAT-P] START — capabilitiesByType rename validation", 8)
@@ -229,7 +231,12 @@ local msg = string.format(
 trigger.action.outText(msg, 15, true)
 ctld.utils.log("INFO", msg)
 
+if fail == 0 then
+    _SCN_FEAT_P_RESULT = "[FEAT-P] PASS " .. pass .. "/" .. total
+else
+    _SCN_FEAT_P_RESULT = "[FEAT-P] FAIL " .. fail .. "/" .. total .. ": see CTLD.log"
+end
 _SCN_FEAT_P_RUNNING = false
-return "TAG=FEAT_P_RENAME | steps=" .. total .. " | pass=" .. pass .. " | fail=" .. fail
+return _SCN_FEAT_P_RESULT
 end  -- do isolation scope
-return Witchcraft
+return _SCN_FEAT_P_RESULT

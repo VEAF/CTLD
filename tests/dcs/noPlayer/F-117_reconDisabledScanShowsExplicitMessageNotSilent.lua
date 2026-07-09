@@ -16,8 +16,13 @@ end
 local rmgr = CTLDReconManager.getInstance()
 local players = coalition.getPlayers(coalition.side.BLUE) or {}
 local pu = players[1]
-if not pu then return "ABORT: no BLUE player" end
+if not pu then
+    _SCN_F117_RESULT = "[F-117] ABORT: no BLUE player"
+    return _SCN_F117_RESULT
+end
 local playerName = pu:getName()
+
+_SCN_F117_RESULT = "[F-117] STARTED"
 
 local cfg = CTLDConfig.get().settings
 
@@ -50,12 +55,19 @@ cfg["reconEnabled"]    = _origEnabled
 trigger.action.outTextForGroup = _orig_otfg
 
 local pass = 0; local fail = 0
+local failReasons = {}
 for _, r in ipairs(results) do
     env.info("[F-117] " .. r)
-    if r:sub(1,4) == "PASS" then pass = pass+1 else fail = fail+1 end
+    if r:sub(1,4) == "PASS" then pass = pass+1 else fail = fail+1; failReasons[#failReasons+1] = r end
 end
 
 local summary = string.format("F-117: %d PASS / %d FAIL", pass, fail)
 trigger.action.outText(summary, 15)
 env.info("[F-117] " .. summary)
-return summary
+local total = pass + fail
+if fail == 0 then
+    _SCN_F117_RESULT = "[F-117] PASS " .. pass .. "/" .. total
+else
+    _SCN_F117_RESULT = "[F-117] FAIL " .. fail .. "/" .. total .. ": " .. table.concat(failReasons, "; ")
+end
+return _SCN_F117_RESULT

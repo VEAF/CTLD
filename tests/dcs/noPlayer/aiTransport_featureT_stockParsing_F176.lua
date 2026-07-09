@@ -10,18 +10,20 @@
 --   les champs _aiTroopStock et _aiVehicleStock sur les CTLDTroopZone créées.
 -- =============================================================================
 
--- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
+-- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[F-176] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_F176_RESULT = "[F-176] ABORT: CTLD not initialized"
+    return _SCN_F176_RESULT
 end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_F176_RUNNING then
     trigger.action.outText("[F-176] already running.", 10)
-    return Witchcraft
+    return _SCN_F176_RESULT or "[F-176] RUNNING"
 end
 _SCN_F176_RUNNING = true
+_SCN_F176_RESULT = "[F-176] STARTED"
 
 do
 
@@ -118,13 +120,15 @@ cfg.settings["debug"]          = _savedDebug
 cfg.settings["debugScreenLog"] = _savedDebugScreenLog
 
 if not _ok then
+    _SCN_F176_RESULT = TAG .. " FAIL: " .. tostring(_err)
     trigger.action.outText(TAG .. " ❌ FAIL: " .. tostring(_err), 60, true)
     _SCN_F176_RUNNING = false
-    return TAG .. " FAIL: " .. tostring(_err)
+    return _SCN_F176_RESULT
 end
 
+_SCN_F176_RESULT = TAG .. " PASS"
 trigger.action.outText(TAG .. " ✅ ALL PASS", 30, true)
 _SCN_F176_RUNNING = false
 
 end  -- do isolation scope
-return Witchcraft
+return _SCN_F176_RESULT

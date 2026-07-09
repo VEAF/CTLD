@@ -1,5 +1,5 @@
 -- diag_deploy_drone.lua
--- Test CTLDJTACManager:deployDroneCrate directly via Witchcraft.
+-- Test CTLDJTACManager:deployDroneCrate directly via dcs-bridge.
 -- Spawns MQ-9 BLUE at 300m ahead, then checks group category and alt.
 
 local AIRCRAFT_NAME = "Batumi_UH-1H_0-1"

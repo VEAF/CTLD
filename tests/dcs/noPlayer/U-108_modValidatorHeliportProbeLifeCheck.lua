@@ -20,6 +20,8 @@ mv._probePos = { x = -356437, z = 617000 }
 local _origLog = ctld.utils.log
 ctld.utils.log = function() end
 
+_SCN_U108_RESULT = "[U-108] STARTED"
+
 mv:_probeHeliport("SINGLE_HELIPAD", "Heliports", {})
 chk("C1 valid HELIPORT (SINGLE_HELIPAD) → cache=true", mv._cache["S:SINGLE_HELIPAD"] == true)
 
@@ -40,4 +42,15 @@ local msg = string.format("U-108 HELIPORT life-check: %d PASS / %d FAIL\n%s",
     _t.pass, _t.fail, table.concat(_t.msgs, "\n"))
 trigger.action.outText(msg, 35)
 env.info("[U-108] " .. msg:gsub("\n", " | "))
-return msg
+
+local total = _t.pass + _t.fail
+if _t.fail == 0 then
+    _SCN_U108_RESULT = "[U-108] PASS " .. _t.pass .. "/" .. total
+else
+    local reasons = {}
+    for _, line in ipairs(_t.msgs) do
+        if line:sub(1, 6) == "[FAIL]" then reasons[#reasons+1] = line end
+    end
+    _SCN_U108_RESULT = "[U-108] FAIL " .. _t.fail .. "/" .. total .. ": " .. table.concat(reasons, "; ")
+end
+return _SCN_U108_RESULT

@@ -37,4 +37,4 @@ for _, name in ipairs(singletons) do
 end
 
 trigger.action.outText("[CTLD-CLEAN2] Removed " .. removed .. " handles. Restart mission to load fixed CTLD.", 10)
-return Witchcraft
+return true

@@ -3,12 +3,12 @@
 -- ctld_test.lua — CTLD test helper module
 --
 -- Inject once before any scenario that uses ctld_test.cleanup() / ctld_test.getTransport().
--- Usage:  node bridge.js ctld_test.lua    (then inject the scenario)
+-- Usage:  exec_lua ctld_test.lua    (then inject the scenario)
 -- =============================================================================
 
 if not ctld or not ctld.utils then
     trigger.action.outText("[ctld_test] ABORT: CTLD not initialized.", 10)
-    return Witchcraft
+    return "[ctld_test] ABORT: CTLD not initialized"
 end
 
 ctld_test = ctld_test or {}
@@ -73,4 +73,4 @@ end
 
 trigger.action.outText("[ctld_test] helper loaded", 5)
 ctld.utils.log("INFO", "[ctld_test] helper loaded")
-return Witchcraft
+return true

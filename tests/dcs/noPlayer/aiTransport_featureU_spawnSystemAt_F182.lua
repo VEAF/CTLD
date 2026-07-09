@@ -20,18 +20,20 @@
 -- NOTE : dynAdd est stubbé en mock pour éviter le spawn DCS réel.
 -- =============================================================================
 
--- ── Witchcraft guard ───────────────────────────────────────────────────────
+-- ── CTLD-ready guard ─────────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[F-182] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_F182_RESULT = "[F-182] ABORT: CTLD not initialized"
+    return _SCN_F182_RESULT
 end
 
 -- ── Double-injection guard ─────────────────────────────────────────────
 if _SCN_F182_RUNNING then
     trigger.action.outText("[F-182] already running.", 10)
-    return Witchcraft
+    return _SCN_F182_RESULT or "[F-182] RUNNING"
 end
 _SCN_F182_RUNNING = true
+_SCN_F182_RESULT = "[F-182] STARTED"
 
 do  -- isolation scope
 local TAG   = "[F-182]"
@@ -187,12 +189,14 @@ cfg.settings["debugScreenLog"] = _savedDebugScreenLog
 local _ms = math.floor((os.clock() - _step_start) * 1000)
 if not _ok then
     ctld.utils.dynAdd = ctld.utils.dynAdd  -- no-op restore guard
+    _SCN_F182_RESULT = TAG .. " FAIL: " .. tostring(_err)
     trigger.action.outText(TAG .. " ❌ FAIL: " .. tostring(_err), 60, true)
     _SCN_F182_RUNNING = false
-    return TAG .. " FAIL: " .. tostring(_err)
+    return _SCN_F182_RESULT
 end
+_SCN_F182_RESULT = TAG .. " PASS"
 trigger.action.outText(TAG .. " ✅ ALL PASS (" .. _ms .. "ms)", 30, true)
 _SCN_F182_RUNNING = false
-return TAG .. " " .. _result .. " (" .. _ms .. "ms)"
+return _SCN_F182_RESULT
 end  -- do isolation scope
-return Witchcraft
+return _SCN_F182_RESULT

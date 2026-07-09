@@ -11,18 +11,20 @@
 --   et sans effet quand isAll=true ou stock=-1 (illimité).
 -- =============================================================================
 
--- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
+-- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[F-179] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_F179_RESULT = "[F-179] ABORT: CTLD not initialized"
+    return _SCN_F179_RESULT
 end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_F179_RUNNING then
     trigger.action.outText("[F-179] already running.", 10)
-    return Witchcraft
+    return _SCN_F179_RESULT or "[F-179] RUNNING"
 end
 _SCN_F179_RUNNING = true
+_SCN_F179_RESULT = "[F-179] STARTED"
 
 do
 
@@ -168,15 +170,17 @@ end)
 if not _ok then
     cfg.settings["debug"]          = _savedDebug
     cfg.settings["debugScreenLog"] = _savedDebugScreenLog
+    _SCN_F179_RESULT = TAG .. " FAIL: " .. tostring(_err)
     trigger.action.outText(TAG .. " ❌ FAIL: " .. tostring(_err), 60, true)
     _SCN_F179_RUNNING = false
-    return TAG .. " FAIL: " .. tostring(_err)
+    return _SCN_F179_RESULT
 end
 
 cfg.settings["debug"]          = _savedDebug
 cfg.settings["debugScreenLog"] = _savedDebugScreenLog
+_SCN_F179_RESULT = TAG .. " PASS"
 trigger.action.outText(TAG .. " ✅ ALL PASS", 30, true)
 _SCN_F179_RUNNING = false
 
 end  -- do isolation scope
-return Witchcraft
+return _SCN_F179_RESULT

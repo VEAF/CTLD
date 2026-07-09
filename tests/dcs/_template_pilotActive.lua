@@ -22,16 +22,17 @@
 -- @coverage  F-XXX, F-YYY
 -- =============================================================================
 
--- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
+-- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[SCN-XXX] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_XXX_RESULT = "[SCN-XXX] ABORT: CTLD not initialized"
+    return _SCN_XXX_RESULT
 end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_XXX_RUNNING then
     trigger.action.outText("[SCN-XXX] déjà actif — attendre la fin ou redémarrer DCS.", 10)
-    return Witchcraft
+    return _SCN_XXX_RESULT or "[SCN-XXX] RUNNING"
 end
 _SCN_XXX_RUNNING = true
 _SCN_XXX_CLEANUP = nil   -- exposé pour reset externe (reset script)
@@ -160,11 +161,12 @@ local function finalizeScenario()
     local total = S.passed + S.failed
     local summary
     if S.failed == 0 then
-        summary = TAG.." ✅ [OK] "..NAME.." — "..S.passed.."/"..total.." PASS"
+        summary = TAG.." PASS "..S.passed.."/"..total
     else
-        summary = TAG.." ❌ [KO] "..NAME.." — "..S.failed.." FAIL: "..
-            table.concat(S.failReasons, " | ")
+        summary = TAG.." FAIL "..S.failed.."/"..total..": "..
+            table.concat(S.failReasons, "; ")
     end
+    _SCN_XXX_RESULT = summary   -- polled by the runner for this async scenario
     log(summary)
     trigger.action.outText(summary, 360, true)
     local ok, err = pcall(cleanup)
@@ -312,9 +314,10 @@ S.transport = (function()
 end)()
 
 if not S.transport then
+    _SCN_XXX_RESULT = TAG.." ABORT: aucun joueur BLUE"
     trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
     cleanup()
-    return Witchcraft
+    return _SCN_XXX_RESULT
 end
 
 -- Récupérer le groupId du joueur via CTLDPlayerManager
@@ -332,8 +335,9 @@ if pm_start and pm_start._players then
     end
 end
 if not playerObjStart then
+    _SCN_XXX_RESULT = TAG.." ABORT: no CTLD playerObj for transport"
     trigger.action.outText(TAG.." ABORT : no CTLD playerObj for transport.", 20)
-    cleanup() ; return Witchcraft
+    cleanup() ; return _SCN_XXX_RESULT
 end
 
 S.groupId = playerObjStart.groupId
@@ -343,8 +347,9 @@ S.groupId = playerObjStart.groupId
 local mm_init   = ctld.MenuManager:getInstance()
 local menu_init = mm_init and mm_init:getMenuByGroupId(S.groupId)
 if not menu_init then
+    _SCN_XXX_RESULT = TAG.." ABORT: no CTLD MenuManager menu for player group"
     trigger.action.outText(TAG.." ABORT : no CTLD MenuManager menu for player group.", 20)
-    cleanup() ; return Witchcraft
+    cleanup() ; return _SCN_XXX_RESULT
 end
 menu_init:addSubMenu({ ctld.tr("CTLD") }, MENU_NAME, { order = 0 })
 -- addSubMenu est idempotent : si le nœud existait déjà (cleanup précédent), il ne met pas à jour
@@ -355,9 +360,10 @@ menu_init:refresh()
 
 _SCN_XXX_CLEANUP = cleanup   -- exposé pour reset externe
 
+_SCN_XXX_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_XXX_RESULT until PASS/FAIL
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
 trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
 advanceStep()
 
 end  -- do isolation scope
-return Witchcraft
+return _SCN_XXX_RESULT

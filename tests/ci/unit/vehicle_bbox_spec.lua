@@ -185,6 +185,6 @@ describe("CTLDVehicleSpawner getDesc().box", function()
     -- Cannot be tested in busted without a real DCS environment.
     -- Covered by live_tests/unit/U-022.
 
-    pending("requires a live DCS unit (C-130J-30 in mission) — run via Witchcraft")
+    pending("requires a live DCS unit (C-130J-30 in mission) — run via dcs-bridge")
 
 end)

@@ -17,13 +17,13 @@ for _, p in pairs(pm._players) do playerObj = p; break end
 
 if not playerObj then
     out("[DUMP] no player found in _players")
-    return Witchcraft
+    return true
 end
 
 out("[DUMP] unit=" .. playerObj.unitName .. " gid=" .. playerObj.groupId)
 
 local menu = mm:getMenuByGroupId(playerObj.groupId)
-if not menu then out("[DUMP] no menu"); return Witchcraft end
+if not menu then out("[DUMP] no menu"); return true end
 
 out("[DUMP] root children: " .. #(menu.children or {}))
 
@@ -32,7 +32,7 @@ local ctldNode
 for _, c in ipairs(menu.children or {}) do
     if c.name == ctld.tr("CTLD") then ctldNode = c end
 end
-if not ctldNode then out("[DUMP] no CTLD node, tr='" .. ctld.tr("CTLD") .. "'"); return Witchcraft end
+if not ctldNode then out("[DUMP] no CTLD node, tr='" .. ctld.tr("CTLD") .. "'"); return true end
 
 local function sorted(children)
     local t = {}
@@ -80,4 +80,4 @@ if smokeNode then
     out(table.concat(lines, "\n"))
 end
 
-return Witchcraft
+return true

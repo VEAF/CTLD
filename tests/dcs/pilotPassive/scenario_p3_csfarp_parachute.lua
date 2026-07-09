@@ -21,16 +21,17 @@
 -- @coverage  P3.1–P3.7
 -- =============================================================================
 
--- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
+-- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[P3-CSFARP] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_P3CSFARP_RESULT = "[P3-CSFARP] ABORT: CTLD not initialized"
+    return _SCN_P3CSFARP_RESULT
 end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_P3CSFARP_RUNNING then
     trigger.action.outText("[P3-CSFARP] déjà actif — attendre la fin ou redémarrer DCS.", 10)
-    return Witchcraft
+    return _SCN_P3CSFARP_RESULT or "[P3-CSFARP] RUNNING"
 end
 _SCN_P3CSFARP_RUNNING = true
 _SCN_P3CSFARP_CLEANUP = nil
@@ -109,10 +110,10 @@ local function finalizeScenario()
     local total = S.passed + S.failed
     local summary
     if S.failed == 0 then
-        summary = TAG.." ✅ [OK] "..NAME.." — "..S.passed.."/"..total.." PASS"
+        summary = TAG.." PASS "..S.passed.."/"..total ; _SCN_P3CSFARP_RESULT = summary
     else
-        summary = TAG.." ❌ [KO] "..NAME.." — "..S.failed.." FAIL: "..
-            table.concat(S.failReasons, " | ")
+        summary = TAG.." FAIL "..S.failed.."/"..total..": "..
+            table.concat(S.failReasons, "; ") ; _SCN_P3CSFARP_RESULT = summary
     end
     log(summary)
     trigger.action.outText(summary, 360, true)
@@ -259,14 +260,16 @@ end)()
 if not S.transport then
     trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
     cleanup()
-    return Witchcraft
+    _SCN_P3CSFARP_RESULT = "[P3-CSFARP] ABORT"
+    return _SCN_P3CSFARP_RESULT
 end
 
 _SCN_P3CSFARP_CLEANUP = cleanup
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | "..#steps.." steps ===")
 trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+_SCN_P3CSFARP_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_P3CSFARP_RESULT until PASS/FAIL
 advanceStep()
 
 end  -- do isolation scope
-return Witchcraft
+return _SCN_P3CSFARP_RESULT

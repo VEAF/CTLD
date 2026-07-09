@@ -14,7 +14,7 @@
 
 if not ctld or not ctld.utils then
     trigger.action.outText("[inject_templates] ABORT: CTLD not initialized.", 10)
-    return Witchcraft
+    return true
 end
 
 local TAG = "[inject_templates]"
@@ -41,4 +41,4 @@ end
 
 log(string.format("done — %d template(s) added, total=%d", added, #tm._templates))
 trigger.action.outText(TAG .. " " .. added .. " template(s) added — total=" .. #tm._templates, 5)
-return Witchcraft
+return true

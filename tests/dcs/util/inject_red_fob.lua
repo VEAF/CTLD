@@ -9,7 +9,7 @@
 
 if not ctld or not ctld.utils then
     trigger.action.outText("[inject_red_fob] ABORT: CTLD not initialized.", 10)
-    return Witchcraft
+    return true
 end
 
 local TAG = "[inject_red_fob]"
@@ -45,4 +45,4 @@ local fob = {
 fobMgr._fobs[RED_FOB_ID] = fob
 log("RED FOB injected at (" .. RED_FOB_POS.x .. ", " .. RED_FOB_POS.z .. ")")
 trigger.action.outText(TAG .. " RED FOB injected (F-155)", 5)
-return Witchcraft
+return true

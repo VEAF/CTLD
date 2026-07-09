@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "dcs-bridge": {
+      "command": "${CLAUDE_PROJECT_DIR}/tools/dcs-bridge/venv/Scripts/dcs-client.exe",
+      "args": ["mcp", "--config", "${CLAUDE_PROJECT_DIR}/dcs-client.yaml"]
+    }
+  }
+}

@@ -35,10 +35,11 @@
 -- =============================================================================
 
 
--- ── Witchcraft guard ────────────────────────────────────────────────
+-- ── CTLD-ready guard ────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[MT-13] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_MT13_RESULT = "[MT-13] ABORT: CTLD not initialized"
+    return _SCN_MT13_RESULT
 end
 local cfg = CTLDConfig.get()
 local _saved_debug = cfg.settings["debug"]
@@ -285,12 +286,15 @@ cfg.settings["debugScreenLog"] = _savedDebugScreenLog
 local _ms = math.floor((os.clock() - _step_start) * 1000)
 if not _ok then
     pcall(cleanup)
+    _SCN_MT13_RESULT = TAG .. " FAIL: step=" .. step .. " — " .. tostring(_err)
     trigger.action.outText(TAG .. " ❌ step=" .. step .. " FAIL", 60, true)
-    return TAG .. " step=" .. step .. " FAIL: " .. tostring(_err)
+    return _SCN_MT13_RESULT
 end
 if _result == "ALL SUCCESS" then
+    _SCN_MT13_RESULT = TAG .. " PASS (" .. _ms .. "ms)"
     trigger.action.outText(TAG .. " ✅ ALL SUCCESS (" .. _ms .. "ms)", 30, true)
-    return TAG .. " " .. _result .. " (" .. _ms .. "ms)"
+    return _SCN_MT13_RESULT
 end
-return TAG .. " " .. _result:gsub("SUCCESS", "SUCCESS (" .. _ms .. "ms)")
+_SCN_MT13_RESULT = TAG .. " RUNNING: " .. _result:gsub("SUCCESS", "SUCCESS (" .. _ms .. "ms)")
                              :gsub("WAITING", "WAITING (" .. _ms .. "ms)")
+return _SCN_MT13_RESULT

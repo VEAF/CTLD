@@ -1,6 +1,6 @@
 ---@diagnostic disable
 -- diag_boot.lua : diagnostic d'initialisation CTLD pas à pas
--- Injecte via Witchcraft dans une mission DCS avec CTLD chargé.
+-- Injecte via dcs-bridge (exec_lua) dans une mission DCS avec CTLD chargé.
 -- Détecte à quelle étape de ctld.initialize() le crash se produit.
 
 do local f = io.open(((ctld and ctld.path or "") .. "CTLD.log"),"w") if f then f:close() end end

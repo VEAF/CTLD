@@ -39,4 +39,4 @@ if CTLDFOBManager     then CTLDFOBManager._instance     = nil end
 if CTLDBeaconManager  then CTLDBeaconManager._instance  = nil end
 
 trigger.action.outText("[CTLD-CLEAN] Menus wiped (" .. removed .. " handles removed). Inject CTLD.lua now.", 8)
-return Witchcraft
+return true

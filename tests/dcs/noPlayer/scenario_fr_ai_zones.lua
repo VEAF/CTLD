@@ -77,18 +77,20 @@
 -- Family        : auto
 -- =============================================================================
 
--- ── Witchcraft guard ───────────────────────────────────────────────────────
+-- ── CTLD-ready guard ───────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[FR] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_FR_RESULT = "[FR] ABORT: CTLD not initialized"
+    return _SCN_FR_RESULT
 end
 
 -- ── Double-injection guard ─────────────────────────────────────────────
 if _SCN_FR_RUNNING then
     trigger.action.outText("[FR] already running.", 10)
-    return Witchcraft
+    return _SCN_FR_RESULT or "[FR] RUNNING"
 end
 _SCN_FR_RUNNING = true
+_SCN_FR_RESULT = "[FR] STARTED"
 
 do  -- isolation scope
 trigger.action.outText("[FR] START — AI Zones Feature R+S", 8)
@@ -1072,7 +1074,12 @@ local msg = string.format("[FR] DONE — %d/%d PASS%s", pass_n, total,
 trigger.action.outText(msg, 30, true)
 ctld.utils.log("INFO", msg)
 
+if fail_n == 0 then
+    _SCN_FR_RESULT = "[FR] PASS " .. pass_n .. "/" .. total
+else
+    _SCN_FR_RESULT = "[FR] FAIL " .. fail_n .. "/" .. total .. ": see CTLD.log"
+end
 _SCN_FR_RUNNING = false
-return msg
+return _SCN_FR_RESULT
 end  -- do isolation scope
-return Witchcraft
+return _SCN_FR_RESULT

@@ -22,6 +22,8 @@ end
 
 local cfg = CTLDConfig.get().settings
 
+_SCN_F119_RESULT = "[F-119] STARTED"
+
 -- ── mock trigger.action ───────────────────────────────────────────────────────
 local calls = { circle = {}, line = {} }
 
@@ -84,12 +86,19 @@ trigger.action.circleToAll   = _orig_circle
 trigger.action.lineToAll     = _orig_line
 
 local pass = 0; local fail = 0
+local failReasons = {}
 for _, r in ipairs(results) do
     env.info("[F-119] " .. r)
-    if r:sub(1,4) == "PASS" then pass = pass+1 else fail = fail+1 end
+    if r:sub(1,4) == "PASS" then pass = pass+1 else fail = fail+1; failReasons[#failReasons+1] = r end
 end
 
 local summary = string.format("F-119: %d PASS / %d FAIL", pass, fail)
 trigger.action.outText(summary, 15)
 env.info("[F-119] " .. summary)
-return summary
+local total = pass + fail
+if fail == 0 then
+    _SCN_F119_RESULT = "[F-119] PASS " .. pass .. "/" .. total
+else
+    _SCN_F119_RESULT = "[F-119] FAIL " .. fail .. "/" .. total .. ": " .. table.concat(failReasons, "; ")
+end
+return _SCN_F119_RESULT

@@ -15,18 +15,20 @@
 -- Family        : auto
 -- =============================================================================
 
--- ── Witchcraft guard ───────────────────────────────────────────────────────
+-- ── CTLD-ready guard ───────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[CMFV] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_CMFV_RESULT = "[CMFV] ABORT: CTLD not initialized"
+    return _SCN_CMFV_RESULT
 end
 
 -- ── Double-injection guard ─────────────────────────────────────────────
 if _SCN_CMFV_RUNNING then
     trigger.action.outText("[CMFV] already running.", 10)
-    return Witchcraft
+    return _SCN_CMFV_RESULT or "[CMFV] RUNNING"
 end
 _SCN_CMFV_RUNNING = true
+_SCN_CMFV_RESULT = "[CMFV] STARTED"
 
 do  -- isolation scope
 trigger.action.outText("[CMFV] START — Crate menu flight-state visibility", 8)
@@ -178,7 +180,12 @@ local msg = string.format(
 trigger.action.outText(msg, 15, true)
 ctld.utils.log("INFO", msg)
 
+if fail == 0 then
+    _SCN_CMFV_RESULT = "[CMFV] PASS " .. pass .. "/" .. total
+else
+    _SCN_CMFV_RESULT = "[CMFV] FAIL " .. fail .. "/" .. total .. ": see CTLD.log"
+end
 _SCN_CMFV_RUNNING = false
-return "TAG=CRATE_MENU_FLIGHT | steps=" .. total .. " | pass=" .. pass .. " | fail=" .. fail
+return _SCN_CMFV_RESULT
 end  -- do isolation scope
-return Witchcraft
+return _SCN_CMFV_RESULT

@@ -7,18 +7,20 @@
 -- Famille : auto (aucune intervention humaine)
 -- ============================================================
 
--- ── Witchcraft guard ───────────────────────────────────────────────────────
+-- ── CTLD-ready guard ───────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[F-SC] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_F_SC_RESULT = "[F-SC] ABORT: CTLD not initialized"
+    return _SCN_F_SC_RESULT
 end
 
 -- ── Double-injection guard ─────────────────────────────────────────────
 if _SCN_F_SC_RUNNING then
     trigger.action.outText("[F-SC] already running.", 10)
-    return Witchcraft
+    return _SCN_F_SC_RESULT or "[F-SC] RUNNING"
 end
 _SCN_F_SC_RUNNING = true
+_SCN_F_SC_RESULT = "[F-SC] STARTED"
 
 do  -- isolation scope
 trigger.action.outText("[F-SC] START — JTAC Spot Corrections toggle", 8)
@@ -108,7 +110,12 @@ local total = passed + failed
 local msg = string.format("[F-SC] %d/%d PASS", passed, total)
 if #failures > 0 then msg = msg .. " | FAIL: " .. table.concat(failures, ", ") end
 trigger.action.outText(msg, 12, true)
+if failed == 0 then
+    _SCN_F_SC_RESULT = "[F-SC] PASS " .. passed .. "/" .. total
+else
+    _SCN_F_SC_RESULT = "[F-SC] FAIL " .. failed .. "/" .. total .. ": " .. table.concat(failures, ", ")
+end
 _SCN_F_SC_RUNNING = false
-return msg
+return _SCN_F_SC_RESULT
 end  -- do isolation scope
-return Witchcraft
+return _SCN_F_SC_RESULT

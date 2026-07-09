@@ -1,7 +1,7 @@
 -- diag_set_cratesRequired_1.lua
 -- DEBUG ONLY — sets cratesRequired=1 for all "Both" scene crates (FOB, FARP Alpha, Countryside FARP, mineField).
 -- Patches CTLDSceneManager models + CTLDCrateManager _weightIndex in-memory.
--- Inject via Witchcraft after CTLD.lua is loaded.
+-- Inject via dcs-bridge after CTLD.lua is loaded.
 
 -- "fobScene" = ancien nom avant fix ; "FOB" = nom corrigé après rebuild
 local scenesToPatch = { "FOB", "fobScene", "FARP Alpha", "Countryside FARP", "mineField" }

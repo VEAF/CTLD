@@ -1,7 +1,7 @@
 ---@diagnostic disable
 -- =============================================================================
 -- scenarios/scenarioTroopsFullCycle_A.lua
--- Self-contained 8-step troop cycle test via Witchcraft.
+-- Self-contained 8-step troop cycle test via dcs-bridge.
 -- Single injection — no delays — full trace via ctld.utils.log().
 --
 -- Pre-requisites:

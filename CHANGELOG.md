@@ -75,6 +75,25 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   `tools/dcs-data/gen_dcs_types.py`, not shipped) + a busted spec that reports configured type
   names not in the stock set (likely typos). Runtime `CTLD_modValidator` is unchanged.
 
+### DCS integration testing
+
+- **Migrated from Witchcraft to VEAF-dcs-bridge** — `tests/dcs/` scenarios now inject via
+  `dcs-client mcp` / `exec_lua` (project `.mcp.json`) instead of the Witchcraft Node.js bridge.
+- **Return contract** — every scenario returns (and mirrors into `_G["_SCN_<ID>_RESULT"]`) a
+  parsable verdict: `PASS[ <p>/<t>]`, `FAIL[ <f>/<t>]: <reasons>`, `ABORT: <msg>`, `RUNNING[:
+  <detail>]`, or `STARTED` for async scenarios. Documented in the new `integration-testing` skill.
+- **79 scenarios migrated** to the new contract (`noPlayer`, `pilotActive`, `pilotPassive`); the
+  four `_template_*.lua` templates updated to match.
+- **`integration-testing` skill** added, replacing `.claude/witchcraft-workflow.md` (removed).
+  The `.vscode/tasks.json` Witchcraft task is also removed.
+- **Dev setup** — `tools/dcs-bridge/install.ps1` installs VEAF-dcs-bridge into a project-local,
+  gitignored venv (`tools/dcs-bridge/venv/`); `.mcp.json` references it via
+  `${CLAUDE_PROJECT_DIR}` so the `dcs-bridge` MCP server works from a fresh checkout without
+  relying on the system PATH.
+- Note: `tests/dcs/noPlayer/` still contains ~194 legacy FullGas scenarios (dangling
+  `DCS-CTLD_FG/recette/setup.lua` reference, no `ctld_test` framework) predating this migration —
+  out of scope here, tracked as `CLEANUP-LEGACY-DCS-TESTS`.
+
 ### Claude Code automations (project)
 
 - **Protective hooks** — a PreToolUse hook blocks edits to `migration/source/**` and the generated
