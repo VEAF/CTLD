@@ -62,4 +62,11 @@ local msg = string.format(
     _t.pass, _t.fail, table.concat(_t.msgs, "\n"))
 trigger.action.outText(msg, 40)
 env.info("[U-108] " .. msg:gsub("\n", " | "))
-return msg
+-- dcs-bridge return contract (sync verdict; C1..C4 programmatic, F10 check is supplementary)
+local _total = _t.pass + _t.fail
+if _t.fail == 0 then
+    return "[U-108] PASS " .. _t.pass .. "/" .. _total
+end
+local _reasons = {}
+for _, m in ipairs(_t.msgs) do if m:find("%[FAIL%]") then _reasons[#_reasons+1] = m end end
+return "[U-108] FAIL " .. _t.fail .. "/" .. _total .. ": " .. table.concat(_reasons, "; ")

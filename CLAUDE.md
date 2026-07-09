@@ -66,7 +66,8 @@ If the user must test manually in DCS, stop and wait for explicit approval befor
 
 Inject Lua into a live mission via **VEAF-dcs-bridge** (`dcs-client mcp`, `exec_lua`). Scenarios
 carry a tier header `-- @tier: auto | auto-check | ia`. New scenarios from
-`tests/dcs/_template_scenario.lua`. For runtime/in-game debugging use the `dcs-runtime-debug` skill.
+`tests/dcs/_template_scenario.lua`. Use the `integration-testing` skill for the injection loop
+and the scenario return contract; for runtime/in-game debugging use the `dcs-runtime-debug` skill.
 
 ## Bash
 

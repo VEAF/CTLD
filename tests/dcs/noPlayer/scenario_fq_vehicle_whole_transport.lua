@@ -13,18 +13,20 @@
 -- Family        : auto
 -- =============================================================================
 
--- ── Witchcraft guard ───────────────────────────────────────────────────────
+-- ── CTLD-ready guard ───────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[FQ] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_FQ_RESULT = "[FQ] ABORT: CTLD not initialized"
+    return _SCN_FQ_RESULT
 end
 
 -- ── Double-injection guard ─────────────────────────────────────────────
 if _SCN_FQ_RUNNING then
     trigger.action.outText("[FQ] already running.", 10)
-    return Witchcraft
+    return _SCN_FQ_RESULT or "[FQ] RUNNING"
 end
 _SCN_FQ_RUNNING = true
+_SCN_FQ_RESULT = "[FQ] STARTED"
 
 do  -- isolation scope
 trigger.action.outText("[FQ] START — Vehicle whole-unit transport", 8)
@@ -329,7 +331,12 @@ local msg = string.format(
 trigger.action.outText(msg, 15, true)
 ctld.utils.log("INFO", msg)
 
+if fail == 0 then
+    _SCN_FQ_RESULT = "[FQ] PASS " .. pass .. "/" .. total
+else
+    _SCN_FQ_RESULT = "[FQ] FAIL " .. fail .. "/" .. total .. ": see CTLD.log"
+end
 _SCN_FQ_RUNNING = false
-return "TAG=FQ_VEHICLE_WHOLE_TRANSPORT | steps=" .. total .. " | pass=" .. pass .. " | fail=" .. fail
+return _SCN_FQ_RESULT
 end  -- do isolation scope
-return Witchcraft
+return _SCN_FQ_RESULT

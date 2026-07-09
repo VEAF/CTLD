@@ -16,8 +16,12 @@ local function assert_false(label, cond)  assert_eq(label, not not cond, false) 
 local rmgr = CTLDReconManager.getInstance()
 local players = coalition.getPlayers(coalition.side.BLUE) or {}
 local pu = players[1]
-if not pu then return "ABORT: no BLUE player" end
+if not pu then
+    _SCN_F118_RESULT = "[F-118] ABORT: no BLUE player"
+    return _SCN_F118_RESULT
+end
 local playerName = pu:getName()
+_SCN_F118_RESULT = "[F-118] STARTED"
 local cfg = CTLDConfig.get().settings
 
 -- Save state
@@ -86,12 +90,19 @@ cfg["reconMinAltitude"] = _origMinAlt
 cfg["reconSearchRadius"] = _origRadius
 
 local pass = 0; local fail = 0
+local failReasons = {}
 for _, r in ipairs(results) do
     env.info("[F-118] " .. r)
-    if r:sub(1,4) == "PASS" then pass = pass+1 else fail = fail+1 end
+    if r:sub(1,4) == "PASS" then pass = pass+1 else fail = fail+1; failReasons[#failReasons+1] = r end
 end
 
 local summary = string.format("F-118: %d PASS / %d FAIL", pass, fail)
 trigger.action.outText(summary, 15)
 env.info("[F-118] " .. summary)
-return summary
+local total = pass + fail
+if fail == 0 then
+    _SCN_F118_RESULT = "[F-118] PASS " .. pass .. "/" .. total
+else
+    _SCN_F118_RESULT = "[F-118] FAIL " .. fail .. "/" .. total .. ": " .. table.concat(failReasons, "; ")
+end
+return _SCN_F118_RESULT

@@ -9,7 +9,8 @@ touches that perimeter.
 ## How to use
 
 1. Identify the modified perimeter (column **Perimeter / files**).
-2. Run the listed sequence in a live DCS mission with CTLD + Witchcraft active.
+2. Run the listed sequence in a live DCS mission with CTLD loaded and the dcs-bridge Lua bridge
+   injected (`dcs-serve` running, `exec_lua` available).
 3. Tick each step. Any ❌ = regression to fix before merge.
 
 ---
@@ -23,7 +24,7 @@ touches that perimeter.
 **Pre-requisites:**
 - Mission with ≥ 2 TRZ pickup zones populated with troops (e.g. 2 x JTAC-type loadable groups)
 - Player in UH-1H (or any transport with `troops: true`)
-- `multiGroupTransport = true` in config (or set via Witchcraft `cfg.settings["multiGroupTransport"] = true`)
+- `multiGroupTransport = true` in config (or set live via `exec_lua`: `cfg.settings["multiGroupTransport"] = true`)
 
 ### Sequence
 
@@ -86,7 +87,7 @@ touches that perimeter.
 `getLoadedVehicleWeight`, `_updateVehicleCargo`
 
 **Pre-requisites:**
-- 2 vehicles entiers de types différents (or same type) spawned near the helicopter (via unpack or Witchcraft)
+- 2 vehicles entiers de types différents (or same type) spawned near the helicopter (via unpack or `exec_lua`)
 - Player in UH-1H with `vehicles: true` and `canParachute: true` in unitActions config
 - Transport weight limit high enough to hold both vehicles (or explicitly lower to test limit guard)
 
@@ -134,8 +135,8 @@ touches that perimeter.
 | 4 | Fly > 5 km from both targets (leave LOS). Wait ≤ 60 s for auto-refresh cycle. | ✓ Both icons **remain** on F10 map — persistence is independent of LOS. ✓ CTLD.log shows no `removeIcon` call for the FARP/FOB marks during refresh. |
 | 5 | Open RECON → Layers → "FARP / FOB \[deactivate\]". | ✓ Screen message confirms layer deactivated. ✓ Both icons **disappear immediately** from F10 map. ✓ Menu entry reverts to "FARP / FOB \[activate\]". |
 | 6 | Reactivate layer. Fly back within 5 km. Scan again. | ✓ Icons reappear after scan. ✓ **No duplicates** — each FARP/FOB has exactly 1 icon. |
-| 7 | Inject via Witchcraft: check coalition propagation.<br>`local rm=CTLDReconManager.getInstance(); local sc=rm._activeScans["<player>"]; trigger.action.outText(tostring(sc and sc.playerCoalition),10)` | ✓ Output shows **`2`** (BLUE coalition). ✓ Confirms icons are drawn `circleToAll(2, ...)` not `-1`. |
-| 8 | Inject via Witchcraft to destroy red_FARP-1 (coordinates from F10 map — default ~{x=-360432,y=0,z=615168}):<br>`trigger.action.explosion({x=-360432, y=0, z=615168}, 1000)` | ✓ Within **~2 seconds** the FARP icon disappears from F10 map. ✓ CTLD.log shows `S_EVENT_STATIC_DEAD` dispatch for the FARP id. ✓ FOB icon remains (only FARP destroyed). |
+| 7 | Inject via `exec_lua`: check coalition propagation.<br>`local rm=CTLDReconManager.getInstance(); local sc=rm._activeScans["<player>"]; trigger.action.outText(tostring(sc and sc.playerCoalition),10)` | ✓ Output shows **`2`** (BLUE coalition). ✓ Confirms icons are drawn `circleToAll(2, ...)` not `-1`. |
+| 8 | Inject via `exec_lua` to destroy red_FARP-1 (coordinates from F10 map — default ~{x=-360432,y=0,z=615168}):<br>`trigger.action.explosion({x=-360432, y=0, z=615168}, 1000)` | ✓ Within **~2 seconds** the FARP icon disappears from F10 map. ✓ CTLD.log shows `S_EVENT_STATIC_DEAD` dispatch for the FARP id. ✓ FOB icon remains (only FARP destroyed). |
 | 9 | Destroy RED FOB statics (two explosions near FOB position, ~300 m north of red_FARP):<br>`trigger.action.explosion({x=-360132, y=0, z=615168}, 500)` | ✓ Within ~2 seconds the FOB icon disappears from F10 map. ✓ CTLD.log shows `S_EVENT_STATIC_DEAD` for the FOB id. ✓ F10 map is **clean** — no orphan mark remaining. |
 
 ### Pass criteria

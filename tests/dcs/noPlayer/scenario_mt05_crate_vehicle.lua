@@ -10,18 +10,20 @@
 -- Famille    : auto (aucune intervention humaine)
 -- ============================================================
 
--- ── Witchcraft guard ───────────────────────────────────────────────────────
+-- ── CTLD-ready guard ───────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[MT-05] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_MT05_RESULT = "[MT-05] ABORT: CTLD not initialized"
+    return _SCN_MT05_RESULT
 end
 
 -- ── Double-injection guard ─────────────────────────────────────────────
 if _SCN_MT05_RUNNING then
     trigger.action.outText("[MT-05] already running.", 10)
-    return Witchcraft
+    return _SCN_MT05_RESULT or "[MT-05] RUNNING"
 end
 _SCN_MT05_RUNNING = true
+_SCN_MT05_RESULT = "[MT-05] STARTED"
 
 do  -- isolation scope
 trigger.action.outText("[MT-05] START — crate + véhicule entier isolation", 8)
@@ -139,7 +141,12 @@ end
 if #failures > 0 then
     msg = msg .. " | FAIL: " .. table.concat(failures, ", ")
 end
+if failed == 0 then
+    _SCN_MT05_RESULT = "[MT-05] PASS " .. passed .. "/" .. total
+else
+    _SCN_MT05_RESULT = "[MT-05] FAIL " .. failed .. "/" .. total .. ": " .. table.concat(failures, ", ")
+end
 _SCN_MT05_RUNNING = false
-return msg
+return _SCN_MT05_RESULT
 end  -- do isolation scope
-return Witchcraft
+return _SCN_MT05_RESULT

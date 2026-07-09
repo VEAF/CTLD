@@ -21,16 +21,17 @@
 -- @coverage  FI-ATK (AttackNearestEnemyOnLos)
 -- =============================================================================
 
--- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
+-- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[FI-ATK] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_FI_ATK_RESULT = "[FI-ATK] ABORT: CTLD not initialized"
+    return _SCN_FI_ATK_RESULT
 end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_FI_ATK_RUNNING then
     trigger.action.outText("[FI-ATK] déjà actif — attendre la fin ou redémarrer DCS.", 10)
-    return Witchcraft
+    return _SCN_FI_ATK_RESULT or "[FI-ATK] RUNNING"
 end
 _SCN_FI_ATK_RUNNING = true
 _SCN_FI_ATK_CLEANUP = nil
@@ -161,9 +162,11 @@ local function finalizeScenario()
     local summary
     if S.failed == 0 then
         summary = TAG.." ✅ [OK] "..NAME.." — "..S.passed.."/"..total.." PASS"
+        _SCN_FI_ATK_RESULT = TAG.." PASS "..S.passed.."/"..total
     else
         summary = TAG.." ❌ [KO] "..NAME.." — "..S.failed.." FAIL: "..
             table.concat(S.failReasons, " | ")
+        _SCN_FI_ATK_RESULT = TAG.." FAIL "..S.failed.."/"..total..": "..table.concat(S.failReasons, " | ")
     end
     log(summary)
     trigger.action.outText(summary, 360, true)
@@ -329,8 +332,9 @@ end)()
 
 if not S.transport then
     trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    _SCN_FI_ATK_RESULT = TAG.." ABORT: aucun joueur BLUE"
     cleanup()
-    return Witchcraft
+    return _SCN_FI_ATK_RESULT
 end
 
 local pm_start = CTLDPlayerManager.getInstance()
@@ -347,7 +351,8 @@ if pm_start and pm_start._players then
 end
 if not playerObjStart then
     trigger.action.outText(TAG.." ABORT : no CTLD playerObj for transport.", 20)
-    cleanup() ; return Witchcraft
+    _SCN_FI_ATK_RESULT = TAG.." ABORT: no CTLD playerObj"
+    cleanup() ; return _SCN_FI_ATK_RESULT
 end
 
 S.groupId = playerObjStart.groupId
@@ -356,7 +361,8 @@ local mm_init   = ctld.MenuManager:getInstance()
 local menu_init = mm_init and mm_init:getMenuByGroupId(S.groupId)
 if not menu_init then
     trigger.action.outText(TAG.." ABORT : no CTLD MenuManager menu for player group.", 20)
-    cleanup() ; return Witchcraft
+    _SCN_FI_ATK_RESULT = TAG.." ABORT: no CTLD MenuManager menu"
+    cleanup() ; return _SCN_FI_ATK_RESULT
 end
 menu_init:addSubMenu({ ctld.tr("CTLD") }, MENU_NAME, { order = 0 })
 local _rNode = menu_init:_getNode(MENU_PATH)
@@ -364,10 +370,11 @@ if _rNode then _rNode.order = 0 ; _rNode.enabled = true end
 menu_init:refresh()
 
 _SCN_FI_ATK_CLEANUP = cleanup
+_SCN_FI_ATK_RESULT  = TAG.." STARTED"
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
 trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
 advanceStep()
 
 end  -- do isolation scope
-return Witchcraft
+return _SCN_FI_ATK_RESULT

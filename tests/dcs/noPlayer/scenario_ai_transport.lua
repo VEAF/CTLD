@@ -23,16 +23,17 @@
 -- @coverage  F-133, F-134
 -- =============================================================================
 
--- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
+-- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[AI-TRANSPORT] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_AI_TRANSPORT_RESULT = "[AI-TRANSPORT] ABORT: CTLD not initialized"
+    return _SCN_AI_TRANSPORT_RESULT
 end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_AI_TRANSPORT_RUNNING then
     trigger.action.outText("[AI-TRANSPORT] déjà actif — attendre la fin ou redémarrer DCS.", 10)
-    return Witchcraft
+    return _SCN_AI_TRANSPORT_RESULT or "[AI-TRANSPORT] RUNNING"
 end
 _SCN_AI_TRANSPORT_RUNNING = true
 _SCN_AI_TRANSPORT_CLEANUP = nil
@@ -148,9 +149,12 @@ local function finalizeScenario()
     local summary
     if S.failed == 0 then
         summary = TAG.." ✅ [OK] "..NAME.." — "..S.passed.."/"..total.." PASS"
+        _SCN_AI_TRANSPORT_RESULT = TAG.." PASS "..S.passed.."/"..total
     else
         summary = TAG.." ❌ [KO] "..NAME.." — "..S.failed.." FAIL: "..
             table.concat(S.failReasons, " | ")
+        _SCN_AI_TRANSPORT_RESULT = TAG.." FAIL "..S.failed.."/"..total..": "..
+            table.concat(S.failReasons, "; ")
     end
     log(summary)
     trigger.action.outText(summary, 360, true)
@@ -481,9 +485,10 @@ end
 
 _SCN_AI_TRANSPORT_CLEANUP = cleanup
 
+_SCN_AI_TRANSPORT_RESULT = TAG.." STARTED"
 log("=== START: "..NAME.." | "..#steps.." steps ===")
 trigger.action.outText(TAG.." démarrage — "..#steps.." steps (auto)", 8)
 advanceStep()
 
 end  -- do isolation scope
-return Witchcraft
+return _SCN_AI_TRANSPORT_RESULT

@@ -2,7 +2,7 @@
 
 Testing is organized in six levels (L1 to L6).
 L1 and L2 run automatically via GitHub Actions CI.
-L3 to L5 require a live DCS session with Witchcraft active.
+L3 to L5 require a live DCS session with the dcs-bridge Lua bridge injected and `dcs-serve` running.
 L6 is purely manual (player + checklist).
 
 For debug configuration and CTLD.log setup, see [Building & testing](developer/building-and-testing.md).
@@ -15,7 +15,7 @@ For debug configuration and CTLD.log setup, see [Building & testing](developer/b
 | --- | --- | --- |
 | `tests/ci/unit/` | L1 | GitHub Actions — busted, no DCS |
 | `tests/ci/functional/` | L2 | GitHub Actions — busted, no DCS |
-| `tests/dcs/noPlayer/` | L3 | Developer local — DCS + Witchcraft, no player slot |
+| `tests/dcs/noPlayer/` | L3 | Developer local — DCS + dcs-bridge, no player slot |
 | `tests/dcs/pilotPassive/` | L4 | Developer local — DCS + player in cockpit, script drives |
 | `tests/dcs/pilotActive/` | L5 | Developer local — DCS + player takes F10 actions |
 | `tests/manual_test_sequences.md` | L6 | Developer local — player, step-by-step checklist |
@@ -31,8 +31,8 @@ RELEASE
   +- L2  CI busted functional  tests/ci/functional/*_spec.lua    ~45 tests   (automatic)
   |
   +- L3  DCS noPlayer          tests/dcs/noPlayer/               ~136 scripts (developer, before push)
-  |         U-xxx  unit-level Witchcraft scripts
-  |         F-xxx  targeted functional Witchcraft scripts
+  |         U-xxx  unit-level dcs-bridge scripts
+  |         F-xxx  targeted functional dcs-bridge scripts
   |         scenario_*  multi-step integration scenarios
   |
   +- L4  DCS pilotPassive      tests/dcs/pilotPassive/           ~30 scripts  (developer, before push)
@@ -101,7 +101,7 @@ All DCS API calls replaced by stubs in `tests/ci/helpers/dcs_stubs.lua`.
 | `vehicle_spec.lua` | findLoadableVehicles, loadVehicle, unloadVehicle, _spawnUnpacked |
 | `troop_multi_spec.lua` | Multi-group transit, disembarkAll/Index, _menuCheckCargo |
 
-> Note: `tests/dcs/noPlayer/F-xxx.lua` and `U-xxx.lua` are Witchcraft injection scripts (L3),
+> Note: `tests/dcs/noPlayer/F-xxx.lua` and `U-xxx.lua` are dcs-bridge injection scripts (L3),
 > not busted specs. They are not picked up by CI (no `_spec` suffix).
 
 ---

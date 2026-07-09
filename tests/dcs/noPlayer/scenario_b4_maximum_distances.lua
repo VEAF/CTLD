@@ -13,18 +13,20 @@
 -- Family        : auto
 -- =============================================================================
 
--- ── Witchcraft guard ───────────────────────────────────────────────────────
+-- ── CTLD-ready guard ─────────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[B4] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_B4_RESULT = "[B4] ABORT: CTLD not initialized"
+    return _SCN_B4_RESULT
 end
 
 -- ── Double-injection guard ─────────────────────────────────────────────
 if _SCN_B4_RUNNING then
     trigger.action.outText("[B4] already running.", 10)
-    return Witchcraft
+    return _SCN_B4_RESULT or "[B4] RUNNING"
 end
 _SCN_B4_RUNNING = true
+_SCN_B4_RESULT = "[B4] STARTED"
 
 do  -- isolation scope
 trigger.action.outText("[B4] START — maximumSearchDistance config guard", 8)
@@ -148,7 +150,12 @@ local msg = string.format(
 trigger.action.outText(msg, 15, true)
 ctld.utils.log("INFO", msg)
 
+if fail == 0 then
+    _SCN_B4_RESULT = "[B4] PASS " .. pass .. "/" .. total
+else
+    _SCN_B4_RESULT = "[B4] FAIL " .. fail .. "/" .. total .. ": see CTLD.log"
+end
 _SCN_B4_RUNNING = false
-return "TAG=B4_MAXIMUM_DISTANCES | steps=" .. total .. " | pass=" .. pass .. " | fail=" .. fail
+return _SCN_B4_RESULT
 end  -- do isolation scope
-return Witchcraft
+return _SCN_B4_RESULT

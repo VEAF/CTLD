@@ -16,10 +16,11 @@
 --   • enable_debug.lua injecté avant ce script
 -- =============================================================================
 
--- ── Witchcraft guard ─────────────────────────────────────────────────────────
+-- ── CTLD-ready guard ─────────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[FOB-SCN] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_FOBSCN_RESULT = "[FOB-SCN] ABORT: CTLD not initialized"
+    return _SCN_FOBSCN_RESULT
 end
 
 local TAG      = "[FOB-SCN]"
@@ -242,10 +243,13 @@ end)  -- end pcall
 cfg.settings["debug"] = _saved_debug
 cfg.settings["debugScreenLog"] = _savedDebugScreenLog
 
--- ── return Witchcraft ─────────────────────────────────────────────────────────
+-- ── dcs-bridge return value ───────────────────────────────────────────────────
 if not _ok then
+    _SCN_FOBSCN_RESULT = TAG .. " FAIL: step=" .. step .. " — " .. tostring(_err)
     trigger.action.outText(TAG .. " ❌ step=" .. step .. " FAIL", 60, true)
-    return TAG .. " step=" .. step .. " FAIL: " .. tostring(_err)
+    return _SCN_FOBSCN_RESULT
 end
+-- Multi-step re-injection scenario: a step success is intermediate — runner re-injects.
+_SCN_FOBSCN_RESULT = TAG .. " RUNNING: step=" .. step .. " SUCCESS"
 trigger.action.outText(TAG .. " ✅ step=" .. step .. " SUCCESS", 30, true)
-return TAG .. " step=" .. step .. " SUCCESS"
+return _SCN_FOBSCN_RESULT

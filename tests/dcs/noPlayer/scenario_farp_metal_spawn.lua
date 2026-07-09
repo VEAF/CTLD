@@ -15,18 +15,20 @@
 -- @version   3.0 — 2026-06-30
 -- =============================================================================
 
--- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
+-- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[METAL-FARP-SPAWN] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_METALFARPSPAWN_RESULT = "[METAL-FARP-SPAWN] ABORT: CTLD not initialized"
+    return _SCN_METALFARPSPAWN_RESULT
 end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_METALFARPSPAWN_RUNNING then
     trigger.action.outText("[METAL-FARP-SPAWN] déjà actif — attendre la fin ou redémarrer DCS.", 10)
-    return Witchcraft
+    return _SCN_METALFARPSPAWN_RESULT or "[METAL-FARP-SPAWN] RUNNING"
 end
 _SCN_METALFARPSPAWN_RUNNING = true
+_SCN_METALFARPSPAWN_RESULT = "[METAL-FARP-SPAWN] STARTED"
 
 do  -- isolation scope
 -- ── 4. Debug ON ──────────────────────────────────────────────────────────────
@@ -59,6 +61,7 @@ local ok, err = pcall(function()
     if not anchor or not anchor:isExist() then
         trigger.action.outText(TAG.." [FAIL] static 'coord_farp-1' not found", 15)
         log("[FAIL] static 'coord_farp-1' not found")
+        _SCN_METALFARPSPAWN_RESULT = TAG.." FAIL: static 'coord_farp-1' not found"
         return
     end
 
@@ -76,10 +79,12 @@ local ok, err = pcall(function()
         local msg = TAG..string.format(" ✅ [OK] %s — Metal FARP scene started at (%.0f, %.0f)", NAME, pos.x, pos.z)
         log(msg)
         trigger.action.outText(msg, 15)
+        _SCN_METALFARPSPAWN_RESULT = TAG.." PASS"
     else
         local msg = TAG.." ❌ [KO] "..NAME.." — playSceneAtPos returned nil"
         log(msg)
         trigger.action.outText(msg, 15)
+        _SCN_METALFARPSPAWN_RESULT = TAG.." FAIL: playSceneAtPos returned nil"
     end
 end)
 
@@ -87,9 +92,10 @@ if not ok then
     local msg = TAG.." ❌ [KO] "..NAME.." — ERREUR: "..tostring(err)
     log(msg)
     trigger.action.outText(msg, 15)
+    _SCN_METALFARPSPAWN_RESULT = TAG.." FAIL: "..tostring(err)
 end
 
 cleanup()
 
 end  -- do isolation scope
-return Witchcraft
+return _SCN_METALFARPSPAWN_RESULT

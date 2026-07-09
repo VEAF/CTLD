@@ -12,18 +12,20 @@
 -- Family        : auto
 -- =============================================================================
 
--- ── Witchcraft guard ───────────────────────────────────────────────────────
+-- ── CTLD-ready guard ─────────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[CL10] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_CL10_RESULT = "[CL10] ABORT: CTLD not initialized"
+    return _SCN_CL10_RESULT
 end
 
 -- ── Double-injection guard ─────────────────────────────────────────────
 if _SCN_CL10_RUNNING then
     trigger.action.outText("[CL10] already running.", 10)
-    return Witchcraft
+    return _SCN_CL10_RESULT or "[CL10] RUNNING"
 end
 _SCN_CL10_RUNNING = true
+_SCN_CL10_RESULT = "[CL10] STARTED"
 
 do  -- isolation scope
 trigger.action.outText("[CL10] START — addPlayerAircraftByType gate", 8)
@@ -136,7 +138,12 @@ local msg = string.format(
 trigger.action.outText(msg, 15, true)
 ctld.utils.log("INFO", msg)
 
+if fail == 0 then
+    _SCN_CL10_RESULT = "[CL10] PASS " .. pass .. "/" .. total
+else
+    _SCN_CL10_RESULT = "[CL10] FAIL " .. fail .. "/" .. total .. ": see CTLD.log"
+end
 _SCN_CL10_RUNNING = false
-return "TAG=CL10_ADD_PLAYER_BY_TYPE | steps=" .. total .. " | pass=" .. pass .. " | fail=" .. fail
+return _SCN_CL10_RESULT
 end  -- do isolation scope
-return Witchcraft
+return _SCN_CL10_RESULT

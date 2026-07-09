@@ -4,9 +4,10 @@ trigger.action.outText("U-52: Pagination 13 items → 9 + Next Page", 10)
 
 local log = function(msg) env.info("[U-52] " .. msg) end
 local pass, fail = 0, 0
+local failReasons = {}
 local function ok(label, cond)
     if cond then pass = pass + 1; log("PASS " .. label)
-    else fail = fail + 1; log("FAIL " .. label) end
+    else fail = fail + 1; failReasons[#failReasons+1] = label; log("FAIL " .. label) end
 end
 
 local _dcs_calls = {}
@@ -20,6 +21,8 @@ ctld.logInfo=ctld.logInfo or function()end; ctld.logWarning=ctld.logWarning or f
 Unit=Unit or {getByName=function()return nil end,getByID=function()return nil end}
 coalition=coalition or {getGroups=function()return{}end}
 ctld.MenuManager._instance = nil
+
+_SCN_U52_RESULT = "[U-52] STARTED"
 
 local fn = function() end
 local m = ctld.MenuManager:getInstance():createMenuForGroup(7)
@@ -52,3 +55,11 @@ ok("T22b: '→ Next Page' submenu at F10",   hasNextPage == true)
 local result = string.format("U-52: %d PASS / %d FAIL", pass, fail)
 trigger.action.outText(result, 10)
 env.info("[U-52] " .. result)
+
+local total = pass + fail
+if fail == 0 then
+    _SCN_U52_RESULT = "[U-52] PASS " .. pass .. "/" .. total
+else
+    _SCN_U52_RESULT = "[U-52] FAIL " .. fail .. "/" .. total .. ": " .. table.concat(failReasons, "; ")
+end
+return _SCN_U52_RESULT

@@ -6,10 +6,10 @@
 -- Prérequis : joueur BLUE au sol dans un UH-1H, 1 crate "Countryside FARP" à portée
 -- Protocole  : injecter ce script → vérifier messages écran + formation scène ~30 s
 
--- ── Witchcraft guard ────────────────────────────────────────────────
+-- ── CTLD-ready guard ────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[SCENARIO_CS_FARP] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    return "[SCENARIO_CS_FARP] ABORT: CTLD not initialized"
 end
 local TAG  = "[SCENARIO_CS_FARP]"
 local step = 0
@@ -24,8 +24,8 @@ ctld_test.cleanup()
 
 local transport = ctld_test.getTransport()
 if not transport then
-    info("FAIL — no BLUE transport found")
-    return TAG .. " FAIL no transport"
+    info("ABORT — no BLUE transport found")
+    return TAG .. " ABORT: no BLUE transport"
 end
 
 -- Vérification 1 : la scène est bien enregistrée dans CTLDSceneManager
@@ -72,4 +72,5 @@ info("Setup done (" .. step .. "/2 checks). Land near crate and use F10 > Unpack
 info("Scene should complete in ~30 s with: Invisible FARP + tyres + trucks + tent + ammo + guards + light.")
 
 trigger.action.outText(TAG .. " ✅ DONE", 20, true)
-return TAG .. " SETUP OK step=" .. step
+-- Setup done; scene completion is human-verified via F10 → verdict pending.
+return TAG .. " RUNNING: SETUP OK step=" .. step .. "/2 — complete via F10"

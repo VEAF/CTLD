@@ -10,7 +10,7 @@
 --
 -- Usage:
 --   1. Adjust AIRCRAFT_NAME and CRATE_NAME below.
---   2. Inject via Witchcraft BEFORE you load the crate natively.
+--   2. Inject via dcs-bridge BEFORE you load the crate natively.
 --   3. Load the crate (DCS keybind), fly, unload. Read CTLD.log.
 --
 -- If CRATE_NAME is unknown, first run diag_list_crates.lua to list CTLD crates.

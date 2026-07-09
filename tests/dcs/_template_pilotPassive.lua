@@ -22,16 +22,17 @@
 -- @coverage  F-XXX, F-YYY
 -- =============================================================================
 
--- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
+-- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[SCN-XXX] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_XXX_RESULT = "[SCN-XXX] ABORT: CTLD not initialized"
+    return _SCN_XXX_RESULT
 end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_XXX_RUNNING then
     trigger.action.outText("[SCN-XXX] already running — wait for completion or restart DCS.", 10)
-    return Witchcraft
+    return _SCN_XXX_RESULT or "[SCN-XXX] RUNNING"
 end
 _SCN_XXX_RUNNING = true
 _SCN_XXX_CLEANUP = nil   -- exposed for external reset script
@@ -124,11 +125,12 @@ local function finalizeScenario()
     local total = S.passed + S.failed
     local summary
     if S.failed == 0 then
-        summary = TAG.." [OK] "..NAME.." — "..S.passed.."/"..total.." PASS"
+        summary = TAG.." PASS "..S.passed.."/"..total
     else
-        summary = TAG.." [KO] "..NAME.." — "..S.failed.." FAIL: "..
-            table.concat(S.failReasons, " | ")
+        summary = TAG.." FAIL "..S.failed.."/"..total..": "..
+            table.concat(S.failReasons, "; ")
     end
+    _SCN_XXX_RESULT = summary   -- polled by the runner for this async scenario
     log(summary)
     trigger.action.outText(summary, 360, true)
     local ok, err = pcall(cleanup)
@@ -228,16 +230,18 @@ S.transport = (function()
 end)()
 
 if not S.transport then
+    _SCN_XXX_RESULT = TAG.." ABORT: no BLUE player"
     trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
-    return Witchcraft
+    return _SCN_XXX_RESULT
 end
 
 _SCN_XXX_CLEANUP = cleanup   -- exposed for external reset
 
+_SCN_XXX_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_XXX_RESULT until PASS/FAIL
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | "..#steps.." steps ===")
 trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 advanceStep()
 
 end  -- do isolation scope
-return Witchcraft
+return _SCN_XXX_RESULT

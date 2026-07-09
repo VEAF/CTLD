@@ -25,16 +25,17 @@
 -- @coverage  Drone lifecycle F-xxx
 -- =============================================================================
 
--- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
+-- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[JTAC-DRONE] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_JTACDRONE_RESULT = "[DRONE] ABORT: CTLD not initialized"
+    return _SCN_JTACDRONE_RESULT
 end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_JTACDRONE_RUNNING then
     trigger.action.outText("[JTAC-DRONE] déjà actif — attendre la fin ou redémarrer DCS.", 10)
-    return Witchcraft
+    return _SCN_JTACDRONE_RESULT or "[DRONE] RUNNING"
 end
 _SCN_JTACDRONE_RUNNING = true
 _SCN_JTACDRONE_CLEANUP = nil
@@ -173,10 +174,10 @@ local function finalizeScenario()
     local total = S.passed + S.failed
     local summary
     if S.failed == 0 then
-        summary = TAG.." ✅ [OK] "..NAME.." — "..S.passed.."/"..total.." PASS"
+        summary = TAG.." PASS "..S.passed.."/"..total ; _SCN_JTACDRONE_RESULT = summary
     else
-        summary = TAG.." ❌ [KO] "..NAME.." — "..S.failed.." FAIL: "..
-            table.concat(S.failReasons, " | ")
+        summary = TAG.." FAIL "..S.failed.."/"..total..": "..
+            table.concat(S.failReasons, "; ") ; _SCN_JTACDRONE_RESULT = summary
     end
     log(summary)
     trigger.action.outText(summary, 360, true)
@@ -417,7 +418,8 @@ _SCN_JTACDRONE_CLEANUP = cleanup
 local transportStr = S.transport and S.transport:getName() or HELO_NAME
 log("=== START: "..NAME.." | helo="..transportStr.." | "..#steps.." steps ===")
 trigger.action.outText(TAG.." démarrage — lifecycle 795s | helo="..transportStr, 8)
+_SCN_JTACDRONE_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_JTACDRONE_RESULT until PASS/FAIL
 advanceStep()
 
 end  -- do isolation scope
-return Witchcraft
+return _SCN_JTACDRONE_RESULT

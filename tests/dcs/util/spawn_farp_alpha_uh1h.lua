@@ -13,13 +13,13 @@ if not playerObj then
 end
 if not playerObj then
     trigger.action.outText("[FA-SPAWN] Aucun joueur trouvé.", 10)
-    return Witchcraft
+    return true
 end
 
 local unit = Unit.getByName(playerObj.unitName)
 if not (unit and unit:isExist()) then
     trigger.action.outText("[FA-SPAWN] Unité introuvable: " .. tostring(playerObj.unitName), 10)
-    return Witchcraft
+    return true
 end
 
 trigger.action.outText("[FA-SPAWN] Déploiement FARP Alpha depuis " .. unit:getName() .. " ...", 8)
@@ -27,4 +27,4 @@ CTLDSceneManager.getInstance():playScene(unit, "FARP Alpha", nil, function()
     trigger.action.outText("[FA-SPAWN] FARP Alpha déployé — vérification visuelle OK ?", 20)
 end)
 
-return Witchcraft
+return true

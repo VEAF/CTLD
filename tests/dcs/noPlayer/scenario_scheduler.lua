@@ -25,16 +25,17 @@
 -- @coverage  F-135, F-136, F-137, F-138, F-139
 -- =============================================================================
 
--- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
+-- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[SCHED] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_SCHED_RESULT = "[SCHED] ABORT: CTLD not initialized"
+    return _SCN_SCHED_RESULT
 end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_SCHED_RUNNING then
     trigger.action.outText("[SCHED] déjà actif — attendre la fin ou redémarrer DCS.", 10)
-    return Witchcraft
+    return _SCN_SCHED_RESULT or "[SCHED] RUNNING"
 end
 _SCN_SCHED_RUNNING = true
 _SCN_SCHED_CLEANUP = nil
@@ -113,10 +114,10 @@ local function finalizeScenario()
     local total = S.passed + S.failed
     local summary
     if S.failed == 0 then
-        summary = TAG.." ✅ [OK] "..NAME.." — "..S.passed.."/"..total.." PASS"
+        summary = TAG.." PASS "..S.passed.."/"..total ; _SCN_SCHED_RESULT = summary
     else
-        summary = TAG.." ❌ [KO] "..NAME.." — "..S.failed.." FAIL: "..
-            table.concat(S.failReasons, " | ")
+        summary = TAG.." FAIL "..S.failed.."/"..total..": "..
+            table.concat(S.failReasons, "; ") ; _SCN_SCHED_RESULT = summary
     end
     log(summary)
     trigger.action.outText(summary, 360, true)
@@ -360,7 +361,8 @@ _SCN_SCHED_CLEANUP = cleanup
 local transportStr = S.transport and S.transport:getName() or "(no player)"
 log("=== START: "..NAME.." | transport="..transportStr.." | "..#steps.." steps ===")
 trigger.action.outText(TAG.." démarrage — "..#steps.." steps automatiques", 8)
+_SCN_SCHED_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_SCHED_RESULT until PASS/FAIL
 advanceStep()
 
 end  -- do isolation scope
-return Witchcraft
+return _SCN_SCHED_RESULT

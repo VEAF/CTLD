@@ -3,17 +3,17 @@
 -- F-123 — _dispatchPostSpawn enregistre les véhicules GROUND dans CTLDVehicleSpawner
 -- Vérifie que après unpack d'une caisse standard (non-JTAC), le véhicule
 -- apparaît dans findLoadableVehicles du transport.
--- Witchcraft in-DCS (UH-1H BLUE player required)
+-- dcs-bridge in-DCS (UH-1H BLUE player required)
 -- ============================================================
 
-local pass, fail = 0, 0
+local pass, fail, failReasons = 0, 0, {}
 local function assert_eq(label, a, b)
     if a == b then
         ctld.utils.log("INFO", "[F-123 PASS] " .. label); pass = pass + 1
     else
         ctld.utils.log("INFO", string.format("[F-123 FAIL] %s  expected=%s  got=%s",
             label, tostring(b), tostring(a)))
-        fail = fail + 1
+        fail = fail + 1; failReasons[#failReasons + 1] = label
     end
 end
 
@@ -28,8 +28,12 @@ end
 
 local transport = getTransport()
 if not transport then
-    ctld.utils.log("INFO", "[F-123 SKIP] No active player unit found"); return
+    ctld.utils.log("INFO", "[F-123 SKIP] No active player unit found")
+    _SCN_F123_RESULT = "[F-123] ABORT: No active player unit found"
+    return _SCN_F123_RESULT
 end
+
+_SCN_F123_RESULT = "[F-123] STARTED"
 
 local spawner = CTLDVehicleSpawner.getInstance()
 local mgr     = CTLDCrateManager.getInstance()
@@ -102,3 +106,11 @@ Group.getByName                = _origGetByName
 ctld.utils.getNextUniqId       = _origUniqId
 
 ctld.utils.log("INFO", string.format("[F-123 RESULT] pass=%d fail=%d", pass, fail))
+
+local _total = pass + fail
+if fail == 0 then
+    _SCN_F123_RESULT = "[F-123] PASS " .. pass .. "/" .. _total
+else
+    _SCN_F123_RESULT = "[F-123] FAIL " .. fail .. "/" .. _total .. ": " .. table.concat(failReasons, "; ")
+end
+return _SCN_F123_RESULT

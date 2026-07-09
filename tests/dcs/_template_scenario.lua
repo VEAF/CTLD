@@ -3,11 +3,17 @@
 -- live_tests/scenarios/_template_scenario.lua
 -- CTLD Scenario Template — v2.0 [2026-06-30]
 --
--- Usage:
---   1. Inject CTLD.lua first, wait 3-5 s for init.
---   2. Inject this scenario (Claude via Witchcraft).
+-- Usage (via VEAF-dcs-bridge exec_lua — see the integration-testing skill):
+--   1. exec_lua CTLD.lua first, wait 3-5 s for init.
+--   2. exec_lua this scenario.
 --   3. For human steps: use the "CTLD Recette" F10 menu to respond.
 --   4. Re-inject to restart (cleanup is automatic at end of run).
+--
+-- Return contract: the exec return / _SCN_XXX_RESULT global is one of
+--   "[SCN-XXX] STARTED"           (async: poll _SCN_XXX_RESULT until PASS/FAIL)
+--   "[SCN-XXX] PASS <p>/<t>"
+--   "[SCN-XXX] FAIL <f>/<t>: <reasons>"
+--   "[SCN-XXX] ABORT: <msg>"      (preconditions unmet)
 --
 -- Step types:
 --   Auto        — advanceStep() immediately
@@ -21,16 +27,17 @@
 -- @result    expected: [OK]
 -- =============================================================================
 
--- ── 1. Witchcraft guard ──────────────────────────────────────────────────────
+-- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
 if not ctld or not ctld.utils then
     trigger.action.outText("[SCN-XXX] ABORT: CTLD not initialized. Inject CTLD.lua first.", 15)
-    return Witchcraft
+    _SCN_XXX_RESULT = "[SCN-XXX] ABORT: CTLD not initialized"
+    return _SCN_XXX_RESULT
 end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_XXX_RUNNING then
     trigger.action.outText("[SCN-XXX] already running — wait for completion or restart DCS.", 10)
-    return Witchcraft
+    return _SCN_XXX_RESULT or "[SCN-XXX] RUNNING"
 end
 _SCN_XXX_RUNNING = true
 
@@ -203,16 +210,19 @@ advanceStep = function()
             missionCommands.removeItem(S.menuHandle)
             S.menuHandle = nil
         end
+        -- Verdict (bridge return contract — see integration-testing skill):
+        --   "<TAG> PASS <p>/<t>"  |  "<TAG> FAIL <f>/<t>: <reasons>"
         local total = S.passed + S.failed
-        local summary
+        local verdict
         if S.failed == 0 then
-            summary = TAG .. " ✅ [OK] " .. NAME .. " — " .. S.passed .. "/" .. total .. " PASS"
+            verdict = TAG .. " PASS " .. S.passed .. "/" .. total
         else
-            summary = TAG .. " ❌ [KO] " .. NAME .. " — " .. S.failed .. " FAIL: " ..
-                table.concat(S.failReasons, " | ")
+            verdict = TAG .. " FAIL " .. S.failed .. "/" .. total .. ": " ..
+                table.concat(S.failReasons, "; ")
         end
-        ctld.utils.log("INFO", "%s", summary)
-        trigger.action.outText(summary, 30, true)  -- clearview: purge intermediate traces
+        _SCN_XXX_RESULT = verdict            -- polled by the runner for async scenarios
+        ctld.utils.log("INFO", "%s — %s", verdict, NAME)
+        trigger.action.outText(verdict, 30, true)  -- clearview: purge intermediate traces
         local ok, err = pcall(cleanup)
         if not ok then
             ctld.utils.log("WARN", "%s cleanup error: %s", TAG, tostring(err))
@@ -285,8 +295,11 @@ end
 local STEP_COUNT = #steps  -- defined AFTER all steps to get accurate count
 
 -- ── 12. Start ─────────────────────────────────────────────────────────────────
+_SCN_XXX_RESULT = TAG .. " STARTED"   -- async scenarios: runner polls _SCN_XXX_RESULT until PASS/FAIL
 log("=== START: " .. NAME .. " (" .. STEP_COUNT .. " steps) ===")
 advanceStep()
 
 end  -- do isolation scope
-return Witchcraft
+-- Sync scenarios finish inside advanceStep() above (result = final verdict);
+-- async scenarios are still STARTED here and update the result var later.
+return _SCN_XXX_RESULT

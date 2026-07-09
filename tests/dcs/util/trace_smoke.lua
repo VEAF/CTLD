@@ -24,4 +24,4 @@ trigger.action.smoke = function(pos, color)
 end
 
 trigger.action.outText("[SMOKE-TRACE] trigger.action.smoke intercepté — reproduis le bug maintenant.", 10)
-return Witchcraft
+return true

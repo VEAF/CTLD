@@ -2,7 +2,7 @@
 
 Les tests sont organisés en six niveaux (L1 à L6).
 L1 et L2 s'exécutent automatiquement via la CI GitHub Actions.
-L3 à L5 nécessitent une session DCS active avec Witchcraft activé.
+L3 à L5 nécessitent une session DCS active avec le pont Lua dcs-bridge injecté et `dcs-serve` démarré.
 L6 est purement manuel (joueur + checklist).
 
 Pour la configuration de debug et la mise en place de CTLD.log, voir [Building & testing](developer/building-and-testing.md).
@@ -15,7 +15,7 @@ Pour la configuration de debug et la mise en place de CTLD.log, voir [Building &
 | --- | --- | --- |
 | `tests/ci/unit/` | L1 | GitHub Actions — busted, sans DCS |
 | `tests/ci/functional/` | L2 | GitHub Actions — busted, sans DCS |
-| `tests/dcs/noPlayer/` | L3 | Développeur en local — DCS + Witchcraft, sans slot joueur |
+| `tests/dcs/noPlayer/` | L3 | Développeur en local — DCS + dcs-bridge, sans slot joueur |
 | `tests/dcs/pilotPassive/` | L4 | Développeur en local — DCS + joueur en cockpit, le script pilote |
 | `tests/dcs/pilotActive/` | L5 | Développeur en local — DCS + le joueur exécute des actions F10 |
 | `tests/manual_test_sequences.md` | L6 | Développeur en local — joueur, checklist pas à pas |
@@ -31,8 +31,8 @@ RELEASE
   +- L2  CI busted functional  tests/ci/functional/*_spec.lua    ~45 tests   (automatic)
   |
   +- L3  DCS noPlayer          tests/dcs/noPlayer/               ~136 scripts (developer, before push)
-  |         U-xxx  unit-level Witchcraft scripts
-  |         F-xxx  targeted functional Witchcraft scripts
+  |         U-xxx  unit-level dcs-bridge scripts
+  |         F-xxx  targeted functional dcs-bridge scripts
   |         scenario_*  multi-step integration scenarios
   |
   +- L4  DCS pilotPassive      tests/dcs/pilotPassive/           ~30 scripts  (developer, before push)
@@ -101,7 +101,7 @@ Tous les appels à l'API DCS sont remplacés par des stubs dans `tests/ci/helper
 | `vehicle_spec.lua` | findLoadableVehicles, loadVehicle, unloadVehicle, _spawnUnpacked |
 | `troop_multi_spec.lua` | Transit multi-groupes, disembarkAll/Index, _menuCheckCargo |
 
-> Note : `tests/dcs/noPlayer/F-xxx.lua` et `U-xxx.lua` sont des scripts d'injection Witchcraft (L3),
+> Note : `tests/dcs/noPlayer/F-xxx.lua` et `U-xxx.lua` sont des scripts d'injection dcs-bridge (L3),
 > pas des specs busted. Ils ne sont pas pris en compte par la CI (pas de suffixe `_spec`).
 
 ---
