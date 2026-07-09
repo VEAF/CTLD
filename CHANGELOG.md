@@ -97,6 +97,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   now carries a `-- @tier: auto | auto-check | ia` header (43 `auto`, 2 `auto-check`, 34 `ia`),
   documented in the `integration-testing` skill. Lets `INTEGRATION-TEST-RUNNER`'s "run without
   AI" mode select scenarios that don't need a player or human/AI judgment.
+- **Headless runner** — `tools/integration-runner/run_scenarios.py` (stdlib-only, no
+  install step) discovers scenarios, filters by `@tier`/folder/name, drives them over
+  `dcs-serve`'s REST API, polls async (`STARTED`) scenarios to resolution, and writes a JUnit
+  XML report. `--no-ai` runs every `auto`/`auto-check` scenario headlessly against a live DCS
+  mission; 31 stdlib unit tests cover the parsing/filtering/polling logic without needing
+  `dcs-serve`. Closes the three-lot DCS-bridge triptych
+  (`DCS-BRIDGE-MCP` → `INTEGRATION-TEST-TAGS` → `INTEGRATION-TEST-RUNNER`).
 - **Fix**: `F-122` (JTAC lifecycle on loadVehicle/unloadVehicle) never resolved its verdict —
   a leftover gap from a migration agent cut off mid-file; now returns a proper `PASS`/`FAIL`.
 
