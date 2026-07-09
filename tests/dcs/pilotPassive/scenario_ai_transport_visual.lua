@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_ai_transport_visual.lua
 -- CTLD — AI transport auto-pickup visual verification

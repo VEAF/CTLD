@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- aiTransport_featureT_vehicleEntry_F180.lua  [AUTO]
 -- F-180 — Feature T : aiPickVehicleEntry — sélection et flag isScene

@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- U-53 : Enabled flag — disabled node absent from DCS rebuild
 trigger.action.outText("U-53: Enabled flag in rebuild", 10)
 

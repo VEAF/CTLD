@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- U-47 : ctld.Menu:addCommand — guards, invalid args
 trigger.action.outText("U-47: addCommand guards + invalid args", 10)
 

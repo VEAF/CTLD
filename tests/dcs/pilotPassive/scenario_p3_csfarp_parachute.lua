@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_p3_csfarp_parachute.lua
 -- CTLD — CS FARP via parachutage auto-unpack (sous-cas P3)

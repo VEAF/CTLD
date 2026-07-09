@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- ============================================================
 -- F-121 — GAP-1 : findLoadedVehicles + unloadVehicle menu_ctld
 -- dcs-bridge in-DCS test (UH-1H BLUE player required)

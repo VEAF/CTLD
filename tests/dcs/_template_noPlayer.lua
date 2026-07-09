@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- live_tests/scenarios/_template_auto.lua
 -- CTLD Auto Scenario Template — v1.0 [2026-06-30]

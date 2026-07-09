@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_warehouse_cycle.lua
 -- CTLD — Full FARP warehouse snapshot cycle

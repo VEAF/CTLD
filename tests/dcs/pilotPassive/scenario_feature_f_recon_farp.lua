@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- scenario_feature_f_recon_farp.lua   [FARP]
 -- Feature F — RECON layer FARP/FOB : CTLDStaticWatcher + coalition rendering

@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- U-108: CTLDModValidator — _probeHeliport valid and invalid, off-map ghost check
 -- Checks:
 --   C1: valid HELIPORT type (SINGLE_HELIPAD) → cache=true

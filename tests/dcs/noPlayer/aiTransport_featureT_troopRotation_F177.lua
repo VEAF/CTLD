@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- aiTransport_featureT_troopRotation_F177.lua  [AUTO]
 -- F-177 — Feature T : algorithme de rotation des troopTemplates

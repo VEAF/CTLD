@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- scenario_mt15_countryside_farp.lua
 -- Test interactif : vérifie que la scène Countryside FARP se déploie correctement
 -- après migration dans src/scenes/CTLD_countrysideFarpScene.lua.

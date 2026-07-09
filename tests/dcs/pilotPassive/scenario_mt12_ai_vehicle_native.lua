@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_mt12_ai_vehicle_native.lua
 -- CTLD — AI auto-pickup d'un véhicule DCS natif via vehicleStock (Feature T)

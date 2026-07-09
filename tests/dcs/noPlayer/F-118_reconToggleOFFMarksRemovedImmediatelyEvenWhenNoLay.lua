@@ -1,3 +1,4 @@
+-- @tier: auto
 -- F-118 — RECON toggle-OFF: marks removed immediately even when no layers remain.
 -- Verify: when scan() is called and prevScan exists, marks are removed BEFORE the
 -- "no layers" early-return path — so toggling the last layer OFF clears the map instantly.

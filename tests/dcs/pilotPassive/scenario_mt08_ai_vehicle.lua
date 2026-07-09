@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_mt08_ai_vehicle.lua
 -- CTLD — AI auto-pickup / auto-dropoff : véhicule entier seul (posé → posé)

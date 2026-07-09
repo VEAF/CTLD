@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- AUTO — CL-9: ctld.pickupZones → CTLDTroopZone instanciation (legacy compat)
 -- =============================================================================

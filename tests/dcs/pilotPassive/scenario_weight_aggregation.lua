@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_weight_aggregation.lua
 -- CTLD — Validates ctld.utils.updateTransportWeight aggregates all cargo sources

@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_p2_fob_parachute.lua
 -- CTLD — FOB auto-unpack depuis parachutage (sous-cas P2)

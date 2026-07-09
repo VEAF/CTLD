@@ -71,15 +71,31 @@ each injection advances one step and returns `RUNNING: step=N ...` until the fin
 
 Copy the template matching the scenario's shape:
 
-| Template | Shape |
-|---|---|
-| `tests/dcs/_template_noPlayer.lua` | Synchronous, single pcall, no player/timers — `noPlayer/` |
-| `tests/dcs/_template_pilotPassive.lua` | Async (timers/`waitFor`), player drives, no F10 — `pilotPassive/` |
-| `tests/dcs/_template_pilotActive.lua` | Async + F10 human menu steps — `pilotActive/` |
-| `tests/dcs/_template_scenario.lua` | Generic version covering all four step types (auto/delayed/polled/human) |
+| Template | Shape | Default `@tier` |
+|---|---|---|
+| `tests/dcs/_template_noPlayer.lua` | Synchronous, single pcall, no player/timers — `noPlayer/` | `auto` |
+| `tests/dcs/_template_pilotPassive.lua` | Async (timers/`waitFor`), player drives, no F10 — `pilotPassive/` | `ia` |
+| `tests/dcs/_template_pilotActive.lua` | Async + F10 human menu steps — `pilotActive/` | `ia` |
+| `tests/dcs/_template_scenario.lua` | Generic version covering all four step types (auto/delayed/polled/human) | `auto` — retag per the concrete scenario's shape |
 
 Every template already emits the return contract above — replace `SCN-XXX` / `[SCN-XXX]` with a
 real tag and fill in the steps.
+
+## `@tier` header
+
+Every scenario carries a `-- @tier: auto | auto-check | ia` header line (placed right after
+`---@diagnostic disable`). The tier is what `INTEGRATION-TEST-RUNNER`'s "run without AI" mode
+filters on — it must reflect what the scenario actually needs, not just its folder:
+
+| Tier | Operative test |
+|---|---|
+| `auto` | A single `exec_lua` call returns the definitive verdict (`PASS`/`FAIL`/`ABORT`). No player, no polling, no human/AI judgment. Includes scenarios using a *mocked* timer that fires synchronously. |
+| `auto-check` | Resolves automatically (no human/AI judgment) but not in one call — returns `STARTED`, a real timer/`waitFor` resolves `_SCN_<ID>_RESULT` later. The runner must poll or re-inject. Rare: only scenarios with genuine unmocked async resolution qualify. |
+| `ia` | Needs an AI agent or human in the loop — either a live player-controlled unit (dcs-bridge has no flight-control API; something has to fly the aircraft into position: all of `pilotActive/`/`pilotPassive/`) or a scenario that returns `STARTED` and never resolves programmatically, instead asking for an F10/visual confirmation the code itself never checks. |
+
+Default for new scenarios: `noPlayer/` → `auto` unless it genuinely needs polling (`auto-check`)
+or never resolves without a human look (`ia`, with a one-line rationale comment since the tier
+isn't inferable from the folder); `pilotActive/`/`pilotPassive/` → always `ia`.
 
 ## Debug config
 

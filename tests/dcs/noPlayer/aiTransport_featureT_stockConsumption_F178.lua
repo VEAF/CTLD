@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- aiTransport_featureT_stockConsumption_F178.lua  [AUTO]
 -- F-178 — Feature T : décrément du stock lors du pickup AI

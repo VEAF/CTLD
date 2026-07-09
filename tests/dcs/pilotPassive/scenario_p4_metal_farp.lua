@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_p4_metal_farp.lua
 -- CTLD — Metal FARP via menu F10 : warehouse stocking (sous-cas P4)

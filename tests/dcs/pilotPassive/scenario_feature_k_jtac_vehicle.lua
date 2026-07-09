@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- scenarios/scenario_feature_k_jtac_vehicle.lua
 -- Feature K Sprint 1 — JTAC vehicle in-transit lifecycle (GAP-K1 + GAP-K2)

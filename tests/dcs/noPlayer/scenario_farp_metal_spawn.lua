@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_farp_metal_spawn.lua
 -- CTLD — Spawn scène "Metal FARP" à la position du static coord_farp-1

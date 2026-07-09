@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- scenario_jtac_crate_pack.lua
 -- JTAC vehicle (via crate) — pack → deregisterJTAC coverage

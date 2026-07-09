@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- AUTO — Feature O: extractableGroups → CTLDTroopManager._droppedGroups (INIT-E)
 -- =============================================================================

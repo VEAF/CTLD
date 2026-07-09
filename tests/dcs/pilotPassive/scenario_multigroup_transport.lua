@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_multigroup_transport.lua
 -- CTLD — Multi-group transport + disembark menu logic

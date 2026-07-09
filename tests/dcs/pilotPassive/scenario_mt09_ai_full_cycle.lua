@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_mt09_ai_full_cycle.lua
 -- CTLD — AI cycle complet : troupes + vehicule entier (zone TV)

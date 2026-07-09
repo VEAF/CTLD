@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- U-51 : ORDER sorting — DCS rebuild follows order field, not insertion order
 trigger.action.outText("U-51: ORDER sorting in rebuild", 10)
 

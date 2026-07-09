@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- scenario_mt14_ai_aa_system.lua  [INTERACTIVE]
 -- MT-14 — AI auto-pickup d'un système AA (HAWK) via vehicleStock (Feature U)

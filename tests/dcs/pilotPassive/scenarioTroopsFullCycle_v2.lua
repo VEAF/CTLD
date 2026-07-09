@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- SCENARIO: scenarioTroopsFullCycle_v2.lua
 -- Full troop lifecycle — CTLDTroopGroup (inf=4, jtac=2), 8-step state machine

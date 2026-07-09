@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_troop_menu_sol_vol_visual.lua
 -- CTLD — Troop Commands menu : vérification sol / vol / sol (visual)

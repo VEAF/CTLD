@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- AUTO — i18n format migration : string.format → ctld.tr native substitution
 -- =============================================================================

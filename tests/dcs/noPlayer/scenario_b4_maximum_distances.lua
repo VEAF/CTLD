@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- AUTO — B4: maximumSearchDistance câblé dans AttackNearestEnemyOnLos
 -- =============================================================================

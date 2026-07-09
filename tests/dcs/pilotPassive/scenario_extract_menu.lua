@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_extract_menu.lua
 -- CTLD — Extract-from-field menu logic (single vs multi-group)
