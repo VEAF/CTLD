@@ -26,3 +26,7 @@ dcs-client.yaml
 
 # ── dcs-bridge local venv (installed by tools/dcs-bridge/install.ps1) ────────
 tools/dcs-bridge/venv/
+
+# ── Python bytecode cache (tools/ scripts are run directly, never packaged) ──
+__pycache__/
+*.pyc

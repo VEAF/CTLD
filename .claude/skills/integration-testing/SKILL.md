@@ -97,6 +97,16 @@ Default for new scenarios: `noPlayer/` → `auto` unless it genuinely needs poll
 or never resolves without a human look (`ia`, with a one-line rationale comment since the tier
 isn't inferable from the folder); `pilotActive/`/`pilotPassive/` → always `ia`.
 
+## Automated runs (no AI agent)
+
+For `auto`/`auto-check` scenarios, you don't need to drive the injection loop by hand (or via
+Claude) — `tools/integration-runner/run_scenarios.py` runs them headlessly against a live
+`dcs-serve` and writes a JUnit report. Dependency-free (stdlib only), reads the same
+`dcs-client.yaml`. See `tools/integration-runner/README.md` for the full flag reference; typical
+use: `python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld`. `ia`-tier
+scenarios (player/F10 required) are never selected by `--no-ai` — those still need this skill's
+AI-driven `exec_lua` loop.
+
 ## Debug config
 
 See the `dcs-runtime-debug` skill for `debug`/`debugScreenLog` config and reading
