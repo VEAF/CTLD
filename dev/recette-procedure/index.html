@@ -2173,7 +2173,7 @@
 <h1 id="ctld-next-release-testing-procedure">CTLD Next — Release Testing Procedure<a class="headerlink" href="#ctld-next-release-testing-procedure" title="Permanent link">&para;</a></h1>
 <p>Testing is organized in six levels (L1 to L6).
 L1 and L2 run automatically via GitHub Actions CI.
-L3 to L5 require a live DCS session with Witchcraft active.
+L3 to L5 require a live DCS session with the dcs-bridge Lua bridge injected and <code>dcs-serve</code> running.
 L6 is purely manual (player + checklist).</p>
 <p>For debug configuration and CTLD.log setup, see <a href="../developer/building-and-testing/">Building &amp; testing</a>.</p>
 <hr />
@@ -2200,7 +2200,7 @@ L6 is purely manual (player + checklist).</p>
 <tr>
 <td><code>tests/dcs/noPlayer/</code></td>
 <td>L3</td>
-<td>Developer local — DCS + Witchcraft, no player slot</td>
+<td>Developer local — DCS + dcs-bridge, no player slot</td>
 </tr>
 <tr>
 <td><code>tests/dcs/pilotPassive/</code></td>
@@ -2227,8 +2227,8 @@ L6 is purely manual (player + checklist).</p>
   +- L2  CI busted functional  tests/ci/functional/*_spec.lua    ~45 tests   (automatic)
   |
   +- L3  DCS noPlayer          tests/dcs/noPlayer/               ~136 scripts (developer, before push)
-  |         U-xxx  unit-level Witchcraft scripts
-  |         F-xxx  targeted functional Witchcraft scripts
+  |         U-xxx  unit-level dcs-bridge scripts
+  |         F-xxx  targeted functional dcs-bridge scripts
   |         scenario_*  multi-step integration scenarios
   |
   +- L4  DCS pilotPassive      tests/dcs/pilotPassive/           ~30 scripts  (developer, before push)
@@ -2317,7 +2317,7 @@ All DCS API calls replaced by stubs in <code>tests/ci/helpers/dcs_stubs.lua</cod
 </tbody>
 </table>
 <blockquote>
-<p>Note: <code>tests/dcs/noPlayer/F-xxx.lua</code> and <code>U-xxx.lua</code> are Witchcraft injection scripts (L3),
+<p>Note: <code>tests/dcs/noPlayer/F-xxx.lua</code> and <code>U-xxx.lua</code> are dcs-bridge injection scripts (L3),
 not busted specs. They are not picked up by CI (no <code>_spec</code> suffix).</p>
 </blockquote>
 <hr />
