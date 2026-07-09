@@ -5,6 +5,12 @@ L1 et L2 s'exécutent automatiquement via la CI GitHub Actions.
 L3 à L5 nécessitent une session DCS active avec le pont Lua dcs-bridge injecté et `dcs-serve` démarré.
 L6 est purement manuel (joueur + checklist).
 
+Chaque scénario L3–L5 porte aussi un header `-- @tier:` (`auto` / `auto-check` / `ia`) indiquant
+s'il nécessite ou non un agent IA ou un humain dans la boucle. La majorité du L3 (`noPlayer/`)
+est `auto` ou `auto-check` et peut être **pilotée sans intervention humaine** par
+`tools/integration-runner/run_scenarios.py`, plutôt qu'en injectant chaque script à la main —
+voir [Niveaux d'automatisation](#niveaux-dautomatisation) ci-dessous.
+
 Pour la configuration de debug et la mise en place de CTLD.log, voir [Building & testing](developer/building-and-testing.md).
 
 ---
@@ -19,6 +25,43 @@ Pour la configuration de debug et la mise en place de CTLD.log, voir [Building &
 | `tests/dcs/pilotPassive/` | L4 | Développeur en local — DCS + joueur en cockpit, le script pilote |
 | `tests/dcs/pilotActive/` | L5 | Développeur en local — DCS + le joueur exécute des actions F10 |
 | `tests/manual_test_sequences.md` | L6 | Développeur en local — joueur, checklist pas à pas |
+
+---
+
+## Niveaux d'automatisation
+
+Indépendamment du niveau L (le dossier où vit un scénario), chaque scénario porte un header
+`-- @tier:` indiquant s'il nécessite un agent IA/humain :
+
+| Tier | Signification | Peut tourner sans humain ? |
+| --- | --- | --- |
+| `auto` | Une seule injection retourne le verdict définitif (`PASS`/`FAIL`/`ABORT`). Aucun joueur, aucun polling, aucun jugement. | Oui |
+| `auto-check` | Se résout automatiquement via un vrai timer/`waitFor`, mais pas en un seul appel — le scénario retourne `STARTED` et il faut interroger `_SCN_<ID>_RESULT` jusqu'à résolution. Toujours aucun jugement humain. | Oui (polling) |
+| `ia` | Nécessite un agent IA ou un humain dans la boucle : une unité pilotée par un joueur (le pont dcs-bridge n'expose aucune API de pilotage — `pilotActive/`/`pilotPassive/` requièrent toujours quelqu'un aux commandes), ou une confirmation F10/visuelle que le code ne vérifie jamais lui-même. | Non |
+
+À l'heure où ces lignes sont écrites : 43 `auto`, 2 `auto-check`, 34 `ia` sur les 79 scénarios
+tagués (tout le L4/L5 est `ia` ; le L3 est presque entièrement `auto`/`auto-check`, avec deux
+exceptions `ia` qui demandent une vérification visuelle F10). Voir la skill `integration-testing`
+pour la taxonomie complète et le tier par défaut de chaque template.
+
+### Lancer les scénarios `auto`/`auto-check` sans intervention humaine
+
+`tools/integration-runner/run_scenarios.py` (Python sans dépendance, aucune installation)
+découvre les scénarios, filtre par tier/dossier/nom, les pilote via l'API REST de `dcs-serve`,
+interroge ceux qui sont asynchrones, et écrit un rapport JUnit :
+
+```bash
+# Tout ce qui nécessite un joueur pour le L3 est ignoré automatiquement
+python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld
+
+# Juste les scénarios couvrant un module
+python tools/integration-runner/run_scenarios.py --scenario F-178
+```
+
+Ceci remplace l'injection manuelle fichier par fichier des L3a/L3b (toujours utile pour une
+vérification ciblée rapide en cours d'itération). Voir `tools/integration-runner/README.md`
+pour la référence complète des options. Le L4/L5 (`ia`) nécessite toujours la boucle
+d'injection manuelle/pilotée par IA décrite plus bas.
 
 ---
 
@@ -112,6 +155,11 @@ Tous les appels à l'API DCS sont remplacés par des stubs dans `tests/ci/helper
 **Quand :** avant chaque push qui modifie `src/`.
 **Comment :** injecter des scripts dans une mission DCS en cours d'exécution. Aucun slot joueur requis.
 **Succès :** `fail=0` dans la ligne de résultat + aucun `[FAIL]` dans `tests/dcs/CTLD.log`.
+
+> La majorité du L3 est de tier `auto`/`auto-check` et peut tourner sans intervention humaine via
+> `tools/integration-runner/run_scenarios.py --no-ai` (voir
+> [Niveaux d'automatisation](#niveaux-dautomatisation)) plutôt qu'en injectant les fichiers
+> ci-dessous à la main.
 
 ### L3a — Tests ciblés (U-xxx / F-xxx)
 
@@ -212,7 +260,8 @@ Avant de tagger `vX.Y` :
 
 - [ ] Tous les jobs CI verts sur `master` (lint, build, busted).
 - [ ] Tout nouveau fichier `src/` ajouté à `tools/build/listToMerge.txt`.
-- [ ] L3 passé pour tous les modules modifiés depuis le dernier tag.
+- [ ] L3 passé — `python tools/integration-runner/run_scenarios.py --no-ai` (ou injection ciblée
+      module par module) pour tous les modules modifiés depuis le dernier tag.
 - [ ] L4 passé pour toutes les fonctionnalités visibles par le joueur modifiées depuis le dernier tag.
 - [ ] L5 passé si la structure d'un menu F10 a changé.
 - [ ] `tests/recette.md` mis à jour (nouvelles lignes + récapitulatif de couverture).
