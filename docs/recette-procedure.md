@@ -5,6 +5,11 @@ L1 and L2 run automatically via GitHub Actions CI.
 L3 to L5 require a live DCS session with the dcs-bridge Lua bridge injected and `dcs-serve` running.
 L6 is purely manual (player + checklist).
 
+Every L3–L5 scenario also carries a `-- @tier:` header (`auto` / `auto-check` / `ia`) marking
+whether it needs an AI agent or human in the loop at all. Most of L3 (`noPlayer/`) is `auto` or
+`auto-check` and can be **driven headlessly** by `tools/integration-runner/run_scenarios.py`
+instead of injecting each script by hand — see [Automation tiers](#automation-tiers) below.
+
 For debug configuration and CTLD.log setup, see [Building & testing](developer/building-and-testing.md).
 
 ---
@@ -19,6 +24,42 @@ For debug configuration and CTLD.log setup, see [Building & testing](developer/b
 | `tests/dcs/pilotPassive/` | L4 | Developer local — DCS + player in cockpit, script drives |
 | `tests/dcs/pilotActive/` | L5 | Developer local — DCS + player takes F10 actions |
 | `tests/manual_test_sequences.md` | L6 | Developer local — player, step-by-step checklist |
+
+---
+
+## Automation tiers
+
+Independently of the L-level (which folder a scenario lives in), every scenario carries a
+`-- @tier:` header telling you (or the runner) whether it needs an AI agent/human at all:
+
+| Tier | Meaning | Can run headless? |
+| --- | --- | --- |
+| `auto` | A single injection returns the definitive verdict (`PASS`/`FAIL`/`ABORT`). No player, no polling, no judgment call. | Yes |
+| `auto-check` | Resolves automatically via a real timer/`waitFor`, but not in one call — the scenario returns `STARTED` and something must poll `_SCN_<ID>_RESULT` until it resolves. Still no human/AI judgment. | Yes (polling) |
+| `ia` | Needs an AI agent or human in the loop: a live player-controlled unit (dcs-bridge has no flight-control API — `pilotActive/`/`pilotPassive/` always need someone flying), or an F10/visual confirmation the code itself never checks. | No |
+
+As of this writing: 43 `auto`, 2 `auto-check`, 34 `ia` across the 79 tagged scenarios (all of
+L4/L5 is `ia`; L3 is almost entirely `auto`/`auto-check` with two `ia` outliers that ask for a
+visual F10 check). See the `integration-testing` skill for the full taxonomy and how each
+template defaults.
+
+### Running `auto`/`auto-check` scenarios headlessly
+
+`tools/integration-runner/run_scenarios.py` (dependency-free Python, no install step) discovers
+scenarios, filters by tier/folder/name, drives them over `dcs-serve`'s REST API, polls async
+ones, and writes a JUnit report:
+
+```bash
+# Everything L3 needs a player for is skipped automatically
+python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld
+
+# Just the scenarios covering one module
+python tools/integration-runner/run_scenarios.py --scenario F-178
+```
+
+This replaces manually injecting each L3a/L3b file one by one (still useful for a quick targeted
+check while iterating). See `tools/integration-runner/README.md` for the full flag reference.
+L4/L5 (`ia`) still require the manual/AI-driven injection loop described below.
 
 ---
 
@@ -112,6 +153,10 @@ All DCS API calls replaced by stubs in `tests/ci/helpers/dcs_stubs.lua`.
 **When:** before every push that modifies `src/`.
 **How:** inject scripts into a running DCS mission. No player slot required.
 **Success:** `fail=0` in result line + no `[FAIL]` in `tests/dcs/CTLD.log`.
+
+> Most of L3 is `auto`/`auto-check` tier and can run headlessly via
+> `tools/integration-runner/run_scenarios.py --no-ai` (see [Automation tiers](#automation-tiers))
+> instead of injecting the files below by hand.
 
 ### L3a — Targeted tests (U-xxx / F-xxx)
 
@@ -212,7 +257,8 @@ Before tagging `vX.Y`:
 
 - [ ] All CI jobs green on `master` (lint, build, busted).
 - [ ] Any new `src/` file added to `tools/build/listToMerge.txt`.
-- [ ] L3 passed for all modules modified since last tag.
+- [ ] L3 passed — `python tools/integration-runner/run_scenarios.py --no-ai` (or targeted
+      per-module injection) for all modules modified since last tag.
 - [ ] L4 passed for all player-visible features modified since last tag.
 - [ ] L5 passed if any F10 menu structure changed.
 - [ ] `tests/recette.md` updated (new rows + coverage summary).
