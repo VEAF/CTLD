@@ -1830,6 +1830,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#automation-tiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automation tiers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automation tiers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-autoauto-check-scenarios-headlessly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running auto/auto-check scenarios headlessly
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#architecture-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2013,6 +2041,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#automation-tiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automation tiers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automation tiers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-autoauto-check-scenarios-headlessly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running auto/auto-check scenarios headlessly
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#architecture-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2175,6 +2231,10 @@
 L1 and L2 run automatically via GitHub Actions CI.
 L3 to L5 require a live DCS session with the dcs-bridge Lua bridge injected and <code>dcs-serve</code> running.
 L6 is purely manual (player + checklist).</p>
+<p>Every L3–L5 scenario also carries a <code>-- @tier:</code> header (<code>auto</code> / <code>auto-check</code> / <code>ia</code>) marking
+whether it needs an AI agent or human in the loop at all. Most of L3 (<code>noPlayer/</code>) is <code>auto</code> or
+<code>auto-check</code> and can be <strong>driven headlessly</strong> by <code>tools/integration-runner/run_scenarios.py</code>
+instead of injecting each script by hand — see <a href="#automation-tiers">Automation tiers</a> below.</p>
 <p>For debug configuration and CTLD.log setup, see <a href="../developer/building-and-testing/">Building &amp; testing</a>.</p>
 <hr />
 <h2 id="folder-to-level-mapping">Folder to level mapping<a class="headerlink" href="#folder-to-level-mapping" title="Permanent link">&para;</a></h2>
@@ -2219,6 +2279,53 @@ L6 is purely manual (player + checklist).</p>
 </tr>
 </tbody>
 </table>
+<hr />
+<h2 id="automation-tiers">Automation tiers<a class="headerlink" href="#automation-tiers" title="Permanent link">&para;</a></h2>
+<p>Independently of the L-level (which folder a scenario lives in), every scenario carries a
+<code>-- @tier:</code> header telling you (or the runner) whether it needs an AI agent/human at all:</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Meaning</th>
+<th>Can run headless?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto</code></td>
+<td>A single injection returns the definitive verdict (<code>PASS</code>/<code>FAIL</code>/<code>ABORT</code>). No player, no polling, no judgment call.</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>auto-check</code></td>
+<td>Resolves automatically via a real timer/<code>waitFor</code>, but not in one call — the scenario returns <code>STARTED</code> and something must poll <code>_SCN_&lt;ID&gt;_RESULT</code> until it resolves. Still no human/AI judgment.</td>
+<td>Yes (polling)</td>
+</tr>
+<tr>
+<td><code>ia</code></td>
+<td>Needs an AI agent or human in the loop: a live player-controlled unit (dcs-bridge has no flight-control API — <code>pilotActive/</code>/<code>pilotPassive/</code> always need someone flying), or an F10/visual confirmation the code itself never checks.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p>As of this writing: 43 <code>auto</code>, 2 <code>auto-check</code>, 34 <code>ia</code> across the 79 tagged scenarios (all of
+L4/L5 is <code>ia</code>; L3 is almost entirely <code>auto</code>/<code>auto-check</code> with two <code>ia</code> outliers that ask for a
+visual F10 check). See the <code>integration-testing</code> skill for the full taxonomy and how each
+template defaults.</p>
+<h3 id="running-autoauto-check-scenarios-headlessly">Running <code>auto</code>/<code>auto-check</code> scenarios headlessly<a class="headerlink" href="#running-autoauto-check-scenarios-headlessly" title="Permanent link">&para;</a></h3>
+<p><code>tools/integration-runner/run_scenarios.py</code> (dependency-free Python, no install step) discovers
+scenarios, filters by tier/folder/name, drives them over <code>dcs-serve</code>'s REST API, polls async
+ones, and writes a JUnit report:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Everything L3 needs a player for is skipped automatically</span>
+python<span class="w"> </span>tools/integration-runner/run_scenarios.py<span class="w"> </span>--no-ai<span class="w"> </span>--inject-ctld
+
+<span class="c1"># Just the scenarios covering one module</span>
+python<span class="w"> </span>tools/integration-runner/run_scenarios.py<span class="w"> </span>--scenario<span class="w"> </span>F-178
+</code></pre></div>
+<p>This replaces manually injecting each L3a/L3b file one by one (still useful for a quick targeted
+check while iterating). See <code>tools/integration-runner/README.md</code> for the full flag reference.
+L4/L5 (<code>ia</code>) still require the manual/AI-driven injection loop described below.</p>
 <hr />
 <h2 id="architecture-overview">Architecture overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>RELEASE
@@ -2326,6 +2433,11 @@ not busted specs. They are not picked up by CI (no <code>_spec</code> suffix).</
 <strong>When:</strong> before every push that modifies <code>src/</code>.
 <strong>How:</strong> inject scripts into a running DCS mission. No player slot required.
 <strong>Success:</strong> <code>fail=0</code> in result line + no <code>[FAIL]</code> in <code>tests/dcs/CTLD.log</code>.</p>
+<blockquote>
+<p>Most of L3 is <code>auto</code>/<code>auto-check</code> tier and can run headlessly via
+<code>tools/integration-runner/run_scenarios.py --no-ai</code> (see <a href="#automation-tiers">Automation tiers</a>)
+instead of injecting the files below by hand.</p>
+</blockquote>
 <h3 id="l3a-targeted-tests-u-xxx-f-xxx">L3a — Targeted tests (U-xxx / F-xxx)<a class="headerlink" href="#l3a-targeted-tests-u-xxx-f-xxx" title="Permanent link">&para;</a></h3>
 <p>Inject the files covering the modified module:</p>
 <table>
@@ -2581,7 +2693,8 @@ not busted specs. They are not picked up by CI (no <code>_spec</code> suffix).</
 <ul>
 <li>[ ] All CI jobs green on <code>master</code> (lint, build, busted).</li>
 <li>[ ] Any new <code>src/</code> file added to <code>tools/build/listToMerge.txt</code>.</li>
-<li>[ ] L3 passed for all modules modified since last tag.</li>
+<li>[ ] L3 passed — <code>python tools/integration-runner/run_scenarios.py --no-ai</code> (or targeted
+      per-module injection) for all modules modified since last tag.</li>
 <li>[ ] L4 passed for all player-visible features modified since last tag.</li>
 <li>[ ] L5 passed if any F10 menu structure changed.</li>
 <li>[ ] <code>tests/recette.md</code> updated (new rows + coverage summary).</li>

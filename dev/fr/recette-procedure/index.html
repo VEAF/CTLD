@@ -1830,6 +1830,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#niveaux-dautomatisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Niveaux d'automatisation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Niveaux d&#39;automatisation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lancer-les-scenarios-autoauto-check-sans-intervention-humaine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lancer les scénarios auto/auto-check sans intervention humaine
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#vue-densemble-de-larchitecture" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2013,6 +2041,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#niveaux-dautomatisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Niveaux d'automatisation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Niveaux d&#39;automatisation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lancer-les-scenarios-autoauto-check-sans-intervention-humaine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lancer les scénarios auto/auto-check sans intervention humaine
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#vue-densemble-de-larchitecture" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2175,6 +2231,11 @@
 L1 et L2 s'exécutent automatiquement via la CI GitHub Actions.
 L3 à L5 nécessitent une session DCS active avec le pont Lua dcs-bridge injecté et <code>dcs-serve</code> démarré.
 L6 est purement manuel (joueur + checklist).</p>
+<p>Chaque scénario L3–L5 porte aussi un header <code>-- @tier:</code> (<code>auto</code> / <code>auto-check</code> / <code>ia</code>) indiquant
+s'il nécessite ou non un agent IA ou un humain dans la boucle. La majorité du L3 (<code>noPlayer/</code>)
+est <code>auto</code> ou <code>auto-check</code> et peut être <strong>pilotée sans intervention humaine</strong> par
+<code>tools/integration-runner/run_scenarios.py</code>, plutôt qu'en injectant chaque script à la main —
+voir <a href="#niveaux-dautomatisation">Niveaux d'automatisation</a> ci-dessous.</p>
 <p>Pour la configuration de debug et la mise en place de CTLD.log, voir <a href="../developer/building-and-testing/">Building &amp; testing</a>.</p>
 <hr />
 <h2 id="correspondance-dossier-niveau">Correspondance dossier / niveau<a class="headerlink" href="#correspondance-dossier-niveau" title="Permanent link">&para;</a></h2>
@@ -2219,6 +2280,54 @@ L6 est purement manuel (joueur + checklist).</p>
 </tr>
 </tbody>
 </table>
+<hr />
+<h2 id="niveaux-dautomatisation">Niveaux d'automatisation<a class="headerlink" href="#niveaux-dautomatisation" title="Permanent link">&para;</a></h2>
+<p>Indépendamment du niveau L (le dossier où vit un scénario), chaque scénario porte un header
+<code>-- @tier:</code> indiquant s'il nécessite un agent IA/humain :</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Signification</th>
+<th>Peut tourner sans humain ?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto</code></td>
+<td>Une seule injection retourne le verdict définitif (<code>PASS</code>/<code>FAIL</code>/<code>ABORT</code>). Aucun joueur, aucun polling, aucun jugement.</td>
+<td>Oui</td>
+</tr>
+<tr>
+<td><code>auto-check</code></td>
+<td>Se résout automatiquement via un vrai timer/<code>waitFor</code>, mais pas en un seul appel — le scénario retourne <code>STARTED</code> et il faut interroger <code>_SCN_&lt;ID&gt;_RESULT</code> jusqu'à résolution. Toujours aucun jugement humain.</td>
+<td>Oui (polling)</td>
+</tr>
+<tr>
+<td><code>ia</code></td>
+<td>Nécessite un agent IA ou un humain dans la boucle : une unité pilotée par un joueur (le pont dcs-bridge n'expose aucune API de pilotage — <code>pilotActive/</code>/<code>pilotPassive/</code> requièrent toujours quelqu'un aux commandes), ou une confirmation F10/visuelle que le code ne vérifie jamais lui-même.</td>
+<td>Non</td>
+</tr>
+</tbody>
+</table>
+<p>À l'heure où ces lignes sont écrites : 43 <code>auto</code>, 2 <code>auto-check</code>, 34 <code>ia</code> sur les 79 scénarios
+tagués (tout le L4/L5 est <code>ia</code> ; le L3 est presque entièrement <code>auto</code>/<code>auto-check</code>, avec deux
+exceptions <code>ia</code> qui demandent une vérification visuelle F10). Voir la skill <code>integration-testing</code>
+pour la taxonomie complète et le tier par défaut de chaque template.</p>
+<h3 id="lancer-les-scenarios-autoauto-check-sans-intervention-humaine">Lancer les scénarios <code>auto</code>/<code>auto-check</code> sans intervention humaine<a class="headerlink" href="#lancer-les-scenarios-autoauto-check-sans-intervention-humaine" title="Permanent link">&para;</a></h3>
+<p><code>tools/integration-runner/run_scenarios.py</code> (Python sans dépendance, aucune installation)
+découvre les scénarios, filtre par tier/dossier/nom, les pilote via l'API REST de <code>dcs-serve</code>,
+interroge ceux qui sont asynchrones, et écrit un rapport JUnit :</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Tout ce qui nécessite un joueur pour le L3 est ignoré automatiquement</span>
+python<span class="w"> </span>tools/integration-runner/run_scenarios.py<span class="w"> </span>--no-ai<span class="w"> </span>--inject-ctld
+
+<span class="c1"># Juste les scénarios couvrant un module</span>
+python<span class="w"> </span>tools/integration-runner/run_scenarios.py<span class="w"> </span>--scenario<span class="w"> </span>F-178
+</code></pre></div>
+<p>Ceci remplace l'injection manuelle fichier par fichier des L3a/L3b (toujours utile pour une
+vérification ciblée rapide en cours d'itération). Voir <code>tools/integration-runner/README.md</code>
+pour la référence complète des options. Le L4/L5 (<code>ia</code>) nécessite toujours la boucle
+d'injection manuelle/pilotée par IA décrite plus bas.</p>
 <hr />
 <h2 id="vue-densemble-de-larchitecture">Vue d'ensemble de l'architecture<a class="headerlink" href="#vue-densemble-de-larchitecture" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>RELEASE
@@ -2326,6 +2435,12 @@ pas des specs busted. Ils ne sont pas pris en compte par la CI (pas de suffixe <
 <strong>Quand :</strong> avant chaque push qui modifie <code>src/</code>.
 <strong>Comment :</strong> injecter des scripts dans une mission DCS en cours d'exécution. Aucun slot joueur requis.
 <strong>Succès :</strong> <code>fail=0</code> dans la ligne de résultat + aucun <code>[FAIL]</code> dans <code>tests/dcs/CTLD.log</code>.</p>
+<blockquote>
+<p>La majorité du L3 est de tier <code>auto</code>/<code>auto-check</code> et peut tourner sans intervention humaine via
+<code>tools/integration-runner/run_scenarios.py --no-ai</code> (voir
+<a href="#niveaux-dautomatisation">Niveaux d'automatisation</a>) plutôt qu'en injectant les fichiers
+ci-dessous à la main.</p>
+</blockquote>
 <h3 id="l3a-tests-cibles-u-xxx-f-xxx">L3a — Tests ciblés (U-xxx / F-xxx)<a class="headerlink" href="#l3a-tests-cibles-u-xxx-f-xxx" title="Permanent link">&para;</a></h3>
 <p>Injecter les fichiers couvrant le module modifié :</p>
 <table>
@@ -2581,7 +2696,8 @@ pas des specs busted. Ils ne sont pas pris en compte par la CI (pas de suffixe <
 <ul>
 <li>[ ] Tous les jobs CI verts sur <code>master</code> (lint, build, busted).</li>
 <li>[ ] Tout nouveau fichier <code>src/</code> ajouté à <code>tools/build/listToMerge.txt</code>.</li>
-<li>[ ] L3 passé pour tous les modules modifiés depuis le dernier tag.</li>
+<li>[ ] L3 passé — <code>python tools/integration-runner/run_scenarios.py --no-ai</code> (ou injection ciblée
+      module par module) pour tous les modules modifiés depuis le dernier tag.</li>
 <li>[ ] L4 passé pour toutes les fonctionnalités visibles par le joueur modifiées depuis le dernier tag.</li>
 <li>[ ] L5 passé si la structure d'un menu F10 a changé.</li>
 <li>[ ] <code>tests/recette.md</code> mis à jour (nouvelles lignes + récapitulatif de couverture).</li>
