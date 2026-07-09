@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_mt11_ai_troop_stock.lua
 -- CTLD — AI auto-pickup avec 2 troopTemplates assignés à une AIZ_P (Feature T)

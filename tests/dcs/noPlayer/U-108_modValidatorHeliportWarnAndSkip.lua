@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- U-108: CTLDModValidator — Heliport types: WARN per type and skip (cannot auto-probe)
 -- DCS accepts any Heliport type name regardless of mod installation → auto-probe unreliable.
 -- Checks:

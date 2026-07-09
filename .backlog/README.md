@@ -14,13 +14,12 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `DCS-BRIDGE-MCP` | ✅ done (pending PR) | Wire VEAF-dcs-bridge (`.mcp.json`, `dcs-client mcp`, project-local venv), return contract, migrate 79 sane scenarios, integration-testing skill, retire Witchcraft | feature/dcs-bridge-mcp |
+| `INTEGRATION-TEST-TAGS` | ✅ done (pending PR) | `-- @tier: auto\|auto-check\|ia` header convention on the 79 scenarios + 4 templates | feature/integration-test-tags |
 
 ### Planned lots
 
 | Lot | Description |
 |-----|-------------|
-| `INTEGRATION-TEST-TAGS` | `-- @tier: auto\|auto-check\|ia` header convention, pre-tag the ~79 sane scenarios (after CLEANUP) |
 | `INTEGRATION-TEST-RUNNER` | Python runner over dcs-serve REST (`/api/exec`), tier filtering, JUnit report, "run without AI" |
 | `CLEANUP-LEGACY-DCS-TESTS` | Purge the ~194 dead FullGas relics under `tests/dcs/noPlayer/` (dangling `dofile` of `DCS-CTLD_FG/recette/setup.lua`, absent `ctld_test` framework, hardcoded `Users/Moi` paths — never re-tooled at the VEAF bootstrap). **Talk to FullGas before purging** (confirm none are worth re-tooling). Separate PR from the DCS-bridge triptych. |
 
@@ -38,6 +37,7 @@ authored **per lot, when the lot is started** (not in batch).
 | `DOC-MKDOCS` ✅ | mkdocs-material infra (i18n EN+FR, mike) + `docs.yml` → gh-pages live at veaf.github.io/CTLD (PR #8). |
 | `DOC-TECH` ✅ | Bilingual `docs/developer/` consolidation (20 EN + 20 FR pages) + workflow page; old sources + `migration/specs/` removed (PR #11). |
 | `DOC-USER-ROLES` ✅ | Bilingual role split of the user guide → `docs/pilot/` + `docs/mission-maker/` (19 EN + 19 FR pages); monolith removed (PR #12). |
+| `DCS-BRIDGE-MCP` ✅ | Migrate DCS integration testing from Witchcraft to VEAF-dcs-bridge: `.mcp.json` + project-local venv, scenario return contract, 79 scenarios + 4 templates migrated, `integration-testing` skill, Witchcraft fully retired (PR #14). Uncovered ~194 dead FullGas relics → `CLEANUP-LEGACY-DCS-TESTS`. |
 
 ## Dropped lots
 

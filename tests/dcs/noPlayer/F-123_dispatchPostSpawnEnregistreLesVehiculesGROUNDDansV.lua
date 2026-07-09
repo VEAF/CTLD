@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- ============================================================
 -- F-123 — _dispatchPostSpawn enregistre les véhicules GROUND dans CTLDVehicleSpawner
 -- Vérifie que après unpack d'une caisse standard (non-JTAC), le véhicule

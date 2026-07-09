@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- scenarios/interactive/scenario_farp_repack.lua
 -- TODO [I]+[Q] — FARP Repack : pack scene + warehouse snapshot cycle

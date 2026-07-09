@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- scenarios/scenario_fob_scene.lua
 -- PT6 — FOB scene visual validation

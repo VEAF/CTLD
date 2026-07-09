@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_farp_countryside_spawn.lua
 -- CTLD — Spawn scène "Countryside FARP" à la position du static coord_farp-1

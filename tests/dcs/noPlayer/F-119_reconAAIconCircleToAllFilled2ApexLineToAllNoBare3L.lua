@@ -1,3 +1,4 @@
+-- @tier: auto
 -- F-119 — RECON AA icon: circleToAll (filled) + 2 apex lineToAll (no bare 3-line triangle).
 -- Verify: drawAAIcon() calls circleToAll on slot +1 and lineToAll on slots +2, +3.
 -- Also verify: reconIconScale multiplier is applied (s = 35 * scale).

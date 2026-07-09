@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- U-46 : ctld.Menu:addSubMenu — guards, idempotence, nesting
 trigger.action.outText("U-46: addSubMenu guards + idempotence + nesting", 10)
 

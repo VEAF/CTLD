@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- AUTO — Feature P : validation renommage capabilitiesByType + groundVehicleWeights
 -- =============================================================================

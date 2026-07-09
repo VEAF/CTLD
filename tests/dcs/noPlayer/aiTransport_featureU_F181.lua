@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- aiTransport_featureU_F181.lua  [AUTO]
 -- F-181 — Feature U : getTemplateByName + aiPickVehicleEntry isAASystem

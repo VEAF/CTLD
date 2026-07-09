@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_ai_attack_enemy.lua
 -- CTLD — Feature I — Post-spawn task: "AttackNearestEnemyOnLos"

@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- U-50 : removeMenuBranch — count + absence from memory
 trigger.action.outText("U-50: removeMenuBranch count + absence", 10)
 

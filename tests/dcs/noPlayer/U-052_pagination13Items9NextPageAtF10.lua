@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- U-52 : Pagination — 13 items → 9 + "→ Next Page" at F10
 trigger.action.outText("U-52: Pagination 13 items → 9 + Next Page", 10)
 

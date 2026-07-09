@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_ai_troops.lua
 -- CTLD — AI auto-pickup / auto-dropoff : troupes seules

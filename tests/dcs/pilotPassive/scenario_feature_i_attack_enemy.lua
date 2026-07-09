@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- scenario_feature_i_attack_enemy.lua
 -- Feature I — Post-spawn task: "AttackNearestEnemyOnLos"

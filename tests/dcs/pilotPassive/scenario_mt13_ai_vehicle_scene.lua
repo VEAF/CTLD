@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- scenario_mt13_ai_vehicle_scene.lua  [INTERACTIVE]
 -- MT-13 — AI auto-pickup d'une scène CTLDSceneManager via vehicleStock (Feature T)

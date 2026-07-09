@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- aiTransport_featureT_stockRestore_F179.lua  [AUTO]
 -- F-179 — Feature T : restauration du stock lors du dropoff AI (navette)

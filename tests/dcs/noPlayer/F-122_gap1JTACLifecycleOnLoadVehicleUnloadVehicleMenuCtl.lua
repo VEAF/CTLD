@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- ============================================================
 -- F-122 — GAP-1 : JTAC lifecycle on loadVehicle / unloadVehicle menu_ctld
 -- setJTACInTransit called on load, resumeJTAC called on unload
@@ -99,3 +100,11 @@ spawner._unitToVehicle["f122_jtac_unit"] = nil
 _cfg.settings["vehicleTransportEnabled"] = _origVTE
 
 ctld.utils.log("INFO", string.format("[F-122 RESULT] pass=%d fail=%d", pass, fail))
+
+local total = pass + fail
+if fail == 0 then
+    _SCN_F122_RESULT = "[F-122] PASS " .. pass .. "/" .. total
+else
+    _SCN_F122_RESULT = "[F-122] FAIL " .. fail .. "/" .. total .. ": " .. table.concat(failReasons, "; ")
+end
+return _SCN_F122_RESULT

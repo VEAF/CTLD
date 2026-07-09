@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_unpack_jtac_drone.lua
 -- CTLD — MQ-9 JTAC drone full lifecycle via crate spawn+unpack

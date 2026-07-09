@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto-check
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_ai_transport.lua
 -- CTLD — AI transport auto-pickup / auto-dropoff

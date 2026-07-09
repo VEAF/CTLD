@@ -93,6 +93,12 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Note: `tests/dcs/noPlayer/` still contains ~194 legacy FullGas scenarios (dangling
   `DCS-CTLD_FG/recette/setup.lua` reference, no `ctld_test` framework) predating this migration —
   out of scope here, tracked as `CLEANUP-LEGACY-DCS-TESTS`.
+- **`@tier` tagging** — every one of the 79 scenarios and the four `_template_*.lua` templates
+  now carries a `-- @tier: auto | auto-check | ia` header (43 `auto`, 2 `auto-check`, 34 `ia`),
+  documented in the `integration-testing` skill. Lets `INTEGRATION-TEST-RUNNER`'s "run without
+  AI" mode select scenarios that don't need a player or human/AI judgment.
+- **Fix**: `F-122` (JTAC lifecycle on loadVehicle/unloadVehicle) never resolved its verdict —
+  a leftover gap from a migration agent cut off mid-file; now returns a proper `PASS`/`FAIL`.
 
 ### Claude Code automations (project)
 

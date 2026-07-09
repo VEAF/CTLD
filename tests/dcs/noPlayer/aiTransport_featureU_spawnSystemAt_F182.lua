@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- aiTransport_featureU_spawnSystemAt_F182.lua  [AUTO]
 -- F-182 — Feature U : spawnSystemAt — positions, limit gate, event

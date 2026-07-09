@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- scenario_mt07_ai_troops.lua  [INTERACTIVE]
 -- MT-07 — AI auto-pickup / auto-dropoff : troupes seules

@@ -1,3 +1,4 @@
+-- @tier: auto
 -- F-117 — RECON disabled: scan() shows explicit message (not silent)
 -- Verify: when reconEnabled=false, scan() emits outTextForGroup with "reconEnabled" keyword.
 

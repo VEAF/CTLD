@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- U-108: CTLDModValidator — _probeHeliport via getDesc().life detection
 -- DCS substitue visuellement les types inconnus par SINGLE_HELIPAD mais life==0 trahit la substitution.
 -- C1: valid HELIPORT (SINGLE_HELIPAD) → cache=true (life>0)

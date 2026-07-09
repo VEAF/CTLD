@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- scenario_feature_i_goto_wpz.lua
 -- Feature I — Post-spawn task: "gotoNearestWPZ"

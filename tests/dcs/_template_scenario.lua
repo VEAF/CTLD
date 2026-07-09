@@ -1,4 +1,6 @@
 ---@diagnostic disable
+-- @tier: auto  (generic template covering all four step types — retag per the concrete
+--               scenario's shape: auto/auto-check if no player, ia if player/F10 involved)
 -- =============================================================================
 -- live_tests/scenarios/_template_scenario.lua
 -- CTLD Scenario Template — v2.0 [2026-06-30]

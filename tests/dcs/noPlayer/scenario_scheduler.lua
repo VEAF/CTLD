@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto-check
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_scheduler.lua
 -- CTLD — ctld.scheduler : central loop registry + beacon/AI transport guard B

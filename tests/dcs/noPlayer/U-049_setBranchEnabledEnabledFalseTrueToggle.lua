@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- U-49 : setBranchEnabled — enabled false/true toggle
 trigger.action.outText("U-49: setBranchEnabled false/true", 10)
 

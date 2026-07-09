@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- live_tests/scenarios/_template_interactive_auto.lua
 -- CTLD Interactive Auto Scenario Template

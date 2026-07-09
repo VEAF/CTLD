@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- U-48 : ctld.Menu:clearBranch — empties children, keeps container
 trigger.action.outText("U-48: clearBranch — empties children, keeps container", 10)
 

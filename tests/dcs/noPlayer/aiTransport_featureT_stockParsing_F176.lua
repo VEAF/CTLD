@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- =============================================================================
 -- aiTransport_featureT_stockParsing_F176.lua  [AUTO]
 -- F-176 — Feature T : vérification du parsing troopStock/vehicleStock tables

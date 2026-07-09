@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: ia
 -- =============================================================================
 -- tests/dcs/pilotPassive/scenario_mt10_ai_postspawn_task.lua
 -- CTLD — AI post-spawn task assignment: gotoNearestWPZ + AttackNearestEnemyOnLos

@@ -1,4 +1,5 @@
 ---@diagnostic disable
+-- @tier: auto
 -- ============================================================
 -- JTAC Spot Corrections toggle — recette automatique
 -- ============================================================
