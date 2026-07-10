@@ -127,7 +127,7 @@ ctld.utils.log("INFO", "── U-99 : groundVehicleWeights ──")
 local gvw = ctld.gs("groundVehicleWeights") or {}
 check("U-99 BRDM-2 weight",          gvw["BRDM-2"],               7000)
 check("U-99 BTR_D weight",           gvw["BTR_D"],                8000)
-check("U-99 M1045 HMMWV TOW weight", gvw["M1045 HMMWV TOW"],      3220)
+check("U-99 M1045 HMMWV TOW weight", gvw["M1045 HMMWV TOW"],      5000)
 check("U-99 M1043 HMMWV Arm weight", gvw["M1043 HMMWV Armament"], 2500)
 -- vérifier que l'ancien nom ne retourne rien
 local old_vw = ctld.gs("vehiclesWeight")
