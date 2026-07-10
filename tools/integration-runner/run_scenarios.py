@@ -310,6 +310,13 @@ def build_arg_parser():
 
 
 def main(argv=None) -> int:
+    # Scenario messages may contain non-ASCII characters (e.g. arrows, accented text from
+    # French comments echoed back). The default console codepage on Windows (cp1252) can't
+    # encode all of them and would crash a plain print() -- force UTF-8 with a safe fallback.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
     args = build_arg_parser().parse_args(argv)
 
     tiers = args.tier.split(",") if args.tier else (list(NO_AI_TIERS) if args.no_ai else None)

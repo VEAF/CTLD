@@ -12,12 +12,24 @@ through **VEAF-dcs-bridge**, not Witchcraft. The bridge exposes DCS over MCP too
 ## Prerequisites
 
 1. `dcs-serve` running on the machine hosting the live DCS mission (holds the TCP connection
-   from the injected `dcs-bridge.lua`). Config: `dcs-serve.yaml`.
-2. `dcs-client.yaml` (gitignored, machine-local) with an `api_key` matching `dcs-serve.yaml`.
-3. The mission has the Lua bridge injected (see VEAF-dcs-bridge docs — VMCT v6 injection is the
-   recommended method).
-4. If `dcs-client` is not on `PATH`, install it (see ticket `07-dev-setup` / project README once
-   landed) or run it from the `VEAF-dcs-bridge` checkout's venv.
+   from the injected `dcs-bridge.lua`). Config: `dcs-serve.yaml` (run `tools/dcs-bridge/venv/
+   Scripts/dcs-serve.exe` — first launch generates the API key and the yaml file).
+2. `dcs-client.yaml` (gitignored, machine-local, repo root) with an `api_key` matching
+   `dcs-serve.yaml`.
+3. The mission has `dcs-bridge.lua` injected (DO SCRIPT FILE trigger, or MissionScripting.lua —
+   see VEAF-dcs-bridge's `docs/guide/prerequisites.md`).
+4. **`dcsBridge` port config, set in a DO SCRIPT action right BEFORE the DO SCRIPT FILE that
+   loads `dcs-bridge.lua`** — easy to miss, causes a silent connection failure (no error
+   anywhere, `dcs-serve`'s console just never shows "DCS connected"):
+   ```lua
+   dcsBridge = { host = "127.0.0.1", port = 7777 }
+   ```
+   `dcs-bridge.lua` defaults to port **9001** if this isn't set. `dcs-serve`'s own default
+   (`ServeConfig.tcp_port`) is **7777** — check the actual value in your `dcs-serve.yaml`
+   (`tcp_port`) and match it here; don't assume a specific number.
+5. `dcs-client`/`dcs-serve` are installed at `tools/dcs-bridge/venv/Scripts/` via
+   `tools/dcs-bridge/install.ps1` (project-local venv, gitignored). `.mcp.json` already points
+   there for the MCP server.
 
 Once these are up, `exec_lua` is available as an MCP tool.
 
@@ -121,3 +133,5 @@ diagnosing a runtime failure from the logs.
 | `attempt to call field 'getInstance' (a nil value)` | CTLD not yet initialized | Wait longer after injecting `CTLD.lua`, or poll `tests/dcs/util/*ready*` style check |
 | Verdict never leaves `STARTED` | Async scenario still running, or a timer errored silently | Poll `_SCN_<ID>_RESULT` again; check `CTLD.log` for a stuck step |
 | `<TAG> RUNNING: step=N ...` forever | Re-injection scenario waiting on a DCS-side condition (player position, F10 click) | Perform the required in-game action, then re-inject |
+| `dcs-serve` console never shows "DCS connected" | `dcsBridge` port not set (or set wrong) in the mission trigger — `dcs-bridge.lua` defaults to port 9001, unrelated to `dcs-serve`'s own default (7777) | Add `dcsBridge = { host = "127.0.0.1", port = <dcs-serve's tcp_port> }` as a DO SCRIPT action right before the DO SCRIPT FILE that loads `dcs-bridge.lua` |
+| DCS Mission Editor fails to load a `.miz` with `VFS_open_write: Can't create file ...l10n\DEFAULT\<name>` | A large embedded `l10n/DEFAULT/` resource (seen with a 420KB `.ogg`) breaks the editor's own unpacker — not a zip-structure issue (verified: intact archive, explicit zip directory entries made no difference) | Replace the offending resource with a small placeholder in the `.miz` (only if its content isn't needed for the tests you're running) |
