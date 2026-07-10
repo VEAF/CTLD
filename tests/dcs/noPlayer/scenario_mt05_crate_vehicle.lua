@@ -39,37 +39,12 @@ local CRATE_WEIGHT   = 2000
 local mockTransport = {
     getName  = function() return TRANSPORT_NAME end,
     getPoint = function() return { x = 0, y = 0, z = 0 } end,
+    isExist  = function() return true end,
 }
 
 -- ── Setup ────────────────────────────────────────────────────
 local cm = CTLDCrateManager.getInstance()
 local vs = CTLDVehicleSpawner.getInstance()
-
--- Mock descriptor with known weight
-local mockDescriptor = { desc = "Mock Hummer", weight = CRATE_WEIGHT, unitTypes = { VEHICLE_TYPE } }
-
--- Register crate in LOADED state
-local crate = CTLDCrate:new({
-    crateName   = CRATE_NAME,
-    descriptor  = mockDescriptor,
-    spawnMethod = "ctld",
-    position    = { x = 0, y = 0, z = 0 },
-    heading     = 0,
-    coalition   = 2,
-})
-crate:load(mockTransport)
-cm.crates[CRATE_NAME] = crate
-
--- Register vehicle in LOADED state
-local vehicle = CTLDVehicle:new({
-    id          = VEHICLE_ID,
-    vehicleType = VEHICLE_TYPE,
-    spawnData   = nil,
-})
-vehicle:setState(CTLDVehicle.STATE.LOADED)
-vehicle.loadTransportName = TRANSPORT_NAME
-vehicle.loadMethod        = "menu_ctld"
-vs._vehicles[VEHICLE_ID]  = vehicle
 
 -- ── Test helpers ─────────────────────────────────────────────
 local passed = 0
@@ -79,56 +54,101 @@ local function pass(_) passed = passed + 1 end
 local function fail(label) failed = failed + 1; table.insert(failures, label) end
 local function check(label, cond) if cond then pass(label) else fail(label) end end
 
--- ── F-MT05-1 : crate détectée comme chargée via CTLD ────────
-check("F-MT05-1 crate isLoadedByCTLD", crate:isLoadedByCTLD() == true)
+-- Registered here (outside the pcall) so the guaranteed cleanup block below can always
+-- remove them from the shared singletons, even if the test body errors partway through.
+local crate, vehicle
 
--- ── F-MT05-2 : véhicule détecté comme chargé sur transport ──
-local loadedVehs = vs:findLoadedVehicles(mockTransport)
-check("F-MT05-2 findLoadedVehicles returns vehicle", #loadedVehs == 1 and loadedVehs[1].id == VEHICLE_ID)
+-- pcall-wrapped body: any internal crash must still reach cleanup + _SCN_MT05_RUNNING reset
+-- below, otherwise a leaked mock crate/vehicle pollutes every other scenario sharing these
+-- singletons, and the double-injection guard stays stuck forever (found 2026-07-10: exactly
+-- this happened, leaking "mock_crate_MT05" into CTLDCrateManager.crates and freezing this
+-- scenario's own _SCN_MT05_RUNNING at true).
+local _ok, _err = pcall(function()
+    -- Mock descriptor with known weight
+    local mockDescriptor = { desc = "Mock Hummer", weight = CRATE_WEIGHT, unitTypes = { VEHICLE_TYPE } }
 
--- ── F-MT05-3 : poids crate agrégé correctement ──────────────
-local crateW = cm:getLoadedCrateWeight(TRANSPORT_NAME)
-check("F-MT05-3 getLoadedCrateWeight = " .. tostring(crateW), crateW == CRATE_WEIGHT)
+    -- Register crate in LOADED state
+    crate = CTLDCrate:new({
+        crateName   = CRATE_NAME,
+        descriptor  = mockDescriptor,
+        spawnMethod = "ctld",
+        position    = { x = 0, y = 0, z = 0 },
+        heading     = 0,
+        coalition   = 2,
+    })
+    crate:load(mockTransport)
+    cm.crates[CRATE_NAME] = crate
 
--- ── F-MT05-4 : poids véhicule agrégé correctement ───────────
-local vehicleWeights = ctld.gs("vehiclesWeight") or {}
-local expectedVW = vehicleWeights[VEHICLE_TYPE] or 2500
-local vehicleW = vs:getLoadedVehicleWeight(TRANSPORT_NAME)
-check("F-MT05-4 getLoadedVehicleWeight = " .. tostring(vehicleW), vehicleW == expectedVW)
+    -- Register vehicle in LOADED state
+    vehicle = CTLDVehicle:new({
+        id          = VEHICLE_ID,
+        vehicleType = VEHICLE_TYPE,
+        spawnData   = nil,
+    })
+    vehicle:setState(CTLDVehicle.STATE.LOADED)
+    vehicle.loadTransportName = TRANSPORT_NAME
+    vehicle.loadMethod        = "menu_ctld"
+    vs._vehicles[VEHICLE_ID]  = vehicle
 
--- ── F-MT05-5 : unload crate → véhicule inchangé ─────────────
-crate:unload()
-check("F-MT05-5a crate state after unload = LANDED", crate.state == CTLDCrate.STATE.LANDED)
-check("F-MT05-5b vehicle state unchanged after crate unload", vehicle:getState() == CTLDVehicle.STATE.LOADED)
-check("F-MT05-5c vehicle.loadTransportName unchanged", vehicle.loadTransportName == TRANSPORT_NAME)
--- Restore crate for next tests
-crate:load(mockTransport)
+    -- ── F-MT05-1 : crate détectée comme chargée via CTLD ────────
+    check("F-MT05-1 crate isLoadedByCTLD", crate:isLoadedByCTLD() == true)
 
--- ── F-MT05-6 : unload véhicule → crate inchangée ────────────
-vehicle:setState(CTLDVehicle.STATE.WAITING)
-vehicle.loadTransportName = nil
-check("F-MT05-6a vehicle state after unload = WAITING", vehicle:getState() == CTLDVehicle.STATE.WAITING)
-check("F-MT05-6b crate isLoadedByCTLD unchanged", crate:isLoadedByCTLD() == true)
-check("F-MT05-6c crate.loadedBy unchanged", crate.loadedBy ~= nil)
--- Restore vehicle for next tests
-vehicle:setState(CTLDVehicle.STATE.LOADED)
-vehicle.loadTransportName = TRANSPORT_NAME
+    -- ── F-MT05-2 : véhicule détecté comme chargé sur transport ──
+    local loadedVehs = vs:findLoadedVehicles(mockTransport)
+    check("F-MT05-2 findLoadedVehicles returns vehicle", #loadedVehs == 1 and loadedVehs[1].id == VEHICLE_ID)
 
--- ── F-MT05-7 : après unload crate, findLoadedVehicles intact ─
-crate:unload()
-local vehs7 = vs:findLoadedVehicles(mockTransport)
-check("F-MT05-7 findLoadedVehicles still 1 after crate unload", #vehs7 == 1)
-crate:load(mockTransport)
+    -- ── F-MT05-3 : poids crate agrégé correctement ──────────────
+    local crateW = cm:getLoadedCrateWeight(TRANSPORT_NAME)
+    check("F-MT05-3 getLoadedCrateWeight = " .. tostring(crateW), crateW == CRATE_WEIGHT)
 
--- ── F-MT05-8 : après unload véhicule, crate weight intact ────
-vehicle:setState(CTLDVehicle.STATE.WAITING)
-vehicle.loadTransportName = nil
-local crateW8 = cm:getLoadedCrateWeight(TRANSPORT_NAME)
-check("F-MT05-8 getLoadedCrateWeight intact after vehicle unload", crateW8 == CRATE_WEIGHT)
+    -- ── F-MT05-4 : poids véhicule agrégé correctement ───────────
+    local vehicleWeights = ctld.gs("groundVehicleWeights") or {}
+    local expectedVW = vehicleWeights[VEHICLE_TYPE] or 2500
+    local vehicleW = vs:getLoadedVehicleWeight(TRANSPORT_NAME)
+    check("F-MT05-4 getLoadedVehicleWeight = " .. tostring(vehicleW), vehicleW == expectedVW)
 
--- ── Cleanup ──────────────────────────────────────────────────
-cm.crates[CRATE_NAME]    = nil
-vs._vehicles[VEHICLE_ID] = nil
+    -- ── F-MT05-5 : unload crate → véhicule inchangé ─────────────
+    crate:unload()
+    check("F-MT05-5a crate state after unload = LANDED", crate.state == CTLDCrate.STATE.LANDED)
+    check("F-MT05-5b vehicle state unchanged after crate unload", vehicle:getState() == CTLDVehicle.STATE.LOADED)
+    check("F-MT05-5c vehicle.loadTransportName unchanged", vehicle.loadTransportName == TRANSPORT_NAME)
+    -- Restore crate for next tests
+    crate:load(mockTransport)
+
+    -- ── F-MT05-6 : unload véhicule → crate inchangée ────────────
+    vehicle:setState(CTLDVehicle.STATE.WAITING)
+    vehicle.loadTransportName = nil
+    check("F-MT05-6a vehicle state after unload = WAITING", vehicle:getState() == CTLDVehicle.STATE.WAITING)
+    check("F-MT05-6b crate isLoadedByCTLD unchanged", crate:isLoadedByCTLD() == true)
+    check("F-MT05-6c crate.loadedBy unchanged", crate.loadedBy ~= nil)
+    -- Restore vehicle for next tests
+    vehicle:setState(CTLDVehicle.STATE.LOADED)
+    vehicle.loadTransportName = TRANSPORT_NAME
+
+    -- ── F-MT05-7 : après unload crate, findLoadedVehicles intact ─
+    crate:unload()
+    local vehs7 = vs:findLoadedVehicles(mockTransport)
+    check("F-MT05-7 findLoadedVehicles still 1 after crate unload", #vehs7 == 1)
+    crate:load(mockTransport)
+
+    -- ── F-MT05-8 : après unload véhicule, crate weight intact ────
+    vehicle:setState(CTLDVehicle.STATE.WAITING)
+    vehicle.loadTransportName = nil
+    local crateW8 = cm:getLoadedCrateWeight(TRANSPORT_NAME)
+    check("F-MT05-8 getLoadedCrateWeight intact after vehicle unload", crateW8 == CRATE_WEIGHT)
+end)
+
+-- ── Cleanup (always runs, even if the pcall above errored) ────
+if crate then cm.crates[CRATE_NAME] = nil end
+if vehicle then vs._vehicles[VEHICLE_ID] = nil end
+
+if not _ok then
+    _SCN_MT05_RESULT = "[MT-05] FAIL: crash — " .. tostring(_err)
+    trigger.action.outText(_SCN_MT05_RESULT, 60, true)
+    ctld.utils.log("ERROR", _SCN_MT05_RESULT)
+    _SCN_MT05_RUNNING = false
+    return _SCN_MT05_RESULT
+end
 
 -- ── Résultat ─────────────────────────────────────────────────
 local total = passed + failed
