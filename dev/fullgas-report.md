@@ -65,3 +65,28 @@ context, intent behind legacy test/mission design) — not published, internal w
   Both read like a deliberate `scan()` redesign that predates these tests being updated —
   same class of issue as F-Q-5, not a simple rename. Flagging both rather than guessing which
   function F-117 should actually target or what "cleanup" should mean for F-118 now.
+
+- **`scenario_fr_ai_zones.lua` — 7 failures from the `troopStock`/`vehicleStock` scalar→table
+  redesign** (found 2026-07-10, after fixing 12 other mechanical bugs in the same file — see
+  below). `_loadAIZonesFromConfig` (`src/CTLD_zone.lua:627-714`) now requires `entry.troopStock`
+  to be a **table** `{[templateName]=N}` (per-template stock, parsed via `parseStockTable`) and
+  *always* hardcodes `pickMaxStock = 0` for AI zones regardless of input (explicit comment:
+  "unlimited; per-template stock via `_aiTroopStock`"). The old scalar format (`troopStock = 10`
+  meaning "10 units, zone-wide") is no longer read at all for AI zones — `parseStockTable(10)`
+  returns `nil` since `type(raw) ~= "table"`.
+  - F-R-1.4, F-R-2.4, F-R-4.2, F-R-13.5, F-R-13.8: all assert `zone.pickMaxStock` against a
+    scalar `troopStock` input (10, -1, 0, 5) — testing a field/format pair that no longer
+    applies to AI zones. Rewriting correctly means testing `zone._aiTroopStock` (the new
+    per-template table) instead, which requires deciding what template names/stock values the
+    rewritten test should use — not obvious from the code alone.
+  - F-R-43.4, F-R-49.9 (same root cause): the G3 validation warning ("isPickup=true with troop
+    cargo but troopStock not defined", `CTLD_zone.lua:1462`) only fires when
+    `entry.troopStock == nil` (undefined) — never for an explicit `troopStock = 0`. The test's
+    docstring says "isPickup + troopStock=0 → WARN" but no such warning exists for the new table
+    format (an explicit `{}` or `{All=0}` might be the intended "explicitly disabled" case
+    instead — a design call, not obvious from the code).
+  - Everything else in this file (12 other failures — a stale `_aiTroopStock`-less pickup-zone
+    mock, `core._aiPilotNames` never re-populated after init [same class as the
+    `scenario_ai_transport.lua` fix], and a captured-outText-report clobbered by later/duplicate
+    `ctld.utils.log` calls in two spots) was a mechanical test-infrastructure bug, fixed directly
+    (145→147 checks as previously-dead code paths started running, 19→7 failures remaining).

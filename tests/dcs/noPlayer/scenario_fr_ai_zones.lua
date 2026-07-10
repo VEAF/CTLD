@@ -462,6 +462,12 @@ local _savedRandom     = cfg.settings["allowRandomAiTeamPickups"]
 local _savedCapsByType = cfg.settings["capabilitiesByType"]
 cfg.settings["transportPilotNames"]      = { ["test_ai_fallback"] = true }  -- hash (onAILand uses pilotNames[name])
 cfg.settings["allowRandomAiTeamPickups"] = false
+-- onAILand's very first gate reads core._aiPilotNames (a set built once at init time from
+-- transportPilotNames, see CTLD_core.lua:583-585) -- NOT re-read from config on each call.
+-- Setting cfg.settings above alone makes onAILand return immediately for every call below
+-- (found 2026-07-10: masked as "embark never called" on F-R-21/22/26, which expect embark).
+local _savedAiPilotNames = core._aiPilotNames
+core._aiPilotNames = { ["test_ai_fallback"] = true }
 cfg.settings["capabilitiesByType"]       = {
     ["UH-1H"] = { troopsEnabled=true, maxTroopsOnboard=8, canTransportWholeVehicle=false },
 }
@@ -484,8 +490,17 @@ Unit.getByName = function(n) if n == "test_ai_fallback" then return mockAIUnit e
 local _savedLandH = land.getHeight
 land.getHeight = function() return 0 end  -- unit.y=0 → AGL=0 → not inAir
 
--- AIZ_P pickup zone stub (in-zone check bypassed via getAIPickupZoneAt mock)
-local aiPickZoneStub = mkZone("test_ai_pz", 2, { isAIPickup=true, active=true })
+-- AIZ_P pickup zone stub (in-zone check bypassed via getAIPickupZoneAt mock).
+-- isAll=true → aiPickTroopTemplate() treats every template as unlimited stock, so this
+-- section's checks exercise only the compatibility/weight fallback-scan logic (aiPickTroopTemplate
+-- + _canEmbark), not stock depletion (covered separately by F-176..180). Without _aiTroopStock,
+-- onAILand's pickup gate (CTLD_core.lua:807: `pickZone._aiTroopStock`) is nil/falsy and the whole
+-- troop-pickup branch is skipped, so aiPickTroopTemplate is never even called (found 2026-07-10).
+local aiPickZoneStub = mkZone("test_ai_pz", 2, {
+    isAIPickup    = true,
+    active        = true,
+    _aiTroopStock = { isAll = true, init = {}, current = {} },
+})
 
 -- Templates: big exceeds maxTroopsOnboard(8), small fits
 local tmplBig   = { name="BigTeam",   total=20, riflemen=20, _dbKey="big",   specificParams={} }
@@ -589,6 +604,7 @@ end
 CTLDTroopManager.getInstance             = _savedTMInst
 CTLDZoneManager.getInstance              = _savedZMInst
 core._aiTeams                            = _savedAiTeams
+core._aiPilotNames                       = _savedAiPilotNames
 Unit.getByName                           = _savedGetByName
 land.getHeight                           = _savedLandH
 cfg.settings["transportPilotNames"]      = _savedPilotNames
@@ -757,7 +773,12 @@ local function validateAndLoad(entries, getZoneFn)
     zm._troopZones   = {}
     zm._aiZoneErrors = nil
     zm:_validateZoneNames()
-    local aiZErr = zm._aiZoneErrors or {}    -- capture BEFORE _loadAIZonesFromConfig clears it
+    local aiZErr    = zm._aiZoneErrors or {}  -- capture BEFORE _loadAIZonesFromConfig clears it
+    -- _loadAIZonesFromConfig logs its own per-zone INFO line for each successfully created
+    -- zone (debugScreenLog=true routes it through outText too), clobbering `captured` before
+    -- we can read it -- so snapshot the validation report NOW, same as aiZErr above
+    -- (found 2026-07-10: broke every content check on a WARN-only, zone-created entry).
+    local reportSnapshot = captured
     zm:_loadAIZonesFromConfig()
 
     local zones = {}
@@ -768,7 +789,7 @@ local function validateAndLoad(entries, getZoneFn)
     trigger.action.outText     = _sOutT
     zm._troopZones              = _sTZ
     zm._aiZoneErrors            = nil
-    return zones, aiZErr, captured
+    return zones, aiZErr, reportSnapshot
 end
 
 -- F-R-33: missing coalition → ERROR, _aiZoneErrors set, zone not created
@@ -1028,19 +1049,25 @@ do
     zm:_validateZoneNames()   -- ← appel réel, outText wrapper fire → écran + capture
 
     local aiZErr = zm._aiZoneErrors or {}
+    -- Snapshot BEFORE any check() call: check() itself logs via ctld.utils.log, which (with
+    -- debugScreenLog=true) also fires outText -- since our wrapper is only restored at the end
+    -- of this block, each check() call clobbers capturedReport with its OWN pass/fail line,
+    -- so the very next check ends up reading the PRECEDING check's log message instead of the
+    -- real validation report (found 2026-07-10: broke every content check after the first).
+    local reportSnapshot = capturedReport
 
     -- Rapport reçu et affiché
-    checkNotNil("F-R-49.1",  capturedReport)
-    if capturedReport then
-        checkTrue("F-R-49.2",  string.find(capturedReport, "CTLD",     1, true) ~= nil)
-        checkTrue("F-R-49.3",  string.find(capturedReport, "error",    1, true) ~= nil)
-        checkTrue("F-R-49.4",  string.find(capturedReport, "bad_G1",   1, true) ~= nil)
-        checkTrue("F-R-49.5",  string.find(capturedReport, "bad_coa",  1, true) ~= nil)
-        checkTrue("F-R-49.6",  string.find(capturedReport, "bad_noME", 1, true) ~= nil)
-        checkTrue("F-R-49.7",  string.find(capturedReport, "bad_dup",  1, true) ~= nil)
-        checkTrue("F-R-49.8",  string.find(capturedReport, "bad_G5",   1, true) ~= nil)
-        checkTrue("F-R-49.9",  string.find(capturedReport, "troopStock=0", 1, true) ~= nil)
-        checkTrue("F-R-49.10", string.find(capturedReport, "all troopTemplates are unknown", 1, true) ~= nil)
+    checkNotNil("F-R-49.1",  reportSnapshot)
+    if reportSnapshot then
+        checkTrue("F-R-49.2",  string.find(reportSnapshot, "CTLD",     1, true) ~= nil)
+        checkTrue("F-R-49.3",  string.find(reportSnapshot, "error",    1, true) ~= nil)
+        checkTrue("F-R-49.4",  string.find(reportSnapshot, "bad_G1",   1, true) ~= nil)
+        checkTrue("F-R-49.5",  string.find(reportSnapshot, "bad_coa",  1, true) ~= nil)
+        checkTrue("F-R-49.6",  string.find(reportSnapshot, "bad_noME", 1, true) ~= nil)
+        checkTrue("F-R-49.7",  string.find(reportSnapshot, "bad_dup",  1, true) ~= nil)
+        checkTrue("F-R-49.8",  string.find(reportSnapshot, "bad_G5",   1, true) ~= nil)
+        checkTrue("F-R-49.9",  string.find(reportSnapshot, "troopStock=0", 1, true) ~= nil)
+        checkTrue("F-R-49.10", string.find(reportSnapshot, "all troopTemplates are unknown", 1, true) ~= nil)
     end
 
     -- Zones ERROR → dans le set d'erreurs (seront skippées au load)
