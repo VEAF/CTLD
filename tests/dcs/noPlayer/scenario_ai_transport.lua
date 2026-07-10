@@ -234,10 +234,22 @@ steps[2] = function()
         end,
         getCountry     = function() return 2 end,
     }
-    local fakePickupZone = { _isFakePickup = true }
+    -- onAILand (CTLD_core.lua:736) resolves the pickup zone via getAIPickupZoneAt
+    -- (position/coalition-keyed), not the name-keyed getTroopZoneForUnit this mock used to
+    -- stub -- found 2026-07-10 once the real function was never actually exercised, letting
+    -- the (empty) live mission silently return nil and skip the whole pickup branch.
+    -- aiPickTroopTemplate must return an entry from the `teams` it's given (core._aiTeams[BLUE],
+    -- verified populated by F-133) so F-134.3's "template from _aiTeams[BLUE]" check holds.
+    local fakePickupZone = {
+        _isFakePickup     = true,
+        _aiTroopStock     = {},
+        aiPickTroopTemplate = function(self, teams, typeName, unitName, tm) return teams[1] end,
+        aiConsumeTroopStock = function(self, name) end,
+    }
 
     local _origGBN   = Unit.getByName
-    local _origGTZFU = zm.getTroopZoneForUnit
+    local _origGAIPZA = zm.getAIPickupZoneAt
+    local _origGADZA  = zm.getAIDropoffZoneAt
     local _origEmbark = tm.embarkFromTroopZone
     local _origHas   = tm.hasTroops
 
@@ -245,10 +257,8 @@ steps[2] = function()
         if name == FAKE_NAME then return fakeUnit end
         return _origGBN(name)
     end
-    zm.getTroopZoneForUnit = function(self, name)
-        if name == FAKE_NAME then return fakePickupZone end
-        return _origGTZFU(self, name)
-    end
+    zm.getAIPickupZoneAt = function(self, point, coa) return fakePickupZone end
+    zm.getAIDropoffZoneAt = function(self, point, coa) return nil end
     tm.hasTroops = function(self, name)
         if name == FAKE_NAME then return false end
         return _origHas(self, name)
@@ -268,14 +278,21 @@ steps[2] = function()
 
     local _origNames = cfg.settings["transportPilotNames"]
     cfg.settings["transportPilotNames"] = { FAKE_NAME }
+    -- _checkAIStatus() iterates core._aiPilotNames (a set built once at init time from
+    -- transportPilotNames, see CTLD_core.lua:583-585) -- not re-read from config on each call.
+    -- Setting cfg.settings alone doesn't make _checkAIStatus() see FAKE_NAME.
+    local _origAiPilotNames = core._aiPilotNames
+    core._aiPilotNames = { [FAKE_NAME] = true }
 
     core:_checkAIStatus()
 
     Unit.getByName             = _origGBN
-    zm.getTroopZoneForUnit     = _origGTZFU
+    zm.getAIPickupZoneAt       = _origGAIPZA
+    zm.getAIDropoffZoneAt      = _origGADZA
     tm.embarkFromTroopZone     = _origEmbark
     tm.hasTroops               = _origHas
     cfg.settings["transportPilotNames"] = _origNames
+    core._aiPilotNames         = _origAiPilotNames
 
     check("F-134.1", "embarkFromTroopZone called exactly once", embarkCalled == 1,
         "called=" .. tostring(embarkCalled))
@@ -296,17 +313,16 @@ steps[2] = function()
         getCountry    = function() return 2 end,
     }
     local _origGBN2   = Unit.getByName
-    local _origGTZFU2 = zm.getTroopZoneForUnit
+    local _origGAIPZA2 = zm.getAIPickupZoneAt
+    local _origGADZA2  = zm.getAIDropoffZoneAt
     local _origEmbark2 = tm.embarkFromTroopZone
     local _origHas2   = tm.hasTroops
     Unit.getByName = function(name)
         if name == FAKE_NAME then return humanUnit end
         return _origGBN2(name)
     end
-    zm.getTroopZoneForUnit = function(self, name)
-        if name == FAKE_NAME then return fakePickupZone end
-        return _origGTZFU2(self, name)
-    end
+    zm.getAIPickupZoneAt = function(self, point, coa) return fakePickupZone end
+    zm.getAIDropoffZoneAt = function(self, point, coa) return nil end
     tm.hasTroops = function(self, name)
         if name == FAKE_NAME then return false end
         return _origHas2(self, name)
@@ -317,9 +333,15 @@ steps[2] = function()
         return true
     end
     cfg.settings["transportPilotNames"] = { FAKE_NAME }
+    -- core._aiPilotNames was already restored to _origAiPilotNames above -- without
+    -- re-populating it here, _checkAIStatus()'s loop never iterates FAKE_NAME and this
+    -- whole check trivially passes without exercising onAILand at all (found 2026-07-10).
+    core._aiPilotNames = { [FAKE_NAME] = true }
     core:_checkAIStatus()
+    core._aiPilotNames         = _origAiPilotNames
     Unit.getByName             = _origGBN2
-    zm.getTroopZoneForUnit     = _origGTZFU2
+    zm.getAIPickupZoneAt       = _origGAIPZA2
+    zm.getAIDropoffZoneAt     = _origGADZA2
     tm.embarkFromTroopZone     = _origEmbark2
     tm.hasTroops               = _origHas2
     cfg.settings["transportPilotNames"] = _origNames
@@ -350,11 +372,14 @@ steps[3] = function()
         getGroup       = function() return { getID = function() return 9999 end } end,
         getCountry     = function() return 2 end,
     }
+    -- onAILand (CTLD_core.lua:666) resolves the dropoff zone via getAIDropoffZoneAt -- this
+    -- mock used to stub getDropoffZoneAt (missing the "AI" prefix), so the real code never
+    -- saw the fake zone and always fell through with dropZone=nil (found 2026-07-10, same
+    -- class of function-name mismatch as the pickup branch above).
     local fakeDropZone = { _isFakeDropoff = true }
 
     local _origGBN    = Unit.getByName
-    local _origGTZFU  = zm.getTroopZoneForUnit
-    local _origGDZA   = zm.getDropoffZoneAt
+    local _origGADZA  = zm.getAIDropoffZoneAt
     local _origHas    = tm.hasTroops
     local _origDisemAll = tm.disembarkAll
 
@@ -362,11 +387,7 @@ steps[3] = function()
         if name == FAKE_NAME then return fakeUnit end
         return _origGBN(name)
     end
-    zm.getTroopZoneForUnit = function(self, name)
-        if name == FAKE_NAME then return nil end
-        return _origGTZFU(self, name)
-    end
-    zm.getDropoffZoneAt = function(self, point, coa)
+    zm.getAIDropoffZoneAt = function(self, point, coa)
         return fakeDropZone
     end
     tm.hasTroops = function(self, name)
@@ -382,15 +403,18 @@ steps[3] = function()
 
     local _origNames = cfg.settings["transportPilotNames"]
     cfg.settings["transportPilotNames"] = { FAKE_NAME }
+    -- See S2's comment: _checkAIStatus() reads core._aiPilotNames, not the config directly.
+    local _origAiPilotNames = core._aiPilotNames
+    core._aiPilotNames = { [FAKE_NAME] = true }
 
     core:_checkAIStatus()
 
     Unit.getByName             = _origGBN
-    zm.getTroopZoneForUnit     = _origGTZFU
-    zm.getDropoffZoneAt        = _origGDZA
+    zm.getAIDropoffZoneAt      = _origGADZA
     tm.hasTroops               = _origHas
     tm.disembarkAll            = _origDisemAll
     cfg.settings["transportPilotNames"] = _origNames
+    core._aiPilotNames         = _origAiPilotNames
 
     check("F-134.5", "disembarkAll called for AI unit in dropoff zone",
         disembarkAllCalled == 1,
@@ -398,19 +422,14 @@ steps[3] = function()
 
     -- F-134.6 — AI unit with NO troops in dropoff zone must NOT trigger disembark
     local _origGBN2    = Unit.getByName
-    local _origGTZFU2  = zm.getTroopZoneForUnit
-    local _origGDZA2   = zm.getDropoffZoneAt
+    local _origGADZA2  = zm.getAIDropoffZoneAt
     local _origHas2    = tm.hasTroops
     local _origDisemAll2 = tm.disembarkAll
     Unit.getByName = function(name)
         if name == FAKE_NAME then return fakeUnit end
         return _origGBN2(name)
     end
-    zm.getTroopZoneForUnit = function(self, name)
-        if name == FAKE_NAME then return nil end
-        return _origGTZFU2(self, name)
-    end
-    zm.getDropoffZoneAt = function(self, point, coa)
+    zm.getAIDropoffZoneAt = function(self, point, coa)
         return fakeDropZone
     end
     tm.hasTroops = function(self, name)
@@ -423,10 +442,13 @@ steps[3] = function()
         return true
     end
     cfg.settings["transportPilotNames"] = { FAKE_NAME }
+    -- Same re-population need as F-134.4's block: core._aiPilotNames was already restored
+    -- above, so _checkAIStatus() needs it set again to actually iterate FAKE_NAME.
+    core._aiPilotNames = { [FAKE_NAME] = true }
     core:_checkAIStatus()
+    core._aiPilotNames         = _origAiPilotNames
     Unit.getByName             = _origGBN2
-    zm.getTroopZoneForUnit     = _origGTZFU2
-    zm.getDropoffZoneAt        = _origGDZA2
+    zm.getAIDropoffZoneAt      = _origGADZA2
     tm.hasTroops               = _origHas2
     tm.disembarkAll            = _origDisemAll2
     cfg.settings["transportPilotNames"] = _origNames

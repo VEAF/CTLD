@@ -40,6 +40,14 @@ local _savedDebugScreenLog = cfg.settings["debugScreenLog"]
 cfg.settings["debug"] = true
 cfg.settings["debugScreenLog"] = true
 
+-- This scenario only covers Parachute/Slingload flight-state visibility, not Pack Equipt
+-- (refreshPackEquiptSection, called from refreshCrateFlightSection). Force it off so it
+-- returns early instead of crashing on our minimal fakeUnit mock (no getPoint(), etc.).
+local _savedFarpRepack   = cfg.settings["enableFARPRepack"]
+local _savedPackVehicles = cfg.settings["enablePackingVehicles"]
+cfg.settings["enableFARPRepack"]     = false
+cfg.settings["enablePackingVehicles"] = false
+
 local pass = 0
 local fail = 0
 
@@ -83,7 +91,12 @@ local mockMenu = {
         local key = path[#path]
         capturedState[key] = enabled
     end,
-    refresh = function() end,
+    -- refreshPackEquiptSection (called from refreshCrateFlightSection) needs these two to
+    -- ensure/clear the "Pack Equipt" node before (re-)populating it -- no-op mocks suffice
+    -- here, this scenario only asserts on setBranchEnabled-tracked visibility.
+    addSubMenu  = function(self, path, name, opts) end,
+    clearBranch = function(self, path) end,
+    refresh     = function() end,
 }
 local mockMM = { getMenuByGroupId = function(self, gid) return mockMenu end }
 local _origMMGetInstance = ctld.MenuManager.getInstance
@@ -101,7 +114,10 @@ local function runRefresh(inAir, cratesOnboard)
     if cratesOnboard > 0 then
         local fakeCrate = {
             isLoadedByCTLD = function() return true end,
-            loadedBy       = { getName = function() return fakePlayer.unitName end },
+            loadedBy       = {
+                getName  = function() return fakePlayer.unitName end,
+                isExist  = function() return true end,
+            },
         }
         mgr.crates = { fake1 = fakeCrate }
     else
@@ -171,6 +187,8 @@ ctld.MenuManager.getInstance = _origMMGetInstance
 -- ── Final result ──────────────────────────────────────────────────────────────
 cfg.settings["debug"] = _saved_debug
 cfg.settings["debugScreenLog"] = _savedDebugScreenLog
+cfg.settings["enableFARPRepack"]      = _savedFarpRepack
+cfg.settings["enablePackingVehicles"] = _savedPackVehicles
 
 local total = pass + fail
 local msg = string.format(

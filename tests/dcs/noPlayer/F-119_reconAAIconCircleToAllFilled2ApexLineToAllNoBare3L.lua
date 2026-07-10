@@ -1,7 +1,7 @@
 -- @tier: auto
 -- F-119 — RECON AA icon: circleToAll (filled) + 2 apex lineToAll (no bare 3-line triangle).
 -- Verify: drawAAIcon() calls circleToAll on slot +1 and lineToAll on slots +2, +3.
--- Also verify: reconIconScale multiplier is applied (s = 35 * scale).
+-- Also verify: reconIconScale multiplier is applied (s = 150 * scale).
 
 local results = {}
 local function assert_eq(label, got, exp)
@@ -68,8 +68,8 @@ assert_true("U-06 fill not nil",       fill ~= nil)
 assert_near("U-07 fill alpha=0.3",     fill[4] or 0, 0.3, 0.01)
 assert_near("U-08 fill red=testColor", fill[1] or 0, 1.0, 0.01)
 
--- Circle radius = hs*0.9 = (35/2)*0.9 = 15.75
-assert_near("U-09 circle radius scale=1.0", calls.circle[1].radius, 15.75, 0.1)
+-- Circle radius = hs*0.9 = (150/2)*0.9 = 67.5
+assert_near("U-09 circle radius scale=1.0", calls.circle[1].radius, 67.5, 0.1)
 
 -- Label
 assert_eq("U-10 circle label AA", calls.circle[1].msg, "AA")
@@ -78,8 +78,8 @@ assert_eq("U-10 circle label AA", calls.circle[1].msg, "AA")
 calls.circle = {}; calls.line = {}
 cfg["reconIconScale"] = 2.0
 CTLDReconRenderer.drawAAIcon(testPos, markId + 1, testColor)
--- radius = (35*2)/2 * 0.9 = 31.5
-assert_near("U-11 circle radius scale=2.0", calls.circle[1].radius, 31.5, 0.1)
+-- radius = (150*2)/2 * 0.9 = 135.0
+assert_near("U-11 circle radius scale=2.0", calls.circle[1].radius, 135.0, 0.1)
 
 -- ── restore ───────────────────────────────────────────────────────────────────
 cfg["reconIconScale"]        = _origScale

@@ -42,6 +42,14 @@ local _savedDebugScreenLog = cfg.settings["debugScreenLog"]
 cfg.settings["debug"] = true
 cfg.settings["debugScreenLog"] = true
 
+-- This scenario only covers the loadCrateFromMenu gate, not Pack Equipt
+-- (refreshPackEquiptSection, in refreshCrateFlightSection's call chain). Force it off so it
+-- returns early instead of needing a full Unit/CTLDSceneManager mock for FARP scenes.
+local _savedFarpRepack   = cfg.settings["enableFARPRepack"]
+local _savedPackVehicles = cfg.settings["enablePackingVehicles"]
+cfg.settings["enableFARPRepack"]      = false
+cfg.settings["enablePackingVehicles"] = false
+
 local pass = 0
 local fail = 0
 
@@ -114,10 +122,15 @@ mgr.refreshRequestEquipmentSection = function() end
 mgr.refreshUnpackSection            = function() end
 mgr.refreshCrateFlightSection       = function() end   -- called at end of buildMenuSection
 
--- CTLDVehicleSpawner stub (called by buildMenuSection when enablePackingVehicles)
+-- CTLDVehicleSpawner stub (called by buildMenuSection when enablePackingVehicles;
+-- findPackableVehicles is called by refreshPackEquiptSection, in refreshCrateFlightSection's
+-- call chain -- returns no packable vehicles, matching this test's minimal setup)
 local _origVSGetInstance = CTLDVehicleSpawner.getInstance
 CTLDVehicleSpawner.getInstance = function()
-    return { refreshPackSection = function() end }
+    return {
+        refreshPackSection    = function() end,
+        findPackableVehicles  = function() return {} end,
+    }
 end
 
 -- ── F-B3-1 : refreshLoadCrateSection — loadCrateFromMenu=true ────────────────
@@ -213,6 +226,8 @@ check("F-B3-5 setBranchEnabled 'Load Crate' NOT called when loadCrateFromMenu=fa
 -- ── Restore ───────────────────────────────────────────────────────────────────
 cfg.settings["loadCrateFromMenu"]   = true  -- restore to default
 cfg.settings["debug"]               = _saved_debug
+cfg.settings["enableFARPRepack"]      = _savedFarpRepack
+cfg.settings["enablePackingVehicles"] = _savedPackVehicles
 Unit.getByName                       = _origGetByName
 ctld.utils.inAir                     = _origInAir
 ctld.MenuManager.getInstance         = _origMMGetInstance

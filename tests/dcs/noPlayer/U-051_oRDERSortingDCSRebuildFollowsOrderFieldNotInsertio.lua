@@ -24,13 +24,17 @@ ctld.MenuManager._instance = nil
 
 _SCN_U51_RESULT = "[U-51] STARTED"
 
-local m = ctld.MenuManager:getInstance():createMenuForGroup(6)
+local mgr = ctld.MenuManager:getInstance()
+local m = mgr:createMenuForGroup(6)
 -- Inserted in reverse order; expect DCS to receive: Troops(10), Crates(20), FOB(30)
 m:addSubMenu({}, "CTLD Commands")
 m:addSubMenu({"CTLD Commands"}, "FOB",    {order=30})
 m:addSubMenu({"CTLD Commands"}, "Troops", {order=10})
 m:addSubMenu({"CTLD Commands"}, "Crates", {order=20})
-m:refresh()
+-- Call refreshMenuForGroup() directly (bypasses the 150ms deferredRefreshForGroup debounce —
+-- see CTLD_menu.lua's DEBOUNCE_S comment: "Direct callers... bypass the debounce intentionally").
+-- m:refresh() alone would return before the deferred timer fires, leaving _dcs_calls empty.
+mgr:refreshMenuForGroup(6)
 
 local childCalls = {}
 for _, c in ipairs(_dcs_calls) do

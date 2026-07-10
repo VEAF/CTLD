@@ -8,6 +8,27 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### DCS integration testing — first live validation
+
+- **Fix**: `missions/Test_CTLDNEXT_01.miz`'s embedded `beacon.ogg` (420KB) broke the DCS Mission
+  Editor's own unpacker on load (`VFS_open_write: Can't create file ...beacon.ogg`) — replaced
+  with a 4-byte stub (source preserved at `assets/beacon.ogg`; no test scenario depends on
+  audio). Root cause is a DCS Mission Editor bug, not a zip-structure issue (verified: intact
+  archive, explicit zip directory entries made no difference).
+- **Fix**: `Test_CTLDNEXT_01.miz`'s startup trigger now loads `CTLD.lua` from a real path, sets
+  a valid `ctldLogPath`, and injects `dcs-bridge.lua` (replacing the old Witchcraft injection)
+  with the `dcsBridge = { host, port }` config `dcs-bridge.lua` needs to actually connect to
+  `dcs-serve` (undocumented gotcha — flagged upstream as `VEAF-dcs-bridge` `LOT-013`).
+- **Fix**: `tools/integration-runner/run_scenarios.py` crashed on Windows consoles (`cp1252`)
+  when a scenario's verdict message contained non-ASCII characters — `stdout`/`stderr` now
+  forced to UTF-8.
+- `integration-testing` skill documents the `dcsBridge` port-config prerequisite and the
+  DCS-editor `beacon.ogg`-class bug (large embedded `l10n/DEFAULT/` resources).
+- First full live run (`--no-ai`, 45 scenarios) against a real DCS mission: 27/45 passed after a
+  mission reload cleared cross-scenario state contamination between 4 vehicle/JTAC-family
+  scenarios (F-120/F-121/F-122/F-123); ~13 remaining failures are reproducible across repeated
+  fresh runs and need investigation (tracked informally, not yet ticketed).
+
 ### CI / tooling
 
 - **CI covers `develop`** — pushes to `develop` and PRs targeting `develop` now run the full
