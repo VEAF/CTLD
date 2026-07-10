@@ -48,3 +48,20 @@ context, intent behind legacy test/mission design) — not published, internal w
   HELIPORT entry *with `probeSkip=true`* is excluded from `entries`, and a WARN fires for each"
   — not "no HELIPORT entries at all". Rewriting it correctly needs knowing which registry
   entries are *supposed* to carry `probeSkip=true` — a config/data decision, not guessed here.
+
+- **RECON `scan()` redesign not reflected in F-117/F-118** (found 2026-07-10). Both tests'
+  premises directly contradict explicit, documented behavior in `src/CTLD_recon.lua`:
+  - **F-117** sets `cfg["reconEnabled"] = false` expecting `scan()` to emit a "disabled"
+    message, but `scan()` gates on a *different* key (`reconF10Menu`, line 580) — the code
+    comment says why: "Gate: same key as the menu section (reconF10Menu). If the RECON menu is
+    visible, scan must work without additional config." `reconEnabled` is a distinct, real
+    config key (a separate "master switch", per `CTLD_config.lua:346`) — it's just not what
+    `scan()` itself checks. Possibly `reconEnabled` gates a different entry point (F10 menu
+    item construction?) and F-117 targeted the wrong function.
+  - **F-118** expects `self._activeScans[player]` to become `nil` after a scan with all layers
+    disabled, but `scan()` explicitly does *not* clean up in that case anymore (lines 606-613):
+    "No early-return when no layers enabled: RECON starts regardless so the player can activate
+    layers via menu after Start without needing to restart RECON."
+  Both read like a deliberate `scan()` redesign that predates these tests being updated —
+  same class of issue as F-Q-5, not a simple rename. Flagging both rather than guessing which
+  function F-117 should actually target or what "cleanup" should mean for F-118 now.
