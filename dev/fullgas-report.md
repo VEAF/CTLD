@@ -90,3 +90,11 @@ context, intent behind legacy test/mission design) — not published, internal w
     `scenario_ai_transport.lua` fix], and a captured-outText-report clobbered by later/duplicate
     `ctld.utils.log` calls in two spots) was a mechanical test-infrastructure bug, fixed directly
     (145→147 checks as previously-dead code paths started running, 19→7 failures remaining).
+
+- **`scenario_farp_countryside_spawn.lua` / `scenario_farp_metal_spawn.lua` — missing mission
+  content, not a code bug** (found 2026-07-10, first live dcs-bridge run). Both look up
+  `StaticObject.getByName("coord_farp-1")` as a pure coordinate anchor (any static object type,
+  used only for its position) and abort with `FAIL: static 'coord_farp-1' not found` since no
+  such static exists in `missions/Test_CTLDNEXT_01.miz`. Needs a static named `coord_farp-1`
+  added to the mission via the Mission Editor — not something to guess-place without knowing
+  the intended location. David's call: note for FullGas rather than block on it now.
