@@ -78,9 +78,9 @@ trigger.action.setUserFlag = function(flagName, value)
     _capturedFlags[tostring(flagName)] = value
 end
 
--- ── Inject test pickupZones into config ──────────────────────────────────────
-local _savedPickupZones = cfg.settings["pickupZones"]
-cfg.settings["pickupZones"] = {
+-- ── Inject test pickup zones into config (real key: "troopZones", see CTLD_config.lua) ──
+local _savedPickupZones = cfg.settings["troopZones"]
+cfg.settings["troopZones"] = {
     { "testpickzone", "blue", -1,  "yes", 2 },    -- trigger zone, unlimited, BLUE, active
     { "USS_Tarawa",   "none",  5,  "yes", 0 },    -- ship unit, 5 groups, any coalition
 }
@@ -151,7 +151,7 @@ if sz then
 end
 
 -- ── Restore ───────────────────────────────────────────────────────────────────
-cfg.settings["pickupZones"]   = _savedPickupZones
+cfg.settings["troopZones"]    = _savedPickupZones
 cfg.settings["debug"]         = _saved_debug
 zm._troopZones                = _savedTroopZones
 trigger.misc.getZone          = _origGetZone
