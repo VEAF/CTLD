@@ -25,12 +25,15 @@ ctld.MenuManager._instance = nil
 
 _SCN_U53_RESULT = "[U-53] STARTED"
 
-local m = ctld.MenuManager:getInstance():createMenuForGroup(8)
+local mgr = ctld.MenuManager:getInstance()
+local m = mgr:createMenuForGroup(8)
 m:addSubMenu({}, "CTLD Commands")
 m:addSubMenu({"CTLD Commands"}, "Troops",  {order=10})
 m:addSubMenu({"CTLD Commands"}, "FOB",     {order=20, enabled=false})
 m:addSubMenu({"CTLD Commands"}, "Beacons", {order=30})
-m:refresh()
+-- Direct call bypasses the 150ms deferredRefreshForGroup debounce (see CTLD_menu.lua) --
+-- m:refresh() alone would return before the deferred timer fires, leaving _dcs_calls empty.
+mgr:refreshMenuForGroup(8)
 
 local rendered = {}
 for _, c in ipairs(_dcs_calls) do
