@@ -1,6 +1,6 @@
 # 02 — Legacy API wrappers: routing + deprecation
 
-Status: todo
+Status: ✅ done
 Type: AFK
 
 ## What to build
