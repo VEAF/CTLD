@@ -1,6 +1,6 @@
 # 01 — Crate lifecycle manager methods + events (PILOT)
 
-Status: 🚧 in progress
+Status: ✅ done
 Type: AFK
 
 ## What to build
