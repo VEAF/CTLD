@@ -1,6 +1,6 @@
 # 06 — JTAC config/deregister + recon auto-refresh
 
-Status: todo
+Status: ✅ done
 Type: AFK
 
 ## What to build
