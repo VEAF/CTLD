@@ -1,6 +1,6 @@
 # 05 — Menu gating by config + player event wiring
 
-Status: todo
+Status: ✅ done
 Type: AFK
 
 ## What to build
