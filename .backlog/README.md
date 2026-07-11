@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| _(none)_ | | | |
+| `REINTEGRATE-ORPHAN-TESTS` | 🚧 | Rebuild coverage for the 46 features tested only by dead FullGas relics (busted-first: 6 busted tickets + 1 live-DCS). Precedes & unblocks `CLEANUP-LEGACY-DCS-TESTS`. 10 relics are false orphans (already covered); 6 are deferred to FullGas (`dev/fullgas-report.md`). | feature/reintegrate-orphan-tests |
 
 ### Planned lots
 
