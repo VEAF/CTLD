@@ -91,10 +91,33 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
     end
 
     -- Build the full CTLD menu for playerObj and return its ctld.Menu model.
+    -- The vehicle section calls findLoadableVehicles(transport), which needs a real DCS
+    -- unit object (getTypeName/getCoalition/getPoint). Stub Unit.getByName for the duration
+    -- of the build only — the menu model is fully built by the time buildMenu returns, so
+    -- node lookups afterwards don't need it, and we restore immediately to avoid polluting
+    -- other specs in the shared busted process.
     local function buildFullMenu(playerObj)
         resetSingletons()
         instantiateAll()
-        CTLDPlayerManager.getInstance():buildMenu(playerObj)
+        local origGBN = Unit.getByName
+        Unit.getByName = function(n)
+            if n == playerObj.unitName then
+                return {
+                    getName       = function() return playerObj.unitName end,
+                    getTypeName   = function() return playerObj.typeName end,
+                    getCoalition  = function() return playerObj.coalition end,
+                    getPoint      = function() return { x = 0, y = 0, z = 0 } end,
+                    getPlayerName = function() return "tester" end,
+                    isExist       = function() return true end,
+                }
+            end
+            return origGBN(n)
+        end
+        local ok, err = pcall(function()
+            CTLDPlayerManager.getInstance():buildMenu(playerObj)
+        end)
+        Unit.getByName = origGBN
+        assert(ok, err)
         return ctld.MenuManager:getInstance():getMenuByGroupId(playerObj.groupId)
     end
 
@@ -285,14 +308,17 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
     describe("F-088 — _loadUserConfig ingests ctld_config_user", function()
         local mgr, _origUserCfg
         before_each(function()
-            _origUserCfg = ctld_config_user
+            -- Write to _G explicitly: busted insulates each describe's environment, so a bare
+            -- `ctld_config_user = {...}` would land in the sandbox and _loadUserConfig (which
+            -- reads the real _G global) would see nil — the custom groups would never load.
+            _origUserCfg = _G.ctld_config_user
             setCfg("loadableGroups", {
                 { name = "Standard Group", inf = 6, mg = 2, at = 2 },
                 { name = "Mortar Squad",   mortar = 6 },
                 { name = "JTAC Group",     inf = 4, jtac = 1 },
             })
             setCfg("transportLimitByType", {})
-            ctld_config_user = {
+            _G.ctld_config_user = {
                 customLoadableGroups = {
                     { name = "Recon Team",    composition = { inf = 4, jtac = 1 }, side = coalition.side.BLUE },
                     { name = "AT Squad",      composition = { inf = 2, at = 6  },  side = coalition.side.RED },
@@ -305,7 +331,7 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
             mgr = CTLDTroopManager.getInstance()   -- init() runs _loadUserConfig
         end)
         after_each(function()
-            ctld_config_user = _origUserCfg
+            _G.ctld_config_user = _origUserCfg
         end)
 
         it("6 templates total (3 standard + 3 custom)", function()
