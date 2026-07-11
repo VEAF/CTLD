@@ -1,6 +1,6 @@
 # 03 — Scene structures + minefields
 
-Status: todo
+Status: ✅ done
 Type: AFK
 
 ## What to build
