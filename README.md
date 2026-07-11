@@ -1,4 +1,4 @@
-# DCS-CTLD Next
+# CTLD
 
 Complete Troops and Logistics Deployment for DCS World — **v2 modular rewrite**
 
@@ -50,8 +50,10 @@ Reach out to [Zip on Discord](https://discordapp.com/users/421317390807203850) t
 - [In-Game F10 Menu](#in-game-f10-menu)
 - [Troop Operations](#troop-operations)
 - [Crate Operations](#crate-operations)
+  - [Virtual Slingload](#virtual-slingload)
+  - [Pack Equipt](#pack-equipt)
+- [AA System Construction](#aa-system-construction)
 - [Virtual Parachute Drop](#virtual-parachute-drop)
-- [Virtual Slingload](#virtual-slingload)
 - [Forward Operating Base (FOB)](#forward-operating-base-fob)
 - [FARP Deployment](#farp-deployment)
 - [Radio Beacons](#radio-beacons)
@@ -59,10 +61,8 @@ Reach out to [Zip on Discord](https://discordapp.com/users/421317390807203850) t
 - [Smoke Drop](#smoke-drop)
 - [Recon and Target Marking](#recon-and-target-marking)
 - [Minefield Deployment](#minefield-deployment)
-- [AA System Construction](#aa-system-construction)
-- [Pack Equipt](#pack-equipt)
 - [Migration from v1](#migration-from-v1)
-- [Developer Guide](#developer-guide)
+- [Documentation](#documentation)
 
 ---
 
@@ -839,7 +839,120 @@ F10 Other / [Transport Name]
 
 **Drop** — select **Drop Crate** in flight. With virtual slingload active, the crate drifts from the drop point based on speed and altitude.
 
+### Virtual Slingload
+
+When `ctld.slingLoad = false` (default):
+
+1. Hover above the crate within height/distance tolerances for `ctld.hoverTime` seconds → crate auto-loads.
+2. In flight, select **Slingload Release** to drop the crate at the current position.
+3. Select **Slingload Cut** to drop immediately (emergency; crate falls straight down).
+4. If airspeed exceeds `ctld.maxSlingloadSpeed` m/s, the crate is lost.
+
+When `ctld.slingLoad = true`: DCS native sling physics are used (may cause crashes on some versions).
+
 **Unpack** — land near a dropped crate. Select **Unpack Crate** — the crate is replaced by the corresponding unit. Multi-crate items (e.g. SPH requiring 3 crates) require all crates within 100 m before unpacking.
+
+### Pack Equipt
+
+The **Pack Equipt** submenu under **Crate Commands** lets players pack deployed equipment back into crates for relocation. It appears only when the helicopter is on the ground and at least one packable item is nearby. It is absent in flight.
+
+#### Pack Vehicle
+
+Pack a ground vehicle into crates for air transport, then reassemble it on the other side.
+
+**Packing:**
+1. Land near a packable vehicle (within `ctld.maximumDistancePackableUnitsSearch` meters).
+2. The F10 menu shows **Pack Equipt → [vehicle name]** under Crate Commands.
+3. Selecting it destroys the vehicle and spawns the required number of crates around the helicopter.
+
+**Unpacking:**
+1. Drop the crates at the destination.
+2. Land near them and select **Unpack Crate** — the vehicle reassembles.
+
+Event `OnVehiclePacked` fires on successful pack.
+
+**Enable:** `_cfg.settings["enablePackingVehicles"] = true`
+
+#### Pack FARP
+
+Pack a deployed FARP scene back into crates to redeploy it elsewhere. The FARP warehouse fuel levels are snapshotted and restored when the crates are unpacked at the new location.
+
+**Packing:**
+
+1. Land near a deployed FARP (within 300 m).
+2. The F10 menu shows **Pack Equipt → Pack [FARP name]** under Crate Commands.
+3. Selecting it captures the current fuel levels, destroys the scene, and spawns crates around the helicopter carrying the fuel snapshot.
+
+**Redeploying:**
+
+1. Fly to the new site, land, and unpack the crates — the FARP respawns with its fuel levels restored.
+
+**Enable:** `_cfg.settings["enableFARPRepack"] = true` (default: `true`)
+
+**Supported scenes:** `Countryside FARP`, `Metal FARP`. Custom scenes can support packing by implementing an `onRepack(scene, repackData)` hook — see the [Scenes & FOB guide](docs/mission-maker/scenes-fob.md).
+
+---
+
+## AA System Construction
+
+Multi-crate AA systems are assembled by `CTLDCrateAssemblyManager`. All required crates must be dropped within 100 m of each other before unpacking.
+
+### Available systems (default configuration)
+
+| System | Side | Key components |
+|--------|------|----------------|
+| HAWK | BLUE | Launcher + Search Radar + Track Radar |
+| NASAMS | BLUE | Launcher 120C + Search/Track Radar + Command Post |
+| KUB | RED | Launcher + Radar |
+| BUK | RED | Launcher + Search Radar + CC Radar |
+| Patriot | BLUE | Launcher + Radar + ECS |
+| S-300 | RED | TEL C + Flap Lid TR + Clam Shell SR + Big Bird SR + C2 |
+
+Each system also has a **Repair crate** (unpacking it near a damaged system restores it).
+
+**All crates shortcut** — an "All crates" entry in the F10 menu spawns all components at once for each system.
+
+**Limits** — set in YAML:
+
+```
+# ctld.AASystemLimitRED: 20
+# ctld.AASystemLimitBLUE: 20
+```
+
+**Crate stacking** — `ctld.AASystemCrateStacking: true` allows spawning N launcher crates to get N launchers per system.
+
+### Configuring AA system templates
+
+All AA system definitions live in `CTLDCrateAssemblyManager.TEMPLATES` (declared in `CTLD_userConfig.lua` after the crates table). `injectAACrates()` automatically populates the `spawnableCrates` sections — **do not declare HAWK/NASAMS/KUB/BUK/Patriot/S-300 crates in `spawnableCrates` manually.**
+
+```lua
+-- Declared in CTLD_userConfig.lua, near the end of CTLDConfig:load()
+CTLDCrateAssemblyManager.TEMPLATES = {
+    {
+        name = "HAWK AA System",
+        side = 2,           -- 2 = BLUE
+        sectionName = "SAM mid range",
+        allCratesLabel = "HAWK - All crates",
+        parts = {
+            { DCSTypename = "Hawk ln",   desc = "HAWK Launcher",      weight = 1004.01, launcher = true },
+            { DCSTypename = "Hawk sr",   desc = "HAWK Search Radar",  weight = 1004.02, amount = 2 },
+            { DCSTypename = "Hawk tr",   desc = "HAWK Track Radar",   weight = 1004.03, amount = 2 },
+            { DCSTypename = "Hawk pcp",  desc = "HAWK PCP",           weight = 1004.04, NoCrate = true },
+            { DCSTypename = "Hawk cwar", desc = "HAWK CWAR",          weight = 1004.05, NoCrate = true, amount = 2 },
+        },
+        repair = { desc = "HAWK Repair", weight = 1004.06 },
+    },
+    -- ... other systems follow the same structure
+}
+```
+
+**Part fields:**
+- `DCSTypename` — DCS unit type name spawned as part of the assembled group
+- `desc` — label shown in the F10 menu
+- `weight` — unique kg value (crate lookup key); required for parts that spawn a crate
+- `launcher` — `true` marks this part as the launcher (count affected by `ctld.aaLaunchers` / stacking)
+- `amount` — number of units of this type in the assembled group (default 1)
+- `NoCrate` — `true` for parts spawned automatically with the group but not separately available as crates
 
 ---
 
@@ -852,19 +965,6 @@ When `canParachuteDrop = true` on the aircraft type and the unit is airborne abo
 - Troops land dispersed; parachuted crates auto-unpack on landing if the target area is clear within `ctld.autoUnpackRadiusParachute`.
 
 > **Crate parachute limitation:** only crates loaded via the **CTLD F10 menu** (Load Crate / hover-load / virtual slingload) are eligible for parachute drop. Crates loaded through the DCS native cargo system (`useNativeDcsCargoSystem = true`) are managed by DCS and cannot be released via CTLD's parachute menu.
-
----
-
-## Virtual Slingload
-
-When `ctld.slingLoad = false` (default):
-
-1. Hover above the crate within height/distance tolerances for `ctld.hoverTime` seconds → crate auto-loads.
-2. In flight, select **Slingload Release** to drop the crate at the current position.
-3. Select **Slingload Cut** to drop immediately (emergency; crate falls straight down).
-4. If airspeed exceeds `ctld.maxSlingloadSpeed` m/s, the crate is lost.
-
-When `ctld.slingLoad = true`: DCS native sling physics are used (may cause crashes on some versions).
 
 ---
 
@@ -961,110 +1061,6 @@ CTLD includes a recon layer that places enemy contacts as F10 map markers.
 
 ---
 
-## AA System Construction
-
-Multi-crate AA systems are assembled by `CTLDCrateAssemblyManager`. All required crates must be dropped within 100 m of each other before unpacking.
-
-### Available systems (default configuration)
-
-| System | Side | Key components |
-|--------|------|----------------|
-| HAWK | BLUE | Launcher + Search Radar + Track Radar |
-| NASAMS | BLUE | Launcher 120C + Search/Track Radar + Command Post |
-| KUB | RED | Launcher + Radar |
-| BUK | RED | Launcher + Search Radar + CC Radar |
-| Patriot | BLUE | Launcher + Radar + ECS |
-| S-300 | RED | TEL C + Flap Lid TR + Clam Shell SR + Big Bird SR + C2 |
-
-Each system also has a **Repair crate** (unpacking it near a damaged system restores it).
-
-**All crates shortcut** — an "All crates" entry in the F10 menu spawns all components at once for each system.
-
-**Limits** — set in YAML:
-
-```
-# ctld.AASystemLimitRED: 20
-# ctld.AASystemLimitBLUE: 20
-```
-
-**Crate stacking** — `ctld.AASystemCrateStacking: true` allows spawning N launcher crates to get N launchers per system.
-
-### Configuring AA system templates
-
-All AA system definitions live in `CTLDCrateAssemblyManager.TEMPLATES` (declared in `CTLD_userConfig.lua` after the crates table). `injectAACrates()` automatically populates the `spawnableCrates` sections — **do not declare HAWK/NASAMS/KUB/BUK/Patriot/S-300 crates in `spawnableCrates` manually.**
-
-```lua
--- Declared in CTLD_userConfig.lua, near the end of CTLDConfig:load()
-CTLDCrateAssemblyManager.TEMPLATES = {
-    {
-        name = "HAWK AA System",
-        side = 2,           -- 2 = BLUE
-        sectionName = "SAM mid range",
-        allCratesLabel = "HAWK - All crates",
-        parts = {
-            { DCSTypename = "Hawk ln",   desc = "HAWK Launcher",      weight = 1004.01, launcher = true },
-            { DCSTypename = "Hawk sr",   desc = "HAWK Search Radar",  weight = 1004.02, amount = 2 },
-            { DCSTypename = "Hawk tr",   desc = "HAWK Track Radar",   weight = 1004.03, amount = 2 },
-            { DCSTypename = "Hawk pcp",  desc = "HAWK PCP",           weight = 1004.04, NoCrate = true },
-            { DCSTypename = "Hawk cwar", desc = "HAWK CWAR",          weight = 1004.05, NoCrate = true, amount = 2 },
-        },
-        repair = { desc = "HAWK Repair", weight = 1004.06 },
-    },
-    -- ... other systems follow the same structure
-}
-```
-
-**Part fields:**
-- `DCSTypename` — DCS unit type name spawned as part of the assembled group
-- `desc` — label shown in the F10 menu
-- `weight` — unique kg value (crate lookup key); required for parts that spawn a crate
-- `launcher` — `true` marks this part as the launcher (count affected by `ctld.aaLaunchers` / stacking)
-- `amount` — number of units of this type in the assembled group (default 1)
-- `NoCrate` — `true` for parts spawned automatically with the group but not separately available as crates
-
----
-
-## Pack Equipt
-
-The **Pack Equipt** submenu under **Crate Commands** lets players pack deployed equipment back into crates for relocation. It appears only when the helicopter is on the ground and at least one packable item is nearby. It is absent in flight.
-
-### Pack Vehicle
-
-Pack a ground vehicle into crates for air transport, then reassemble it on the other side.
-
-**Packing:**
-1. Land near a packable vehicle (within `ctld.maximumDistancePackableUnitsSearch` meters).
-2. The F10 menu shows **Pack Equipt → [vehicle name]** under Crate Commands.
-3. Selecting it destroys the vehicle and spawns the required number of crates around the helicopter.
-
-**Unpacking:**
-1. Drop the crates at the destination.
-2. Land near them and select **Unpack Crate** — the vehicle reassembles.
-
-Event `OnVehiclePacked` fires on successful pack.
-
-**Enable:** `_cfg.settings["enablePackingVehicles"] = true`
-
-### Pack FARP
-
-Pack a deployed FARP scene back into crates to redeploy it elsewhere. The FARP warehouse fuel levels are snapshotted and restored when the crates are unpacked at the new location.
-
-**Packing:**
-
-1. Land near a deployed FARP (within 300 m).
-2. The F10 menu shows **Pack Equipt → Pack [FARP name]** under Crate Commands.
-3. Selecting it captures the current fuel levels, destroys the scene, and spawns crates around the helicopter carrying the fuel snapshot.
-
-**Redeploying:**
-
-1. Fly to the new site, land, and unpack the crates — the FARP respawns with its fuel levels restored.
-
-**Enable:** `_cfg.settings["enableFARPRepack"] = true` (default: `true`)
-
-**Supported scenes:** `Countryside FARP`, `Metal FARP`. Custom scenes can support packing by implementing an `onRepack(scene, repackData)` hook — see the [Scenes & FOB guide](docs/mission-maker/scenes-fob.md).
-
----
-
 ## Minefield Deployment
 
 A minefield deploys a staggered grid of landmine static objects in front of the transport unit. The layout uses a quinconce pattern (alternating row offsets) for realistic coverage.
@@ -1111,37 +1107,8 @@ For the full migration guide including the v1 `addCallback` → typed events tra
 
 ---
 
-## Developer Guide
+## Documentation
 
-See the [Developer documentation](docs/developer/index.md) for:
-
-- Repository structure (`src/`, `tests/`, `tools/`, `docs/`, `source/`)
-- Architecture overview (singleton managers, EventDispatcher)
-- How to add a new module
-- Event pub/sub patterns
-- Build instructions (local `merge_CTLD.ps1`, CI via GitHub Actions)
-- Unit testing with busted (no DCS required)
-- Full v1 → v2 migration guide
-
-**Build locally:**
-
-```
-cd tools/build
-powershell -ExecutionPolicy Bypass -File tools/build/merge_CTLD.ps1
-```
-
-Output: `CTLD.lua` at repo root.
-
-**Testing:**
-
-```
-# Install busted once (requires lua5.1 + luarocks)
-luarocks install busted
-
-# Run all tests (929 specs, no DCS required)
-busted tests/
-```
-
-Tests live in `tests/ci/unit/` (L1 — unit) and `tests/ci/functional/` (L2 — functional). DCS stubs and module loaders are in `tests/ci/helpers/`. See [`docs/developer/building-and-testing.md`](docs/developer/building-and-testing.md) for the full build and testing guide.
-
-**CI:** every push to `master` or `feature_*` branches runs Lua lint, merge build, and busted tests automatically. Every `v*` tag creates a GitHub Release with `CTLD.lua` attached.
+- [Pilot guide](https://veaf.github.io/CTLD/dev/pilot/)
+- [Mission maker guide](https://veaf.github.io/CTLD/dev/mission-maker/)
+- [Developer documentation](https://veaf.github.io/CTLD/dev/developer/)

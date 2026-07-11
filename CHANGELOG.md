@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Docs — README cleanup
+
+- **Fix**: README H1 renamed from the stale `DCS-CTLD Next` temporary-repo title to `CTLD`.
+- **Restructure**: `Pack Equipt` and `Virtual Slingload` demoted from `##` to `###` and moved
+  inside `Crate Operations` (their parent workflow, and already grouped under **Crate Commands**
+  in the F10 menu); `AA System Construction` relocated to immediately follow `Crate Operations`.
+- **Restructure**: `Developer Guide` (a prose block duplicating the published docs site) replaced
+  by a `Documentation` section linking directly to the pilot, mission maker and developer guides.
+- Table of Contents updated to match the new section hierarchy.
+
 ### DCS integration testing — first live validation
 
 - **Fix**: `missions/Test_CTLDNEXT_01.miz`'s embedded `beacon.ogg` (420KB) broke the DCS Mission

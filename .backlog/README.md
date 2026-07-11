@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| _(none)_ | | | |
+| `DOC-README-CLEANUP` | 🧑 waiting-human | Fix README title, restructure Crate Operations sub-sections, relocate AA System Construction, replace Developer Guide with Documentation links — implemented, pending PR review/merge | `fix/doc-readme-cleanup` |
 
 ### Planned lots
 
