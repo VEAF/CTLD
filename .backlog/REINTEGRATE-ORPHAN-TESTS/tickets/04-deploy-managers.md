@@ -1,6 +1,6 @@
 # 04 — Deploy managers: AA assembly, FOB events, pack vehicle
 
-Status: todo
+Status: ✅ done
 Type: AFK
 
 ## What to build
