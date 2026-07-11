@@ -180,4 +180,97 @@ describe("CTLDCrateManager lifecycle + events", function()
 
     end)
 
+    -- ── F-029 / F-031 / F-032 : unloadCrate + dropCrate ───────────────────────
+    -- These re-spawn (unload) a DCS static on the ground → mock coalition.addStaticObject +
+    -- StaticObject.getByName (same proven approach as crate_manager_spec's spawnCrate block).
+    describe("unloadCrate + dropCrate (F-029, F-031, F-032)", function()
+
+        local origAddStatic, origGetByName, origGetAbsTime
+
+        before_each(function()
+            origAddStatic  = coalition.addStaticObject
+            origGetByName  = StaticObject.getByName
+            origGetAbsTime = timer.getAbsTime
+            local spawned = {}
+            coalition.addStaticObject = function(cId, data)
+                spawned[data.name] = true
+                return { getName = function() return data.name end }
+            end
+            StaticObject.getByName = function(name)
+                return spawned[name] and { _name = name } or nil
+            end
+            timer.getAbsTime = function() return 100 end
+        end)
+
+        after_each(function()
+            coalition.addStaticObject = origAddStatic
+            StaticObject.getByName    = origGetByName
+            timer.getAbsTime          = origGetAbsTime
+        end)
+
+        it("unloadCrate transitions LOADED → LANDED (F-029)", function()
+            local crate = makeCrate("c1")
+            cm.crates["c1"] = crate
+            cm:loadCrate("c1", transport("heli1"))
+            cm:unloadCrate("c1", { x = 100, y = 0, z = 100 }, "menu_ctld")
+            assert.equals(CTLDCrate.STATE.LANDED, crate.state)
+        end)
+
+        it("unloadCrate publishes OnCrateUnloaded with the method (F-029)", function()
+            local crate = makeCrate("c1")
+            cm.crates["c1"] = crate
+            cm:loadCrate("c1", transport("heli1"))
+            local fired = capture("OnCrateUnloaded", function()
+                cm:unloadCrate("c1", { x = 100, y = 0, z = 100 }, "menu_ctld")
+            end)
+            assert.equals(1,           #fired)
+            assert.equals("menu_ctld", fired[1].method)
+        end)
+
+        it("unloadCrate re-registers the crate on the ground (F-029)", function()
+            local crate = makeCrate("c1")
+            cm.crates["c1"] = crate
+            cm:loadCrate("c1", transport("heli1"))
+            cm:unloadCrate("c1", { x = 100, y = 0, z = 100 }, "menu_ctld")
+            -- crate may have been renamed by the respawn; look it up by its (updated) name
+            assert.equals(crate, cm.crates[crate.crateName])
+        end)
+
+        it("dropCrate below maxDropHeight lands safely, method=drop (F-031)", function()
+            local maxH  = ctld.gs("maxDropHeight") or 7.5
+            local crate = makeCrate("c1")
+            cm.crates["c1"] = crate
+            cm:loadCrate("c1", transport("heli1"))
+            local fired = capture("OnCrateUnloaded", function()
+                cm:dropCrate("c1", maxH - 1)
+            end)
+            assert.equals(CTLDCrate.STATE.LANDED, crate.state)
+            assert.equals(1,      #fired)
+            assert.equals("drop", fired[1].method)
+        end)
+
+        it("dropCrate above maxDropHeight destroys the crate (F-032)", function()
+            local maxH  = ctld.gs("maxDropHeight") or 7.5
+            local crate = makeCrate("c1")
+            cm.crates["c1"] = crate
+            cm:loadCrate("c1", transport("heli1"))
+            local fired = capture("OnCrateDestroyed", function()
+                cm:dropCrate("c1", maxH + 1000)
+            end)
+            assert.equals(1,             #fired)
+            assert.equals("drop_impact", fired[1].reason)
+            assert.is_nil(cm.crates["c1"])   -- unregistered on impact
+        end)
+
+        it("dropCrate does nothing for a crate that is not loaded (F-031)", function()
+            local crate = makeCrate("c1")
+            cm.crates["c1"] = crate   -- SPAWNED, never loaded
+            local fired = capture("OnCrateUnloaded", function()
+                cm:dropCrate("c1", 1)
+            end)
+            assert.equals(0, #fired)
+        end)
+
+    end)
+
 end)
