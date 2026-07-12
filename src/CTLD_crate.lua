@@ -2682,6 +2682,17 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
     local showSets    = ctld.gs("enableAllCrates") ~= false
     local processed   = self._processedCrates or {}
 
+    -- Feature Q: pre-compute loadable whole-vehicle types for this transport (nil when not
+    -- capable). Restored from b1ddfe4 — commit 0a15814 (DCS-cargo fix) dropped this list and
+    -- hardcoded spawnAsVehicle=false, silently disabling whole-vehicle spawn from Request
+    -- Equipment (regression confirmed by FullGas; scenario_fq_vehicle_whole_transport F-Q-5).
+    local loadableList = nil
+    if caps.canTransportWholeVehicle then
+        loadableList = (playerObj.coalition == 1)
+            and caps.loadableVehiclesRED
+            or  caps.loadableVehiclesBLUE
+    end
+
     -- Shared spawn callback: handles both single crate (arg.unit) and set (arg.multiple).
     local function spawnFn(arg)
         local t = Unit.getByName(arg.unitName)
@@ -2749,9 +2760,13 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                 local sc     = entry.singleCrate
                 local sideOk = (sc.side == nil) or (sc.side == playerObj.coalition)
                 if sideOk and (not _crateIsJTAC(sc) or jtacOk) then
-                    -- Request Equipment always spawns crates, never a whole vehicle.
-                    -- Feature Q whole-vehicle spawn is handled by the dedicated "Load Vehicle" menu.
+                    -- Feature Q: detect if this item should spawn a whole vehicle WAITING
                     local spawnAsVehicle = false
+                    if loadableList then
+                        for _, ltype in ipairs(loadableList) do
+                            if ltype == sc.unit then spawnAsVehicle = true; break end
+                        end
+                    end
                     crateOrder = crateOrder + 1
                     menu:addCommand({ root, spawnSub, lgzName, category }, sc.desc,
                         spawnFn,
