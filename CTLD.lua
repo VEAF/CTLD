@@ -13942,7 +13942,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
     -- Equipment (regression confirmed by FullGas; scenario_fq_vehicle_whole_transport F-Q-5).
     local loadableList = nil
     if caps.canTransportWholeVehicle then
-        loadableList = (playerObj.coalition == 1)
+        loadableList = (playerObj.coalition == coalition.side.RED)
             and caps.loadableVehiclesRED
             or  caps.loadableVehiclesBLUE
     end
@@ -14014,7 +14014,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                 local sc     = entry.singleCrate
                 local sideOk = (sc.side == nil) or (sc.side == playerObj.coalition)
                 if sideOk and (not _crateIsJTAC(sc) or jtacOk) then
-                    -- Feature Q: detect if this item should spawn a whole vehicle WAITING
+                    -- Feature Q: detect if this item should spawn a whole vehicle
                     local spawnAsVehicle = false
                     if loadableList then
                         for _, ltype in ipairs(loadableList) do
