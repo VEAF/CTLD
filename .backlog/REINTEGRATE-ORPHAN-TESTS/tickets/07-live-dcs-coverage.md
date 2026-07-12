@@ -1,6 +1,6 @@
 # 07 — Live-DCS coverage (real engine required)
 
-Status: todo
+Status: ✅ done
 Type: hybrid (AFK authoring + live DCS validation)
 
 ## What to build

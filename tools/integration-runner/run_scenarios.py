@@ -257,7 +257,11 @@ def make_http_post(host, port, api_key, exec_timeout=None, http_timeout=30):
         req = urllib.request.Request(
             base_url + "/api/exec",
             data=json.dumps(body).encode("utf-8"),
-            headers={"Content-Type": "application/json", "X-API-Key": api_key},
+            # dcs-bridge >= LOT-018 authenticates via a Bearer token whose role gates the
+            # endpoint (/api/exec requires the SUPERUSER role). The api_key from the config
+            # is used as that token. (Older builds used an X-API-Key header.)
+            headers={"Content-Type": "application/json",
+                     "Authorization": "Bearer " + api_key},
             method="POST",
         )
         try:
