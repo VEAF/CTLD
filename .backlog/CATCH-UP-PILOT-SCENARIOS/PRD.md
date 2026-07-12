@@ -1,0 +1,51 @@
+# Lot CATCH-UP-PILOT-SCENARIOS — run the never-executed `ia`-tier scenarios
+
+Status: 🚧 in progress
+Branch: test/catch-up-pilot-scenarios → PR → develop
+Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`). Sibling to
+`FIX-LIVE-DCS-FAILURES` (closed) and `CLEANUP-LEGACY-DCS-TESTS` (planned).
+
+## Problem Statement
+
+Since the migration to VEAF-dcs-bridge (`DCS-BRIDGE-MCP`, `INTEGRATION-TEST-TAGS`), every live-DCS
+validation actually run has stayed in the `auto`/`auto-check` tier (headless, no player needed).
+The 34 `ia`-tier scenarios (`pilotPassive`/`pilotActive`, needing a live player-controlled unit —
+dcs-bridge has no flight-control API) and the 4 `L6` manual sequences
+(`tests/manual_test_sequences.md`) have **never been executed** — only one ad-hoc, unscripted
+check (Feature Q whole-vehicle spawn) has ever put a human pilot in the loop, and that wasn't even
+one of these scenario files.
+
+This lot runs the full backlog once, groups it into pilot-sized sessions, and fixes whatever it
+finds (stale assertions vs current code, or real regressions).
+
+## Scope
+
+- 34 `ia`-tier scenario files: 29 `pilotPassive/`, 3 `pilotActive/` (`scenario_warehouse_cycle.lua`
+  physically lives in `pilotActive/` despite being `pilotPassive`-shaped — not touched here, out of
+  scope), 2 `noPlayer/` outliers (`F-046`, `F-047`, which ask for a one-off visual F10 check).
+- 4 `L6` manual sequences: MT-01, MT-02, MT-03, MT-06 (`tests/manual_test_sequences.md`).
+- Each ticket is one pilot session: inject/read one scenario at a time via the
+  `integration-testing` skill's `exec_lua` loop (I drive injection + verdict reading; David flies
+  and does F10 actions), or follow the checklist for L6.
+
+## Tickets — recommended order (fast/foundational first, heaviest batteries last)
+
+| # | Group | Scenarios | Est. pilot time |
+|---|-------|-----------|------------------|
+| 01 | `noPlayer` `ia` outliers — quick F10 visual checks | F-046, F-047 | ~5 min |
+| 02 | L5 F10 menu visual — foundational, other groups assume these menus are correct | `scenario_crate_menu_sol_vol_visual`, `scenario_troop_menu_sol_vol_visual` | ~15 min |
+| 03 | Troop/JTAC core cycle | `scenarioTroopsFullCycle_v2`, `scenario_extract_menu`, `scenario_jtac_crate_pack`, `scenario_feature_k_jtac_vehicle` | ~20 min |
+| 04 | Multi-group / weight / warehouse | `scenario_multigroup_transport`, `scenario_weight_aggregation`, `scenario_unpack_jtac_drone`, `scenario_warehouse_cycle`, `scenario_farp_repack` | ~25 min |
+| 05 | FOB / parachute / FARP scenes / RECON | `scenario_fob_scene`, `scenario_p2_fob_parachute`, `scenario_p3_csfarp_parachute`, `scenario_p4_metal_farp`, `scenario_feature_f_recon_farp` | ~25 min |
+| 06 | AI transport / AI zones | `scenario_ai_attack_enemy`, `scenario_ai_goto_wpz`, `scenario_ai_transport_visual`, `scenario_ai_troops`, `scenario_feature_i_attack_enemy`, `scenario_feature_i_goto_wpz` | ~25 min |
+| 07 | MT-07 to MT-16 full AI battery (heaviest, 10 scripted scenarios) | `scenario_mt07_ai_troops` … `scenario_mt16_countryside_farp` | ~45 min |
+| 08 | L6 manual sequences (checklist, no script) | MT-01, MT-02, MT-03, MT-06 | ~60 min (15 min/MT) |
+
+Total estimate: ~3.5h of live-pilot time, splittable across sessions (one ticket = one sitting,
+no need to do them back to back).
+
+## Non-goals
+
+- `scenario_ai_transport.lua` (`noPlayer`, `auto` tier) — already covered, not `ia`.
+- Fixing `CLEANUP-LEGACY-DCS-TESTS` relics — separate lot.
+- Rewriting a scenario's tier or folder placement unless a run reveals it's wrong.
