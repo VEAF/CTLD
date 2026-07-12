@@ -1,7 +1,25 @@
 # 01 — Triage the 10 remaining live-run failures
 
-Status: 📋 todo
+Status: ✅ done
 Type: hybrid (live DCS re-run + src/test fix per finding)
+
+## Resolution (2026-07-12)
+
+Fresh live run (`--no-ai`, current `develop` + POST-FULLGAS-FIXES already merged): **48/48
+`auto`/`auto-check` scenarios PASS**, including all 10 below — confirmed stable across two
+consecutive runs. No `src`/test change was needed.
+
+Root cause: the same class of issue already documented for F-120/F-121/F-122/F-123 in the
+2026-07-10 run — cross-scenario state contamination accumulated over a long-running mission
+session (shared globals: `MenuManager` singleton, scheduler, `U-108` probe run-once guards).
+A fresh mission (reload) starts with clean state and every scenario resolves correctly,
+including `scenario_mt05_crate_vehicle.lua`'s apparent `isExist()` crash and `F-119`'s radius
+mismatch — neither reproduces from a clean state, so not real bugs in
+`CTLDCrateManager:getLoadedCrateWeight` or the recon icon geometry.
+
+**Takeaway for future live runs**: reload the mission (`Shift+R`) before a full `--no-ai` sweep,
+not just after `src/` changes — long-running sessions accumulate cross-scenario state that
+produces false failures.
 
 ## Context
 
@@ -34,7 +52,7 @@ already covered by `POST-FULLGAS-FIXES` (see PRD "Already fixed"). The 10 below 
 
 ## Acceptance criteria
 
-- [ ] Fresh live run confirms the current failure set (may differ from 2026-07-10).
-- [ ] Each of the 10 is either fixed (src or test) with a green re-run, or explicitly deferred with
+- [x] Fresh live run confirms the current failure set (may differ from 2026-07-10).
+- [x] Each of the 10 is either fixed (src or test) with a green re-run, or explicitly deferred with
       a reason recorded here.
-- [ ] `tests/recette.md` / `CHANGELOG.md` updated to drop the "not yet ticketed" note.
+- [x] `tests/recette.md` / `CHANGELOG.md` updated to drop the "not yet ticketed" note.

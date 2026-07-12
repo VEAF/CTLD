@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `FIX-LIVE-DCS-FAILURES` | 🚧 in progress | Triage the 10 (of 18) failures from the first live run (2026-07-10, `test-results-run2.xml`) not already fixed by `POST-FULLGAS-FIXES`. Needs a live DCS session (David starts `dcs-serve`). | fix/live-dcs-failures-triage |
+| `FIX-LIVE-DCS-FAILURES` | ✅ pending merge | Triage the 10 (of 18) failures from the first live run (2026-07-10, `test-results-run2.xml`) not already fixed by `POST-FULLGAS-FIXES` — all 10 turned out to be cross-scenario state contamination, cleared by a mission reload (48/48 green, no src/test change). | fix/live-dcs-failures-triage |
 
 ### Planned lots
 

@@ -1,6 +1,6 @@
 # Lot FIX-LIVE-DCS-FAILURES — triage the first live-run failures
 
-Status: 🚧 in progress
+Status: ✅ done — full 48/48 green live, no src/test changes needed (see ticket 01)
 Branch: fix/live-dcs-failures-triage → PR → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`). Sibling to
 `POST-FULLGAS-FIXES` (already merged, PR #22) and `CLEANUP-LEGACY-DCS-TESTS`.

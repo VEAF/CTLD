@@ -36,8 +36,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   DCS-editor `beacon.ogg`-class bug (large embedded `l10n/DEFAULT/` resources).
 - First full live run (`--no-ai`, 45 scenarios) against a real DCS mission: 27/45 passed after a
   mission reload cleared cross-scenario state contamination between 4 vehicle/JTAC-family
-  scenarios (F-120/F-121/F-122/F-123); ~13 remaining failures are reproducible across repeated
-  fresh runs and need investigation (tracked informally, not yet ticketed).
+  scenarios (F-120/F-121/F-122/F-123); 18 failures total. 8 were fixed by the FullGas review
+  round above; the remaining 10 (`FIX-LIVE-DCS-FAILURES` lot) turned out to be the same class of
+  cross-scenario state contamination, not real bugs — a fresh mission reload cleared all of them
+  (48/48 `auto`/`auto-check` scenarios green, confirmed on two consecutive fresh runs).
 
 ### CI / tooling
 
