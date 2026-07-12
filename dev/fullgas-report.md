@@ -109,13 +109,12 @@ context, intent behind legacy test/mission design) — not published, internal w
   rejects as a duplicate → the before/after count diff is 0 → C3 fails **even on the first run**.
   The run-once guard (applied, ticket 02) prevents *accumulation across re-runs* but cannot fix
   the *first-run* collision with the init's ghosts. So option A alone doesn't make ProbeOffMap
-  pass here. Needs FullGas to choose:
-  - **Option B** — global unique idx offset so the probe never reuses a name the init already
-    created (ghosts still accumulate but names never collide; C3's count diff holds); or
-  - **Option C** — rewrite C3 to verify the *existence of the specific ghost by name* rather than
-    a before/after count diff (robust to pre-existing ghosts).
+  pass here.
+  **RESOLVED (2026-07-12, David's call): option C applied.** C3 no longer does a before/after
+  count diff; it captures the idx the valid probe used and verifies **that specific ghost
+  (`CTLD_MVP_H<idx>`) exists by name** — robust to the ghosts the init pre-creates. ProbeOffMap
+  now PASS 4/4 (run-once guard kept, it protects C1 across re-runs). No FullGas decision needed.
   ProbeLifeCheck (also ticket 02) passes — it checks the ghost's `life`, not a count diff.
-  ProbeOffMap left as-is (still FAIL) pending this decision.
   - NB (David's note, worth exploring separately): `Unit.getDescByName(type).life > 0` detects an
     installed **vehicle/unit** type with **no spawn at all** — a clean replacement for the
     spawn-and-check on the ground/vehicle probe categories. It does NOT discriminate statics/
