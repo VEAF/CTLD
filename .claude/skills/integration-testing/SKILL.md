@@ -36,18 +36,27 @@ Once these are up, `exec_lua` is available as an MCP tool.
 ## The injection loop
 
 ```
-Modify src/  →  Rebuild (if src/ changed)  →  exec_lua CTLD.lua  →  wait ~3-5s for init
+Modify src/  →  Rebuild (if src/ changed)  →  reload mission (Shift+R, if src/ changed)
              →  exec_lua the scenario  →  read the verdict  →  iterate on FAIL
 ```
 
 1. **Rebuild** if `src/` changed:
    `powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1`
-2. **Inject CTLD.lua**: `exec_lua(code=<contents of CTLD.lua>)`, then wait 3-5s (CTLD init is
-   async — `CTLDCoreManager` and friends aren't available immediately).
-3. **Inject the scenario**: `exec_lua(code=<contents of the scenario file>)`.
+2. **Load the new CTLD code** — how depends on whether `src/` changed:
+   - **Scenario-only change** (no `src/` change): nothing to reload — CTLD is already in memory,
+     just inject the scenario (step 3).
+   - **`src/` changed** (so `CTLD.lua` was rebuilt): **ask the user to reload the mission with
+     `Shift+R`** in DCS. This restarts the mission from a clean state and re-`dofile`s the fresh
+     `CTLD.lua` from disk (the MISSION START trigger does this).
+     ⚠️ Do **NOT** inject the whole `CTLD.lua` via `exec_lua`/`--inject-ctld`: the file is ~1.2 MB
+     and a single exec **times out (HTTP 504)**. And do **NOT** `dofile("…/CTLD.lua")` over a live
+     mission — it re-runs CTLD init (scheduler, event handlers, timers) on top of the existing
+     one and **freezes the DCS Lua thread**. Reloading the mission is the only safe way.
+3. **Inject the scenario**: `exec_lua(code=<contents of the scenario file>)` (small file — fine).
 4. **Read the verdict** — see the return contract below.
 5. **Iterate**: on FAIL, fix and re-inject without waiting for the user (autonomous debug loop —
-   the user does not need to be in the loop between injections).
+   the user does not need to be in the loop between injections). If the fix is in `src/`, a
+   mission reload (`Shift+R`) is needed again before re-testing.
 
 You (the AI) drive this loop end to end. Only pause for the user when a scenario requires a
 human F10 action it cannot itself take (see pilotActive scenarios).

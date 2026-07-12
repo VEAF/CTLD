@@ -176,16 +176,21 @@ end
 -- Section 1 — Feature S: _loadAIZonesFromConfig
 -- ══════════════════════════════════════════════════════════════════════════════
 
--- F-R-1: pickup T stock=10 → isAIPickup=true, pickMaxStock=10, coalition=BLUE
+-- F-R-1: pickup, per-template troopStock table → isAIPickup=true, pickMaxStock=0 (unlimited
+-- guard — real per-template stock lives in _aiTroopStock), coalition=BLUE.
+-- troopStock is now a {[templateName]=N} table, not a scalar (FullGas redesign). NB: the "All"
+-- key only flags isAll (its value is ignored) — a *limited* stock must use a named template.
 withAIZ(
-    { dcsZoneName="ai_fr1", coalition="BLUE", isPickup=true, cargoType="T", troopStock=10 },
+    { dcsZoneName="ai_fr1", coalition="BLUE", isPickup=true, cargoType="T",
+      troopStock={ ["Standard Group"]=10 } },
     function(z)
         checkNotNil("F-R-1.1", z)
         if z then
             checkTrue ("F-R-1.2", z.isAIPickup)
             checkFalse("F-R-1.3", z.isAIDropoff)
-            check     ("F-R-1.4", z.pickMaxStock, 10)
+            check     ("F-R-1.4", z.pickMaxStock, 0)
             check     ("F-R-1.5", z.coalition,    coalition.side.BLUE)
+            check     ("F-R-1.6", z._aiTroopStock and z._aiTroopStock.init["Standard Group"], 10)
         end
     end)
 
@@ -209,12 +214,17 @@ withAIZ(
         if z then check("F-R-3.2", z.pickMaxStock, 0) end
     end)
 
--- F-R-4: pickup troopStock=0 → pickMaxStock=nil (disabled)
+-- F-R-4: legacy scalar troopStock=0 → invalid format. pickMaxStock=0 (it IS a pickup zone),
+-- _aiTroopStock=nil (scalar rejected by parseStockTable). The old "0 = disabled" semantics is
+-- gone — an explicit G3 WARN is emitted instead (covered by F-R-43). FullGas redesign.
 withAIZ(
     { dcsZoneName="ai_fr4", coalition="BLUE", isPickup=true, cargoType="T", troopStock=0 },
     function(z)
         checkNotNil("F-R-4.1", z)
-        if z then checkNil("F-R-4.2", z.pickMaxStock) end
+        if z then
+            check   ("F-R-4.2", z.pickMaxStock, 0)
+            checkNil("F-R-4.3", z._aiTroopStock)
+        end
     end)
 
 -- F-R-5: missing coalition → zone not created (error pre-set by _validateZoneNames)
@@ -343,7 +353,8 @@ local _savedGetZ13 = trigger.misc.getZone
 local _savedTZ13   = zm._troopZones
 
 cfg.settings["aiZones"] = {
-    { dcsZoneName="test_ai_p", coalition="BLUE", isPickup=true,  cargoType="T", troopStock=5 },
+    { dcsZoneName="test_ai_p", coalition="BLUE", isPickup=true,  cargoType="T",
+      troopStock={ ["Standard Group"]=5 } },
     { dcsZoneName="test_ai_d", coalition="BLUE", isDropoff=true },
 }
 trigger.misc.getZone = function(name)
@@ -362,7 +373,8 @@ checkNotNil("F-R-13.2", zAID)
 if zAIP then
     checkTrue ("F-R-13.3", zAIP:hasAIPickup())
     checkFalse("F-R-13.4", zAIP:hasAIDropoff())
-    check     ("F-R-13.5", zAIP.pickMaxStock, 5)
+    check     ("F-R-13.5",  zAIP.pickMaxStock, 0)   -- pickup guard; real stock in _aiTroopStock
+    check     ("F-R-13.5b", zAIP._aiTroopStock and zAIP._aiTroopStock.init["Standard Group"], 5)
 end
 if zAID then
     checkFalse("F-R-13.6", zAID:hasAIPickup())
@@ -934,7 +946,7 @@ do
     checkNotNil("F-R-43.2", zones[dzn])     -- zone IS created
     checkNotNil("F-R-43.3", report)         -- WARN shown
     if report then
-        checkTrue("F-R-43.4", string.find(report, "troopStock=0", 1, true) ~= nil)
+        checkTrue("F-R-43.4", string.find(report, "troopStock nil/invalid", 1, true) ~= nil)
     end
 end
 
@@ -1066,7 +1078,7 @@ do
         checkTrue("F-R-49.6",  string.find(reportSnapshot, "bad_noME", 1, true) ~= nil)
         checkTrue("F-R-49.7",  string.find(reportSnapshot, "bad_dup",  1, true) ~= nil)
         checkTrue("F-R-49.8",  string.find(reportSnapshot, "bad_G5",   1, true) ~= nil)
-        checkTrue("F-R-49.9",  string.find(reportSnapshot, "troopStock=0", 1, true) ~= nil)
+        checkTrue("F-R-49.9",  string.find(reportSnapshot, "troopStock nil/invalid", 1, true) ~= nil)
         checkTrue("F-R-49.10", string.find(reportSnapshot, "all troopTemplates are unknown", 1, true) ~= nil)
     end
 

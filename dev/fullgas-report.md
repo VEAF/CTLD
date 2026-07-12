@@ -98,3 +98,25 @@ context, intent behind legacy test/mission design) — not published, internal w
   such static exists in `missions/Test_CTLDNEXT_01.miz`. Needs a static named `coord_farp-1`
   added to the mission via the Mission Editor — not something to guess-place without knowing
   the intended location. David's call: note for FullGas rather than block on it now.
+
+## Round 2 — follow-ups after FullGas's answers
+
+- **U-108 ProbeOffMap (C3) — option A (run-once guard) is NOT enough** (found 2026-07-12, live
+  validation of the applied fixes). FullGas's answer assumed "run 1, before=0". But in
+  `Test_CTLDNEXT_01` the CTLD init (modValidator) already probes heliports at mission load and
+  leaves **7 `CTLD_MVP_` ghost airbases** present before the test runs. The test resets the
+  singleton (`_probeIdx→0`) and re-probes with the **same name** (`CTLD_MVP_H1`), which DCS
+  rejects as a duplicate → the before/after count diff is 0 → C3 fails **even on the first run**.
+  The run-once guard (applied, ticket 02) prevents *accumulation across re-runs* but cannot fix
+  the *first-run* collision with the init's ghosts. So option A alone doesn't make ProbeOffMap
+  pass here.
+  **RESOLVED (2026-07-12, David's call): option C applied.** C3 no longer does a before/after
+  count diff; it captures the idx the valid probe used and verifies **that specific ghost
+  (`CTLD_MVP_H<idx>`) exists by name** — robust to the ghosts the init pre-creates. ProbeOffMap
+  now PASS 4/4 (run-once guard kept, it protects C1 across re-runs). No FullGas decision needed.
+  ProbeLifeCheck (also ticket 02) passes — it checks the ghost's `life`, not a count diff.
+  - NB (David's note, worth exploring separately): `Unit.getDescByName(type).life > 0` detects an
+    installed **vehicle/unit** type with **no spawn at all** — a clean replacement for the
+    spawn-and-check on the ground/vehicle probe categories. It does NOT discriminate statics/
+    heliports (returns a populated table even for a bogus type), so the heliport ghost-probe
+    still needs B or C — but the unit/vehicle probe could drop the ghost approach entirely.

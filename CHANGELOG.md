@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Bug fixes (FullGas review round)
+
+- **Fix**: whole-vehicle spawn from the **Request Equipment** menu (Feature Q) was silently
+  disabled — `refreshRequestEquipmentSection` hardcoded `spawnAsVehicle=false` after a DCS-cargo
+  refactor dropped the loadable-vehicle detection. Restored: a transport with
+  `canTransportWholeVehicle` again spawns a whole vehicle for its loadable types.
+- **Fix**: AI-zone stock validation — dropoff-only zones no longer receive a bogus
+  `pickMaxStock`, and an invalid `troopStock` (a legacy scalar like `0`/`-1`/`10`, or an empty
+  table, instead of a `{[templateName]=N}` table) now emits a clear config WARN.
+
 ### DCS integration testing — first live validation
 
 - **Fix**: `missions/Test_CTLDNEXT_01.miz`'s embedded `beacon.ogg` (420KB) broke the DCS Mission

@@ -9,6 +9,15 @@
 -- Requires: DCS active, CTLD injected
 -- User check: verify F10 map — no FARP marker visible near Batumi / play area
 
+-- Run-once guard: the valid probe spawns a real DCS ghost airbase that cannot be
+-- destroyed (DCS limitation). Re-running in the same session would accumulate ghosts
+-- and break C3's diff assertion, so short-circuit with an explicit PASS after first run.
+if _U108_OFFMAP_DONE then
+    trigger.action.outText("[U-108] run-once guard: already probed this session", 10)
+    return "[U-108] PASS (run-once: already probed this session)"
+end
+_U108_OFFMAP_DONE = true
+
 local _t = { pass=0, fail=0, msgs={} }
 local function chk(label, cond)
     if cond then
@@ -36,10 +45,9 @@ mv._probePos = { x = -356437, z = 617000 }  -- near Batumi
 local _origLog = ctld.utils.log
 ctld.utils.log = function() end
 
-local before = countProbeAirbases()
-
 -- C1: valid HELIPORT type (SINGLE_HELIPAD — standard DCS helipad)
 mv:_probeHeliport("SINGLE_HELIPAD", "Heliports", {})
+local c1Idx = mv._probeIdx   -- idx used by the valid probe → ghost name "CTLD_MVP_H" .. c1Idx
 chk("C1 valid HELIPORT (SINGLE_HELIPAD) → cache=true", mv._cache["S:SINGLE_HELIPAD"] == true)
 
 -- C2: invalid HELIPORT type (fabricated name)
@@ -48,9 +56,13 @@ chk("C2 invalid HELIPORT → cache=false", mv._cache["S:CTLD_INVALID_HELIPAD_XYZ
 
 local idx_after_probes = mv._probeIdx
 
--- C3: ghost(s) from valid probe exist in registry but only 1 was added (invalid → no spawn)
-local after = countProbeAirbases()
-chk("C3 exactly 1 ghost probe airbase added (off-map)", after - before == 1)
+-- C3 (option C): the valid probe created its OWN off-map ghost — verify it EXISTS by name.
+-- Robust to the ghosts CTLD init pre-creates at load (the old before/after count-diff collided
+-- with them and failed even on the first run). We check the specific ghost this probe spawned.
+local after    = countProbeAirbases()
+local c1Ghost  = "CTLD_MVP_H" .. c1Idx
+local c1Exists = StaticObject.getByName(c1Ghost) ~= nil or Airbase.getByName(c1Ghost) ~= nil
+chk("C3 valid probe created off-map ghost " .. c1Ghost, c1Exists)
 
 -- C4: cache hit valid → no new probe, count unchanged
 local r4 = mv:_probeHeliport("SINGLE_HELIPAD", "Heliports", {})
