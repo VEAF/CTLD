@@ -1,6 +1,6 @@
 # 03-u108-warnandskip
 
-Status: todo
+Status: ✅ done
 Type: AFK
 
 U-108 WarnAndSkip rewrite vs current heliport registry

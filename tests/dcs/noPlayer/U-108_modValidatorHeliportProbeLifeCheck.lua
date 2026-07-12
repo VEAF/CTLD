@@ -8,6 +8,16 @@
 -- C4: cache hit invalid → no new probe
 -- Note: ghost spawné 800km est, hors zone visible — vérifier F10 si souhaité
 
+-- Run-once guard: the valid probe spawns a real DCS ghost airbase that cannot be
+-- destroyed (DCS limitation). Re-running in the same session would accumulate ghosts,
+-- so short-circuit with an explicit PASS after the first run.
+if _U108_LIFECHECK_DONE then
+    _SCN_U108_RESULT = "[U-108] PASS (run-once: already probed this session)"
+    trigger.action.outText("[U-108] run-once guard: already probed this session", 10)
+    return _SCN_U108_RESULT
+end
+_U108_LIFECHECK_DONE = true
+
 local _t = { pass=0, fail=0, msgs={} }
 local function chk(label, cond)
     if cond then _t.pass=_t.pass+1; _t.msgs[#_t.msgs+1]="[PASS] "..label
