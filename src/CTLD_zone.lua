@@ -680,7 +680,9 @@ function CTLDZoneManager:_loadAIZonesFromConfig()
                     isAIPickup       = entry.isPickup  == true,
                     isAIDropoff      = entry.isDropoff == true,
                     aiCargoType      = entry.cargoType or "T",
-                    pickMaxStock     = 0,  -- unlimited; per-template stock via _aiTroopStock
+                    -- pickup zones: 0 = unlimited (per-template stock lives in _aiTroopStock);
+                    -- dropoff-only zones: nil, so hasPickup() stays false (FullGas fix, F-R-2/13.8).
+                    pickMaxStock     = entry.isPickup and 0 or nil,
                     troopTemplates   = troopTemplates,
                     vehicleTypes     = (entry.vehicleTypes and #entry.vehicleTypes > 0)
                                        and entry.vehicleTypes or nil,
@@ -1457,10 +1459,14 @@ function CTLDZoneManager:_validateZoneNames()
             if entry.aiDropMode and not VALID_DROP_MODE[entry.aiDropMode] then
                 warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP", i, tostring(dzn), tostring(entry.aiDropMode))
             end
-            -- G3: isPickup + troop cargo + troopStock not defined → troop pickup disabled
+            -- G3: isPickup + troop cargo + troopStock nil OR not a {[name]=N} table (incl. a legacy
+            -- scalar like 0/-1/10, or an empty table) → invalid format, troop pickup disabled.
             local effCargoHasTroops = (not entry.cargoType or entry.cargoType == "T" or entry.cargoType == "TV")
-            if not hasErr and entry.isPickup and effCargoHasTroops and entry.troopStock == nil then
-                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled", i, tostring(dzn))
+            local troopStockInvalid = entry.troopStock == nil
+                or type(entry.troopStock) ~= "table"
+                or next(entry.troopStock) == nil
+            if not hasErr and entry.isPickup and effCargoHasTroops and troopStockInvalid then
+                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock nil/invalid — use a {[templateName]=N} table", i, tostring(dzn))
             end
             -- G6: isPickup + vehicle cargo + vehicleStock not defined → vehicle pickup disabled
             local effCargoHasVehicle = (entry.cargoType == "V" or entry.cargoType == "TV")

@@ -1888,7 +1888,7 @@ ctld.i18n["en"]["  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone d
 ctld.i18n["en"]["  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"] = "  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"
 ctld.i18n["en"]["  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"]           = "  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"
 ctld.i18n["en"]["  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"]         = "  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"
-ctld.i18n["en"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled"] = "  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled"
+ctld.i18n["en"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock nil/invalid — use a {[templateName]=N} table"] = "  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock nil/invalid — use a {[templateName]=N} table"
 ctld.i18n["en"]["  AIZ[%1] WARN '%2': isPickup=true with vehicle cargo but vehicleStock not defined — vehicle pickup disabled"] = "  AIZ[%1] WARN '%2': isPickup=true with vehicle cargo but vehicleStock not defined — vehicle pickup disabled"
 ctld.i18n["en"]["  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"]   = "  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"
 ctld.i18n["en"]["  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"]      = "  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"
@@ -2365,7 +2365,7 @@ ctld.i18n["fr"]["  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone d
 ctld.i18n["fr"]["  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"] = "  AIZ[%1] ERREUR '%2' : cargoType '%3' nécessite un transport de véhicule entier mais aucun aéronef n'a canTransportWholeVehicle=true — entrée ignorée"
 ctld.i18n["fr"]["  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"]           = "  AIZ[%1] AVERT '%2' : cargoType '%3' invalide — valeur par défaut T"
 ctld.i18n["fr"]["  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"]         = "  AIZ[%1] AVERT '%2' : aiDropMode '%3' invalide — valeur par défaut GP"
-ctld.i18n["fr"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled"] = "  AIZ[%1] AVERT '%2' : isPickup=true avec cargo de troupes mais troopStock non défini — pickup de troupes désactivé"
+ctld.i18n["fr"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock nil/invalid — use a {[templateName]=N} table"] = "  AIZ[%1] AVERT '%2' : isPickup=true avec cargo de troupes mais troopStock nil/invalide — utiliser une table {[nomTemplate]=N}"
 ctld.i18n["fr"]["  AIZ[%1] WARN '%2': isPickup=true with vehicle cargo but vehicleStock not defined — vehicle pickup disabled"] = "  AIZ[%1] AVERT '%2' : isPickup=true avec cargo de véhicule mais vehicleStock non défini — pickup de véhicule désactivé"
 ctld.i18n["fr"]["  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"]   = "  AIZ[%1] AVERT '%2' : troopTemplates['%3'] introuvable dans loadableGroups"
 ctld.i18n["fr"]["  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"]      = "  AIZ[%1] AVERT '%2' : tous les troopTemplates sont inconnus — le pickup de troupes sera toujours ignoré"
@@ -2843,7 +2843,7 @@ ctld.i18n["es"]["  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone d
 ctld.i18n["es"]["  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"] = "  AIZ[%1] ERROR '%2': cargoType '%3' requiere transporte de vehículo completo pero ninguna aeronave tiene canTransportWholeVehicle=true — entrada ignorada"
 ctld.i18n["es"]["  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"]           = "  AIZ[%1] AVISO '%2': cargoType '%3' inválido — predeterminado a T"
 ctld.i18n["es"]["  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"]         = "  AIZ[%1] AVISO '%2': aiDropMode '%3' inválido — predeterminado a GP"
-ctld.i18n["es"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled"] = "  AIZ[%1] AVISO '%2': isPickup=true con carga de tropas pero troopStock no definido — carga de tropas desactivada"
+ctld.i18n["es"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock nil/invalid — use a {[templateName]=N} table"] = "  AIZ[%1] AVISO '%2': isPickup=true con carga de tropas pero troopStock nil/inválido — usar una tabla {[nombreTemplate]=N}"
 ctld.i18n["es"]["  AIZ[%1] WARN '%2': isPickup=true with vehicle cargo but vehicleStock not defined — vehicle pickup disabled"] = "  AIZ[%1] AVISO '%2': isPickup=true con carga de vehículo pero vehicleStock no definido — carga de vehículo desactivada"
 ctld.i18n["es"]["  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"]   = "  AIZ[%1] AVISO '%2': troopTemplates['%3'] no encontrado en loadableGroups"
 ctld.i18n["es"]["  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"]      = "  AIZ[%1] AVISO '%2': todos los troopTemplates son desconocidos — el pickup de tropas siempre se omitirá"
@@ -3171,7 +3171,7 @@ ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': neither isPickup nor isDropoff — zone d
 ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored"] = "  AIZ[%1] 오류 '%2': cargoType '%3'은(는) 차량 전체 수송이 필요하지만 canTransportWholeVehicle=true인 항공기가 없음 — 항목 무시됨"
 ctld.i18n["ko"]["  AIZ[%1] WARN '%2': invalid cargoType '%3' — defaulting to T"]           = "  AIZ[%1] 경고 '%2': cargoType '%3' 잘못됨 — 기본값 T"
 ctld.i18n["ko"]["  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP"]         = "  AIZ[%1] 경고 '%2': aiDropMode '%3' 잘못됨 — 기본값 GP"
-ctld.i18n["ko"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled"] = "  AIZ[%1] 경고 '%2': isPickup=true이고 병력 화물이지만 troopStock 미정의 — 병력 픽업 비활성화"
+ctld.i18n["ko"]["  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock nil/invalid — use a {[templateName]=N} table"] = "  AIZ[%1] 경고 '%2': isPickup=true이고 병력 화물이지만 troopStock nil/무효 — {[templateName]=N} 테이블 사용"
 ctld.i18n["ko"]["  AIZ[%1] WARN '%2': isPickup=true with vehicle cargo but vehicleStock not defined — vehicle pickup disabled"] = "  AIZ[%1] 경고 '%2': isPickup=true이고 차량 화물이지만 vehicleStock 미정의 — 차량 픽업 비활성화"
 ctld.i18n["ko"]["  AIZ[%1] WARN '%2': troopTemplates['%3'] not found in loadableGroups"]   = "  AIZ[%1] 경고 '%2': troopTemplates['%3']을(를) loadableGroups에서 찾을 수 없음"
 ctld.i18n["ko"]["  AIZ[%1] WARN '%2': all troopTemplates are unknown — troop pickup will always be skipped"]      = "  AIZ[%1] 경고 '%2': 모든 troopTemplates를 알 수 없음 — 병력 픽업이 항상 건너뜀"
@@ -8089,7 +8089,9 @@ function CTLDZoneManager:_loadAIZonesFromConfig()
                     isAIPickup       = entry.isPickup  == true,
                     isAIDropoff      = entry.isDropoff == true,
                     aiCargoType      = entry.cargoType or "T",
-                    pickMaxStock     = 0,  -- unlimited; per-template stock via _aiTroopStock
+                    -- pickup zones: 0 = unlimited (per-template stock lives in _aiTroopStock);
+                    -- dropoff-only zones: nil, so hasPickup() stays false (FullGas fix, F-R-2/13.8).
+                    pickMaxStock     = entry.isPickup and 0 or nil,
                     troopTemplates   = troopTemplates,
                     vehicleTypes     = (entry.vehicleTypes and #entry.vehicleTypes > 0)
                                        and entry.vehicleTypes or nil,
@@ -8866,10 +8868,14 @@ function CTLDZoneManager:_validateZoneNames()
             if entry.aiDropMode and not VALID_DROP_MODE[entry.aiDropMode] then
                 warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': invalid aiDropMode '%3' — defaulting to GP", i, tostring(dzn), tostring(entry.aiDropMode))
             end
-            -- G3: isPickup + troop cargo + troopStock not defined → troop pickup disabled
+            -- G3: isPickup + troop cargo + troopStock nil OR not a {[name]=N} table (incl. a legacy
+            -- scalar like 0/-1/10, or an empty table) → invalid format, troop pickup disabled.
             local effCargoHasTroops = (not entry.cargoType or entry.cargoType == "T" or entry.cargoType == "TV")
-            if not hasErr and entry.isPickup and effCargoHasTroops and entry.troopStock == nil then
-                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock not defined — troop pickup disabled", i, tostring(dzn))
+            local troopStockInvalid = entry.troopStock == nil
+                or type(entry.troopStock) ~= "table"
+                or next(entry.troopStock) == nil
+            if not hasErr and entry.isPickup and effCargoHasTroops and troopStockInvalid then
+                warns[#warns + 1] = ctld.tr("  AIZ[%1] WARN '%2': isPickup=true with troop cargo but troopStock nil/invalid — use a {[templateName]=N} table", i, tostring(dzn))
             end
             -- G6: isPickup + vehicle cargo + vehicleStock not defined → vehicle pickup disabled
             local effCargoHasVehicle = (entry.cargoType == "V" or entry.cargoType == "TV")
