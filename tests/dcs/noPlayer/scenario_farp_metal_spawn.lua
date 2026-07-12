@@ -58,17 +58,11 @@ end
 log("=== START: "..NAME.." ===")
 
 local ok, err = pcall(function()
-    local anchor = StaticObject.getByName("coord_farp-1")
-    if not anchor or not anchor:isExist() then
-        trigger.action.outText(TAG.." [FAIL] static 'coord_farp-1' not found", 15)
-        log("[FAIL] static 'coord_farp-1' not found")
-        _SCN_METALFARPSPAWN_RESULT = TAG.." FAIL: static 'coord_farp-1' not found"
-        return
-    end
-
-    local pos         = anchor:getPoint()
-    local coalitionId = anchor:getCoalition()
-    local countryId   = anchor:getCountry()
+    -- coord_farp-1 anchor hardcoded: the static is absent from the VEAF test mission.
+    -- Map coords provided by David (X/Z in metres, ~6.4 m ≈ 21 ft).
+    local pos         = { x = -356482, y = 6.4, z = 616908 }
+    local coalitionId = coalition.side.BLUE
+    local countryId   = country.id.USA
 
     log(string.format("anchor pos=(%.1f, %.1f, %.1f) coa=%d cty=%d",
         pos.x, pos.y, pos.z, coalitionId, countryId))

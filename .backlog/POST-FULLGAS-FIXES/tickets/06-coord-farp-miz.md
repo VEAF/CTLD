@@ -1,6 +1,6 @@
 # 06-coord-farp-miz
 
-Status: todo
+Status: ✅ done
 Type: AFK
 
 Re-add static coord_farp-1 to Test_CTLDNEXT_01.miz
