@@ -1,9 +1,9 @@
-# 07-readme-doc
+# 07 — README doc touch-ups
 
-Status: todo
-Type: AFK
+Status: ⏸ deferred
+Type: doc
 
-README title/Pack Equipt/Guides touch-ups
-
-## Blocked by
-Ticket 01 (branch established).
+FullGas's README observations (title "DCS-CTLD Next"→"CTLD", "Pack Equipt" under
+"Crate Operations", "Developer documentation"→"Guides") target the monolithic
+root README.md. Per David: DON'T patch it piecemeal — the whole README will be
+rewritten later. Deferred out of this lot.
