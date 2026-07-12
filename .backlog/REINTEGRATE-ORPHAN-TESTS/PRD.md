@@ -1,7 +1,7 @@
 # Lot REINTEGRATE-ORPHAN-TESTS — rebuild coverage lost with the dead FullGas relics
 
-Status: 🚧 in progress
-Branch: feature/reintegrate-orphan-tests → PR (pending) → develop
+Status: ✅ done — all 7 tickets complete (pending merge)
+Branch: feature/reintegrate-orphan-tests → PR #20 → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`). Precedes and unblocks the
 planned `CLEANUP-LEGACY-DCS-TESTS` purge.
 
