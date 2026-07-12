@@ -1,7 +1,9 @@
 -- @tier: auto
 -- F-118 — RECON toggle-OFF: marks removed immediately even when no layers remain.
--- Verify: when scan() is called and prevScan exists, marks are removed BEFORE the
--- "no layers" early-return path — so toggling the last layer OFF clears the map instantly.
+-- Verify: when scan() is called and prevScan exists, the previous marks are removed and a
+-- fresh (empty) scan replaces it. Post-redesign scan() has NO early-return: _activeScans[player]
+-- is ALWAYS set, so toggling the last layer OFF clears the old marks but keeps RECON active
+-- with zero targets (player can re-enable layers via menu without restarting RECON).
 
 local results = {}
 local function assert_eq(label, got, exp)
@@ -15,10 +17,20 @@ local function assert_true(label, cond)   assert_eq(label, not not cond, true) e
 local function assert_false(label, cond)  assert_eq(label, not not cond, false) end
 
 local rmgr = CTLDReconManager.getInstance()
-local players = coalition.getPlayers(coalition.side.BLUE) or {}
-local pu = players[1]
+
+-- scan() takes a UNIT, not a live client — no human player needed. Spawn a throwaway ground
+-- observer resolvable via Unit.getByName (a pure mock would not be found by _scanLOS).
+local OBS_GRP = "F118_recon_obs_grp"
+local OBS     = "F118_recon_obs"
+local _spawn  = ctld.utils.dynAdd("F-118:observer", {
+    category = Group.Category.GROUND,
+    country  = country.id.USA,
+    name     = OBS_GRP,
+    units    = { { type = "Soldier M4", name = OBS, x = -356482, y = 616908, heading = 0, skill = "Average" } },
+})
+local pu = _spawn and Group.getByName(_spawn.name) and Group.getByName(_spawn.name):getUnit(1) or nil
 if not pu then
-    _SCN_F118_RESULT = "[F-118] ABORT: no BLUE player"
+    _SCN_F118_RESULT = "[F-118] ABORT: observer spawn failed"
     return _SCN_F118_RESULT
 end
 local playerName = pu:getName()
@@ -61,7 +73,7 @@ rmgr._activeScans[playerName] = fakeScan
 assert_true("U-01 fake scan injected", rmgr._activeScans[playerName] ~= nil)
 assert_eq("U-01 fake scan has 1 target", #rmgr._activeScans[playerName].targets, 1)
 
--- ── U-02: disable ALL layers so scan() would hit "no layers" early-return ─────
+-- ── U-02: disable ALL layers → new scan yields zero targets (no early-return) ─
 local allLayers = rmgr:_getPlayerLayers(playerName)
 local savedEnabled = {}
 for _, l in ipairs(allLayers) do
@@ -73,14 +85,15 @@ end
 local ok, err = pcall(function() rmgr:scan(pu, playerName) end)
 assert_true("U-03 scan() no error", ok)
 
--- After scan(): _activeScans[playerName] must be nil (prevScan was cleaned up).
-assert_eq("U-04 activeScans nil after all-OFF scan", rmgr._activeScans[playerName], nil)
+-- After scan(): post-redesign there is NO early-return — _activeScans[playerName] stays SET,
+-- but the previous marks are removed and the fresh scan holds zero targets (all layers OFF).
+assert_true("U-04 activeScans still active after all-OFF scan (no early-return)",
+    rmgr._activeScans[playerName] ~= nil)
 
--- ── U-05: the fake mark slot must be gone (removeMark was called) ────────────
--- We can't directly query DCS for mark existence, but we verify the target's markId
--- was part of the scan that got cleaned — indirect proof via _activeScans being nil.
--- (Direct visual check: orange "F118" circle must disappear immediately on F10 map.)
-assert_true("U-05 cleanup occurred (scan entry nil)", rmgr._activeScans[playerName] == nil)
+-- ── U-05: the fresh scan replaced the old one with ZERO targets (old marks cleaned) ──
+-- (Direct visual check: orange "F118" circle disappears immediately on F10 map.)
+assert_eq("U-05 fresh scan has zero targets (old marks removed)",
+    rmgr._activeScans[playerName] and #rmgr._activeScans[playerName].targets or -1, 0)
 
 -- ── restore ───────────────────────────────────────────────────────────────────
 for _, l in ipairs(allLayers) do
@@ -89,6 +102,9 @@ end
 cfg["reconEnabled"]     = _origEnabled
 cfg["reconMinAltitude"] = _origMinAlt
 cfg["reconSearchRadius"] = _origRadius
+rmgr._activeScans[playerName] = nil
+local _obsGrp = Group.getByName(OBS_GRP)
+if _obsGrp then pcall(function() _obsGrp:destroy() end) end
 
 local pass = 0; local fail = 0
 local failReasons = {}
