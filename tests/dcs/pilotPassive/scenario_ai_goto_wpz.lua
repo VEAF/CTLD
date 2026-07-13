@@ -7,9 +7,9 @@
 -- Verifies that a spawned troop group is ordered to march to the nearest WPZ
 -- when its template has specificParams = { task = "gotoNearestWPZ" }.
 --
--- Cinématique (3 steps) :
+-- Flow (3 steps):
 --   S1 [auto]  Inject mock WPZ zone, spawn BLUE ground group, call _assignPostSpawnTask
---   S2 [auto]  waitThen 6s puis vérification vitesse/position
+--   S2 [auto]  waitThen 6s then speed/position verification
 --   S3 [auto]  Cleanup
 --
 -- Pre-requisites:
@@ -30,7 +30,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_FI_WPZ_RUNNING then
-    trigger.action.outText("[FI-WPZ] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[FI-WPZ] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_FI_WPZ_RESULT or "[FI-WPZ] RUNNING"
 end
 _SCN_FI_WPZ_RUNNING = true
@@ -53,7 +53,7 @@ cfg.settings["debugScreenLog"] = false
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG             = "[FI-WPZ]"
 local NAME            = "gotoNearestWPZ post-spawn task"
-local MENU_NAME       = "Recette CTLD"
+local MENU_NAME       = "CTLD Test"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }
 local GRP_NAME        = "FI_WPZ_TestGroup"
 local ZONE_NAME       = "FI_WPZ_MockZone"
@@ -104,7 +104,7 @@ local function cleanupTest()
     log("cleanupTest done")
 end
 
--- ── 9. Cleanup scénario ───────────────────────────────────────────────────────
+-- ── 9. Scenario cleanup ───────────────────────────────────────────────────────
 local function cleanup()
     if S.timerHandle then timer.removeFunction(S.timerHandle) ; S.timerHandle = nil end
     if S.groupId then
@@ -189,7 +189,7 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
@@ -200,8 +200,8 @@ end
 steps[1] = function()
     instruct(
         "Step 1/3 — SETUP + TASK (auto)\n"..
-        "Injection WPZ mock + spawn BLUE infantry + gotoNearestWPZ.\n"..
-        "Cercle vert visible sur F10 map = destination."
+        "Inject mock WPZ + spawn BLUE infantry + gotoNearestWPZ.\n"..
+        "Green circle visible on the F10 map = destination."
     )
 
     cleanupTest()
@@ -268,13 +268,13 @@ steps[1] = function()
         GRP_NAME, spawnPt, coalition.side.BLUE, { task = "gotoNearestWPZ" })
     log("_assignPostSpawnTask called — task will execute in 2s")
 
-    log("S1 done — attente 6s pour mouvement BLUE")
+    log("S1 done — waiting 6s for BLUE movement")
     waitThen(6, function() advanceStep() end)
 end
 
 -- S2 — Verify movement toward WPZ
 steps[2] = function()
-    instruct("Step 2/3 — VÉRIFICATION MOUVEMENT (auto)")
+    instruct("Step 2/3 — MOVEMENT CHECK (auto)")
 
     local grp = Group.getByName(GRP_NAME)
     check("FI-WPZ.2.1", "test group still alive after task assignment",
@@ -307,7 +307,7 @@ steps[2] = function()
             " now=" .. string.format("%.1f", distNow))
     end
 
-    log("S2 done — avance vers cleanup")
+    log("S2 done — advancing to cleanup")
     advanceStep()
 end
 
@@ -338,8 +338,8 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
-    _SCN_FI_WPZ_RESULT = TAG.." ABORT: aucun joueur BLUE"
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
+    _SCN_FI_WPZ_RESULT = TAG.." ABORT: no BLUE player"
     cleanup()
     return _SCN_FI_WPZ_RESULT
 end
@@ -357,7 +357,7 @@ if pm_start and pm_start._players then
     end
 end
 if not playerObjStart then
-    trigger.action.outText(TAG.." ABORT : no CTLD playerObj for transport.", 20)
+    trigger.action.outText(TAG.." ABORT: no CTLD playerObj for transport.", 20)
     _SCN_FI_WPZ_RESULT = TAG.." ABORT: no CTLD playerObj"
     cleanup() ; return _SCN_FI_WPZ_RESULT
 end
@@ -367,7 +367,7 @@ S.groupId = playerObjStart.groupId
 local mm_init   = ctld.MenuManager:getInstance()
 local menu_init = mm_init and mm_init:getMenuByGroupId(S.groupId)
 if not menu_init then
-    trigger.action.outText(TAG.." ABORT : no CTLD MenuManager menu for player group.", 20)
+    trigger.action.outText(TAG.." ABORT: no CTLD MenuManager menu for player group.", 20)
     _SCN_FI_WPZ_RESULT = TAG.." ABORT: no CTLD MenuManager menu"
     cleanup() ; return _SCN_FI_WPZ_RESULT
 end
@@ -380,7 +380,7 @@ _SCN_FI_WPZ_CLEANUP = cleanup
 _SCN_FI_WPZ_RESULT  = TAG.." STARTED"
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 advanceStep()
 
 end  -- do isolation scope

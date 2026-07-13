@@ -4,19 +4,19 @@
 --                     absent gracefully, so it PASSes with or without the mod)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_p4_metal_farp.lua
--- CTLD — Metal FARP via menu F10 : warehouse stocking (sous-cas P4)
+-- CTLD — Metal FARP via F10 menu: warehouse stocking (sub-case P4)
 --
--- Valide :
---   - playScene "Metal FARP" se déroule correctement
---   - Step 9 (func) appelle addLiquid sur la warehouse si mod présent
---   - Si mod absent : step 1 skip spawn (farpName = nil), step 9 no-op, aucun crash
+-- Validates:
+--   - playScene "Metal FARP" runs correctly
+--   - Step 9 (func) calls addLiquid on the warehouse if the mod is present
+--   - If mod absent: step 1 skips spawn (farpName = nil), step 9 no-op, no crash
 --
--- Cinématique (2 steps, injection unique) :
---   S1 [auto] playScene Metal FARP sur le transport joueur
---   S2 [auto T+35] Vérifier warehouse stockée (si mod présent) ou skip propre (si absent)
+-- Sequence (2 steps, single injection):
+--   S1 [auto] playScene Metal FARP on the player transport
+--   S2 [auto T+35] Verify warehouse stocked (if mod present) or clean skip (if absent)
 --
--- Prérequis :
---   - UH-1H BLUE au sol
+-- Prerequisites:
+--   - UH-1H BLUE on the ground
 --   - Inject CTLD.lua first, wait 3–5 s for init.
 --
 -- @scenario  P4-METAL
@@ -33,7 +33,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_P4METAL_RUNNING then
-    trigger.action.outText("[P4-METAL] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[P4-METAL] already running — wait for completion or restart DCS.", 10)
     return _SCN_P4METAL_RESULT or "[P4-METAL] RUNNING"
 end
 _SCN_P4METAL_RUNNING = true
@@ -68,7 +68,7 @@ local function log(msg) ctld.utils.log("INFO", "%s %s", TAG, msg) end
 
 local function instruct(msg)
     log("[INSTR] " .. msg)
-    -- Expose the current instruction globally so run_ia_scenario.py mirrors it to the terminal
+    -- Expose the current instruction globally so run_manual_scenario.py mirrors it to the terminal
     -- (return-contract convention; without this the CLI shows nothing, only the DCS screen does).
     _SCN_P4METAL_INSTR = TAG .. "\n" .. msg
     trigger.action.outText(_SCN_P4METAL_INSTR, 360, true)
@@ -140,49 +140,49 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
 
 -- ── 13. Steps ────────────────────────────────────────────────────────────────
 
--- S1 — Lancer la scène Metal FARP
+-- S1 — Start the Metal FARP scene
 steps[1] = function()
     instruct(
-        "Step 1/2 — LANCEMENT SCÈNE METAL FARP (auto)\n"..
-        "Lancement de playScene Metal FARP (~25s).\n"..
-        "Vérification warehouse dans 35s…"
+        "Step 1/2 — START METAL FARP SCENE (auto)\n"..
+        "Starting playScene Metal FARP (~25s).\n"..
+        "Warehouse check in 35s…"
     )
 
     local sm    = CTLDSceneManager.getInstance()
     local model = sm:getModel("Metal FARP")
-    check("P4.1", "scene model 'Metal FARP' enregistrée", model ~= nil)
-    if not model then fail("P4.1b", "scene Metal FARP introuvable") ; return end
+    check("P4.1", "scene model 'Metal FARP' registered", model ~= nil)
+    if not model then fail("P4.1b", "scene Metal FARP not found") ; return end
 
-    -- Cleanup : détruire toute scène Metal FARP existante
+    -- Cleanup: destroy any existing Metal FARP scene
     -- (removed dead FullGas ctld_test.cleanup() -- nil, same cause as the 194 relics)
     for _, sc in pairs(sm._active or {}) do
         if sc._modelName == "Metal FARP" then pcall(function() sm:packScene(sc) end) end
     end
 
     local scene = sm:playScene(S.transport, "Metal FARP", {})
-    check("P4.2", "playScene Metal FARP démarré", scene ~= nil)
+    check("P4.2", "playScene Metal FARP started", scene ~= nil)
     if not scene then fail("P4.2b", "playScene returned nil") ; return end
 
-    log("Scène Metal FARP lancée (~25s). Vérification warehouse dans 35s.")
+    log("Metal FARP scene started (~25s). Warehouse check in 35s.")
     waitThen(35, advanceStep)
 end
 
--- S2 — Vérifier warehouse stocking (~T+35)
+-- S2 — Verify warehouse stocking (~T+35)
 steps[2] = function()
     instruct(
-        "Step 2/2 — VÉRIFICATION WAREHOUSE (auto T+35)\n"..
-        "Vérification auto du stocking warehouse Metal FARP."
+        "Step 2/2 — WAREHOUSE CHECK (auto T+35)\n"..
+        "Auto check of Metal FARP warehouse stocking."
     )
 
-    -- Chercher un Airbase portant le nom Farp_FG_Petit_Helipad*
-    -- Si mod absent, aucun airbase de ce type n'existe
+    -- Look for an Airbase named Farp_FG_Petit_Helipad*
+    -- If the mod is absent, no airbase of this type exists
     local farpAb  = nil
     local farpName = nil
 
@@ -196,11 +196,11 @@ steps[2] = function()
     end
 
     if not farpAb then
-        -- Mod absent : comportement attendu = aucun airbase, aucun crash
-        pass("P4.3", "mod absent : aucun Farp_FG_Petit_Helipad airbase (comportement attendu)")
-        pass("P4.4", "aucun crash même sans mod (SKIP propre)")
+        -- Mod absent: expected behavior = no airbase, no crash
+        pass("P4.3", "mod absent: no Farp_FG_Petit_Helipad airbase (expected behavior)")
+        pass("P4.4", "no crash even without the mod (clean SKIP)")
     else
-        log("Farp airbase détecté : "..farpName)
+        log("Farp airbase detected: "..farpName)
         local w = farpAb:getWarehouse()
         check("P4.3", "warehouse accessible", w ~= nil)
         if w then
@@ -210,8 +210,8 @@ steps[2] = function()
             local diese = w:getLiquid(3)
             log(string.format("Warehouse — jet=%d avgas=%d mw50=%d diesel=%d",
                 jet or 0, avgas or 0, mw50 or 0, diese or 0))
-            check("P4.4", "jet fuel > 0 après stocking",  (jet  or 0) > 0)
-            check("P4.5", "avgas > 0 après stocking",     (avgas or 0) > 0)
+            check("P4.4", "jet fuel > 0 after stocking",  (jet  or 0) > 0)
+            check("P4.5", "avgas > 0 after stocking",     (avgas or 0) > 0)
         end
     end
 
@@ -236,7 +236,7 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
     _SCN_P4METAL_RESULT = "[P4-METAL] ABORT"
     return _SCN_P4METAL_RESULT
@@ -245,7 +245,7 @@ end
 _SCN_P4METAL_CLEANUP = cleanup
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 _SCN_P4METAL_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_P4METAL_RESULT until PASS/FAIL
 advanceStep()
 

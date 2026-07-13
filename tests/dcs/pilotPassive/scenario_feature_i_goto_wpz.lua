@@ -15,7 +15,7 @@
 -- Pre-requisites:
 --   - BLUE player slot occupied (any aircraft)
 --   - CTLD fully initialised (inject CTLD.lua + 5s wait before this scenario)
---   - recette/enable_debug.lua injected before this scenario
+--   - enable_debug.lua injected before this scenario
 -- =============================================================================
 
 -- ── CTLD-ready guard ─────────────────────────────────────────────────────────

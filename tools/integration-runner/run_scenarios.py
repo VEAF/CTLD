@@ -10,7 +10,7 @@ Zero external dependencies (stdlib only) -- see tools/dcs-data/gen_dcs_types.py 
 convention. Talks to dcs-serve directly over REST; no MCP client involved.
 
 Usage (from repo root):
-    python tools/integration-runner/run_scenarios.py --no-ai --junit-out test-results.xml
+    python tools/integration-runner/run_scenarios.py --headless --junit-out test-results.xml
     python tools/integration-runner/run_scenarios.py --list
     python tools/integration-runner/run_scenarios.py --dir noPlayer --tier auto
 
@@ -35,12 +35,18 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCENARIO_DIRS = ("noPlayer", "pilotActive", "pilotPassive")
-TIERS = ("auto", "auto-check", "auto-slow", "ia")
-# `--no-ai` targets the FAST no-human tiers only. `auto-slow` is also no-human but takes minutes
+TIERS = ("auto", "auto-check", "auto-slow", "human")
+# `--headless` targets the FAST no-human tiers only. `auto-slow` is also no-human but takes minutes
 # to resolve (real AI-unit flight, or long internal timer chains like the JTAC drone's ~13 min),
 # so it's deliberately excluded from the default sweep -- run it explicitly with
-# `--tier auto-slow --poll-timeout 900`.
-NO_AI_TIERS = ("auto", "auto-check")
+# `--tier auto-slow --poll-timeout 900`. The `human` tier needs a person in the cockpit (fly or
+# F10 judgement) and is never part of a headless sweep.
+HEADLESS_TIERS = ("auto", "auto-check")
+# Quarantine tier: scenarios that are correct (code + mission both fine) but fail for reasons
+# outside CTLD's control -- e.g. the DCS AI helicopter cannot reliably land on a specific spot,
+# so the whole-cycle test never completes. Never selected by a default sweep; reachable only via
+# an explicit `--tier disabled`. Their logic coverage lives in fast deterministic tests.
+DISABLED_TIER = "disabled"
 
 TIER_RE = re.compile(r"^\s*--\s*@tier:\s*(\S+)", re.MULTILINE)
 VERDICT_RE = re.compile(r"\[[^\]]*\]\s*(PASS|FAIL|ABORT|RUNNING|STARTED)\b(.*)", re.DOTALL)
@@ -108,6 +114,12 @@ def discover_scenarios(root: Path = REPO_ROOT, dirs=SCENARIO_DIRS, on_skip=None)
                 continue
             scenarios.append(ScenarioInfo(path=path, rel_dir=d, tier=tier))
     return scenarios
+
+
+def default_tiers(scenarios):
+    """Tiers selected by a bare sweep (no explicit --tier): every discovered tier except the
+    quarantined `disabled` tier, which must be opted into explicitly via `--tier disabled`."""
+    return sorted({s.tier for s in scenarios} - {DISABLED_TIER})
 
 
 def filter_scenarios(scenarios, tiers=None, dirs=None, scenario_glob=None):
@@ -200,9 +212,9 @@ def run_scenario(scenario: ScenarioInfo, http_post, poll_interval=2.0, poll_time
     scenarios need the full source re-posted to advance their internal step machine -- safe to
     do headlessly IFF the scenario only needs a timed delay between steps, not a physical
     DCS-side action (a human flying somewhere). Only `auto`/`auto-check`-tagged scenarios reach
-    this tier-filtered path in normal `--no-ai` use; a scenario using RUNNING for a genuinely
+    this tier-filtered path in normal `--headless` use; a scenario using RUNNING for a genuinely
     physical step should stay tagged `ia` so it's never selected here in the first place. If one
-    somehow is (e.g. an explicit `--tier ia`), re-injecting just spins harmlessly until
+    somehow is (e.g. an explicit `--tier human`), re-injecting just spins harmlessly until
     `poll_timeout` and reports FAIL -- no worse than before, just a plainer message.
 
     `reset_source` (the contents of tests/dcs/_reset_state.lua, or None) is injected first when
@@ -300,7 +312,8 @@ def build_arg_parser():
     p.add_argument("--port", type=int, help="Override dcs-serve port")
     p.add_argument("--api-key", help="Override dcs-serve API key")
     p.add_argument("--tier", help="Comma-separated tiers to include (default: all)")
-    p.add_argument("--no-ai", action="store_true", help="Shorthand for --tier auto,auto-check")
+    p.add_argument("--headless", action="store_true",
+                   help="Shorthand for --tier auto,auto-check (no human, no AI-flight wait)")
     p.add_argument("--dir", help="Comma-separated scenario folders (noPlayer,pilotActive,pilotPassive)")
     p.add_argument("--scenario", help="Only run scenarios whose filename contains this substring")
     p.add_argument("--inject-ctld", action="store_true",
@@ -337,11 +350,15 @@ def main(argv=None) -> int:
 
     args = build_arg_parser().parse_args(argv)
 
-    tiers = args.tier.split(",") if args.tier else (list(NO_AI_TIERS) if args.no_ai else None)
+    tiers = args.tier.split(",") if args.tier else (list(HEADLESS_TIERS) if args.headless else None)
     dirs = args.dir.split(",") if args.dir else None
 
     skipped = []
     scenarios = discover_scenarios(on_skip=lambda path, reason: skipped.append((path, reason)))
+    # A default sweep (no explicit --tier) never runs quarantined `disabled` scenarios; they stay
+    # reachable only via an explicit `--tier disabled`.
+    if tiers is None:
+        tiers = default_tiers(scenarios)
     scenarios = filter_scenarios(scenarios, tiers=tiers, dirs=dirs, scenario_glob=args.scenario)
 
     if skipped:

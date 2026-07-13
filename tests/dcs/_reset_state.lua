@@ -3,7 +3,7 @@
 -- tests/dcs/_reset_state.lua — soft-reset of CTLD shared player/menu state.
 --
 -- Injected by the integration runners (`run_scenarios.py --reset-before-each`,
--- `run_ia_scenario.py`) BEFORE each scenario, so a scenario never inherits the
+-- `run_manual_scenario.py`) BEFORE each scenario, so a scenario never inherits the
 -- polluted PlayerManager/MenuManager state left by the previous one.
 --
 -- WHY: scenarios share CTLD's singletons. Several leave residue that ABORTs the
@@ -17,20 +17,21 @@
 -- baseline without a reload.
 --
 -- SCOPE: player/menu state + runtime JTAC state (registered JTACs + claimed
--- targets). All of these are created by CTLD/scenarios at runtime, never defined
--- in the mission, so clearing them before each scenario is safe -- every JTAC
--- scenario registers its own afresh. Deliberately does NOT touch zones/FOBs/
--- scenes (mission-defined or each scenario tears down its own); blindly resetting
--- those could destroy state a scenario legitimately relies on. If a scenario ever
--- needs a deeper reset than this, that's the signal for a human mission reload
--- (Shift+R).
+-- targets) + orphan AI-helicopter test clones. All of these are created by
+-- CTLD/scenarios at runtime, never defined in the mission, so clearing them
+-- before each scenario is safe -- every JTAC scenario registers its own afresh,
+-- and every AI-transport scenario spawns its own clone afresh. Deliberately does
+-- NOT touch zones/FOBs/scenes (mission-defined or each scenario tears down its
+-- own); blindly resetting those could destroy state a scenario legitimately
+-- relies on. If a scenario ever needs a deeper reset than this, that's the signal
+-- for a human mission reload (Shift+R).
 -- =============================================================================
 do
     if not ctld or not CTLDPlayerManager then
         return "[RESET-STATE] SKIP: CTLD not initialized"
     end
 
-    local pruned, rebuilt, added, jtacsCleared = 0, 0, 0, 0
+    local pruned, rebuilt, added, jtacsCleared, clonesDestroyed = 0, 0, 0, 0, 0
     local ok, err = pcall(function()
         local pm = CTLDPlayerManager.getInstance()
         if not pm or not pm._players then return end
@@ -78,12 +79,33 @@ do
             end
             jm._claimedTargets = {}   -- belt-and-suspenders after the per-JTAC releases
         end
+
+        -- 4. Destroy orphan AI-helicopter test clones left behind by a previous scenario.
+        --    AI-transport scenarios spawn a temporary "<src>_run" clone (or activate a
+        --    late-activation "heliai_*" source directly); a FAIL/interrupt skips their cleanup
+        --    and leaves the helo airborne, degrading AI pathfinding for later scenarios. Safe:
+        --    this runs BEFORE the current scenario spawns its own clone, so anything matching
+        --    here is a leftover. Only "*_run" groups and airborne "heliai*" helos are removed --
+        --    ground-parked late-activation sources (never airborne) stay intact so they can
+        --    still be cloned/activated.
+        for _, side in ipairs({ coalition.side.RED, coalition.side.BLUE }) do
+            for _, grp in ipairs(coalition.getGroups(side) or {}) do
+                local n = grp:getName() or ""
+                local u = grp:getUnits() and grp:getUnits()[1]
+                local airborne = u and u:isExist() and u:inAir()
+                if n:match("_run$") or (n:match("^heliai") and airborne) then
+                    pcall(function() grp:destroy() end)
+                    clonesDestroyed = clonesDestroyed + 1
+                end
+            end
+        end
     end)
 
     if not ok then
         env.info("[RESET-STATE] error: " .. tostring(err))
         return "[RESET-STATE] ERROR: " .. tostring(err)
     end
-    return string.format("[RESET-STATE] done (pruned=%d rebuilt=%d added=%d jtacsCleared=%d)",
-        pruned, rebuilt, added, jtacsCleared)
+    return string.format(
+        "[RESET-STATE] done (pruned=%d rebuilt=%d added=%d jtacsCleared=%d clonesDestroyed=%d)",
+        pruned, rebuilt, added, jtacsCleared, clonesDestroyed)
 end

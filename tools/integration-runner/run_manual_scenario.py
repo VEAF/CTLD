@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""Interactive runner for a single `ia`-tier scenario (pilotActive/pilotPassive).
+"""Interactive runner for a single `human`-tier scenario (pilotActive/pilotPassive).
 
-Most `ia`-tier scenarios don't actually need an AI/human to *judge* anything -- they
+Most `human`-tier scenarios don't actually need a person to *judge* anything -- they
 self-verify via the same checkMenuExpected()-style logic as auto-tier scenarios. The only
-reason they're `ia` is that dcs-bridge has no flight-control API: someone has to fly. This
+reason they're `human` is that dcs-bridge has no flight-control API: someone has to fly. This
 script removes the Claude middleman for that case: it injects the scenario, mirrors its
 in-game instruction text to the terminal (no need to alt-tab), and polls `_SCN_<ID>_RESULT`
 until PASS/FAIL/ABORT -- same REST calls tools/integration-runner/run_scenarios.py already
-uses for `auto`/`auto-check` scenarios, just without the `--no-ai` tier filter.
+uses for `auto`/`auto-check` scenarios, just without the `--headless` tier filter.
 
 Handles both async patterns: `STARTED` scenarios resolve on their own (this just polls the
 result var); `RUNNING: step=N ...` scenarios need the full source re-posted to advance their
 internal step machine between a physical DCS-side action and the next step (see
 tools/integration-runner/README.md) -- this script re-injects automatically on that token
-instead of failing the way the headless `run_scenarios.py --no-ai` has to.
+instead of failing the way the headless `run_scenarios.py --headless` has to.
 
 Restart after a crash: just re-run the same command. Every run first calls the scenario's
 `_SCN_<ID>_CLEANUP` global (if the scenario exposes one -- both `_template_pilotActive.lua`
@@ -21,12 +21,12 @@ and `_template_pilotPassive.lua` do) to cancel any stuck timer and reset its run
 before re-injecting, so there's no "already active, restart DCS" dead end.
 
 Scenarios that need genuine visual/subjective judgment (e.g. F-046 "menu looks identical")
-still prompt a human -- but the prompt is a plain y/n in this terminal, not a trip through
+still prompt a person -- but the prompt is a plain y/n in this terminal, not a trip through
 the DCS F10 menu tree.
 
 Usage (from repo root):
-    python tools/integration-runner/run_ia_scenario.py --scenario scenario_troop_menu_sol_vol_visual
-    python tools/integration-runner/run_ia_scenario.py --scenario crate_menu_sol_vol_visual
+    python tools/integration-runner/run_manual_scenario.py --scenario scenario_troop_menu_sol_vol_visual
+    python tools/integration-runner/run_manual_scenario.py --scenario crate_menu_sol_vol_visual
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ from pathlib import Path
 import run_scenarios as rs
 
 REPO_ROOT = rs.REPO_ROOT
-IA_DIRS = ("pilotActive", "pilotPassive")
+HUMAN_DIRS = ("pilotActive", "pilotPassive")
 
 # Allow underscores in the scenario ID: some use compound IDs like _SCN_FI_ATK_INSTR.
 INSTR_VAR_RE = re.compile(r"_SCN_[A-Za-z0-9_]+_INSTR")
@@ -230,7 +230,7 @@ def main(argv=None) -> int:
 
     args = build_arg_parser().parse_args(argv)
 
-    scenarios = rs.discover_scenarios(dirs=IA_DIRS)
+    scenarios = rs.discover_scenarios(dirs=HUMAN_DIRS)
     matches = rs.filter_scenarios(scenarios, scenario_glob=args.scenario)
     if not matches:
         print("No scenario in pilotActive/pilotPassive matches %r" % args.scenario, file=sys.stderr)

@@ -7,9 +7,9 @@
 -- Verifies that a spawned troop group is ordered to advance toward the nearest
 -- RED enemy unit in LOS when specificParams = { task = "AttackNearestEnemyOnLos" }.
 --
--- Cinématique (3 steps) :
+-- Sequence (3 steps):
 --   S1 [auto]  Spawn RED enemy + BLUE group + call _assignPostSpawnTask
---   S2 [auto]  waitFor 8s puis vérification mouvement (waitThen)
+--   S2 [auto]  waitFor 8s then movement check (waitThen)
 --   S3 [auto]  Cleanup
 --
 -- Pre-requisites:
@@ -31,7 +31,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_FI_ATK_RUNNING then
-    trigger.action.outText("[FI-ATK] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[FI-ATK] already running — wait for completion or restart DCS.", 10)
     return _SCN_FI_ATK_RESULT or "[FI-ATK] RUNNING"
 end
 _SCN_FI_ATK_RUNNING = true
@@ -54,7 +54,7 @@ cfg.settings["debugScreenLog"] = false
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG             = "[FI-ATK]"
 local NAME            = "AttackNearestEnemyOnLos post-spawn task"
-local MENU_NAME       = "Recette CTLD"
+local MENU_NAME       = "CTLD Test"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }
 local BLUE_GRP        = "FI_ATK_BlueGroup"
 local RED_GRP         = "FI_ATK_RedEnemy"
@@ -103,7 +103,7 @@ local function cleanupTest()
     log("cleanupTest done")
 end
 
--- ── 9. Cleanup scénario ───────────────────────────────────────────────────────
+-- ── 9. Scenario cleanup ───────────────────────────────────────────────────────
 local function cleanup()
     if S.timerHandle then timer.removeFunction(S.timerHandle) ; S.timerHandle = nil end
     if S.groupId then
@@ -188,7 +188,7 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
@@ -199,8 +199,8 @@ end
 steps[1] = function()
     instruct(
         "Step 1/3 — SPAWN + TASK (auto)\n"..
-        "Spawn RED enemy 100m est + BLUE infantry + AssignTask.\n"..
-        "Le BLUE doit avancer vers l'ennemi automatiquement (2s)."
+        "Spawn RED enemy 100m east + BLUE infantry + AssignTask.\n"..
+        "The BLUE group must advance toward the enemy automatically (2s)."
     )
 
     cleanupTest()
@@ -256,13 +256,13 @@ steps[1] = function()
         BLUE_GRP, spawnPt, coalition.side.BLUE, { task = "AttackNearestEnemyOnLos" })
     log("_assignPostSpawnTask called — task will execute in 2s")
 
-    log("S1 done — attente 8s pour mouvement BLUE")
+    log("S1 done — waiting 8s for BLUE movement")
     waitThen(8, function() advanceStep() end)
 end
 
 -- S2 — Verify movement toward enemy
 steps[2] = function()
-    instruct("Step 2/3 — VÉRIFICATION MOUVEMENT (auto)")
+    instruct("Step 2/3 — MOVEMENT CHECK (auto)")
 
     local grp = Group.getByName(BLUE_GRP)
     check("FI-ATK.2.1", "BLUE group still alive", grp ~= nil and grp:isExist())
@@ -301,7 +301,7 @@ steps[2] = function()
             " now=" .. string.format("%.1f", dNow))
     end
 
-    log("S2 done — avance vers cleanup")
+    log("S2 done — advancing to cleanup")
     advanceStep()
 end
 
@@ -332,8 +332,8 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
-    _SCN_FI_ATK_RESULT = TAG.." ABORT: aucun joueur BLUE"
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
+    _SCN_FI_ATK_RESULT = TAG.." ABORT: no BLUE player"
     cleanup()
     return _SCN_FI_ATK_RESULT
 end
@@ -374,7 +374,7 @@ _SCN_FI_ATK_CLEANUP = cleanup
 _SCN_FI_ATK_RESULT  = TAG.." STARTED"
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 advanceStep()
 
 end  -- do isolation scope

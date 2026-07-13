@@ -1,32 +1,32 @@
 ---@diagnostic disable
--- @tier: ia (fly)  -- crate load, takeoff, FARP deploy, reposition >400m, land: genuine piloting
+-- @tier: human (fly)  -- crate load, takeoff, FARP deploy, reposition >400m, land: genuine piloting
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_warehouse_cycle.lua
 -- CTLD — Full FARP warehouse snapshot cycle
 --
--- Valide le cycle complet repack + warehouse snapshot chain :
---   - Metal FARP crate spawné via menu F10
---   - Joueur charge/vole/atterrit/unpack FARP via F10
---   - Script fixe des niveaux de fuel connus dans la warehouse
---   - Joueur pack FARP via F10 "Pack FARP"
---   - Script vérifie metadata.warehouseSnapshot == valeurs fixées
---   - Joueur vole vers nouvelle position et unpack le FARP
---   - Script vérifie que la warehouse est restaurée aux mêmes valeurs
+-- Validates the full pack + warehouse snapshot chain:
+--   - Metal FARP crate spawned via F10 menu
+--   - Player loads/flies/lands/unpacks FARP via F10
+--   - Script sets known fuel levels in the warehouse
+--   - Player packs FARP via F10 "Pack FARP"
+--   - Script verifies metadata.warehouseSnapshot == the set values
+--   - Player flies to a new position and unpacks the FARP
+--   - Script verifies the warehouse is restored to the same values
 --
--- Cinématique (7 steps, injection unique) :
---   S1 [auto]   Setup + instructions : demander crate + charger + décoller + atterrir
---   S2 [human]  Confirmer : crate chargée à bord + au sol ?
---   S3 [human]  Confirmer : FARP déployé (~15s attente) ?
---   S4 [auto]   Vérifier scène active + SET fuel 5k/10k/15k/20k + instructions pack
---   S5 [human]  Confirmer : FARP packé + crate rechargée ?
---   S6 [auto]   Vérifier snapshot + instructions : voler + atterrir nouvelle position
---   S7 [human]  Confirmer : FARP redéployé à nouvelle position (~15s attente) ?
---   S8 [auto]   Vérifier warehouse restaurée == valeurs fixées
+-- Flow (7 steps, single injection):
+--   S1 [auto]   Setup + instructions: request crate + load + take off + land
+--   S2 [human]  Confirm: crate loaded onboard + on the ground?
+--   S3 [human]  Confirm: FARP deployed (~15s wait)?
+--   S4 [auto]   Verify active scene + SET fuel 5k/10k/15k/20k + pack instructions
+--   S5 [human]  Confirm: FARP packed + crate reloaded?
+--   S6 [auto]   Verify snapshot + instructions: fly + land at new position
+--   S7 [human]  Confirm: FARP redeployed at new position (~15s wait)?
+--   S8 [auto]   Verify warehouse restored == the set values
 --
--- Prérequis :
---   - UH-1H BLUE slot occupé, hélico au sol
---   - Mod Farp_FG_Petit_Helipad installé (requis pour les vérifications warehouse)
---   - enableFARPRepack=true (activé automatiquement par S1)
+-- Prerequisites:
+--   - UH-1H BLUE slot occupied, helo on the ground
+--   - Farp_FG_Petit_Helipad mod installed (required for the warehouse checks)
+--   - enableFARPRepack=true (enabled automatically by S1)
 --   - Inject CTLD.lua first, wait 3–5 s for init.
 --
 -- @scenario  WRHSE
@@ -43,13 +43,13 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_WRHSE_RUNNING then
-    trigger.action.outText("[WRHSE] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[WRHSE] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_WRHSE_RESULT or "[WRHSE] RUNNING"
 end
 _SCN_WRHSE_RUNNING = true
 _SCN_WRHSE_CLEANUP = nil
 
--- ── 3. Global show callback (closure Lua compatible MenuManager) ─────────────
+-- ── 3. Global show callback (Lua closure compatible with MenuManager) ────────
 _SCN_WRHSE_INSTR = ""
 _SCN_WRHSE_SHOW  = function()
     trigger.action.outText(_SCN_WRHSE_INSTR, 30)
@@ -60,7 +60,7 @@ do  -- isolation scope
 local cfg                  = CTLDConfig.get()
 local _savedDebug          = cfg.settings["debug"]
 local _savedDebugScreenLog = cfg.settings["debugScreenLog"]
--- enableFARPRepack est intentionnellement NON restauré — doit persister pendant le test.
+-- enableFARPRepack is intentionally NOT restored — it must persist during the test.
 cfg.settings["debug"]          = true
 cfg.settings["debugScreenLog"] = false
 
@@ -68,7 +68,7 @@ cfg.settings["debugScreenLog"] = false
 local TAG             = "[WRHSE]"
 local NAME            = "FARP Warehouse Cycle"
 local HUMAN_TIMEOUT_S = 600
-local MENU_NAME       = "Recette CTLD"
+local MENU_NAME       = "CTLD Test"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }
 
 -- Fuel values to set and verify
@@ -85,8 +85,8 @@ local S = {
     timerHandle   = nil,
     timerGen      = 0,
     transport     = nil,
-    packPos       = nil,   -- position enregistrée au moment du pack (vérif relocation)
-    savedRequired = nil,   -- cratesRequired original (restauré après unpack)
+    packPos       = nil,   -- position recorded at pack time (relocation check)
+    savedRequired = nil,   -- original cratesRequired (restored after unpack)
 }
 
 -- ── 7. Helpers ───────────────────────────────────────────────────────────────
@@ -105,7 +105,7 @@ local function check(id, desc, cond, detail)
     else fail(id, desc .. (detail and (" | " .. detail) or "")) end
 end
 
--- Trouver la première scène FARP active supportant onRepack, ou nil.
+-- Find the first active FARP scene supporting onRepack, or nil.
 local function findFarpScene()
     local sm = CTLDSceneManager.getInstance()
     for _, sc in pairs(sm._active) do
@@ -115,7 +115,7 @@ local function findFarpScene()
     return nil
 end
 
--- Trouver la première crate FARP portant un warehouseSnapshot, ou nil.
+-- Find the first FARP crate carrying a warehouseSnapshot, or nil.
 local function findPackedCrate()
     local cm = CTLDCrateManager.getInstance()
     for _, crate in pairs(cm.crates) do
@@ -197,7 +197,7 @@ local function finalizeScenario()
     if not ok then log("WARN cleanup: "..tostring(err)) ; _SCN_WRHSE_RUNNING = false end
 end
 
--- ── 11. Step humain (MenuManager) ────────────────────────────────────────────
+-- ── 11. Human step (MenuManager) ─────────────────────────────────────────────
 local advanceStep
 
 local function setHumanStep(stepId, title, options)
@@ -235,7 +235,7 @@ local function setHumanStep(stepId, title, options)
         S.timerHandle = nil
         log("[TIMEOUT] step "..S.step.." ("..stepId..") — ABORT")
         pcall(function() menu:clearBranch(MENU_PATH) ; menu:refresh() end)
-        fail(stepId, "timeout "..HUMAN_TIMEOUT_S.."s sans réponse")
+        fail(stepId, "timeout "..HUMAN_TIMEOUT_S.."s with no response")
         finalizeScenario()
     end, nil, timer.getTime() + HUMAN_TIMEOUT_S)
 end
@@ -252,7 +252,7 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
@@ -265,47 +265,47 @@ steps[1] = function()
     -- the scenario does its own Metal FARP scene cleanup just below.)
     cfg.settings["enableFARPRepack"] = true
 
-    -- Détruire toute scène Metal FARP existante
+    -- Destroy any existing Metal FARP scene
     local sm = CTLDSceneManager.getInstance()
     for _, sc in pairs(sm._active) do
         if sc._modelName == "Metal FARP" then sm:packScene(sc) end
     end
 
-    -- Vérifier descriptor Metal FARP
+    -- Verify Metal FARP descriptor
     local mgr_c = CTLDCrateManager.getInstance()
     local desc  = mgr_c:findDescriptorByUnitType("Metal FARP")
     check("W.1.1", "Metal FARP descriptor available", desc ~= nil)
 
-    -- Forcer cratesRequired=1 pour ce test (restauré après unpack au step 4)
+    -- Force cratesRequired=1 for this test (restored after unpack at step 4)
     if desc then
         S.savedRequired     = desc.cratesRequired
         desc.cratesRequired = 1
         log("W.1.x [INFO] cratesRequired: "..tostring(S.savedRequired).." -> 1")
     end
 
-    -- Enregistrer la position actuelle du joueur
+    -- Record the player's current position
     if S.transport then
         local p = S.transport:getPoint()
         S.packPos = { x = p.x, z = p.z }
     end
 
     instruct(
-        "Step 1/"..#steps.." — SETUP ACTIF (enableFARPRepack=true)\n"..
+        "Step 1/"..#steps.." — SETUP ACTIVE (enableFARPRepack=true)\n"..
         "FUEL TARGET : Jet=5000 / AvGas=10000 / MW50=15000 / Diesel=20000\n"..
-        "\nActions à effectuer :\n"..
-        "  1. F10 → Request Equipment → [zone] → Metal FARP (demander 1 crate)\n"..
+        "\nActions to perform:\n"..
+        "  1. F10 → Request Equipment → [zone] → Metal FARP (request 1 crate)\n"..
         "  2. F10 → Crate Commands → Load Crate → Metal FARP\n"..
-        "  3. Décoller\n"..
-        "  4. Se poser\n"..
-        "\nConfirmer OUI quand fait."
+        "  3. Take off\n"..
+        "  4. Land\n"..
+        "\nConfirm YES when done."
     )
-    setHumanStep("W.S1", "Crate chargée, décollé et posé ?", {
-        { label = "OUI — crate chargée, décollé, posé", fn = function() pass("W.S1", "actions S1 confirmées") ; advanceStep() end },
-        { label = "SKIP — passer cette étape",          fn = function() log("[SKIP] S1") ; advanceStep() end },
+    setHumanStep("W.S1", "Crate loaded, took off and landed?", {
+        { label = "YES — crate loaded, took off, landed", fn = function() pass("W.S1", "S1 actions confirmed") ; advanceStep() end },
+        { label = "SKIP — skip this step",               fn = function() log("[SKIP] S1") ; advanceStep() end },
     })
 end
 
--- S2 — Vérifier crate chargée + instructions unload+unpack [human]
+-- S2 — Verify crate loaded + unload+unpack instructions [human]
 steps[2] = function()
     local mgr_c    = CTLDCrateManager.getInstance()
     local found    = false
@@ -317,58 +317,58 @@ steps[2] = function()
             break
         end
     end
-    check("W.2.1", "FARP crate présente dans le manager", found, "Avez-vous chargé la crate avant la confirmation ?")
+    check("W.2.1", "FARP crate present in the manager", found, "Did you load the crate before confirming?")
     log("W.2.1 [INFO] crate.state = "..stateStr)
 
     instruct(
         "Step 2/"..#steps.." — UNLOAD + UNPACK FARP\n"..
-        "\nActions à effectuer :\n"..
+        "\nActions to perform:\n"..
         "  1. F10 → Crate Commands → Unload Crate\n"..
         "  2. F10 → Crate Commands → Unpack Crate → Metal FARP\n"..
-        "  3. Attendre ~15s pour que la scène FARP se déploie\n"..
-        "\nConfirmer OUI quand le FARP est déployé."
+        "  3. Wait ~15s for the FARP scene to deploy\n"..
+        "\nConfirm YES when the FARP is deployed."
     )
-    setHumanStep("W.S2", "FARP déployé (~15s) ?", {
-        { label = "OUI — FARP déployé",   fn = function() pass("W.S2", "FARP déploiement confirmé") ; advanceStep() end },
-        { label = "SKIP — passer",        fn = function() log("[SKIP] S2") ; advanceStep() end },
+    setHumanStep("W.S2", "FARP deployed (~15s)?", {
+        { label = "YES — FARP deployed",  fn = function() pass("W.S2", "FARP deployment confirmed") ; advanceStep() end },
+        { label = "SKIP — skip",          fn = function() log("[SKIP] S2") ; advanceStep() end },
     })
 end
 
--- S3 — Vérifier scène active + SET fuel + instructions pack [auto then human]
+-- S3 — Verify active scene + SET fuel + pack instructions [auto then human]
 steps[3] = function()
     instruct(
-        "Step 3/"..#steps.." — VÉRIFICATION SCÈNE + SET FUEL (auto)\n"..
-        "Vérification auto de la scène FARP active et fixation des niveaux fuel…"
+        "Step 3/"..#steps.." — SCENE CHECK + SET FUEL (auto)\n"..
+        "Auto-checking the active FARP scene and setting the fuel levels…"
     )
     waitThen(2, function()
-        -- Restaurer cratesRequired maintenant que le FARP est déployé
+        -- Restore cratesRequired now that the FARP is deployed
         local mgr_c_r = CTLDCrateManager.getInstance()
         local sc_r    = findFarpScene()
         local desc_r  = sc_r and mgr_c_r:findDescriptorByUnitType(sc_r._modelName)
         if desc_r and S.savedRequired then
             desc_r.cratesRequired = S.savedRequired
-            log("W.3.x [INFO] cratesRequired restauré à "..S.savedRequired)
+            log("W.3.x [INFO] cratesRequired restored to "..S.savedRequired)
         end
 
         local farpScene = findFarpScene()
-        check("W.3.1", "scène FARP active dans CTLDSceneManager", farpScene ~= nil,
-            "Avez-vous unpack le FARP et attendu ~15s ?")
-        if not farpScene then fail("W.3.1b", "scène FARP introuvable") ; advanceStep() ; return end
+        check("W.3.1", "active FARP scene in CTLDSceneManager", farpScene ~= nil,
+            "Did you unpack the FARP and wait ~15s?")
+        if not farpScene then fail("W.3.1b", "FARP scene not found") ; advanceStep() ; return end
 
         local farpName = farpScene._params and farpScene._params.farpName
-        check("W.3.2", "farpName défini dans scene._params", farpName ~= nil)
-        if not farpName then fail("W.3.2b", "farpName nil — scène sans airbase") ; advanceStep() ; return end
+        check("W.3.2", "farpName set in scene._params", farpName ~= nil)
+        if not farpName then fail("W.3.2b", "farpName nil — scene has no airbase") ; advanceStep() ; return end
 
         local ab = Airbase.getByName(farpName)
-        check("W.3.3", "Airbase '"..farpName.."' trouvé", ab ~= nil)
+        check("W.3.3", "Airbase '"..farpName.."' found", ab ~= nil)
         if not ab then fail("W.3.3b", "Airbase.getByName returned nil") ; advanceStep() ; return end
 
         local w = ab:getWarehouse()
-        check("W.3.4", "warehouse accessible (mod Farp_FG_Petit_Helipad requis)", w ~= nil,
-            "getWarehouse() returned nil — cette scène n'a pas de warehouse accessible")
+        check("W.3.4", "warehouse accessible (Farp_FG_Petit_Helipad mod required)", w ~= nil,
+            "getWarehouse() returned nil — this scene has no accessible warehouse")
         if not w then fail("W.3.4b", "warehouse nil") ; advanceStep() ; return end
 
-        -- Fixer les niveaux fuel connus
+        -- Set the known fuel levels
         for fuelType = 0, 3 do
             w:setLiquidAmount(fuelType, FUEL_SET[fuelType])
         end
@@ -380,39 +380,39 @@ steps[3] = function()
                     FUEL_NAME[fuelType].." set="..FUEL_SET[fuelType].." readback OK",
                     match, "readback="..tostring(readback))
             else
-                log("W.3."..(fuelType + 5).." [INFO] getLiquidAmount non disponible — set only")
+                log("W.3."..(fuelType + 5).." [INFO] getLiquidAmount not available — set only")
             end
         end
 
         instruct(
-            "Step 3/"..#steps.." — FUEL FIXÉ ✅\n"..
+            "Step 3/"..#steps.." — FUEL SET ✅\n"..
             "Jet=5000 / AvGas=10000 / MW50=15000 / Diesel=20000\n"..
-            "\nActions à effectuer :\n"..
+            "\nActions to perform:\n"..
             "  1. F10 → Crate Commands → Pack FARP → Pack Metal FARP\n"..
-            "  2. F10 → Crate Commands → Load Crate (la crate qui vient d'apparaître)\n"..
-            "\nConfirmer OUI quand la crate est chargée."
+            "  2. F10 → Crate Commands → Load Crate (the crate that just appeared)\n"..
+            "\nConfirm YES when the crate is loaded."
         )
-        setHumanStep("W.S3", "FARP packé + crate chargée ?", {
-            { label = "OUI — FARP packé, crate chargée", fn = function() pass("W.S3", "pack+charge confirmé") ; advanceStep() end },
-            { label = "SKIP — passer",                   fn = function() log("[SKIP] S3") ; advanceStep() end },
+        setHumanStep("W.S3", "FARP packed + crate loaded?", {
+            { label = "YES — FARP packed, crate loaded", fn = function() pass("W.S3", "pack+load confirmed") ; advanceStep() end },
+            { label = "SKIP — skip",                     fn = function() log("[SKIP] S3") ; advanceStep() end },
         })
     end)
 end
 
--- S4 — Vérifier warehouseSnapshot dans la crate + instructions vol [auto then human]
+-- S4 — Verify warehouseSnapshot in the crate + flight instructions [auto then human]
 steps[4] = function()
     instruct(
-        "Step 4/"..#steps.." — VÉRIFICATION SNAPSHOT (auto)\n"..
-        "Vérification auto du warehouseSnapshot dans la crate…"
+        "Step 4/"..#steps.." — SNAPSHOT CHECK (auto)\n"..
+        "Auto-checking the warehouseSnapshot in the crate…"
     )
     waitThen(1, function()
         local packed_crate = findPackedCrate()
-        check("W.4.1", "crate FARP avec warehouseSnapshot trouvée", packed_crate ~= nil,
-            "Avez-vous Pack FARP puis Load la crate ?")
+        check("W.4.1", "FARP crate with warehouseSnapshot found", packed_crate ~= nil,
+            "Did you Pack FARP then Load the crate?")
         if not packed_crate then fail("W.4.1b", "No packed crate with snapshot found") ; advanceStep() ; return end
 
         local snap = packed_crate.metadata.warehouseSnapshot
-        check("W.4.2", "warehouseSnapshot.liquid est une table", type(snap.liquid) == "table",
+        check("W.4.2", "warehouseSnapshot.liquid is a table", type(snap.liquid) == "table",
             "type="..type(snap.liquid))
 
         if snap.liquid then
@@ -426,7 +426,7 @@ steps[4] = function()
             end
         end
 
-        -- Enregistrer la position de pack actuelle
+        -- Record the current pack position
         if S.transport then
             local p = S.transport:getPoint()
             S.packPos = { x = p.x, z = p.z }
@@ -434,30 +434,30 @@ steps[4] = function()
         end
 
         instruct(
-            "Step 4/"..#steps.." — SNAPSHOT VÉRIFIÉ ✅\n"..
-            "\nActions à effectuer :\n"..
-            "  1. Décoller\n"..
-            "  2. Voler vers une AUTRE position (au moins 400m)\n"..
-            "  3. Atterrir\n"..
-            "\nConfirmer OUI quand posé à la nouvelle position."
+            "Step 4/"..#steps.." — SNAPSHOT VERIFIED ✅\n"..
+            "\nActions to perform:\n"..
+            "  1. Take off\n"..
+            "  2. Fly to a DIFFERENT position (at least 400m)\n"..
+            "  3. Land\n"..
+            "\nConfirm YES when landed at the new position."
         )
-        setHumanStep("W.S4", "Posé à nouvelle position (>400m) ?", {
-            { label = "OUI — posé à nouvelle position", fn = function() pass("W.S4", "relocation confirmée") ; advanceStep() end },
-            { label = "SKIP — passer",                  fn = function() log("[SKIP] S4") ; advanceStep() end },
+        setHumanStep("W.S4", "Landed at new position (>400m)?", {
+            { label = "YES — landed at new position", fn = function() pass("W.S4", "relocation confirmed") ; advanceStep() end },
+            { label = "SKIP — skip",                  fn = function() log("[SKIP] S4") ; advanceStep() end },
         })
     end)
 end
 
--- S5 — Vérifier relocation + instructions unload+unpack [auto then human]
+-- S5 — Verify relocation + unload+unpack instructions [auto then human]
 steps[5] = function()
     instruct(
-        "Step 5/"..#steps.." — VÉRIFICATION RELOCATION (auto)\n"..
-        "Vérification auto de la relocation…"
+        "Step 5/"..#steps.." — RELOCATION CHECK (auto)\n"..
+        "Auto-checking the relocation…"
     )
     waitThen(1, function()
         if not S.transport then fail("W.5.0", "no BLUE player unit") ; advanceStep() ; return end
 
-        check("W.5.1", "transport au sol", not ctld.utils.inAir(S.transport),
+        check("W.5.1", "transport on the ground", not ctld.utils.inAir(S.transport),
             "inAir="..tostring(ctld.utils.inAir(S.transport)))
 
         if S.packPos then
@@ -465,68 +465,68 @@ steps[5] = function()
             local dx   = p.x - S.packPos.x
             local dz   = p.z - S.packPos.z
             local dist = math.sqrt(dx * dx + dz * dz)
-            log("W.5.2 [INFO] Distance depuis position pack: "..math.floor(dist).." m")
+            log("W.5.2 [INFO] Distance from pack position: "..math.floor(dist).." m")
             if dist < 100 then
-                fail("W.5.2", "transport encore près de la position pack ("..math.floor(dist).." m) — voler > 400m")
+                fail("W.5.2", "transport still near the pack position ("..math.floor(dist).." m) — fly > 400m")
             else
-                pass("W.5.2", "Relocalisé: "..math.floor(dist).." m")
+                pass("W.5.2", "Relocated: "..math.floor(dist).." m")
             end
         else
-            log("W.5.2 [INFO] Position pack non enregistrée — vérif relocation ignorée")
+            log("W.5.2 [INFO] Pack position not recorded — relocation check skipped")
         end
 
         instruct(
             "Step 5/"..#steps.." — RELOCATION ✅\n"..
-            "\nActions à effectuer :\n"..
+            "\nActions to perform:\n"..
             "  1. F10 → Crate Commands → Unload Crate\n"..
             "  2. F10 → Crate Commands → Unpack Crate → Metal FARP\n"..
-            "  3. Attendre ~15s pour que la scène FARP se déploie\n"..
-            "\nConfirmer OUI quand le FARP est déployé à la nouvelle position."
+            "  3. Wait ~15s for the FARP scene to deploy\n"..
+            "\nConfirm YES when the FARP is deployed at the new position."
         )
-        setHumanStep("W.S5", "FARP redéployé nouvelle position (~15s) ?", {
-            { label = "OUI — FARP redéployé",  fn = function() pass("W.S5", "redéploiement confirmé") ; advanceStep() end },
-            { label = "SKIP — passer",         fn = function() log("[SKIP] S5") ; advanceStep() end },
+        setHumanStep("W.S5", "FARP redeployed at new position (~15s)?", {
+            { label = "YES — FARP redeployed", fn = function() pass("W.S5", "redeployment confirmed") ; advanceStep() end },
+            { label = "SKIP — skip",           fn = function() log("[SKIP] S5") ; advanceStep() end },
         })
     end)
 end
 
--- S6 — Vérifier nouvelle scène FARP active [auto]
+-- S6 — Verify new active FARP scene [auto]
 steps[6] = function()
     instruct(
-        "Step 6/"..#steps.." — VÉRIFICATION NOUVELLE SCÈNE FARP (auto)\n"..
-        "Vérification auto de la scène FARP à la nouvelle position…"
+        "Step 6/"..#steps.." — NEW FARP SCENE CHECK (auto)\n"..
+        "Auto-checking the FARP scene at the new position…"
     )
     waitThen(2, function()
         local farpScene2 = findFarpScene()
-        check("W.6.1", "nouvelle scène FARP active dans CTLDSceneManager", farpScene2 ~= nil,
-            "Avez-vous unpack le FARP et attendu ~15s ?")
+        check("W.6.1", "new active FARP scene in CTLDSceneManager", farpScene2 ~= nil,
+            "Did you unpack the FARP and wait ~15s?")
         if not farpScene2 then fail("W.6.1b", "No active FARP scene found") ; advanceStep() ; return end
 
         local farpName2 = farpScene2._params and farpScene2._params.farpName
-        check("W.6.2", "farpName défini dans nouvelle scene._params", farpName2 ~= nil,
-            "Mod requis — sans lui la vérif warehouse en S7 échouera")
+        check("W.6.2", "farpName set in new scene._params", farpName2 ~= nil,
+            "Mod required — without it the warehouse check at S7 will fail")
         log("W.6.2 [INFO] FARP airbase name: "..tostring(farpName2))
 
         advanceStep()
     end)
 end
 
--- S7 — Vérifier warehouse fuel restaurée [auto]
+-- S7 — Verify warehouse fuel restored [auto]
 steps[7] = function()
     instruct(
-        "Step 7/"..#steps.." — VÉRIFICATION WAREHOUSE RESTAURÉE (auto)\n"..
-        "Vérification finale : fuel restauré depuis le snapshot.\n"..
-        "Attendu : Jet=5000 / AvGas=10000 / MW50=15000 / Diesel=20000"
+        "Step 7/"..#steps.." — WAREHOUSE RESTORED CHECK (auto)\n"..
+        "Final check: fuel restored from the snapshot.\n"..
+        "Expected : Jet=5000 / AvGas=10000 / MW50=15000 / Diesel=20000"
     )
     waitThen(2, function()
         local farpScene2 = findFarpScene()
-        check("W.7.1", "scène FARP toujours active", farpScene2 ~= nil)
-        if not farpScene2 then fail("W.7.1b", "scène disparue entre S6 et S7") ; advanceStep() ; return end
+        check("W.7.1", "FARP scene still active", farpScene2 ~= nil)
+        if not farpScene2 then fail("W.7.1b", "scene disappeared between S6 and S7") ; advanceStep() ; return end
 
         local farpName2 = farpScene2._params and farpScene2._params.farpName
-        check("W.7.2", "farpName disponible depuis scene._params", farpName2 ~= nil,
-            "Mod Farp_FG_Petit_Helipad requis")
-        if not farpName2 then fail("W.7.2b", "farpName nil — mod absent") ; advanceStep() ; return end
+        check("W.7.2", "farpName available from scene._params", farpName2 ~= nil,
+            "Farp_FG_Petit_Helipad mod required")
+        if not farpName2 then fail("W.7.2b", "farpName nil — mod missing") ; advanceStep() ; return end
 
         local ab = Airbase.getByName(farpName2)
         check("W.7.3", "Airbase '"..farpName2.."' accessible", ab ~= nil)
@@ -539,13 +539,13 @@ steps[7] = function()
             local actual   = w:getLiquidAmount(fuelType)
             local ok       = type(actual) == "number" and math.abs(actual - expected) < 1
             check("W.7."..(fuelType + 4),
-                FUEL_NAME[fuelType].." restauré: expected="..expected.." actual="..tostring(actual),
+                FUEL_NAME[fuelType].." restored: expected="..expected.." actual="..tostring(actual),
                 ok,
                 "delta="..tostring(actual and math.abs(actual - expected) or "nil"))
             if ok then passed = passed + 1 end
         end
 
-        log("Fuel types vérifiés: "..passed.."/4 PASS")
+        log("Fuel types verified: "..passed.."/4 PASS")
         advanceStep()
     end)
 end
@@ -568,13 +568,13 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
-    _SCN_WRHSE_RESULT = TAG.." ABORT: aucun joueur BLUE"
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
+    _SCN_WRHSE_RESULT = TAG.." ABORT: no BLUE player"
     cleanup()
     return _SCN_WRHSE_RESULT
 end
 
--- Récupérer le groupId du joueur via CTLDPlayerManager
+-- Retrieve the player's groupId via CTLDPlayerManager
 local pm_start = CTLDPlayerManager.getInstance()
 local playerObjStart
 if pm_start and pm_start._players then
@@ -588,18 +588,18 @@ if pm_start and pm_start._players then
     end
 end
 if not playerObjStart then
-    trigger.action.outText(TAG.." ABORT : no CTLD playerObj for transport.", 20)
+    trigger.action.outText(TAG.." ABORT: no CTLD playerObj for transport.", 20)
     _SCN_WRHSE_RESULT = TAG.." ABORT: no CTLD playerObj"
     cleanup() ; return _SCN_WRHSE_RESULT
 end
 
 S.groupId = playerObjStart.groupId
 
--- Créer le sous-menu "Recette CTLD" sous "CTLD" via MenuManager
+-- Create the "CTLD Test" submenu under "CTLD" via MenuManager
 local mm_init   = ctld.MenuManager:getInstance()
 local menu_init = mm_init and mm_init:getMenuByGroupId(S.groupId)
 if not menu_init then
-    trigger.action.outText(TAG.." ABORT : no CTLD MenuManager menu for player group.", 20)
+    trigger.action.outText(TAG.." ABORT: no CTLD MenuManager menu for player group.", 20)
     _SCN_WRHSE_RESULT = TAG.." ABORT: no CTLD MenuManager menu"
     cleanup() ; return _SCN_WRHSE_RESULT
 end
@@ -612,7 +612,7 @@ _SCN_WRHSE_CLEANUP = cleanup
 _SCN_WRHSE_RESULT  = TAG.." STARTED"
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 advanceStep()
 
 end  -- do isolation scope

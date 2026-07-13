@@ -16,7 +16,7 @@
 -- Pre-requisites:
 --   - BLUE player slot occupied (any aircraft), on ground level (no occlusion)
 --   - CTLD fully initialised (inject CTLD.lua + 5s wait before this scenario)
---   - recette/enable_debug.lua injected before this scenario
+--   - enable_debug.lua injected before this scenario
 --   - Mission terrain must be flat near player (no ridge blocking LOS at 300 m)
 -- =============================================================================
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Unit tests for run_ia_scenario.py's pure logic -- no network access.
+"""Unit tests for run_manual_scenario.py's pure logic -- no network access.
 
-Usage: python -m unittest tools/integration-runner/test_run_ia_scenario.py
+Usage: python -m unittest tools/integration-runner/test_run_manual_scenario.py
 """
 import contextlib
 import io
@@ -12,46 +12,46 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import run_ia_scenario as ria  # noqa: E402
+import run_manual_scenario as rms  # noqa: E402
 import run_scenarios as rs  # noqa: E402
 
 
 class DeriveInstrVarTests(unittest.TestCase):
     def test_finds_instr_var(self):
         source = 'local x = 1\n_SCN_CMFV_INSTR = "hello"\n'
-        self.assertEqual(ria.derive_instr_var(source), "_SCN_CMFV_INSTR")
+        self.assertEqual(rms.derive_instr_var(source), "_SCN_CMFV_INSTR")
 
     def test_none_when_absent(self):
-        self.assertIsNone(ria.derive_instr_var("return 1"))
+        self.assertIsNone(rms.derive_instr_var("return 1"))
 
     def test_finds_compound_id_instr_var(self):
-        self.assertEqual(ria.derive_instr_var("_SCN_FI_ATK_INSTR = ''"), "_SCN_FI_ATK_INSTR")
+        self.assertEqual(rms.derive_instr_var("_SCN_FI_ATK_INSTR = ''"), "_SCN_FI_ATK_INSTR")
 
 
 class DeriveCleanupVarTests(unittest.TestCase):
     def test_finds_cleanup_var(self):
         source = "_SCN_TMFV_CLEANUP = cleanup\n"
-        self.assertEqual(ria.derive_cleanup_var(source), "_SCN_TMFV_CLEANUP")
+        self.assertEqual(rms.derive_cleanup_var(source), "_SCN_TMFV_CLEANUP")
 
     def test_none_when_absent(self):
-        self.assertIsNone(ria.derive_cleanup_var("return 1"))
+        self.assertIsNone(rms.derive_cleanup_var("return 1"))
 
 
 class FmtElapsedTests(unittest.TestCase):
     def test_under_a_minute(self):
-        self.assertEqual(ria._fmt_elapsed(5), "0:05")
+        self.assertEqual(rms._fmt_elapsed(5), "0:05")
 
     def test_minutes_seconds(self):
-        self.assertEqual(ria._fmt_elapsed(150), "2:30")
+        self.assertEqual(rms._fmt_elapsed(150), "2:30")
 
     def test_past_an_hour(self):
-        self.assertEqual(ria._fmt_elapsed(3661), "1:01:01")
+        self.assertEqual(rms._fmt_elapsed(3661), "1:01:01")
 
 
 class ResetStuckStateTests(unittest.TestCase):
     def test_noop_when_no_cleanup_var(self):
         calls = []
-        ria.reset_stuck_state(lambda code: calls.append(code) or (None, None), None)
+        rms.reset_stuck_state(lambda code: calls.append(code) or (None, None), None)
         self.assertEqual(calls, [])
 
     def test_calls_cleanup_guarded_by_nil_check(self):
@@ -61,7 +61,7 @@ class ResetStuckStateTests(unittest.TestCase):
             calls.append(code)
             return "reset", None
 
-        ria.reset_stuck_state(http_post, "_SCN_CMFV_CLEANUP")
+        rms.reset_stuck_state(http_post, "_SCN_CMFV_CLEANUP")
         self.assertEqual(len(calls), 1)
         self.assertIn("if _SCN_CMFV_CLEANUP then _SCN_CMFV_CLEANUP() end", calls[0])
 
@@ -70,41 +70,41 @@ class RunInteractiveTests(unittest.TestCase):
     def _write_scenario(self, tmp, text):
         path = Path(tmp) / "scenario.lua"
         path.write_text(text, encoding="utf-8")
-        return rs.ScenarioInfo(path=path, rel_dir="pilotActive", tier="ia")
+        return rs.ScenarioInfo(path=path, rel_dir="pilotActive", tier="human")
 
     def test_reset_source_injected_before_scenario(self):
         with tempfile.TemporaryDirectory() as tmp:
-            scenario = self._write_scenario(tmp, "-- @tier: ia\nreturn 1")
+            scenario = self._write_scenario(tmp, "-- @tier: human\nreturn 1")
             calls = []
 
             def http_post(code):
                 calls.append(code)
                 return "[F-046] PASS", None
 
-            code = ria.run_interactive(scenario, http_post, sleep=lambda s: None,
+            code = rms.run_interactive(scenario, http_post, sleep=lambda s: None,
                                        reset_source="-- RESET SNIPPET --")
             self.assertEqual(code, 0)
             # No _SCN_*_CLEANUP in the scenario, so no reset_stuck_state call; the shared reset
             # snippet must be posted before the scenario source.
             self.assertIn("-- RESET SNIPPET --", calls)
             self.assertLess(calls.index("-- RESET SNIPPET --"),
-                            next(i for i, c in enumerate(calls) if "@tier: ia" in c))
+                            next(i for i, c in enumerate(calls) if "@tier: human" in c))
 
     def test_terminal_pass_on_first_injection(self):
         with tempfile.TemporaryDirectory() as tmp:
-            scenario = self._write_scenario(tmp, "-- @tier: ia\nreturn 1")
+            scenario = self._write_scenario(tmp, "-- @tier: human\nreturn 1")
 
             def http_post(code):
                 return "[F-046] PASS", None
 
-            code = ria.run_interactive(scenario, http_post, sleep=lambda s: None)
+            code = rms.run_interactive(scenario, http_post, sleep=lambda s: None)
             self.assertEqual(code, 0)
 
     def test_polls_until_pass_and_mirrors_instructions(self):
         with tempfile.TemporaryDirectory() as tmp:
             scenario = self._write_scenario(
                 tmp,
-                "-- @tier: ia\n_SCN_TMFV_INSTR = ''\n_SCN_TMFV_RESULT = 'x'\n"
+                "-- @tier: human\n_SCN_TMFV_INSTR = ''\n_SCN_TMFV_RESULT = 'x'\n"
                 "_SCN_TMFV_CLEANUP = cleanup\nreturn _SCN_TMFV_RESULT",
             )
             calls = []
@@ -121,7 +121,7 @@ class RunInteractiveTests(unittest.TestCase):
                 calls.append(code)
                 return next(responses)
 
-            code = ria.run_interactive(scenario, http_post, poll_interval=0, sleep=lambda s: None)
+            code = rms.run_interactive(scenario, http_post, poll_interval=0, sleep=lambda s: None)
             self.assertEqual(code, 0)
             self.assertEqual(len(calls), 6)
             # First call must be the reset-guard, second the actual injection (full source).
@@ -131,7 +131,7 @@ class RunInteractiveTests(unittest.TestCase):
     def test_fail_verdict_returns_nonzero(self):
         with tempfile.TemporaryDirectory() as tmp:
             scenario = self._write_scenario(
-                tmp, "-- @tier: ia\n_SCN_X_RESULT = 'x'\nreturn _SCN_X_RESULT")
+                tmp, "-- @tier: human\n_SCN_X_RESULT = 'x'\nreturn _SCN_X_RESULT")
             responses = iter([
                 ("[X] STARTED", None),
                 ("[X] FAIL 1/5: something broke", None),
@@ -140,12 +140,12 @@ class RunInteractiveTests(unittest.TestCase):
             def http_post(code):
                 return next(responses)
 
-            code = ria.run_interactive(scenario, http_post, poll_interval=0, sleep=lambda s: None)
+            code = rms.run_interactive(scenario, http_post, poll_interval=0, sleep=lambda s: None)
             self.assertEqual(code, 1)
 
     def test_running_token_reinjects_full_source_to_advance(self):
         with tempfile.TemporaryDirectory() as tmp:
-            source = "-- @tier: ia\n_SCN_JTAC_RESULT = 'x'\nreturn _SCN_JTAC_RESULT"
+            source = "-- @tier: human\n_SCN_JTAC_RESULT = 'x'\nreturn _SCN_JTAC_RESULT"
             scenario = self._write_scenario(tmp, source)
             calls = []
             responses = iter([
@@ -158,7 +158,7 @@ class RunInteractiveTests(unittest.TestCase):
                 calls.append(code)
                 return next(responses)
 
-            code = ria.run_interactive(scenario, http_post, poll_interval=0, sleep=lambda s: None)
+            code = rms.run_interactive(scenario, http_post, poll_interval=0, sleep=lambda s: None)
             self.assertEqual(code, 0)
             self.assertEqual(len(calls), 3)
             # Every call after the RUNNING verdict must re-post the FULL source, not a small
@@ -185,7 +185,7 @@ class RunInteractiveTests(unittest.TestCase):
 
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
-                code = ria.run_interactive(scenario, http_post, poll_interval=0, sleep=lambda s: None)
+                code = rms.run_interactive(scenario, http_post, poll_interval=0, sleep=lambda s: None)
             self.assertEqual(code, 0)
             output = buf.getvalue()
             self.assertIn("step=1 SUCCESS", output)
@@ -212,7 +212,7 @@ class RunInteractiveTests(unittest.TestCase):
 
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
-                code = ria.run_interactive(
+                code = rms.run_interactive(
                     scenario, http_post, poll_interval=0, heartbeat_interval=30,
                     sleep=lambda s: None, now=lambda: next(ticks))
             self.assertEqual(code, 0)
@@ -242,7 +242,7 @@ class RunInteractiveTests(unittest.TestCase):
             ticks = iter([0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220])
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
-                code = ria.run_interactive(
+                code = rms.run_interactive(
                     scenario, http_post, poll_interval=0, heartbeat_interval=30,
                     sleep=lambda s: None, now=lambda: next(ticks))
             self.assertEqual(code, 0)
@@ -270,7 +270,7 @@ class RunInteractiveTests(unittest.TestCase):
 
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
-                code = ria.run_interactive(scenario, http_post, poll_interval=0,
+                code = rms.run_interactive(scenario, http_post, poll_interval=0,
                                             sleep=lambda s: None)
             self.assertEqual(code, 0)
 
@@ -285,29 +285,29 @@ class RunInteractiveTests(unittest.TestCase):
                     return None, "HTTP 504: timeout"
                 return "[X] STARTED", None  # injection succeeds
 
-            code = ria.run_interactive(scenario, http_post, poll_interval=0, max_errors=3,
+            code = rms.run_interactive(scenario, http_post, poll_interval=0, max_errors=3,
                                         sleep=lambda s: None)
             self.assertEqual(code, 1)
 
     def test_http_error_on_injection_returns_nonzero(self):
         with tempfile.TemporaryDirectory() as tmp:
-            scenario = self._write_scenario(tmp, "-- @tier: ia\nreturn 1")
+            scenario = self._write_scenario(tmp, "-- @tier: human\nreturn 1")
 
             def http_post(code):
                 return None, "connection error: refused"
 
-            code = ria.run_interactive(scenario, http_post, sleep=lambda s: None)
+            code = rms.run_interactive(scenario, http_post, sleep=lambda s: None)
             self.assertEqual(code, 1)
 
     def test_missing_result_var_after_started_returns_nonzero(self):
         with tempfile.TemporaryDirectory() as tmp:
             # STARTED but no _SCN_<ID>_RESULT global anywhere in source -- can't poll.
-            scenario = self._write_scenario(tmp, "-- @tier: ia\nreturn 'STARTED'")
+            scenario = self._write_scenario(tmp, "-- @tier: human\nreturn 'STARTED'")
 
             def http_post(code):
                 return "[X] STARTED", None
 
-            code = ria.run_interactive(scenario, http_post, sleep=lambda s: None)
+            code = rms.run_interactive(scenario, http_post, sleep=lambda s: None)
             self.assertEqual(code, 1)
 
 

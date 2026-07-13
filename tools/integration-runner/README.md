@@ -4,9 +4,9 @@
 an AI agent in the loop, for scenarios that don't need one (`auto`/`auto-check` tier — see the
 `integration-testing` skill for the full `@tier` taxonomy).
 
-`run_ia_scenario.py` does the same for one `ia`-tier scenario at a time (`pilotActive`/
+`run_manual_scenario.py` does the same for one `human`-tier scenario at a time (`pilotActive`/
 `pilotPassive`) — most of those don't need AI *judgment* either, just a live pilot; see
-[Interactive `ia` scenarios](#interactive-ia-scenarios-run_ia_scenariopy) below.
+[Interactive `human` scenarios](#interactive-human-scenarios-run_manual_scenariopy) below.
 
 **Dependency-free**: stdlib only (same convention as `tools/dcs-data/gen_dcs_types.py`). No
 `pip install`, no venv — any system Python 3.9+ runs it directly.
@@ -25,19 +25,19 @@ python tools/integration-runner/run_scenarios.py --list
 
 # Run every auto / auto-check scenario (the "no AI needed" set), inject CTLD.lua first.
 # For a FULL sweep add --reset-before-each (clears cross-scenario contamination between runs):
-python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld --reset-before-each
+python tools/integration-runner/run_scenarios.py --headless --inject-ctld --reset-before-each
 
 # Target a subset
 python tools/integration-runner/run_scenarios.py --dir noPlayer --tier auto
 python tools/integration-runner/run_scenarios.py --scenario F-178
 
 # Heavy AI-flight battery (auto-slow): no human, but minutes of real AI-heli flight each --
-# excluded from --no-ai on purpose. Run explicitly with a generous timeout (player parked in a
+# excluded from --headless on purpose. Run explicitly with a generous timeout (player parked in a
 # BLUE slot for the pos/country lookups):
 python tools/integration-runner/run_scenarios.py --tier auto-slow --poll-timeout 900
 
 # Custom report path (default --poll-timeout 180 already covers the slowest auto-check ~160s)
-python tools/integration-runner/run_scenarios.py --no-ai --junit-out out/results.xml
+python tools/integration-runner/run_scenarios.py --headless --junit-out out/results.xml
 ```
 
 Run `python tools/integration-runner/run_scenarios.py --help` for the full flag reference.
@@ -50,45 +50,45 @@ Run `python tools/integration-runner/run_scenarios.py --help` for the full flag 
   step machine, not just a poll of the result var. Both runners handle this the same way now:
   re-inject on `RUNNING`, same as polling on `STARTED`.
   - If that re-injection alone is enough to make progress (a timed delay between steps, no
-    physical action needed), the scenario belongs in `auto`/`auto-check` and `--no-ai` runs it
+    physical action needed), the scenario belongs in `auto`/`auto-check` and `--headless` runs it
     headlessly — re-injecting on a timer needs no human.
   - If a **physical DCS-side action** has to happen between injections (an aircraft landing in
-    a zone, an F10 click), the scenario stays tagged `ia` so `--no-ai` never selects it —
-    re-injecting alone can't make that physical action happen. Use `run_ia_scenario.py` for
+    a zone, an F10 click), the scenario stays tagged `human` so `--headless` never selects it —
+    re-injecting alone can't make that physical action happen. Use `run_manual_scenario.py` for
     those; there's a human present to do the physical part between its re-injections.
-  - **Don't assume `RUNNING` ⇒ `ia`** — check what actually gates the next step before tagging.
+  - **Don't assume `RUNNING` ⇒ `human`** — check what actually gates the next step before tagging.
     `scenario_jtac_crate_pack.lua`/`scenario_feature_k_jtac_vehicle.lua` used `RUNNING` but only
-    ever waited on a timer, no physical action; they were mistagged `ia` by the folder-default
+    ever waited on a timer, no physical action; they were mistagged `human` by the folder-default
     rule and are now `auto-check`. If a `RUNNING` scenario that genuinely needs a physical
-    action is ever reached by `run_scenarios.py` anyway (e.g. an explicit `--tier ia`),
+    action is ever reached by `run_scenarios.py` anyway (e.g. an explicit `--tier human`),
     re-injecting just spins harmlessly until `poll_timeout` and reports `FAIL` — no crash, just
     a plainer message than before.
 
 ### The `auto-slow` tier — no human, but minutes to resolve
 
-A third no-human tier sits between `auto-check` and `ia`: scenarios that resolve with no pilot and
-no F10, but take **minutes** to finish, so dropping them in the fast `--no-ai` sweep would stall
+A third no-human tier sits between `auto-check` and `human`: scenarios that resolve with no pilot and
+no F10, but take **minutes** to finish, so dropping them in the fast `--headless` sweep would stall
 the whole batch on one scenario (and spam the screen with 2s re-injects). Two shapes qualify:
 - **AI-heli flight** — needs an **AI helicopter** (`heliai_*`) to physically fly a multi-waypoint
   route to a pickup/dropoff zone before the next check can pass: MT-07..14 + `scenario_ai_troops`.
 - **Long internal timer chains** — resolves on its own but only after many minutes: the JTAC drone
   (`scenario_unpack_jtac_drone`, VERIFY steps up to T+795s ≈ 13 min).
 
-Tagged `auto-slow` and **excluded from `--no-ai`**; run deliberately with `--tier auto-slow
+Tagged `auto-slow` and **excluded from `--headless`**; run deliberately with `--tier auto-slow
 --poll-timeout 900` (player parked in a BLUE slot). The AI-battery's core logic is already covered
 fast/headlessly by the `noPlayer` `aiTransport_featureT/U` tests (F-176..182), so `auto-slow` is
 the heavier end-to-end complement, not the only coverage.
 
-## Interactive `ia` scenarios (`run_ia_scenario.py`)
+## Interactive `human` scenarios (`run_manual_scenario.py`)
 
-`pilotActive`/`pilotPassive` scenarios are tagged `ia` because dcs-bridge can't fly an
+`pilotActive`/`pilotPassive` scenarios are tagged `human` because dcs-bridge can't fly an
 aircraft — but most of them self-verify (same `checkMenuExpected()`-style logic as `auto`
-scenarios) and don't need an AI to *judge* anything. `run_ia_scenario.py` runs one of these
+scenarios) and don't need an AI to *judge* anything. `run_manual_scenario.py` runs one of these
 from your own terminal, no AI agent needed for the injection/polling loop:
 
 ```bash
-python tools/integration-runner/run_ia_scenario.py --scenario scenario_troop_menu_sol_vol_visual
-python tools/integration-runner/run_ia_scenario.py --scenario crate_menu_sol_vol_visual
+python tools/integration-runner/run_manual_scenario.py --scenario scenario_troop_menu_sol_vol_visual
+python tools/integration-runner/run_manual_scenario.py --scenario crate_menu_sol_vol_visual
 ```
 
 It injects the scenario, mirrors its in-game instruction text to the terminal (no alt-tabbing
@@ -116,14 +116,14 @@ second refresh") still prompt a human, but as F10 clicks in DCS same as any othe
 step — this script doesn't add a separate terminal-input path for that, it just removes the
 need for an AI to drive the loop.
 
-### What `ia` actually asks of you
+### What `human` actually asks of you
 
-Not every `ia`-tagged scenario needs the same thing from a human, and the folder-default rule
-(`pilotActive/`/`pilotPassive/` → always `ia`) doesn't tell you which. When retagging or
+Not every `human`-tagged scenario needs the same thing from a human, and the folder-default rule
+(`pilotActive/`/`pilotPassive/` → always `human`) doesn't tell you which. When retagging or
 authoring a scenario, note in the `@tier` comment which kind it is:
 
 - **slot only** — needs a BLUE unit connected for its position/groupId, nothing else (no
-  flight-state check, no F10 wait). This isn't really `ia` at all — retag it `auto`/`auto-check`
+  flight-state check, no F10 wait). This isn't really `human` at all — retag it `auto`/`auto-check`
   (see the mistagging example in [Scope boundary](#scope-boundary--running-vs-started) above).
 - **`ia (menu)`** — stationary, but needs an F10 click or a visual judgment call (e.g. F-046,
   F-047).
@@ -131,7 +131,7 @@ authoring a scenario, note in the `@tier` comment which kind it is:
   menu_sol_vol_visual.lua`, `scenario_troop_menu_sol_vol_visual.lua`).
 
 This is a plain-text qualifier in the comment, not a new value the tooling parses — `-- @tier:
-ia (fly)` still matches `ia` for tier filtering (`TIER_RE` only captures the token right after
+ia (fly)` still matches `human` for tier filtering (`TIER_RE` only captures the token right after
 `@tier:`). It exists so a human scanning a ticket's scenario list knows what to expect before
 starting: whether to expect to fly, just click, or nothing at all.
 
@@ -146,7 +146,7 @@ reload the mission from Lua to clear it.
 
 **Soft reset:** `--reset-before-each` injects `tests/dcs/_reset_state.lua` before every scenario
 — it prunes phantom players and rebuilds the real players' menus, re-establishing a clean
-player/menu baseline without a mission reload. `run_ia_scenario.py` does this automatically.
+player/menu baseline without a mission reload. `run_manual_scenario.py` does this automatically.
 Recommended for any full sweep. Scope is deliberately player/menu only (not zones/FOBs/scenes);
 if a scenario ever needs a deeper reset than that, the fallback is a human mission reload
 (Shift+R) — the soft reset handles every contamination case observed so far.

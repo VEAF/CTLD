@@ -1,24 +1,24 @@
 ---@diagnostic disable
--- @tier: ia (fly)  -- takeoff/landing required (sol/vol/sol menu check)
+-- @tier: human (fly)  -- takeoff/landing required (sol/vol/sol menu check)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_crate_menu_sol_vol_visual.lua
--- CTLD — Crate Commands menu : vérification sol / vol / sol (visual)
+-- CTLD — Crate Commands menu: ground / flight / ground check (visual)
 --
--- Mini-application de recette interactive : injection unique, avance
--- automatiquement (waitFor décollage/atterrissage) ou via menu F10
--- "Recette CTLD" (vérifications visuelles).
+-- Interactive test mini-app: single injection, advances
+-- automatically (waitFor takeoff/landing) or via the F10 menu
+-- "CTLD Test" (visual checks).
 --
--- Prérequis :
---   - Slot UH-1H BLUE occupé, hélico au sol près d'une zone logistique
---   - enableCrates=true, enablePackingVehicles=true dans la config
---   - canParachuteDrop=true, canSlingload=true pour le type UH-1H
+-- Prerequisites:
+--   - UH-1H BLUE slot occupied, helo on the ground near a logistics zone
+--   - enableCrates=true, enablePackingVehicles=true in the config
+--   - canParachuteDrop=true, canSlingload=true for the UH-1H type
 --
--- Cinématique (5 steps, injection unique) :
---   S1 [F10]  Vérifier menu sol          → OUI / NON / SKIP
---   S2 [auto] Charger crate + décoller   → détecté via inAir()
---   S3 [auto] Vérifier menu vol          → auto-vérifié
---   S4 [auto] Atterrir                   → détecté via not inAir()
---   S5 [auto] Vérifier menu sol restauré → auto-vérifié
+-- Sequence (5 steps, single injection):
+--   S1 [F10]  Check ground menu           → YES / NO / SKIP
+--   S2 [auto] Load crate + take off       → detected via inAir()
+--   S3 [auto] Check flight menu           → auto-checked
+--   S4 [auto] Land                        → detected via not inAir()
+--   S5 [auto] Check ground menu restored  → auto-checked
 --
 -- @scenario  CMFV
 -- @version   2.1 — 2026-06-30
@@ -34,13 +34,13 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_CMFV_RUNNING then
-    trigger.action.outText("[CMFV-VIS] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[CMFV-VIS] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_CMFV_RESULT or "[CMFV-VIS] RUNNING"
 end
 _SCN_CMFV_RUNNING = true
-_SCN_CMFV_CLEANUP = nil   -- exposé pour reset externe (reset script)
+_SCN_CMFV_CLEANUP = nil   -- exposed for external reset (reset script)
 
--- ── 3. Global show callback (closure Lua compatible MenuManager) ─────────────
+-- ── 3. Global show callback (Lua closure compatible with MenuManager) ────────
 _SCN_CMFV_INSTR = ""
 _SCN_CMFV_SHOW  = function()
     trigger.action.outText(_SCN_CMFV_INSTR, 30)
@@ -52,13 +52,13 @@ local cfg                  = CTLDConfig.get()
 local _savedDebug          = cfg.settings["debug"]
 local _savedDebugScreenLog = cfg.settings["debugScreenLog"]
 cfg.settings["debug"]          = true
-cfg.settings["debugScreenLog"] = false   -- traces internes via log() uniquement, pas écran
+cfg.settings["debugScreenLog"] = false   -- internal traces via log() only, not on screen
 
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG             = "[CMFV-VIS]"
 local NAME            = "Crate Commands menu — sol/vol/sol"
 local HUMAN_TIMEOUT_S = 3600  -- generous: a real pilot session, not a race against the clock
-local MENU_NAME       = "Recette CTLD"
+local MENU_NAME       = "CTLD Test"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }   -- inside CTLD (order=999 → last)
 local RESP_FLAG       = "CMFV_RESP"
 
@@ -70,7 +70,7 @@ local S = {
     failReasons = {},
     groupId     = nil,   -- player groupId for MenuManager lookups
     timerHandle = nil,
-    timerGen    = 0,     -- generation counter : invalide les timers d'une précédente waitFor
+    timerGen    = 0,     -- generation counter: invalidates timers from a previous waitFor
     transport   = nil,
 }
 
@@ -86,7 +86,7 @@ end
 local function pass(id, msg) S.passed = S.passed + 1 ; log("[PASS] "..id..": "..(msg or "")) end
 local function fail(id, msg) S.failed = S.failed + 1 ; table.insert(S.failReasons, id..": "..(msg or "")) ; log("[FAIL] "..id..": "..(msg or "")) end
 
--- Capture l'état réel du menu Crate Commands dans CTLD.log.
+-- Capture the real Crate Commands menu state into CTLD.log.
 local function logMenuSnapshot()
     local ok, err = pcall(function()
         local pm = CTLDPlayerManager.getInstance()
@@ -112,7 +112,7 @@ local function logMenuSnapshot()
                 if name ~= "" and not name:find(".", 1, true) then
                     if not seen[name] then
                         seen[name] = true
-                        local enabled = node.enabled ~= false and "VISIBLE" or "MASQUE "
+                        local enabled = node.enabled ~= false and "VISIBLE" or "HIDDEN "
                         table.insert(items, "  "..enabled.." : "..name)
                     end
                 else
@@ -120,7 +120,7 @@ local function logMenuSnapshot()
                     if parent and not seen[parent] then
                         seen[parent] = true
                         local parentNode = menu._lookup[prefix .. parent]
-                        local enabled = (parentNode and parentNode.enabled ~= false) and "VISIBLE" or "MASQUE "
+                        local enabled = (parentNode and parentNode.enabled ~= false) and "VISIBLE" or "HIDDEN "
                         table.insert(items, "  "..enabled.." : "..parent)
                     end
                 end
@@ -128,18 +128,18 @@ local function logMenuSnapshot()
         end
         table.sort(items)
         if #items == 0 then
-            log("[SNAPSHOT] Crate Commands : aucun item trouvé dans _lookup (prefix="..prefix..")")
+            log("[SNAPSHOT] Crate Commands: no item found in _lookup (prefix="..prefix..")")
         else
-            log("[SNAPSHOT] Crate Commands au moment de la réponse :\n"..table.concat(items, "\n"))
+            log("[SNAPSHOT] Crate Commands at response time:\n"..table.concat(items, "\n"))
         end
     end)
-    if not ok then log("[SNAPSHOT] ERREUR: "..tostring(err)) end
+    if not ok then log("[SNAPSHOT] ERROR: "..tostring(err)) end
 end
 
 -- ── 8. Cleanup ───────────────────────────────────────────────────────────────
 local function cleanup()
     if S.timerHandle then timer.removeFunction(S.timerHandle) ; S.timerHandle = nil end
-    -- Masquer le menu scénario via MenuManager (clearBranch + setBranchEnabled + refresh)
+    -- Hide the scenario menu via MenuManager (clearBranch + setBranchEnabled + refresh)
     if S.groupId then
         local mm = ctld.MenuManager:getInstance()
         local menu = mm and mm:getMenuByGroupId(S.groupId)
@@ -162,7 +162,7 @@ end
 
 -- ── 9. Timer helpers ─────────────────────────────────────────────────────────
 local function cancelTimer()
-    S.timerGen = S.timerGen + 1   -- invalide tout poll existant même si removeFunction échoue
+    S.timerGen = S.timerGen + 1   -- invalidate any existing poll even if removeFunction fails
     if S.timerHandle then
         pcall(timer.removeFunction, S.timerHandle)
         S.timerHandle = nil
@@ -174,7 +174,7 @@ local function waitFor(checkFn, intervalS, timeoutS, onSuccess, onFail)
     local myGen = S.timerGen
     local elapsed = 0
     local function poll()
-        if S.timerGen ~= myGen then return nil end  -- invalidé : arrêt silencieux
+        if S.timerGen ~= myGen then return nil end  -- invalidated: silent stop
         elapsed = elapsed + intervalS
         if checkFn() then
             S.timerHandle = nil ; onSuccess()
@@ -199,7 +199,7 @@ local function waitThen(delayS, callback)
 end
 
 -- Auto-verify Crate Commands menu state.
--- expected = list of {name=string, state="VISIBLE"|"MASQUE"|"ABSENT"}
+-- expected = list of {name=string, state="VISIBLE"|"HIDDEN"|"ABSENT"}
 -- Returns: ok (bool), issues (list of strings)
 local function checkMenuExpected(expected)
     local pm = CTLDPlayerManager.getInstance()
@@ -217,7 +217,7 @@ local function checkMenuExpected(expected)
     local cratesSub = ctld.tr("Crate Commands")
     local prefix    = root .. "." .. cratesSub .. "."
 
-    -- Build actual state map: itemName → "VISIBLE" | "MASQUE"
+    -- Build actual state map: itemName → "VISIBLE" | "HIDDEN"
     local actual = {}
     local seen   = {}
     for path, node in pairs(menu._lookup) do
@@ -227,7 +227,7 @@ local function checkMenuExpected(expected)
             if name and name ~= "" and not seen[name] then
                 seen[name] = true
                 local parentNode = menu._lookup[prefix .. name]
-                actual[name] = (parentNode and parentNode.enabled ~= false) and "VISIBLE" or "MASQUE"
+                actual[name] = (parentNode and parentNode.enabled ~= false) and "VISIBLE" or "HIDDEN"
             end
         end
     end
@@ -246,7 +246,7 @@ end
 -- ── 10. Finalization ─────────────────────────────────────────────────────────
 local function finalizeScenario()
     cancelTimer()
-    -- Masquer le menu scénario via MenuManager
+    -- Hide the scenario menu via MenuManager
     if S.groupId then
         local mm = ctld.MenuManager:getInstance()
         local menu = mm and mm:getMenuByGroupId(S.groupId)
@@ -272,14 +272,14 @@ local function finalizeScenario()
     if not ok then log("WARN cleanup: "..tostring(err)) ; _SCN_CMFV_RUNNING = false end
 end
 
--- ── 11. Step humain (MenuManager) ────────────────────────────────────────────
--- Le sous-menu "Recette CTLD" est créé UNE SEULE FOIS dans Start (order=999).
--- Seules les commandes enfants sont effacées/recréées entre les steps (clearBranch).
+-- ── 11. Human step (MenuManager) ─────────────────────────────────────────────
+-- The "CTLD Test" submenu is created ONLY ONCE in Start (order=999).
+-- Only the child commands are cleared/recreated between steps (clearBranch).
 local advanceStep
 
 local function setHumanStep(stepId, title, options)
     cancelTimer()
-    local myGen = S.timerGen  -- capture après cancelTimer (gen actuel)
+    local myGen = S.timerGen  -- capture after cancelTimer (current gen)
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm and mm:getMenuByGroupId(S.groupId)
@@ -290,13 +290,13 @@ local function setHumanStep(stepId, title, options)
         return
     end
 
-    -- Effacer les commandes du step précédent et reconstruire (assurer visibilité du nœud)
+    -- Clear the previous step's commands and rebuild (ensure the node is visible)
     pcall(function() menu:clearBranch(MENU_PATH) end)
     pcall(function() menu:setBranchEnabled(MENU_PATH, true) end)
     menu:addCommand(MENU_PATH, "↩ Step "..S.step..": "..title, _SCN_CMFV_SHOW)
 
     local function onResponse(opt_fn)
-        if S.timerGen ~= myGen then return end  -- doublon ou post-timeout : ignorer
+        if S.timerGen ~= myGen then return end  -- duplicate or post-timeout: ignore
         cancelTimer()
         pcall(function() menu:clearBranch(MENU_PATH) ; menu:refresh() end)
         logMenuSnapshot()
@@ -309,13 +309,13 @@ local function setHumanStep(stepId, title, options)
     end
     menu:refresh()
 
-    -- Timer de timeout (géré manuellement pour contrôler timerGen précisément)
+    -- Timeout timer (managed manually to control timerGen precisely)
     S.timerHandle = timer.scheduleFunction(function()
         if S.timerGen ~= myGen then return nil end
         S.timerHandle = nil
         log("[TIMEOUT] step "..S.step.." ("..stepId..") — ABORT")
         pcall(function() menu:clearBranch(MENU_PATH) ; menu:refresh() end)
-        fail(stepId, "timeout "..HUMAN_TIMEOUT_S.."s sans réponse")
+        fail(stepId, "timeout "..HUMAN_TIMEOUT_S.."s no response")
         finalizeScenario()
     end, nil, timer.getTime() + HUMAN_TIMEOUT_S)
 end
@@ -331,7 +331,7 @@ advanceStep = function()
     end
     local ok, err = pcall(steps[S.step])
     if not ok then
-        local msg = "S"..S.step.." ERREUR: "..tostring(err)
+        local msg = "S"..S.step.." ERROR: "..tostring(err)
         fail("S"..S.step, "pcall: "..tostring(err))
         trigger.action.outText(TAG.." ⚠️ "..msg, 15, false)
         advanceStep()
@@ -340,79 +340,79 @@ end
 
 -- ── 13. Steps ────────────────────────────────────────────────────────────────
 
--- S1 — Vérification menu sol + chargement crate [F10]
+-- S1 — Ground menu check + crate load [F10]
 steps[1] = function()
     if cfg.settings["enablePackingVehicles"] ~= true then
         instruct(
-            "Step 1/5 — ABORT PRÉREQUIS\n"..
-            "enablePackingVehicles=false dans la config.\n"..
-            "Ce test requiert enablePackingVehicles=true.\n"..
-            "Modifier la config et redémarrer."
+            "Step 1/5 — ABORT PREREQUISITE\n"..
+            "enablePackingVehicles=false in the config.\n"..
+            "This test requires enablePackingVehicles=true.\n"..
+            "Change the config and restart."
         )
-        fail("F-168", "enablePackingVehicles=false — test impossible")
+        fail("F-168", "enablePackingVehicles=false — test not possible")
         finalizeScenario()
         return
     end
     instruct(
-        "Step 1/5 — MENU SOL + CHARGER UNE CRATE (F-168)\n"..
-        "Prérequis : hélico au sol à portée d'une zone logistique\n"..
-        "\nA) Demander un équipement :\n"..
-        "  F10 → CTLD → Request Equipment → [zone] → [catégorie] → [item]\n"..
-        "  → un véhicule/équipement apparaît au sol\n"..
-        "\nB) Packer le véhicule en crate :\n"..
-        "  F10 → CTLD → Crate Commands → Pack Equipt → [nom du véhicule]\n"..
-        "  → le véhicule est remplacé par une crate au sol\n"..
-        "\nC) Vérifier F10 → CTLD → Crate Commands (après B, le Hummer est déjà packé — "..
-        "Pack Equipt disparaît normalement, plus rien à packer) :\n"..
+        "Step 1/5 — GROUND MENU + LOAD A CRATE (F-168)\n"..
+        "Prerequisite: helo on the ground within range of a logistics zone\n"..
+        "\nA) Request equipment:\n"..
+        "  F10 → CTLD → Request Equipment → [zone] → [category] → [item]\n"..
+        "  → a vehicle/equipment appears on the ground\n"..
+        "\nB) Pack the vehicle into a crate:\n"..
+        "  F10 → CTLD → Crate Commands → Pack Equipt → [vehicle name]\n"..
+        "  → the vehicle is replaced by a crate on the ground\n"..
+        "\nC) Check F10 → CTLD → Crate Commands (after B the Hummer is already packed — "..
+        "Pack Equipt normally disappears, nothing left to pack):\n"..
         "  ✅ VISIBLE  : Load Crate\n"..
         "  ✅ VISIBLE  : Drop Crate(s)\n"..
         "  ✅ VISIBLE  : Unpack Crate\n"..
         "  ✅ VISIBLE  : List Nearby Crates\n"..
-        "  ❌ MASQUÉ   : Parachute Crates\n"..
-        "  ❌ MASQUÉ   : Release Slingload\n"..
-        "  ❌ MASQUÉ   : Cut Slingload\n"..
-        "\nD) Charger la crate : F10 → CTLD → Crate Commands → Load Crate\n"..
-        "\nRépondre OUI/NON après A+B+C+D."
+        "  ❌ HIDDEN   : Parachute Crates\n"..
+        "  ❌ HIDDEN   : Release Slingload\n"..
+        "  ❌ HIDDEN   : Cut Slingload\n"..
+        "\nD) Load the crate: F10 → CTLD → Crate Commands → Load Crate\n"..
+        "\nAnswer YES/NO after A+B+C+D."
     )
-    setHumanStep("F-168", "Menu sol correct + crate chargée ?", {
-        { label = "OUI — menu OK et crate chargée",  fn = function() pass("F-168", "menu sol OK") ; advanceStep() end },
-        { label = "NON — menu incorrect",            fn = function() fail("F-168", "menu sol KO") ; advanceStep() end },
-        { label = "SKIP — ne peut vérifier",         fn = function() log("[SKIP] S1")             ; advanceStep() end },
+    setHumanStep("F-168", "Ground menu correct + crate loaded?", {
+        { label = "YES — menu OK and crate loaded",  fn = function() pass("F-168", "ground menu OK") ; advanceStep() end },
+        { label = "NO — menu incorrect",             fn = function() fail("F-168", "ground menu KO") ; advanceStep() end },
+        { label = "SKIP — cannot verify",            fn = function() log("[SKIP] S1")               ; advanceStep() end },
     })
 end
 
--- S2 — Décoller [auto]
+-- S2 — Take off [auto]
 steps[2] = function()
     instruct(
-        "Step 2/5 — DÉCOLLER (auto)\n"..
-        "Décoller — le scénario avancera automatiquement\n"..
-        "dès la détection du décollage."
+        "Step 2/5 — TAKE OFF (auto)\n"..
+        "Take off — the scenario will advance automatically\n"..
+        "as soon as takeoff is detected."
     )
     waitFor(
         function() return S.transport:isExist() and S.transport:inAir() end,
         3, 300,
-        function() pass("S2", "décollage détecté") ; advanceStep() end,
-        function() fail("S2", "timeout décollage") ; advanceStep() end
+        function() pass("S2", "takeoff detected") ; advanceStep() end,
+        function() fail("S2", "takeoff timeout") ; advanceStep() end
     )
 end
 
--- S3 — Vérification menu vol [AUTO]
+-- S3 — Flight menu check [AUTO]
 -- F-169: onTakeoff already calls refreshCrateFlightSection(playerObj, true) via _isFlying flag.
 -- waitThen(2) ensures DCS event processing is complete before the check.
 steps[3] = function()
     instruct(
-        "Step 3/5 — VÉRIFICATION AUTO MENU VOL (F-169)\n"..
-        "Vérification automatique du menu en cours (2s)…"
+        "Step 3/5 — AUTO CHECK FLIGHT MENU (F-169)\n"..
+        "Automatic menu check in progress (2s)…"
     )
     local EXPECTED_VOL = {
         { name = "Parachute Crates",  state = "VISIBLE" },
-        { name = "Load Crate",        state = "MASQUE"  },
-        { name = "Drop Crate(s)",     state = "MASQUE"  },
-        { name = "Unpack Crate",      state = "MASQUE"  },
-        { name = "List Nearby Crates",state = "MASQUE"  },
+        { name = "Load Crate",        state = "HIDDEN"  },
+        { name = "Drop Crate(s)",     state = "HIDDEN"  },
+        { name = "Unpack Crate",      state = "HIDDEN"  },
+        { name = "List Nearby Crates",state = "HIDDEN"  },
         { name = "Pack Equipt",       state = "ABSENT"  },
-        { name = "Release Slingload", state = "MASQUE"  },
-        { name = "Cut Slingload",     state = "MASQUE"  },
+        { name = "Release Slingload", state = "HIDDEN"  },
+        { name = "Cut Slingload",     state = "HIDDEN"  },
     }
     waitThen(2, function()
         local cm = CTLDCrateManager.getInstance()
@@ -426,13 +426,13 @@ steps[3] = function()
         local ok, issues = checkMenuExpected(EXPECTED_VOL)
         logMenuSnapshot()
         if ok then
-            pass("F-169", "menu vol auto-vérifié OK")
-            local msg = TAG.." ✅ F-169 menu vol OK (auto-vérifié)\nParachute Crates VISIBLE, Pack Equipt ABSENT."
+            pass("F-169", "flight menu auto-checked OK")
+            local msg = TAG.." ✅ F-169 flight menu OK (auto-checked)\nParachute Crates VISIBLE, Pack Equipt ABSENT."
             log("[AUTO-CHECK] F-169 PASS")
             trigger.action.outText(msg, 15, true)
         else
-            fail("F-169", "menu vol KO: "..table.concat(issues, " | "))
-            local msg = TAG.." ❌ F-169 menu vol KO (auto-vérifié)\n"..table.concat(issues, "\n")
+            fail("F-169", "flight menu KO: "..table.concat(issues, " | "))
+            local msg = TAG.." ❌ F-169 flight menu KO (auto-checked)\n"..table.concat(issues, "\n")
             log("[AUTO-CHECK] F-169 FAIL: "..table.concat(issues, " | "))
             trigger.action.outText(msg, 20, true)
         end
@@ -440,31 +440,31 @@ steps[3] = function()
     end)
 end
 
--- S4 — Atterrir sans parachuter [auto]
+-- S4 — Land without parachuting [auto]
 steps[4] = function()
     instruct(
-        "Step 4/5 — ATTERRIR (auto)\n"..
-        "Atterrir SANS utiliser Parachute Crates.\n"..
-        "Le scénario avancera automatiquement à la détection de l'atterrissage."
+        "Step 4/5 — LAND (auto)\n"..
+        "Land WITHOUT using Parachute Crates.\n"..
+        "The scenario will advance automatically when landing is detected."
     )
     waitFor(
         function() return S.transport:isExist() and not S.transport:inAir() end,
         3, 300,
-        function() pass("S4", "atterrissage détecté") ; advanceStep() end,
-        function() fail("S4", "timeout atterrissage") ; advanceStep() end
+        function() pass("S4", "landing detected") ; advanceStep() end,
+        function() fail("S4", "landing timeout") ; advanceStep() end
     )
 end
 
--- S5 — Vérification menu sol restauré [AUTO]
--- Key checks: Parachute Crates → MASQUE (was VISIBLE in flight).
+-- S5 — Ground menu restored check [AUTO]
+-- Key checks: Parachute Crates → HIDDEN (was VISIBLE in flight).
 --             Drop Crate(s)    → VISIBLE (crate still aboard).
 steps[5] = function()
     instruct(
-        "Step 5/5 — VÉRIFICATION AUTO SOL RESTAURÉ (F-170)\n"..
-        "Vérification automatique du menu en cours (2s)…"
+        "Step 5/5 — AUTO CHECK GROUND RESTORED (F-170)\n"..
+        "Automatic menu check in progress (2s)…"
     )
     local EXPECTED_SOL_KEY = {
-        { name = "Parachute Crates", state = "MASQUE"  },
+        { name = "Parachute Crates", state = "HIDDEN"  },
         { name = "Drop Crate(s)",    state = "VISIBLE" },
     }
     waitThen(2, function()
@@ -479,13 +479,13 @@ steps[5] = function()
         local ok, issues = checkMenuExpected(EXPECTED_SOL_KEY)
         logMenuSnapshot()
         if ok then
-            pass("F-170", "sol restauré auto-vérifié OK")
-            local msg = TAG.." ✅ F-170 sol restauré OK (auto-vérifié)\nParachute Crates MASQUÉ, Drop Crate(s) VISIBLE."
+            pass("F-170", "ground restored auto-checked OK")
+            local msg = TAG.." ✅ F-170 ground restored OK (auto-checked)\nParachute Crates HIDDEN, Drop Crate(s) VISIBLE."
             log("[AUTO-CHECK] F-170 PASS")
             trigger.action.outText(msg, 15, true)
         else
-            fail("F-170", "sol restauré KO: "..table.concat(issues, " | "))
-            local msg = TAG.." ❌ F-170 sol restauré KO (auto-vérifié)\n"..table.concat(issues, "\n")
+            fail("F-170", "ground restored KO: "..table.concat(issues, " | "))
+            local msg = TAG.." ❌ F-170 ground restored KO (auto-checked)\n"..table.concat(issues, "\n")
             log("[AUTO-CHECK] F-170 FAIL: "..table.concat(issues, " | "))
             trigger.action.outText(msg, 20, true)
         end
@@ -511,13 +511,13 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
     _SCN_CMFV_RESULT = "[CMFV-VIS] ABORT"
     return _SCN_CMFV_RESULT
 end
 
--- Récupérer le groupId du joueur via CTLDPlayerManager
+-- Get the player's groupId via CTLDPlayerManager
 local pm_start = CTLDPlayerManager.getInstance()
 local playerObjStart
 if pm_start and pm_start._players then
@@ -527,39 +527,39 @@ if pm_start and pm_start._players then
         end
     end
     if not playerObjStart then
-        -- Fallback: premier joueur disponible
+        -- Fallback: first available player
         for _, p in pairs(pm_start._players) do playerObjStart = p ; break end
     end
 end
 if not playerObjStart then
-    trigger.action.outText(TAG.." ABORT : no CTLD playerObj for transport.", 20)
+    trigger.action.outText(TAG.." ABORT: no CTLD playerObj for transport.", 20)
     _SCN_CMFV_RESULT = "[CMFV-VIS] ABORT"
     cleanup() ; return _SCN_CMFV_RESULT
 end
 
 S.groupId = playerObjStart.groupId
 
--- Créer le sous-menu "Recette CTLD" sous "CTLD" via MenuManager (order=999 → dernier)
--- Le nesting garantit que "Recette CTLD" est reconstruit avec l'arbre CTLD à chaque
--- refresh → reste après "CTLD" dans la liste F10, jamais devant.
+-- Create the "CTLD Test" submenu under "CTLD" via MenuManager (order=999 → last)
+-- Nesting guarantees "CTLD Test" is rebuilt with the CTLD tree on every
+-- refresh → stays after "CTLD" in the F10 list, never before it.
 local mm_init   = ctld.MenuManager:getInstance()
 local menu_init = mm_init and mm_init:getMenuByGroupId(S.groupId)
 if not menu_init then
-    trigger.action.outText(TAG.." ABORT : no CTLD MenuManager menu for player group.", 20)
+    trigger.action.outText(TAG.." ABORT: no CTLD MenuManager menu for player group.", 20)
     _SCN_CMFV_RESULT = "[CMFV-VIS] ABORT"
     cleanup() ; return _SCN_CMFV_RESULT
 end
 menu_init:addSubMenu({ ctld.tr("CTLD") }, MENU_NAME, { order = 0 })
--- addSubMenu est idempotent : si le nœud existait déjà (cleanup précédent), il ne met pas à jour
--- order ni enabled. Forcer les deux via _getNode.
+-- addSubMenu is idempotent: if the node already existed (previous cleanup), it does not update
+-- order nor enabled. Force both via _getNode.
 local _rNode = menu_init:_getNode(MENU_PATH)
 if _rNode then _rNode.order = 0 ; _rNode.enabled = true end
 menu_init:refresh()
 
-_SCN_CMFV_CLEANUP = cleanup   -- exposé pour reset externe
+_SCN_CMFV_CLEANUP = cleanup   -- exposed for external reset
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | 5 steps ===")
-trigger.action.outText(TAG.." démarrage — 5 steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." start — 5 steps | "..S.transport:getName(), 8)
 _SCN_CMFV_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_CMFV_RESULT until PASS/FAIL
 advanceStep()
 

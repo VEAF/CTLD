@@ -1,12 +1,12 @@
 ---@diagnostic disable
 -- @tier: auto
 -- =============================================================================
--- AUTO — CL-9: ctld.pickupZones → CTLDTroopZone instanciation (legacy compat)
+-- AUTO — CL-9: ctld.pickupZones → CTLDTroopZone instantiation (legacy compat)
 -- =============================================================================
--- F-CL9-1 : trigger zone entry → CTLDTroopZone créé, stock/smoke/active/coalition OK
+-- F-CL9-1 : trigger zone entry → CTLDTroopZone created, stock/smoke/active/coalition OK
 -- F-CL9-2 : limit=-1 → pickMaxStock=0 (unlimited) ; hasPickup()=true
--- F-CL9-3 : stockFlagName = zoneName.."_count" ; setUserFlag appelé sur consumeStock
--- F-CL9-4 : ship unit name fallback → CTLDTroopZone créé avec position ship
+-- F-CL9-3 : stockFlagName = zoneName.."_count" ; setUserFlag called on consumeStock
+-- F-CL9-4 : ship unit name fallback → CTLDTroopZone created with ship position
 --
 -- Prerequisites : none (fully mocked)
 -- Family        : auto
@@ -28,7 +28,7 @@ _SCN_CL9_RUNNING = true
 _SCN_CL9_RESULT = "[CL9] STARTED"
 
 do  -- isolation scope
-trigger.action.outText("[CL9] START — pickupZones legacy instanciation", 8)
+trigger.action.outText("[CL9] START — pickupZones legacy instantiation", 8)
 
 local cfg          = CTLDConfig.get()
 local _saved_debug = cfg.settings["debug"]
@@ -96,10 +96,10 @@ if not ok then
     fail = fail + 1
 end
 
--- ── F-CL9-1 : trigger zone instanciée correctement ───────────────────────────
-ctld.utils.log("INFO", "── F-CL9-1 : trigger zone instanciation ──")
+-- ── F-CL9-1 : trigger zone instantiated correctly ────────────────────────────
+ctld.utils.log("INFO", "── F-CL9-1 : trigger zone instantiation ──")
 local tz = zm._troopZones["testpickzone"]
-check("F-CL9-1.1 zone créée",            tz ~= nil,          true)
+check("F-CL9-1.1 zone created",          tz ~= nil,          true)
 if tz then
     check("F-CL9-1.2 center.x",          tz.center.x,        100)
     check("F-CL9-1.3 radius",            tz.radius,          500)
@@ -142,7 +142,7 @@ end
 -- ── F-CL9-4 : ship fallback ───────────────────────────────────────────────────
 ctld.utils.log("INFO", "── F-CL9-4 : ship unit fallback ──")
 local sz = zm._troopZones["USS_Tarawa"]
-check("F-CL9-4.1 ship zone créée",       sz ~= nil,          true)
+check("F-CL9-4.1 ship zone created",     sz ~= nil,          true)
 if sz then
     check("F-CL9-4.2 center.x = ship pos", sz.center.x,      500)
     check("F-CL9-4.3 radius from config",  sz.radius > 0,    true)

@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- @tier: ia (menu)  (never resolves programmatically -- requires F10 visual confirmation)
+-- @tier: human (menu)  (never resolves programmatically -- requires F10 visual confirmation)
 -- F-46 : Double refresh() idempotent — menu looks identical after second refresh
 -- REQUIRES: F-45 executed first (menu already built)
 trigger.action.outText("F-46: Double refresh() idempotent", 10)

@@ -2,13 +2,13 @@
 -- @tier: auto
 -- =============================================================================
 -- aiTransport_featureT_stockParsing_F176.lua  [AUTO]
--- F-176 — Feature T : vérification du parsing troopStock/vehicleStock tables
+-- F-176 — Feature T: troopStock/vehicleStock table parsing check
 --
--- PRÉREQUIS : CTLD initialisé, zones de debug présentes dans le .miz
+-- PREREQUISITE: CTLD initialized, debug zones present in the .miz
 --   (AIZ_base_B_P_5, AIZ_depot_B_P_T_10, AIZ_depot_B_P_V_10, AIZ_depot_B_P_TV_5_10)
 --
--- OBJECTIF : vérifier que _loadAIZonesFromConfig() peuple correctement
---   les champs _aiTroopStock et _aiVehicleStock sur les CTLDTroopZone créées.
+-- GOAL: verify that _loadAIZonesFromConfig() correctly populates
+--   the _aiTroopStock and _aiVehicleStock fields on the created CTLDTroopZone objects.
 -- =============================================================================
 
 -- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
@@ -33,7 +33,7 @@ local _savedDebug          = cfg.settings["debug"]
 local _savedDebugScreenLog = cfg.settings["debugScreenLog"]
 cfg.settings["debug"]          = true
 cfg.settings["debugScreenLog"] = true
-local _saved_debug = _savedDebug  -- alias pour compatibilité avec le code existant
+local _saved_debug = _savedDebug  -- alias for compatibility with existing code
 
 local TAG   = "[F-176]"
 local START = os.date("%Y-%m-%d %H:%M:%S")
@@ -62,7 +62,7 @@ local _ok, _err = pcall(function()
 
     -- ── Zone AIZ_base_B_P_5 : troopStock={Standard Group=5, Anti Tank=2} ──────
     local zBase = zm._troopZones["AIZ_base_B_P_5"]
-    check("F-176.1", "AIZ_base_B_P_5 existe", zBase ~= nil)
+    check("F-176.1", "AIZ_base_B_P_5 exists", zBase ~= nil)
     if zBase then
         local ts = zBase._aiTroopStock
         check("F-176.2", "_aiTroopStock non-nil",   ts ~= nil)
@@ -80,7 +80,7 @@ local _ok, _err = pcall(function()
 
     -- ── Zone AIZ_depot_B_P_T_10 : troopStock={All=-1} ────────────────────────
     local zAll = zm._troopZones["AIZ_depot_B_P_T_10"]
-    check("F-176.9", "AIZ_depot_B_P_T_10 existe", zAll ~= nil)
+    check("F-176.9", "AIZ_depot_B_P_T_10 exists", zAll ~= nil)
     if zAll then
         local ts = zAll._aiTroopStock
         check("F-176.10", "_aiTroopStock.isAll=true", ts and ts.isAll == true, tostring(ts and ts.isAll))
@@ -88,7 +88,7 @@ local _ok, _err = pcall(function()
 
     -- ── Zone AIZ_depot_B_P_V_10 : vehicleStock={Hummer=3, M1025...=-1} ───────
     local zVeh = zm._troopZones["AIZ_depot_B_P_V_10"]
-    check("F-176.11", "AIZ_depot_B_P_V_10 existe", zVeh ~= nil)
+    check("F-176.11", "AIZ_depot_B_P_V_10 exists", zVeh ~= nil)
     if zVeh then
         local vs = zVeh._aiVehicleStock
         check("F-176.12", "_aiVehicleStock non-nil",    vs ~= nil)
@@ -102,7 +102,7 @@ local _ok, _err = pcall(function()
 
     -- ── Zone AIZ_depot_B_P_TV_5_10 : troopStock={All=-1}, vehicleStock={Hummer=5} ──
     local zTV = zm._troopZones["AIZ_depot_B_P_TV_5_10"]
-    check("F-176.17", "AIZ_depot_B_P_TV_5_10 existe", zTV ~= nil)
+    check("F-176.17", "AIZ_depot_B_P_TV_5_10 exists", zTV ~= nil)
     if zTV then
         local ts = zTV._aiTroopStock
         local vs = zTV._aiVehicleStock
@@ -112,7 +112,7 @@ local _ok, _err = pcall(function()
               tostring(vs and vs.init["Hummer"]))
     end
 
-    report("✅ F-176 ALL PASS — troopStock/vehicleStock tables correctement parsées")
+    report("✅ F-176 ALL PASS — troopStock/vehicleStock tables parsed correctly")
 
 end)
 

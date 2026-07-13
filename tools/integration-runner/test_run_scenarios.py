@@ -110,6 +110,25 @@ class FilterScenariosTests(unittest.TestCase):
         self.assertEqual(len(out), 4)
 
 
+class DefaultTiersTests(unittest.TestCase):
+    def _fake(self, tier):
+        return rs.ScenarioInfo(path=Path("x.lua"), rel_dir="pilotPassive", tier=tier)
+
+    def test_excludes_disabled_tier(self):
+        scenarios = [self._fake("auto"), self._fake("auto-slow"), self._fake("disabled")]
+        self.assertEqual(rs.default_tiers(scenarios), ["auto", "auto-slow"])
+
+    def test_no_disabled_present(self):
+        scenarios = [self._fake("auto"), self._fake("auto-check")]
+        self.assertEqual(rs.default_tiers(scenarios), ["auto", "auto-check"])
+
+    def test_disabled_reachable_only_when_explicit(self):
+        scenarios = [self._fake("auto"), self._fake("disabled")]
+        self.assertNotIn("disabled", rs.default_tiers(scenarios))
+        out = rs.filter_scenarios(scenarios, tiers=["disabled"])
+        self.assertEqual(len(out), 1)
+
+
 class DiscoverScenariosTests(unittest.TestCase):
     def test_discovers_and_skips_templates(self):
         with tempfile.TemporaryDirectory() as tmp:

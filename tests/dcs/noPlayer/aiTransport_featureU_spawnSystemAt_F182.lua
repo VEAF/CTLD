@@ -4,21 +4,21 @@
 -- aiTransport_featureU_spawnSystemAt_F182.lua  [AUTO]
 -- F-182 — Feature U : spawnSystemAt — positions, limit gate, event
 --
--- PRÉREQUIS : CTLD initialisé, CTLDCrateAssemblyManager accessible.
---   Ne nécessite pas de zones DCS dans le .miz.
+-- PREREQUISITES: CTLD initialized, CTLDCrateAssemblyManager accessible.
+--   Does not require any DCS zones in the .miz.
 --
--- OBJECTIF : vérifier que spawnSystemAt() :
---   F-182.1  template inconnu → return false, aucun spawn
---   F-182.2  limite atteinte  → return false, outText coalition
---   F-182.3  HAWK (3 launchers par défaut) → positions et types corrects
+-- GOAL: verify that spawnSystemAt():
+--   F-182.1  unknown template → return false, no spawn
+--   F-182.2  limit reached    → return false, coalition outText
+--   F-182.3  HAWK (3 launchers by default) → correct positions and types
 --            - #positions = 1 (Hawk ln ×aaLaunchers) + 2 (Hawk tr) + 2 (Hawk sr) +
---              1 (Hawk pcp NoCrate) + 2 (Hawk cwar NoCrate) = non — amount défini dans template
+--              1 (Hawk pcp NoCrate) + 2 (Hawk cwar NoCrate) = no — amount defined in template
 --              HAWK: launcher (amount=aaLaunchers=3), tr (amount=2), sr (amount=2),
 --              pcp (NoCrate, amount=1), cwar (NoCrate, amount=2) → total = 3+2+2+1+2 = 10
---   F-182.4  OnAASystemDeployed event publié avec systemName correct
---   F-182.5  spawnedGroup enregistré dans _completeSystems
+--   F-182.4  OnAASystemDeployed event published with correct systemName
+--   F-182.5  spawnedGroup registered in _completeSystems
 --
--- NOTE : dynAdd est stubbé en mock pour éviter le spawn DCS réel.
+-- NOTE: dynAdd is stubbed with a mock to avoid a real DCS spawn.
 -- =============================================================================
 
 -- ── CTLD-ready guard ─────────────────────────────────────────────────────────
@@ -68,18 +68,18 @@ local aam = CTLDCrateAssemblyManager.getInstance()
 
 -- ── Mocks ─────────────────────────────────────────────────────────────────────
 
--- Mock dynAdd pour intercepter le spawn sans injecter en DCS
+-- Mock dynAdd to intercept the spawn without injecting into DCS
 local _orig_dynAdd = ctld.utils.dynAdd
 local _lastGroupData = nil
 local _dynAddCalled  = false
 ctld.utils.dynAdd = function(caller, groupData)
     _lastGroupData  = groupData
     _dynAddCalled   = true
-    -- Simuler un résultat Group avec name
+    -- Simulate a Group result with name
     return { name = groupData.name }
 end
 
--- Mock Group.getByName pour retourner un stub
+-- Mock Group.getByName to return a stub
 local _orig_GBN = Group.getByName
 local _stubGroup = {
     getName    = function() return "STUB_HAWK_GROUP" end,
@@ -91,65 +91,65 @@ Group.getByName = function(name)
     return _orig_GBN(name)
 end
 
--- Mock EventDispatcher pour capturer l'event
+-- Mock EventDispatcher to capture the event
 local _eventPublished = nil
 local _origED_publish = EventDispatcher.getInstance().publish
 EventDispatcher.getInstance().publish = function(self, evtName, data)
     _eventPublished = { name = evtName, data = data }
 end
 
--- ── F-182.1 : template inconnu → false ───────────────────────────────────────
+-- ── F-182.1 : unknown template → false ───────────────────────────────────────
 local r1 = aam:spawnSystemAt("Unknown System", {x=0,y=0,z=0}, coalition.side.BLUE, 2)
-check("F-182.1", "spawnSystemAt inconnu → false", r1 == false)
+check("F-182.1", "spawnSystemAt unknown → false", r1 == false)
 
--- ── F-182.2 : limite atteinte → false ────────────────────────────────────────
+-- ── F-182.2 : limit reached → false ──────────────────────────────────────────
 local _orig_countComplete = aam.countComplete
 local _orig_getAllowed     = aam.getAllowedCount
 aam.countComplete    = function() return 20 end
 aam.getAllowedCount   = function() return 20 end
 
 local r2 = aam:spawnSystemAt("HAWK AA System", {x=0,y=0,z=0}, coalition.side.BLUE, 2)
-check("F-182.2", "spawnSystemAt limite atteinte → false", r2 == false)
+check("F-182.2", "spawnSystemAt limit reached → false", r2 == false)
 
 aam.countComplete  = _orig_countComplete
 aam.getAllowedCount = _orig_getAllowed
 
--- ── F-182.3 : HAWK — positions générées ─────────────────────────────────────
+-- ── F-182.3 : HAWK — positions generated ─────────────────────────────────────
 _dynAddCalled  = false
 _lastGroupData = nil
 _eventPublished = nil
 
--- Forcer aaLaunchers=3 (défaut)
+-- Force aaLaunchers=3 (default)
 local cfg_saved_aa = cfg.settings["aaLaunchers"]
 cfg.settings["aaLaunchers"] = 3
 
 local testPt = { x = 100, y = 10, z = 200 }
 local r3 = aam:spawnSystemAt("HAWK AA System", testPt, coalition.side.BLUE, 2)
 check("F-182.3", "spawnSystemAt HAWK → true", r3 == true)
-check("F-182.3b", "dynAdd appelé", _dynAddCalled)
+check("F-182.3b", "dynAdd called", _dynAddCalled)
 
 -- HAWK parts: launcher (×aaLaunchers=3), tr (×2), sr (×2), pcp (NoCrate ×1), cwar (NoCrate ×2)
 -- total units = 3 + 2 + 2 + 1 + 2 = 10
 if _lastGroupData then
     local nUnits = #_lastGroupData.units
-    check("F-182.3c", "10 unités générées (3+2+2+1+2)",
+    check("F-182.3c", "10 units generated (3+2+2+1+2)",
           nUnits == 10, "nUnits=" .. tostring(nUnits))
-    -- Vérifier que le premier type est "Hawk ln" (launcher en premier dans TEMPLATES)
+    -- Verify the first type is "Hawk ln" (launcher first in TEMPLATES)
     local firstType = _lastGroupData.units[1] and _lastGroupData.units[1].type
-    check("F-182.3d", "1ère unité type='Hawk ln'",
+    check("F-182.3d", "1st unit type='Hawk ln'",
           firstType == "Hawk ln", tostring(firstType))
-    -- Vérifier que tous les x/z sont différents de l'origine (cercle décalé)
+    -- Verify all x/z differ from the origin (offset circle)
     local allOffset = true
     for _, u in ipairs(_lastGroupData.units) do
         if u.x == testPt.x and u.y == testPt.z then allOffset = false end
     end
-    check("F-182.3e", "toutes les positions décalées de l'origine (cercle)", allOffset)
+    check("F-182.3e", "all positions offset from the origin (circle)", allOffset)
 end
 
 cfg.settings["aaLaunchers"] = cfg_saved_aa
 
--- ── F-182.4 : event OnAASystemDeployed publié ────────────────────────────────
-check("F-182.4", "OnAASystemDeployed publié",
+-- ── F-182.4 : OnAASystemDeployed event published ──────────────────────────────
+check("F-182.4", "OnAASystemDeployed published",
       _eventPublished ~= nil and _eventPublished.name == "OnAASystemDeployed",
       tostring(_eventPublished and _eventPublished.name))
 if _eventPublished and _eventPublished.data then
@@ -161,20 +161,20 @@ if _eventPublished and _eventPublished.data then
           tostring(_eventPublished.data.coalition))
 end
 
--- ── F-182.5 : _completeSystems peuplé ────────────────────────────────────────
+-- ── F-182.5 : _completeSystems populated ──────────────────────────────────────
 local found = false
 for grpName, entry in pairs(aam._completeSystems) do
     if entry.template and entry.template.name == "HAWK AA System" then
         found = true
     end
 end
-check("F-182.5", "_completeSystems contient l'entrée HAWK", found)
+check("F-182.5", "_completeSystems contains the HAWK entry", found)
 
--- ── Restauration mocks ────────────────────────────────────────────────────────
+-- ── Mock restoration ──────────────────────────────────────────────────────────
 ctld.utils.dynAdd = _orig_dynAdd
 Group.getByName   = _orig_GBN
 EventDispatcher.getInstance().publish = _origED_publish
--- Nettoyer _completeSystems du stub
+-- Clean the stub from _completeSystems
 for grpName, entry in pairs(aam._completeSystems) do
     if entry.template and entry.template.name == "HAWK AA System" then
         aam._completeSystems[grpName] = nil

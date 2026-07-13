@@ -1,27 +1,33 @@
 ---@diagnostic disable
--- @tier: auto-slow  (no human, but needs minutes of real AI-heli flight to resolve -- excluded from the fast --no-ai sweep; run with --tier auto-slow. Core logic already covered fast by noPlayer aiTransport_featureT/U F-176..182. See ticket 06/07)
+-- @tier: disabled  (QUARANTINE -- code AND mission are both correct: the Land-task point is
+--   INSIDE the pickup zone (8 m from centre, verified in Test_CTLDNEXT_01.miz). But the DCS AI
+--   helo orbits the LZ without ever landing on this exact spot (terrain/pathfinding, not CTLD),
+--   so the whole-cycle test never completes -- fails even at a 900 s timeout. Logic coverage is
+--   assured fast+deterministic by noPlayer aiTransport_featureT/U (F-176..182) and by the sibling
+--   scenarios that pass (mt09/mt10/mt12/mt13). Excluded from every default sweep; reachable only
+--   via `--tier disabled`. To re-enable: relocate this group's Land point to clearer terrain.)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_mt08_ai_vehicle.lua
--- CTLD — AI auto-pickup / auto-dropoff : véhicule entier seul (posé → posé)
+-- CTLD — AI auto-pickup / auto-dropoff: whole vehicle alone (landed → landed)
 --
--- Mini-application de recette interactive : injection unique, avance
--- automatiquement (waitFor) pour détecter le loadVehicle et l'unloadVehicle.
+-- Interactive test mini-app: single injection, advances
+-- automatically (waitFor) to detect loadVehicle and unloadVehicle.
 --
--- Prérequis :
---   - Héli BLUE nommé "heliai_vehicle" (UH-1H), sans pilote humain
---   - Route : WP posé sur AIZ_depot_B_P_V_10 → vol → WP posé sur AIZ_livraison_B_D_G
---   - Zone DCS trigger "AIZ_depot_B_P_V_10"  (rayon ~200 m, V=vehicles only, stock=10)
---   - Zone DCS trigger "AIZ_livraison_B_D_G" (rayon ~200 m, LZ de livraison)
---   - M1045 HMMWV BLUE nommé "hmmwv_cargo" positionné dans AIZ_depot_B_P
---   - capabilitiesByType UH-1H : canTransportWholeVehicle=true
---   - Slot BLUE occupé (joueur humain pour MenuManager)
---   - CTLD.lua injecté avant ce script (attendre 3-5 s)
+-- Prerequisites:
+--   - BLUE helo named "heliai_vehicle" (UH-1H), no human pilot
+--   - Route: WP landed on AIZ_depot_B_P_V_10 → flight → WP landed on AIZ_livraison_B_D_G
+--   - DCS trigger zone "AIZ_depot_B_P_V_10"  (radius ~200 m, V=vehicles only, stock=10)
+--   - DCS trigger zone "AIZ_livraison_B_D_G" (radius ~200 m, delivery LZ)
+--   - BLUE M1045 HMMWV named "hmmwv_cargo" positioned in AIZ_depot_B_P
+--   - capabilitiesByType UH-1H: canTransportWholeVehicle=true
+--   - BLUE slot occupied (human player for MenuManager)
+--   - CTLD.lua injected before this script (wait 3-5 s)
 --
--- Cinématique (4 steps, injection unique) :
---   S1 [auto]  Init + activation héli AI
---   S2 [auto]  Attente loadVehicle (véhicule chargé) via waitFor
---   S3 [auto]  Attente unloadVehicle (véhicule déchargé) via waitFor
---   S4 [auto]  Finalisation
+-- Sequence (4 steps, single injection):
+--   S1 [auto]  Init + AI helo activation
+--   S2 [auto]  Wait for loadVehicle (vehicle loaded) via waitFor
+--   S3 [auto]  Wait for unloadVehicle (vehicle unloaded) via waitFor
+--   S4 [auto]  Finalization
 --
 -- @scenario  MT-08
 -- @version   3.0 — 2026-06-30
@@ -37,7 +43,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_MT08_RUNNING then
-    trigger.action.outText("[MT-08] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[MT-08] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_MT08_RESULT or "[MT-08] RUNNING"
 end
 _SCN_MT08_RUNNING = true
@@ -59,12 +65,12 @@ cfg.settings["debugScreenLog"] = false
 
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG       = "[MT-08]"
-local NAME      = "AI auto-pickup/dropoff véhicule entier"
-local MENU_NAME = "Recette CTLD"
+local NAME      = "AI auto-pickup/dropoff whole vehicle"
+local MENU_NAME = "CTLD Test"
 local MENU_PATH = { ctld.tr("CTLD"), MENU_NAME }
 
-local AI_SRC  = "heliai_vehicle"      -- source late-activation dans le .miz (jamais activé)
-local AI_UNIT = "heliai_vehicle_run"  -- clone temporaire (spawné + détruit en cleanup)
+local AI_SRC  = "heliai_vehicle"      -- late-activation source in the .miz (never activated)
+local AI_UNIT = "heliai_vehicle_run"  -- temporary clone (spawned + destroyed in cleanup)
 local AIZ_P   = "AIZ_depot_B_P_V_10"
 local AIZ_D   = "AIZ_livraison_B_D_G"
 
@@ -83,7 +89,7 @@ local S = {
 -- ── 7. Helpers ───────────────────────────────────────────────────────────────
 local function log(msg) ctld.utils.log("INFO", "%s %s", TAG, msg) end
 
--- Clone helpers (ctld.utils.deepCopy retourne nil — deepCopy locale obligatoire)
+-- Clone helpers (ctld.utils.deepCopy returns nil — local deepCopy required)
 local function deepCopy(orig)
     local copy
     if type(orig) == "table" then
@@ -258,18 +264,18 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
 
 -- ── 12. Steps ────────────────────────────────────────────────────────────────
 
--- S1 — Init + activation héli AI [auto]
+-- S1 — Init + AI helo activation [auto]
 steps[1] = function()
     instruct(
-        "Step 1/4 — INIT AI TRANSPORT VÉHICULE (MT-08)\n"..
-        "Initialisation des transports AI en cours…"
+        "Step 1/4 — INIT AI VEHICLE TRANSPORT (MT-08)\n"..
+        "Initializing AI transports…"
     )
     waitThen(1, function()
         cfg.settings["transportPilotNames"] = { AI_UNIT }
@@ -278,9 +284,9 @@ steps[1] = function()
         local zm = CTLDZoneManager.getInstance()
         local zP = zm._troopZones[AIZ_P]
         local zD = zm._troopZones[AIZ_D]
-        check("MT-08.1.1", "AIZ_P zone trouvée : "..AIZ_P, zP ~= nil)
+        check("MT-08.1.1", "AIZ_P zone found: "..AIZ_P, zP ~= nil)
         if zP then check("MT-08.1.2", "AIZ_P.isAIPickup=true", zP.isAIPickup == true) end
-        check("MT-08.1.3", "AIZ_D zone trouvée : "..AIZ_D, zD ~= nil)
+        check("MT-08.1.3", "AIZ_D zone found: "..AIZ_D, zD ~= nil)
         if zD then
             check("MT-08.1.4", "AIZ_D.isAIDropoff=true", zD.isAIDropoff == true)
             check("MT-08.1.5", "AIZ_D.aiDropMode='G'", zD.aiDropMode == "G",
@@ -288,14 +294,14 @@ steps[1] = function()
         end
 
         local cloneG, cloneErr = spawnClone(AI_SRC, AI_UNIT)
-        check("MT-08.1.6", "Clone '"..AI_UNIT.."' spawné depuis '"..AI_SRC.."'",
+        check("MT-08.1.6", "Clone '"..AI_UNIT.."' spawned from '"..AI_SRC.."'",
               cloneG ~= nil, tostring(cloneErr))
 
         local unit = Unit.getByName(AI_UNIT)
         if unit then
-            check("MT-08.1.7", "Sans pilote humain", unit:getPlayerName() == nil)
+            check("MT-08.1.7", "No human pilot", unit:getPlayerName() == nil)
             local caps = (ctld.gs("capabilitiesByType") or {})[unit:getTypeName()] or {}
-            check("MT-08.1.8", "canTransportWholeVehicle configuré", caps.canTransportWholeVehicle == true)
+            check("MT-08.1.8", "canTransportWholeVehicle configured", caps.canTransportWholeVehicle == true)
         end
 
         local okVS, vs = pcall(CTLDVehicleSpawner.getInstance)
@@ -312,7 +318,7 @@ steps[1] = function()
                     end
                 end
             end
-            check("MT-08.1.9", "Au moins 1 véhicule WAITING dans la zone "..AIZ_P, vehInZone > 0,
+            check("MT-08.1.9", "At least 1 WAITING vehicle in zone "..AIZ_P, vehInZone > 0,
                 "count_in_zone="..vehInZone)
         end
 
@@ -321,18 +327,18 @@ steps[1] = function()
         for _, t in ipairs(lv) do if t == "Hummer" then hvFound = true; break end end
         if not hvFound then table.insert(lv, "Hummer"); cfg.settings["loadableVehiclesBLUE"] = lv end
 
-        log("STEP 1 OK — Héli activé, attente pose sur "..AIZ_P)
+        log("STEP 1 OK — helo activated, waiting for landing on "..AIZ_P)
         advanceStep()
     end)
 end
 
--- S2 — Attente loadVehicle (véhicule chargé) [waitFor]
+-- S2 — Wait for loadVehicle (vehicle loaded) [waitFor]
 steps[2] = function()
     instruct(
-        "Step 2/4 — ATTENTE CHARGE VÉHICULE (MT-08)\n"..
-        "L'héli "..AI_UNIT.." doit se poser sur "..AIZ_P.." avec le HMMWV.\n"..
-        "Détection automatique du chargement.\n"..
-        "Timeout : 300 s."
+        "Step 2/4 — WAIT FOR VEHICLE LOAD (MT-08)\n"..
+        "Helo "..AI_UNIT.." must land on "..AIZ_P.." with the HMMWV.\n"..
+        "Automatic load detection.\n"..
+        "Timeout: 300 s."
     )
     waitFor(
         function()
@@ -348,36 +354,36 @@ steps[2] = function()
             local unit = Unit.getByName(AI_UNIT)
             local ok, vs = pcall(CTLDVehicleSpawner.getInstance)
             if not ok or not vs then
-                fail("MT-08.2.1", "CTLDVehicleSpawner indisponible")
+                fail("MT-08.2.1", "CTLDVehicleSpawner unavailable")
                 advanceStep() ; return
             end
             local loaded = vs:findLoadedVehicles(unit)
             local hasVeh = loaded and #loaded > 0
-            check("MT-08.2.1", "Véhicule chargé à bord après posé sur "..AIZ_P, hasVeh,
+            check("MT-08.2.1", "Vehicle loaded aboard after landing on "..AIZ_P, hasVeh,
                 "nb_loaded="..tostring(loaded and #loaded or 0))
             if hasVeh then
                 local veh = loaded[1]
-                log("Véhicule chargé: id="..tostring(veh.id).." type="..tostring(veh.vehicleType))
+                log("Vehicle loaded: id="..tostring(veh.id).." type="..tostring(veh.vehicleType))
                 local vehDcsUnit = veh.unit
-                check("MT-08.2.2", "Véhicule DCS masqué (état LOADED)",
+                check("MT-08.2.2", "DCS vehicle hidden (LOADED state)",
                     vehDcsUnit == nil or not vehDcsUnit:isExist() or veh:getState() == CTLDVehicle.STATE.LOADED)
             end
             advanceStep()
         end,
         function()
-            fail("MT-08.2.1", "timeout 300s — pas de chargement sur "..AIZ_P)
+            fail("MT-08.2.1", "timeout 300s — no load on "..AIZ_P)
             advanceStep()
         end
     )
 end
 
--- S3 — Attente unloadVehicle (véhicule déchargé) [waitFor]
+-- S3 — Wait for unloadVehicle (vehicle unloaded) [waitFor]
 steps[3] = function()
     instruct(
-        "Step 3/4 — ATTENTE DÉCHARGE VÉHICULE (MT-08)\n"..
-        "L'héli "..AI_UNIT.." doit se poser sur "..AIZ_D..".\n"..
-        "Détection automatique du déchargement.\n"..
-        "Timeout : 600 s."
+        "Step 3/4 — WAIT FOR VEHICLE UNLOAD (MT-08)\n"..
+        "Helo "..AI_UNIT.." must land on "..AIZ_D..".\n"..
+        "Automatic unload detection.\n"..
+        "Timeout: 600 s."
     )
     waitFor(
         function()
@@ -393,18 +399,18 @@ steps[3] = function()
             local unit = Unit.getByName(AI_UNIT)
             local ok, vs = pcall(CTLDVehicleSpawner.getInstance)
             if not ok or not vs then
-                fail("MT-08.3.1", "CTLDVehicleSpawner indisponible")
+                fail("MT-08.3.1", "CTLDVehicleSpawner unavailable")
                 advanceStep() ; return
             end
             local loaded = vs:findLoadedVehicles(unit)
             local hasVeh = loaded and #loaded > 0
-            check("MT-08.3.1", "Véhicule déchargé après posé sur "..AIZ_D, not hasVeh,
+            check("MT-08.3.1", "Vehicle unloaded after landing on "..AIZ_D, not hasVeh,
                 "nb_loaded="..tostring(loaded and #loaded or 0))
-            log("Unload confirmé — HMMWV apparu près de "..AIZ_D)
+            log("Unload confirmed — HMMWV appeared near "..AIZ_D)
             advanceStep()
         end,
         function()
-            fail("MT-08.3.1", "timeout 600s — pas de déchargement sur "..AIZ_D)
+            fail("MT-08.3.1", "timeout 600s — no unload on "..AIZ_D)
             advanceStep()
         end
     )
@@ -412,9 +418,9 @@ end
 
 -- S4 — Finalisation [auto]
 steps[4] = function()
-    instruct("Step 4/4 — FINALISATION")
+    instruct("Step 4/4 — FINALIZATION")
     waitThen(1, function()
-        log("MT-08 cycle complet (pickup "..AIZ_P.." → unload "..AIZ_D..")")
+        log("MT-08 full cycle (pickup "..AIZ_P.." → unload "..AIZ_D..")")
         advanceStep()
     end)
 end
@@ -437,8 +443,8 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    _SCN_MT08_RESULT = TAG.." ABORT: aucun joueur BLUE"
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    _SCN_MT08_RESULT = TAG.." ABORT: no BLUE player"
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
     return _SCN_MT08_RESULT
 end
@@ -457,7 +463,7 @@ if pm_start and pm_start._players then
 end
 if not playerObjStart then
     _SCN_MT08_RESULT = TAG.." ABORT: no CTLD playerObj for transport"
-    trigger.action.outText(TAG.." ABORT : no CTLD playerObj for transport.", 20)
+    trigger.action.outText(TAG.." ABORT: no CTLD playerObj for transport.", 20)
     cleanup() ; return _SCN_MT08_RESULT
 end
 
@@ -467,7 +473,7 @@ local mm_init   = ctld.MenuManager:getInstance()
 local menu_init = mm_init and mm_init:getMenuByGroupId(S.groupId)
 if not menu_init then
     _SCN_MT08_RESULT = TAG.." ABORT: no CTLD MenuManager menu for player group"
-    trigger.action.outText(TAG.." ABORT : no CTLD MenuManager menu for player group.", 20)
+    trigger.action.outText(TAG.." ABORT: no CTLD MenuManager menu for player group.", 20)
     cleanup() ; return _SCN_MT08_RESULT
 end
 menu_init:addSubMenu({ ctld.tr("CTLD") }, MENU_NAME, { order = 0 })
@@ -479,7 +485,7 @@ _SCN_MT08_CLEANUP = cleanup
 
 _SCN_MT08_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_MT08_RESULT until PASS/FAIL
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." start — "..#steps.." steps | "..S.transport:getName(), 8)
 advanceStep()
 
 end  -- do isolation scope

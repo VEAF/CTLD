@@ -34,10 +34,10 @@ local TAG      = "[FRP]"
 local STEP_VAR = "_FRP_STEP"
 
 trigger.action.outText(
-    "[FRP] FARP Repack recette\n"
-    .. "PRE : UH-1H BLUE au sol\n"
+    "[FRP] FARP Repack test\n"
+    .. "PRE : UH-1H BLUE on the ground\n"
     .. "RUN : step 1 => CS FARP deploy (~15 s)\n"
-    .. "      step 2 => re-injecter a T+20 pour checks",
+    .. "      step 2 => re-inject at T+20 for the checks",
     20)
 
 -- ── helpers ───────────────────────────────────────────────────────────────────
@@ -145,7 +145,7 @@ elseif step == 2 then
     end
     if not scene then
         -- Scene deployment (playSceneAtPos, step 1) takes ~15-20s to actually register in
-        -- _active. A tight automated poll/re-inject loop (e.g. run_ia_scenario.py, every 2s)
+        -- _active. A tight automated poll/re-inject loop (e.g. run_manual_scenario.py, every 2s)
         -- will hit this well before that -- that's expected, not a failure: retry a bounded
         -- number of times (not indefinitely, so a genuine regression still fails).
         local retries = (_G["_FRP_STEP2_RETRIES"] or 0) + 1
@@ -252,7 +252,7 @@ elseif step == 2 then
 elseif step >= 99 then
 
     report("═══════════════════════════════════════")
-    report("FRP — FARP Repack recette complete")
+    report("FRP — FARP Repack test complete")
     report("Cases covered: F-MT16.1 -> F-MT16.8")
     report("═══════════════════════════════════════")
     -- Reset for a fresh re-injection, and flag this pass as terminal so the return logic

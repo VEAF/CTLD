@@ -3,11 +3,11 @@
 -- =============================================================================
 -- AUTO — CL-10: addPlayerAircraftByType gate
 -- =============================================================================
--- F-CL10-1 : addPlayerAircraftByType=true  → tout joueur UH-1H obtient le menu
--- F-CL10-2 : addPlayerAircraftByType=false + unitName dans transportPilotNames
---            → menu construit
--- F-CL10-3 : addPlayerAircraftByType=false + unitName absent de transportPilotNames
---            → menu NON construit (early return)
+-- F-CL10-1 : addPlayerAircraftByType=true  → any UH-1H player gets the menu
+-- F-CL10-2 : addPlayerAircraftByType=false + unitName in transportPilotNames
+--            → menu built
+-- F-CL10-3 : addPlayerAircraftByType=false + unitName not in transportPilotNames
+--            → menu NOT built (early return)
 --
 -- Prerequisites : none (fully mocked)
 -- Family        : auto
@@ -78,7 +78,7 @@ pm.buildMenu = function(self, playerObj)
     _menuBuilt = true
 end
 
--- ── F-CL10-1 : addPlayerAircraftByType=true → menu construit ────────────────
+-- ── F-CL10-1 : addPlayerAircraftByType=true → menu built ────────────────────
 ctld.utils.log("INFO", "── F-CL10-1 : addPlayerAircraftByType=true ──")
 cfg.settings["addPlayerAircraftByType"] = true
 cfg.settings["transportPilotNames"]     = { "other_slot" }
@@ -93,7 +93,7 @@ if not ok then
 end
 check("F-CL10-1 menu built when addPlayerAircraftByType=true", _menuBuilt, true)
 
--- ── F-CL10-2 : addPlayerAircraftByType=false + nom dans liste → menu construit
+-- ── F-CL10-2 : addPlayerAircraftByType=false + name in list → menu built ─────
 ctld.utils.log("INFO", "── F-CL10-2 : false + unitName in transportPilotNames ──")
 cfg.settings["addPlayerAircraftByType"] = false
 cfg.settings["transportPilotNames"]     = { "uh1h_slot_whitelisted", "other_slot" }
@@ -108,7 +108,7 @@ if not ok then
 end
 check("F-CL10-2 menu built when unit in whitelist", _menuBuilt, true)
 
--- ── F-CL10-3 : addPlayerAircraftByType=false + nom absent → pas de menu ──────
+-- ── F-CL10-3 : addPlayerAircraftByType=false + name absent → no menu ─────────
 ctld.utils.log("INFO", "── F-CL10-3 : false + unitName NOT in transportPilotNames ──")
 cfg.settings["addPlayerAircraftByType"] = false
 cfg.settings["transportPilotNames"]     = { "other_slot" }

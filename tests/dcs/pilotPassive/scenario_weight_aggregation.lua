@@ -11,10 +11,10 @@
 --   Phase 3 — Disembark troops                         → weight == 2500
 --   Phase 4 — Unload crate                             → weight == 0
 --
--- Cinématique (1 step auto) :
---   S1 [auto]  4 phases séquentielles, injection unique
+-- Sequence (1 auto step):
+--   S1 [auto]  4 sequential phases, single injection
 --
--- Prérequis: slot BLUE UH-1H occupé.
+-- Pre-requisites: BLUE UH-1H slot occupied.
 --
 -- @scenario  WGT
 -- @version   3.0 — 2026-06-30
@@ -30,7 +30,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_WGT_RUNNING then
-    trigger.action.outText("[WGT] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[WGT] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_WGT_RESULT or "[WGT] RUNNING"
 end
 _SCN_WGT_RUNNING = true
@@ -53,7 +53,7 @@ cfg.settings["debugScreenLog"] = false
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG             = "[WGT]"
 local NAME            = "Weight aggregation — 4 phases"
-local MENU_NAME       = "Recette CTLD"
+local MENU_NAME       = "CTLD Test"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }
 local CRATE_NAME      = "SCN_WGT_HUMMER_CRATE"
 local TROOP_W         = 320   -- 4 soldiers × 80 kg
@@ -102,7 +102,7 @@ local function cleanup()
             end)
         end
     end
-    -- Nettoyage état de test
+    -- Clean up test state
     if S.transport then
         local tm = CTLDTroopManager.getInstance()
         local cm = CTLDCrateManager.getInstance()
@@ -168,7 +168,7 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
@@ -245,7 +245,7 @@ steps[1] = function()
     cm.crates[CRATE_NAME]     = nil
     pcall(trigger.action.setUnitInternalCargo, playerName, 0)
 
-    log("S1 done — finalisation")
+    log("S1 done — finalization")
     advanceStep()
 end
 
@@ -267,7 +267,7 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
     _SCN_WGT_RESULT = "[WGT] ABORT"
     return _SCN_WGT_RESULT
@@ -308,7 +308,7 @@ menu_init:refresh()
 _SCN_WGT_CLEANUP = cleanup
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 _SCN_WGT_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_WGT_RESULT until PASS/FAIL
 advanceStep()
 

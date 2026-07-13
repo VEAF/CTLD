@@ -111,8 +111,8 @@ filters on — it must reflect what the scenario actually needs, not just its fo
 | Tier | Operative test |
 |---|---|
 | `auto` | A single `exec_lua` call returns the definitive verdict (`PASS`/`FAIL`/`ABORT`). No player, no polling, no human/AI judgment. Includes scenarios using a *mocked* timer that fires synchronously. |
-| `auto-check` | Resolves automatically (no human/AI judgment) but not in one call — returns `STARTED`/`RUNNING`, a real timer/`waitFor` (or a re-injected step machine) resolves `_SCN_<ID>_RESULT` within seconds. The runner polls or re-injects. Fast enough for the `--no-ai` sweep. |
-| `auto-slow` | No human either, but takes **minutes** to resolve — either an AI helicopter (`heliai_*`) flying a multi-waypoint route to a pickup/dropoff zone, or a long internal timer chain (e.g. the JTAC drone's ~13 min of VERIFY steps). Excluded from `--no-ai` (would spam + stall the sweep); run explicitly with `--tier auto-slow --poll-timeout 900`. Player just parked in a slot. |
+| `auto-check` | Resolves automatically (no human/AI judgment) but not in one call — returns `STARTED`/`RUNNING`, a real timer/`waitFor` (or a re-injected step machine) resolves `_SCN_<ID>_RESULT` within seconds. The runner polls or re-injects. Fast enough for the `--headless` sweep. |
+| `auto-slow` | No human either, but takes **minutes** to resolve — either an AI helicopter (`heliai_*`) flying a multi-waypoint route to a pickup/dropoff zone, or a long internal timer chain (e.g. the JTAC drone's ~13 min of VERIFY steps). Excluded from `--headless` (would spam + stall the sweep); run explicitly with `--tier auto-slow --poll-timeout 900`. Player just parked in a slot. |
 | `ia` | Needs a human in the loop — a live player who must FLY (takeoff/land, `ia (fly)`) or CLICK an F10 item / make a visual judgment the code never checks (`ia (menu)`). dcs-bridge has no flight-control API, so these can't be automated at all. |
 
 Default for new scenarios: `noPlayer/` → `auto` unless it genuinely needs polling (`auto-check`)
@@ -131,8 +131,8 @@ For `auto`/`auto-check` scenarios, you don't need to drive the injection loop by
 Claude) — `tools/integration-runner/run_scenarios.py` runs them headlessly against a live
 `dcs-serve` and writes a JUnit report. Dependency-free (stdlib only), reads the same
 `dcs-client.yaml`. See `tools/integration-runner/README.md` for the full flag reference; typical
-use: `python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld`. `ia`-tier
-scenarios (player/F10 required) are never selected by `--no-ai`.
+use: `python tools/integration-runner/run_scenarios.py --headless --inject-ctld`. `ia`-tier
+scenarios (player/F10 required) are never selected by `--headless`.
 
 For a **full back-to-back sweep** add `--reset-before-each`: scenarios share CTLD's singletons
 and some leave residue (phantom `_players`, a wiped player menu) that aborts the next
@@ -142,7 +142,7 @@ reload the mission from Lua). Running one scenario at a time doesn't need it.
 
 Most `ia`-tier `pilotActive`/`pilotPassive` scenarios self-verify (same `checkMenuExpected()`
 pattern as `auto`) and only need a live pilot, not AI judgment — run those interactively from
-the terminal with `tools/integration-runner/run_ia_scenario.py --scenario <name>` instead of
+the terminal with `tools/integration-runner/run_manual_scenario.py --scenario <name>` instead of
 this skill's manual `exec_lua` loop (see that tool's README for details, including how to
 restart a crashed test by just re-running the same command). Fall back to the manual
 `exec_lua` loop below only for genuine visual/subjective-judgment scenarios (e.g. "menu looks

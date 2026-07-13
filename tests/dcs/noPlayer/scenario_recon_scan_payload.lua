@@ -3,29 +3,29 @@
 -- =============================================================================
 -- AUTO — Recon scan : OnReconScan payload (activeLayers / targets / markId)
 -- =============================================================================
--- Ré-intègre la relique morte F-009 qui exige le VRAI moteur DCS (raycast LOS
--- réel via land.isVisible contre de vraies unités ennemies), impossible à mocker
--- en busted :
+-- Re-integrates the dead relic F-009 which requires the REAL DCS engine (real LOS
+-- raycast via land.isVisible against real enemy units), impossible to mock
+-- in busted:
 --
---   F-009 : scan() → publie OnReconScan avec un payload {activeLayers, targets},
---           et crée un markId (> 0) pour chaque cible ennemie détectée en LOS.
+--   F-009: scan() → publishes OnReconScan with a payload {activeLayers, targets},
+--          and creates a markId (> 0) for each enemy target detected in LOS.
 --
--- L'observateur est une VRAIE unité au sol spawnée par le scénario (getUnitsLOS
--- résout l'observateur via Unit.getByName — un mock ne serait pas trouvé). Le
--- scan est résolu de façon SYNCHRONE (targets calculés + event publié dans le
--- même appel) → tier `auto`. Le timer d'auto-refresh laissé par scan() est
--- arrêté dans le cleanup via stopScan().
+-- The observer is a REAL ground unit spawned by the scenario (getUnitsLOS
+-- resolves the observer via Unit.getByName — a mock would not be found). The
+-- scan is resolved SYNCHRONOUSLY (targets computed + event published in the
+-- same call) → tier `auto`. The auto-refresh timer left by scan() is
+-- stopped in cleanup via stopScan().
 --
--- Pré-requis mission : au moins UNE unité ennemie (RED ou BLUE) présente, sinon
--- il n'y a rien à détecter en LOS → ABORT clair. Les assertions de markId ne
--- s'exécutent que si des cibles sont réellement détectées (la LOS dépend du
--- terrain/relief ; l'observateur est spawné ~1500 m d'un ennemi pour maximiser
--- les chances, mais une LOS bloquée reste possible et n'est PAS un échec).
+-- Mission prerequisite: at least ONE enemy unit (RED or BLUE) present, otherwise
+-- there is nothing to detect in LOS → clear ABORT. The markId assertions run
+-- only if targets are actually detected (LOS depends on the
+-- terrain/relief; the observer is spawned ~1500 m from an enemy to maximise
+-- the odds, but a blocked LOS remains possible and is NOT a failure).
 --
--- Signatures vérifiées dans src/CTLD_recon.lua (2026-07-11) :
+-- Signatures verified in src/CTLD_recon.lua (2026-07-11):
 --   scan(playerUnit, player)  l.577  — gate: ctld.gs("reconF10Menu"), l.580
 --   publish OnReconScan {player, activeLayers, targets, totalTargetsDetected, ...} l.650
---   _scanLOS via ctld.utils.getUnitsLOS (Unit.getByName sur l'observateur) l.397
+--   _scanLOS via ctld.utils.getUnitsLOS (Unit.getByName on the observer) l.397
 -- =============================================================================
 
 -- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────

@@ -1,11 +1,11 @@
 ---@diagnostic disable
 -- @tier: auto
 -- ============================================================
--- JTAC Toggle Lasing — recette automatique
+-- JTAC Toggle Lasing — automatic scenario
 -- ============================================================
--- Vérifie toggleStandby : basculement standbyMode, arrêt/reprise
--- lasing, labels dynamiques menu, confirmation messages.
--- Famille : auto (aucune intervention humaine)
+-- Verifies toggleStandby: standbyMode toggle, lasing stop/resume,
+-- dynamic menu labels, confirmation messages.
+-- Family: auto (no human intervention)
 -- ============================================================
 
 -- ── CTLD-ready guard ───────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ check("F-TL-2c confirmation msg sent",    #capturedMsgs == 1)
 check("F-TL-2d msg contains 'activated'", capturedMsgs[1] and capturedMsgs[1]:find("activated") ~= nil)
 check("F-TL-2e _rebuildJTACCommandBranch called", rebuildCalled == true)
 
--- ── F-TL-3 : label dynamique selon état ─────────────────────
+-- ── F-TL-3 : dynamic label based on state ───────────────────
 mockJTAC.standbyMode = false
 local labelActive = mockJTAC.standbyMode
     and ctld.tr("Lasing [activate]")
@@ -111,7 +111,7 @@ local labelStandby = mockJTAC.standbyMode
 check("F-TL-3b label when standby = [activate]",
     labelStandby == ctld.tr("Lasing [activate]"))
 
--- ── F-TL-4 : JTAC inexistant → message erreur ───────────────
+-- ── F-TL-4 : nonexistent JTAC → error message ───────────────
 capturedMsgs = {}
 mgr:toggleStandby("nonexistent_jtac", GROUP_ID)
 check("F-TL-4 unknown JTAC → error msg", #capturedMsgs == 1)
@@ -122,7 +122,7 @@ trigger.action.outTextForGroup   = _origOut
 mgr._rebuildJTACCommandBranch    = _origRebuild
 mgr.startLase                    = _origStartLase
 
--- ── Résultat ─────────────────────────────────────────────────
+-- ── Result ───────────────────────────────────────────────────
 local total = passed + failed
 local msg = string.format("[F-TL] %d/%d PASS", passed, total)
 if #failures > 0 then msg = msg .. " | FAIL: " .. table.concat(failures, ", ") end

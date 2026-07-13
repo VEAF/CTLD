@@ -11,13 +11,13 @@
 --   F-138 : guard B — zombie loop auto-stops when instance is replaced
 --   F-139 : shutdown_ctld.lua — cancelAll clears all IDs
 --
--- Cinématique (4 steps automatiques, injection unique) :
---   S1 [auto] F-135 : opérations de base du scheduler
---   S2 [auto] F-136/F-137 : enregistrement des boucles après init CTLD
+-- Sequence (4 automatic steps, single injection):
+--   S1 [auto] F-135 : scheduler basic operations
+--   S2 [auto] F-136/F-137 : loop registration after CTLD init
 --   S3 [auto] F-138 : guard B — zombie loop auto-stop
 --   S4 [auto] F-139 : cancelAll + re-registration
 --
--- Prérequis :
+-- Prerequisites:
 --   - CTLD fully initialised (inject CTLD.lua + 5s wait)
 --   - Inject CTLD.lua first, wait 3–5 s for init.
 --
@@ -35,7 +35,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_SCHED_RUNNING then
-    trigger.action.outText("[SCHED] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[SCHED] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_SCHED_RESULT or "[SCHED] RUNNING"
 end
 _SCN_SCHED_RUNNING = true
@@ -139,7 +139,7 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
@@ -148,7 +148,7 @@ end
 
 -- S1 — F-135 : ctld.scheduler basic operations
 steps[1] = function()
-    instruct("Step 1/4 — F-135 : opérations de base du scheduler (auto)")
+    instruct("Step 1/4 — F-135 : scheduler basic operations (auto)")
 
     -- F-135.1 : scheduler exists and has _ids table
     check("F-135.1", "ctld.scheduler exists", ctld.scheduler ~= nil)
@@ -210,7 +210,7 @@ end
 
 -- S2 — F-136/F-137 : loop registration after CTLD init
 steps[2] = function()
-    instruct("Step 2/4 — F-136/F-137 : enregistrement des boucles (auto)")
+    instruct("Step 2/4 — F-136/F-137 : loop registration (auto)")
 
     -- F-136 : _scheduleRefresh registers beacon_refresh
     local beaconEnabled = ctld.gs("enabledRadioBeaconDrop")
@@ -261,7 +261,7 @@ steps[3] = function()
 
     local bm = CTLDBeaconManager.getInstance()
 
-    -- Simuler le remplacement du singleton : swapper _instance vers une autre table
+    -- Simulate replacing the singleton: swap _instance to another table
     local _realInstance = CTLDBeaconManager._instance
     local fakeInstance  = {}
     CTLDBeaconManager._instance = fakeInstance
@@ -272,7 +272,7 @@ steps[3] = function()
         refreshAllCalled = refreshAllCalled + 1
     end
 
-    -- Reproduire la closure de production exacte
+    -- Reproduce the exact production closure
     local self_ref = bm
     local returnedVal = nil
     local function refresh(_, t)
@@ -315,7 +315,7 @@ end
 steps[4] = function()
     instruct("Step 4/4 — F-139 : cancelAll + re-registration (auto)")
 
-    -- Snapshot du nombre d'IDs avant cancel
+    -- Snapshot of the ID count before cancel
     local countBefore = 0
     for _ in pairs(ctld.scheduler._ids) do countBefore = countBefore + 1 end
     check("F-139.1", "scheduler has ≥1 registered loop before cancelAll",
@@ -333,7 +333,7 @@ steps[4] = function()
         ctld.scheduler._ids["test_post_cancel"] == 9999)
     ctld.scheduler.cancel("test_post_cancel")
 
-    -- Re-init beacon loop pour restaurer l'opération normale
+    -- Re-init beacon loop to restore normal operation
     if ctld.gs("enabledRadioBeaconDrop") then
         CTLDBeaconManager.getInstance():_scheduleRefresh()
         check("F-139.4", "beacon_refresh re-registered after re-init",
@@ -344,8 +344,8 @@ steps[4] = function()
 end
 
 -- ── 14. Start ────────────────────────────────────────────────────────────────
--- Ce scénario n'a pas besoin du transport joueur (tests purement internes),
--- mais on tente de le récupérer pour les logs.
+-- This scenario does not need the player transport (purely internal tests),
+-- but we attempt to look it up for the logs.
 S.transport = (function()
     local ok, pm = pcall(CTLDPlayerManager.getInstance)
     if ok and pm and pm._players then
@@ -361,7 +361,7 @@ _SCN_SCHED_CLEANUP = cleanup
 
 local transportStr = S.transport and S.transport:getName() or "(no player)"
 log("=== START: "..NAME.." | transport="..transportStr.." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps automatiques", 8)
+trigger.action.outText(TAG.." starting — "..#steps.." automatic steps", 8)
 _SCN_SCHED_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_SCHED_RESULT until PASS/FAIL
 advanceStep()
 

@@ -13,7 +13,7 @@
 --   F-143 : disembarkIndex(2) disembarks group 2 first; group 1 remains
 --   F-144 : _menuCheckCargo with 2 groups → multi-line format with TOTAL line
 --
--- Cinématique (3 steps auto) :
+-- Flow (3 auto steps):
 --   S1 [auto]  F-140/F-141 structure menu single vs multi-group
 --   S2 [auto]  F-142/F-143 disembark operations
 --   S3 [auto]  F-144 _menuCheckCargo
@@ -36,7 +36,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_MG_TRANSPORT_RUNNING then
-    trigger.action.outText("[MG-TRANSPORT] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[MG-TRANSPORT] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_MG_TRANSPORT_RESULT or "[MG-TRANSPORT] RUNNING"
 end
 _SCN_MG_TRANSPORT_RUNNING = true
@@ -60,7 +60,7 @@ cfg.settings["debugScreenLog"] = false
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG             = "[MG-TRANSPORT]"
 local NAME            = "Multi-group transport + disembark menu"
-local MENU_NAME       = "Recette CTLD"
+local MENU_NAME       = "CTLD Test"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }
 
 -- ── 6. State ─────────────────────────────────────────────────────────────────
@@ -268,7 +268,7 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
@@ -399,7 +399,7 @@ steps[3] = function()
     check("F-144.4", "Check Cargo: [2] index listed",
         capturedMsg ~= nil and capturedMsg:find("[2]", 1, true) ~= nil)
 
-    log("S3 done — finalisation")
+    log("S3 done — finalizing")
     advanceStep()
 end
 
@@ -421,7 +421,7 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
     _SCN_MGTRANSPORT_RESULT = "[MG-TRANSPORT] ABORT"
     return _SCN_MGTRANSPORT_RESULT
@@ -462,7 +462,7 @@ menu_init:refresh()
 _SCN_MG_TRANSPORT_CLEANUP = cleanup
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 _SCN_MGTRANSPORT_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_MGTRANSPORT_RESULT until PASS/FAIL
 advanceStep()
 
