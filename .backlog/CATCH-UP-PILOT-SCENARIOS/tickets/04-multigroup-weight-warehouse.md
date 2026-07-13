@@ -1,6 +1,6 @@
 # 04 — Multi-group / weight / warehouse
 
-Status: 🚧 in progress
+Status: ✅ done (4/5 PASS; `scenario_warehouse_cycle` deferred — blocked on a missing DCS mod)
 Type: mixed — 4 of 5 retagged `auto-check` (audited before running, per the ticket 03 lesson);
 only `scenario_warehouse_cycle.lua` is genuine `ia (fly)`
 
@@ -52,7 +52,11 @@ Run the 4 `auto-check` ones via `run_ia_scenario.py` (still works) or `run_scena
   DCS-side on its own after a transient HTTP 504 killed the Python client near T+500 — timers
   are `timer.scheduleFunction` (DCS-side), so the run completed regardless; verdict read back
   via `exec_lua`.
-- [ ] `scenario_warehouse_cycle.lua` — `ia (fly)`, not yet flown.
+- [~] `scenario_warehouse_cycle.lua` — **deferred, blocked on a missing DCS mod.** Requires
+  `Farp_FG_Petit_Helipad` (FullGas) for its S3/S4/S8 warehouse-snapshot checks
+  (`Airbase.getByName` + `getWarehouse()` on the deployed FARP). David's install doesn't have
+  the mod, so the scenario would FAIL at W.3.4 after ~4 min of flight. Not run. Stays `ia (fly)`;
+  revisit when the mod is available. Not a code/scenario defect.
 
 ## Runner robustness fixes surfaced by this ticket
 

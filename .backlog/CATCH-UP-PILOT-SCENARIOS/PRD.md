@@ -52,18 +52,18 @@ no need to do them back to back).
 - Fixing `CLEANUP-LEGACY-DCS-TESTS` relics — separate lot.
 - Rewriting a scenario's tier or folder placement unless a run reveals it's wrong.
 
-## Tier-audit finding (tickets 03–04)
+## Tier-audit finding (tickets 03–05)
 
 The `pilotActive/`/`pilotPassive/` → always `ia` default (from `INTEGRATION-TEST-TAGS`) is a
-folder-blanket rule, not a per-file semantic check. Ticket 03 revealed all 4 of its scenarios,
-and ticket 04 4 of its 5, never actually check flight state or wait on F10 — most only need a
-BLUE slot occupied for position/groupId (a structural precondition, not piloting/judgment), and
-one (`scenario_multigroup_transport.lua`) doesn't even need that — fully self-contained with
-mocked `Unit.getByName`/`ctld.MenuManager`. All retagged `auto-check`. **34 `ia` scenarios above
-is now stale — 22 remain** after tickets 03+04's retags (8 of the original 34 have turned out
-mistagged so far). Audit every scenario's actual code before tickets 05–08 are run, not just its
-folder, and update this count as more turn out mistagged — this has been true for the large
-majority so far, don't assume any given ticket is the exception. See
-`tools/integration-runner/README.md`'s "What `ia`
+folder-blanket rule, not a per-file semantic check. Every scenario audited so far has turned out
+NOT to need piloting: ticket 03 all 4, ticket 04 4 of 5, ticket 05 all 5 — none check flight
+state or wait on F10; most only need a BLUE slot occupied for position/groupId (a structural
+precondition, not piloting/judgment), and one (`scenario_multigroup_transport.lua`) doesn't even
+need that (fully mocked). All retagged `auto-check`. **The original "34 `ia`" is badly stale —
+only `scenario_warehouse_cycle.lua` has proven a genuine `ia (fly)` so far** (and it's blocked on
+a missing mod, not run). 13 of the original 34 retagged `auto-check` across tickets 03–05. Keep
+auditing each scenario's actual code before tickets 06–08 are run, not just its folder — the
+folder default has been wrong for the large majority; don't assume any ticket is the exception.
+See `tools/integration-runner/README.md`'s "What `ia`
 actually asks of you" for the `(menu)`/`(fly)` qualifier convention now used for genuine `ia`
 scenarios.

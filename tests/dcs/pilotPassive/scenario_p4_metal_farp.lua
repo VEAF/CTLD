@@ -1,5 +1,7 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot for position; spawns its own Metal FARP scene,
+--                     no piloting/F10 -- STARTED; handles the Farp_FG_Petit_Helipad mod being
+--                     absent gracefully, so it PASSes with or without the mod)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_p4_metal_farp.lua
 -- CTLD — Metal FARP via menu F10 : warehouse stocking (sous-cas P4)

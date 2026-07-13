@@ -1,5 +1,6 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot for position; spawns its own FOB crates + auto-unpacks,
+--                     no piloting/F10 -- STARTED, resolves via internal timers)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_p2_fob_parachute.lua
 -- CTLD — FOB auto-unpack depuis parachutage (sous-cas P2)

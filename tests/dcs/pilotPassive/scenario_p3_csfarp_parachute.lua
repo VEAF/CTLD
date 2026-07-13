@@ -1,5 +1,6 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot for position; spawns its own CS FARP crate + auto-unpacks,
+--                     no piloting/F10 -- STARTED, resolves via internal timers)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_p3_csfarp_parachute.lua
 -- CTLD — CS FARP via parachutage auto-unpack (sous-cas P3)

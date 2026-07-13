@@ -1,5 +1,6 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot for position; spawns its own RECON layer,
+--                     no piloting/F10 -- RUNNING step machine re-injected on a timer)
 -- =============================================================================
 -- scenario_feature_f_recon_farp.lua   [FARP]
 -- Feature F — RECON layer FARP/FOB : CTLDStaticWatcher + coalition rendering
