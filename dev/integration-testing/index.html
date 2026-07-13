@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="fr" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://veaf.github.io/CTLD/dev/fr/recette-procedure/">
+        <link rel="canonical" href="https://veaf.github.io/CTLD/dev/integration-testing/">
       
       
         <link rel="prev" href="../developer/design-spec/">
@@ -18,13 +18,13 @@
       
       
         
-          <link rel="alternate" href="../../recette-procedure/" hreflang="en">
+          <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="./" hreflang="fr">
+          <link rel="alternate" href="../fr/integration-testing/" hreflang="fr">
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -55,7 +55,7 @@
       
     
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,8 +80,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#ctld-next-procedure-de-test-de-version" class="md-skip">
-          Aller au contenu
+        <a href="#ctld-next-release-testing-procedure" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -97,8 +97,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="En-tête">
-    <a href="../" title="CTLD" class="md-header__button md-logo" aria-label="CTLD" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="CTLD" class="md-header__button md-logo" aria-label="CTLD" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -158,20 +158,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Sélectionner la langue">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../recette-procedure/" hreflang="en" class="md-select__link">
+            <a href="./" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="./" hreflang="fr" class="md-select__link">
+            <a href="../fr/integration-testing/" hreflang="fr" class="md-select__link">
               Français
             </a>
           </li>
@@ -192,16 +192,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Recherche">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -214,7 +214,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Initialisation de la recherche
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -226,7 +226,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/VEAF/CTLD" title="Aller au dépôt" class="md-source" data-md-component="source">
+        <a href="https://github.com/VEAF/CTLD" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
@@ -247,7 +247,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Onglets" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -257,7 +257,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../" class="md-tabs__link">
+      <a href=".." class="md-tabs__link">
         
   
   
@@ -373,7 +373,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../" title="CTLD" class="md-nav__button md-logo" aria-label="CTLD" data-md-component="logo">
+    <a href=".." title="CTLD" class="md-nav__button md-logo" aria-label="CTLD" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -383,7 +383,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/VEAF/CTLD" title="Aller au dépôt" class="md-source" data-md-component="source">
+      <a href="https://github.com/VEAF/CTLD" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
@@ -403,7 +403,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -1805,7 +1805,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1814,15 +1814,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Table des matières
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#correspondance-dossier-niveau" class="md-nav__link">
+  <a href="#folder-to-level-mapping" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Correspondance dossier / niveau
+        Folder to level mapping
       
     </span>
   </a>
@@ -1830,22 +1830,122 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#niveaux-dautomatisation" class="md-nav__link">
+  <a href="#automation-tiers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Niveaux d'automatisation
+        Automation tiers
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Niveaux d&#39;automatisation">
+    <nav class="md-nav" aria-label="Automation tiers">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#lancer-les-scenarios-autoauto-check-sans-intervention-humaine" class="md-nav__link">
+  <a href="#how-to-run-each-tier-command-whats-expected-of-you" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Lancer les scénarios auto/auto-check sans intervention humaine
+        How to run each tier — command + what's expected of you
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to run each tier — command + what&#39;s expected of you">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cross-scenario-state-contamination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-scenario state contamination
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#release-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#l1-ci-busted-unit-automatic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L1 — CI busted unit (automatic)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#l2-ci-busted-functional-automatic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L2 — CI busted functional (automatic)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#l3-dcs-noplayer-developer-before-push" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L3 — DCS noPlayer (developer, before push)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="L3 — DCS noPlayer (developer, before push)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#l3a-targeted-tests-u-xxx-f-xxx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L3a — Targeted tests (U-xxx / F-xxx)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#l3b-integration-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L3b — Integration scenarios
       
     </span>
   </a>
@@ -1858,10 +1958,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#vue-densemble-de-larchitecture" class="md-nav__link">
+  <a href="#l4-dcs-pilotpassive-developer-player-slot-before-push" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Vue d'ensemble de l'architecture
+        L4 — DCS pilotPassive (developer + player slot, before push)
       
     </span>
   </a>
@@ -1869,10 +1969,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ordre-de-publication" class="md-nav__link">
+  <a href="#l5-dcs-pilotactive-developer-player-f10-actions-before-push" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ordre de publication
+        L5 — DCS pilotActive (developer + player F10 actions, before push)
       
     </span>
   </a>
@@ -1880,10 +1980,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#l1-ci-busted-unit-automatique" class="md-nav__link">
+  <a href="#l6-manual-sequences-developer-new-features-only" class="md-nav__link">
     <span class="md-ellipsis">
       
-        L1 — CI busted unit (automatique)
+        L6 — Manual sequences (developer, new features only)
       
     </span>
   </a>
@@ -1891,10 +1991,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#l2-ci-busted-functional-automatique" class="md-nav__link">
+  <a href="#summary-effort-per-release" class="md-nav__link">
     <span class="md-ellipsis">
       
-        L2 — CI busted functional (automatique)
+        Summary — effort per release
       
     </span>
   </a>
@@ -1902,93 +2002,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#l3-dcs-noplayer-developpeur-avant-le-push" class="md-nav__link">
+  <a href="#pre-release-checklist" class="md-nav__link">
     <span class="md-ellipsis">
       
-        L3 — DCS noPlayer (développeur, avant le push)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="L3 — DCS noPlayer (développeur, avant le push)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#l3a-tests-cibles-u-xxx-f-xxx" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        L3a — Tests ciblés (U-xxx / F-xxx)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#l3b-scenarios-dintegration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        L3b — Scénarios d'intégration
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#l4-dcs-pilotpassive-developpeur-slot-joueur-avant-le-push" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        L4 — DCS pilotPassive (développeur + slot joueur, avant le push)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#l5-dcs-pilotactive-developpeur-actions-f10-du-joueur-avant-le-push" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        L5 — DCS pilotActive (développeur + actions F10 du joueur, avant le push)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#l6-sequences-manuelles-developpeur-nouvelles-fonctionnalites-uniquement" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        L6 — Séquences manuelles (développeur, nouvelles fonctionnalités uniquement)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#recapitulatif-effort-par-version" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Récapitulatif — effort par version
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#checklist-de-pre-publication" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Checklist de pré-publication
+        Pre-release checklist
       
     </span>
   </a>
@@ -2016,7 +2033,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -2025,15 +2042,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Table des matières
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#correspondance-dossier-niveau" class="md-nav__link">
+  <a href="#folder-to-level-mapping" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Correspondance dossier / niveau
+        Folder to level mapping
       
     </span>
   </a>
@@ -2041,22 +2058,122 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#niveaux-dautomatisation" class="md-nav__link">
+  <a href="#automation-tiers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Niveaux d'automatisation
+        Automation tiers
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Niveaux d&#39;automatisation">
+    <nav class="md-nav" aria-label="Automation tiers">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#lancer-les-scenarios-autoauto-check-sans-intervention-humaine" class="md-nav__link">
+  <a href="#how-to-run-each-tier-command-whats-expected-of-you" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Lancer les scénarios auto/auto-check sans intervention humaine
+        How to run each tier — command + what's expected of you
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to run each tier — command + what&#39;s expected of you">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cross-scenario-state-contamination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-scenario state contamination
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#release-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#l1-ci-busted-unit-automatic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L1 — CI busted unit (automatic)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#l2-ci-busted-functional-automatic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L2 — CI busted functional (automatic)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#l3-dcs-noplayer-developer-before-push" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L3 — DCS noPlayer (developer, before push)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="L3 — DCS noPlayer (developer, before push)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#l3a-targeted-tests-u-xxx-f-xxx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L3a — Targeted tests (U-xxx / F-xxx)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#l3b-integration-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L3b — Integration scenarios
       
     </span>
   </a>
@@ -2069,10 +2186,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#vue-densemble-de-larchitecture" class="md-nav__link">
+  <a href="#l4-dcs-pilotpassive-developer-player-slot-before-push" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Vue d'ensemble de l'architecture
+        L4 — DCS pilotPassive (developer + player slot, before push)
       
     </span>
   </a>
@@ -2080,10 +2197,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ordre-de-publication" class="md-nav__link">
+  <a href="#l5-dcs-pilotactive-developer-player-f10-actions-before-push" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ordre de publication
+        L5 — DCS pilotActive (developer + player F10 actions, before push)
       
     </span>
   </a>
@@ -2091,10 +2208,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#l1-ci-busted-unit-automatique" class="md-nav__link">
+  <a href="#l6-manual-sequences-developer-new-features-only" class="md-nav__link">
     <span class="md-ellipsis">
       
-        L1 — CI busted unit (automatique)
+        L6 — Manual sequences (developer, new features only)
       
     </span>
   </a>
@@ -2102,10 +2219,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#l2-ci-busted-functional-automatique" class="md-nav__link">
+  <a href="#summary-effort-per-release" class="md-nav__link">
     <span class="md-ellipsis">
       
-        L2 — CI busted functional (automatique)
+        Summary — effort per release
       
     </span>
   </a>
@@ -2113,93 +2230,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#l3-dcs-noplayer-developpeur-avant-le-push" class="md-nav__link">
+  <a href="#pre-release-checklist" class="md-nav__link">
     <span class="md-ellipsis">
       
-        L3 — DCS noPlayer (développeur, avant le push)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="L3 — DCS noPlayer (développeur, avant le push)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#l3a-tests-cibles-u-xxx-f-xxx" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        L3a — Tests ciblés (U-xxx / F-xxx)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#l3b-scenarios-dintegration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        L3b — Scénarios d'intégration
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#l4-dcs-pilotpassive-developpeur-slot-joueur-avant-le-push" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        L4 — DCS pilotPassive (développeur + slot joueur, avant le push)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#l5-dcs-pilotactive-developpeur-actions-f10-du-joueur-avant-le-push" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        L5 — DCS pilotActive (développeur + actions F10 du joueur, avant le push)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#l6-sequences-manuelles-developpeur-nouvelles-fonctionnalites-uniquement" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        L6 — Séquences manuelles (développeur, nouvelles fonctionnalités uniquement)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#recapitulatif-effort-par-version" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Récapitulatif — effort par version
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#checklist-de-pre-publication" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Checklist de pré-publication
+        Pre-release checklist
       
     </span>
   </a>
@@ -2226,110 +2260,166 @@
   
 
 
-<h1 id="ctld-next-procedure-de-test-de-version">CTLD Next — Procédure de test de version<a class="headerlink" href="#ctld-next-procedure-de-test-de-version" title="Permanent link">&para;</a></h1>
-<p>Les tests sont organisés en six niveaux (L1 à L6).
-L1 et L2 s'exécutent automatiquement via la CI GitHub Actions.
-L3 à L5 nécessitent une session DCS active avec le pont Lua dcs-bridge injecté et <code>dcs-serve</code> démarré.
-L6 est purement manuel (joueur + checklist).</p>
-<p>Chaque scénario L3–L5 porte aussi un header <code>-- @tier:</code> (<code>auto</code> / <code>auto-check</code> / <code>ia</code>) indiquant
-s'il nécessite ou non un agent IA ou un humain dans la boucle. La majorité du L3 (<code>noPlayer/</code>)
-est <code>auto</code> ou <code>auto-check</code> et peut être <strong>pilotée sans intervention humaine</strong> par
-<code>tools/integration-runner/run_scenarios.py</code>, plutôt qu'en injectant chaque script à la main —
-voir <a href="#niveaux-dautomatisation">Niveaux d'automatisation</a> ci-dessous.</p>
-<p>Pour la configuration de debug et la mise en place de CTLD.log, voir <a href="../developer/building-and-testing/">Building &amp; testing</a>.</p>
+<h1 id="ctld-next-release-testing-procedure">CTLD Next — Release Testing Procedure<a class="headerlink" href="#ctld-next-release-testing-procedure" title="Permanent link">&para;</a></h1>
+<p>Testing is organized in six levels (L1 to L6).
+L1 and L2 run automatically via GitHub Actions CI.
+L3 to L5 require a live DCS session with the dcs-bridge Lua bridge injected and <code>dcs-serve</code> running.
+L6 is purely manual (player + checklist).</p>
+<p>Every L3–L5 scenario also carries a <code>-- @tier:</code> header (<code>auto</code> / <code>auto-check</code> / <code>human</code>) marking
+whether it needs an AI agent or human in the loop at all. Most of L3 (<code>noPlayer/</code>) is <code>auto</code> or
+<code>auto-check</code> and can be <strong>driven headlessly</strong> by <code>tools/integration-runner/run_scenarios.py</code>
+instead of injecting each script by hand — see <a href="#automation-tiers">Automation tiers</a> below.</p>
+<p>For debug configuration and CTLD.log setup, see <a href="../developer/building-and-testing/">Building &amp; testing</a>.</p>
 <hr />
-<h2 id="correspondance-dossier-niveau">Correspondance dossier / niveau<a class="headerlink" href="#correspondance-dossier-niveau" title="Permanent link">&para;</a></h2>
+<h2 id="folder-to-level-mapping">Folder to level mapping<a class="headerlink" href="#folder-to-level-mapping" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Dossier</th>
-<th>Niveau</th>
-<th>Contexte d'exécution</th>
+<th>Folder</th>
+<th>Level</th>
+<th>Execution context</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>tests/ci/unit/</code></td>
 <td>L1</td>
-<td>GitHub Actions — busted, sans DCS</td>
+<td>GitHub Actions — busted, no DCS</td>
 </tr>
 <tr>
 <td><code>tests/ci/functional/</code></td>
 <td>L2</td>
-<td>GitHub Actions — busted, sans DCS</td>
+<td>GitHub Actions — busted, no DCS</td>
 </tr>
 <tr>
 <td><code>tests/dcs/noPlayer/</code></td>
 <td>L3</td>
-<td>Développeur en local — DCS + dcs-bridge, sans slot joueur</td>
+<td>Developer local — DCS + dcs-bridge, no player slot</td>
 </tr>
 <tr>
 <td><code>tests/dcs/pilotPassive/</code></td>
 <td>L4</td>
-<td>Développeur en local — DCS + joueur en cockpit, le script pilote</td>
+<td>Developer local — DCS + player in cockpit, script drives</td>
 </tr>
 <tr>
 <td><code>tests/dcs/pilotActive/</code></td>
 <td>L5</td>
-<td>Développeur en local — DCS + le joueur exécute des actions F10</td>
+<td>Developer local — DCS + player takes F10 actions</td>
 </tr>
 <tr>
 <td><code>tests/manual_test_sequences.md</code></td>
 <td>L6</td>
-<td>Développeur en local — joueur, checklist pas à pas</td>
+<td>Developer local — player, step-by-step checklist</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="niveaux-dautomatisation">Niveaux d'automatisation<a class="headerlink" href="#niveaux-dautomatisation" title="Permanent link">&para;</a></h2>
-<p>Indépendamment du niveau L (le dossier où vit un scénario), chaque scénario porte un header
-<code>-- @tier:</code> indiquant s'il nécessite un agent IA/humain :</p>
+<h2 id="automation-tiers">Automation tiers<a class="headerlink" href="#automation-tiers" title="Permanent link">&para;</a></h2>
+<p>Independently of the L-level (which folder a scenario lives in), every scenario carries a
+<code>-- @tier:</code> header telling you (or the runner) whether it needs an AI agent/human at all:</p>
 <table>
 <thead>
 <tr>
 <th>Tier</th>
-<th>Signification</th>
-<th>Peut tourner sans humain ?</th>
+<th>Meaning</th>
+<th>Can run headless?</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>auto</code></td>
-<td>Une seule injection retourne le verdict définitif (<code>PASS</code>/<code>FAIL</code>/<code>ABORT</code>). Aucun joueur, aucun polling, aucun jugement.</td>
-<td>Oui</td>
+<td>A single injection returns the definitive verdict (<code>PASS</code>/<code>FAIL</code>/<code>ABORT</code>). No player, no polling, no judgment call.</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td><code>auto-check</code></td>
-<td>Se résout automatiquement via un vrai timer/<code>waitFor</code>, mais pas en un seul appel — le scénario retourne <code>STARTED</code> et il faut interroger <code>_SCN_&lt;ID&gt;_RESULT</code> jusqu'à résolution. Toujours aucun jugement humain.</td>
-<td>Oui (polling)</td>
+<td>Resolves automatically via a real timer/<code>waitFor</code> or a re-injected step machine, within seconds — the scenario returns <code>STARTED</code>/<code>RUNNING</code> and the runner polls/re-injects <code>_SCN_&lt;ID&gt;_RESULT</code> until it resolves. No human/AI judgment.</td>
+<td>Yes (fast)</td>
 </tr>
 <tr>
-<td><code>ia</code></td>
-<td>Nécessite un agent IA ou un humain dans la boucle : une unité pilotée par un joueur (le pont dcs-bridge n'expose aucune API de pilotage — <code>pilotActive/</code>/<code>pilotPassive/</code> requièrent toujours quelqu'un aux commandes), ou une confirmation F10/visuelle que le code ne vérifie jamais lui-même.</td>
-<td>Non</td>
+<td><code>auto-slow</code></td>
+<td>No human either, but takes <strong>minutes</strong> to resolve — an AI helicopter flying a route to a pickup/dropoff zone, or a long internal timer chain (e.g. the JTAC drone ~13 min). Excluded from the fast <code>--headless</code> sweep; run explicitly with <code>--tier auto-slow --poll-timeout 900</code>, player just parked in a slot.</td>
+<td>Yes (slow, on demand)</td>
+</tr>
+<tr>
+<td><code>human</code></td>
+<td>Needs a human: either a live player who must <strong>fly</strong> (<code>human (fly)</code>) or one who must <strong>click an F10 item / make a visual judgment</strong> the code never checks (<code>human (menu)</code>). dcs-bridge has no flight-control API.</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>disabled</code></td>
+<td>Quarantined: code <strong>and</strong> mission are both correct, but the test can't complete for a reason outside CTLD (e.g. the DCS AI helicopter won't reliably land on a specific spot). Never run by a default sweep; reachable only via an explicit <code>--tier disabled</code>. Logic coverage lives in fast deterministic tests.</td>
+<td>No (quarantine)</td>
 </tr>
 </tbody>
 </table>
-<p>À l'heure où ces lignes sont écrites : 43 <code>auto</code>, 2 <code>auto-check</code>, 34 <code>ia</code> sur les 79 scénarios
-tagués (tout le L4/L5 est <code>ia</code> ; le L3 est presque entièrement <code>auto</code>/<code>auto-check</code>, avec deux
-exceptions <code>ia</code> qui demandent une vérification visuelle F10). Voir la skill <code>integration-testing</code>
-pour la taxonomie complète et le tier par défaut de chaque template.</p>
-<h3 id="lancer-les-scenarios-autoauto-check-sans-intervention-humaine">Lancer les scénarios <code>auto</code>/<code>auto-check</code> sans intervention humaine<a class="headerlink" href="#lancer-les-scenarios-autoauto-check-sans-intervention-humaine" title="Permanent link">&para;</a></h3>
-<p><code>tools/integration-runner/run_scenarios.py</code> (Python sans dépendance, aucune installation)
-découvre les scénarios, filtre par tier/dossier/nom, les pilote via l'API REST de <code>dcs-serve</code>,
-interroge ceux qui sont asynchrones, et écrit un rapport JUnit :</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Tout ce qui nécessite un joueur pour le L3 est ignoré automatiquement</span>
-python<span class="w"> </span>tools/integration-runner/run_scenarios.py<span class="w"> </span>--no-ai<span class="w"> </span>--inject-ctld
-
-<span class="c1"># Juste les scénarios couvrant un module</span>
-python<span class="w"> </span>tools/integration-runner/run_scenarios.py<span class="w"> </span>--scenario<span class="w"> </span>F-178
-</code></pre></div>
-<p>Ceci remplace l'injection manuelle fichier par fichier des L3a/L3b (toujours utile pour une
-vérification ciblée rapide en cours d'itération). Voir <code>tools/integration-runner/README.md</code>
-pour la référence complète des options. Le L4/L5 (<code>ia</code>) nécessite toujours la boucle
-d'injection manuelle/pilotée par IA décrite plus bas.</p>
+<p>The <code>pilotActive/</code>/<code>pilotPassive/</code> folders do <strong>not</strong> imply <code>human</code> — the tier reflects what a
+scenario's code actually needs, checked per file, not its folder. A <code>CATCH-UP-PILOT-SCENARIOS</code>
+audit found that of the ~34 scenarios once blanket-tagged <code>human</code>, only a handful truly need a human
+(two menu-visual <code>human (fly)</code> checks, plus one deferred and one optional-manual); the large
+majority drive AI helicopters or self-verify and are <code>auto-check</code>/<code>auto-slow</code>. See the
+<code>integration-testing</code> skill for the full taxonomy and how each template defaults.</p>
+<h3 id="how-to-run-each-tier-command-whats-expected-of-you">How to run each tier — command + what's expected of you<a class="headerlink" href="#how-to-run-each-tier-command-whats-expected-of-you" title="Permanent link">&para;</a></h3>
+<p>Two dependency-free Python runners drive scenarios over <code>dcs-serve</code>'s REST API and read back the
+verdict (no install step; both read <code>dcs-client.yaml</code>). Prerequisite for all of them: <code>dcs-serve</code>
+running and the mission loaded with <code>dcs-bridge.lua</code> injected (see the top of this page).</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Command</th>
+<th>What YOU do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto</code></td>
+<td><code>python tools/integration-runner/run_scenarios.py --headless</code></td>
+<td><strong>Nothing.</strong> Fully headless. (No slot needed.)</td>
+</tr>
+<tr>
+<td><code>auto-check</code></td>
+<td>same <code>--headless</code> sweep (covers <code>auto</code> + <code>auto-check</code>)</td>
+<td><strong>Be parked in a BLUE slot</strong> (UH-1H) — some read your unit's position/group. No flying, no clicking.</td>
+</tr>
+<tr>
+<td><code>auto-slow</code></td>
+<td><code>python tools/integration-runner/run_scenarios.py --tier auto-slow --poll-timeout 900</code></td>
+<td><strong>Be parked in a BLUE slot</strong>, then wait — each needs minutes of AI-helicopter flight. Excluded from <code>--headless</code> on purpose. Optional (logic also covered by the <code>noPlayer</code> <code>aiTransport_featureT/U</code> tests).</td>
+</tr>
+<tr>
+<td><code>human (fly)</code></td>
+<td><code>python tools/integration-runner/run_manual_scenario.py --scenario &lt;name&gt;</code></td>
+<td><strong>Fly the aircraft</strong> as the terminal instructs (take off, land, reposition). The runner mirrors each step's in-game instructions to your terminal.</td>
+</tr>
+<tr>
+<td><code>human (menu)</code></td>
+<td><code>python tools/integration-runner/run_manual_scenario.py --scenario &lt;name&gt;</code></td>
+<td><strong>Click F10 menu items / make a visual check</strong> as instructed (no flying).</td>
+</tr>
+</tbody>
+</table>
+<p>Notes:
+- A <strong>full headless sweep</strong> (recommended before a release) is
+  <code>python tools/integration-runner/run_scenarios.py --headless --inject-ctld --reset-before-each</code>
+  — the <code>--reset-before-each</code> clears cross-scenario CTLD state (see below) so back-to-back runs
+  don't contaminate each other. Writes a JUnit report (<code>test-results.xml</code>).
+- Target a subset with <code>--scenario &lt;substring&gt;</code> (e.g. <code>--scenario F-178</code>) or <code>--dir noPlayer</code>.
+- <code>run_manual_scenario.py</code> recovers from a crash: just re-run the same command (it resets the
+  scenario's own state first). It also prints an elapsed <code>[mm:ss]</code> stamp + a heartbeat so a long
+  scenario is visibly alive.
+- See <code>tools/integration-runner/README.md</code> for the full flag reference and the tier/<code>RUNNING</code>
+  internals.</p>
+<h4 id="cross-scenario-state-contamination">Cross-scenario state contamination<a class="headerlink" href="#cross-scenario-state-contamination" title="Permanent link">&para;</a></h4>
+<p>Scenarios share CTLD's runtime singletons (<code>PlayerManager</code>, <code>MenuManager</code>, JTAC registry). Some
+leave residue (phantom players, a wiped player menu, orphan JTACs) that would make a <em>later</em>
+scenario abort — running one alone is fine, a back-to-back sweep accumulates it. <code>net.load_mission</code>
+isn't available on a DCS client, so the mission can't be reloaded from Lua. <code>--reset-before-each</code>
+injects <code>tests/dcs/_reset_state.lua</code> before each scenario to restore a clean player/menu + JTAC
+baseline without a reload. If a scenario ever needs a deeper reset than that, reload the mission
+manually (Shift+R).</p>
 <hr />
-<h2 id="vue-densemble-de-larchitecture">Vue d'ensemble de l'architecture<a class="headerlink" href="#vue-densemble-de-larchitecture" title="Permanent link">&para;</a></h2>
+<h2 id="architecture-overview">Architecture overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>RELEASE
   |
   +- L1  CI busted unit        tests/ci/unit/*_spec.lua          ~105 tests  (automatic)
@@ -2349,7 +2439,7 @@ d'injection manuelle/pilotée par IA décrite plus bas.</p>
   +- L6  Manual sequences      tests/manual_test_sequences.md    4 MT-xx      (developer, new features only)
 </code></pre></div>
 <hr />
-<h2 id="ordre-de-publication">Ordre de publication<a class="headerlink" href="#ordre-de-publication" title="Permanent link">&para;</a></h2>
+<h2 id="release-order">Release order<a class="headerlink" href="#release-order" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>Modify src/
     |
 [LOCAL] L3 noPlayer  -- inject relevant F-xxx + scenario_* for modified module
@@ -2365,28 +2455,28 @@ PR  -&gt;  merge to master
 git tag vX.Y  -&gt;  CI Release job builds and publishes CTLD.lua
 </code></pre></div>
 <blockquote>
-<p><strong>Règle :</strong> L3 à L5 doivent passer <strong>avant</strong> le push. La CI (L1/L2) utilise des stubs DCS et ne peut
-pas détecter les régressions propres à un vrai DCS. Une CI verte avec un L3 en échec signifie que le code est cassé
-sans que la CI le sache.</p>
-<p><strong>Exception :</strong> la documentation, les commentaires et les refactos non fonctionnels peuvent être poussés sans L3 à L5.</p>
+<p><strong>Rule:</strong> L3 to L5 must pass <strong>before</strong> the push. CI (L1/L2) uses DCS stubs and cannot
+detect real-DCS regressions. A green CI with a failing L3 means the code is broken
+without CI knowing it.</p>
+<p><strong>Exception:</strong> documentation, comments, non-functional refactors may be pushed without L3 to L5.</p>
 </blockquote>
 <hr />
-<h2 id="l1-ci-busted-unit-automatique">L1 — CI busted unit (automatique)<a class="headerlink" href="#l1-ci-busted-unit-automatique" title="Permanent link">&para;</a></h2>
-<p><strong>Qui :</strong> GitHub Actions.
-<strong>Quand :</strong> à chaque push sur <code>master</code> ou <code>feature_*</code>, à chaque PR.
-<strong>Scripts :</strong> <code>tests/ci/unit/*_spec.lua</code> — 21 fichiers, ~105 tests.
-<strong>Runner :</strong> <code>busted tests/ci/</code> (Job 3 dans <code>.github/workflows/ci.yml</code>).</p>
-<p>Périmètre : Config, EventDispatcher, Zones, Crates, Troops, JTAC, Menu, Utils, i18n, ModValidator.
-Tous les appels à l'API DCS sont remplacés par des stubs dans <code>tests/ci/helpers/dcs_stubs.lua</code>.</p>
+<h2 id="l1-ci-busted-unit-automatic">L1 — CI busted unit (automatic)<a class="headerlink" href="#l1-ci-busted-unit-automatic" title="Permanent link">&para;</a></h2>
+<p><strong>Who:</strong> GitHub Actions.
+<strong>When:</strong> every push to <code>master</code> or <code>feature_*</code>, every PR.
+<strong>Scripts:</strong> <code>tests/ci/unit/*_spec.lua</code> — 21 files, ~105 tests.
+<strong>Runner:</strong> <code>busted tests/ci/</code> (Job 3 in <code>.github/workflows/ci.yml</code>).</p>
+<p>Scope: Config, EventDispatcher, Zones, Crates, Troops, JTAC, Menu, Utils, i18n, ModValidator.
+All DCS API calls replaced by stubs in <code>tests/ci/helpers/dcs_stubs.lua</code>.</p>
 <hr />
-<h2 id="l2-ci-busted-functional-automatique">L2 — CI busted functional (automatique)<a class="headerlink" href="#l2-ci-busted-functional-automatique" title="Permanent link">&para;</a></h2>
-<p><strong>Qui :</strong> GitHub Actions.
-<strong>Quand :</strong> mêmes déclencheurs que L1.
-<strong>Scripts :</strong> <code>tests/ci/functional/*_spec.lua</code> — 8 fichiers, ~45 tests.</p>
+<h2 id="l2-ci-busted-functional-automatic">L2 — CI busted functional (automatic)<a class="headerlink" href="#l2-ci-busted-functional-automatic" title="Permanent link">&para;</a></h2>
+<p><strong>Who:</strong> GitHub Actions.
+<strong>When:</strong> same triggers as L1.
+<strong>Scripts:</strong> <code>tests/ci/functional/*_spec.lua</code> — 8 files, ~45 tests.</p>
 <table>
 <thead>
 <tr>
-<th>Fichier de spec</th>
+<th>Spec file</th>
 <th>Tests</th>
 </tr>
 </thead>
@@ -2413,7 +2503,7 @@ Tous les appels à l'API DCS sont remplacés par des stubs dans <code>tests/ci/h
 </tr>
 <tr>
 <td><code>mark_ids_spec.lua</code></td>
-<td>Monotonicité du compteur global d'ID de marque</td>
+<td>Global mark ID counter monotonicity</td>
 </tr>
 <tr>
 <td><code>vehicle_spec.lua</code></td>
@@ -2421,33 +2511,32 @@ Tous les appels à l'API DCS sont remplacés par des stubs dans <code>tests/ci/h
 </tr>
 <tr>
 <td><code>troop_multi_spec.lua</code></td>
-<td>Transit multi-groupes, disembarkAll/Index, _menuCheckCargo</td>
+<td>Multi-group transit, disembarkAll/Index, _menuCheckCargo</td>
 </tr>
 </tbody>
 </table>
 <blockquote>
-<p>Note : <code>tests/dcs/noPlayer/F-xxx.lua</code> et <code>U-xxx.lua</code> sont des scripts d'injection dcs-bridge (L3),
-pas des specs busted. Ils ne sont pas pris en compte par la CI (pas de suffixe <code>_spec</code>).</p>
+<p>Note: <code>tests/dcs/noPlayer/F-xxx.lua</code> and <code>U-xxx.lua</code> are dcs-bridge injection scripts (L3),
+not busted specs. They are not picked up by CI (no <code>_spec</code> suffix).</p>
 </blockquote>
 <hr />
-<h2 id="l3-dcs-noplayer-developpeur-avant-le-push">L3 — DCS noPlayer (développeur, avant le push)<a class="headerlink" href="#l3-dcs-noplayer-developpeur-avant-le-push" title="Permanent link">&para;</a></h2>
-<p><strong>Qui :</strong> le développeur.
-<strong>Quand :</strong> avant chaque push qui modifie <code>src/</code>.
-<strong>Comment :</strong> injecter des scripts dans une mission DCS en cours d'exécution. Aucun slot joueur requis.
-<strong>Succès :</strong> <code>fail=0</code> dans la ligne de résultat + aucun <code>[FAIL]</code> dans <code>tests/dcs/CTLD.log</code>.</p>
+<h2 id="l3-dcs-noplayer-developer-before-push">L3 — DCS noPlayer (developer, before push)<a class="headerlink" href="#l3-dcs-noplayer-developer-before-push" title="Permanent link">&para;</a></h2>
+<p><strong>Who:</strong> developer.
+<strong>When:</strong> before every push that modifies <code>src/</code>.
+<strong>How:</strong> inject scripts into a running DCS mission. No player slot required.
+<strong>Success:</strong> <code>fail=0</code> in result line + no <code>[FAIL]</code> in <code>tests/dcs/CTLD.log</code>.</p>
 <blockquote>
-<p>La majorité du L3 est de tier <code>auto</code>/<code>auto-check</code> et peut tourner sans intervention humaine via
-<code>tools/integration-runner/run_scenarios.py --no-ai</code> (voir
-<a href="#niveaux-dautomatisation">Niveaux d'automatisation</a>) plutôt qu'en injectant les fichiers
-ci-dessous à la main.</p>
+<p>Most of L3 is <code>auto</code>/<code>auto-check</code> tier and can run headlessly via
+<code>tools/integration-runner/run_scenarios.py --headless</code> (see <a href="#automation-tiers">Automation tiers</a>)
+instead of injecting the files below by hand.</p>
 </blockquote>
-<h3 id="l3a-tests-cibles-u-xxx-f-xxx">L3a — Tests ciblés (U-xxx / F-xxx)<a class="headerlink" href="#l3a-tests-cibles-u-xxx-f-xxx" title="Permanent link">&para;</a></h3>
-<p>Injecter les fichiers couvrant le module modifié :</p>
+<h3 id="l3a-targeted-tests-u-xxx-f-xxx">L3a — Targeted tests (U-xxx / F-xxx)<a class="headerlink" href="#l3a-targeted-tests-u-xxx-f-xxx" title="Permanent link">&para;</a></h3>
+<p>Inject the files covering the modified module:</p>
 <table>
 <thead>
 <tr>
-<th>Module modifié</th>
-<th>Fichiers à injecter</th>
+<th>Modified module</th>
+<th>Files to inject</th>
 </tr>
 </thead>
 <tbody>
@@ -2489,18 +2578,18 @@ ci-dessous à la main.</p>
 </tr>
 </tbody>
 </table>
-<h3 id="l3b-scenarios-dintegration">L3b — Scénarios d'intégration<a class="headerlink" href="#l3b-scenarios-dintegration" title="Permanent link">&para;</a></h3>
-<p>Lancer les scénarios correspondant à la fonctionnalité modifiée :</p>
+<h3 id="l3b-integration-scenarios">L3b — Integration scenarios<a class="headerlink" href="#l3b-integration-scenarios" title="Permanent link">&para;</a></h3>
+<p>Run scenarios matching the modified feature:</p>
 <table>
 <thead>
 <tr>
-<th>Domaine fonctionnel</th>
-<th>Scénario</th>
+<th>Feature area</th>
+<th>Scenario</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Transport IA / stocks</td>
+<td>AI transport / stocks</td>
 <td><code>aiTransport_featureT_*.lua</code>, <code>aiTransport_featureU_*.lua</code></td>
 </tr>
 <tr>
@@ -2508,201 +2597,201 @@ ci-dessous à la main.</p>
 <td><code>scenario_jtac_toggle_lasing.lua</code>, <code>scenario_jtac_spot_corrections.lua</code></td>
 </tr>
 <tr>
-<td>Menu crate / chargement</td>
+<td>Crate menu / load</td>
 <td><code>scenario_b3_load_crate_from_menu.lua</code>, <code>scenario_crate_menu_flight_visibility.lua</code></td>
 </tr>
 <tr>
-<td>Transport de véhicule</td>
+<td>Vehicle transport</td>
 <td><code>scenario_fq_vehicle_whole_transport.lua</code>, <code>scenario_mt05_crate_vehicle.lua</code></td>
 </tr>
 <tr>
-<td>Zones IA</td>
+<td>AI zones</td>
 <td><code>scenario_fr_ai_zones.lua</code></td>
 </tr>
 <tr>
-<td>Groupes extractibles</td>
+<td>Extractable groups</td>
 <td><code>scenario_fo_extractable_groups.lua</code></td>
 </tr>
 <tr>
-<td>Spawn FARP Countryside/Metal</td>
+<td>Countryside/Metal FARP spawn</td>
 <td><code>scenario_farp_countryside_spawn.lua</code>, <code>scenario_farp_metal_spawn.lua</code></td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="l4-dcs-pilotpassive-developpeur-slot-joueur-avant-le-push">L4 — DCS pilotPassive (développeur + slot joueur, avant le push)<a class="headerlink" href="#l4-dcs-pilotpassive-developpeur-slot-joueur-avant-le-push" title="Permanent link">&para;</a></h2>
-<p><strong>Qui :</strong> le développeur dans un slot de transport BLUE (UH-1H ou équivalent).
-<strong>Quand :</strong> avant le push, pour les changements de fonctionnalités visibles par le joueur.
-<strong>Comment :</strong> prendre le slot, injecter le scénario, observer — aucune action F10 requise.
-<strong>Succès :</strong> toutes les étapes rapportent <code>[PASS]</code>, les vérifications visuelles correspondent à l'attendu.</p>
-<p>Scénarios clés :</p>
+<h2 id="l4-dcs-pilotpassive-developer-player-slot-before-push">L4 — DCS pilotPassive (developer + player slot, before push)<a class="headerlink" href="#l4-dcs-pilotpassive-developer-player-slot-before-push" title="Permanent link">&para;</a></h2>
+<p><strong>Who:</strong> developer in a BLUE transport slot (UH-1H or equivalent).
+<strong>When:</strong> before push, for player-visible feature changes.
+<strong>How:</strong> take the slot, inject the scenario, watch — no F10 action required.
+<strong>Success:</strong> all steps report <code>[PASS]</code>, visual checks match expected.</p>
+<p>Key scenarios:</p>
 <table>
 <thead>
 <tr>
-<th>Scénario</th>
-<th>Fonctionnalité</th>
+<th>Scenario</th>
+<th>Feature</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>scenarioTroopsFullCycle_v2.lua</code></td>
-<td>Cycle de vie complet des troops + JTAC</td>
+<td>Troops + JTAC full lifecycle</td>
 </tr>
 <tr>
 <td><code>scenario_multigroup_transport.lua</code></td>
-<td>Transport multi-groupes</td>
+<td>Multi-group transport</td>
 </tr>
 <tr>
 <td><code>scenario_fob_scene.lua</code>, <code>scenario_p2_fob_parachute.lua</code></td>
-<td>Scène FOB + parachute</td>
+<td>FOB scene + parachute</td>
 </tr>
 <tr>
 <td><code>scenario_p3_csfarp_parachute.lua</code>, <code>scenario_p4_metal_farp.lua</code></td>
-<td>Scènes FARP</td>
+<td>FARP scenes</td>
 </tr>
 <tr>
 <td><code>scenario_farp_repack.lua</code>, <code>scenario_warehouse_cycle.lua</code></td>
-<td>Repack FARP + warehouse</td>
+<td>FARP repack + warehouse</td>
 </tr>
 <tr>
 <td><code>scenario_feature_f_recon_farp.lua</code></td>
-<td>Couche RECON FARP/FOB</td>
+<td>RECON FARP/FOB layer</td>
 </tr>
 <tr>
 <td><code>scenario_feature_k_jtac_vehicle.lua</code></td>
-<td>JTAC embarqué dans un véhicule</td>
+<td>JTAC vehicle in-transit</td>
 </tr>
 <tr>
-<td><code>scenario_mt07_ai_troops.lua</code> to <code>scenario_mt16_countryside_farp.lua</code></td>
-<td>Tous les MT-xx en live</td>
+<td><code>scenario_ai_troops.lua</code> + <code>scenario_mt08_ai_vehicle.lua</code>..<code>scenario_mt14_ai_aa_system.lua</code></td>
+<td>AI transport battery (<code>auto-slow</code>; <code>mt08</code>/<code>mt14</code> are <code>disabled</code>/quarantined — DCS AI landing)</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="l5-dcs-pilotactive-developpeur-actions-f10-du-joueur-avant-le-push">L5 — DCS pilotActive (développeur + actions F10 du joueur, avant le push)<a class="headerlink" href="#l5-dcs-pilotactive-developpeur-actions-f10-du-joueur-avant-le-push" title="Permanent link">&para;</a></h2>
-<p><strong>Qui :</strong> le développeur dans un slot de transport BLUE — doit exécuter des actions du menu F10 à la demande.
-<strong>Quand :</strong> avant le push, uniquement quand la structure ou la visibilité du menu F10 change.</p>
+<h2 id="l5-dcs-pilotactive-developer-player-f10-actions-before-push">L5 — DCS pilotActive (developer + player F10 actions, before push)<a class="headerlink" href="#l5-dcs-pilotactive-developer-player-f10-actions-before-push" title="Permanent link">&para;</a></h2>
+<p><strong>Who:</strong> developer in a BLUE transport slot — must execute F10 menu actions on demand.
+<strong>When:</strong> before push, only when F10 menu structure or visibility changes.</p>
 <table>
 <thead>
 <tr>
-<th>Scénario</th>
-<th>Ce que le joueur doit faire</th>
+<th>Scenario</th>
+<th>What the player must do</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>scenario_crate_menu_sol_vol_visual.lua</code></td>
-<td>Confirmer le menu Crate Commands au sol / en vol / après atterrissage</td>
+<td>Confirm Crate Commands menu on ground / in flight / after landing</td>
 </tr>
 <tr>
 <td><code>scenario_troop_menu_sol_vol_visual.lua</code></td>
-<td>Confirmer le menu Troop Commands au sol / en vol / après atterrissage</td>
+<td>Confirm Troop Commands menu on ground / in flight / after landing</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="l6-sequences-manuelles-developpeur-nouvelles-fonctionnalites-uniquement">L6 — Séquences manuelles (développeur, nouvelles fonctionnalités uniquement)<a class="headerlink" href="#l6-sequences-manuelles-developpeur-nouvelles-fonctionnalites-uniquement" title="Permanent link">&para;</a></h2>
-<p>Checklists pas à pas dans <code>tests/manual_test_sequences.md</code>. Aucun script — pure observation.</p>
+<h2 id="l6-manual-sequences-developer-new-features-only">L6 — Manual sequences (developer, new features only)<a class="headerlink" href="#l6-manual-sequences-developer-new-features-only" title="Permanent link">&para;</a></h2>
+<p>Step-by-step checklists in <code>tests/manual_test_sequences.md</code>. No script — pure observation.</p>
 <table>
 <thead>
 <tr>
-<th>Séquence</th>
-<th>Fonctionnalité</th>
-<th>Déclencheur</th>
+<th>Sequence</th>
+<th>Feature</th>
+<th>Trigger</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>MT-01</td>
-<td>Transport multi-groupes de troops + menu de débarquement</td>
-<td>Tout changement de transport de troops</td>
+<td>Multi-group troop transport + disembark menu</td>
+<td>Any troop transport change</td>
 </tr>
 <tr>
 <td>MT-02</td>
-<td>Chargement / déchargement / parachute de véhicule entier</td>
-<td>Changement de transport de véhicule</td>
+<td>Whole-vehicle load / unload / parachute</td>
+<td>Vehicle transport change</td>
 </tr>
 <tr>
 <td>MT-03</td>
-<td>Chargement / déchargement / parachute multi-véhicules</td>
-<td>Changement de capacité ou de chargement multiple de véhicules</td>
+<td>Multi-vehicle load / unload / parachute</td>
+<td>Vehicle capacity or multi-load change</td>
 </tr>
 <tr>
 <td>MT-06</td>
-<td>Couche RECON FARP/FOB</td>
-<td>Changement RECON ou CTLDStaticWatcher</td>
+<td>RECON FARP/FOB layer</td>
+<td>RECON or CTLDStaticWatcher change</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="recapitulatif-effort-par-version">Récapitulatif — effort par version<a class="headerlink" href="#recapitulatif-effort-par-version" title="Permanent link">&para;</a></h2>
+<h2 id="summary-effort-per-release">Summary — effort per release<a class="headerlink" href="#summary-effort-per-release" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Niveau</th>
-<th>Qui</th>
-<th>Quand</th>
-<th>Effort approx.</th>
+<th>Level</th>
+<th>Who</th>
+<th>When</th>
+<th>Approx. effort</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>L1 CI unit</td>
 <td>GitHub Actions</td>
-<td>Automatique</td>
+<td>Automatic</td>
 <td>0</td>
 </tr>
 <tr>
 <td>L2 CI functional</td>
 <td>GitHub Actions</td>
-<td>Automatique</td>
+<td>Automatic</td>
 <td>0</td>
 </tr>
 <tr>
-<td>L3a F-xxx ciblés</td>
-<td>Développeur</td>
-<td>Avant le push — modules impactés uniquement</td>
+<td>L3a F-xxx targeted</td>
+<td>Developer</td>
+<td>Before push — impacted modules only</td>
 <td>~5 min/module</td>
 </tr>
 <tr>
-<td>L3b scénario noPlayer</td>
-<td>Développeur</td>
-<td>Avant le push — fonctionnalités impactées uniquement</td>
+<td>L3b scenario noPlayer</td>
+<td>Developer</td>
+<td>Before push — impacted features only</td>
 <td>~10 min</td>
 </tr>
 <tr>
 <td>L4 pilotPassive</td>
-<td>Développeur + cockpit</td>
-<td>Avant le push — fonctionnalités visibles par le joueur</td>
+<td>Developer + cockpit</td>
+<td>Before push — player-visible features</td>
 <td>~20 min</td>
 </tr>
 <tr>
 <td>L5 pilotActive</td>
-<td>Développeur + cockpit</td>
-<td>Avant le push — changements de menu F10 uniquement</td>
+<td>Developer + cockpit</td>
+<td>Before push — F10 menu changes only</td>
 <td>~10 min</td>
 </tr>
 <tr>
-<td>L6 MT-xx manuel</td>
-<td>Développeur + cockpit</td>
-<td>Nouvelles fonctionnalités visibles par le joueur</td>
+<td>L6 Manual MT-xx</td>
+<td>Developer + cockpit</td>
+<td>New player-visible features</td>
 <td>~15 min/MT</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="checklist-de-pre-publication">Checklist de pré-publication<a class="headerlink" href="#checklist-de-pre-publication" title="Permanent link">&para;</a></h2>
-<p>Avant de tagger <code>vX.Y</code> :</p>
+<h2 id="pre-release-checklist">Pre-release checklist<a class="headerlink" href="#pre-release-checklist" title="Permanent link">&para;</a></h2>
+<p>Before tagging <code>vX.Y</code>:</p>
 <ul>
-<li>[ ] Tous les jobs CI verts sur <code>master</code> (lint, build, busted).</li>
-<li>[ ] Tout nouveau fichier <code>src/</code> ajouté à <code>tools/build/listToMerge.txt</code>.</li>
-<li>[ ] L3 passé — <code>python tools/integration-runner/run_scenarios.py --no-ai</code> (ou injection ciblée
-      module par module) pour tous les modules modifiés depuis le dernier tag.</li>
-<li>[ ] L4 passé pour toutes les fonctionnalités visibles par le joueur modifiées depuis le dernier tag.</li>
-<li>[ ] L5 passé si la structure d'un menu F10 a changé.</li>
-<li>[ ] <code>tests/recette.md</code> mis à jour (nouvelles lignes + récapitulatif de couverture).</li>
-<li>[ ] Statuts de fonctionnalité de <code>migration/MODERNIZATION-PLAN.md</code> à jour.</li>
-<li>[ ] <code>docs/pilot/</code> et <code>docs/mission-maker/</code> mis à jour si un comportement visible par l'utilisateur a changé.</li>
+<li>[ ] All CI jobs green on <code>master</code> (lint, build, busted).</li>
+<li>[ ] Any new <code>src/</code> file added to <code>tools/build/listToMerge.txt</code>.</li>
+<li>[ ] L3 passed — <code>python tools/integration-runner/run_scenarios.py --headless</code> (or targeted
+      per-module injection) for all modules modified since last tag.</li>
+<li>[ ] L4 passed for all player-visible features modified since last tag.</li>
+<li>[ ] L5 passed if any F10 menu structure changed.</li>
+<li>[ ] This page updated (tier taxonomy / scenario list) if a scenario or tier was added.</li>
+<li>[ ] <code>migration/MODERNIZATION-PLAN.md</code> feature statuses up to date.</li>
+<li>[ ] <code>docs/pilot/</code> and <code>docs/mission-maker/</code> updated if any user-visible behavior changed.</li>
 </ul>
 
 
@@ -2727,7 +2816,7 @@ ci-dessous à la main.</p>
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Retour en haut de la page
+  Back to top
 </button>
         
       </main>
@@ -2759,10 +2848,10 @@ ci-dessous à la main.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": {"default": "dev", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "dev", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
