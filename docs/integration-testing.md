@@ -5,7 +5,7 @@ L1 and L2 run automatically via GitHub Actions CI.
 L3 to L5 require a live DCS session with the dcs-bridge Lua bridge injected and `dcs-serve` running.
 L6 is purely manual (player + checklist).
 
-Every L3–L5 scenario also carries a `-- @tier:` header (`auto` / `auto-check` / `ia`) marking
+Every L3–L5 scenario also carries a `-- @tier:` header (`auto` / `auto-check` / `human`) marking
 whether it needs an AI agent or human in the loop at all. Most of L3 (`noPlayer/`) is `auto` or
 `auto-check` and can be **driven headlessly** by `tools/integration-runner/run_scenarios.py`
 instead of injecting each script by hand — see [Automation tiers](#automation-tiers) below.
@@ -36,13 +36,14 @@ Independently of the L-level (which folder a scenario lives in), every scenario 
 | --- | --- | --- |
 | `auto` | A single injection returns the definitive verdict (`PASS`/`FAIL`/`ABORT`). No player, no polling, no judgment call. | Yes |
 | `auto-check` | Resolves automatically via a real timer/`waitFor` or a re-injected step machine, within seconds — the scenario returns `STARTED`/`RUNNING` and the runner polls/re-injects `_SCN_<ID>_RESULT` until it resolves. No human/AI judgment. | Yes (fast) |
-| `auto-slow` | No human either, but takes **minutes** to resolve — an AI helicopter flying a route to a pickup/dropoff zone, or a long internal timer chain (e.g. the JTAC drone ~13 min). Excluded from the fast `--no-ai` sweep; run explicitly with `--tier auto-slow --poll-timeout 900`, player just parked in a slot. | Yes (slow, on demand) |
-| `ia` | Needs a human: either a live player who must **fly** (`ia (fly)`) or one who must **click an F10 item / make a visual judgment** the code never checks (`ia (menu)`). dcs-bridge has no flight-control API. | No |
+| `auto-slow` | No human either, but takes **minutes** to resolve — an AI helicopter flying a route to a pickup/dropoff zone, or a long internal timer chain (e.g. the JTAC drone ~13 min). Excluded from the fast `--headless` sweep; run explicitly with `--tier auto-slow --poll-timeout 900`, player just parked in a slot. | Yes (slow, on demand) |
+| `human` | Needs a human: either a live player who must **fly** (`human (fly)`) or one who must **click an F10 item / make a visual judgment** the code never checks (`human (menu)`). dcs-bridge has no flight-control API. | No |
+| `disabled` | Quarantined: code **and** mission are both correct, but the test can't complete for a reason outside CTLD (e.g. the DCS AI helicopter won't reliably land on a specific spot). Never run by a default sweep; reachable only via an explicit `--tier disabled`. Logic coverage lives in fast deterministic tests. | No (quarantine) |
 
-The `pilotActive/`/`pilotPassive/` folders do **not** imply `ia` — the tier reflects what a
+The `pilotActive/`/`pilotPassive/` folders do **not** imply `human` — the tier reflects what a
 scenario's code actually needs, checked per file, not its folder. A `CATCH-UP-PILOT-SCENARIOS`
-audit found that of the ~34 scenarios once blanket-tagged `ia`, only a handful truly need a human
-(two menu-visual `ia (fly)` checks, plus one deferred and one optional-manual); the large
+audit found that of the ~34 scenarios once blanket-tagged `human`, only a handful truly need a human
+(two menu-visual `human (fly)` checks, plus one deferred and one optional-manual); the large
 majority drive AI helicopters or self-verify and are `auto-check`/`auto-slow`. See the
 `integration-testing` skill for the full taxonomy and how each template defaults.
 
@@ -54,19 +55,19 @@ running and the mission loaded with `dcs-bridge.lua` injected (see the top of th
 
 | Tier | Command | What YOU do |
 |---|---|---|
-| `auto` | `python tools/integration-runner/run_scenarios.py --no-ai` | **Nothing.** Fully headless. (No slot needed.) |
-| `auto-check` | same `--no-ai` sweep (covers `auto` + `auto-check`) | **Be parked in a BLUE slot** (UH-1H) — some read your unit's position/group. No flying, no clicking. |
-| `auto-slow` | `python tools/integration-runner/run_scenarios.py --tier auto-slow --poll-timeout 900` | **Be parked in a BLUE slot**, then wait — each needs minutes of AI-helicopter flight. Excluded from `--no-ai` on purpose. Optional (logic also covered by the `noPlayer` `aiTransport_featureT/U` tests). |
-| `ia (fly)` | `python tools/integration-runner/run_ia_scenario.py --scenario <name>` | **Fly the aircraft** as the terminal instructs (take off, land, reposition). The runner mirrors each step's in-game instructions to your terminal. |
-| `ia (menu)` | `python tools/integration-runner/run_ia_scenario.py --scenario <name>` | **Click F10 menu items / make a visual check** as instructed (no flying). |
+| `auto` | `python tools/integration-runner/run_scenarios.py --headless` | **Nothing.** Fully headless. (No slot needed.) |
+| `auto-check` | same `--headless` sweep (covers `auto` + `auto-check`) | **Be parked in a BLUE slot** (UH-1H) — some read your unit's position/group. No flying, no clicking. |
+| `auto-slow` | `python tools/integration-runner/run_scenarios.py --tier auto-slow --poll-timeout 900` | **Be parked in a BLUE slot**, then wait — each needs minutes of AI-helicopter flight. Excluded from `--headless` on purpose. Optional (logic also covered by the `noPlayer` `aiTransport_featureT/U` tests). |
+| `human (fly)` | `python tools/integration-runner/run_manual_scenario.py --scenario <name>` | **Fly the aircraft** as the terminal instructs (take off, land, reposition). The runner mirrors each step's in-game instructions to your terminal. |
+| `human (menu)` | `python tools/integration-runner/run_manual_scenario.py --scenario <name>` | **Click F10 menu items / make a visual check** as instructed (no flying). |
 
 Notes:
 - A **full headless sweep** (recommended before a release) is
-  `python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld --reset-before-each`
+  `python tools/integration-runner/run_scenarios.py --headless --inject-ctld --reset-before-each`
   — the `--reset-before-each` clears cross-scenario CTLD state (see below) so back-to-back runs
   don't contaminate each other. Writes a JUnit report (`test-results.xml`).
 - Target a subset with `--scenario <substring>` (e.g. `--scenario F-178`) or `--dir noPlayer`.
-- `run_ia_scenario.py` recovers from a crash: just re-run the same command (it resets the
+- `run_manual_scenario.py` recovers from a crash: just re-run the same command (it resets the
   scenario's own state first). It also prints an elapsed `[mm:ss]` stamp + a heartbeat so a long
   scenario is visibly alive.
 - See `tools/integration-runner/README.md` for the full flag reference and the tier/`RUNNING`
@@ -176,7 +177,7 @@ All DCS API calls replaced by stubs in `tests/ci/helpers/dcs_stubs.lua`.
 **Success:** `fail=0` in result line + no `[FAIL]` in `tests/dcs/CTLD.log`.
 
 > Most of L3 is `auto`/`auto-check` tier and can run headlessly via
-> `tools/integration-runner/run_scenarios.py --no-ai` (see [Automation tiers](#automation-tiers))
+> `tools/integration-runner/run_scenarios.py --headless` (see [Automation tiers](#automation-tiers))
 > instead of injecting the files below by hand.
 
 ### L3a — Targeted tests (U-xxx / F-xxx)
@@ -229,7 +230,7 @@ Key scenarios:
 | `scenario_farp_repack.lua`, `scenario_warehouse_cycle.lua` | FARP repack + warehouse |
 | `scenario_feature_f_recon_farp.lua` | RECON FARP/FOB layer |
 | `scenario_feature_k_jtac_vehicle.lua` | JTAC vehicle in-transit |
-| `scenario_mt07_ai_troops.lua` to `scenario_mt16_countryside_farp.lua` | Full MT-xx live |
+| `scenario_ai_troops.lua` + `scenario_mt08_ai_vehicle.lua`..`scenario_mt14_ai_aa_system.lua` | AI transport battery (`auto-slow`; `mt08`/`mt14` are `disabled`/quarantined — DCS AI landing) |
 
 ---
 
@@ -278,10 +279,10 @@ Before tagging `vX.Y`:
 
 - [ ] All CI jobs green on `master` (lint, build, busted).
 - [ ] Any new `src/` file added to `tools/build/listToMerge.txt`.
-- [ ] L3 passed — `python tools/integration-runner/run_scenarios.py --no-ai` (or targeted
+- [ ] L3 passed — `python tools/integration-runner/run_scenarios.py --headless` (or targeted
       per-module injection) for all modules modified since last tag.
 - [ ] L4 passed for all player-visible features modified since last tag.
 - [ ] L5 passed if any F10 menu structure changed.
-- [ ] `tests/recette.md` updated (new rows + coverage summary).
+- [ ] This page updated (tier taxonomy / scenario list) if a scenario or tier was added.
 - [ ] `migration/MODERNIZATION-PLAN.md` feature statuses up to date.
 - [ ] `docs/pilot/` and `docs/mission-maker/` updated if any user-visible behavior changed.
