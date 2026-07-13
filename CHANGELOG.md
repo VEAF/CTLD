@@ -57,6 +57,23 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Bumped `HUMAN_TIMEOUT_S` 300s→3600s in the two L5 menu-visual scenarios and the
   `_template_pilotActive.lua` template — 5 minutes was a source of false FAILs, not a useful
   safety net, for a step that's meant to be answered at a real pilot's pace.
+- **Mistagging found**: `scenarioTroopsFullCycle_v2.lua`, `scenario_extract_menu.lua`,
+  `scenario_jtac_crate_pack.lua`, `scenario_feature_k_jtac_vehicle.lua` were all tagged `ia` by
+  the `pilotPassive/` folder-blanket default, but none check real flight state or wait on F10 —
+  only a BLUE slot occupied for position/groupId. Retagged `auto-check`, now runnable via
+  `run_scenarios.py --no-ai` too. `run_scenarios.py` gained the same `RUNNING`-verdict
+  re-injection support `run_ia_scenario.py` already had (previously it failed `RUNNING`
+  outright, assuming a physical action was always needed).
+- **Fix**: `scenarioTroopsFullCycle_v2.lua`'s step 7 (destroys 4 targets on a timer, validates
+  JTAC reacquisition) had no guard against re-entry while its ~50s monitoring window was still
+  running — `run_ia_scenario.py` re-injecting every 2s on `RUNNING` raced a second concurrent
+  destroy/snapshot timer against the first, corrupting the claim log. Added a re-entry guard
+  and exposed `_SCN_TFC_CLEANUP` (this scenario had no external-reset hook at all; a `FAIL`
+  inside `check()` left `_G[STEP_N]` stuck re-validating stale data on any re-run).
+- **Fix**: `run_ia_scenario.py` only printed progress when the verdict *token* changed — a
+  multi-step `RUNNING` scenario's message advances every step while the token stays `RUNNING`
+  throughout, so a long-but-healthy step looked indistinguishable from a hang. Now prints on
+  any message change.
 
 ### CI / tooling
 

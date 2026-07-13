@@ -3,6 +3,8 @@
 
 Usage: python -m unittest tools/integration-runner/test_run_ia_scenario.py
 """
+import contextlib
+import io
 import sys
 import tempfile
 import unittest
@@ -131,6 +133,31 @@ class RunInteractiveTests(unittest.TestCase):
             # "return <var>" poll -- that's what actually advances the step machine.
             self.assertEqual(calls[1], source)
             self.assertEqual(calls[2], source)
+
+    def test_progress_prints_on_message_change_even_if_token_unchanged(self):
+        # Regression: a multi-step RUNNING-pattern scenario's message advances every step
+        # (step=1 -> step=7) while the token itself stays "RUNNING" throughout. Printing only
+        # on a token change would show nothing at all during a long-running step, making a
+        # slow-but-healthy scenario indistinguishable from a hung one.
+        with tempfile.TemporaryDirectory() as tmp:
+            source = "-- @tier: auto-check\n_SCN_TFC_RESULT = 'x'\nreturn _SCN_TFC_RESULT"
+            scenario = self._write_scenario(tmp, source)
+            responses = iter([
+                ("[TFC] RUNNING: step=1 SUCCESS", None),  # injection
+                ("[TFC] RUNNING: step=7 MONITORING", None),  # re-injection -- same token, new message
+                ("[TFC] PASS", None),                      # re-injection -- terminal
+            ])
+
+            def http_post(code):
+                return next(responses)
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = ria.run_interactive(scenario, http_post, poll_interval=0, sleep=lambda s: None)
+            self.assertEqual(code, 0)
+            output = buf.getvalue()
+            self.assertIn("step=1 SUCCESS", output)
+            self.assertIn("step=7 MONITORING", output)
 
     def test_http_error_on_injection_returns_nonzero(self):
         with tempfile.TemporaryDirectory() as tmp:

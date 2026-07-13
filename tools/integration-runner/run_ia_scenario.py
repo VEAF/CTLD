@@ -94,6 +94,7 @@ def run_interactive(scenario: rs.ScenarioInfo, http_post, poll_interval: float =
         return 1
 
     last_instr = None
+    last_message = message
     print("Polling every %.0fs -- fly/answer F10 prompts in DCS as instructed below." % poll_interval)
     print("Ctrl+C to stop. Re-run this same command any time to reset and restart the test.\n")
     try:
@@ -118,10 +119,14 @@ def run_interactive(scenario: rs.ScenarioInfo, http_post, poll_interval: float =
             if err:
                 print("ERROR: %s" % err, file=sys.stderr)
                 return 1
-            new_token, message = rs.parse_verdict(raw)
-            if new_token != token:
-                print("[%s] %s" % (new_token, message))
-            token = new_token
+            token, message = rs.parse_verdict(raw)
+            # Print on ANY progress, not just a token change -- multi-step scenarios (e.g. the
+            # RUNNING: step=N pattern) update the message every step while the token itself
+            # stays "RUNNING" the whole time; without this, a long-running step (a real timer
+            # the scenario itself is waiting out) looks like nothing is happening.
+            if message != last_message:
+                print("[%s] %s" % (token, message))
+                last_message = message
             if token in rs.TERMINAL_VERDICTS:
                 return 0 if token == "PASS" else 1
             # still STARTED/RUNNING -- keep polling/re-injecting

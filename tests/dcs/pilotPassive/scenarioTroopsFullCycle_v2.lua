@@ -177,6 +177,22 @@ local function cleanupAll()
     log("cleanupAll done")
 end
 
+-- Full external reset (exposed as _SCN_TFC_CLEANUP): unlike the pilotActive human-step
+-- scenarios, this state machine has no "already running" guard to trip on double-injection --
+-- but a FAIL inside a check() aborts via error() before the step reaches its own state reset
+-- (e.g. Phase B's _TFC_STEP7_DONE/_TFC_STEP7_CLAIM_LOG), leaving _G[STEP_N] stuck re-validating
+-- the same stale data forever. Re-running after a FAIL (or a mid-flight DCS crash) needs this.
+_SCN_TFC_CLEANUP = function()
+    cleanupAll()
+    _G[STEP_N]                 = 1
+    _G["_TFC_ALIVE_JTAC"]       = nil
+    _G["_TFC_TARGET_UNITS"]     = nil
+    _G["_TFC_STEP7_CLAIM_LOG"]  = nil
+    _G["_TFC_STEP7_DONE"]       = nil
+    _G["_TFC_STEP7_IDX"]        = nil
+    log("_SCN_TFC_CLEANUP: full reset done, restarting from Step 1")
+end
+
 -- ── SPAWN HELPER ──────────────────────────────────────────────────────────────
 -- Spawns a test DCS group with unit names matching the real CTLD naming convention
 -- (JTAC-N prefix for JTAC units, INF-N for infantry) so _syncFromDCSGroup works.
@@ -653,6 +669,15 @@ elseif step == 7 then
         pass("Step 7 — all targets destroyed, reacquisition chain validated. Re-inject for Step 8.")
         _G[STEP_N] = 8
         _result = "step=7 SUCCESS"
+
+    elseif _G["_TFC_STEP7_CLAIM_LOG"] ~= nil then
+        -- Monitoring timer already installed (re-injected before it finished) -- do NOT
+        -- reinstall: a second concurrent destroy/snapshot timer would race the first one,
+        -- destroying targets out of sequence and corrupting the claim log. Just report
+        -- still-running; the next re-injection after the timer actually completes hits
+        -- Phase B above (_TFC_STEP7_DONE == true).
+        log("Step 7 Phase A: monitoring already in progress, re-injection ignored")
+        _result = "step=7 MONITORING (already in progress)"
 
     else
         -- Phase A: install timer-driven sequence
