@@ -37,7 +37,7 @@ Indépendamment du niveau L (le dossier où vit un scénario), chaque scénario 
 | --- | --- | --- |
 | `auto` | Une seule injection retourne le verdict définitif (`PASS`/`FAIL`/`ABORT`). Aucun joueur, aucun polling, aucun jugement. | Oui |
 | `auto-check` | Se résout automatiquement via un vrai timer/`waitFor` ou une machine à états ré-injectée, en quelques secondes — le scénario retourne `STARTED`/`RUNNING` et le runner interroge/ré-injecte `_SCN_<ID>_RESULT` jusqu'à résolution. Aucun jugement humain. | Oui (rapide) |
-| `auto-slow` | Sans humain non plus, mais nécessite **plusieurs minutes de vol IA réel** pour se résoudre (un hélicoptère IA volant une route vers une zone pickup/dropoff). Exclu du balayage rapide `--no-ai` ; à lancer explicitement avec `--tier auto-slow --poll-timeout 900`, joueur simplement garé dans un slot. | Oui (lent, à la demande) |
+| `auto-slow` | Sans humain non plus, mais prend **plusieurs minutes** à se résoudre — un hélicoptère IA volant une route vers une zone pickup/dropoff, ou une longue chaîne de timers internes (ex. le drone JTAC ~13 min). Exclu du balayage rapide `--no-ai` ; à lancer explicitement avec `--tier auto-slow --poll-timeout 900`, joueur simplement garé dans un slot. | Oui (lent, à la demande) |
 | `ia` | Nécessite un humain : soit un joueur qui doit **piloter** (`ia (fly)`), soit qui doit **cliquer un item F10 / faire un jugement visuel** que le code ne vérifie pas (`ia (menu)`). Le pont dcs-bridge n'expose aucune API de pilotage. | Non |
 
 Les dossiers `pilotActive/`/`pilotPassive/` n'impliquent **pas** `ia` — le tier reflète ce que le

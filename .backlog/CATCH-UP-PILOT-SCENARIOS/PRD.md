@@ -61,13 +61,16 @@ read each in full) found that the vast majority never gate on the player's `inAi
 F10 click — they drive AI helicopters + timers, or self-verify, needing only a BLUE slot for
 position/country. **Final tally of the original 34 `ia`:**
 
-- **22 retagged `auto-check`** (no human, fast headless via `run_scenarios.py --no-ai` — player
-  just occupies a slot, doesn't fly).
-- **9 retagged `auto-slow`** (no human either, but need minutes of real AI-heli flight:
-  `scenario_ai_troops` + `mt07..mt14`) — excluded from the fast `--no-ai` sweep, run explicitly
-  with `--tier auto-slow --poll-timeout 900`. Core logic already covered fast/headless by the
-  `noPlayer` `aiTransport_featureT/U` tests (F-176..182), so this heavy end-to-end tier is
-  optional / low-priority.
+- **`auto-check`** (no human, fast headless via `run_scenarios.py --no-ai` — player just occupies
+  a slot, doesn't fly).
+- **`auto-slow`** (no human either, but minutes to resolve — excluded from the fast `--no-ai`
+  sweep, run with `--tier auto-slow --poll-timeout 900`): the AI-heli-flight battery
+  (`scenario_ai_troops` + `mt07..mt14`) **and** the JTAC drone (`scenario_unpack_jtac_drone`,
+  ~13 min of internal timers). Core logic of the AI battery already covered fast/headless by the
+  `noPlayer` `aiTransport_featureT/U` tests (F-176..182), so that end-to-end tier is optional.
+
+Current tier split across `pilotPassive/`+`pilotActive/`: **18 `auto-check`, 10 `auto-slow`,
+4 `ia`**.
 - **3 genuine `ia`:**
   - `scenario_crate_menu_sol_vol_visual.lua` — `ia (fly)` (sol/vol/sol menu, PASS).
   - `scenario_troop_menu_sol_vol_visual.lua` — `ia (fly)` (sol/vol/sol menu, PASS).

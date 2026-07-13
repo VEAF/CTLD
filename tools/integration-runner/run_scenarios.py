@@ -36,9 +36,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCENARIO_DIRS = ("noPlayer", "pilotActive", "pilotPassive")
 TIERS = ("auto", "auto-check", "auto-slow", "ia")
-# `--no-ai` targets the FAST no-human tiers only. `auto-slow` is also no-human but needs minutes
-# of real AI-unit flight to resolve, so it's deliberately excluded from the default sweep -- run
-# it explicitly with `--tier auto-slow` (and a generous --poll-timeout).
+# `--no-ai` targets the FAST no-human tiers only. `auto-slow` is also no-human but takes minutes
+# to resolve (real AI-unit flight, or long internal timer chains like the JTAC drone's ~13 min),
+# so it's deliberately excluded from the default sweep -- run it explicitly with
+# `--tier auto-slow --poll-timeout 900`.
 NO_AI_TIERS = ("auto", "auto-check")
 
 TIER_RE = re.compile(r"^\s*--\s*@tier:\s*(\S+)", re.MULTILINE)
@@ -298,8 +299,10 @@ def build_arg_parser():
                     help="Seconds to wait after injecting CTLD.lua (default: 4)")
     p.add_argument("--poll-interval", type=float, default=2.0,
                     help="Seconds between polls of an async scenario's result (default: 2)")
-    p.add_argument("--poll-timeout", type=float, default=60.0,
-                    help="Max seconds to poll before giving up (default: 60)")
+    p.add_argument("--poll-timeout", type=float, default=180.0,
+                    help="Max seconds to poll one scenario before giving up (default: 180 -- "
+                         "covers the slowest auto-check scenarios like fob_scene ~130s / p2 ~160s; "
+                         "resolves early when a scenario finishes. Use 900+ for --tier auto-slow.)")
     p.add_argument("--exec-timeout", type=float, default=None,
                     help="Per-request timeout passed to dcs-serve (default: server default)")
     p.add_argument("--junit-out", type=Path, default=REPO_ROOT / "test-results.xml",

@@ -36,7 +36,7 @@ Independently of the L-level (which folder a scenario lives in), every scenario 
 | --- | --- | --- |
 | `auto` | A single injection returns the definitive verdict (`PASS`/`FAIL`/`ABORT`). No player, no polling, no judgment call. | Yes |
 | `auto-check` | Resolves automatically via a real timer/`waitFor` or a re-injected step machine, within seconds — the scenario returns `STARTED`/`RUNNING` and the runner polls/re-injects `_SCN_<ID>_RESULT` until it resolves. No human/AI judgment. | Yes (fast) |
-| `auto-slow` | No human either, but needs **minutes of real AI-unit flight** to resolve (an AI helicopter flying a route to a pickup/dropoff zone). Excluded from the fast `--no-ai` sweep; run explicitly with `--tier auto-slow --poll-timeout 900`, player just parked in a slot. | Yes (slow, on demand) |
+| `auto-slow` | No human either, but takes **minutes** to resolve — an AI helicopter flying a route to a pickup/dropoff zone, or a long internal timer chain (e.g. the JTAC drone ~13 min). Excluded from the fast `--no-ai` sweep; run explicitly with `--tier auto-slow --poll-timeout 900`, player just parked in a slot. | Yes (slow, on demand) |
 | `ia` | Needs a human: either a live player who must **fly** (`ia (fly)`) or one who must **click an F10 item / make a visual judgment** the code never checks (`ia (menu)`). dcs-bridge has no flight-control API. | No |
 
 The `pilotActive/`/`pilotPassive/` folders do **not** imply `ia` — the tier reflects what a

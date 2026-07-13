@@ -35,9 +35,8 @@ python tools/integration-runner/run_scenarios.py --scenario F-178
 # BLUE slot for the pos/country lookups):
 python tools/integration-runner/run_scenarios.py --tier auto-slow --poll-timeout 900
 
-# Custom report path / polling behaviour
-python tools/integration-runner/run_scenarios.py --no-ai --junit-out out/results.xml \
-    --poll-interval 1 --poll-timeout 30
+# Custom report path (default --poll-timeout 180 already covers the slowest auto-check ~160s)
+python tools/integration-runner/run_scenarios.py --no-ai --junit-out out/results.xml
 ```
 
 Run `python tools/integration-runner/run_scenarios.py --help` for the full flag reference.
@@ -64,17 +63,20 @@ Run `python tools/integration-runner/run_scenarios.py --help` for the full flag 
     re-injecting just spins harmlessly until `poll_timeout` and reports `FAIL` — no crash, just
     a plainer message than before.
 
-### The `auto-slow` tier — no human, but minutes of AI flight
+### The `auto-slow` tier — no human, but minutes to resolve
 
-A third no-human tier sits between `auto-check` and `ia`: scenarios that need an **AI helicopter**
-(not a human) to physically fly a multi-waypoint route to a pickup/dropoff zone before the next
-step's check can pass (the `heliai_*`-driven MT-07..14 + `scenario_ai_troops`). They resolve with
-no pilot and no F10, so they're not `ia` — but each takes minutes of real AI flight, so the 2s
-re-inject loop of a `--no-ai` sweep would spam and stall the whole batch on one scenario. Tagged
-`auto-slow` and **excluded from `--no-ai`**; run them deliberately with `--tier auto-slow
---poll-timeout 900` (player parked in a BLUE slot). Their core logic is already covered fast and
-headlessly by the `noPlayer` unit-level `aiTransport_featureT/U` tests (F-176..182), so `auto-slow`
-is the heavier end-to-end complement, not the only coverage.
+A third no-human tier sits between `auto-check` and `ia`: scenarios that resolve with no pilot and
+no F10, but take **minutes** to finish, so dropping them in the fast `--no-ai` sweep would stall
+the whole batch on one scenario (and spam the screen with 2s re-injects). Two shapes qualify:
+- **AI-heli flight** — needs an **AI helicopter** (`heliai_*`) to physically fly a multi-waypoint
+  route to a pickup/dropoff zone before the next check can pass: MT-07..14 + `scenario_ai_troops`.
+- **Long internal timer chains** — resolves on its own but only after many minutes: the JTAC drone
+  (`scenario_unpack_jtac_drone`, VERIFY steps up to T+795s ≈ 13 min).
+
+Tagged `auto-slow` and **excluded from `--no-ai`**; run deliberately with `--tier auto-slow
+--poll-timeout 900` (player parked in a BLUE slot). The AI-battery's core logic is already covered
+fast/headlessly by the `noPlayer` `aiTransport_featureT/U` tests (F-176..182), so `auto-slow` is
+the heavier end-to-end complement, not the only coverage.
 
 ## Interactive `ia` scenarios (`run_ia_scenario.py`)
 

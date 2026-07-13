@@ -14,10 +14,11 @@ Audited each one's actual code before asking for a pilot (per the ticket 03 mist
   real player at all.
 - `tests/dcs/pilotPassive/scenario_weight_aggregation.lua` → `auto-check`. "1 step auto" per
   its own header; just needs a BLUE slot for position.
-- `tests/dcs/pilotPassive/scenario_unpack_jtac_drone.lua` → `auto-check`. Resolves the
-  helicopter via hardcoded `Unit.getByName("uh1-1")`, not `coalition.getPlayers` — no active
-  piloting needed. Single injection, ~13 min of internal timers (up to T+795s) — needs a long
-  poll timeout if run via `run_scenarios.py`. **Found + fixed a scenario/mission conflict**
+- `tests/dcs/pilotPassive/scenario_unpack_jtac_drone.lua` → **`auto-slow`** (later reclassified
+  from `auto-check`: its ~13 min of internal timers, up to T+795s, is too slow for the fast
+  `--no-ai` sweep — it stalled a live sweep and looked hung. Run with `--tier auto-slow
+  --poll-timeout 900`.) Resolves the helicopter via hardcoded `Unit.getByName("uh1-1")`, no
+  piloting. **Found + fixed a scenario/mission conflict**
   (David chose option 1): V3/V4 asserted the drone had *no target* after destroying the
   scenario's own spawned RED unit, but the test mission has `Sol_g-2` at 4135m — inside the
   drone's `JTAC_maxDistance` (~10km) and closer than the scenario's own target (~5442m) — so
