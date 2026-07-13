@@ -198,6 +198,37 @@ class RunScenarioTests(unittest.TestCase):
             self.assertEqual(result.verdict, "PASS")
             self.assertEqual(len(calls), 1)
 
+    def test_reset_source_injected_before_scenario(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            scenario = self._write_scenario(tmp, "-- @tier: auto\nreturn 1")
+            calls = []
+
+            def http_post(code):
+                calls.append(code)
+                return "[F-001] PASS", None
+
+            result = rs.run_scenario(
+                scenario, http_post, sleep=lambda s: None,
+                reset_source="-- RESET SNIPPET --")
+            self.assertEqual(result.verdict, "PASS")
+            # Reset must be posted FIRST, then the scenario source.
+            self.assertEqual(len(calls), 2)
+            self.assertEqual(calls[0], "-- RESET SNIPPET --")
+            self.assertIn("@tier: auto", calls[1])
+
+    def test_reset_error_is_nonfatal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            scenario = self._write_scenario(tmp, "-- @tier: auto\nreturn 1")
+            responses = iter([(None, "HTTP 504: timeout"), ("[F-001] PASS", None)])
+
+            def http_post(code):
+                return next(responses)
+
+            # Reset fails, but the scenario still runs and passes.
+            result = rs.run_scenario(
+                scenario, http_post, sleep=lambda s: None, reset_source="-- RESET --")
+            self.assertEqual(result.verdict, "PASS")
+
     def test_async_resolves_after_polling(self):
         with tempfile.TemporaryDirectory() as tmp:
             scenario = self._write_scenario(

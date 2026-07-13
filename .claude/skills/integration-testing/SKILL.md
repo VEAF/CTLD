@@ -134,6 +134,12 @@ Claude) — `tools/integration-runner/run_scenarios.py` runs them headlessly aga
 use: `python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld`. `ia`-tier
 scenarios (player/F10 required) are never selected by `--no-ai`.
 
+For a **full back-to-back sweep** add `--reset-before-each`: scenarios share CTLD's singletons
+and some leave residue (phantom `_players`, a wiped player menu) that aborts the next
+player-dependent scenario. That flag injects `tests/dcs/_reset_state.lua` before each scenario to
+restore a clean player/menu baseline (`net.load_mission` is unavailable on a client, so we can't
+reload the mission from Lua). Running one scenario at a time doesn't need it.
+
 Most `ia`-tier `pilotActive`/`pilotPassive` scenarios self-verify (same `checkMenuExpected()`
 pattern as `auto`) and only need a live pilot, not AI judgment — run those interactively from
 the terminal with `tools/integration-runner/run_ia_scenario.py --scenario <name>` instead of

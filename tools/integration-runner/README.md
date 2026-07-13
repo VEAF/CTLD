@@ -23,8 +23,9 @@ an AI agent in the loop, for scenarios that don't need one (`auto`/`auto-check` 
 # See what would run, no network calls
 python tools/integration-runner/run_scenarios.py --list
 
-# Run every auto / auto-check scenario (the "no AI needed" set), inject CTLD.lua first
-python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld
+# Run every auto / auto-check scenario (the "no AI needed" set), inject CTLD.lua first.
+# For a FULL sweep add --reset-before-each (clears cross-scenario contamination between runs):
+python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld --reset-before-each
 
 # Target a subset
 python tools/integration-runner/run_scenarios.py --dir noPlayer --tier auto
@@ -134,7 +135,21 @@ ia (fly)` still matches `ia` for tier filtering (`TIER_RE` only captures the tok
 `@tier:`). It exists so a human scanning a ticket's scenario list knows what to expect before
 starting: whether to expect to fly, just click, or nothing at all.
 
-## Legacy relics
+## Cross-scenario state contamination — `--reset-before-each`
+
+Scenarios share CTLD's singletons (`PlayerManager`, `MenuManager`, …). Some leave residue that
+breaks the *next* scenario — e.g. phantom `_players` entries (the cl9/cl10 tests) plus a wiped
+MenuManager menu for the real slotted player, so later player-dependent scenarios abort with
+`no CTLD MenuManager menu`. Running each scenario alone is fine (fresh state); a back-to-back
+sweep accumulates the mess. `net.load_mission` isn't available on a DCS client, so we can't
+reload the mission from Lua to clear it.
+
+**Soft reset:** `--reset-before-each` injects `tests/dcs/_reset_state.lua` before every scenario
+— it prunes phantom players and rebuilds the real players' menus, re-establishing a clean
+player/menu baseline without a mission reload. `run_ia_scenario.py` does this automatically.
+Recommended for any full sweep. Scope is deliberately player/menu only (not zones/FOBs/scenes);
+if a scenario ever needs a deeper reset than that, the fallback is a human mission reload
+(Shift+R) — the soft reset handles every contamination case observed so far.
 
 `tests/dcs/noPlayer/` still contains ~194 dead FullGas scenarios predating the `@tier`
 convention (tracked as `CLEANUP-LEGACY-DCS-TESTS`). Discovery skips any file with no valid

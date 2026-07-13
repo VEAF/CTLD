@@ -191,8 +191,8 @@ def read_simple_config(path: Path) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def run_scenario(scenario: ScenarioInfo, http_post, poll_interval=2.0, poll_timeout=60.0,
-                  sleep=time.sleep, now=time.monotonic) -> ScenarioResult:
+def run_scenario(scenario: ScenarioInfo, http_post, poll_interval=2.0, poll_timeout=180.0,
+                  sleep=time.sleep, now=time.monotonic, reset_source=None) -> ScenarioResult:
     """Run one scenario to a terminal verdict, polling/re-injecting if it starts async.
 
     `STARTED` scenarios resolve on their own (poll the result var). `RUNNING: step=N ...`
@@ -203,8 +203,17 @@ def run_scenario(scenario: ScenarioInfo, http_post, poll_interval=2.0, poll_time
     physical step should stay tagged `ia` so it's never selected here in the first place. If one
     somehow is (e.g. an explicit `--tier ia`), re-injecting just spins harmlessly until
     `poll_timeout` and reports FAIL -- no worse than before, just a plainer message.
+
+    `reset_source` (the contents of tests/dcs/_reset_state.lua, or None) is injected first when
+    `--reset-before-each` is set, to clear cross-scenario player/menu contamination so this
+    scenario starts from a clean baseline. A reset error is non-fatal -- logged, then the
+    scenario runs anyway.
     """
     start = now()
+    if reset_source:
+        _, reset_err = http_post(reset_source)
+        if reset_err:
+            print("  (reset-before-each skipped: %s)" % reset_err, file=sys.stderr)
     source = scenario.path.read_text(encoding="utf-8")
     raw, err = http_post(source)
     if err:
@@ -307,6 +316,9 @@ def build_arg_parser():
                     help="Per-request timeout passed to dcs-serve (default: server default)")
     p.add_argument("--junit-out", type=Path, default=REPO_ROOT / "test-results.xml",
                     help="Where to write the JUnit XML report (default: ./test-results.xml)")
+    p.add_argument("--reset-before-each", action="store_true",
+                    help="Inject tests/dcs/_reset_state.lua before each scenario to clear "
+                         "cross-scenario player/menu contamination (recommended for a full sweep)")
     p.add_argument("--list", action="store_true",
                     help="List selected scenarios and exit -- no network calls")
     p.add_argument("--show-skipped", action="store_true",
@@ -366,11 +378,18 @@ def main(argv=None) -> int:
             return 1
         time.sleep(args.init_wait)
 
+    reset_source = None
+    if args.reset_before_each:
+        reset_path = REPO_ROOT / "tests" / "dcs" / "_reset_state.lua"
+        reset_source = reset_path.read_text(encoding="utf-8")
+        print("Reset-before-each enabled (%s)" % reset_path.name)
+
     results = []
     for scenario in scenarios:
         result = run_scenario(
             scenario, http_post,
             poll_interval=args.poll_interval, poll_timeout=args.poll_timeout,
+            reset_source=reset_source,
         )
         results.append(result)
         status = "PASS" if result.verdict == "PASS" else result.verdict

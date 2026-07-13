@@ -69,6 +69,24 @@ class RunInteractiveTests(unittest.TestCase):
         path.write_text(text, encoding="utf-8")
         return rs.ScenarioInfo(path=path, rel_dir="pilotActive", tier="ia")
 
+    def test_reset_source_injected_before_scenario(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            scenario = self._write_scenario(tmp, "-- @tier: ia\nreturn 1")
+            calls = []
+
+            def http_post(code):
+                calls.append(code)
+                return "[F-046] PASS", None
+
+            code = ria.run_interactive(scenario, http_post, sleep=lambda s: None,
+                                       reset_source="-- RESET SNIPPET --")
+            self.assertEqual(code, 0)
+            # No _SCN_*_CLEANUP in the scenario, so no reset_stuck_state call; the shared reset
+            # snippet must be posted before the scenario source.
+            self.assertIn("-- RESET SNIPPET --", calls)
+            self.assertLess(calls.index("-- RESET SNIPPET --"),
+                            next(i for i, c in enumerate(calls) if "@tier: ia" in c))
+
     def test_terminal_pass_on_first_injection(self):
         with tempfile.TemporaryDirectory() as tmp:
             scenario = self._write_scenario(tmp, "-- @tier: ia\nreturn 1")

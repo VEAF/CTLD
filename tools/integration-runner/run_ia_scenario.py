@@ -78,7 +78,7 @@ def _fmt_elapsed(seconds: float) -> str:
 
 def run_interactive(scenario: rs.ScenarioInfo, http_post, poll_interval: float = 2.0,
                      heartbeat_interval: float = 30.0, max_errors: int = 5,
-                     sleep=time.sleep, now=time.monotonic) -> int:
+                     sleep=time.sleep, now=time.monotonic, reset_source=None) -> int:
     """Inject `scenario`, mirror instructions to the terminal, poll to a terminal verdict.
 
     Long scenarios (e.g. the JTAC drone's ~13 min of internal timers) can go minutes between
@@ -103,6 +103,13 @@ def run_interactive(scenario: rs.ScenarioInfo, http_post, poll_interval: float =
 
     print("Resetting any stuck state from a previous run...")
     reset_stuck_state(http_post, cleanup_var)
+    # Also clear cross-scenario player/menu contamination (phantom players, wiped menus) left by
+    # any prior scenario -- same snippet the headless sweep uses. Best-effort: errors logged, not
+    # fatal. (reset_source is read + passed by main(); None in unit tests.)
+    if reset_source:
+        _, rerr = http_post(reset_source)
+        if rerr:
+            print("  (state reset skipped: %s)" % rerr, file=sys.stderr)
 
     print("Injecting %s ..." % scenario.path.name)
     raw, err = http_post(source)
@@ -238,8 +245,12 @@ def main(argv=None) -> int:
     api_key = args.api_key or cfg["api_key"]
     http_post = rs.make_http_post(host, port, api_key)
 
+    reset_path = REPO_ROOT / "tests" / "dcs" / "_reset_state.lua"
+    reset_source = reset_path.read_text(encoding="utf-8") if reset_path.exists() else None
+
     return run_interactive(scenario, http_post, poll_interval=args.poll_interval,
-                           heartbeat_interval=args.heartbeat, max_errors=args.max_errors)
+                           heartbeat_interval=args.heartbeat, max_errors=args.max_errors,
+                           reset_source=reset_source)
 
 
 if __name__ == "__main__":
