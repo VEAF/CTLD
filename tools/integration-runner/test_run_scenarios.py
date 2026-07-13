@@ -70,6 +70,11 @@ class DeriveResultVarTests(unittest.TestCase):
     def test_none_when_absent(self):
         self.assertIsNone(rs.derive_result_var("local x = 1\nreturn x"))
 
+    def test_finds_compound_id_result_var(self):
+        # IDs with underscores (e.g. FI_ATK) must be recognised.
+        src = '_SCN_FI_ATK_RESULT = "[FI-ATK] STARTED"\nreturn _SCN_FI_ATK_RESULT'
+        self.assertEqual(rs.derive_result_var(src), "_SCN_FI_ATK_RESULT")
+
 
 class FilterScenariosTests(unittest.TestCase):
     def _fake(self, rel_dir, name, tier):

@@ -44,7 +44,8 @@ NO_AI_TIERS = ("auto", "auto-check")
 
 TIER_RE = re.compile(r"^\s*--\s*@tier:\s*(\S+)", re.MULTILINE)
 VERDICT_RE = re.compile(r"\[[^\]]*\]\s*(PASS|FAIL|ABORT|RUNNING|STARTED)\b(.*)", re.DOTALL)
-RESULT_VAR_RE = re.compile(r"_SCN_[A-Za-z0-9]+_RESULT")
+# Allow underscores in the scenario ID: some use compound IDs like _SCN_FI_ATK_RESULT.
+RESULT_VAR_RE = re.compile(r"_SCN_[A-Za-z0-9_]+_RESULT")
 
 TERMINAL_VERDICTS = ("PASS", "FAIL", "ABORT")
 

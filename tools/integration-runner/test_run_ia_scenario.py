@@ -24,6 +24,9 @@ class DeriveInstrVarTests(unittest.TestCase):
     def test_none_when_absent(self):
         self.assertIsNone(ria.derive_instr_var("return 1"))
 
+    def test_finds_compound_id_instr_var(self):
+        self.assertEqual(ria.derive_instr_var("_SCN_FI_ATK_INSTR = ''"), "_SCN_FI_ATK_INSTR")
+
 
 class DeriveCleanupVarTests(unittest.TestCase):
     def test_finds_cleanup_var(self):

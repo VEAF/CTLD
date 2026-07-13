@@ -41,8 +41,9 @@ import run_scenarios as rs
 REPO_ROOT = rs.REPO_ROOT
 IA_DIRS = ("pilotActive", "pilotPassive")
 
-INSTR_VAR_RE = re.compile(r"_SCN_[A-Za-z0-9]+_INSTR")
-CLEANUP_VAR_RE = re.compile(r"_SCN_[A-Za-z0-9]+_CLEANUP")
+# Allow underscores in the scenario ID: some use compound IDs like _SCN_FI_ATK_INSTR.
+INSTR_VAR_RE = re.compile(r"_SCN_[A-Za-z0-9_]+_INSTR")
+CLEANUP_VAR_RE = re.compile(r"_SCN_[A-Za-z0-9_]+_CLEANUP")
 
 
 def derive_instr_var(source: str) -> str | None:
