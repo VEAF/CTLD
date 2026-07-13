@@ -74,6 +74,25 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   multi-step `RUNNING` scenario's message advances every step while the token stays `RUNNING`
   throughout, so a long-but-healthy step looked indistinguishable from a hang. Now prints on
   any message change.
+- **Tier audit (ticket 04)**: `scenario_multigroup_transport`, `scenario_weight_aggregation`,
+  `scenario_unpack_jtac_drone`, `scenario_farp_repack` retagged `ia`→`auto-check` (none need
+  piloting — just a BLUE slot). Only `scenario_warehouse_cycle` remains genuine `ia (fly)`.
+- **Fix**: `scenario_farp_repack.lua` referenced the dead FullGas `ctld_test` framework (nil,
+  same cause as the 194 relics) — replaced with a local `getTransport()`. It also never emitted
+  a terminal verdict (looped 1→2→99→1 forever under the re-inject loop) — added a `_done` flag
+  so the summary step returns `PASS`. Plus a premature-reinjection retry guard (step 2 waited
+  for `playSceneAtPos` to register the scene instead of a false immediate `fail()`).
+- **Fix**: `scenario_unpack_jtac_drone.lua` V3/V4 asserted the drone had *no* target after its
+  spawned RED unit was destroyed — but a mission RED unit (`Sol_g-2`, 4135m) is inside the
+  drone's lase range, so it correctly re-tasks. Rewrote V3/V4 to assert the drone no longer
+  lases the *specific destroyed unit* (re-tasking to any other in-range enemy is correct CTLD
+  behaviour). Also exposed `_SCN_JTACDRONE_INSTR` (it only printed to the DCS screen) and made
+  each VERIFY publish its result there for live CLI progress; same missing-`_INSTR` gap fixed
+  in `scenario_p2_fob_parachute` / `p3_csfarp_parachute` / `p4_metal_farp`.
+- `run_ia_scenario.py` gained an elapsed `[mm:ss]` stamp on every line, a periodic heartbeat
+  (`--heartbeat`, default 30s) echoing the last real progress line, and tolerance for transient
+  poll errors (`--max-errors`, default 5) so a single HTTP 504 mid-run no longer aborts a
+  13-minute scenario.
 
 ### CI / tooling
 

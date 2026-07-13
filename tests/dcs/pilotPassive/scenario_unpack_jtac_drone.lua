@@ -90,11 +90,23 @@ local function log(msg) ctld.utils.log("INFO", "%s %s", TAG, msg) end
 
 local function instruct(msg)
     log("[INSTR] " .. msg)
-    trigger.action.outText(TAG .. "\n" .. msg, 360, true)
+    -- Expose the current instruction as a global so run_ia_scenario.py can mirror it to the
+    -- terminal (return contract convention -- other scenarios set _SCN_<ID>_INSTR; this one
+    -- only ever printed to the DCS screen, so the CLI showed nothing).
+    _SCN_JTACDRONE_INSTR = TAG .. "\n" .. msg
+    trigger.action.outText(_SCN_JTACDRONE_INSTR, 360, true)
 end
 
-local function pass(id, msg) S.passed = S.passed + 1 ; log("[PASS] "..id..": "..(msg or "")) end
-local function fail(id, msg) S.failed = S.failed + 1 ; table.insert(S.failReasons, id..": "..(msg or "")) ; log("[FAIL] "..id..": "..(msg or "")) end
+-- Publish each check result into the instruction global so run_ia_scenario.py mirrors it live.
+-- This scenario is STARTED-pattern: _SCN_JTACDRONE_RESULT stays "STARTED" until finalize at
+-- T+795, so without this the CLI would show no progress at all across the 13-min run -- only a
+-- heartbeat. Now every VERIFY result surfaces in the terminal the moment it fires.
+local function _publishProgress(kind, id, msg)
+    _SCN_JTACDRONE_INSTR = string.format("%s [%s] %s: %s  (%d ok / %d fail so far)",
+        TAG, kind, id, (msg or ""), S.passed, S.failed)
+end
+local function pass(id, msg) S.passed = S.passed + 1 ; log("[PASS] "..id..": "..(msg or "")) ; _publishProgress("PASS", id, msg) end
+local function fail(id, msg) S.failed = S.failed + 1 ; table.insert(S.failReasons, id..": "..(msg or "")) ; log("[FAIL] "..id..": "..(msg or "")) ; _publishProgress("FAIL", id, msg) end
 
 local function drawCircle(center, radius, r, g, b, label)
     trigger.action.circleToAll(-1, gidx(), center, radius,
@@ -346,12 +358,19 @@ steps[1] = function()
         local gname, jtac = getFlyingJtac()
         if not jtac then log("VERIFY 3 INFO — JTAC gone") ; return end
 
-        if not jtac.currentTarget then
-            pass("DRONE.V3", string.format("target lost | state=%s — drone heading to initial orbit",
+        -- The essential check is that the drone DROPS the destroyed target. It may correctly
+        -- re-task to any other enemy still in range (JTAC_maxDistance ~10km) -- e.g. a mission
+        -- RED unit like Sol_g-2 -- which is correct CTLD behaviour, not a failure. So PASS if
+        -- currentTarget is nil OR is no longer our destroyed unit; FAIL only if it's still
+        -- lasing the exact unit we just destroyed.
+        local curName = jtac.currentTarget and jtac.currentTarget.unitName or nil
+        if curName ~= TARGET_UNIT then
+            pass("DRONE.V3", string.format("destroyed target dropped | now=%s | state=%s",
+                tostring(curName) .. (curName and " (re-tasked to another enemy — OK)" or " (idle)"),
                 tostring(jtac.state)))
         else
-            fail("DRONE.V3", string.format("still lasing '%s' | state=%s",
-                jtac.currentTarget.unitName, tostring(jtac.state)))
+            fail("DRONE.V3", string.format("still lasing destroyed target '%s' | state=%s",
+                curName, tostring(jtac.state)))
         end
     end)
 
@@ -363,15 +382,18 @@ steps[1] = function()
         local u = g and g:getUnit(1)
         local dpos = u and u:getPoint()
 
-        if not jtac.currentTarget then
-            pass("DRONE.V4", string.format("drone idle | state=%s | pos=(%.0f,%.0f)",
-                tostring(jtac.state), dpos and dpos.x or 0, dpos and dpos.z or 0))
+        -- Same tolerance as V3: the drone must not be lasing the destroyed target, but may be
+        -- idle OR re-tasked to another still-in-range enemy (both correct).
+        local curName = jtac.currentTarget and jtac.currentTarget.unitName or nil
+        if curName ~= TARGET_UNIT then
+            pass("DRONE.V4", string.format("drone alive, not lasing destroyed target | now=%s | state=%s | pos=(%.0f,%.0f)",
+                (curName or "idle"), tostring(jtac.state), dpos and dpos.x or 0, dpos and dpos.z or 0))
             if dpos then
                 trigger.action.markToAll(gidx(),
                     string.format("DRONE T+795s | state=%s", jtac.state), dpos, false, "")
             end
         else
-            fail("DRONE.V4", string.format("still lasing '%s'", jtac.currentTarget.unitName))
+            fail("DRONE.V4", string.format("still lasing destroyed target '%s'", curName))
         end
 
         -- Cleanup drone

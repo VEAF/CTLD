@@ -67,7 +67,10 @@ local function log(msg) ctld.utils.log("INFO", "%s %s", TAG, msg) end
 
 local function instruct(msg)
     log("[INSTR] " .. msg)
-    trigger.action.outText(TAG .. "\n" .. msg, 360, true)
+    -- Expose the current instruction globally so run_ia_scenario.py mirrors it to the terminal
+    -- (return-contract convention; without this the CLI shows nothing, only the DCS screen does).
+    _SCN_P2FOBPARA_INSTR = TAG .. "\n" .. msg
+    trigger.action.outText(_SCN_P2FOBPARA_INSTR, 360, true)
 end
 
 local function pass(id, msg) S.passed = S.passed + 1 ; log("[PASS] "..id..": "..(msg or "")) end

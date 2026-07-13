@@ -58,6 +58,18 @@ local function check(id, desc, cond, detail)
     end
 end
 
+-- Resolve the player-controlled transport unit (first BLUE player). Replaces the dead
+-- FullGas `ctld_test.getTransport()` helper (that framework was never re-tooled at the VEAF
+-- bootstrap -- same nil-`ctld_test` cause as the ~194 CLEANUP-LEGACY-DCS-TESTS relics).
+local function getTransport()
+    for _, grp in ipairs(coalition.getGroups(coalition.side.BLUE) or {}) do
+        for _, unit in ipairs(grp:getUnits() or {}) do
+            if unit and unit:isExist() and unit:getPlayerName() then return unit end
+        end
+    end
+    return nil
+end
+
 -- ── debug activation ──────────────────────────────────────────────────────────
 
 local cfg          = CTLDConfig.get()
@@ -75,6 +87,8 @@ _G[STEP_VAR] = _G[STEP_VAR] or 1
 local step = _G[STEP_VAR]
 report("==== START " .. os.date("%H:%M:%S") .. " | step=" .. step .. " ====")
 
+local _done = false   -- set true by the terminal step (99) so the return logic emits PASS
+
 local _ok, _err = pcall(function()
 
 -- ══════════════════════════════════════════════════════════════════════════════
@@ -83,9 +97,7 @@ local _ok, _err = pcall(function()
 -- ══════════════════════════════════════════════════════════════════════════════
 if step == 1 then
 
-    ctld_test.cleanup()
-
-    local transport = ctld_test.getTransport()
+    local transport = getTransport()
     if not transport then fail("no BLUE player unit") end
 
     cfg.settings["enableFARPRepack"] = true
@@ -116,7 +128,7 @@ if step == 1 then
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 2 then
 
-    local transport = ctld_test.getTransport()
+    local transport = getTransport()
     if not transport then fail("no BLUE player unit") end
 
     local sm  = CTLDSceneManager.getInstance()
@@ -243,7 +255,11 @@ elseif step >= 99 then
     report("FRP — FARP Repack recette complete")
     report("Cases covered: F-MT16.1 -> F-MT16.8")
     report("═══════════════════════════════════════")
+    -- Reset for a fresh re-injection, and flag this pass as terminal so the return logic
+    -- emits PASS (not RUNNING). Without this the state machine loops 1->2->99->1 forever
+    -- under an automated re-inject loop, never producing a verdict.
     _G[STEP_VAR] = 1
+    _done = true
 
 else
     fail("step=" .. step .. " — no matching branch (reset _FRP_STEP = 1 or add elseif)")
@@ -260,6 +276,12 @@ cfg.settings["enableFARPRepack"] = _saved_repack
 if not _ok then
     _SCN_FRP_RESULT = TAG .. " FAIL: step=" .. step .. " — " .. tostring(_err)
     trigger.action.outText(TAG .. " ❌ step=" .. step .. " FAIL", 60, true)
+    return _SCN_FRP_RESULT
+end
+if _done then
+    -- Terminal step reached — all cases covered, emit the definitive PASS.
+    _SCN_FRP_RESULT = TAG .. " PASS"
+    trigger.action.outText(TAG .. " ✅ ALL SUCCESS", 30, true)
     return _SCN_FRP_RESULT
 end
 -- Multi-step re-injection scenario: a step success is intermediate — runner re-injects.

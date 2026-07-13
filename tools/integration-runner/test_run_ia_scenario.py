@@ -34,6 +34,17 @@ class DeriveCleanupVarTests(unittest.TestCase):
         self.assertIsNone(ria.derive_cleanup_var("return 1"))
 
 
+class FmtElapsedTests(unittest.TestCase):
+    def test_under_a_minute(self):
+        self.assertEqual(ria._fmt_elapsed(5), "0:05")
+
+    def test_minutes_seconds(self):
+        self.assertEqual(ria._fmt_elapsed(150), "2:30")
+
+    def test_past_an_hour(self):
+        self.assertEqual(ria._fmt_elapsed(3661), "1:01:01")
+
+
 class ResetStuckStateTests(unittest.TestCase):
     def test_noop_when_no_cleanup_var(self):
         calls = []
@@ -158,6 +169,104 @@ class RunInteractiveTests(unittest.TestCase):
             output = buf.getvalue()
             self.assertIn("step=1 SUCCESS", output)
             self.assertIn("step=7 MONITORING", output)
+
+    def test_heartbeat_prints_when_nothing_changes(self):
+        # A long STARTED scenario can go minutes with the same message. The heartbeat must emit
+        # a "still running" line (with elapsed stamp) every heartbeat_interval so it doesn't
+        # look hung. Drive a controllable clock so elapsed time advances deterministically.
+        with tempfile.TemporaryDirectory() as tmp:
+            scenario = self._write_scenario(
+                tmp, "-- @tier: auto-check\n_SCN_X_RESULT = 'x'\nreturn _SCN_X_RESULT")
+            responses = iter([
+                ("[X] STARTED", None),  # injection
+                ("[X] STARTED", None),  # poll 1 -- unchanged
+                ("[X] STARTED", None),  # poll 2 -- unchanged
+                ("[X] PASS", None),     # poll 3 -- terminal
+            ])
+            # now() advances 20s per call; heartbeat_interval=30 -> fires by poll 2.
+            ticks = iter([0, 20, 40, 60, 80, 100, 120, 140, 160])
+
+            def http_post(code):
+                return next(responses)
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = ria.run_interactive(
+                    scenario, http_post, poll_interval=0, heartbeat_interval=30,
+                    sleep=lambda s: None, now=lambda: next(ticks))
+            self.assertEqual(code, 0)
+            self.assertIn("still running", buf.getvalue())
+
+    def test_heartbeat_echoes_last_instruction_not_static_result(self):
+        # For a STARTED-pattern scenario the RESULT message stays "STARTED" the whole run; real
+        # progress arrives via the instruction mirror. The heartbeat's "last:" must reflect the
+        # latest instruction line, not the frozen RESULT message.
+        with tempfile.TemporaryDirectory() as tmp:
+            scenario = self._write_scenario(
+                tmp,
+                "-- @tier: auto-check\n_SCN_X_INSTR = ''\n_SCN_X_RESULT = 'x'\n"
+                "return _SCN_X_RESULT",
+            )
+            state = {"n": 0}
+
+            def http_post(code):
+                # First call is the injection (full source).
+                if "_SCN_X_INSTR" in code and "return" in code and len(code) < 40:
+                    return "[X] [PASS] DRONE.V2: lasing 'Sol_g-2-1'  (3 ok / 0 fail)", None
+                if "return _SCN_X_RESULT" == code.strip():
+                    state["n"] += 1
+                    return ("[X] PASS", None) if state["n"] >= 3 else ("[X] STARTED", None)
+                return "[X] STARTED", None  # injection
+
+            ticks = iter([0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220])
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = ria.run_interactive(
+                    scenario, http_post, poll_interval=0, heartbeat_interval=30,
+                    sleep=lambda s: None, now=lambda: next(ticks))
+            self.assertEqual(code, 0)
+            out = buf.getvalue()
+            # The heartbeat line must carry the instruction progress, not "STARTED".
+            hb = [ln for ln in out.splitlines() if "still running" in ln]
+            self.assertTrue(hb, "expected at least one heartbeat line")
+            self.assertIn("DRONE.V2", hb[-1])
+
+    def test_transient_poll_error_is_tolerated_then_recovers(self):
+        # A single HTTP 504 mid-poll must not abort a long run: keep polling, and a subsequent
+        # good poll resolves normally.
+        with tempfile.TemporaryDirectory() as tmp:
+            scenario = self._write_scenario(
+                tmp, "-- @tier: auto-check\n_SCN_X_RESULT = 'x'\nreturn _SCN_X_RESULT")
+            responses = iter([
+                ("[X] STARTED", None),          # injection
+                (None, "HTTP 504: timeout"),    # poll 1 -- transient error
+                ("[X] STARTED", None),          # poll 2 -- recovered, still running
+                ("[X] PASS", None),             # poll 3 -- terminal
+            ])
+
+            def http_post(code):
+                return next(responses)
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = ria.run_interactive(scenario, http_post, poll_interval=0,
+                                            sleep=lambda s: None)
+            self.assertEqual(code, 0)
+
+    def test_sustained_poll_errors_give_up(self):
+        # Past max_errors consecutive failures (dcs-serve down, mission unloaded), give up.
+        with tempfile.TemporaryDirectory() as tmp:
+            scenario = self._write_scenario(
+                tmp, "-- @tier: auto-check\n_SCN_X_RESULT = 'x'\nreturn _SCN_X_RESULT")
+
+            def http_post(code):
+                if code.strip() == "return _SCN_X_RESULT":
+                    return None, "HTTP 504: timeout"
+                return "[X] STARTED", None  # injection succeeds
+
+            code = ria.run_interactive(scenario, http_post, poll_interval=0, max_errors=3,
+                                        sleep=lambda s: None)
+            self.assertEqual(code, 1)
 
     def test_http_error_on_injection_returns_nonzero(self):
         with tempfile.TemporaryDirectory() as tmp:

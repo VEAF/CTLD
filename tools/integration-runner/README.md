@@ -79,6 +79,12 @@ their own); `RUNNING: step=N ...` scenarios (see [Scope boundary](#scope-boundar
 above) get the full source re-posted each cycle instead, since that's what actually advances
 their internal step machine — a real pilot is present to do the physical part in between.
 
+**Progress feedback.** Every printed line carries an elapsed `[mm:ss]` stamp, and a heartbeat
+line prints every ~30s even when nothing changed (`--heartbeat` to tune) — so a long scenario
+(e.g. the JTAC drone's ~13 min of internal timers) is visibly alive, not hung. Each step's
+in-mission instruction text is echoed to the terminal as it changes, so you see what the
+scenario is telling the player at each stage without looking at the F10 screen.
+
 **Crashed mid-test?** Just re-run the exact same command. Every run first calls the
 scenario's `_SCN_<ID>_CLEANUP` global (if it exposes one — both `_template_pilotActive.lua`
 and `_template_pilotPassive.lua` do) to cancel any stuck timer and clear its running-guard
