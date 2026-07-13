@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `CATCH-UP-PILOT-SCENARIOS` | 🚧 in progress | Run the 34 `ia`-tier scenarios (`pilotPassive`/`pilotActive` + 2 `noPlayer` outliers) and the 4 `L6` manual sequences — never executed since the dcs-bridge migration (only `auto`/`auto-check` scenarios had actually been run live). 8 tickets, ~3.5h live-pilot time. | test/catch-up-pilot-scenarios |
+| `CATCH-UP-PILOT-SCENARIOS` | ✅ pending merge | Ran the never-executed `pilotPassive`/`pilotActive` scenarios. Audit found the "34 `ia`" was almost all mistagged: 66/66 now pass in a headless sweep (`--no-ai --reset-before-each`), real pilot burden ≈ 2 short menu flights (both PASS). Fixed a pile of test-harness defects + cross-scenario contamination (soft reset `_reset_state.lua`), + one product fix (`refreshMenuSection` flight-state override). Optional remainders: `auto-slow` AI battery (covered by F-176..182), mt16/warehouse, L6 manual (ticket 08). | test/catch-up-pilot-scenarios |
 
 ### Planned lots
 

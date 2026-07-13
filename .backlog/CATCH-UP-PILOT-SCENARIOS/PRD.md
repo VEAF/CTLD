@@ -1,6 +1,6 @@
 # Lot CATCH-UP-PILOT-SCENARIOS — run the never-executed `ia`-tier scenarios
 
-Status: 🚧 in progress
+Status: ✅ done — 66/66 headless sweep green; only optional/manual remainders (see below)
 Branch: test/catch-up-pilot-scenarios → PR → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`). Sibling to
 `FIX-LIVE-DCS-FAILURES` (closed) and `CLEANUP-LEGACY-DCS-TESTS` (planned).
@@ -45,6 +45,33 @@ finds (stale assertions vs current code, or real regressions).
 
 Total estimate: ~3.5h of live-pilot time, splittable across sessions (one ticket = one sitting,
 no need to do them back to back).
+
+## Outcome (2026-07-13)
+
+The initial premise — "34 `ia` scenarios each needing a human pilot, ~3.5h" — was wrong. A full
+audit + live validation showed almost all of them run headless:
+
+- **66/66 green** in one headless sweep: `python tools/integration-runner/run_scenarios.py
+  --no-ai --reset-before-each` (all `auto`/`auto-check`, noPlayer + pilotPassive), player just
+  parked in a slot.
+- **Real pilot burden ≈ 2 short flights** — the two menu-visual `ia (fly)` scenarios
+  (`crate_menu`/`troop_menu_sol_vol_visual`), both already PASS.
+- The catch-up surfaced + fixed a pile of **test-harness defects** (not CTLD product bugs):
+  wholesale `ia`→`auto-check`/`auto-slow` retag, dead `ctld_test` refs, missing terminal
+  verdicts (infinite loops), premature re-injection (retry guards), a mission-slot hard-code,
+  compound-ID `_SCN_` var matching, and — the big one — cross-scenario contamination of CTLD's
+  shared singletons, fixed with a per-scenario soft reset (`tests/dcs/_reset_state.lua`,
+  `--reset-before-each`) covering player/menu + JTAC state. Also a real product fix:
+  `CTLDTroopManager:refreshMenuSection` flight-state override.
+
+**Optional / deferred remainders (not blocking):**
+- `auto-slow` AI-heli battery (`scenario_ai_troops` + `mt07..mt14`) — minutes of real AI flight
+  each; logic already covered fast by `noPlayer` F-176..182. Run on demand via `--tier auto-slow`.
+- `scenario_mt16_countryside_farp` (`ia (menu)`) — manual, redundant with the auto
+  `scenario_farp_countryside_spawn.lua`.
+- `scenario_warehouse_cycle` (`ia (fly)`) — blocked on the missing `Farp_FG_Petit_Helipad` mod.
+- Ticket 08 — the 4 `L6` manual checklist sequences (MT-01/02/03/06): genuine manual pilot work,
+  left for a dedicated session (not scripted, no runner involvement).
 
 ## Non-goals
 

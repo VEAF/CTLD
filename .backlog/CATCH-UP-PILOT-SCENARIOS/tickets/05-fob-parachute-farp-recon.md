@@ -1,6 +1,6 @@
 # 05 — FOB / parachute / FARP scenes / RECON
 
-Status: 🚧 in progress
+Status: ✅ done
 Type: **auto-check** — all 5 audited (per the ticket 03/04 lesson) and retagged; none pilot.
 
 ## Scenarios
@@ -25,13 +25,17 @@ Run via `run_ia_scenario.py --scenario <name>` or `run_scenarios.py --no-ai`.
 ## Progress
 
 - [ ] `scenario_fob_scene.lua`
-- [ ] `scenario_p2_fob_parachute.lua`
-- [ ] `scenario_p3_csfarp_parachute.lua`
-- [ ] `scenario_p4_metal_farp.lua`
-- [ ] `scenario_feature_f_recon_farp.lua`
+- [x] `scenario_p2_fob_parachute.lua`
+- [x] `scenario_p3_csfarp_parachute.lua`
+- [x] `scenario_p4_metal_farp.lua`
+- [x] `scenario_feature_f_recon_farp.lua` (made self-contained: inlined a mock RED FOB, dropping
+  the `inject_red_fob.lua` dependency)
+- [x] `scenario_fob_scene.lua` (step-2 retry so it waits out the ~120s scene build)
+
+All PASS in the full headless sweep (66/66, `--no-ai --reset-before-each`, 2026-07-13).
 
 ## Acceptance criteria
 
-- [ ] All 5 injected, verdicts read.
-- [ ] Any FAIL root-caused and fixed.
+- [x] All 5 injected, verdicts read — all PASS.
+- [x] Any FAIL root-caused and fixed.
 - [x] Tier audited before running (all 5 retagged `auto-check`).

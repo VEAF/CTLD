@@ -1,6 +1,6 @@
 # 07 — MT-07 to MT-16 full AI battery (heaviest)
 
-Status: 🚧 in progress
+Status: ✅ done (mt15 PASS; AI battery + mt16 deferred as optional)
 Type: **mostly `auto-slow`** — mt07..14 need real AI-heli flight (no pilot, but minutes each →
 `auto-slow`, excluded from `--no-ai`); mt15 is fast `auto-check`; mt16 is genuine `ia (menu)`.
 
@@ -34,13 +34,18 @@ zones `AIZ_*`/`WPZ_mt10_B`) is all present in `Test_CTLDNEXT_01.miz` (verified l
 
 ## Progress
 
-- [ ] mt07 · mt08 · mt09 · mt10 · mt11 · mt12 · mt13 · mt14 (`auto-slow`, via `--tier auto-slow`)
-- [ ] mt15 (`auto-check`, via `--no-ai`)
-- [ ] mt16 (`ia (menu)`, manual — optional given the auto duplicate)
+- [x] mt15 (`auto-check`) — PASS in the full sweep (66/66, `--no-ai --reset-before-each`); the
+  hard-coded `Batumi_UH-1H_0-1` slot fix confirmed working with the real `uh1-1` slot.
+- [~] mt07 · mt08 · mt09 · mt10 · mt11 · mt12 · mt13 · mt14 (`auto-slow`) — **deferred as
+  optional**: real AI-heli flight, minutes each; their logic is already covered fast/headless by
+  the `noPlayer` `aiTransport_featureT/U` tests (F-176..182, green). Run on demand with
+  `--tier auto-slow --poll-timeout 900` if the heavy end-to-end pass is ever wanted.
+- [~] mt16 (`ia (menu)`) — **deferred as optional**: manual F10-unpack + visual, no terminal
+  PASS, redundant with the auto-tier `scenario_farp_countryside_spawn.lua`.
 
 ## Acceptance criteria
 
-- [ ] mt15 injected via `--no-ai`, verdict read.
-- [ ] mt07..14 run via `--tier auto-slow` (or deferred as covered by F-176..182), verdicts read.
-- [ ] Any FAIL root-caused and fixed.
+- [x] mt15 injected via `--no-ai`, verdict read — PASS.
+- [~] mt07..14 `auto-slow` — optional, covered by F-176..182.
+- [x] Any FAIL root-caused and fixed (mt15 slot fix, plus the shared runner/reset fixes).
 - [x] Tier audited (8 `auto-slow`, 1 `auto-check`, mt16 `ia (menu)`).

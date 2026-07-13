@@ -1,6 +1,6 @@
 # 06 — AI transport / AI zones
 
-Status: 🚧 in progress
+Status: ✅ done
 Type: **mixed auto-check / auto-slow** — none need a pilot; `scenario_ai_troops` needs real AI
 flight so it's `auto-slow` (see ticket 07's note), the other 5 are fast `auto-check`.
 
@@ -30,16 +30,22 @@ as duplicate `@scenario` IDs of `scenario_feature_i_attack_enemy`/`scenario_feat
 
 ## Progress
 
-- [ ] `scenario_ai_attack_enemy.lua`
-- [ ] `scenario_ai_goto_wpz.lua`
-- [ ] `scenario_ai_transport_visual.lua`
-- [ ] `scenario_ai_troops.lua`
-- [ ] `scenario_feature_i_attack_enemy.lua`
-- [ ] `scenario_feature_i_goto_wpz.lua`
+The 5 `auto-check` all PASS in the full headless sweep (66/66, `--no-ai --reset-before-each`,
+2026-07-13). Along the way: `ai_attack_enemy`/`ai_goto_wpz` needed a runner regex fix (compound
+`_SCN_FI_ATK_RESULT` IDs), and `feature_i_attack_enemy` needed a step-2 retry (AI takes ~8s to
+move). `scenario_ai_troops` is `auto-slow` (real AI flight) — covered fast by F-176..182, run on
+demand via `--tier auto-slow`.
+
+- [x] `scenario_ai_attack_enemy.lua`
+- [x] `scenario_ai_goto_wpz.lua`
+- [x] `scenario_ai_transport_visual.lua`
+- [x] `scenario_feature_i_attack_enemy.lua`
+- [x] `scenario_feature_i_goto_wpz.lua`
+- [~] `scenario_ai_troops.lua` — `auto-slow`, optional (covered by F-176..182)
 
 ## Acceptance criteria
 
-- [ ] The 5 `auto-check` injected via `--no-ai`, verdicts read.
-- [ ] `scenario_ai_troops` (`auto-slow`) run via `--tier auto-slow`, verdict read.
-- [ ] Any FAIL root-caused and fixed.
+- [x] The 5 `auto-check` injected via `--no-ai`, verdicts read — all PASS.
+- [~] `scenario_ai_troops` (`auto-slow`) — optional, covered by F-176..182.
+- [x] Any FAIL root-caused and fixed.
 - [x] Tier audited before running (5 `auto-check`, 1 `auto-slow`; none need a pilot).
