@@ -55,7 +55,7 @@ cfg.settings["debugScreenLog"] = false   -- traces internes via log() uniquement
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG             = "[SCN-XXX]"
 local NAME            = "Description du scénario"
-local HUMAN_TIMEOUT_S = 300
+local HUMAN_TIMEOUT_S = 3600  -- generous: a real pilot session, not a race against the clock
 local MENU_NAME       = "Recette CTLD"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }   -- nested sous CTLD (order=0 → premier)
 

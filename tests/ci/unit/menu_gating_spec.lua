@@ -497,4 +497,74 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
         end)
     end)
 
+    -- ── refreshMenuSection overrideInAir — forces state despite stale _isInAir() ──
+    -- CTLDCrateManager:refreshCrateFlightSection accepts an overrideInAir param so
+    -- onTakeoff/onLand can force the correct state immediately, since S_EVENT_LAND/
+    -- TAKEOFF fire before ctld.utils.inAir()'s speed/AGL threshold settles.
+    -- CTLDTroopManager:refreshMenuSection lacked this — found live (CATCH-UP-PILOT-SCENARIOS
+    -- ticket 02, TMFV F-185): Parachute Troops stayed VISIBLE and Disembark Troops
+    -- ABSENT right after landing.
+    describe("CTLDTroopManager:refreshMenuSection — overrideInAir forces state", function()
+        local tm, playerObj, _origGetByName
+
+        before_each(function()
+            resetSingletons()
+            EventDispatcher.getInstance()
+            CTLDDCSEventBridge.getInstance()
+            CTLDZoneManager.getInstance()
+            CTLDPlayerManager.getInstance()
+            tm = CTLDTroopManager.getInstance()
+
+            _origGetByName = Unit.getByName
+            Unit.getByName = function(n)
+                if n == "BLUE_UH1H_2" then
+                    return {
+                        getName  = function() return "BLUE_UH1H_2" end,
+                        isExist  = function() return true end,
+                        getPoint = function() return { x = 0, y = 0, z = 0 } end,
+                    }
+                end
+                return _origGetByName and _origGetByName(n) or nil
+            end
+
+            playerObj = makePlayer({
+                unitName = "BLUE_UH1H_2", coalition = coalition.side.BLUE, typeName = "UH-1H",
+            })
+            CTLDPlayerManager.getInstance():buildMenu(playerObj)
+
+            -- Troops onboard (needed for Parachute Troops to appear in flight).
+            tm._inTransit["BLUE_UH1H_2"] = { { templateName = "Test Squad", unitTotal = 4, weight = 100 } }
+
+            -- Raw geometry check still says "in the air" (simulates the DCS threshold lag
+            -- S_EVENT_LAND fires before inAir() crosses its speed/AGL threshold).
+            tm._isInAir = function() return true end
+        end)
+
+        after_each(function()
+            Unit.getByName = _origGetByName
+        end)
+
+        local function menu() return ctld.MenuManager:getInstance():getMenuByGroupId(playerObj.groupId) end
+        local function troopPath(name) return { ROOT, tr("Troop Commands"), tr(name) } end
+
+        it("overrideInAir=false forces ground menu even though _isInAir()=true", function()
+            tm:refreshMenuSection(playerObj, false)
+            assert.is_true(has(menu(), troopPath("Disembark Troops")))
+            assert.is_false(has(menu(), troopPath("Parachute Troops")))
+        end)
+
+        it("no override (nil) falls back to live _isInAir()=true → flight menu", function()
+            tm:refreshMenuSection(playerObj)
+            assert.is_false(has(menu(), troopPath("Disembark Troops")))
+            assert.is_true(has(menu(), troopPath("Parachute Troops")))
+        end)
+
+        it("overrideInAir=true forces flight menu even if _isInAir() would say ground", function()
+            tm._isInAir = function() return false end
+            tm:refreshMenuSection(playerObj, true)
+            assert.is_false(has(menu(), troopPath("Disembark Troops")))
+            assert.is_true(has(menu(), troopPath("Parachute Troops")))
+        end)
+    end)
+
 end)

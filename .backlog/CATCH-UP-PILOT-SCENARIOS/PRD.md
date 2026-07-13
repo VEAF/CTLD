@@ -24,9 +24,11 @@ finds (stale assertions vs current code, or real regressions).
   physically lives in `pilotActive/` despite being `pilotPassive`-shaped — not touched here, out of
   scope), 2 `noPlayer/` outliers (`F-046`, `F-047`, which ask for a one-off visual F10 check).
 - 4 `L6` manual sequences: MT-01, MT-02, MT-03, MT-06 (`tests/manual_test_sequences.md`).
-- Each ticket is one pilot session: inject/read one scenario at a time via the
-  `integration-testing` skill's `exec_lua` loop (I drive injection + verdict reading; David flies
-  and does F10 actions), or follow the checklist for L6.
+- Each ticket is one pilot session: David runs `tools/integration-runner/run_ia_scenario.py
+  --scenario <name>` from his own terminal (built during ticket 02 — injects, mirrors in-game
+  instructions, polls to a verdict, no AI needed for the loop) and flies/does F10 actions
+  himself, or follows the checklist for L6. Falls back to the `integration-testing` skill's
+  manual `exec_lua` loop only for genuine visual-judgment scenarios or scenario debugging.
 
 ## Tickets — recommended order (fast/foundational first, heaviest batteries last)
 

@@ -57,7 +57,7 @@ cfg.settings["debugScreenLog"] = false
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG             = "[TMFV]"
 local NAME            = "Troop Commands menu — sol/vol/sol"
-local HUMAN_TIMEOUT_S = 300
+local HUMAN_TIMEOUT_S = 3600  -- generous: a real pilot session, not a race against the clock
 local MENU_NAME       = "Recette CTLD"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }
 local TROOP_SUB       = ctld.tr("Troop Commands")
@@ -386,7 +386,7 @@ steps[3] = function()
         if pm and pm._players then for _, p in pairs(pm._players) do playerObj = p ; break end end
         local inAirNow = S.transport and S.transport:isExist() and S.transport:inAir() or false
         log("[AUTO-CHECK] S3 inAir="..tostring(inAirNow))
-        if playerObj then tm:refreshMenuSection(playerObj) end
+        if playerObj then tm:refreshMenuSection(playerObj, inAirNow) end
 
         local ok, issues = checkMenuExpected(EXPECTED_VOL)
         logMenuSnapshot()
@@ -438,7 +438,7 @@ steps[5] = function()
         if pm and pm._players then for _, p in pairs(pm._players) do playerObj = p ; break end end
         local inAirNow = S.transport and S.transport:isExist() and S.transport:inAir() or false
         log("[AUTO-CHECK] S5 inAir="..tostring(inAirNow))
-        if playerObj then tm:refreshMenuSection(playerObj) end
+        if playerObj then tm:refreshMenuSection(playerObj, inAirNow) end
 
         local ok, issues = checkMenuExpected(EXPECTED_SOL_KEY)
         logMenuSnapshot()

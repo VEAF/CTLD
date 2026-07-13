@@ -57,7 +57,7 @@ cfg.settings["debugScreenLog"] = false   -- traces internes via log() uniquement
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG             = "[CMFV-VIS]"
 local NAME            = "Crate Commands menu — sol/vol/sol"
-local HUMAN_TIMEOUT_S = 300
+local HUMAN_TIMEOUT_S = 3600  -- generous: a real pilot session, not a race against the clock
 local MENU_NAME       = "Recette CTLD"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }   -- inside CTLD (order=999 → last)
 local RESP_FLAG       = "CMFV_RESP"
@@ -362,12 +362,12 @@ steps[1] = function()
         "\nB) Packer le véhicule en crate :\n"..
         "  F10 → CTLD → Crate Commands → Pack Equipt → [nom du véhicule]\n"..
         "  → le véhicule est remplacé par une crate au sol\n"..
-        "\nC) Vérifier F10 → CTLD → Crate Commands :\n"..
+        "\nC) Vérifier F10 → CTLD → Crate Commands (après B, le Hummer est déjà packé — "..
+        "Pack Equipt disparaît normalement, plus rien à packer) :\n"..
         "  ✅ VISIBLE  : Load Crate\n"..
         "  ✅ VISIBLE  : Drop Crate(s)\n"..
         "  ✅ VISIBLE  : Unpack Crate\n"..
         "  ✅ VISIBLE  : List Nearby Crates\n"..
-        "  ✅ VISIBLE  : Pack Equipt\n"..
         "  ❌ MASQUÉ   : Parachute Crates\n"..
         "  ❌ MASQUÉ   : Release Slingload\n"..
         "  ❌ MASQUÉ   : Cut Slingload\n"..

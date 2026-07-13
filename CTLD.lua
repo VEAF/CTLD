@@ -10743,7 +10743,11 @@ end
 -- Called on S_EVENT_LAND and S_EVENT_TAKEOFF to reflect the player's current
 -- state (in air / on ground / zone membership).
 -- @param playerObj CTLDPlayer
-function CTLDTroopManager:refreshMenuSection(playerObj)
+-- @param overrideInAir boolean|nil  true=force flight, false=force ground, nil=use
+--        playerObj._isFlying / live inAir() check. Callers pass an explicit value
+--        right after S_EVENT_TAKEOFF/LAND, since those fire before ctld.utils.inAir()'s
+--        speed/AGL threshold settles (mirrors CTLDCrateManager:refreshCrateFlightSection).
+function CTLDTroopManager:refreshMenuSection(playerObj, overrideInAir)
     local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
     if not (playerObj.isTransport and caps and caps.troopsEnabled) then return end
 
@@ -10757,8 +10761,15 @@ function CTLDTroopManager:refreshMenuSection(playerObj)
     -- Clear dynamic content; the "Troop Commands" submenu container is preserved.
     menu:clearBranch({ root, troopSub })
 
-    local unit  = Unit.getByName(playerObj.unitName)
-    local inAir = not unit or self:_isInAir(unit)
+    local unit = Unit.getByName(playerObj.unitName)
+    local inAir
+    if overrideInAir ~= nil then
+        inAir = overrideInAir
+    elseif playerObj._isFlying ~= nil then
+        inAir = playerObj._isFlying
+    else
+        inAir = not unit or self:_isInAir(unit)
+    end
 
     local hasTroops = self:hasTroops(playerObj.unitName)
 
@@ -21280,7 +21291,7 @@ function CTLDPlayerManager:init()
                             db.ticks     = 0
                             playerObj._isFlying = nowInAir
                             if nowInAir then
-                                CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
+                                CTLDTroopManager.getInstance():refreshMenuSection(playerObj, true)
                                 CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
                                 CTLDCrateManager.getInstance():refreshCrateFlightSection(playerObj, true)
                                 CTLDVehicleSpawner.getInstance():refreshLoadSection(playerObj)
@@ -21289,7 +21300,7 @@ function CTLDPlayerManager:init()
                                 CTLDJTACManager.getInstance():refreshJtacEquipmentSection(playerObj)
                                 ctld.utils.log("INFO", "CTLDPlayerManager: flight-state poller → TAKEOFF unit=%s", unitName)
                             else
-                                CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
+                                CTLDTroopManager.getInstance():refreshMenuSection(playerObj, false)
                                 CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
                                 CTLDCrateManager.getInstance():refreshLoadCrateSection(playerObj)
                                 CTLDCrateManager.getInstance():refreshUnpackSection(playerObj, true)  -- _noRefresh: refreshCrateFlightSection below calls refresh()
@@ -21440,7 +21451,9 @@ function CTLDPlayerManager:onLand(event)
     -- the 1 s timer sees ground state and does not rebuild flight-only items (Pack Equipt).
     captured._isFlying = false
     timer.scheduleFunction(function()
-        CTLDTroopManager.getInstance():refreshMenuSection(captured)
+        -- Pass overrideInAir=false: S_EVENT_LAND fires before inAir() crosses its threshold;
+        -- force ground state immediately rather than relying on the speed/AGL check.
+        CTLDTroopManager.getInstance():refreshMenuSection(captured, false)
         CTLDCrateManager.getInstance():refreshRequestEquipmentSection(captured)
         CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
         CTLDCrateManager.getInstance():refreshUnpackSection(captured, true)  -- _noRefresh: refreshCrateFlightSection below calls refresh()
@@ -21475,10 +21488,10 @@ function CTLDPlayerManager:onTakeoff(event)
     -- Set flight flag immediately so any refresh between now and inAir() reaching threshold
     -- (e.g. _refreshNearbyPackPlayers triggered by vehicle events) sees flight state.
     playerObj._isFlying = true
-    CTLDTroopManager.getInstance():refreshMenuSection(playerObj)
-    CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
     -- Pass overrideInAir=true: S_EVENT_TAKEOFF fires before ctld.utils.inAir() crosses its speed/AGL
     -- threshold, so we explicitly signal flight mode rather than relying on inAir() at this point.
+    CTLDTroopManager.getInstance():refreshMenuSection(playerObj, true)
+    CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
     CTLDCrateManager.getInstance():refreshCrateFlightSection(playerObj, true)
     CTLDVehicleSpawner.getInstance():refreshLoadSection(playerObj)
     CTLDVehicleSpawner.getInstance():refreshUnloadSection(playerObj)

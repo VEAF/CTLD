@@ -1,8 +1,12 @@
-# Integration runner — headless dcs-bridge scenario runner
+# Integration runner — dcs-bridge scenario runners
 
 `run_scenarios.py` runs `tests/dcs/` integration scenarios against a live DCS mission without
 an AI agent in the loop, for scenarios that don't need one (`auto`/`auto-check` tier — see the
 `integration-testing` skill for the full `@tier` taxonomy).
+
+`run_ia_scenario.py` does the same for one `ia`-tier scenario at a time (`pilotActive`/
+`pilotPassive`) — most of those don't need AI *judgment* either, just a live pilot; see
+[Interactive `ia` scenarios](#interactive-ia-scenarios-run_ia_scenariopy) below.
 
 **Dependency-free**: stdlib only (same convention as `tools/dcs-data/gen_dcs_types.py`). No
 `pip install`, no venv — any system Python 3.9+ runs it directly.
@@ -43,6 +47,33 @@ Run `python tools/integration-runner/run_scenarios.py --help` for the full flag 
   never selects them. If a `RUNNING` token is ever seen (e.g. `--tier ia` explicitly requested),
   the runner reports it as a `FAIL` with an explanatory message rather than attempting
   re-injection, since re-injecting alone cannot make the physical action happen.
+
+## Interactive `ia` scenarios (`run_ia_scenario.py`)
+
+`pilotActive`/`pilotPassive` scenarios are tagged `ia` because dcs-bridge can't fly an
+aircraft — but most of them self-verify (same `checkMenuExpected()`-style logic as `auto`
+scenarios) and don't need an AI to *judge* anything. `run_ia_scenario.py` runs one of these
+from your own terminal, no AI agent needed for the injection/polling loop:
+
+```bash
+python tools/integration-runner/run_ia_scenario.py --scenario scenario_troop_menu_sol_vol_visual
+python tools/integration-runner/run_ia_scenario.py --scenario crate_menu_sol_vol_visual
+```
+
+It injects the scenario, mirrors its in-game instruction text to the terminal (no alt-tabbing
+to read `trigger.action.outText`), and polls `_SCN_<ID>_RESULT` to a terminal verdict. Answer
+F10 prompts in DCS as instructed; fly as directed; the script reports PASS/FAIL when done.
+
+**Crashed mid-test?** Just re-run the exact same command. Every run first calls the
+scenario's `_SCN_<ID>_CLEANUP` global (if it exposes one — both `_template_pilotActive.lua`
+and `_template_pilotPassive.lua` do) to cancel any stuck timer and clear its running-guard
+before re-injecting — no "already active, restart DCS" dead end, no partial state to reason
+about.
+
+Scenarios needing genuine visual/subjective judgment (e.g. "menu looks identical after a
+second refresh") still prompt a human, but as F10 clicks in DCS same as any other human
+step — this script doesn't add a separate terminal-input path for that, it just removes the
+need for an AI to drive the loop.
 
 ## Legacy relics
 

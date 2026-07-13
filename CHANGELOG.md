@@ -41,6 +41,23 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   cross-scenario state contamination, not real bugs — a fresh mission reload cleared all of them
   (48/48 `auto`/`auto-check` scenarios green, confirmed on two consecutive fresh runs).
 
+### DCS integration testing — pilot-scenario catch-up (`CATCH-UP-PILOT-SCENARIOS`)
+
+- **Fix**: `CTLDTroopManager:refreshMenuSection` always computed flight state live via
+  `_isInAir(unit)`, unlike `CTLDCrateManager:refreshCrateFlightSection` which accepts an
+  `overrideInAir` param so `onTakeoff`/`onLand` can force the correct state immediately
+  (`S_EVENT_LAND`/`TAKEOFF` fire before `ctld.utils.inAir()`'s speed/AGL threshold settles).
+  Found live: right after landing, "Parachute Troops" stayed visible and "Disembark Troops"
+  stayed hidden. `refreshMenuSection` now takes the same `overrideInAir` param, wired through
+  `onTakeoff`/`onLand`/the flight-state poller.
+- Added `tools/integration-runner/run_ia_scenario.py`: an interactive terminal runner for
+  `ia`-tier `pilotActive`/`pilotPassive` scenarios that self-verify (most of them) — no AI
+  needed to drive the injection/polling loop, just a live pilot. Re-running the same command
+  resets any stuck state first (crash recovery), instead of requiring a DCS restart.
+- Bumped `HUMAN_TIMEOUT_S` 300s→3600s in the two L5 menu-visual scenarios and the
+  `_template_pilotActive.lua` template — 5 minutes was a source of false FAILs, not a useful
+  safety net, for a step that's meant to be answered at a real pilot's pace.
+
 ### CI / tooling
 
 - **CI covers `develop`** — pushes to `develop` and PRs targeting `develop` now run the full

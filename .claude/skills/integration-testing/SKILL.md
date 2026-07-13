@@ -125,8 +125,15 @@ Claude) — `tools/integration-runner/run_scenarios.py` runs them headlessly aga
 `dcs-serve` and writes a JUnit report. Dependency-free (stdlib only), reads the same
 `dcs-client.yaml`. See `tools/integration-runner/README.md` for the full flag reference; typical
 use: `python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld`. `ia`-tier
-scenarios (player/F10 required) are never selected by `--no-ai` — those still need this skill's
-AI-driven `exec_lua` loop.
+scenarios (player/F10 required) are never selected by `--no-ai`.
+
+Most `ia`-tier `pilotActive`/`pilotPassive` scenarios self-verify (same `checkMenuExpected()`
+pattern as `auto`) and only need a live pilot, not AI judgment — run those interactively from
+the terminal with `tools/integration-runner/run_ia_scenario.py --scenario <name>` instead of
+this skill's manual `exec_lua` loop (see that tool's README for details, including how to
+restart a crashed test by just re-running the same command). Fall back to the manual
+`exec_lua` loop below only for genuine visual/subjective-judgment scenarios (e.g. "menu looks
+identical after a second refresh") or when debugging a scenario itself.
 
 ## Debug config
 
