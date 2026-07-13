@@ -16,18 +16,21 @@
 -- so we can't reload from Lua. This snippet re-establishes a clean player/menu
 -- baseline without a reload.
 --
--- SCOPE: deliberately player/menu only -- NOT zones/FOBs/scenes/JTAC. Those are
--- mission-defined or each scenario sets up + tears down its own, and blindly
--- resetting them could destroy state a scenario legitimately relies on. If a
--- scenario ever proves to need a deeper reset than this, that's the signal for a
--- human mission reload (Shift+R), which the runner prompts for.
+-- SCOPE: player/menu state + runtime JTAC state (registered JTACs + claimed
+-- targets). All of these are created by CTLD/scenarios at runtime, never defined
+-- in the mission, so clearing them before each scenario is safe -- every JTAC
+-- scenario registers its own afresh. Deliberately does NOT touch zones/FOBs/
+-- scenes (mission-defined or each scenario tears down its own); blindly resetting
+-- those could destroy state a scenario legitimately relies on. If a scenario ever
+-- needs a deeper reset than this, that's the signal for a human mission reload
+-- (Shift+R).
 -- =============================================================================
 do
     if not ctld or not CTLDPlayerManager then
         return "[RESET-STATE] SKIP: CTLD not initialized"
     end
 
-    local pruned, rebuilt, added = 0, 0, 0
+    local pruned, rebuilt, added, jtacsCleared = 0, 0, 0, 0
     local ok, err = pcall(function()
         local pm = CTLDPlayerManager.getInstance()
         if not pm or not pm._players then return end
@@ -57,11 +60,30 @@ do
                 end
             end
         end
+
+        -- 3. Clear runtime JTAC state (registered JTACs + claimed targets). These are created
+        --    by scenarios at runtime (never mission-defined), and a JTAC/claim left behind by
+        --    one scenario skews the next -- e.g. scenarioTroopsFullCycle_v2's step-7 "distinct
+        --    targets reacquired" count. Safe: every JTAC scenario registers its own afresh.
+        local jm = CTLDJTACManager and (CTLDJTACManager.get and CTLDJTACManager.get()
+            or (CTLDJTACManager.getInstance and CTLDJTACManager.getInstance()))
+        if jm then
+            if jm.jtacs then
+                local names = {}
+                for gn in pairs(jm.jtacs) do names[#names + 1] = gn end
+                for _, gn in ipairs(names) do
+                    pcall(function() jm:deregisterJTAC(gn) end)
+                    jtacsCleared = jtacsCleared + 1
+                end
+            end
+            jm._claimedTargets = {}   -- belt-and-suspenders after the per-JTAC releases
+        end
     end)
 
     if not ok then
         env.info("[RESET-STATE] error: " .. tostring(err))
         return "[RESET-STATE] ERROR: " .. tostring(err)
     end
-    return string.format("[RESET-STATE] done (pruned=%d rebuilt=%d added=%d)", pruned, rebuilt, added)
+    return string.format("[RESET-STATE] done (pruned=%d rebuilt=%d added=%d jtacsCleared=%d)",
+        pruned, rebuilt, added, jtacsCleared)
 end

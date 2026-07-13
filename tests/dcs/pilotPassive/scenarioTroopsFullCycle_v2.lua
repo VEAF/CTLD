@@ -791,6 +791,18 @@ cfg.settings["debugScreenLog"] = _savedDebugScreenLog
 local _ms = math.floor((os.clock() - _step_start) * 1000)
 
 if not _ok then
+    -- Tear down on failure too -- otherwise a failed step (e.g. step 7) leaves this run's JTACs
+    -- and target claims registered, contaminating the next scenario, and _G[STEP_N] stuck so a
+    -- re-run resumes mid-cycle instead of restarting clean.
+    pcall(function()
+        cleanupAll()
+        _G["_TFC_ALIVE_JTAC"]      = nil
+        _G["_TFC_TARGET_UNITS"]    = nil
+        _G["_TFC_STEP7_CLAIM_LOG"] = nil
+        _G["_TFC_STEP7_DONE"]      = nil
+        _G["_TFC_STEP7_IDX"]       = nil
+        _G[STEP_N] = 1
+    end)
     _SCN_TFC_RESULT = TAG .. " FAIL: " .. tostring(_err)
     trigger.action.outText(TAG .. " ❌ step=" .. step .. " FAIL", 60, true)
     return _SCN_TFC_RESULT
