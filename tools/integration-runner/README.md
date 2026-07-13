@@ -44,9 +44,10 @@ Run `python tools/integration-runner/run_scenarios.py --help` for the full flag 
 - `RUNNING: step=N ...` scenarios need a **physical DCS-side action** between injections (e.g.
   an aircraft landing in a zone) before the next injection can advance. Every scenario using
   that pattern is tagged `ia` in this program (all live under `pilotPassive/`) — a `--no-ai` run
-  never selects them. If a `RUNNING` token is ever seen (e.g. `--tier ia` explicitly requested),
-  the runner reports it as a `FAIL` with an explanatory message rather than attempting
-  re-injection, since re-injecting alone cannot make the physical action happen.
+  never selects them. `run_scenarios.py` reports a `RUNNING` token as a `FAIL` with an
+  explanatory message rather than attempting re-injection, since it's headless and has no
+  human to perform the physical action between injections. `run_ia_scenario.py` (below) *does*
+  re-inject automatically on `RUNNING` — there's a human present to do the physical part.
 
 ## Interactive `ia` scenarios (`run_ia_scenario.py`)
 
@@ -63,6 +64,10 @@ python tools/integration-runner/run_ia_scenario.py --scenario crate_menu_sol_vol
 It injects the scenario, mirrors its in-game instruction text to the terminal (no alt-tabbing
 to read `trigger.action.outText`), and polls `_SCN_<ID>_RESULT` to a terminal verdict. Answer
 F10 prompts in DCS as instructed; fly as directed; the script reports PASS/FAIL when done.
+Handles both async patterns transparently: `STARTED` scenarios are polled (they resolve on
+their own); `RUNNING: step=N ...` scenarios (see [Scope boundary](#scope-boundary--running-vs-started)
+above) get the full source re-posted each cycle instead, since that's what actually advances
+their internal step machine — a real pilot is present to do the physical part in between.
 
 **Crashed mid-test?** Just re-run the exact same command. Every run first calls the
 scenario's `_SCN_<ID>_CLEANUP` global (if it exposes one — both `_template_pilotActive.lua`

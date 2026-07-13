@@ -9,6 +9,12 @@ in-game instruction text to the terminal (no need to alt-tab), and polls `_SCN_<
 until PASS/FAIL/ABORT -- same REST calls tools/integration-runner/run_scenarios.py already
 uses for `auto`/`auto-check` scenarios, just without the `--no-ai` tier filter.
 
+Handles both async patterns: `STARTED` scenarios resolve on their own (this just polls the
+result var); `RUNNING: step=N ...` scenarios need the full source re-posted to advance their
+internal step machine between a physical DCS-side action and the next step (see
+tools/integration-runner/README.md) -- this script re-injects automatically on that token
+instead of failing the way the headless `run_scenarios.py --no-ai` has to.
+
 Restart after a crash: just re-run the same command. Every run first calls the scenario's
 `_SCN_<ID>_CLEANUP` global (if the scenario exposes one -- both `_template_pilotActive.lua`
 and `_template_pilotPassive.lua` do) to cancel any stuck timer and reset its running-guard
@@ -80,7 +86,7 @@ def run_interactive(scenario: rs.ScenarioInfo, http_post, poll_interval: float =
     print("[%s] %s" % (token, message))
     if token in rs.TERMINAL_VERDICTS:
         return 0 if token == "PASS" else 1
-    if token != "STARTED":
+    if token not in ("STARTED", "RUNNING"):
         print("Unexpected verdict, stopping.", file=sys.stderr)
         return 1
     if not result_var:
@@ -100,15 +106,25 @@ def run_interactive(scenario: rs.ScenarioInfo, http_post, poll_interval: float =
                     print("-" * 60)
                     print(raw_instr)
                     print("-" * 60 + "\n")
-            raw, err = http_post("return %s" % result_var)
+            # RUNNING-pattern scenarios (see integration-runner/README.md) need the full
+            # source re-posted to advance their internal step machine -- polling the result
+            # var alone would just see the same "RUNNING: step=N" forever. STARTED-pattern
+            # scenarios resolve on their own; re-posting them is a safe no-op (they guard
+            # against double injection and just echo the current result back).
+            if token == "RUNNING":
+                raw, err = http_post(source)
+            else:
+                raw, err = http_post("return %s" % result_var)
             if err:
                 print("ERROR: %s" % err, file=sys.stderr)
                 return 1
-            token, message = rs.parse_verdict(raw)
+            new_token, message = rs.parse_verdict(raw)
+            if new_token != token:
+                print("[%s] %s" % (new_token, message))
+            token = new_token
             if token in rs.TERMINAL_VERDICTS:
-                print("[%s] %s" % (token, message))
                 return 0 if token == "PASS" else 1
-            # still STARTED/RUNNING -- keep polling
+            # still STARTED/RUNNING -- keep polling/re-injecting
     except KeyboardInterrupt:
         print("\nStopped. Re-run this same command to reset and restart the test.")
         return 130

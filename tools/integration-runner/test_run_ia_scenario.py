@@ -109,6 +109,29 @@ class RunInteractiveTests(unittest.TestCase):
             code = ria.run_interactive(scenario, http_post, poll_interval=0, sleep=lambda s: None)
             self.assertEqual(code, 1)
 
+    def test_running_token_reinjects_full_source_to_advance(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = "-- @tier: ia\n_SCN_JTAC_RESULT = 'x'\nreturn _SCN_JTAC_RESULT"
+            scenario = self._write_scenario(tmp, source)
+            calls = []
+            responses = iter([
+                ("[JTAC] RUNNING: step=1 SUCCESS", None),  # injection
+                ("[JTAC] RUNNING: step=2 SUCCESS", None),  # re-injection 1
+                ("[JTAC] PASS (120ms)", None),             # re-injection 2 -- terminal
+            ])
+
+            def http_post(code):
+                calls.append(code)
+                return next(responses)
+
+            code = ria.run_interactive(scenario, http_post, poll_interval=0, sleep=lambda s: None)
+            self.assertEqual(code, 0)
+            self.assertEqual(len(calls), 3)
+            # Every call after the RUNNING verdict must re-post the FULL source, not a small
+            # "return <var>" poll -- that's what actually advances the step machine.
+            self.assertEqual(calls[1], source)
+            self.assertEqual(calls[2], source)
+
     def test_http_error_on_injection_returns_nonzero(self):
         with tempfile.TemporaryDirectory() as tmp:
             scenario = self._write_scenario(tmp, "-- @tier: ia\nreturn 1")

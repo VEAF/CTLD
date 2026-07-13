@@ -6,8 +6,10 @@
 --
 -- Pre-requisites:
 --   - BLUE player slot occupied (UH-1H or any transport)
---   - TRZ zone "TRZ_alpha_B_10_nil_0" in mission
 --   - ctldLogPath set via patch_logpath.lua after each CTLD injection
+--   (Step 2 builds its own CTLDTroopGroup directly in _inTransit -- it never calls
+--    embarkFromTroopZone or looks up a real mission zone, so no TRZ zone is actually
+--    required despite an earlier version of this scenario needing one.)
 --
 -- Steps:
 --   1. Spawn 4 RED Hummers ~300m south + create "Test2JTAC" template (inf=4, jtac=2)
@@ -771,5 +773,8 @@ if _result == "ALL SUCCESS" then
     trigger.action.outText(TAG .. " ✅ ALL SUCCESS (" .. _ms .. "ms)", 30, true)
     return _SCN_TFC_RESULT
 end
-_SCN_TFC_RESULT = TAG .. " STARTED"
+-- Not done yet: RUNNING (not STARTED) per the return contract -- this scenario needs the
+-- full source re-posted to advance _G[STEP_N] to the next step, it does not resolve on its
+-- own via an internal timer the way a genuine async STARTED scenario does.
+_SCN_TFC_RESULT = TAG .. " RUNNING: " .. tostring(_result)
 return _SCN_TFC_RESULT
