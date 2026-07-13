@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (audited slot-only: no inAir/F10 gate on the player -- driven by AI heli/timers; see CATCH-UP-PILOT-SCENARIOS ticket 06/07)
 -- =============================================================================
 -- scenario_feature_i_attack_enemy.lua
 -- Feature I — Post-spawn task: "AttackNearestEnemyOnLos"

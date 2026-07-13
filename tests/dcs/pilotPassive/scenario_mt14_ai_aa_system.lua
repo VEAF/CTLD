@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (audited slot-only: no inAir/F10 gate on the player -- driven by AI heli/timers; see CATCH-UP-PILOT-SCENARIOS ticket 06/07)
 -- =============================================================================
 -- scenario_mt14_ai_aa_system.lua  [INTERACTIVE]
 -- MT-14 — AI auto-pickup d'un système AA (HAWK) via vehicleStock (Feature U)

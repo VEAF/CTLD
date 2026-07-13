@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (audited slot-only: no inAir/F10 gate on the player -- driven by AI heli/timers; see CATCH-UP-PILOT-SCENARIOS ticket 06/07)
 -- =============================================================================
 -- scenario_mt13_ai_vehicle_scene.lua  [INTERACTIVE]
 -- MT-13 — AI auto-pickup d'une scène CTLDSceneManager via vehicleStock (Feature T)

@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (audited slot-only: no inAir/F10 gate on the player -- driven by AI heli/timers; see CATCH-UP-PILOT-SCENARIOS ticket 06/07)
 -- =============================================================================
 -- MT-15 : Request Vehicle pur — full spawn / load / unload cycle
 -- =============================================================================
@@ -17,7 +17,7 @@
 --   Step 5 — Final report + config restore
 --
 -- Prerequisites:
---   - UH-1H BLUE slot "Batumi_UH-1H_0-1" occupied AND on the ground
+--   - A UH-1H BLUE slot occupied (any slot/map — resolved dynamically, no longer hardcoded)
 --   - CTLD.lua injected (wait ≥3 s before injecting this script)
 --   - ctldLogPath set in .miz MISSION START trigger (private, not committed)
 --   - dcs-bridge bridge running
@@ -76,7 +76,17 @@ end
 
 -- ── CONSTANTS ─────────────────────────────────────────────────────────────────
 local HMMWV_TYPE   = "M1043 HMMWV Armament"
-local PLAYER_SLOT  = "Batumi_UH-1H_0-1"
+
+-- Resolve the player-controlled transport (first BLUE player) instead of hardcoding a slot
+-- name -- the old "Batumi_UH-1H_0-1" only existed in one specific .miz/map.
+local function getTransport()
+    for _, grp in ipairs(coalition.getGroups(coalition.side.BLUE) or {}) do
+        for _, unit in ipairs(grp:getUnits() or {}) do
+            if unit and unit:isExist() and unit:getPlayerName() then return unit end
+        end
+    end
+    return nil
+end
 
 -- ── CONFIG SAVED / RESTORED ───────────────────────────────────────────────────
 -- Saved at step 1, restored at step 5.
@@ -154,10 +164,10 @@ if step == 1 then
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 2 then
 
-    -- Resolve player transport
-    local playerUnit = Unit.getByName(PLAYER_SLOT)
+    -- Resolve player transport (first BLUE player, any slot/map)
+    local playerUnit = getTransport()
     if not playerUnit or not playerUnit:isExist() then
-        fail("Unit '" .. PLAYER_SLOT .. "' not found — occupy the UH-1H slot first")
+        fail("no BLUE player unit found — occupy a UH-1H slot first")
     end
 
     local vs      = CTLDVehicleSpawner.getInstance()
@@ -189,9 +199,9 @@ elseif step == 2 then
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 3 then
 
-    local playerUnit = Unit.getByName(PLAYER_SLOT)
+    local playerUnit = getTransport()
     if not playerUnit or not playerUnit:isExist() then
-        fail("Unit '" .. PLAYER_SLOT .. "' not found")
+        fail("no BLUE player unit found")
     end
 
     local vs       = CTLDVehicleSpawner.getInstance()
@@ -232,9 +242,9 @@ elseif step == 3 then
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 4 then
 
-    local playerUnit = Unit.getByName(PLAYER_SLOT)
+    local playerUnit = getTransport()
     if not playerUnit or not playerUnit:isExist() then
-        fail("Unit '" .. PLAYER_SLOT .. "' not found")
+        fail("no BLUE player unit found")
     end
 
     local vs     = CTLDVehicleSpawner.getInstance()

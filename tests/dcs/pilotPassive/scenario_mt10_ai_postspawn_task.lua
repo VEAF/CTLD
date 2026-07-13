@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (audited slot-only: no inAir/F10 gate on the player -- driven by AI heli/timers; see CATCH-UP-PILOT-SCENARIOS ticket 06/07)
 -- =============================================================================
 -- tests/dcs/pilotPassive/scenario_mt10_ai_postspawn_task.lua
 -- CTLD — AI post-spawn task assignment: gotoNearestWPZ + AttackNearestEnemyOnLos

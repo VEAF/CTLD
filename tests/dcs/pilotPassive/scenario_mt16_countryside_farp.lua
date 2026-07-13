@@ -1,6 +1,10 @@
 ---@diagnostic disable
--- @tier: ia
--- scenario_mt15_countryside_farp.lua
+-- @tier: ia (menu)  -- genuinely interactive: land near the crate, F10 > Unpack > Deploy, then
+--                      confirm the scene visually. Never emits PASS (returns RUNNING: SETUP OK).
+--                      NOTE: the *programmatic* Countryside FARP deploy is already covered
+--                      headlessly by tests/dcs/noPlayer/scenario_farp_countryside_spawn.lua
+--                      (auto tier). This scenario only adds the manual F10-unpack UI path.
+-- scenario_mt16_countryside_farp.lua
 -- Test interactif : vérifie que la scène Countryside FARP se déploie correctement
 -- après migration dans src/scenes/CTLD_countrysideFarpScene.lua.
 --
@@ -20,10 +24,18 @@ local function info(msg)
     env.info(TAG .. " " .. msg)
 end
 
--- Nettoyage CTLD
-ctld_test.cleanup()
+-- Resolve the player-controlled transport (first BLUE player). Replaces the dead FullGas
+-- `ctld_test.getTransport()`/`.cleanup()` framework (nil, same cause as the 194 relics).
+local function getTransport()
+    for _, grp in ipairs(coalition.getGroups(coalition.side.BLUE) or {}) do
+        for _, unit in ipairs(grp:getUnits() or {}) do
+            if unit and unit:isExist() and unit:getPlayerName() then return unit end
+        end
+    end
+    return nil
+end
 
-local transport = ctld_test.getTransport()
+local transport = getTransport()
 if not transport then
     info("ABORT — no BLUE transport found")
     return TAG .. " ABORT: no BLUE transport"

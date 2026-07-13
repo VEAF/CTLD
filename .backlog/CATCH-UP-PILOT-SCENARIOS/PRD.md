@@ -52,18 +52,25 @@ no need to do them back to back).
 - Fixing `CLEANUP-LEGACY-DCS-TESTS` relics — separate lot.
 - Rewriting a scenario's tier or folder placement unless a run reveals it's wrong.
 
-## Tier-audit finding (tickets 03–05)
+## Tier-audit finding (tickets 03–07) — COMPLETE
 
-The `pilotActive/`/`pilotPassive/` → always `ia` default (from `INTEGRATION-TEST-TAGS`) is a
-folder-blanket rule, not a per-file semantic check. Every scenario audited so far has turned out
-NOT to need piloting: ticket 03 all 4, ticket 04 4 of 5, ticket 05 all 5 — none check flight
-state or wait on F10; most only need a BLUE slot occupied for position/groupId (a structural
-precondition, not piloting/judgment), and one (`scenario_multigroup_transport.lua`) doesn't even
-need that (fully mocked). All retagged `auto-check`. **The original "34 `ia`" is badly stale —
-only `scenario_warehouse_cycle.lua` has proven a genuine `ia (fly)` so far** (and it's blocked on
-a missing mod, not run). 13 of the original 34 retagged `auto-check` across tickets 03–05. Keep
-auditing each scenario's actual code before tickets 06–08 are run, not just its folder — the
-folder default has been wrong for the large majority; don't assume any ticket is the exception.
-See `tools/integration-runner/README.md`'s "What `ia`
-actually asks of you" for the `(menu)`/`(fly)` qualifier convention now used for genuine `ia`
-scenarios.
+The `pilotActive/`/`pilotPassive/` → always `ia` default (from `INTEGRATION-TEST-TAGS`) was a
+folder-blanket rule, not a per-file semantic check — and it was **wrong for all but 3 of the 34**.
+A full static audit (tickets 03–05 read inline; tickets 06–07's 16 scenarios via a subagent that
+read each in full) found that the vast majority never gate on the player's `inAir` or wait on an
+F10 click — they drive AI helicopters + timers, or self-verify, needing only a BLUE slot for
+position/country. **Final tally of the original 34 `ia`:**
+
+- **31 retagged `auto-check`** (no human needed — runnable headless via `run_scenarios.py --no-ai`,
+  the player just has to occupy a slot, not fly).
+- **3 genuine `ia`:**
+  - `scenario_crate_menu_sol_vol_visual.lua` — `ia (fly)` (sol/vol/sol menu, PASS).
+  - `scenario_troop_menu_sol_vol_visual.lua` — `ia (fly)` (sol/vol/sol menu, PASS).
+  - `scenario_warehouse_cycle.lua` — `ia (fly)`, **deferred** (needs the `Farp_FG_Petit_Helipad`
+    mod, absent).
+  - `scenario_mt16_countryside_farp.lua` — `ia (menu)`, and **redundant** with the auto-tier
+    `scenario_farp_countryside_spawn.lua`; never emits a terminal PASS. Optional manual UI check.
+
+So after the catch-up, **the real pilot burden is 2 short menu-visual flights** (both already PASS),
+not 34 scenarios. The rest is headless. See `tools/integration-runner/README.md`'s "What `ia`
+actually asks of you" for the `(menu)`/`(fly)` qualifier convention.

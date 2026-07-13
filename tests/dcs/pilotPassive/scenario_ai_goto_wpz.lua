@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (audited slot-only: no inAir/F10 gate on the player -- driven by AI heli/timers; see CATCH-UP-PILOT-SCENARIOS ticket 06/07)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_ai_goto_wpz.lua
 -- CTLD — Feature I — Post-spawn task: "gotoNearestWPZ"
