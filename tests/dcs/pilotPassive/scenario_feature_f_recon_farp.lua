@@ -8,9 +8,9 @@
 -- Pre-requisites:
 --   - CTLD.lua injected and initialised (wait 3-5 s)
 --   - enable_debug.lua injected
---   - Mission "red_FARP" group / "red_FARP-1" present (RED)
---   - inject_red_fob.lua already executed (adds red FOB to CTLDFOBManager)
---   - Player unit "Pilot" in BLUE coalition (or any BLUE transport)
+--   - Player unit in BLUE coalition (any BLUE transport)
+--   (Self-contained: step 3 mocks the RED FARP airbase and inlines a mock RED FOB, so it no
+--    longer needs the mission's "red_FARP" group or a prior inject_red_fob.lua injection.)
 --
 -- Steps:
 --   F-150  CTLDStaticWatcher:watch/unwatch/tick mechanics (mock)
@@ -210,14 +210,26 @@ elseif step == 3 then
     check("F-154.1", "RED airbase (FARP) mock present", #airbases >= 1,
         "count=" .. #airbases)
 
-    -- F-155: FOB detected via CTLDFOBManager (requires inject_red_fob.lua)
+    -- F-155: FOB detected via CTLDFOBManager. Inline a mock RED FOB here (mirrors the F-154
+    -- mocked RED airbase above) so the scenario is self-contained -- it previously required a
+    -- separate tests/dcs/util/inject_red_fob.lua to be injected first, which an automated sweep
+    -- never does, giving a false FAIL.
     local fobMgr = CTLDFOBManager.getInstance()
+    local RED_FOB_ID = "RED_FOB_test_F155"
+    fobMgr._fobs[RED_FOB_ID] = {
+        fobId       = RED_FOB_ID,
+        name        = RED_FOB_ID,
+        coalitionId = coalition.side.RED,
+        position    = { x = pPos_154.x - 500, y = pPos_154.y, z = pPos_154.z },
+        _objects    = { { name = "FAKE_RED_FOB_OBJ" } },
+        isAlive     = function() return true end,
+        getIntegrityPercent = function() return 1.0 end,
+    }
     local hasRedFOB = false
     for _, fob in pairs(fobMgr._fobs) do
         if fob.coalitionId == coalition.side.RED then hasRedFOB = true end
     end
-    check("F-155.1", "RED FOB in CTLDFOBManager (inject_red_fob required)",
-        hasRedFOB, tostring(hasRedFOB))
+    check("F-155.1", "RED FOB in CTLDFOBManager", hasRedFOB, tostring(hasRedFOB))
 
     -- Call _syncFarpMarks — playerUnit at any position, LOS may or may not detect
     -- (we only verify no crash + marks table created)
@@ -245,6 +257,9 @@ elseif step == 3 then
     coalition.getAirbases        = _orig_getAirbases
     CTLDReconRenderer.createIcon = _orig_create
     CTLDReconRenderer.removeIcon = _orig_remove
+
+    -- Remove the mock RED FOB so it doesn't linger in CTLDFOBManager for later scenarios.
+    fobMgr._fobs[RED_FOB_ID] = nil
 
     -- Disable layer
     for _, l in ipairs(layers) do

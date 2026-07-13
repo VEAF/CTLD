@@ -220,6 +220,25 @@ elseif step == 2 then
     local ePt     = _G["_FI_ATK_ENEMY_PT"]
     local dOrig   = _G["_FI_ATK_DIST_ORIG"] or math.huge
 
+    -- The post-spawn AI task takes several seconds to make the unit start moving. An automated
+    -- runner re-injects every ~2s, so step 2 can be reached before the AI has budged -- retry
+    -- (bounded) instead of a false FAIL, letting the re-inject loop wait out the movement.
+    if uPt and sPt then
+        local movedSoFar = ctld.utils.getDistance("FI-ATK.2.chk", uPt, sPt)
+        if movedSoFar <= 1 then
+            local retries = (_G["_FI_ATK_STEP2_RETRIES"] or 0) + 1
+            _G["_FI_ATK_STEP2_RETRIES"] = retries
+            if retries <= 15 then
+                report("Step 2 [retry "..retries.."/15] BLUE unit not moving yet ("
+                    ..string.format("%.1f", movedSoFar).."m) — re-inject")
+                _result = "step=2 WAITING (retry "..retries..")"
+                return
+            end
+            -- past the retry budget: fall through so check() records a real FAIL
+        end
+    end
+    _G["_FI_ATK_STEP2_RETRIES"] = nil
+
     if uPt and sPt then
         local moved = ctld.utils.getDistance("FI-ATK.2.2", uPt, sPt)
         log("BLUE moved from spawn: " .. string.format("%.1f", moved) .. " m")

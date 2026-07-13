@@ -214,6 +214,23 @@ elseif step == 2 then
     local fobMgr = CTLDFOBManager.getInstance()
     local fobs   = fobMgr:getFOBsForCoalition(cId)
 
+    -- The FOB scene takes ~120s to build and self-register (its func-step calls
+    -- _registerDeployedFOB at the end). An automated runner re-injects every ~2s, so step 2 can
+    -- be reached long before the scene finishes -- retry (bounded) instead of a false FAIL, so
+    -- the re-inject loop waits the scene out. ~90 retries * 2s ≈ 180s covers the build.
+    if #fobs < 1 then
+        local retries = (_G["_FOB_SCN_STEP2_RETRIES"] or 0) + 1
+        _G["_FOB_SCN_STEP2_RETRIES"] = retries
+        if retries <= 90 then
+            -- Stay on step 2 (don't advance _G[STEP_VAR]); the bottom emits RUNNING and the
+            -- runner re-injects, re-checking until the scene registers the FOB (~120s).
+            report("Step 2 [retry "..retries.."/90] FOB scene still building — re-inject")
+            return
+        end
+        -- past the retry budget: fall through so check() records a real FAIL
+    end
+    _G["_FOB_SCN_STEP2_RETRIES"] = nil
+
     check("F-SCN.3", "au moins 1 FOB enregistre pour BLUE", #fobs >= 1,
         "count=" .. #fobs)
 
