@@ -163,16 +163,14 @@ elseif step == 3 then
     report("F-154..157 _syncFarpMarks + _clearFarpMarks")
 
     -- Requires: inject_red_fob.lua already run (red FARP + red FOB in CTLDFOBManager)
-    -- We need a mock playerUnit at altitude in BLUE coalition
-    local blueUnit = ctld_test and ctld_test.getTransport and ctld_test.getTransport()
-    if not blueUnit then
-        -- Fallback: try first BLUE group unit
-        local blueGroups = coalition.getGroups(coalition.side.BLUE) or {}
-        for _, g in ipairs(blueGroups) do
-            if g:isExist() then
-                local us = g:getUnits() or {}
-                if us[1] and us[1]:isExist() then blueUnit = us[1]; break end
-            end
+    -- We need a playerUnit at altitude in BLUE coalition. (Dropped the dead FullGas
+    -- `ctld_test.getTransport()` primary lookup -- nil, same cause as the 194 relics; the
+    -- BLUE-group scan below was already its fallback and is now the sole resolution.)
+    local blueUnit
+    for _, g in ipairs(coalition.getGroups(coalition.side.BLUE) or {}) do
+        if g:isExist() then
+            local us = g:getUnits() or {}
+            if us[1] and us[1]:isExist() then blueUnit = us[1]; break end
         end
     end
     check("F-154.0", "BLUE player unit found", blueUnit ~= nil, "no BLUE unit")

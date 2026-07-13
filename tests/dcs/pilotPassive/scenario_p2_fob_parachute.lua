@@ -155,7 +155,8 @@ steps[1] = function()
         "Vérification auto que le guard bloque l'auto-unpack."
     )
 
-    ctld_test.cleanup()
+    -- (removed dead FullGas ctld_test.cleanup() -- nil, same cause as the 194 relics; the
+    -- scenario does its own FOB cleanup just below, and the runner resets via _SCN_*_CLEANUP.)
 
     if not S.transport then fail("P2.0", "aucun joueur BLUE") ; return end
 

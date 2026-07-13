@@ -155,7 +155,8 @@ steps[1] = function()
         "Vérification de la scène dans 35s…"
     )
 
-    ctld_test.cleanup()
+    -- (removed dead FullGas ctld_test.cleanup() -- nil, same cause as the 194 relics; the
+    -- runner resets via _SCN_*_CLEANUP between runs.)
 
     if not S.transport then fail("P3.0", "aucun joueur BLUE") ; return end
 

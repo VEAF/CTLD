@@ -161,7 +161,10 @@ steps[1] = function()
     if not model then fail("P4.1b", "scene Metal FARP introuvable") ; return end
 
     -- Cleanup : détruire toute scène Metal FARP existante
-    ctld_test.cleanup()
+    -- (removed dead FullGas ctld_test.cleanup() -- nil, same cause as the 194 relics)
+    for _, sc in pairs(sm._active or {}) do
+        if sc._modelName == "Metal FARP" then pcall(function() sm:packScene(sc) end) end
+    end
 
     local scene = sm:playScene(S.transport, "Metal FARP", {})
     check("P4.2", "playScene Metal FARP démarré", scene ~= nil)

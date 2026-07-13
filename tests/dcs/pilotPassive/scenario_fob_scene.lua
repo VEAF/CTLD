@@ -62,6 +62,17 @@ local function check(id, desc, cond, detail)
     end
 end
 
+-- Resolve the player-controlled transport (first BLUE player). Replaces the dead FullGas
+-- `ctld_test.getTransport()` helper (nil, same cause as the ~194 CLEANUP-LEGACY-DCS-TESTS relics).
+local function getTransport()
+    for _, grp in ipairs(coalition.getGroups(coalition.side.BLUE) or {}) do
+        for _, unit in ipairs(grp:getUnits() or {}) do
+            if unit and unit:isExist() and unit:getPlayerName() then return unit end
+        end
+    end
+    return nil
+end
+
 -- ── init debug ────────────────────────────────────────────────────────────────
 
 local cfg          = CTLDConfig.get()
@@ -88,9 +99,7 @@ local _ok, _err = pcall(function()
 -- ══════════════════════════════════════════════════════════════════════════════
 if step == 1 then
 
-    ctld_test.cleanup()
-
-    local transport = ctld_test.getTransport()
+    local transport = getTransport()
     if not transport then fail("aucun joueur BLUE") end
 
     local playerName = transport:getName()
@@ -199,7 +208,7 @@ if step == 1 then
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 2 then
 
-    local transport = ctld_test.getTransport()
+    local transport = getTransport()
     local cId = transport and transport:getCoalition() or coalition.side.BLUE
 
     local fobMgr = CTLDFOBManager.getInstance()
