@@ -1,5 +1,6 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot occupied -- structural precondition, not piloting/judgment;
+--                     never checks real flight state or waits on F10 -- re-injects on a timer)
 -- =============================================================================
 -- scenario_jtac_crate_pack.lua
 -- JTAC vehicle (via crate) — pack → deregisterJTAC coverage

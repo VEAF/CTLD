@@ -40,14 +40,24 @@ Run `python tools/integration-runner/run_scenarios.py --help` for the full flag 
 ## Scope boundary — `RUNNING` vs `STARTED`
 
 - `STARTED` scenarios (async, resolved by the scenario's own timers/`waitFor`) are polled
-  automatically — this is what makes `auto-check` scenarios runnable headlessly.
-- `RUNNING: step=N ...` scenarios need a **physical DCS-side action** between injections (e.g.
-  an aircraft landing in a zone) before the next injection can advance. Every scenario using
-  that pattern is tagged `ia` in this program (all live under `pilotPassive/`) — a `--no-ai` run
-  never selects them. `run_scenarios.py` reports a `RUNNING` token as a `FAIL` with an
-  explanatory message rather than attempting re-injection, since it's headless and has no
-  human to perform the physical action between injections. `run_ia_scenario.py` (below) *does*
-  re-inject automatically on `RUNNING` — there's a human present to do the physical part.
+  automatically — the result var alone tells you when it's done.
+- `RUNNING: step=N ...` scenarios need the **full source re-posted** to advance their internal
+  step machine, not just a poll of the result var. Both runners handle this the same way now:
+  re-inject on `RUNNING`, same as polling on `STARTED`.
+  - If that re-injection alone is enough to make progress (a timed delay between steps, no
+    physical action needed), the scenario belongs in `auto`/`auto-check` and `--no-ai` runs it
+    headlessly — re-injecting on a timer needs no human.
+  - If a **physical DCS-side action** has to happen between injections (an aircraft landing in
+    a zone, an F10 click), the scenario stays tagged `ia` so `--no-ai` never selects it —
+    re-injecting alone can't make that physical action happen. Use `run_ia_scenario.py` for
+    those; there's a human present to do the physical part between its re-injections.
+  - **Don't assume `RUNNING` ⇒ `ia`** — check what actually gates the next step before tagging.
+    `scenario_jtac_crate_pack.lua`/`scenario_feature_k_jtac_vehicle.lua` used `RUNNING` but only
+    ever waited on a timer, no physical action; they were mistagged `ia` by the folder-default
+    rule and are now `auto-check`. If a `RUNNING` scenario that genuinely needs a physical
+    action is ever reached by `run_scenarios.py` anyway (e.g. an explicit `--tier ia`),
+    re-injecting just spins harmlessly until `poll_timeout` and reports `FAIL` — no crash, just
+    a plainer message than before.
 
 ## Interactive `ia` scenarios (`run_ia_scenario.py`)
 
@@ -79,6 +89,25 @@ Scenarios needing genuine visual/subjective judgment (e.g. "menu looks identical
 second refresh") still prompt a human, but as F10 clicks in DCS same as any other human
 step — this script doesn't add a separate terminal-input path for that, it just removes the
 need for an AI to drive the loop.
+
+### What `ia` actually asks of you
+
+Not every `ia`-tagged scenario needs the same thing from a human, and the folder-default rule
+(`pilotActive/`/`pilotPassive/` → always `ia`) doesn't tell you which. When retagging or
+authoring a scenario, note in the `@tier` comment which kind it is:
+
+- **slot only** — needs a BLUE unit connected for its position/groupId, nothing else (no
+  flight-state check, no F10 wait). This isn't really `ia` at all — retag it `auto`/`auto-check`
+  (see the mistagging example in [Scope boundary](#scope-boundary--running-vs-started) above).
+- **`ia (menu)`** — stationary, but needs an F10 click or a visual judgment call (e.g. F-046,
+  F-047).
+- **`ia (fly)`** — needs real piloting: takeoff, landing, flying to a zone (e.g. `scenario_crate_
+  menu_sol_vol_visual.lua`, `scenario_troop_menu_sol_vol_visual.lua`).
+
+This is a plain-text qualifier in the comment, not a new value the tooling parses — `-- @tier:
+ia (fly)` still matches `ia` for tier filtering (`TIER_RE` only captures the token right after
+`@tier:`). It exists so a human scanning a ticket's scenario list knows what to expect before
+starting: whether to expect to fly, just click, or nothing at all.
 
 ## Legacy relics
 

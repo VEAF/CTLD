@@ -1,5 +1,7 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot occupied -- structural precondition, not piloting/
+--                     judgment; no F10 interaction despite the vestigial "Recette CTLD"
+--                     menu scaffolding -- fully automatic per its own header)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_extract_menu.lua
 -- CTLD — Extract-from-field menu logic (single vs multi-group)

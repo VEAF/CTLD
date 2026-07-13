@@ -36,7 +36,7 @@ finds (stale assertions vs current code, or real regressions).
 |---|-------|-----------|------------------|
 | 01 | `noPlayer` `ia` outliers — quick F10 visual checks | F-046, F-047 | ~5 min |
 | 02 | L5 F10 menu visual — foundational, other groups assume these menus are correct | `scenario_crate_menu_sol_vol_visual`, `scenario_troop_menu_sol_vol_visual` | ~15 min |
-| 03 | Troop/JTAC core cycle | `scenarioTroopsFullCycle_v2`, `scenario_extract_menu`, `scenario_jtac_crate_pack`, `scenario_feature_k_jtac_vehicle` | ~20 min |
+| 03 | Troop/JTAC core cycle — **all 4 turned out mistagged**, retagged `auto-check` (see ticket 03) | `scenarioTroopsFullCycle_v2`, `scenario_extract_menu`, `scenario_jtac_crate_pack`, `scenario_feature_k_jtac_vehicle` | ~20 min |
 | 04 | Multi-group / weight / warehouse | `scenario_multigroup_transport`, `scenario_weight_aggregation`, `scenario_unpack_jtac_drone`, `scenario_warehouse_cycle`, `scenario_farp_repack` | ~25 min |
 | 05 | FOB / parachute / FARP scenes / RECON | `scenario_fob_scene`, `scenario_p2_fob_parachute`, `scenario_p3_csfarp_parachute`, `scenario_p4_metal_farp`, `scenario_feature_f_recon_farp` | ~25 min |
 | 06 | AI transport / AI zones | `scenario_ai_attack_enemy`, `scenario_ai_goto_wpz`, `scenario_ai_transport_visual`, `scenario_ai_troops`, `scenario_feature_i_attack_enemy`, `scenario_feature_i_goto_wpz` | ~25 min |
@@ -51,3 +51,15 @@ no need to do them back to back).
 - `scenario_ai_transport.lua` (`noPlayer`, `auto` tier) — already covered, not `ia`.
 - Fixing `CLEANUP-LEGACY-DCS-TESTS` relics — separate lot.
 - Rewriting a scenario's tier or folder placement unless a run reveals it's wrong.
+
+## Tier-audit finding (ticket 03)
+
+The `pilotActive/`/`pilotPassive/` → always `ia` default (from `INTEGRATION-TEST-TAGS`) is a
+folder-blanket rule, not a per-file semantic check. Ticket 03 revealed all 4 of its scenarios
+never actually check flight state or wait on F10 — they only need a BLUE slot occupied for
+position/groupId (a structural precondition, not piloting/judgment) — and were retagged
+`auto-check`. **34 `ia` scenarios above is now stale** (30 remain after ticket 03's retag); keep
+auditing each scenario's actual code as tickets 04–08 are run, not just its folder, and update
+this count as more turn out mistagged. See `tools/integration-runner/README.md`'s "What `ia`
+actually asks of you" for the `(menu)`/`(fly)` qualifier convention now used for genuine `ia`
+scenarios.

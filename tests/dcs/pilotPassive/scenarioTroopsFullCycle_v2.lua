@@ -1,5 +1,7 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot occupied -- structural precondition, not piloting/
+--                     judgment; never checks flight state or waits on F10 -- re-injects on
+--                     a timer to advance _G[STEP_N])
 -- =============================================================================
 -- SCENARIO: scenarioTroopsFullCycle_v2.lua
 -- Full troop lifecycle — CTLDTroopGroup (inf=4, jtac=2), 8-step state machine

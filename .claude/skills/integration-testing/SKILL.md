@@ -116,7 +116,13 @@ filters on — it must reflect what the scenario actually needs, not just its fo
 
 Default for new scenarios: `noPlayer/` → `auto` unless it genuinely needs polling (`auto-check`)
 or never resolves without a human look (`ia`, with a one-line rationale comment since the tier
-isn't inferable from the folder); `pilotActive/`/`pilotPassive/` → always `ia`.
+isn't inferable from the folder); `pilotActive/`/`pilotPassive/` → default to `ia`, but check the
+actual code before tagging — a scenario there only needs `ia` if it checks real flight state
+or waits on F10. One that just reads `coalition.getPlayers(...)[1]` once for position/groupId
+and never touches flight state is `auto`/`auto-check` wearing the wrong folder, not `ia` (see
+`tools/integration-runner/README.md`'s "What `ia` actually asks of you" for the `(menu)`/`(fly)`
+qualifier used on genuine `ia` scenarios, and the mistagging example found in
+`CATCH-UP-PILOT-SCENARIOS` ticket 03).
 
 ## Automated runs (no AI agent)
 

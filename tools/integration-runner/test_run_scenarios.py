@@ -235,16 +235,47 @@ class RunScenarioTests(unittest.TestCase):
             self.assertEqual(result.verdict, "FAIL")
             self.assertIn("timeout", result.message)
 
-    def test_running_token_is_not_automatable(self):
+    def test_running_token_reinjects_full_source_to_advance(self):
         with tempfile.TemporaryDirectory() as tmp:
-            scenario = self._write_scenario(tmp, "-- @tier: ia\nreturn 1")
+            # auto-check scenario using the RUNNING/re-injection pattern (no physical DCS-side
+            # action needed between steps -- just a timed delay, safe to automate headlessly).
+            source = "-- @tier: auto-check\n_SCN_JTAC_RESULT = 'x'\nreturn _SCN_JTAC_RESULT"
+            scenario = self._write_scenario(tmp, source)
+            calls = []
+            responses = iter([
+                ("[JTAC] RUNNING: step=1 SUCCESS", None),  # injection
+                ("[JTAC] RUNNING: step=2 SUCCESS", None),  # re-injection 1
+                ("[JTAC] PASS (120ms)", None),              # re-injection 2 -- terminal
+            ])
 
             def http_post(code):
-                return "[FRP] RUNNING: step=2 SUCCESS", None
+                calls.append(code)
+                return next(responses)
 
-            result = rs.run_scenario(scenario, http_post, sleep=lambda s: None)
+            result = rs.run_scenario(scenario, http_post, poll_interval=0, sleep=lambda s: None)
+            self.assertEqual(result.verdict, "PASS")
+            self.assertEqual(len(calls), 3)
+            self.assertEqual(calls[1], source)
+            self.assertEqual(calls[2], source)
+
+    def test_running_token_that_never_resolves_times_out(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            # A RUNNING-pattern scenario genuinely needing a physical DCS-side action (e.g. an
+            # ia-tier scenario reached via an explicit --tier ia) just spins harmlessly until
+            # poll_timeout instead of making progress -- reported as FAIL, not a crash.
+            scenario = self._write_scenario(
+                tmp, "-- @tier: ia\n_SCN_FRP_RESULT = 'x'\nreturn _SCN_FRP_RESULT")
+
+            def http_post(code):
+                return "[FRP] RUNNING: step=2 waiting for landing", None
+
+            times = iter([0.0] + [100.0] * 10)
+            result = rs.run_scenario(
+                scenario, http_post, poll_interval=0, poll_timeout=5,
+                sleep=lambda s: None, now=lambda: next(times),
+            )
             self.assertEqual(result.verdict, "FAIL")
-            self.assertIn("not runnable headlessly", result.message)
+            self.assertIn("timeout", result.message)
 
     def test_http_error_is_reported(self):
         with tempfile.TemporaryDirectory() as tmp:

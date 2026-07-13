@@ -189,7 +189,17 @@ def read_simple_config(path: Path) -> dict:
 
 def run_scenario(scenario: ScenarioInfo, http_post, poll_interval=2.0, poll_timeout=60.0,
                   sleep=time.sleep, now=time.monotonic) -> ScenarioResult:
-    """Run one scenario to a terminal verdict, polling if it starts async."""
+    """Run one scenario to a terminal verdict, polling/re-injecting if it starts async.
+
+    `STARTED` scenarios resolve on their own (poll the result var). `RUNNING: step=N ...`
+    scenarios need the full source re-posted to advance their internal step machine -- safe to
+    do headlessly IFF the scenario only needs a timed delay between steps, not a physical
+    DCS-side action (a human flying somewhere). Only `auto`/`auto-check`-tagged scenarios reach
+    this tier-filtered path in normal `--no-ai` use; a scenario using RUNNING for a genuinely
+    physical step should stay tagged `ia` so it's never selected here in the first place. If one
+    somehow is (e.g. an explicit `--tier ia`), re-injecting just spins harmlessly until
+    `poll_timeout` and reports FAIL -- no worse than before, just a plainer message.
+    """
     start = now()
     source = scenario.path.read_text(encoding="utf-8")
     raw, err = http_post(source)
@@ -200,41 +210,26 @@ def run_scenario(scenario: ScenarioInfo, http_post, poll_interval=2.0, poll_time
     if token in TERMINAL_VERDICTS:
         return ScenarioResult(scenario, token, message, now() - start)
 
-    if token == "RUNNING":
-        return ScenarioResult(
-            scenario, "FAIL",
-            "RUNNING-pattern scenario requires re-injection after a physical DCS-side action "
-            "-- not runnable headlessly: " + message,
-            now() - start,
-        )
-
-    if token != "STARTED":
+    if token not in ("STARTED", "RUNNING"):
         return ScenarioResult(scenario, "ERROR", message, now() - start)
 
     result_var = derive_result_var(source)
     if not result_var:
         return ScenarioResult(
             scenario, "ERROR",
-            "STARTED but no _SCN_<ID>_RESULT variable found in source", now() - start,
+            "%s but no _SCN_<ID>_RESULT variable found in source" % token, now() - start,
         )
 
     deadline = start + poll_timeout
     while now() < deadline:
         sleep(poll_interval)
-        raw, err = http_post("return %s" % result_var)
+        raw, err = http_post(source if token == "RUNNING" else "return %s" % result_var)
         if err:
             return ScenarioResult(scenario, "ERROR", err, now() - start)
         token, message = parse_verdict(raw)
         if token in TERMINAL_VERDICTS:
             return ScenarioResult(scenario, token, message, now() - start)
-        if token == "RUNNING":
-            return ScenarioResult(
-                scenario, "FAIL",
-                "RUNNING-pattern scenario requires re-injection after a physical DCS-side "
-                "action -- not runnable headlessly: " + message,
-                now() - start,
-            )
-        # still STARTED -- keep polling
+        # still STARTED/RUNNING -- keep polling/re-injecting
 
     return ScenarioResult(
         scenario, "FAIL",

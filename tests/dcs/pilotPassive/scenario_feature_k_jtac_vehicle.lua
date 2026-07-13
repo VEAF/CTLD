@@ -1,5 +1,7 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot occupied -- structural precondition, not piloting/judgment;
+--                     spawns its own RED target + JTAC vehicle, never checks real flight state
+--                     or waits on F10 -- re-injects on a timer)
 -- =============================================================================
 -- scenarios/scenario_feature_k_jtac_vehicle.lua
 -- Feature K Sprint 1 — JTAC vehicle in-transit lifecycle (GAP-K1 + GAP-K2)
@@ -12,9 +14,8 @@
 --            + assert JTAC deregistered + vehicle purged
 --   Step 5 — RESET
 --
--- Requires: UH-1H BLUE player slot occupied, CTLD loaded.
---           Player must be on the ground (posé) for load steps.
---           Targets RED must be present for autoLase to find a target.
+-- Requires: UH-1H BLUE player slot occupied, CTLD loaded. (No real flight-state check despite
+-- older wording implying it; target + JTAC vehicle are spawned by the scenario itself.)
 -- =============================================================================
 
 -- ── CTLD-ready guard ─────────────────────────────────────────────────────────

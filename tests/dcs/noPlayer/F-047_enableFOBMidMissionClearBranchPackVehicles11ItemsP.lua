@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- @tier: ia  (never resolves programmatically -- requires F10 visual confirmation)
+-- @tier: ia (menu)  (never resolves programmatically -- requires F10 visual confirmation)
 -- F-47 : Enable FOB mid-mission + clearBranch Pack Vehicles + 11 items + pagination réelle
 -- REQUIRES: F-45 executed first
 trigger.action.outText("F-47: Enable FOB + clearBranch + 11 items + pagination", 10)

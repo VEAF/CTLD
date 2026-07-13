@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: ia (fly)  -- takeoff/landing required (sol/vol/sol menu check)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_crate_menu_sol_vol_visual.lua
 -- CTLD — Crate Commands menu : vérification sol / vol / sol (visual)
