@@ -1,37 +1,37 @@
 ---@diagnostic disable
 -- @tier: auto
 -- =============================================================================
--- AUTO — Vehicle dcs_native : loadVehicle / unloadVehicle (C-130 physique)
+-- AUTO — Vehicle dcs_native: loadVehicle / unloadVehicle (physical C-130)
 -- =============================================================================
--- Ré-intègre 2 reliques mortes qui exigent le VRAI moteur DCS (spawn réel d'un
--- véhicule au sol + récupération de l'unité vivante via Group.getByName après
--- load), impossibles à mocker en busted :
+-- Re-integrates 2 dead relics that require the REAL DCS engine (actual spawn of a
+-- ground vehicle + recovery of the live unit via Group.getByName after load),
+-- impossible to mock in busted:
 --
---   F-018 : loadVehicle(method="dcs_native") → état LOADED, event OnVehicleLoaded
---           avec method="dcs_native". En dcs_native l'unité DCS reste VIVANTE
---           (physiquement liée dans l'avion) — elle N'EST PAS détruite ni mise
---           à nil (cf. src l.455-460 : seul le reverse-lookup est purgé).
---   F-019 : unloadVehicle(method="dcs_native") au sol → l'unité est récupérée du
---           groupe toujours vivant, état WAITING (re-loadable), event
---           OnVehicleUnloaded avec method="dcs_native".
+--   F-018: loadVehicle(method="dcs_native") → LOADED state, OnVehicleLoaded event
+--           with method="dcs_native". In dcs_native the DCS unit stays ALIVE
+--           (physically attached inside the aircraft) — it is NOT destroyed nor set
+--           to nil (see src l.455-460: only the reverse-lookup is purged).
+--   F-019: unloadVehicle(method="dcs_native") on the ground → the unit is recovered
+--           from the still-live group, WAITING state (re-loadable), OnVehicleUnloaded
+--           event with method="dcs_native".
 --
--- Le transport (C-130) est un mock (position/coalition/pays) ; la partie NON
--- mockable — spawnVehicleForTransport qui crée un vrai groupe GROUND, puis
--- Group.getByName au unload — passe par le vrai moteur. 100 % synchrone → `auto`.
+-- The transport (C-130) is a mock (position/coalition/country); the NON-mockable
+-- part — spawnVehicleForTransport which creates a real GROUND group, then
+-- Group.getByName at unload — goes through the real engine. 100% synchronous → `auto`.
 --
--- NOTE de parité : la relique F-018 asserte `vehicle.unit == nil` après load —
--- c'est PÉRIMÉ. Le src courant garde l'unité vivante en dcs_native (l.456-460).
--- Ce scénario asserte donc `vehicle.unit ~= nil`.
+-- Parity note: the F-018 relic asserts `vehicle.unit == nil` after load —
+-- that is STALE. The current src keeps the unit alive in dcs_native (l.456-460).
+-- This scenario therefore asserts `vehicle.unit ~= nil`.
 --
--- Pré-requis mission : AUCUN (transport mocké, véhicule spawné par le scénario ;
--- ancre positionnelle dérivée d'une unité existante ou (0,0)).
+-- Mission prerequisites: NONE (mocked transport, vehicle spawned by the scenario;
+-- positional anchor derived from an existing unit or (0,0)).
 --
--- Signatures vérifiées dans src/CTLD_vehicle.lua (2026-07-11) :
+-- Signatures verified in src/CTLD_vehicle.lua (2026-07-11):
 --   spawnVehicleForTransport(vehicleType, spawner, logisticZone) → CTLDVehicle WAITING  l.249
 --   loadVehicle(vehicle, transport, player, method)  l.418  (WAITING → LOADED)
---     dcs_native : unité conservée vivante l.455-460 ; publish OnVehicleLoaded l.499
+--     dcs_native: unit kept alive l.455-460; publish OnVehicleLoaded l.499
 --   unloadVehicle(vehicle, transport, player, method, rearSector)  l.532  (LOADED → WAITING)
---     dcs_native : unit = Group.getByName(sd.groupName):getUnit(1) l.543-546 ;
+--     dcs_native: unit = Group.getByName(sd.groupName):getUnit(1) l.543-546;
 --     publish OnVehicleUnloaded l.615
 -- =============================================================================
 
@@ -177,7 +177,7 @@ local _ok, _err = pcall(function()
             "payload.dcsUnitObject present (dcs_native → live unit)")
     end
 
-    -- ==== F-019 : unloadVehicle dcs_native (au sol) → WAITING + OnVehicleUnloaded
+    -- ==== F-019 : unloadVehicle dcs_native (on ground) → WAITING + OnVehicleUnloaded
     unloadedPayload = nil
     vs:unloadVehicle(vehicle, mockTransport, "TestPlayer", "dcs_native")
 

@@ -1,19 +1,20 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot occupied -- structural precondition, not piloting/judgment;
+--                     never checks real flight state or waits on F10 -- re-injects on a timer)
 -- =============================================================================
 -- scenario_jtac_crate_pack.lua
 -- JTAC vehicle (via crate) — pack → deregisterJTAC coverage
 --
--- Simule le flow _spawnUnpacked(isJTAC=true) :
---   startLase + registerJTACVehicle → JTAC lase
--- Puis packVehicle() → deregisterJTAC silencieux
+-- Simulates the _spawnUnpacked(isJTAC=true) flow:
+--   startLase + registerJTACVehicle → JTAC lases
+-- Then packVehicle() → silent deregisterJTAC
 --
--- Steps :
+-- Steps:
 --   Step 1 — Cleanup + spawn Hummer JTAC + startLase + registerJTACVehicle   (setup)
 --   Step 2 — (T+3s) Assert JTAC LASING + packVehicle() + assert deregistered (F-132)
 --   Step 3 — RESET
 --
--- Prérequis : slot UH-1H BLUE occupé, posé au sol. Cible RED présente.
+-- Prerequisites: UH-1H BLUE slot occupied, landed on the ground. RED target present.
 -- =============================================================================
 
 -- ── CTLD-ready guard ─────────────────────────────────────────────────────────
@@ -114,24 +115,24 @@ local _result = "INCOMPLETE"
 local _ok, _err = pcall(function()
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 1 — Setup : spawn Hummer JTAC + cible RED + startLase + register
--- Simule ce que fait _spawnUnpacked(desc.isJTAC=true)
+-- STEP 1 — Setup: spawn Hummer JTAC + RED target + startLase + register
+-- Simulates what _spawnUnpacked(desc.isJTAC=true) does
 -- ══════════════════════════════════════════════════════════════════════════════
 if step == 1 then
     cleanupAll()
 
-    -- Spawn cible RED à 800m
+    -- Spawn RED target at 800m
     spawnGround(TARGET_GRP, TARGET_UNIT, TARGET_TYPE, COUNTRY_R, pPos.x + 800, pPos.z, 0)
 
-    -- Spawn Hummer JTAC BLUE à 80m du joueur (dans portée pack)
+    -- Spawn Hummer JTAC BLUE 80m from the player (within pack range)
     local jg = spawnGround(JTAC_GROUP, JTAC_UNIT, JTAC_TYPE, COUNTRY_B, pPos.x + 80, pPos.z, 0)
     check("F-132.S1.1", "Hummer JTAC spawned", jg ~= nil and Group.getByName(JTAC_GROUP) ~= nil)
 
-    -- Simuler _spawnUnpacked(isJTAC=true) : startLase + registerJTACVehicle
+    -- Simulate _spawnUnpacked(isJTAC=true): startLase + registerJTACVehicle
     CTLDJTACManager.get():startLase(JTAC_GROUP, nil, nil, nil, nil, nil, nil)
     CTLDVehicleSpawner.getInstance():registerJTACVehicle(JTAC_GROUP, JTAC_TYPE, nil, nil)
 
-    report("Step 1 done — startLase lancé (async +1s). Re-injecter dans 3s pour step 2.")
+    report("Step 1 done — startLase launched (async +1s). Re-inject in 3s for step 2.")
     _G[STEP_N] = 2
     _result = "step=1 SUCCESS"
 
@@ -142,32 +143,32 @@ elseif step == 2 then
     local jm = CTLDJTACManager.get()
     local vm = CTLDVehicleSpawner.getInstance()
 
-    -- A) Vérifier JTAC est enregistré et lasing
+    -- A) Verify JTAC is registered and lasing
     local jtac = jm.jtacs and jm.jtacs[JTAC_GROUP]
-    check("F-132.1", "JTAC enregistré dans CTLDJTACManager",
+    check("F-132.1", "JTAC registered in CTLDJTACManager",
         jtac ~= nil, "jtacs[" .. JTAC_GROUP .. "]=nil")
 
     if jtac then
-        check("F-132.2", "JTAC state lasing ou idle (actif)",
+        check("F-132.2", "JTAC state lasing or idle (active)",
             jtac.state == "lasing" or jtac.state == "idle" or jtac.state == "orbiting",
             "state=" .. tostring(jtac.state))
     end
 
-    -- B) Vérifier vehicle enregistré dans CTLDVehicleSpawner
+    -- B) Verify vehicle registered in CTLDVehicleSpawner
     local foundVeh = false
     for _, veh in pairs(vm._vehicles) do
         if veh.spawnData and veh.spawnData.groupName == JTAC_GROUP then
             foundVeh = true; break
         end
     end
-    check("F-132.3", "vehicle JTAC enregistré dans CTLDVehicleSpawner", foundVeh)
+    check("F-132.3", "JTAC vehicle registered in CTLDVehicleSpawner", foundVeh)
 
-    -- C) Vérifier laser code attribué
+    -- C) Verify laser code allocated
     local laserCodeAllocated = jtac and jtac.laserCode and jtac.laserCode > 0
-    check("F-132.4", "laser code attribué", laserCodeAllocated,
+    check("F-132.4", "laser code allocated", laserCodeAllocated,
         "laserCode=" .. tostring(jtac and jtac.laserCode))
 
-    -- D) Appel packVehicle → doit appeler deregisterJTAC avant destroy
+    -- D) Call packVehicle → must call deregisterJTAC before destroy
     local deregCalled = false
     local _origDereg = jm.deregisterJTAC
     jm.deregisterJTAC = function(self_jm, gname)
@@ -182,20 +183,20 @@ elseif step == 2 then
 
     jm.deregisterJTAC = _origDereg  -- restore
 
-    check("F-132.5", "deregisterJTAC appelé lors du pack",
-        deregCalled, "jamais appelé")
+    check("F-132.5", "deregisterJTAC called during pack",
+        deregCalled, "never called")
 
-    -- E) Vérifier JTAC bien retiré de CTLDJTACManager après pack
+    -- E) Verify JTAC properly removed from CTLDJTACManager after pack
     local jtacAfter = jm.jtacs and jm.jtacs[JTAC_GROUP]
-    check("F-132.6", "JTAC retiré de CTLDJTACManager après pack",
-        jtacAfter == nil, "jtac encore présent state=" .. tostring(jtacAfter and jtacAfter.state))
+    check("F-132.6", "JTAC removed from CTLDJTACManager after pack",
+        jtacAfter == nil, "jtac still present state=" .. tostring(jtacAfter and jtacAfter.state))
 
-    -- F) Info : destroy() appelé, groupe peut persister 1 tick DCS (comportement moteur attendu)
+    -- F) Info: destroy() called, group may persist 1 DCS tick (expected engine behavior)
     local groupAfter = Group.getByName(JTAC_GROUP)
     local groupGone  = (groupAfter == nil or not groupAfter:isExist())
-    report("F-132.7 [INFO] groupe après pack : " .. (groupGone and "détruit" or "encore visible 1 tick — OK"))
+    report("F-132.7 [INFO] group after pack: " .. (groupGone and "destroyed" or "still visible 1 tick — OK"))
 
-    report("Step 2 F-132 DONE — ALL PASS. Re-injecter pour RESET.")
+    report("Step 2 F-132 DONE — ALL PASS. Re-inject for RESET.")
     _G[STEP_N] = 3
     _result = "step=2 SUCCESS"
 
@@ -209,7 +210,7 @@ elseif step == 3 then
     _result = "ALL SUCCESS"
 
 else
-    fail("step=" .. step .. " sans branche")
+    fail("step=" .. step .. " has no branch")
 end
 
 end)  -- end pcall

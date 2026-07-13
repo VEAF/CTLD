@@ -3,18 +3,18 @@
 -- =============================================================================
 -- AUTO — i18n format migration : string.format → ctld.tr native substitution
 -- =============================================================================
--- Vérifie que tous les sites migrés de string.format(ctld.tr(...)) vers
--- ctld.tr(..., args) produisent les mêmes messages qu'attendu.
+-- Verifies that all sites migrated from string.format(ctld.tr(...)) to
+-- ctld.tr(..., args) produce the same messages as expected.
 --
 -- U-100 : ctld.tr crate capacity key (%1/%2) → "(1/1)"
--- U-101 : ctld.tr lasing key (%1) → nom JTAC substitué
--- U-102 : ctld.tr altitude key (%1/%2) → valeurs numériques substituées
--- U-103 : ctld.tr vehicle capacity key (%1) → valeur numérique substituée
--- U-104 : ctld.tr packed-into key (%1/%2) → nom véhicule + nb caisses substitués
--- F-167 : guard caisses à bord → message capturé contient "(1/1)"
+-- U-101 : ctld.tr lasing key (%1) → substituted JTAC name
+-- U-102 : ctld.tr altitude key (%1/%2) → substituted numeric values
+-- U-103 : ctld.tr vehicle capacity key (%1) → substituted numeric value
+-- U-104 : ctld.tr packed-into key (%1/%2) → substituted vehicle name + crate count
+-- F-167 : crates-on-board guard → captured message contains "(1/1)"
 --
--- Prérequis : aucun (entièrement mocké)
--- Famille   : auto
+-- Pre-requisites: none (fully mocked)
+-- Family        : auto
 -- =============================================================================
 
 -- ── CTLD-ready guard ───────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ ctld.utils.log("INFO", "── U-105 : troop capacity key ──")
 local msg105 = ctld.tr("Group too large for this aircraft (%1/%2 troops).", 6, 8)
 checkContains("U-105 troop capacity contains '(6/8'", msg105, "(6/8")
 
--- ── F-167 : guard caisses à bord → message capturé contient "(1/1)" ──────────
+-- ── F-167 : crates-on-board guard → captured message contains "(1/1)" ────────
 ctld.utils.log("INFO", "── F-167 : crate capacity guard message format ──")
 
 local capturedMsg = nil
@@ -110,8 +110,8 @@ trigger.action.outTextForGroup = function(gid, msg, dur, ...)
     _orig_outText(gid, msg, dur, ...)
 end
 
--- Injecter directement la logique de guard : onboard=1 >= capacity=1
--- ctld.tr est appelé avec les bons args → vérifier le message produit
+-- Directly inject the guard logic: onboard=1 >= capacity=1
+-- ctld.tr is called with the correct args → verify the produced message
 local guardMsg = ctld.tr("Maximum number of crates are on board!", 1, 1)
 trigger.action.outTextForGroup(1, guardMsg, 10)
 
@@ -119,7 +119,7 @@ trigger.action.outTextForGroup = _orig_outText
 
 checkContains("F-167 guard message contains '(1/1)'", capturedMsg, "(1/1)")
 
--- ── Résultat final ────────────────────────────────────────────────────────────
+-- ── Final result ───────────────────────────────────────────────────────────────
 cfg.settings["debug"] = _saved_debug
 cfg.settings["debugScreenLog"] = _savedDebugScreenLog
 
@@ -127,7 +127,7 @@ local total = pass + fail
 local msg = string.format(
     "[I18N-FMT] DONE — %d/%d PASS%s",
     pass, total,
-    fail > 0 and (" | " .. fail .. " FAIL — voir CTLD.log") or ""
+    fail > 0 and (" | " .. fail .. " FAIL — see CTLD.log") or ""
 )
 trigger.action.outText(msg, 15, true)
 ctld.utils.log("INFO", msg)

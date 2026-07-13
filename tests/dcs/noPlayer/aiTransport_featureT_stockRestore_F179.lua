@@ -2,14 +2,14 @@
 -- @tier: auto
 -- =============================================================================
 -- aiTransport_featureT_stockRestore_F179.lua  [AUTO]
--- F-179 — Feature T : restauration du stock lors du dropoff AI (navette)
+-- F-179 — Feature T: stock restore on AI dropoff (shuttle)
 --
--- PRÉREQUIS : CTLD initialisé (classes disponibles en mémoire).
---   Ne nécessite pas de zones DCS dans le .miz.
+-- PREREQUISITE: CTLD initialized (classes available in memory).
+--   Does not require DCS zones in the .miz.
 --
--- OBJECTIF : vérifier que aiRestoreTroopStock() et aiRestoreVehicleStock()
---   restaurent correctement le stock courant, sans dépasser le plafond init,
---   et sans effet quand isAll=true ou stock=-1 (illimité).
+-- GOAL: verify that aiRestoreTroopStock() and aiRestoreVehicleStock()
+--   correctly restore the current stock, without exceeding the init cap,
+--   and have no effect when isAll=true or stock=-1 (unlimited).
 -- =============================================================================
 
 -- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
@@ -69,39 +69,39 @@ local _ok, _err = pcall(function()
         },
     })
 
-    -- A.1 : restore 1 → current = 2
+    -- A.1: restore 1 → current = 2
     zone:aiRestoreTroopStock("Standard Group", 1)
-    check("F-179.1", "restore 1 : current = 2",
+    check("F-179.1", "restore 1: current = 2",
           zone._aiTroopStock.current["Standard Group"] == 2,
           tostring(zone._aiTroopStock.current["Standard Group"]))
 
-    -- A.2 : restore 1 → current = 3 (plafond atteint)
+    -- A.2: restore 1 → current = 3 (cap reached)
     zone:aiRestoreTroopStock("Standard Group", 1)
-    check("F-179.2", "restore 1 : current = 3 (plafond init)",
+    check("F-179.2", "restore 1: current = 3 (init cap)",
           zone._aiTroopStock.current["Standard Group"] == 3,
           tostring(zone._aiTroopStock.current["Standard Group"]))
 
-    -- A.3 : restore sur plafond → ne dépasse pas init (3)
+    -- A.3: restore at cap → does not exceed init (3)
     zone:aiRestoreTroopStock("Standard Group", 1)
-    check("F-179.3", "restore sur plafond : current reste 3",
+    check("F-179.3", "restore at cap: current stays 3",
           zone._aiTroopStock.current["Standard Group"] == 3,
           tostring(zone._aiTroopStock.current["Standard Group"]))
 
-    -- A.4 : restore avec n > 1 (reste capé)
+    -- A.4: restore with n > 1 (stays capped)
     zone._aiTroopStock.current["Standard Group"] = 0
     zone:aiRestoreTroopStock("Standard Group", 10)
-    check("F-179.4", "restore n=10 capé à init=3",
+    check("F-179.4", "restore n=10 capped at init=3",
           zone._aiTroopStock.current["Standard Group"] == 3,
           tostring(zone._aiTroopStock.current["Standard Group"]))
 
-    -- A.5 : restore sans n (défaut=1)
+    -- A.5: restore without n (default=1)
     zone._aiTroopStock.current["Standard Group"] = 0
     zone:aiRestoreTroopStock("Standard Group")
-    check("F-179.5", "restore sans n : +1 (défaut)",
+    check("F-179.5", "restore without n: +1 (default)",
           zone._aiTroopStock.current["Standard Group"] == 1,
           tostring(zone._aiTroopStock.current["Standard Group"]))
 
-    -- A.6 : isAll=true → restore est no-op
+    -- A.6: isAll=true → restore is no-op
     local zoneAll = CTLDTroopZone:new({
         zoneName     = "TEST_RESTORE_T_ALL",
         isAIPickup   = true,
@@ -109,11 +109,11 @@ local _ok, _err = pcall(function()
         _aiTroopStock = { isAll = true, init = {}, current = {} },
     })
     zoneAll:aiRestoreTroopStock("Standard Group", 1)  -- must not error
-    check("F-179.6", "isAll=true : restore est no-op (pas d'erreur)", true)
+    check("F-179.6", "isAll=true: restore is no-op (no error)", true)
 
-    -- A.7 : restore d'une clé absente → no-op (maxS=nil → return early)
+    -- A.7: restore of an absent key → no-op (maxS=nil → return early)
     zone:aiRestoreTroopStock("Unknown Template", 1)
-    check("F-179.7", "restore clé absente : no-op (pas d'erreur)", true)
+    check("F-179.7", "restore absent key: no-op (no error)", true)
 
     -- ═══════════════════════════════════════════════════════════════════════
     -- SECTION B — Vehicle stock restore
@@ -130,25 +130,25 @@ local _ok, _err = pcall(function()
         },
     })
 
-    -- B.1 : restore véhicule → 1
+    -- B.1: vehicle restore → 1
     zoneV:aiRestoreVehicleStock("Hummer")
-    check("F-179.8", "restore vehicule : current[Hummer] = 1",
+    check("F-179.8", "vehicle restore: current[Hummer] = 1",
           zoneV._aiVehicleStock.current["Hummer"] == 1,
           tostring(zoneV._aiVehicleStock.current["Hummer"]))
 
-    -- B.2 : restore → plafond 2
+    -- B.2: restore → cap 2
     zoneV:aiRestoreVehicleStock("Hummer")
-    check("F-179.9", "restore vehicule : current[Hummer] = 2 (plafond)",
+    check("F-179.9", "vehicle restore: current[Hummer] = 2 (cap)",
           zoneV._aiVehicleStock.current["Hummer"] == 2,
           tostring(zoneV._aiVehicleStock.current["Hummer"]))
 
-    -- B.3 : restore sur plafond → reste 2
+    -- B.3: restore at cap → stays 2
     zoneV:aiRestoreVehicleStock("Hummer")
-    check("F-179.10", "restore vehicule sur plafond : reste 2",
+    check("F-179.10", "vehicle restore at cap: stays 2",
           zoneV._aiVehicleStock.current["Hummer"] == 2,
           tostring(zoneV._aiVehicleStock.current["Hummer"]))
 
-    -- B.4 : stock=-1 (illimité dans init) → restore est no-op (maxS==-1 → return early)
+    -- B.4: stock=-1 (unlimited in init) → restore is no-op (maxS==-1 → return early)
     local zoneVUnlim = CTLDTroopZone:new({
         zoneName    = "TEST_RESTORE_V_UNLIM",
         isAIPickup  = true,
@@ -160,11 +160,11 @@ local _ok, _err = pcall(function()
         },
     })
     zoneVUnlim:aiRestoreVehicleStock("M1025 HMMWV Armament")  -- no-op
-    check("F-179.11", "vehicule stock=-1 : restore no-op, reste -1",
+    check("F-179.11", "vehicle stock=-1: restore no-op, stays -1",
           zoneVUnlim._aiVehicleStock.current["M1025 HMMWV Armament"] == -1,
           tostring(zoneVUnlim._aiVehicleStock.current["M1025 HMMWV Armament"]))
 
-    report("✅ F-179 ALL PASS — restauration stock troop/vehicle correcte")
+    report("✅ F-179 ALL PASS — troop/vehicle stock restore correct")
 
 end)
 

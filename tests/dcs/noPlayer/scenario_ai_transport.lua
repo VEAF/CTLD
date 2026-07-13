@@ -33,7 +33,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_AI_TRANSPORT_RUNNING then
-    trigger.action.outText("[AI-TRANSPORT] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[AI-TRANSPORT] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_AI_TRANSPORT_RESULT or "[AI-TRANSPORT] RUNNING"
 end
 _SCN_AI_TRANSPORT_RUNNING = true
@@ -56,7 +56,7 @@ cfg.settings["debugScreenLog"] = false
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG             = "[AI-TRANSPORT]"
 local NAME            = "AI transport auto-pickup / auto-dropoff"
-local MENU_NAME       = "Recette CTLD"
+local MENU_NAME       = "CTLD Test"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }
 
 -- ── 6. State ─────────────────────────────────────────────────────────────────
@@ -176,7 +176,7 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
@@ -185,7 +185,7 @@ end
 
 -- S1 — Verify _aiTeams population (F-133)
 steps[1] = function()
-    instruct("Step 1/3 — F-133: vérification _aiTeams (auto)")
+    instruct("Step 1/3 — F-133: _aiTeams check (auto)")
 
     local core = CTLDCoreManager.getInstance()
 
@@ -209,7 +209,7 @@ steps[1] = function()
     end
     check("F-133.4", "all _aiTeams entries are enabled and named", allOk)
 
-    log("S1 done — avance vers S2")
+    log("S1 done — advance to S2")
     advanceStep()
 end
 
@@ -349,7 +349,7 @@ steps[2] = function()
     check("F-134.4", "human pilot NOT embarked", embarkCalledHuman == 0,
         "embark calls=" .. tostring(embarkCalledHuman))
 
-    log("S2 done — avance vers S3")
+    log("S2 done — advance to S3")
     advanceStep()
 end
 
@@ -457,13 +457,13 @@ steps[3] = function()
         disembarkAllCalledNoTroops == 0,
         "called=" .. tostring(disembarkAllCalledNoTroops))
 
-    log("S3 done — finalisation")
+    log("S3 done — finalization")
     advanceStep()
 end
 
 -- ── 13. Start ────────────────────────────────────────────────────────────────
--- Ce scénario ne nécessite pas de joueur humain mais on le recherche quand même
--- pour S.groupId (MenuManager). Si absent, on procède sans menu.
+-- This scenario does not require a human player but we still look for one
+-- for S.groupId (MenuManager). If absent, we proceed without a menu.
 S.transport = (function()
     local ok, pm = pcall(CTLDPlayerManager.getInstance)
     if ok and pm and pm._players then
@@ -510,7 +510,7 @@ _SCN_AI_TRANSPORT_CLEANUP = cleanup
 
 _SCN_AI_TRANSPORT_RESULT = TAG.." STARTED"
 log("=== START: "..NAME.." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps (auto)", 8)
+trigger.action.outText(TAG.." start — "..#steps.." steps (auto)", 8)
 advanceStep()
 
 end  -- do isolation scope

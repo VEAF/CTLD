@@ -1,20 +1,21 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot for position; spawns its own FOB crates + auto-unpacks,
+--                     no piloting/F10 -- RUNNING step machine re-injected on a timer)
 -- =============================================================================
 -- scenarios/scenario_fob_scene.lua
 -- PT6 — FOB scene visual validation
 --
 -- Steps:
---   Step 1 — cleanup + spawn 3 FOB crates devant l'hélico
---             + déclenchement automatique de unpackFOBCrates après 2 s
---   Step 2 — (injecter à ~T+130) vérification FOB enregistré dans CTLDFOBManager
---   Step 99 — résumé final
+--   Step 1 — cleanup + spawn 3 FOB crates in front of the helo
+--             + automatic trigger of unpackFOBCrates after 2 s
+--   Step 2 — (inject at ~T+130) verify FOB registered in CTLDFOBManager
+--   Step 99 — final summary
 --
--- Prérequis :
---   • Slot UH-1H BLUE occupé, hélico au sol
---   • Position hélico à > 500 m de toute zone logistique existante
---     (sinon la guard _isTooCloseToZone bloque le build)
---   • enable_debug.lua injecté avant ce script
+-- Prerequisites:
+--   • UH-1H BLUE slot occupied, helo on the ground
+--   • Helo position > 500 m from any existing logistic zone
+--     (otherwise the _isTooCloseToZone guard blocks the build)
+--   • enable_debug.lua injected before this script
 -- =============================================================================
 
 -- ── CTLD-ready guard ─────────────────────────────────────────────────────────
@@ -27,14 +28,14 @@ end
 local TAG      = "[FOB-SCN]"
 local STEP_VAR = "_FOB_SCN_STEP"
 
--- ── HEADER — affiché à chaque injection ───────────────────────────────────────
+-- ── HEADER — shown on every injection ─────────────────────────────────────────
 trigger.action.outText(
     "[FOB-SCN] === PT6 : FOB Scene validation ===\n"
-    .. "PRE : UH-1H BLUE au sol, > 500 m de toute zone logistique\n"
-    .. "      Statics f1-f7 + fh1-fh3 placés dans la mission\n"
-    .. "RUN : 1) Injecter => 3 crates spawn + unpack auto dans 2 s\n"
-    .. "      2) Observer animation 120 s (spawn progressif + FOB + cleanup)\n"
-    .. "      3) Re-injecter a T+130 => verification FOB enregistre",
+    .. "PRE : UH-1H BLUE on the ground, > 500 m from any logistic zone\n"
+    .. "      Statics f1-f7 + fh1-fh3 placed in the mission\n"
+    .. "RUN : 1) Inject => 3 crates spawn + auto unpack in 2 s\n"
+    .. "      2) Watch the 120 s animation (progressive spawn + FOB + cleanup)\n"
+    .. "      3) Re-inject at T+130 => verify FOB registered",
     30)
 
 -- ── helpers ───────────────────────────────────────────────────────────────────
@@ -61,6 +62,17 @@ local function check(id, desc, cond, detail)
     end
 end
 
+-- Resolve the player-controlled transport (first BLUE player). Replaces the dead FullGas
+-- `ctld_test.getTransport()` helper (nil, same cause as the ~194 CLEANUP-LEGACY-DCS-TESTS relics).
+local function getTransport()
+    for _, grp in ipairs(coalition.getGroups(coalition.side.BLUE) or {}) do
+        for _, unit in ipairs(grp:getUnits() or {}) do
+            if unit and unit:isExist() and unit:getPlayerName() then return unit end
+        end
+    end
+    return nil
+end
+
 -- ── init debug ────────────────────────────────────────────────────────────────
 
 local cfg          = CTLDConfig.get()
@@ -77,33 +89,34 @@ local step = _G[STEP_VAR]
 
 report("==== START " .. os.date("%H:%M:%S") .. " | step=" .. step .. " ====")
 
+local _done = false   -- set true by the terminal step so the return logic emits PASS (else the
+                      -- state machine loops 1->2->99->1 forever under an automated re-inject loop)
+
 local _ok, _err = pcall(function()
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 1 — Spawn 3 FOB crates + unpack automatique à T+2
+-- STEP 1 — Spawn 3 FOB crates + automatic unpack at T+2
 -- ══════════════════════════════════════════════════════════════════════════════
 if step == 1 then
 
-    ctld_test.cleanup()
-
-    local transport = ctld_test.getTransport()
-    if not transport then fail("aucun joueur BLUE") end
+    local transport = getTransport()
+    if not transport then fail("no BLUE player") end
 
     local playerName = transport:getName()
     local pPos       = transport:getPoint()
     local hdg        = ctld.utils.getHeadingInRadians("fob_scn", transport, true)
     local cId        = transport:getCoalition()
 
-    -- Cleanup FOBs existants (objets permanents + beacon + zones logistiques + registry)
+    -- Cleanup existing FOBs (permanent objects + beacon + logistic zones + registry)
     local fobMgr       = CTLDFOBManager.getInstance()
     local beaconMgr    = CTLDBeaconManager.getInstance()
     local existingFobs = fobMgr:getFOBsForCoalition(cId)
     for _, fob in ipairs(existingFobs) do
-        -- Objets permanents de scene
+        -- Permanent scene objects
         for _, obj in ipairs(fob.sceneObjects) do
             if obj then pcall(function() if obj:isExist() then obj:destroy() end end) end
         end
-        -- Beacon radio FOB
+        -- FOB radio beacon
         if fob.beacon then
             local bn = fob.beacon.beaconName
             if beaconMgr._beacons[bn] then
@@ -114,14 +127,14 @@ if step == 1 then
                 report("Purge beacon: " .. bn)
             end
         end
-        -- Zone logistique
+        -- Logistic zone
         pcall(function() CTLDZoneManager.getInstance():unregisterLogistic(fob.name) end)
         fobMgr._fobs[fob.fobId] = nil
         report("Purge FOB: " .. fob.name)
     end
     fobMgr._objectToFOB = {}
 
-    -- Nettoyage des crates FOB résiduelles de la session précédente
+    -- Clean up leftover FOB crates from the previous session
     local cm       = CTLDCrateManager.getInstance()
     local leftover = cm:getCratesInRange(pPos, 750)
     local purged   = 0
@@ -132,16 +145,16 @@ if step == 1 then
         end
     end
     if purged > 0 then
-        report("Purge : " .. purged .. " crate(s) FOB residuelle(s)")
+        report("Purge: " .. purged .. " leftover FOB crate(s)")
     end
 
-    -- Descriptor FOB (unit = "FOB", cratesRequired = 3)
+    -- FOB descriptor (unit = "FOB", cratesRequired = 3)
     local fobDesc = cm:findDescriptorByUnitType("FOB")
-    check("F-SCN.1", "FOB descriptor present dans config", fobDesc ~= nil)
+    check("F-SCN.1", "FOB descriptor present in config", fobDesc ~= nil)
 
     local required = (fobDesc and fobDesc.cratesRequired) or 3
 
-    -- Spawn N crates en ligne devant l'hélico, espacées de 5 m
+    -- Spawn N crates in a line in front of the helo, 5 m apart
     local spawnedCount = 0
     for i = 1, required do
         local dist = 15 + (i - 1) * 5   -- 15 m, 20 m, 25 m ...
@@ -153,24 +166,24 @@ if step == 1 then
         if crate then spawnedCount = spawnedCount + 1 end
     end
 
-    check("F-SCN.2", "3 crates FOB spawned", spawnedCount == required,
+    check("F-SCN.2", "3 FOB crates spawned", spawnedCount == required,
         "spawned=" .. spawnedCount .. " required=" .. required)
 
-    -- Centroid FOB : 100 m à 12h devant l'hélico
+    -- FOB centroid: 100 m at 12 o'clock in front of the helo
     local fx  = pPos.x + math.cos(hdg) * 100
     local fz  = pPos.z + math.sin(hdg) * 100
     local centroid = { x = fx, y = land.getHeight({x = fx, y = fz}), z = fz }
 
-    -- Destruction des crates (simule le consume de unpackFOBCrates)
+    -- Destroy the crates (simulates the unpackFOBCrates consume)
     for _, c in ipairs(cm:getCratesInRange(pPos, 750)) do
         if c.coalition == cId and c.descriptor and c.descriptor.unit == "FOB" then
             cm:destroyCrate(c.crateName)
         end
     end
 
-    -- Lancement direct de la scène (bypass guards pour recette visuelle).
-    -- Step 21 (func-only) appelle CTLDFOBManager:_registerDeployedFOB(ctx.scene)
-    -- automatiquement — pas besoin de callback onComplete ici.
+    -- Start the scene directly (bypass guards for visual testing).
+    -- Step 21 (func-only) calls CTLDFOBManager:_registerDeployedFOB(ctx.scene)
+    -- automatically — no need for an onComplete callback here.
     local sceneStarted = CTLDSceneManager.getInstance():playScene(
         transport, "FOB",
         {
@@ -182,26 +195,43 @@ if step == 1 then
             cratesUsed    = {},
         }
     )
-    check("F-SCN.3", "scene fobScene demarree", sceneStarted ~= nil)
+    check("F-SCN.3", "fobScene scene started", sceneStarted ~= nil)
 
-    report("Crates spawned (" .. spawnedCount .. "). Unpack dans 2 s.")
-    report("Observer la scene de construction (120 s).")
-    report("Reinjecter ce script a T+130 pour verifier le FOB.")
+    report("Crates spawned (" .. spawnedCount .. "). Unpack in 2 s.")
+    report("Watch the construction scene (120 s).")
+    report("Re-inject this script at T+130 to verify the FOB.")
 
     _G[STEP_VAR] = 2
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 2 — Vérification FOB enregistré (~T+130)
+-- STEP 2 — Verify FOB registered (~T+130)
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step == 2 then
 
-    local transport = ctld_test.getTransport()
+    local transport = getTransport()
     local cId = transport and transport:getCoalition() or coalition.side.BLUE
 
     local fobMgr = CTLDFOBManager.getInstance()
     local fobs   = fobMgr:getFOBsForCoalition(cId)
 
-    check("F-SCN.3", "au moins 1 FOB enregistre pour BLUE", #fobs >= 1,
+    -- The FOB scene takes ~120s to build and self-register (its func-step calls
+    -- _registerDeployedFOB at the end). An automated runner re-injects every ~2s, so step 2 can
+    -- be reached long before the scene finishes -- retry (bounded) instead of a false FAIL, so
+    -- the re-inject loop waits the scene out. ~90 retries * 2s ≈ 180s covers the build.
+    if #fobs < 1 then
+        local retries = (_G["_FOB_SCN_STEP2_RETRIES"] or 0) + 1
+        _G["_FOB_SCN_STEP2_RETRIES"] = retries
+        if retries <= 90 then
+            -- Stay on step 2 (don't advance _G[STEP_VAR]); the bottom emits RUNNING and the
+            -- runner re-injects, re-checking until the scene registers the FOB (~120s).
+            report("Step 2 [retry "..retries.."/90] FOB scene still building — re-inject")
+            return
+        end
+        -- past the retry budget: fall through so check() records a real FAIL
+    end
+    _G["_FOB_SCN_STEP2_RETRIES"] = nil
+
+    check("F-SCN.3", "at least 1 FOB registered for BLUE", #fobs >= 1,
         "count=" .. #fobs)
 
     if #fobs >= 1 then
@@ -211,7 +241,7 @@ elseif step == 2 then
         local intPct = math.floor(fob:getIntegrityPercent() * 100 + 0.5)
         check("F-SCN.5", "integrity = 100%", intPct == 100, "integrity=" .. intPct .. "%")
 
-        report(string.format("FOB '%s' @ (%.0f, %.0f) — %d%% integrite",
+        report(string.format("FOB '%s' @ (%.0f, %.0f) — %d%% integrity",
             fob.name, fob.position.x, fob.position.z, intPct))
 
         if fob.beacon then
@@ -222,20 +252,21 @@ elseif step == 2 then
         end
     end
 
-    pass("Step 2 — verification FOB complete")
+    pass("Step 2 — FOB verification complete")
     _G[STEP_VAR] = 99
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP FINAL — Résumé
+-- FINAL STEP — Summary
 -- ══════════════════════════════════════════════════════════════════════════════
 elseif step >= 99 then
     report("═══════════════════════════════════")
     report("FOB-SCN — ALL STEPS COMPLETE")
     report("═══════════════════════════════════")
     _G[STEP_VAR] = 1
+    _done = true
 
 else
-    fail("step=" .. step .. " sans branche — reset avec _reset_steps.lua")
+    fail("step=" .. step .. " has no branch — reset with _reset_steps.lua")
 end
 
 end)  -- end pcall
@@ -248,6 +279,13 @@ cfg.settings["debugScreenLog"] = _savedDebugScreenLog
 if not _ok then
     _SCN_FOBSCN_RESULT = TAG .. " FAIL: step=" .. step .. " — " .. tostring(_err)
     trigger.action.outText(TAG .. " ❌ step=" .. step .. " FAIL", 60, true)
+    return _SCN_FOBSCN_RESULT
+end
+if _done then
+    -- Terminal step reached — emit the definitive PASS (without this the state machine loops
+    -- 1->2->99->1 forever under an automated re-inject loop, never producing a verdict).
+    _SCN_FOBSCN_RESULT = TAG .. " PASS"
+    trigger.action.outText(TAG .. " ✅ ALL SUCCESS", 30, true)
     return _SCN_FOBSCN_RESULT
 end
 -- Multi-step re-injection scenario: a step success is intermediate — runner re-injects.

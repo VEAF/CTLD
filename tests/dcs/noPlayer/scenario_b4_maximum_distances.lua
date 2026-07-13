@@ -1,14 +1,14 @@
 ---@diagnostic disable
 -- @tier: auto
 -- =============================================================================
--- AUTO — B4: maximumSearchDistance câblé dans AttackNearestEnemyOnLos
+-- AUTO — B4: maximumSearchDistance wired into AttackNearestEnemyOnLos
 -- =============================================================================
--- Vérifie que le rayon de recherche passé à world.searchObjects correspond
--- à ctld.gs("maximumSearchDistance") et non au hardcode 10000.
+-- Verifies that the search radius passed to world.searchObjects matches
+-- ctld.gs("maximumSearchDistance") and not the hardcoded 10000.
 --
--- F-B4-1 : rayon = valeur par défaut (4000) quand config = 4000
--- F-B4-2 : rayon = 1500 quand config = 1500
--- F-B4-3 : rayon = 10000 (fallback) quand config = nil
+-- F-B4-1 : radius = default value (4000) when config = 4000
+-- F-B4-2 : radius = 1500 when config = 1500
+-- F-B4-3 : radius = 10000 (fallback) when config = nil
 --
 -- Prerequisites : none (fully mocked)
 -- Family        : auto
@@ -105,17 +105,17 @@ local function runTask(searchDist)
     end
 end
 
--- ── F-B4-1 : rayon = 4000 (valeur par défaut config) ─────────────────────────
+-- ── F-B4-1 : radius = 4000 (default config value) ────────────────────────────
 ctld.utils.log("INFO", "── F-B4-1 : maximumSearchDistance = 4000 ──")
 runTask(4000)
 check("F-B4-1 radius = 4000", _capturedRadius, 4000)
 
--- ── F-B4-2 : rayon = 1500 (valeur custom) ────────────────────────────────────
+-- ── F-B4-2 : radius = 1500 (custom value) ────────────────────────────────────
 ctld.utils.log("INFO", "── F-B4-2 : maximumSearchDistance = 1500 ──")
 runTask(1500)
 check("F-B4-2 radius = 1500", _capturedRadius, 1500)
 
--- ── F-B4-3 : rayon = 10000 (fallback quand config = nil) ─────────────────────
+-- ── F-B4-3 : radius = 10000 (fallback when config = nil) ─────────────────────
 ctld.utils.log("INFO", "── F-B4-3 : maximumSearchDistance = nil → fallback 10000 ──")
 cfg.settings["maximumSearchDistance"] = nil
 _capturedRadius = nil

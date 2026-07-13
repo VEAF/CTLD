@@ -1,20 +1,21 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot for position; spawns its own CS FARP crate + auto-unpacks,
+--                     no piloting/F10 -- STARTED, resolves via internal timers)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_p3_csfarp_parachute.lua
--- CTLD — CS FARP via parachutage auto-unpack (sous-cas P3)
+-- CTLD — CS FARP via parachute auto-unpack (sub-case P3)
 --
--- Valide (régression TODO [N]) :
---   - _checkAutoUnpack route vers playSceneAtPos (chemin "generic scene")
---   - Pas de guard FOB (pas de fobCompatible) → scène joue directement
---   - Aucun crash, scène CS FARP se déploie
+-- Validates (regression TODO [N]):
+--   - _checkAutoUnpack routes to playSceneAtPos ("generic scene" path)
+--   - No FOB guard (no fobCompatible) → scene plays directly
+--   - No crash, CS FARP scene deploys
 --
--- Cinématique (2 steps, injection unique) :
---   S1 [auto] Spawn 1 CS FARP crate LANDED+fromParachute, appel _checkAutoUnpack
---   S2 [auto T+35] Vérifier scène complétée + crate consommée
+-- Sequence (2 steps, single injection):
+--   S1 [auto] Spawn 1 CS FARP crate LANDED+fromParachute, call _checkAutoUnpack
+--   S2 [auto T+35] Verify scene completed + crate consumed
 --
--- Prérequis :
---   - UH-1H BLUE au sol
+-- Prerequisites:
+--   - UH-1H BLUE on the ground
 --   - Inject CTLD.lua first, wait 3–5 s for init.
 --
 -- @scenario  P3-CSFARP
@@ -31,7 +32,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_P3CSFARP_RUNNING then
-    trigger.action.outText("[P3-CSFARP] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[P3-CSFARP] already running — wait for completion or restart DCS.", 10)
     return _SCN_P3CSFARP_RESULT or "[P3-CSFARP] RUNNING"
 end
 _SCN_P3CSFARP_RUNNING = true
@@ -66,7 +67,10 @@ local function log(msg) ctld.utils.log("INFO", "%s %s", TAG, msg) end
 
 local function instruct(msg)
     log("[INSTR] " .. msg)
-    trigger.action.outText(TAG .. "\n" .. msg, 360, true)
+    -- Expose the current instruction globally so run_manual_scenario.py mirrors it to the terminal
+    -- (return-contract convention; without this the CLI shows nothing, only the DCS screen does).
+    _SCN_P3CSFARP_INSTR = TAG .. "\n" .. msg
+    trigger.action.outText(_SCN_P3CSFARP_INSTR, 360, true)
 end
 
 local function pass(id, msg) S.passed = S.passed + 1 ; log("[PASS] "..id..": "..(msg or "")) end
@@ -135,7 +139,7 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
@@ -146,14 +150,15 @@ end
 steps[1] = function()
     instruct(
         "Step 1/2 — SPAWN + AUTO-UNPACK CS FARP (auto)\n"..
-        "Spawn d'une crate Countryside FARP LANDED+fromParachute.\n"..
-        "Appel _checkAutoUnpack → route generic scene.\n"..
-        "Vérification de la scène dans 35s…"
+        "Spawn a Countryside FARP crate LANDED+fromParachute.\n"..
+        "Call _checkAutoUnpack → generic scene route.\n"..
+        "Scene check in 35s…"
     )
 
-    ctld_test.cleanup()
+    -- (removed dead FullGas ctld_test.cleanup() -- nil, same cause as the 194 relics; the
+    -- runner resets via _SCN_*_CLEANUP between runs.)
 
-    if not S.transport then fail("P3.0", "aucun joueur BLUE") ; return end
+    if not S.transport then fail("P3.0", "no BLUE player") ; return end
 
     local cId  = S.transport:getCoalition()
     local pPos = S.transport:getPoint()
@@ -165,17 +170,17 @@ steps[1] = function()
     check("P3.1", "descriptor 'Countryside FARP' present", desc ~= nil)
     if not desc then fail("P3.1b", "descriptor Countryside FARP absent") ; return end
 
-    -- Forcer cratesRequired=1 pour test rapide
+    -- Force cratesRequired=1 for a fast test
     local origRequired   = desc.cratesRequired
     desc.cratesRequired  = 1
 
-    -- Spawn 1 crate 60 m devant, état LANDED + fromParachute
+    -- Spawn 1 crate 60 m ahead, state LANDED + fromParachute
     local nx = pPos.x + math.cos(hdg) * 60
     local nz = pPos.z + math.sin(hdg) * 60
     local ny = land.getHeight({ x = nx, y = nz })
     local crate = cm:spawnCrate(desc, { x = nx, y = ny, z = nz }, cId,
         "p3_script", CTLDCrate.SPAWN_METHOD.CRATE_SPAWN)
-    check("P3.2", "CS FARP crate spawnée", crate ~= nil)
+    check("P3.2", "CS FARP crate spawned", crate ~= nil)
     if not crate then
         desc.cratesRequired = origRequired
         fail("P3.2b", "spawnCrate failed")
@@ -186,16 +191,16 @@ steps[1] = function()
     crate.fromParachute = true
     crate.position      = { x = nx, y = ny, z = nz }
 
-    -- Route attendue : generic scene (Countryside FARP n'est pas fobCompatible)
+    -- Expected route: generic scene (Countryside FARP is not fobCompatible)
     local sm    = CTLDSceneManager.getInstance()
     local model = sm:getModel("Countryside FARP")
-    check("P3.3", "'Countryside FARP' dans CTLDSceneManager", model ~= nil)
+    check("P3.3", "'Countryside FARP' in CTLDSceneManager", model ~= nil)
     if model then
-        check("P3.4", "Countryside FARP n'est PAS fobCompatible",
+        check("P3.4", "Countryside FARP is NOT fobCompatible",
             not (model.crate and model.crate.fobCompatible == true))
     end
 
-    -- Compter les scènes avant
+    -- Count scenes before
     local scenesBefore = 0
     for _ in pairs(sm._activeScenes or {}) do scenesBefore = scenesBefore + 1 end
 
@@ -204,28 +209,28 @@ steps[1] = function()
     local scenesAfter = 0
     for _ in pairs(sm._activeScenes or {}) do scenesAfter = scenesAfter + 1 end
 
-    check("P3.5", "au moins 1 scène active après _checkAutoUnpack",
+    check("P3.5", "at least 1 active scene after _checkAutoUnpack",
         scenesAfter >= scenesBefore,
         "before="..scenesBefore.." after="..scenesAfter)
 
-    -- Restaurer cratesRequired
+    -- Restore cratesRequired
     desc.cratesRequired = origRequired
 
-    log("Scène Countryside FARP lancée. Vérification dans 35s.")
+    log("Countryside FARP scene started. Check in 35s.")
     waitThen(35, advanceStep)
 end
 
--- S2 — Vérification scène complétée (~T+35)
+-- S2 — Verify scene completed (~T+35)
 steps[2] = function()
     instruct(
-        "Step 2/2 — VÉRIFICATION AUTO (T+35)\n"..
-        "Vérification auto : aucun crash + crate CS FARP consommée."
+        "Step 2/2 — AUTO CHECK (T+35)\n"..
+        "Auto check: no crash + CS FARP crate consumed."
     )
 
-    -- Vérification principale : aucun crash (étape 1 PASS + étape 2 PASS = OK)
-    pass("P3.6", "aucun crash après auto-unpack Countryside FARP")
+    -- Main check: no crash (step 1 PASS + step 2 PASS = OK)
+    pass("P3.6", "no crash after Countryside FARP auto-unpack")
 
-    -- Vérifier que la crate CS FARP initiale a été consommée (plus LANDED)
+    -- Verify that the initial CS FARP crate was consumed (no longer LANDED)
     local cm = CTLDCrateManager.getInstance()
     local foundLanded = false
     for _, c in pairs(cm.crates) do
@@ -235,7 +240,7 @@ steps[2] = function()
             foundLanded = true
         end
     end
-    check("P3.7", "crate CS FARP consommée (plus de crate LANDED+fromParachute)",
+    check("P3.7", "CS FARP crate consumed (no more LANDED+fromParachute crate)",
         not foundLanded)
 
     advanceStep()
@@ -259,7 +264,7 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
     _SCN_P3CSFARP_RESULT = "[P3-CSFARP] ABORT"
     return _SCN_P3CSFARP_RESULT
@@ -268,7 +273,7 @@ end
 _SCN_P3CSFARP_CLEANUP = cleanup
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 _SCN_P3CSFARP_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_P3CSFARP_RESULT until PASS/FAIL
 advanceStep()
 

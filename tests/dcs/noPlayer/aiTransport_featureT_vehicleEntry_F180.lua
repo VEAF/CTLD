@@ -2,17 +2,17 @@
 -- @tier: auto
 -- =============================================================================
 -- aiTransport_featureT_vehicleEntry_F180.lua  [AUTO]
--- F-180 — Feature T : aiPickVehicleEntry — sélection et flag isScene
+-- F-180 — Feature T: aiPickVehicleEntry — selection and isScene flag
 --
--- PRÉREQUIS : CTLD initialisé, CTLDSceneManager accessible.
---   Ne nécessite pas de zones DCS dans le .miz.
+-- PRE-REQUISITES: CTLD initialised, CTLDSceneManager accessible.
+--   Does not require DCS zones in the .miz.
 --
--- OBJECTIF : vérifier que aiPickVehicleEntry() :
---   - retourne nil si isAll=true (chemin scan physique legacy)
---   - retourne nil si aucun stock positif disponible
---   - retourne l'entrée avec le stock le plus élevé
---   - positionne isScene=true si le typeName est dans CTLDSceneManager._models
---   - positionne isScene=false si le typeName est un type DCS non-scène
+-- OBJECTIVE: verify that aiPickVehicleEntry():
+--   - returns nil if isAll=true (legacy physical scan path)
+--   - returns nil if no positive stock is available
+--   - returns the entry with the highest stock
+--   - sets isScene=true if the typeName is in CTLDSceneManager._models
+--   - sets isScene=false if the typeName is a non-scene DCS type
 -- =============================================================================
 
 -- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
@@ -57,20 +57,20 @@ report("==== START " .. START .. " ====")
 
 local _ok, _err = pcall(function()
 
-    -- ── Injecter un modèle de test dans CTLDSceneManager ──────────────────
+    -- ── Inject a test model into CTLDSceneManager ─────────────────────────
     local sm = CTLDSceneManager.getInstance()
-    local _savedModels = sm._models  -- sauvegarde
+    local _savedModels = sm._models  -- backup
     sm._models = {}
-    for k, v in pairs(_savedModels) do sm._models[k] = v end  -- copie shallow
+    for k, v in pairs(_savedModels) do sm._models[k] = v end  -- shallow copy
 
     local TEST_SCENE_NAME = "__TEST_SCENE_F154__"
-    sm._models[TEST_SCENE_NAME] = { steps = {} }  -- modèle factice
+    sm._models[TEST_SCENE_NAME] = { steps = {} }  -- dummy model
 
     local function cleanup()
         sm._models[TEST_SCENE_NAME] = nil
     end
 
-    -- ── F-180.1 : isAll=true → retourne nil (scan physique) ──────────────
+    -- ── F-180.1 : isAll=true → returns nil (physical scan) ───────────────
     local zoneAll = CTLDTroopZone:new({
         zoneName    = "TEST_VENTRY_ALL",
         isAIPickup  = true,
@@ -78,10 +78,10 @@ local _ok, _err = pcall(function()
         _aiVehicleStock = { isAll = true, init = {}, current = {} },
     })
     local resAll = zoneAll:aiPickVehicleEntry()
-    check("F-180.1", "isAll=true → nil (scan physique legacy)", resAll == nil,
+    check("F-180.1", "isAll=true → nil (legacy physical scan)", resAll == nil,
           tostring(resAll))
 
-    -- ── F-180.2 : _aiVehicleStock=nil → retourne nil ─────────────────────
+    -- ── F-180.2 : _aiVehicleStock=nil → returns nil ──────────────────────
     local zoneNoStock = CTLDTroopZone:new({
         zoneName    = "TEST_VENTRY_NIL",
         isAIPickup  = true,
@@ -90,7 +90,7 @@ local _ok, _err = pcall(function()
     local resNil = zoneNoStock:aiPickVehicleEntry()
     check("F-180.2", "_aiVehicleStock=nil → nil", resNil == nil)
 
-    -- ── F-180.3 : tous stocks=0 → retourne nil ───────────────────────────
+    -- ── F-180.3 : all stocks=0 → returns nil ─────────────────────────────
     local zoneZero = CTLDTroopZone:new({
         zoneName    = "TEST_VENTRY_ZERO",
         isAIPickup  = true,
@@ -104,7 +104,7 @@ local _ok, _err = pcall(function()
     local resZero = zoneZero:aiPickVehicleEntry()
     check("F-180.3", "stock=0 → nil", resZero == nil)
 
-    -- ── F-180.4 : DCS type (pas de scène) → isScene=false ────────────────
+    -- ── F-180.4 : DCS type (no scene) → isScene=false ────────────────────
     local zoneDCS = CTLDTroopZone:new({
         zoneName    = "TEST_VENTRY_DCS",
         isAIPickup  = true,
@@ -116,13 +116,13 @@ local _ok, _err = pcall(function()
         },
     })
     local resDCS = zoneDCS:aiPickVehicleEntry()
-    check("F-180.4", "DCS type : résultat non-nil",   resDCS ~= nil)
-    check("F-180.5", "DCS type : isScene=false",      resDCS and resDCS.isScene == false,
+    check("F-180.4", "DCS type: non-nil result",      resDCS ~= nil)
+    check("F-180.5", "DCS type: isScene=false",       resDCS and resDCS.isScene == false,
           tostring(resDCS and resDCS.isScene))
-    check("F-180.6", "DCS type : type='Hummer'",      resDCS and resDCS.type == "Hummer",
+    check("F-180.6", "DCS type: type='Hummer'",       resDCS and resDCS.type == "Hummer",
           tostring(resDCS and resDCS.type))
 
-    -- ── F-180.7 : scène enregistrée → isScene=true ───────────────────────
+    -- ── F-180.7 : registered scene → isScene=true ────────────────────────
     local zoneScene = CTLDTroopZone:new({
         zoneName    = "TEST_VENTRY_SCENE",
         isAIPickup  = true,
@@ -134,15 +134,15 @@ local _ok, _err = pcall(function()
         },
     })
     local resScene = zoneScene:aiPickVehicleEntry()
-    check("F-180.7", "scène enregistrée : résultat non-nil",    resScene ~= nil)
-    check("F-180.8", "scène enregistrée : isScene=true",        resScene and resScene.isScene == true,
+    check("F-180.7", "registered scene: non-nil result",        resScene ~= nil)
+    check("F-180.8", "registered scene: isScene=true",          resScene and resScene.isScene == true,
           tostring(resScene and resScene.isScene))
-    check("F-180.9", "scène enregistrée : type correct",
+    check("F-180.9", "registered scene: correct type",
           resScene and resScene.type == TEST_SCENE_NAME,
           tostring(resScene and resScene.type))
 
-    -- ── F-180.10 : sélection priorité stock (Hummer=1, TestScene=3) ──────
-    -- → TestScene doit être choisi (stock plus élevé)
+    -- ── F-180.10 : stock-priority selection (Hummer=1, TestScene=3) ──────
+    -- → TestScene must be selected (higher stock)
     local zoneMixed = CTLDTroopZone:new({
         zoneName    = "TEST_VENTRY_MIXED",
         isAIPickup  = true,
@@ -153,16 +153,16 @@ local _ok, _err = pcall(function()
             current = { ["Hummer"] = 1, [TEST_SCENE_NAME] = 3 },
         },
     })
-    -- Après 10 picks sans consume, TestScene doit toujours gagner
+    -- After 10 picks without consuming, TestScene must always win
     local wrongPick = false
     for i = 1, 10 do
         local r = zoneMixed:aiPickVehicleEntry()
         if r and r.type ~= TEST_SCENE_NAME then wrongPick = true end
     end
-    check("F-180.10", "sélection stock max : TestScene(3) toujours choisi vs Hummer(1)",
+    check("F-180.10", "max-stock selection: TestScene(3) always chosen vs Hummer(1)",
           not wrongPick, "Hummer picked at least once")
 
-    -- ── F-180.11 : stock=-1 (illimité) → stock=math.huge → prioritaire ───
+    -- ── F-180.11 : stock=-1 (unlimited) → stock=math.huge → prioritised ──
     local zoneUnlim = CTLDTroopZone:new({
         zoneName    = "TEST_VENTRY_UNLIM",
         isAIPickup  = true,
@@ -178,11 +178,11 @@ local _ok, _err = pcall(function()
         local r = zoneUnlim:aiPickVehicleEntry()
         if r and r.type ~= "M1025 HMMWV Armament" then wrongUnlim = true end
     end
-    check("F-180.11", "stock=-1 (illimité) prioritaire sur stock=5",
+    check("F-180.11", "stock=-1 (unlimited) prioritised over stock=5",
           not wrongUnlim, "Hummer picked instead of unlimited M1025")
 
     cleanup()
-    report("✅ F-180 ALL PASS — aiPickVehicleEntry sélection et isScene corrects")
+    report("✅ F-180 ALL PASS — aiPickVehicleEntry selection and isScene correct")
 
 end)
 

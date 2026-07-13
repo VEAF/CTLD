@@ -3,28 +3,28 @@
 -- =============================================================================
 -- AUTO — Beacon lifecycle : dropBeacon / removeClosestBeacon / FOB beacon
 -- =============================================================================
--- Ré-intègre 3 reliques mortes qui exigent le VRAI moteur DCS (spawn réel de
--- 3 groupes TACAN_beacon + Group.getByName), impossibles à mocker en busted :
+-- Re-integrates 3 dead relics that require the REAL DCS engine (actual spawn of
+-- 3 TACAN_beacon groups + Group.getByName), impossible to mock in busted:
 --
---   F-006 : dropBeacon (non-FOB) → 3 unités DCS spawnées, 3 fréquences assignées,
---           batterie temporaire (batteryEndTime != -1), event OnBeaconDropped.
---   F-007 : removeClosestBeacon (< 500 m) → beacon retiré de _beacons,
---           event OnBeaconRemoved avec reason="manual" + frequenciesFreed.
---   F-092 : dropBeacon(isFOB=true, overridePosition=centroid) → beacon spawné
---           au centroid exact (pas sous l'hélico), batterie infinie (=-1).
+--   F-006: dropBeacon (non-FOB) → 3 DCS units spawned, 3 frequencies assigned,
+--          temporary battery (batteryEndTime != -1), OnBeaconDropped event.
+--   F-007: removeClosestBeacon (< 500 m) → beacon removed from _beacons,
+--          OnBeaconRemoved event with reason="manual" + frequenciesFreed.
+--   F-092: dropBeacon(isFOB=true, overridePosition=centroid) → beacon spawned
+--          at the exact centroid (not under the helo), infinite battery (=-1).
 --
--- Le transport est un mock (fournit position/coalition/pays) : la partie NON
--- mockable — le spawn réel des unités beacon et leur comptage via Group.getByName
--- — passe par le vrai moteur. Résolution 100 % synchrone → tier `auto`.
+-- The transport is a mock (provides position/coalition/country): the NON-mockable
+-- part — the actual spawn of the beacon units and their count via Group.getByName
+-- — goes through the real engine. 100% synchronous resolution → tier `auto`.
 --
--- Pré-requis mission : AUCUN (le transport est mocké, les beacons sont spawnés
--- par le scénario ; ancre positionnelle dérivée d'une unité existante ou (0,0)).
+-- Mission prerequisites: NONE (the transport is mocked, the beacons are spawned
+-- by the scenario; positional anchor derived from an existing unit or (0,0)).
 --
--- Signatures vérifiées dans src/CTLD_beacon.lua (2026-07-11) :
+-- Signatures verified in src/CTLD_beacon.lua (2026-07-11):
 --   dropBeacon(transport, player, isFOB, overridePosition)  l.324
 --     publish OnBeaconDropped {player, coalition, beacon, timestamp}  l.410
---     isFOB → batteryEndTime = -1 (batterie infinie)  l.376
---   removeClosestBeacon(transport, player)  l.424  (rayon 500 m)
+--     isFOB → batteryEndTime = -1 (infinite battery)  l.376
+--   removeClosestBeacon(transport, player)  l.424  (500 m radius)
 --     publish OnBeaconRemoved {reason="manual", frequenciesFreed, ...}  l.453
 -- =============================================================================
 
@@ -199,7 +199,7 @@ local _ok, _err = pcall(function()
 
     -- ==== F-092 : FOB beacon at centroid (overridePosition, isFOB) ==========
     droppedPayload = nil
-    -- Centroid = 100 m devant l'ancre (heading 0 sur le mock → +X).
+    -- Centroid = 100 m in front of the anchor (heading 0 on the mock → +X).
     local centroid = {
         x = anchor.x + 100,
         z = anchor.z,

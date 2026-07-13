@@ -1,5 +1,7 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-slow  (no human -- resolves via internal timers -- but ~13 min to finish (VERIFY
+--                    steps up to T+795s), too slow for the fast --headless sweep. Run with
+--                    --tier auto-slow --poll-timeout 900. Needs the "uh1-1" slot unit to exist.)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_unpack_jtac_drone.lua
 -- CTLD — MQ-9 JTAC drone full lifecycle via crate spawn+unpack
@@ -7,7 +9,7 @@
 -- Flow mirrors real player actions :
 --   spawnCrate → crate on ground → unpackCrate → _spawnUnpacked → _dispatchPostSpawn → startLase
 --
--- Cinématique (5 steps automatiques, injection unique) :
+-- Sequence (5 automatic steps, single injection):
 --   S1 [auto]       Cleanup + spawn MQ-9 crate + unpack → startLase via _dispatchPostSpawn
 --   S2 [auto T+5]   Draw BLUE orbit circle
 --   S3 [auto T+120] VERIFY 1 — drone idle on initial orbit ; spawn RED target
@@ -16,7 +18,7 @@
 --   S6 [auto T+495] VERIFY 3 — target lost, drone returning to initial orbit
 --   S7 [auto T+795] VERIFY 4 — drone still alive ; cleanup drone
 --
--- Prérequis :
+-- Prerequisites:
 --   - Helicopter group "uh1" / unit "uh1-1" present and on ground near Batumi
 --   - JTAC_dropEnabled = true, BLUE coalition
 --   - Inject CTLD.lua first, wait 3–5 s for init.
@@ -35,7 +37,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_JTACDRONE_RUNNING then
-    trigger.action.outText("[JTAC-DRONE] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[JTAC-DRONE] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_JTACDRONE_RESULT or "[DRONE] RUNNING"
 end
 _SCN_JTACDRONE_RUNNING = true
@@ -65,7 +67,7 @@ local TARGET_X    = -361437
 local TARGET_Z    = 618211
 local TARGET_Y    = land.getHeight({ x = TARGET_X, y = TARGET_Z })
 
--- Monotonic mark index (préservé dans le scope do)
+-- Monotonic mark index (preserved within the do scope)
 local mIdx = 9800
 local function gidx() mIdx = mIdx + 1 ; return mIdx end
 
@@ -79,7 +81,7 @@ local S = {
     timerHandle = nil,
     timerGen    = 0,
     transport   = nil,
-    -- Handles des timers de vérification (pour cancelTimer)
+    -- Verification timer handles (for cancelTimer)
     verifyHandles = {},
 }
 
@@ -88,11 +90,23 @@ local function log(msg) ctld.utils.log("INFO", "%s %s", TAG, msg) end
 
 local function instruct(msg)
     log("[INSTR] " .. msg)
-    trigger.action.outText(TAG .. "\n" .. msg, 360, true)
+    -- Expose the current instruction as a global so run_manual_scenario.py can mirror it to the
+    -- terminal (return contract convention -- other scenarios set _SCN_<ID>_INSTR; this one
+    -- only ever printed to the DCS screen, so the CLI showed nothing).
+    _SCN_JTACDRONE_INSTR = TAG .. "\n" .. msg
+    trigger.action.outText(_SCN_JTACDRONE_INSTR, 360, true)
 end
 
-local function pass(id, msg) S.passed = S.passed + 1 ; log("[PASS] "..id..": "..(msg or "")) end
-local function fail(id, msg) S.failed = S.failed + 1 ; table.insert(S.failReasons, id..": "..(msg or "")) ; log("[FAIL] "..id..": "..(msg or "")) end
+-- Publish each check result into the instruction global so run_manual_scenario.py mirrors it live.
+-- This scenario is STARTED-pattern: _SCN_JTACDRONE_RESULT stays "STARTED" until finalize at
+-- T+795, so without this the CLI would show no progress at all across the 13-min run -- only a
+-- heartbeat. Now every VERIFY result surfaces in the terminal the moment it fires.
+local function _publishProgress(kind, id, msg)
+    _SCN_JTACDRONE_INSTR = string.format("%s [%s] %s: %s  (%d ok / %d fail so far)",
+        TAG, kind, id, (msg or ""), S.passed, S.failed)
+end
+local function pass(id, msg) S.passed = S.passed + 1 ; log("[PASS] "..id..": "..(msg or "")) ; _publishProgress("PASS", id, msg) end
+local function fail(id, msg) S.failed = S.failed + 1 ; table.insert(S.failReasons, id..": "..(msg or "")) ; log("[FAIL] "..id..": "..(msg or "")) ; _publishProgress("FAIL", id, msg) end
 
 local function drawCircle(center, radius, r, g, b, label)
     trigger.action.circleToAll(-1, gidx(), center, radius,
@@ -160,7 +174,7 @@ local function waitThen(delayS, callback)
     end, nil, timer.getTime() + delayS)
 end
 
--- Planifier un timer de vérification indépendant (non annulé par cancelTimer)
+-- Schedule an independent verification timer (not cancelled by cancelTimer)
 local function scheduleVerify(delayS, fn)
     local h = timer.scheduleFunction(function()
         fn()
@@ -199,7 +213,7 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
@@ -211,13 +225,13 @@ steps[1] = function()
     instruct(
         "Step 1/2 — SPAWN + UNPACK DRONE MQ-9 (auto)\n"..
         "Cleanup + spawn crate + unpack → startLase.\n"..
-        "Les vérifications auto s'enchainent sur 795s…"
+        "The automatic verifications run in sequence over 795s…"
     )
 
     local jmgr = CTLDJTACManager.get()
     local cmgr = CTLDCrateManager.getInstance()
 
-    -- Cleanup : détruire les JTAC existants
+    -- Cleanup: destroy existing JTACs
     local toKill = {}
     for gname, _ in pairs(jmgr.jtacs) do table.insert(toKill, gname) end
     for _, gname in ipairs(toKill) do
@@ -238,7 +252,7 @@ steps[1] = function()
     destroyRedTarget()
     log("Step 0: cleanup done")
 
-    -- 1. Spawn crate MQ-9 devant l'hélico
+    -- 1. Spawn MQ-9 crate in front of the helicopter
     local heloUnit = S.transport
     if not heloUnit or not heloUnit:isExist() then
         fail("DRONE.1", "helo unit not found (S.transport nil or dead)")
@@ -281,7 +295,7 @@ steps[1] = function()
     pass("DRONE.2", string.format("crate unpacked + MQ-9 spawned at (%.0f,%.0f) → startLase via _dispatchPostSpawn",
         spawnPos.x, spawnPos.z))
 
-    -- Planifier les vérifications différées (indépendantes de cancelTimer)
+    -- Schedule the deferred verifications (independent of cancelTimer)
     scheduleVerify(5, function()
         local gname, jtac = getFlyingJtac()
         if not jtac then log("T+5s: WARNING — no flying JTAC found yet") ; return end
@@ -344,12 +358,19 @@ steps[1] = function()
         local gname, jtac = getFlyingJtac()
         if not jtac then log("VERIFY 3 INFO — JTAC gone") ; return end
 
-        if not jtac.currentTarget then
-            pass("DRONE.V3", string.format("target lost | state=%s — drone heading to initial orbit",
+        -- The essential check is that the drone DROPS the destroyed target. It may correctly
+        -- re-task to any other enemy still in range (JTAC_maxDistance ~10km) -- e.g. a mission
+        -- RED unit like Sol_g-2 -- which is correct CTLD behaviour, not a failure. So PASS if
+        -- currentTarget is nil OR is no longer our destroyed unit; FAIL only if it's still
+        -- lasing the exact unit we just destroyed.
+        local curName = jtac.currentTarget and jtac.currentTarget.unitName or nil
+        if curName ~= TARGET_UNIT then
+            pass("DRONE.V3", string.format("destroyed target dropped | now=%s | state=%s",
+                tostring(curName) .. (curName and " (re-tasked to another enemy — OK)" or " (idle)"),
                 tostring(jtac.state)))
         else
-            fail("DRONE.V3", string.format("still lasing '%s' | state=%s",
-                jtac.currentTarget.unitName, tostring(jtac.state)))
+            fail("DRONE.V3", string.format("still lasing destroyed target '%s' | state=%s",
+                curName, tostring(jtac.state)))
         end
     end)
 
@@ -361,15 +382,18 @@ steps[1] = function()
         local u = g and g:getUnit(1)
         local dpos = u and u:getPoint()
 
-        if not jtac.currentTarget then
-            pass("DRONE.V4", string.format("drone idle | state=%s | pos=(%.0f,%.0f)",
-                tostring(jtac.state), dpos and dpos.x or 0, dpos and dpos.z or 0))
+        -- Same tolerance as V3: the drone must not be lasing the destroyed target, but may be
+        -- idle OR re-tasked to another still-in-range enemy (both correct).
+        local curName = jtac.currentTarget and jtac.currentTarget.unitName or nil
+        if curName ~= TARGET_UNIT then
+            pass("DRONE.V4", string.format("drone alive, not lasing destroyed target | now=%s | state=%s | pos=(%.0f,%.0f)",
+                (curName or "idle"), tostring(jtac.state), dpos and dpos.x or 0, dpos and dpos.z or 0))
             if dpos then
                 trigger.action.markToAll(gidx(),
                     string.format("DRONE T+795s | state=%s", jtac.state), dpos, false, "")
             end
         else
-            fail("DRONE.V4", string.format("still lasing '%s'", jtac.currentTarget.unitName))
+            fail("DRONE.V4", string.format("still lasing destroyed target '%s'", curName))
         end
 
         -- Cleanup drone
@@ -377,31 +401,31 @@ steps[1] = function()
         jmgr:killJTAC(gname, nil)
         log("Step 5: drone cleaned up")
 
-        -- Finalisation après la dernière vérification
+        -- Finalization after the last verification
         advanceStep()
     end)
 
-    -- Passer au step suivant après avoir planifié tous les timers de vérification
+    -- Move to the next step after scheduling all the verification timers
     waitThen(1, advanceStep)
 end
 
--- S2 — Attendre la fin des vérifications (step de liaison)
+-- S2 — Wait for the verifications to finish (linking step)
 steps[2] = function()
     instruct(
-        "Step 2/2 — VÉRIFICATIONS EN COURS…\n"..
-        "Les vérifications s'exécutent automatiquement sur 795s.\n"..
-        "T+120s : VERIFY 1 (idle + spawn RED)\n"..
-        "T+150s : VERIFY 2 (lasing target)\n"..
-        "T+480s : Destroy RED target\n"..
-        "T+495s : VERIFY 3 (target lost)\n"..
-        "T+795s : VERIFY 4 (idle final + cleanup) → résultat final"
+        "Step 2/2 — VERIFICATIONS IN PROGRESS…\n"..
+        "The verifications run automatically over 795s.\n"..
+        "T+120s: VERIFY 1 (idle + spawn RED)\n"..
+        "T+150s: VERIFY 2 (lasing target)\n"..
+        "T+480s: Destroy RED target\n"..
+        "T+495s: VERIFY 3 (target lost)\n"..
+        "T+795s: VERIFY 4 (final idle + cleanup) → final result"
     )
-    -- Ce step ne s'avance pas seul : advanceStep() est appelé depuis scheduleVerify(795)
-    -- (voir la vérification T+795 dans S1)
+    -- This step does not advance on its own: advanceStep() is called from scheduleVerify(795)
+    -- (see the T+795 verification in S1)
 end
 
 -- ── 14. Start ────────────────────────────────────────────────────────────────
--- Transport non requis pour ce scénario, mais tentative de lookup pour les logs
+-- Transport not required for this scenario, but attempted lookup for the logs
 S.transport = (function()
     local ok, pm = pcall(CTLDPlayerManager.getInstance)
     if ok and pm and pm._players then
@@ -410,7 +434,7 @@ S.transport = (function()
             if u and u:isExist() then return u end
         end
     end
-    -- Fallback : helo fixe
+    -- Fallback: fixed helo
     return Unit.getByName(HELO_NAME)
 end)()
 
@@ -418,7 +442,7 @@ _SCN_JTACDRONE_CLEANUP = cleanup
 
 local transportStr = S.transport and S.transport:getName() or HELO_NAME
 log("=== START: "..NAME.." | helo="..transportStr.." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — lifecycle 795s | helo="..transportStr, 8)
+trigger.action.outText(TAG.." starting — lifecycle 795s | helo="..transportStr, 8)
 _SCN_JTACDRONE_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_JTACDRONE_RESULT until PASS/FAIL
 advanceStep()
 

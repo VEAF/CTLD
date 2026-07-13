@@ -63,16 +63,16 @@
 -- F-R-39 : P+D overlap same coalition → WARN, both zones created
 -- F-R-40 : any error/warn → outText called, message contains "CTLD" + "error"
 --
--- Section 12 — Rapport MM live (outText réel → écran + log)
--- F-R-49 : config avec 5 ERRORs + 2 WARNs → rapport affiché écran + CTLD.log
+-- Section 12 — Live MM report (real outText → screen + log)
+-- F-R-49 : config with 5 ERRORs + 2 WARNs → report shown on screen + CTLD.log
 --
--- Section 11 — Nouveaux checks (G1/G2/G3/G4/G5 + Fix5/Fix6)
+-- Section 11 — New checks (G1/G2/G3/G4/G5 + Fix5/Fix6)
 -- F-R-41 : ni isPickup ni isDropoff → ERROR, zone not created
--- F-R-42 : troopTemplates TOUS inconnus → WARN distinct, zone created
+-- F-R-42 : troopTemplates ALL unknown → distinct WARN, zone created
 -- F-R-43 : isPickup + troopStock=0  → WARN, zone created
--- F-R-44 : vehicleTypes TOUS inconnus dans loadableVehicles → WARN, zone created
+-- F-R-44 : vehicleTypes ALL unknown in loadableVehicles → WARN, zone created
 -- F-R-45 : coalition "ROUGE" (typo) → ERROR, zone not created
--- F-R-46 : cargoType=V, aucun transport canTransportWholeVehicle → ERROR, zone not created
+-- F-R-46 : cargoType=V, no transport canTransportWholeVehicle → ERROR, zone not created
 --
 -- Prerequisites : none (fully mocked)
 -- Family        : auto
@@ -906,7 +906,7 @@ do
 end
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- Section 11 — Nouveaux checks G1/G2/G3/G4/G5 + Fix5/Fix6
+-- Section 11 — New checks G1/G2/G3/G4/G5 + Fix5/Fix6
 -- ══════════════════════════════════════════════════════════════════════════════
 
 -- F-R-41: ni isPickup ni isDropoff → ERROR, zone not created (G1)
@@ -920,7 +920,7 @@ do
     checkNotNil("F-R-41.3", report)         -- report shown
 end
 
--- F-R-42: troopTemplates TOUS inconnus → WARN distinct "all troopTemplates are unknown",
+-- F-R-42: troopTemplates ALL unknown → distinct WARN "all troopTemplates are unknown",
 --         zone IS created (G2)
 do
     local dzn = "aiz_fr42"
@@ -950,7 +950,7 @@ do
     end
 end
 
--- F-R-44: vehicleTypes TOUS inconnus dans loadableVehicles → WARN, zone IS created (G4)
+-- F-R-44: vehicleTypes ALL unknown in loadableVehicles → WARN, zone IS created (G4)
 do
     local dzn     = "aiz_fr44"
     local _savedCaps = cfg.settings["capabilitiesByType"]
@@ -974,7 +974,7 @@ do
     end
 end
 
--- F-R-45: coalition "ROUGE" (faute de frappe) → ERROR, zone not created
+-- F-R-45: coalition "ROUGE" (typo) → ERROR, zone not created
 do
     local dzn = "aiz_fr45"
     local zones, aiZErr, report = validateAndLoad(
@@ -985,7 +985,7 @@ do
     checkNotNil("F-R-45.3", report)         -- report shown
 end
 
--- F-R-46: cargoType=V + aucun transport canTransportWholeVehicle → ERROR, zone not created (G5)
+-- F-R-46: cargoType=V + no transport canTransportWholeVehicle → ERROR, zone not created (G5)
 do
     local dzn     = "aiz_fr46"
     local _savedCaps = cfg.settings["capabilitiesByType"]
@@ -1005,20 +1005,20 @@ do
 end
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- Section 12 — Rapport MM live : outText réel → écran + CTLD.log
--- F-R-49 : config 5 ERRORs + 2 WARNs → rapport complet visible écran + log
+-- Section 12 — Live MM report: real outText → screen + CTLD.log
+-- F-R-49 : config 5 ERRORs + 2 WARNs → full report visible on screen + log
 -- ══════════════════════════════════════════════════════════════════════════════
 
--- F-R-49: rapport de validation MM avec données erronées
--- Le rapport DOIT apparaître sur l'écran DCS ET dans CTLD.log.
--- Données injectées :
---   bad_G1   → ni isPickup ni isDropoff (G1 ERROR)
---   bad_coa  → coalition="ROUGE" invalide (ERROR)
---   bad_noME → dcsZoneName absent du ME (ERROR)
+-- F-R-49: MM validation report with bad data
+-- The report MUST appear on the DCS screen AND in CTLD.log.
+-- Injected data:
+--   bad_G1   → neither isPickup nor isDropoff (G1 ERROR)
+--   bad_coa  → coalition="ROUGE" invalid (ERROR)
+--   bad_noME → dcsZoneName absent from the ME (ERROR)
 --   bad_dup  × 2 → duplicate dcsZoneName (ERROR)
---   bad_G5   → cargoType=V sans canTransportWholeVehicle (G5 ERROR)
+--   bad_G5   → cargoType=V without canTransportWholeVehicle (G5 ERROR)
 --   bad_G3   → troopStock=0 pickup troop (G3 WARN)
---   bad_G2   → tous troopTemplates inconnus (G2 WARN)
+--   bad_G2   → all troopTemplates unknown (G2 WARN)
 do
     local _sAiZ  = cfg.settings["aiZones"]
     local _sGetZ = trigger.misc.getZone
@@ -1026,20 +1026,20 @@ do
     local _sOutT = trigger.action.outText
     local _sCaps = cfg.settings["capabilitiesByType"]
 
-    -- Wrapper : capture ET affiche réellement sur écran
+    -- Wrapper: capture AND actually display on screen
     local capturedReport = nil
     trigger.action.outText = function(msg, dur)
         capturedReport = msg
-        _sOutT(msg, dur)   -- ← rapport visible écran DCS
+        _sOutT(msg, dur)   -- ← report visible on the DCS screen
     end
 
-    -- Retourne nil pour bad_noME, zone réelle pour les autres
+    -- Returns nil for bad_noME, a real zone for the others
     trigger.misc.getZone = function(name)
         if name == "bad_noME" then return nil end
         return { point={x=0,y=0,z=0}, radius=200 }
     end
 
-    -- Aucun transport avec canTransportWholeVehicle → G5 se déclenche
+    -- No transport with canTransportWholeVehicle → G5 fires
     cfg.settings["capabilitiesByType"] = {
         ["UH-1H"] = { cratesEnabled = true },
     }
@@ -1058,7 +1058,7 @@ do
 
     zm._troopZones   = {}
     zm._aiZoneErrors = nil
-    zm:_validateZoneNames()   -- ← appel réel, outText wrapper fire → écran + capture
+    zm:_validateZoneNames()   -- ← real call, outText wrapper fires → screen + capture
 
     local aiZErr = zm._aiZoneErrors or {}
     -- Snapshot BEFORE any check() call: check() itself logs via ctld.utils.log, which (with
@@ -1068,7 +1068,7 @@ do
     -- real validation report (found 2026-07-10: broke every content check after the first).
     local reportSnapshot = capturedReport
 
-    -- Rapport reçu et affiché
+    -- Report received and displayed
     checkNotNil("F-R-49.1",  reportSnapshot)
     if reportSnapshot then
         checkTrue("F-R-49.2",  string.find(reportSnapshot, "CTLD",     1, true) ~= nil)
@@ -1082,18 +1082,18 @@ do
         checkTrue("F-R-49.10", string.find(reportSnapshot, "all troopTemplates are unknown", 1, true) ~= nil)
     end
 
-    -- Zones ERROR → dans le set d'erreurs (seront skippées au load)
+    -- ERROR zones → in the error set (will be skipped at load)
     checkTrue ("F-R-49.11", aiZErr["bad_G1"]   == true)
     checkTrue ("F-R-49.12", aiZErr["bad_coa"]  == true)
     checkTrue ("F-R-49.13", aiZErr["bad_noME"] == true)
     checkTrue ("F-R-49.14", aiZErr["bad_dup"]  == true)
     checkTrue ("F-R-49.15", aiZErr["bad_G5"]   == true)
 
-    -- Zones WARN uniquement → PAS dans le set d'erreurs (seront créées)
+    -- WARN-only zones → NOT in the error set (will be created)
     checkFalse("F-R-49.16", aiZErr["bad_G3"] == true)
     checkFalse("F-R-49.17", aiZErr["bad_G2"] == true)
 
-    -- Restauration
+    -- Restore
     trigger.action.outText          = _sOutT
     trigger.misc.getZone            = _sGetZ
     cfg.settings["aiZones"]         = _sAiZ

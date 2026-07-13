@@ -1,5 +1,7 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot occupied -- structural precondition, not piloting/judgment;
+--                     spawns its own RED target + JTAC vehicle, never checks real flight state
+--                     or waits on F10 -- re-injects on a timer)
 -- =============================================================================
 -- scenarios/scenario_feature_k_jtac_vehicle.lua
 -- Feature K Sprint 1 — JTAC vehicle in-transit lifecycle (GAP-K1 + GAP-K2)
@@ -12,9 +14,8 @@
 --            + assert JTAC deregistered + vehicle purged
 --   Step 5 — RESET
 --
--- Requires: UH-1H BLUE player slot occupied, CTLD loaded.
---           Player must be on the ground (posé) for load steps.
---           Targets RED must be present for autoLase to find a target.
+-- Requires: UH-1H BLUE player slot occupied, CTLD loaded. (No real flight-state check despite
+-- older wording implying it; target + JTAC vehicle are spawned by the scenario itself.)
 -- =============================================================================
 
 -- ── CTLD-ready guard ─────────────────────────────────────────────────────────
@@ -120,10 +121,8 @@ _G[STEP_N] = _G[STEP_N] or 1
 local step = _G[STEP_N]
 
 report("==== START " .. START .. " | step=" .. step .. " ====")
-
-if step == 1 then
-    if ctld.test_cleanup then ctld.test_cleanup() end
-end
+-- (removed a dead `ctld.test_cleanup()` hook -- no such function exists; the scenario's own
+-- cleanupAll() at step 1 handles teardown.)
 
 local _step_start = os.clock()
 local _result     = "INCOMPLETE"
@@ -131,8 +130,8 @@ local _result     = "INCOMPLETE"
 local _ok, _err = pcall(function()
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- STEP 1 — Cleanup + spawn Hummer JTAC vehicle 50m devant joueur
---          + spawn cible RED 500m devant + assert JTAC lasing démarre
+-- STEP 1 — Cleanup + spawn Hummer JTAC vehicle 50m ahead of player
+--          + spawn RED target 500m ahead + assert JTAC lasing starts
 -- ══════════════════════════════════════════════════════════════════════════════
 if step == 1 then
 
@@ -146,7 +145,7 @@ if step == 1 then
     local tRes = spawnGroundUnit(TARGET_GRP, TARGET_TYPE, tPos, country.id.RUSSIA)
     check("F-125.1", "RED Hummer target spawned", tRes ~= nil, tostring(tRes))
 
-    -- Spawn Hummer JTAC 50m devant joueur (BLUE)
+    -- Spawn Hummer JTAC 50m ahead of player (BLUE)
     local jPos = { x = pPos.x + 50, y = land.getHeight({x=pPos.x+50, y=pPos.z}), z = pPos.z }
     local jRes = spawnGroundUnit(JTAC_GROUP, JTAC_TYPE, jPos, country.id.USA)
     check("F-125.2", "Hummer JTAC group spawned", jRes ~= nil, tostring(jRes))

@@ -10,7 +10,7 @@ Zero external dependencies (stdlib only) -- see tools/dcs-data/gen_dcs_types.py 
 convention. Talks to dcs-serve directly over REST; no MCP client involved.
 
 Usage (from repo root):
-    python tools/integration-runner/run_scenarios.py --no-ai --junit-out test-results.xml
+    python tools/integration-runner/run_scenarios.py --headless --junit-out test-results.xml
     python tools/integration-runner/run_scenarios.py --list
     python tools/integration-runner/run_scenarios.py --dir noPlayer --tier auto
 
@@ -35,12 +35,23 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCENARIO_DIRS = ("noPlayer", "pilotActive", "pilotPassive")
-TIERS = ("auto", "auto-check", "ia")
-NO_AI_TIERS = ("auto", "auto-check")
+TIERS = ("auto", "auto-check", "auto-slow", "human")
+# `--headless` targets the FAST no-human tiers only. `auto-slow` is also no-human but takes minutes
+# to resolve (real AI-unit flight, or long internal timer chains like the JTAC drone's ~13 min),
+# so it's deliberately excluded from the default sweep -- run it explicitly with
+# `--tier auto-slow --poll-timeout 900`. The `human` tier needs a person in the cockpit (fly or
+# F10 judgement) and is never part of a headless sweep.
+HEADLESS_TIERS = ("auto", "auto-check")
+# Quarantine tier: scenarios that are correct (code + mission both fine) but fail for reasons
+# outside CTLD's control -- e.g. the DCS AI helicopter cannot reliably land on a specific spot,
+# so the whole-cycle test never completes. Never selected by a default sweep; reachable only via
+# an explicit `--tier disabled`. Their logic coverage lives in fast deterministic tests.
+DISABLED_TIER = "disabled"
 
 TIER_RE = re.compile(r"^\s*--\s*@tier:\s*(\S+)", re.MULTILINE)
 VERDICT_RE = re.compile(r"\[[^\]]*\]\s*(PASS|FAIL|ABORT|RUNNING|STARTED)\b(.*)", re.DOTALL)
-RESULT_VAR_RE = re.compile(r"_SCN_[A-Za-z0-9]+_RESULT")
+# Allow underscores in the scenario ID: some use compound IDs like _SCN_FI_ATK_RESULT.
+RESULT_VAR_RE = re.compile(r"_SCN_[A-Za-z0-9_]+_RESULT")
 
 TERMINAL_VERDICTS = ("PASS", "FAIL", "ABORT")
 
@@ -103,6 +114,12 @@ def discover_scenarios(root: Path = REPO_ROOT, dirs=SCENARIO_DIRS, on_skip=None)
                 continue
             scenarios.append(ScenarioInfo(path=path, rel_dir=d, tier=tier))
     return scenarios
+
+
+def default_tiers(scenarios):
+    """Tiers selected by a bare sweep (no explicit --tier): every discovered tier except the
+    quarantined `disabled` tier, which must be opted into explicitly via `--tier disabled`."""
+    return sorted({s.tier for s in scenarios} - {DISABLED_TIER})
 
 
 def filter_scenarios(scenarios, tiers=None, dirs=None, scenario_glob=None):
@@ -187,10 +204,29 @@ def read_simple_config(path: Path) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def run_scenario(scenario: ScenarioInfo, http_post, poll_interval=2.0, poll_timeout=60.0,
-                  sleep=time.sleep, now=time.monotonic) -> ScenarioResult:
-    """Run one scenario to a terminal verdict, polling if it starts async."""
+def run_scenario(scenario: ScenarioInfo, http_post, poll_interval=2.0, poll_timeout=180.0,
+                  sleep=time.sleep, now=time.monotonic, reset_source=None) -> ScenarioResult:
+    """Run one scenario to a terminal verdict, polling/re-injecting if it starts async.
+
+    `STARTED` scenarios resolve on their own (poll the result var). `RUNNING: step=N ...`
+    scenarios need the full source re-posted to advance their internal step machine -- safe to
+    do headlessly IFF the scenario only needs a timed delay between steps, not a physical
+    DCS-side action (a human flying somewhere). Only `auto`/`auto-check`-tagged scenarios reach
+    this tier-filtered path in normal `--headless` use; a scenario using RUNNING for a genuinely
+    physical step should stay tagged `ia` so it's never selected here in the first place. If one
+    somehow is (e.g. an explicit `--tier human`), re-injecting just spins harmlessly until
+    `poll_timeout` and reports FAIL -- no worse than before, just a plainer message.
+
+    `reset_source` (the contents of tests/dcs/_reset_state.lua, or None) is injected first when
+    `--reset-before-each` is set, to clear cross-scenario player/menu contamination so this
+    scenario starts from a clean baseline. A reset error is non-fatal -- logged, then the
+    scenario runs anyway.
+    """
     start = now()
+    if reset_source:
+        _, reset_err = http_post(reset_source)
+        if reset_err:
+            print("  (reset-before-each skipped: %s)" % reset_err, file=sys.stderr)
     source = scenario.path.read_text(encoding="utf-8")
     raw, err = http_post(source)
     if err:
@@ -200,41 +236,26 @@ def run_scenario(scenario: ScenarioInfo, http_post, poll_interval=2.0, poll_time
     if token in TERMINAL_VERDICTS:
         return ScenarioResult(scenario, token, message, now() - start)
 
-    if token == "RUNNING":
-        return ScenarioResult(
-            scenario, "FAIL",
-            "RUNNING-pattern scenario requires re-injection after a physical DCS-side action "
-            "-- not runnable headlessly: " + message,
-            now() - start,
-        )
-
-    if token != "STARTED":
+    if token not in ("STARTED", "RUNNING"):
         return ScenarioResult(scenario, "ERROR", message, now() - start)
 
     result_var = derive_result_var(source)
     if not result_var:
         return ScenarioResult(
             scenario, "ERROR",
-            "STARTED but no _SCN_<ID>_RESULT variable found in source", now() - start,
+            "%s but no _SCN_<ID>_RESULT variable found in source" % token, now() - start,
         )
 
     deadline = start + poll_timeout
     while now() < deadline:
         sleep(poll_interval)
-        raw, err = http_post("return %s" % result_var)
+        raw, err = http_post(source if token == "RUNNING" else "return %s" % result_var)
         if err:
             return ScenarioResult(scenario, "ERROR", err, now() - start)
         token, message = parse_verdict(raw)
         if token in TERMINAL_VERDICTS:
             return ScenarioResult(scenario, token, message, now() - start)
-        if token == "RUNNING":
-            return ScenarioResult(
-                scenario, "FAIL",
-                "RUNNING-pattern scenario requires re-injection after a physical DCS-side "
-                "action -- not runnable headlessly: " + message,
-                now() - start,
-            )
-        # still STARTED -- keep polling
+        # still STARTED/RUNNING -- keep polling/re-injecting
 
     return ScenarioResult(
         scenario, "FAIL",
@@ -291,7 +312,8 @@ def build_arg_parser():
     p.add_argument("--port", type=int, help="Override dcs-serve port")
     p.add_argument("--api-key", help="Override dcs-serve API key")
     p.add_argument("--tier", help="Comma-separated tiers to include (default: all)")
-    p.add_argument("--no-ai", action="store_true", help="Shorthand for --tier auto,auto-check")
+    p.add_argument("--headless", action="store_true",
+                   help="Shorthand for --tier auto,auto-check (no human, no AI-flight wait)")
     p.add_argument("--dir", help="Comma-separated scenario folders (noPlayer,pilotActive,pilotPassive)")
     p.add_argument("--scenario", help="Only run scenarios whose filename contains this substring")
     p.add_argument("--inject-ctld", action="store_true",
@@ -300,12 +322,17 @@ def build_arg_parser():
                     help="Seconds to wait after injecting CTLD.lua (default: 4)")
     p.add_argument("--poll-interval", type=float, default=2.0,
                     help="Seconds between polls of an async scenario's result (default: 2)")
-    p.add_argument("--poll-timeout", type=float, default=60.0,
-                    help="Max seconds to poll before giving up (default: 60)")
+    p.add_argument("--poll-timeout", type=float, default=180.0,
+                    help="Max seconds to poll one scenario before giving up (default: 180 -- "
+                         "covers the slowest auto-check scenarios like fob_scene ~130s / p2 ~160s; "
+                         "resolves early when a scenario finishes. Use 900+ for --tier auto-slow.)")
     p.add_argument("--exec-timeout", type=float, default=None,
                     help="Per-request timeout passed to dcs-serve (default: server default)")
     p.add_argument("--junit-out", type=Path, default=REPO_ROOT / "test-results.xml",
                     help="Where to write the JUnit XML report (default: ./test-results.xml)")
+    p.add_argument("--reset-before-each", action="store_true",
+                    help="Inject tests/dcs/_reset_state.lua before each scenario to clear "
+                         "cross-scenario player/menu contamination (recommended for a full sweep)")
     p.add_argument("--list", action="store_true",
                     help="List selected scenarios and exit -- no network calls")
     p.add_argument("--show-skipped", action="store_true",
@@ -323,11 +350,15 @@ def main(argv=None) -> int:
 
     args = build_arg_parser().parse_args(argv)
 
-    tiers = args.tier.split(",") if args.tier else (list(NO_AI_TIERS) if args.no_ai else None)
+    tiers = args.tier.split(",") if args.tier else (list(HEADLESS_TIERS) if args.headless else None)
     dirs = args.dir.split(",") if args.dir else None
 
     skipped = []
     scenarios = discover_scenarios(on_skip=lambda path, reason: skipped.append((path, reason)))
+    # A default sweep (no explicit --tier) never runs quarantined `disabled` scenarios; they stay
+    # reachable only via an explicit `--tier disabled`.
+    if tiers is None:
+        tiers = default_tiers(scenarios)
     scenarios = filter_scenarios(scenarios, tiers=tiers, dirs=dirs, scenario_glob=args.scenario)
 
     if skipped:
@@ -365,11 +396,18 @@ def main(argv=None) -> int:
             return 1
         time.sleep(args.init_wait)
 
+    reset_source = None
+    if args.reset_before_each:
+        reset_path = REPO_ROOT / "tests" / "dcs" / "_reset_state.lua"
+        reset_source = reset_path.read_text(encoding="utf-8")
+        print("Reset-before-each enabled (%s)" % reset_path.name)
+
     results = []
     for scenario in scenarios:
         result = run_scenario(
             scenario, http_post,
             poll_interval=args.poll_interval, poll_timeout=args.poll_timeout,
+            reset_source=reset_source,
         )
         results.append(result)
         status = "PASS" if result.verdict == "PASS" else result.verdict

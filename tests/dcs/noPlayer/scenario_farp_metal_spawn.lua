@@ -2,14 +2,14 @@
 -- @tier: auto
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_farp_metal_spawn.lua
--- CTLD — Spawn scène "Metal FARP" à la position du static coord_farp-1
+-- CTLD — Spawn "Metal FARP" scene at the position of static coord_farp-1
 --
--- Exécute playSceneAtPos "Metal FARP" au point du static "coord_farp-1".
--- Le helipad spawne 58 m au nord du anchor par design de la scène (step 1 polar offset).
--- Scénario d'utilité ponctuelle : injection unique, pas de steps humains.
+-- Runs playSceneAtPos "Metal FARP" at the point of static "coord_farp-1".
+-- The helipad spawns 58 m north of the anchor by scene design (step 1 polar offset).
+-- One-off utility scenario: single injection, no human steps.
 --
--- Prérequis :
---   - Static object "coord_farp-1" présent dans la mission
+-- Prerequisites:
+--   - Static object "coord_farp-1" present in the mission
 --   - Inject CTLD.lua first, wait 3–5 s for init.
 --
 -- @scenario  METAL-FARP-SPAWN
@@ -25,7 +25,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_METALFARPSPAWN_RUNNING then
-    trigger.action.outText("[METAL-FARP-SPAWN] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[METAL-FARP-SPAWN] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_METALFARPSPAWN_RESULT or "[METAL-FARP-SPAWN] RUNNING"
 end
 _SCN_METALFARPSPAWN_RUNNING = true
@@ -54,7 +54,7 @@ local function cleanup()
     log("cleanup done")
 end
 
--- ── 13. Exécution principale ─────────────────────────────────────────────────
+-- ── 13. Main execution ───────────────────────────────────────────────────────
 log("=== START: "..NAME.." ===")
 
 local ok, err = pcall(function()
@@ -84,7 +84,7 @@ local ok, err = pcall(function()
 end)
 
 if not ok then
-    local msg = TAG.." ❌ [KO] "..NAME.." — ERREUR: "..tostring(err)
+    local msg = TAG.." ❌ [KO] "..NAME.." — ERROR: "..tostring(err)
     log(msg)
     trigger.action.outText(msg, 15)
     _SCN_METALFARPSPAWN_RESULT = TAG.." FAIL: "..tostring(err)

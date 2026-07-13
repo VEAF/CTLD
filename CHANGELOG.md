@@ -41,6 +41,59 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   cross-scenario state contamination, not real bugs — a fresh mission reload cleared all of them
   (48/48 `auto`/`auto-check` scenarios green, confirmed on two consecutive fresh runs).
 
+### DCS integration testing — pilot-scenario catch-up (`CATCH-UP-PILOT-SCENARIOS`)
+
+- **Fix**: `CTLDTroopManager:refreshMenuSection` always computed flight state live via
+  `_isInAir(unit)`, unlike `CTLDCrateManager:refreshCrateFlightSection` which accepts an
+  `overrideInAir` param so `onTakeoff`/`onLand` can force the correct state immediately
+  (`S_EVENT_LAND`/`TAKEOFF` fire before `ctld.utils.inAir()`'s speed/AGL threshold settles).
+  Found live: right after landing, "Parachute Troops" stayed visible and "Disembark Troops"
+  stayed hidden. `refreshMenuSection` now takes the same `overrideInAir` param, wired through
+  `onTakeoff`/`onLand`/the flight-state poller.
+- Added `tools/integration-runner/run_ia_scenario.py`: an interactive terminal runner for
+  `ia`-tier `pilotActive`/`pilotPassive` scenarios that self-verify (most of them) — no AI
+  needed to drive the injection/polling loop, just a live pilot. Re-running the same command
+  resets any stuck state first (crash recovery), instead of requiring a DCS restart.
+- Bumped `HUMAN_TIMEOUT_S` 300s→3600s in the two L5 menu-visual scenarios and the
+  `_template_pilotActive.lua` template — 5 minutes was a source of false FAILs, not a useful
+  safety net, for a step that's meant to be answered at a real pilot's pace.
+- **Mistagging found**: `scenarioTroopsFullCycle_v2.lua`, `scenario_extract_menu.lua`,
+  `scenario_jtac_crate_pack.lua`, `scenario_feature_k_jtac_vehicle.lua` were all tagged `ia` by
+  the `pilotPassive/` folder-blanket default, but none check real flight state or wait on F10 —
+  only a BLUE slot occupied for position/groupId. Retagged `auto-check`, now runnable via
+  `run_scenarios.py --no-ai` too. `run_scenarios.py` gained the same `RUNNING`-verdict
+  re-injection support `run_ia_scenario.py` already had (previously it failed `RUNNING`
+  outright, assuming a physical action was always needed).
+- **Fix**: `scenarioTroopsFullCycle_v2.lua`'s step 7 (destroys 4 targets on a timer, validates
+  JTAC reacquisition) had no guard against re-entry while its ~50s monitoring window was still
+  running — `run_ia_scenario.py` re-injecting every 2s on `RUNNING` raced a second concurrent
+  destroy/snapshot timer against the first, corrupting the claim log. Added a re-entry guard
+  and exposed `_SCN_TFC_CLEANUP` (this scenario had no external-reset hook at all; a `FAIL`
+  inside `check()` left `_G[STEP_N]` stuck re-validating stale data on any re-run).
+- **Fix**: `run_ia_scenario.py` only printed progress when the verdict *token* changed — a
+  multi-step `RUNNING` scenario's message advances every step while the token stays `RUNNING`
+  throughout, so a long-but-healthy step looked indistinguishable from a hang. Now prints on
+  any message change.
+- **Tier audit (ticket 04)**: `scenario_multigroup_transport`, `scenario_weight_aggregation`,
+  `scenario_unpack_jtac_drone`, `scenario_farp_repack` retagged `ia`→`auto-check` (none need
+  piloting — just a BLUE slot). Only `scenario_warehouse_cycle` remains genuine `ia (fly)`.
+- **Fix**: `scenario_farp_repack.lua` referenced the dead FullGas `ctld_test` framework (nil,
+  same cause as the 194 relics) — replaced with a local `getTransport()`. It also never emitted
+  a terminal verdict (looped 1→2→99→1 forever under the re-inject loop) — added a `_done` flag
+  so the summary step returns `PASS`. Plus a premature-reinjection retry guard (step 2 waited
+  for `playSceneAtPos` to register the scene instead of a false immediate `fail()`).
+- **Fix**: `scenario_unpack_jtac_drone.lua` V3/V4 asserted the drone had *no* target after its
+  spawned RED unit was destroyed — but a mission RED unit (`Sol_g-2`, 4135m) is inside the
+  drone's lase range, so it correctly re-tasks. Rewrote V3/V4 to assert the drone no longer
+  lases the *specific destroyed unit* (re-tasking to any other in-range enemy is correct CTLD
+  behaviour). Also exposed `_SCN_JTACDRONE_INSTR` (it only printed to the DCS screen) and made
+  each VERIFY publish its result there for live CLI progress; same missing-`_INSTR` gap fixed
+  in `scenario_p2_fob_parachute` / `p3_csfarp_parachute` / `p4_metal_farp`.
+- `run_ia_scenario.py` gained an elapsed `[mm:ss]` stamp on every line, a periodic heartbeat
+  (`--heartbeat`, default 30s) echoing the last real progress line, and tolerance for transient
+  poll errors (`--max-errors`, default 5) so a single HTTP 504 mid-run no longer aborts a
+  13-minute scenario.
+
 ### CI / tooling
 
 - **CI covers `develop`** — pushes to `develop` and PRs targeting `develop` now run the full

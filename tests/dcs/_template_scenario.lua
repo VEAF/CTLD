@@ -8,7 +8,7 @@
 -- Usage (via VEAF-dcs-bridge exec_lua — see the integration-testing skill):
 --   1. exec_lua CTLD.lua first, wait 3-5 s for init.
 --   2. exec_lua this scenario.
---   3. For human steps: use the "CTLD Recette" F10 menu to respond.
+--   3. For human steps: use the "CTLD Test" F10 menu to respond.
 --   4. Re-inject to restart (cleanup is automatic at end of run).
 --
 -- Return contract: the exec return / _SCN_XXX_RESULT global is one of
@@ -55,7 +55,7 @@ cfg.settings["debugScreenLog"] = false   -- traces via log() only, screen = inst
 local TAG              = "[SCN-XXX]"
 local NAME             = "Description of this scenario"
 local HUMAN_TIMEOUT_S  = 300   -- 5 min before auto-SKIP on human steps
-local MENU_ROOT        = "CTLD Recette"
+local MENU_ROOT        = "CTLD Test"
 
 -- ── 5. State ─────────────────────────────────────────────────────────────────
 local S = {

@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (audited slot-only: no inAir/F10 gate on the player -- driven by AI heli/timers; see CATCH-UP-PILOT-SCENARIOS ticket 06/07)
 -- =============================================================================
 -- scenario_feature_i_goto_wpz.lua
 -- Feature I — Post-spawn task: "gotoNearestWPZ"
@@ -15,7 +15,7 @@
 -- Pre-requisites:
 --   - BLUE player slot occupied (any aircraft)
 --   - CTLD fully initialised (inject CTLD.lua + 5s wait before this scenario)
---   - recette/enable_debug.lua injected before this scenario
+--   - enable_debug.lua injected before this scenario
 -- =============================================================================
 
 -- ── CTLD-ready guard ─────────────────────────────────────────────────────────

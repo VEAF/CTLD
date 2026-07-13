@@ -1,26 +1,26 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-slow  (no human, but needs minutes of real AI-heli flight to resolve -- excluded from the fast --headless sweep; run with --tier auto-slow. Core logic already covered fast by noPlayer aiTransport_featureT/U F-176..182. See ticket 06/07)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_mt11_ai_troop_stock.lua
--- CTLD — AI auto-pickup avec 2 troopTemplates assignés à une AIZ_P (Feature T)
+-- CTLD — AI auto-pickup with 2 troopTemplates assigned to an AIZ_P (Feature T)
 --
--- Mini-application de recette interactive : injection unique, avance
--- automatiquement (waitFor) pour détecter le pickup et le dropoff.
+-- Interactive test mini-application: single injection, advances
+-- automatically (waitFor) to detect the pickup and the dropoff.
 --
--- Prérequis :
---   - Héli BLUE nommé "heliai_mt11" (UH-1H), sans pilote humain
---   - Route : WP1 = posé sur AIZ_mt11_B_P_T → WP3 = posé sur AIZ_mt11_B_D
---   - Zone DCS trigger "AIZ_mt11_B_P_T" (rayon ~200 m)
---   - Zone DCS trigger "AIZ_mt11_B_D"   (rayon ~200 m)
---   - troopStock = { ["Standard Group"]=3, ["Anti Tank"]=2 } dans la config zone
---   - Slot BLUE occupé (joueur humain pour MenuManager)
---   - CTLD.lua injecté avant ce script (attendre 3-5 s)
+-- Pre-requisites:
+--   - BLUE helicopter named "heliai_mt11" (UH-1H), without a human pilot
+--   - Route: WP1 = landed on AIZ_mt11_B_P_T → WP3 = landed on AIZ_mt11_B_D
+--   - DCS trigger zone "AIZ_mt11_B_P_T" (radius ~200 m)
+--   - DCS trigger zone "AIZ_mt11_B_D"   (radius ~200 m)
+--   - troopStock = { ["Standard Group"]=3, ["Anti Tank"]=2 } in the zone config
+--   - BLUE slot occupied (human player for MenuManager)
+--   - CTLD.lua injected before this script (wait 3-5 s)
 --
--- Cinématique (4 steps, injection unique) :
---   S1 [auto]  Init + vérification zones + stocks initiaux
---   S2 [auto]  Attente pickup (hasTroops=true + template + stock décrémenté) via waitFor
---   S3 [auto]  Attente dropoff (hasTroops=false) via waitFor
---   S4 [auto]  Finalisation
+-- Sequence (4 steps, single injection):
+--   S1 [auto]  Init + zones check + initial stocks
+--   S2 [auto]  Await pickup (hasTroops=true + template + decremented stock) via waitFor
+--   S3 [auto]  Await dropoff (hasTroops=false) via waitFor
+--   S4 [auto]  Finalization
 --
 -- @scenario  MT-11
 -- @version   4.0 — 2026-07-01
@@ -36,7 +36,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_MT11_RUNNING then
-    trigger.action.outText("[MT-11] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[MT-11] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_MT11_RESULT or "[MT-11] RUNNING"
 end
 _SCN_MT11_RUNNING = true
@@ -58,12 +58,12 @@ cfg.settings["debugScreenLog"] = false
 
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG       = "[MT-11]"
-local NAME      = "AI troop stock: 2 troopTemplates avec stock"
-local MENU_NAME = "Recette CTLD"
+local NAME      = "AI troop stock: 2 troopTemplates with stock"
+local MENU_NAME = "CTLD Test"
 local MENU_PATH = { ctld.tr("CTLD"), MENU_NAME }
 
-local AI_SRC  = "heliai_mt11"      -- source late-activation dans le .miz (jamais activé)
-local AI_UNIT = "heliai_mt11_run"  -- clone temporaire (spawné + détruit en cleanup)
+local AI_SRC  = "heliai_mt11"      -- late-activation source in the .miz (never activated)
+local AI_UNIT = "heliai_mt11_run"  -- temporary clone (spawned + destroyed in cleanup)
 local AIZ_P   = "AIZ_mt11_B_P_T"
 local AIZ_D   = "AIZ_mt11_B_D"
 
@@ -82,7 +82,7 @@ local S = {
 -- ── 7. Helpers ───────────────────────────────────────────────────────────────
 local function log(msg) ctld.utils.log("INFO", "%s %s", TAG, msg) end
 
--- Clone helpers (ctld.utils.deepCopy retourne nil — deepCopy locale obligatoire)
+-- Clone helpers (ctld.utils.deepCopy returns nil — local deepCopy required)
 local function deepCopy(orig)
     local copy
     if type(orig) == "table" then
@@ -260,18 +260,18 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
 
 -- ── 12. Steps ────────────────────────────────────────────────────────────────
 
--- S1 — Init + vérification zones + stocks initiaux [auto]
+-- S1 — Init + zones check + initial stocks [auto]
 steps[1] = function()
     instruct(
         "Step 1/4 — INIT AI TROOP STOCK (MT-11)\n"..
-        "Initialisation des transports AI + vérification stocks…"
+        "Initialising AI transports + checking stocks…"
     )
     waitThen(1, function()
         cfg.settings["transportPilotNames"] = { AI_UNIT }
@@ -280,8 +280,8 @@ steps[1] = function()
         local zm = CTLDZoneManager.getInstance()
         local zP = zm._troopZones[AIZ_P]
         local zD = zm._troopZones[AIZ_D]
-        check("MT-11.1.1", "AIZ_P trouvée : "..AIZ_P, zP ~= nil)
-        check("MT-11.1.2", "AIZ_D trouvée : "..AIZ_D, zD ~= nil)
+        check("MT-11.1.1", "AIZ_P found: "..AIZ_P, zP ~= nil)
+        check("MT-11.1.2", "AIZ_D found: "..AIZ_D, zD ~= nil)
         if zP then
             check("MT-11.1.3", "AIZ_P.isAIPickup=true",          zP.isAIPickup == true)
             check("MT-11.1.4", "AIZ_P._aiTroopStock non-nil",     zP._aiTroopStock ~= nil)
@@ -294,34 +294,34 @@ steps[1] = function()
                       ts.init["Anti Tank"] == 2, tostring(ts.init["Anti Tank"]))
                 check("MT-11.1.8", "current[Standard Group]=3 (init)",
                       ts.current["Standard Group"] == 3, tostring(ts.current["Standard Group"]))
-                check("MT-11.1.9", "pickMaxStock=0 (gate illimitée)",
+                check("MT-11.1.9", "pickMaxStock=0 (unlimited gate)",
                       zP.pickMaxStock == 0, tostring(zP.pickMaxStock))
             end
         end
 
         local cloneG, cloneErr = spawnClone(AI_SRC, AI_UNIT)
-        check("MT-11.1.10", "Clone '"..AI_UNIT.."' spawné depuis '"..AI_SRC.."'",
+        check("MT-11.1.10", "Clone '"..AI_UNIT.."' spawned from '"..AI_SRC.."'",
               cloneG ~= nil, tostring(cloneErr))
 
         local unit = Unit.getByName(AI_UNIT)
         if unit then
-            check("MT-11.1.11", "Clone sans pilote humain", unit:getPlayerName() == nil)
+            check("MT-11.1.11", "Clone without a human pilot", unit:getPlayerName() == nil)
         end
 
         local tm = CTLDTroopManager.getInstance()
-        check("MT-11.1.12", "Pas encore de troupes à bord (état initial)", not tm:hasTroops(AI_UNIT))
+        check("MT-11.1.12", "No troops on board yet (initial state)", not tm:hasTroops(AI_UNIT))
 
-        log("STEP 1 OK — Héli activé, attente pickup sur "..AIZ_P)
+        log("STEP 1 OK — heli activated, awaiting pickup on "..AIZ_P)
         advanceStep()
     end)
 end
 
--- S2 — Attente pickup (hasTroops=true + vérifications) [waitFor]
+-- S2 — Await pickup (hasTroops=true + checks) [waitFor]
 steps[2] = function()
     instruct(
-        "Step 2/4 — ATTENTE PICKUP STOCK (MT-11)\n"..
-        "L'héli "..AI_UNIT.." doit se poser sur "..AIZ_P..".\n"..
-        "Détection automatique du pickup. Timeout : 300 s."
+        "Step 2/4 — AWAIT STOCK PICKUP (MT-11)\n"..
+        "Helicopter "..AI_UNIT.." must land on "..AIZ_P..".\n"..
+        "Automatic pickup detection. Timeout: 300 s."
     )
     waitFor(
         function()
@@ -332,10 +332,10 @@ steps[2] = function()
         function()
             local tm   = CTLDTroopManager.getInstance()
             local hasTr = tm:hasTroops(AI_UNIT)
-            check("MT-11.2.1", "hasTroops=true après auto-pickup sur "..AIZ_P, hasTr)
+            check("MT-11.2.1", "hasTroops=true after auto-pickup on "..AIZ_P, hasTr)
 
             local list = tm:getInTransit(AI_UNIT) or {}
-            check("MT-11.2.2", "1 groupe en transit", #list >= 1, "#list="..tostring(#list))
+            check("MT-11.2.2", "1 group in transit", #list >= 1, "#list="..tostring(#list))
 
             local total = 0
             local tmplName = nil
@@ -343,10 +343,10 @@ steps[2] = function()
                 total = total + (grp.unitTotal or 0)
                 tmplName = grp.templateName or tmplName
             end
-            log("Cargo: "..total.." soldat(s) — template: "..tostring(tmplName))
+            log("Cargo: "..total.." soldier(s) — template: "..tostring(tmplName))
 
             local validTemplates = { ["Standard Group"] = true, ["Anti Tank"] = true }
-            check("MT-11.2.3", "template chargé reconnu (Standard Group ou Anti Tank)",
+            check("MT-11.2.3", "loaded template recognised (Standard Group or Anti Tank)",
                   tmplName ~= nil and validTemplates[tmplName] == true,
                   tostring(tmplName))
 
@@ -355,34 +355,34 @@ steps[2] = function()
             if zP and zP._aiTroopStock and tmplName then
                 local cur = zP._aiTroopStock.current[tmplName]
                 local ini = zP._aiTroopStock.init[tmplName]
-                check("MT-11.2.4", "stock courant décrémenté pour '"..tmplName.."'",
+                check("MT-11.2.4", "current stock decremented for '"..tmplName.."'",
                       cur ~= nil and cur < ini,
                       "current="..tostring(cur).." init="..tostring(ini))
                 log("Stock "..tmplName..": "..tostring(cur).."/"..tostring(ini))
             end
 
             if zP and zP._aiTroopStock and tmplName == "Standard Group" then
-                check("MT-11.2.5", "Standard Group (stock max=3) choisi au 1er pickup",
+                check("MT-11.2.5", "Standard Group (max stock=3) chosen on 1st pickup",
                       zP._aiTroopStock.current["Standard Group"] == 2,
                       tostring(zP._aiTroopStock.current["Standard Group"]))
             end
 
-            log("STEP 2 OK — cargo chargé, attente dropoff sur "..AIZ_D)
+            log("STEP 2 OK — cargo loaded, awaiting dropoff on "..AIZ_D)
             advanceStep()
         end,
         function()
-            fail("MT-11.2.1", "timeout 300s — pas de pickup sur "..AIZ_P)
+            fail("MT-11.2.1", "timeout 300s — no pickup on "..AIZ_P)
             advanceStep()
         end
     )
 end
 
--- S3 — Attente dropoff (hasTroops=false) [waitFor]
+-- S3 — Await dropoff (hasTroops=false) [waitFor]
 steps[3] = function()
     instruct(
-        "Step 3/4 — ATTENTE DROPOFF (MT-11)\n"..
-        "L'héli "..AI_UNIT.." doit se poser sur "..AIZ_D..".\n"..
-        "Détection automatique du dropoff. Timeout : 600 s."
+        "Step 3/4 — AWAIT DROPOFF (MT-11)\n"..
+        "Helicopter "..AI_UNIT.." must land on "..AIZ_D..".\n"..
+        "Automatic dropoff detection. Timeout: 600 s."
     )
     waitFor(
         function()
@@ -393,22 +393,22 @@ steps[3] = function()
         function()
             local tm   = CTLDTroopManager.getInstance()
             local hasTr = tm:hasTroops(AI_UNIT)
-            check("MT-11.3.1", "hasTroops=false après auto-dropoff sur "..AIZ_D, not hasTr)
-            log("Disembark confirmé — groupes apparus près de "..AIZ_D)
+            check("MT-11.3.1", "hasTroops=false after auto-dropoff on "..AIZ_D, not hasTr)
+            log("Disembark confirmed — groups appeared near "..AIZ_D)
             advanceStep()
         end,
         function()
-            fail("MT-11.3.1", "timeout 600s — pas de dropoff sur "..AIZ_D)
+            fail("MT-11.3.1", "timeout 600s — no dropoff on "..AIZ_D)
             advanceStep()
         end
     )
 end
 
--- S4 — Finalisation [auto]
+-- S4 — Finalization [auto]
 steps[4] = function()
-    instruct("Step 4/4 — FINALISATION")
+    instruct("Step 4/4 — FINALIZATION")
     waitThen(1, function()
-        log("MT-11 ALL SUCCESS — 2 troopTemplates avec stock, pickup + stock décrémenté + dropoff confirmés")
+        log("MT-11 ALL SUCCESS — 2 troopTemplates with stock, pickup + decremented stock + dropoff confirmed")
         advanceStep()
     end)
 end
@@ -431,7 +431,7 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
     _SCN_MT11_RESULT = "[MT-11] ABORT"
     return _SCN_MT11_RESULT
@@ -472,7 +472,7 @@ menu_init:refresh()
 _SCN_MT11_CLEANUP = cleanup
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 _SCN_MT11_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_MT11_RESULT until PASS/FAIL
 advanceStep()
 

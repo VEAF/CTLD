@@ -1,9 +1,9 @@
 ---@diagnostic disable
 -- @tier: auto
 -- ============================================================
--- F-123 — _dispatchPostSpawn enregistre les véhicules GROUND dans CTLDVehicleSpawner
--- Vérifie que après unpack d'une caisse standard (non-JTAC), le véhicule
--- apparaît dans findLoadableVehicles du transport.
+-- F-123 — _dispatchPostSpawn registers GROUND vehicles in CTLDVehicleSpawner
+-- Verifies that after unpacking a standard crate (non-JTAC), the vehicle
+-- appears in the transport's findLoadableVehicles.
 -- dcs-bridge in-DCS (UH-1H BLUE player required)
 -- ============================================================
 
