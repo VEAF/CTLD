@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: ia (fly)  -- crate load, takeoff, FARP deploy, reposition >400m, land: genuine piloting
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_warehouse_cycle.lua
 -- CTLD — Full FARP warehouse snapshot cycle

@@ -52,14 +52,18 @@ no need to do them back to back).
 - Fixing `CLEANUP-LEGACY-DCS-TESTS` relics — separate lot.
 - Rewriting a scenario's tier or folder placement unless a run reveals it's wrong.
 
-## Tier-audit finding (ticket 03)
+## Tier-audit finding (tickets 03–04)
 
 The `pilotActive/`/`pilotPassive/` → always `ia` default (from `INTEGRATION-TEST-TAGS`) is a
-folder-blanket rule, not a per-file semantic check. Ticket 03 revealed all 4 of its scenarios
-never actually check flight state or wait on F10 — they only need a BLUE slot occupied for
-position/groupId (a structural precondition, not piloting/judgment) — and were retagged
-`auto-check`. **34 `ia` scenarios above is now stale** (30 remain after ticket 03's retag); keep
-auditing each scenario's actual code as tickets 04–08 are run, not just its folder, and update
-this count as more turn out mistagged. See `tools/integration-runner/README.md`'s "What `ia`
+folder-blanket rule, not a per-file semantic check. Ticket 03 revealed all 4 of its scenarios,
+and ticket 04 4 of its 5, never actually check flight state or wait on F10 — most only need a
+BLUE slot occupied for position/groupId (a structural precondition, not piloting/judgment), and
+one (`scenario_multigroup_transport.lua`) doesn't even need that — fully self-contained with
+mocked `Unit.getByName`/`ctld.MenuManager`. All retagged `auto-check`. **34 `ia` scenarios above
+is now stale — 22 remain** after tickets 03+04's retags (8 of the original 34 have turned out
+mistagged so far). Audit every scenario's actual code before tickets 05–08 are run, not just its
+folder, and update this count as more turn out mistagged — this has been true for the large
+majority so far, don't assume any given ticket is the exception. See
+`tools/integration-runner/README.md`'s "What `ia`
 actually asks of you" for the `(menu)`/`(fly)` qualifier convention now used for genuine `ia`
 scenarios.

@@ -1,5 +1,7 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs the "uh1-1" slot unit to exist, resolved by hardcoded Unit.getByName
+--                     -- not coalition.getPlayers -- no active piloting required; single
+--                     injection, ~13 min of internal timers up to T+795s, use a long poll timeout)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_unpack_jtac_drone.lua
 -- CTLD — MQ-9 JTAC drone full lifecycle via crate spawn+unpack

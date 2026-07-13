@@ -1,5 +1,6 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot occupied -- structural precondition, not piloting;
+--                     never checks real ground/flight state despite the header wording)
 -- =============================================================================
 -- scenarios/interactive/scenario_farp_repack.lua
 -- TODO [I]+[Q] — FARP Repack : pack scene + warehouse snapshot cycle
@@ -130,10 +131,23 @@ elseif step == 2 then
             break
         end
     end
-    check("F-MT16.2a", "CS FARP scene found in _active", scene ~= nil)
     if not scene then
-        fail("no active CS FARP scene — was step 2 injected too early? retry after T+20")
+        -- Scene deployment (playSceneAtPos, step 1) takes ~15-20s to actually register in
+        -- _active. A tight automated poll/re-inject loop (e.g. run_ia_scenario.py, every 2s)
+        -- will hit this well before that -- that's expected, not a failure: retry a bounded
+        -- number of times (not indefinitely, so a genuine regression still fails).
+        local retries = (_G["_FRP_STEP2_RETRIES"] or 0) + 1
+        _G["_FRP_STEP2_RETRIES"] = retries
+        if retries <= 20 then
+            report("F-MT16.2a [RETRY " .. retries .. "/20] scene not active yet, waiting for "
+                .. "playSceneAtPos to finish (~15-20s) — re-inject again")
+            return
+        end
+        fail("F-MT16.2a — no active CS FARP scene after 20 retries — real regression, not a "
+            .. "too-early check")
     end
+    _G["_FRP_STEP2_RETRIES"] = nil
+    check("F-MT16.2a", "CS FARP scene found in _active", scene ~= nil)
 
     check("F-MT16.2b", "_modelName == 'Countryside FARP'",
         scene._modelName == "Countryside FARP",

@@ -1,5 +1,6 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (fully self-contained -- mocks ctld.MenuManager/Unit.getByName with a
+--                     fake unit, needs no real player/slot at all, let alone piloting)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_multigroup_transport.lua
 -- CTLD — Multi-group transport + disembark menu logic

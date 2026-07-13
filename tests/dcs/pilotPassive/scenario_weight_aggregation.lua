@@ -1,5 +1,6 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot occupied -- structural precondition, not piloting;
+--                     fully automatic per its own header, no flight-state check or F10 wait)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_weight_aggregation.lua
 -- CTLD — Validates ctld.utils.updateTransportWeight aggregates all cargo sources
