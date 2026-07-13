@@ -37,7 +37,6 @@ local _saved_debug = _savedDebug  -- alias pour compatibilité avec le code exis
 
 local TAG   = "[F-176]"
 local START = os.date("%Y-%m-%d %H:%M:%S")
-ctld_test = ctld_test or {}
 
 local function log(msg)    ctld.utils.log("INFO", TAG .. " " .. msg) end
 local function report(msg) trigger.action.outText(TAG .. " " .. msg, 20); log(msg) end

@@ -261,7 +261,8 @@ end
 
 -- S1 — Setup + instructions (auto)
 steps[1] = function()
-    ctld_test.cleanup()
+    -- (removed dead FullGas ctld_test.cleanup() -- nil at runtime, same cause as the 194 relics;
+    -- the scenario does its own Metal FARP scene cleanup just below.)
     cfg.settings["enableFARPRepack"] = true
 
     -- Détruire toute scène Metal FARP existante

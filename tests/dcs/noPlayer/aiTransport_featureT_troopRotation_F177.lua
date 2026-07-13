@@ -38,7 +38,6 @@ cfg.settings["debugScreenLog"] = true
 
 local TAG   = "[F-177]"
 local START = os.date("%Y-%m-%d %H:%M:%S")
-ctld_test = ctld_test or {}
 
 local function log(msg)    ctld.utils.log("INFO", TAG .. " " .. msg) end
 local function report(msg) trigger.action.outText(TAG .. " " .. msg, 20); log(msg) end
