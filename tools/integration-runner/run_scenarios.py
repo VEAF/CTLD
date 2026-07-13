@@ -35,7 +35,10 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCENARIO_DIRS = ("noPlayer", "pilotActive", "pilotPassive")
-TIERS = ("auto", "auto-check", "ia")
+TIERS = ("auto", "auto-check", "auto-slow", "ia")
+# `--no-ai` targets the FAST no-human tiers only. `auto-slow` is also no-human but needs minutes
+# of real AI-unit flight to resolve, so it's deliberately excluded from the default sweep -- run
+# it explicitly with `--tier auto-slow` (and a generous --poll-timeout).
 NO_AI_TIERS = ("auto", "auto-check")
 
 TIER_RE = re.compile(r"^\s*--\s*@tier:\s*(\S+)", re.MULTILINE)

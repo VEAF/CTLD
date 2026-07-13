@@ -1,5 +1,5 @@
 ---@diagnostic disable
--- @tier: auto-check  (audited slot-only: no inAir/F10 gate on the player -- driven by AI heli/timers; see CATCH-UP-PILOT-SCENARIOS ticket 06/07)
+-- @tier: auto-slow  (no human, but needs minutes of real AI-heli flight to resolve -- excluded from the fast --no-ai sweep; run with --tier auto-slow. Core logic already covered fast by noPlayer aiTransport_featureT/U F-176..182. See ticket 06/07)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_mt11_ai_troop_stock.lua
 -- CTLD — AI auto-pickup avec 2 troopTemplates assignés à une AIZ_P (Feature T)

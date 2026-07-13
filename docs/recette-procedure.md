@@ -35,13 +35,16 @@ Independently of the L-level (which folder a scenario lives in), every scenario 
 | Tier | Meaning | Can run headless? |
 | --- | --- | --- |
 | `auto` | A single injection returns the definitive verdict (`PASS`/`FAIL`/`ABORT`). No player, no polling, no judgment call. | Yes |
-| `auto-check` | Resolves automatically via a real timer/`waitFor`, but not in one call — the scenario returns `STARTED` and something must poll `_SCN_<ID>_RESULT` until it resolves. Still no human/AI judgment. | Yes (polling) |
-| `ia` | Needs an AI agent or human in the loop: a live player-controlled unit (dcs-bridge has no flight-control API — `pilotActive/`/`pilotPassive/` always need someone flying), or an F10/visual confirmation the code itself never checks. | No |
+| `auto-check` | Resolves automatically via a real timer/`waitFor` or a re-injected step machine, within seconds — the scenario returns `STARTED`/`RUNNING` and the runner polls/re-injects `_SCN_<ID>_RESULT` until it resolves. No human/AI judgment. | Yes (fast) |
+| `auto-slow` | No human either, but needs **minutes of real AI-unit flight** to resolve (an AI helicopter flying a route to a pickup/dropoff zone). Excluded from the fast `--no-ai` sweep; run explicitly with `--tier auto-slow --poll-timeout 900`, player just parked in a slot. | Yes (slow, on demand) |
+| `ia` | Needs a human: either a live player who must **fly** (`ia (fly)`) or one who must **click an F10 item / make a visual judgment** the code never checks (`ia (menu)`). dcs-bridge has no flight-control API. | No |
 
-As of this writing: 43 `auto`, 2 `auto-check`, 34 `ia` across the 79 tagged scenarios (all of
-L4/L5 is `ia`; L3 is almost entirely `auto`/`auto-check` with two `ia` outliers that ask for a
-visual F10 check). See the `integration-testing` skill for the full taxonomy and how each
-template defaults.
+The `pilotActive/`/`pilotPassive/` folders do **not** imply `ia` — the tier reflects what a
+scenario's code actually needs, checked per file, not its folder. A `CATCH-UP-PILOT-SCENARIOS`
+audit found that of the ~34 scenarios once blanket-tagged `ia`, only a handful truly need a human
+(two menu-visual `ia (fly)` checks, plus one deferred and one optional-manual); the large
+majority drive AI helicopters or self-verify and are `auto-check`/`auto-slow`. See the
+`integration-testing` skill for the full taxonomy and how each template defaults.
 
 ### Running `auto`/`auto-check` scenarios headlessly
 

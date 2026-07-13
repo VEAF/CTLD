@@ -1,7 +1,8 @@
 # 06 — AI transport / AI zones
 
 Status: 🚧 in progress
-Type: **auto-check** — all 6 retagged (full static audit, no per-scenario surprises). No piloting.
+Type: **mixed auto-check / auto-slow** — none need a pilot; `scenario_ai_troops` needs real AI
+flight so it's `auto-slow` (see ticket 07's note), the other 5 are fast `auto-check`.
 
 ## Scenarios
 
@@ -14,8 +15,10 @@ but never awaited). All retagged `auto-check`; runnable headless via `run_scenar
 - `scenario_ai_goto_wpz.lua` — auto/STARTED, injects own mock WPZ.
 - `scenario_ai_transport_visual.lua` — auto/STARTED. **Needs an active AIZ pickup zone with troop
   stock** — present in `Test_CTLDNEXT_01.miz` (AIZ_base_B_P_5 etc., verified live).
-- `scenario_ai_troops.lua` — auto/STARTED. Needs AI heli `heliai_troops` + zones AIZ_base_B_P_5 /
-  AIZ_front_B_D — all present in the mission (verified live).
+- `scenario_ai_troops.lua` — **`auto-slow`** (not fast auto-check): waits on the AI heli
+  `heliai_troops` physically flying its route (`waitFor hasTroops`), minutes of real flight.
+  Needs zones AIZ_base_B_P_5 / AIZ_front_B_D — present in the mission (verified live). Run via
+  `--tier auto-slow`, not `--no-ai`.
 - `scenario_feature_i_attack_enemy.lua` — RUNNING step machine, terminal PASS at step≥99. Spawns
   own enemies.
 - `scenario_feature_i_goto_wpz.lua` — RUNNING step machine, terminal PASS. Injects own mock WPZ.
@@ -36,6 +39,7 @@ as duplicate `@scenario` IDs of `scenario_feature_i_attack_enemy`/`scenario_feat
 
 ## Acceptance criteria
 
-- [ ] All 6 injected, verdicts read.
+- [ ] The 5 `auto-check` injected via `--no-ai`, verdicts read.
+- [ ] `scenario_ai_troops` (`auto-slow`) run via `--tier auto-slow`, verdict read.
 - [ ] Any FAIL root-caused and fixed.
-- [x] Tier audited before running (all 6 retagged `auto-check`).
+- [x] Tier audited before running (5 `auto-check`, 1 `auto-slow`; none need a pilot).

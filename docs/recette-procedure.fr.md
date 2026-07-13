@@ -36,13 +36,17 @@ Indépendamment du niveau L (le dossier où vit un scénario), chaque scénario 
 | Tier | Signification | Peut tourner sans humain ? |
 | --- | --- | --- |
 | `auto` | Une seule injection retourne le verdict définitif (`PASS`/`FAIL`/`ABORT`). Aucun joueur, aucun polling, aucun jugement. | Oui |
-| `auto-check` | Se résout automatiquement via un vrai timer/`waitFor`, mais pas en un seul appel — le scénario retourne `STARTED` et il faut interroger `_SCN_<ID>_RESULT` jusqu'à résolution. Toujours aucun jugement humain. | Oui (polling) |
-| `ia` | Nécessite un agent IA ou un humain dans la boucle : une unité pilotée par un joueur (le pont dcs-bridge n'expose aucune API de pilotage — `pilotActive/`/`pilotPassive/` requièrent toujours quelqu'un aux commandes), ou une confirmation F10/visuelle que le code ne vérifie jamais lui-même. | Non |
+| `auto-check` | Se résout automatiquement via un vrai timer/`waitFor` ou une machine à états ré-injectée, en quelques secondes — le scénario retourne `STARTED`/`RUNNING` et le runner interroge/ré-injecte `_SCN_<ID>_RESULT` jusqu'à résolution. Aucun jugement humain. | Oui (rapide) |
+| `auto-slow` | Sans humain non plus, mais nécessite **plusieurs minutes de vol IA réel** pour se résoudre (un hélicoptère IA volant une route vers une zone pickup/dropoff). Exclu du balayage rapide `--no-ai` ; à lancer explicitement avec `--tier auto-slow --poll-timeout 900`, joueur simplement garé dans un slot. | Oui (lent, à la demande) |
+| `ia` | Nécessite un humain : soit un joueur qui doit **piloter** (`ia (fly)`), soit qui doit **cliquer un item F10 / faire un jugement visuel** que le code ne vérifie pas (`ia (menu)`). Le pont dcs-bridge n'expose aucune API de pilotage. | Non |
 
-À l'heure où ces lignes sont écrites : 43 `auto`, 2 `auto-check`, 34 `ia` sur les 79 scénarios
-tagués (tout le L4/L5 est `ia` ; le L3 est presque entièrement `auto`/`auto-check`, avec deux
-exceptions `ia` qui demandent une vérification visuelle F10). Voir la skill `integration-testing`
-pour la taxonomie complète et le tier par défaut de chaque template.
+Les dossiers `pilotActive/`/`pilotPassive/` n'impliquent **pas** `ia` — le tier reflète ce que le
+code du scénario nécessite réellement, vérifié fichier par fichier, pas son dossier. Un audit
+`CATCH-UP-PILOT-SCENARIOS` a montré que sur les ~34 scénarios jadis tagués `ia` en bloc, seule une
+poignée nécessite vraiment un humain (deux vérifs de menu `ia (fly)`, plus un différé et un manuel
+optionnel) ; la grande majorité pilotent des hélicoptères IA ou s'auto-vérifient et sont
+`auto-check`/`auto-slow`. Voir la skill `integration-testing` pour la taxonomie complète et le
+tier par défaut de chaque template.
 
 ### Lancer les scénarios `auto`/`auto-check` sans intervention humaine
 

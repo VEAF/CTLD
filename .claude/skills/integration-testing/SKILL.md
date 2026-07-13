@@ -111,8 +111,9 @@ filters on — it must reflect what the scenario actually needs, not just its fo
 | Tier | Operative test |
 |---|---|
 | `auto` | A single `exec_lua` call returns the definitive verdict (`PASS`/`FAIL`/`ABORT`). No player, no polling, no human/AI judgment. Includes scenarios using a *mocked* timer that fires synchronously. |
-| `auto-check` | Resolves automatically (no human/AI judgment) but not in one call — returns `STARTED`, a real timer/`waitFor` resolves `_SCN_<ID>_RESULT` later. The runner must poll or re-inject. Rare: only scenarios with genuine unmocked async resolution qualify. |
-| `ia` | Needs an AI agent or human in the loop — either a live player-controlled unit (dcs-bridge has no flight-control API; something has to fly the aircraft into position: all of `pilotActive/`/`pilotPassive/`) or a scenario that returns `STARTED` and never resolves programmatically, instead asking for an F10/visual confirmation the code itself never checks. |
+| `auto-check` | Resolves automatically (no human/AI judgment) but not in one call — returns `STARTED`/`RUNNING`, a real timer/`waitFor` (or a re-injected step machine) resolves `_SCN_<ID>_RESULT` within seconds. The runner polls or re-injects. Fast enough for the `--no-ai` sweep. |
+| `auto-slow` | No human either, but needs **minutes of real AI-unit flight** to resolve — an AI helicopter (`heliai_*`) flying a multi-waypoint route to a pickup/dropoff zone before the check can pass. Excluded from `--no-ai` (would spam + stall the sweep); run explicitly with `--tier auto-slow --poll-timeout 900`. Player just parked in a slot. |
+| `ia` | Needs a human in the loop — a live player who must FLY (takeoff/land, `ia (fly)`) or CLICK an F10 item / make a visual judgment the code never checks (`ia (menu)`). dcs-bridge has no flight-control API, so these can't be automated at all. |
 
 Default for new scenarios: `noPlayer/` → `auto` unless it genuinely needs polling (`auto-check`)
 or never resolves without a human look (`ia`, with a one-line rationale comment since the tier
