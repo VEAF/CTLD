@@ -46,23 +46,41 @@ audit found that of the ~34 scenarios once blanket-tagged `ia`, only a handful t
 majority drive AI helicopters or self-verify and are `auto-check`/`auto-slow`. See the
 `integration-testing` skill for the full taxonomy and how each template defaults.
 
-### Running `auto`/`auto-check` scenarios headlessly
+### How to run each tier — command + what's expected of you
 
-`tools/integration-runner/run_scenarios.py` (dependency-free Python, no install step) discovers
-scenarios, filters by tier/folder/name, drives them over `dcs-serve`'s REST API, polls async
-ones, and writes a JUnit report:
+Two dependency-free Python runners drive scenarios over `dcs-serve`'s REST API and read back the
+verdict (no install step; both read `dcs-client.yaml`). Prerequisite for all of them: `dcs-serve`
+running and the mission loaded with `dcs-bridge.lua` injected (see the top of this page).
 
-```bash
-# Everything L3 needs a player for is skipped automatically
-python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld
+| Tier | Command | What YOU do |
+|---|---|---|
+| `auto` | `python tools/integration-runner/run_scenarios.py --no-ai` | **Nothing.** Fully headless. (No slot needed.) |
+| `auto-check` | same `--no-ai` sweep (covers `auto` + `auto-check`) | **Be parked in a BLUE slot** (UH-1H) — some read your unit's position/group. No flying, no clicking. |
+| `auto-slow` | `python tools/integration-runner/run_scenarios.py --tier auto-slow --poll-timeout 900` | **Be parked in a BLUE slot**, then wait — each needs minutes of AI-helicopter flight. Excluded from `--no-ai` on purpose. Optional (logic also covered by the `noPlayer` `aiTransport_featureT/U` tests). |
+| `ia (fly)` | `python tools/integration-runner/run_ia_scenario.py --scenario <name>` | **Fly the aircraft** as the terminal instructs (take off, land, reposition). The runner mirrors each step's in-game instructions to your terminal. |
+| `ia (menu)` | `python tools/integration-runner/run_ia_scenario.py --scenario <name>` | **Click F10 menu items / make a visual check** as instructed (no flying). |
 
-# Just the scenarios covering one module
-python tools/integration-runner/run_scenarios.py --scenario F-178
-```
+Notes:
+- A **full headless sweep** (recommended before a release) is
+  `python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld --reset-before-each`
+  — the `--reset-before-each` clears cross-scenario CTLD state (see below) so back-to-back runs
+  don't contaminate each other. Writes a JUnit report (`test-results.xml`).
+- Target a subset with `--scenario <substring>` (e.g. `--scenario F-178`) or `--dir noPlayer`.
+- `run_ia_scenario.py` recovers from a crash: just re-run the same command (it resets the
+  scenario's own state first). It also prints an elapsed `[mm:ss]` stamp + a heartbeat so a long
+  scenario is visibly alive.
+- See `tools/integration-runner/README.md` for the full flag reference and the tier/`RUNNING`
+  internals.
 
-This replaces manually injecting each L3a/L3b file one by one (still useful for a quick targeted
-check while iterating). See `tools/integration-runner/README.md` for the full flag reference.
-L4/L5 (`ia`) still require the manual/AI-driven injection loop described below.
+#### Cross-scenario state contamination
+
+Scenarios share CTLD's runtime singletons (`PlayerManager`, `MenuManager`, JTAC registry). Some
+leave residue (phantom players, a wiped player menu, orphan JTACs) that would make a *later*
+scenario abort — running one alone is fine, a back-to-back sweep accumulates it. `net.load_mission`
+isn't available on a DCS client, so the mission can't be reloaded from Lua. `--reset-before-each`
+injects `tests/dcs/_reset_state.lua` before each scenario to restore a clean player/menu + JTAC
+baseline without a reload. If a scenario ever needs a deeper reset than that, reload the mission
+manually (Shift+R).
 
 ---
 

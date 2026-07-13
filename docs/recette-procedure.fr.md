@@ -48,24 +48,41 @@ optionnel) ; la grande majorité pilotent des hélicoptères IA ou s'auto-vérif
 `auto-check`/`auto-slow`. Voir la skill `integration-testing` pour la taxonomie complète et le
 tier par défaut de chaque template.
 
-### Lancer les scénarios `auto`/`auto-check` sans intervention humaine
+### Comment lancer chaque tier — commande + ce qu'on attend de toi
 
-`tools/integration-runner/run_scenarios.py` (Python sans dépendance, aucune installation)
-découvre les scénarios, filtre par tier/dossier/nom, les pilote via l'API REST de `dcs-serve`,
-interroge ceux qui sont asynchrones, et écrit un rapport JUnit :
+Deux runners Python sans dépendance pilotent les scénarios via l'API REST de `dcs-serve` et lisent
+le verdict (aucune installation ; tous deux lisent `dcs-client.yaml`). Prérequis commun :
+`dcs-serve` lancé et la mission chargée avec `dcs-bridge.lua` injecté (voir le haut de cette page).
 
-```bash
-# Tout ce qui nécessite un joueur pour le L3 est ignoré automatiquement
-python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld
+| Tier | Commande | Ce que TU fais |
+|---|---|---|
+| `auto` | `python tools/integration-runner/run_scenarios.py --no-ai` | **Rien.** Entièrement headless. (Aucun slot requis.) |
+| `auto-check` | même balayage `--no-ai` (couvre `auto` + `auto-check`) | **Être garé dans un slot BLUE** (UH-1H) — certains lisent la position/le groupe de ton unité. Pas de vol, pas de clic. |
+| `auto-slow` | `python tools/integration-runner/run_scenarios.py --tier auto-slow --poll-timeout 900` | **Être garé dans un slot BLUE**, puis attendre — chacun nécessite plusieurs minutes de vol d'hélico IA. Exclu de `--no-ai` volontairement. Optionnel (logique aussi couverte par les tests `noPlayer` `aiTransport_featureT/U`). |
+| `ia (fly)` | `python tools/integration-runner/run_ia_scenario.py --scenario <nom>` | **Piloter l'appareil** selon les instructions du terminal (décoller, atterrir, repositionner). Le runner recopie les instructions in-game de chaque étape dans ton terminal. |
+| `ia (menu)` | `python tools/integration-runner/run_ia_scenario.py --scenario <nom>` | **Cliquer des items F10 / faire une vérif visuelle** selon les instructions (pas de vol). |
 
-# Juste les scénarios couvrant un module
-python tools/integration-runner/run_scenarios.py --scenario F-178
-```
+Notes :
+- Un **balayage headless complet** (recommandé avant une release) :
+  `python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld --reset-before-each`
+  — le `--reset-before-each` remet à zéro l'état CTLD partagé entre scénarios (voir plus bas) pour
+  que des runs enchaînés ne se contaminent pas. Écrit un rapport JUnit (`test-results.xml`).
+- Cibler un sous-ensemble avec `--scenario <sous-chaîne>` (ex. `--scenario F-178`) ou `--dir noPlayer`.
+- `run_ia_scenario.py` récupère après un crash : relance la même commande (il réinitialise d'abord
+  l'état du scénario). Il affiche aussi un chrono `[mm:ss]` + un heartbeat pour montrer qu'un long
+  scénario est bien vivant.
+- Voir `tools/integration-runner/README.md` pour la référence complète des options et les détails
+  tier/`RUNNING`.
 
-Ceci remplace l'injection manuelle fichier par fichier des L3a/L3b (toujours utile pour une
-vérification ciblée rapide en cours d'itération). Voir `tools/integration-runner/README.md`
-pour la référence complète des options. Le L4/L5 (`ia`) nécessite toujours la boucle
-d'injection manuelle/pilotée par IA décrite plus bas.
+#### Contamination d'état entre scénarios
+
+Les scénarios partagent les singletons runtime de CTLD (`PlayerManager`, `MenuManager`, registre
+JTAC). Certains laissent des résidus (joueurs fantômes, menu joueur effacé, JTAC orphelins) qui
+feraient avorter un scénario *ultérieur* — lancé seul c'est bon, un balayage enchaîné accumule.
+`net.load_mission` n'existe pas sur un client DCS, donc impossible de recharger la mission par
+Lua. `--reset-before-each` injecte `tests/dcs/_reset_state.lua` avant chaque scénario pour
+restaurer une base propre player/menu + JTAC sans reload. Si un scénario nécessite un reset plus
+profond, recharger la mission manuellement (Shift+R).
 
 ---
 
