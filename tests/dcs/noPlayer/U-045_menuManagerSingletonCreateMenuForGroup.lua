@@ -1,7 +1,7 @@
 ---@diagnostic disable
 -- @tier: auto
 -- U-45 : ctld.MenuManager singleton + createMenuForGroup
--- dcs-bridge recette — no DCS API required (mock embedded)
+-- dcs-bridge test — no DCS API required (mock embedded)
 trigger.action.outText("U-45: MenuManager singleton + createMenuForGroup", 10)
 
 local log = function(msg) env.info("[U-45] " .. msg) end

@@ -1,26 +1,26 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-slow  (no human, but needs minutes of real AI-heli flight to resolve -- excluded from the fast --headless sweep; run with --tier auto-slow. Core logic already covered fast by noPlayer aiTransport_featureT/U F-176..182. See ticket 06/07)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_mt09_ai_full_cycle.lua
--- CTLD — AI cycle complet : troupes + vehicule entier (zone TV)
+-- CTLD — AI full cycle: troops + whole vehicle (TV zone)
 --
--- Mini-application de recette interactive : injection unique, avance
--- automatiquement (waitFor) pour détecter pickup et dropoff TV.
+-- Interactive test mini-application: single injection, advances
+-- automatically (waitFor) to detect TV pickup and dropoff.
 --
--- Prérequis :
---   - Heli BLUE nommé "heliai_full" (UH-1H), sans pilote humain
---   - Route : WP sur AIZ_depot_B_P_TV_5_10 (posé) → AIZ_livraison_B_D_G (posé)
---   - AIZ_depot_B_P_TV_5_10  : zone pickup TV (troupes + vehicule), r~61m
---   - AIZ_livraison_B_D_G    : zone dropoff, r~274m
---   - Hummers BLUE (veh_mm_*) placés à proximité de AIZ_depot (~200m du centre)
---   - Slot BLUE occupé (joueur humain pour MenuManager)
---   - CTLD.lua injecté avant ce script (attendre 3-5 s)
+-- Prerequisites:
+--   - BLUE heli named "heliai_full" (UH-1H), no human pilot
+--   - Route: WP on AIZ_depot_B_P_TV_5_10 (landed) → AIZ_livraison_B_D_G (landed)
+--   - AIZ_depot_B_P_TV_5_10  : TV pickup zone (troops + vehicle), r~61m
+--   - AIZ_livraison_B_D_G    : dropoff zone, r~274m
+--   - BLUE Hummers (veh_mm_*) placed near AIZ_depot (~200m from center)
+--   - BLUE slot occupied (human player for MenuManager)
+--   - CTLD.lua injected before this script (wait 3-5 s)
 --
--- Cinématique (4 steps, injection unique) :
---   S1 [auto]  Init + vérification zones + enregistrement héli
---   S2 [auto]  Attente pickup TV (troupes ou véhicule chargé) via waitFor
---   S3 [auto]  Attente dropoff TV (plus de troupes ni véhicule) via waitFor
---   S4 [auto]  Finalisation
+-- Sequence (4 steps, single injection):
+--   S1 [auto]  Init + zone verification + heli registration
+--   S2 [auto]  Wait for TV pickup (troops or vehicle loaded) via waitFor
+--   S3 [auto]  Wait for TV dropoff (no more troops or vehicle) via waitFor
+--   S4 [auto]  Finalization
 --
 -- @scenario  MT-09
 -- @version   3.0 — 2026-06-30
@@ -36,7 +36,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_MT09_RUNNING then
-    trigger.action.outText("[MT-09] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[MT-09] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_MT09_RESULT or "[MT-09] RUNNING"
 end
 _SCN_MT09_RUNNING = true
@@ -58,12 +58,12 @@ cfg.settings["debugScreenLog"] = false
 
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG       = "[MT-09]"
-local NAME      = "AI cycle complet troupes + véhicule (TV)"
-local MENU_NAME = "Recette CTLD"
+local NAME      = "AI full cycle troops + vehicle (TV)"
+local MENU_NAME = "CTLD Test"
 local MENU_PATH = { ctld.tr("CTLD"), MENU_NAME }
 
-local AI_SRC  = "heliai_full"      -- source late-activation dans le .miz (jamais activé)
-local AI_UNIT = "heliai_full_run"  -- clone temporaire (spawné + détruit en cleanup)
+local AI_SRC  = "heliai_full"      -- late-activation source in the .miz (never activated)
+local AI_UNIT = "heliai_full_run"  -- temporary clone (spawned + destroyed at cleanup)
 local AIZ_P   = "AIZ_depot_B_P_TV_5_10"
 local AIZ_D   = "AIZ_livraison_B_D_G"
 
@@ -82,7 +82,7 @@ local S = {
 -- ── 7. Helpers ───────────────────────────────────────────────────────────────
 local function log(msg) ctld.utils.log("INFO", "%s %s", TAG, msg) end
 
--- Clone helpers (ctld.utils.deepCopy retourne nil — deepCopy locale obligatoire)
+-- Clone helpers (ctld.utils.deepCopy returns nil — a local deepCopy is required)
 local function deepCopy(orig)
     local copy
     if type(orig) == "table" then
@@ -263,18 +263,18 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
 
 -- ── 12. Steps ────────────────────────────────────────────────────────────────
 
--- S1 — Init + vérification zones [auto]
+-- S1 — Init + zone verification [auto]
 steps[1] = function()
     instruct(
         "Step 1/4 — INIT AI TRANSPORT TV (MT-09)\n"..
-        "Initialisation des transports AI en cours…"
+        "Initializing AI transports…"
     )
     waitThen(1, function()
         cfg.settings["transportPilotNames"] = { AI_UNIT }
@@ -283,8 +283,8 @@ steps[1] = function()
         local zm = CTLDZoneManager.getInstance()
         local zP = zm._troopZones[AIZ_P]
         local zD = zm._troopZones[AIZ_D]
-        check("MT-09.1.1", "AIZ_P trouvée: "..AIZ_P, zP ~= nil)
-        check("MT-09.1.2", "AIZ_D trouvée: "..AIZ_D, zD ~= nil)
+        check("MT-09.1.1", "AIZ_P found: "..AIZ_P, zP ~= nil)
+        check("MT-09.1.2", "AIZ_D found: "..AIZ_D, zD ~= nil)
         if zP then
             check("MT-09.1.3", "AIZ_P.isAIPickup=true",   zP.isAIPickup  == true)
             check("MT-09.1.4", "AIZ_P.aiCargoType=TV",     zP.aiCargoType == "TV",
@@ -295,12 +295,12 @@ steps[1] = function()
         end
 
         local cloneG, cloneErr = spawnClone(AI_SRC, AI_UNIT)
-        check("MT-09.1.6", "Clone '"..AI_UNIT.."' spawné depuis '"..AI_SRC.."'",
+        check("MT-09.1.6", "Clone '"..AI_UNIT.."' spawned from '"..AI_SRC.."'",
               cloneG ~= nil, tostring(cloneErr))
 
         local unit = Unit.getByName(AI_UNIT)
         if unit then
-            check("MT-09.1.7", "Sans pilote humain", unit:getPlayerName() == nil)
+            check("MT-09.1.7", "No human pilot", unit:getPlayerName() == nil)
             local caps = (ctld.gs("capabilitiesByType") or {})[unit:getTypeName()] or {}
             check("MT-09.1.8", "troopsEnabled=true",            caps.troopsEnabled            == true)
             check("MT-09.1.9", "canTransportWholeVehicle=true", caps.canTransportWholeVehicle == true)
@@ -310,21 +310,21 @@ steps[1] = function()
         if ok and vs then
             local count = 0
             for _ in pairs(vs._vehicles) do count = count + 1 end
-            check("MT-09.1.10", "Au moins 1 véhicule enregistré", count > 0, "count="..count)
+            check("MT-09.1.10", "At least 1 vehicle registered", count > 0, "count="..count)
         end
 
-        log("STEP 1 OK — Héli activé, attente pose sur "..AIZ_P)
+        log("STEP 1 OK — Heli activated, waiting for landing on "..AIZ_P)
         advanceStep()
     end)
 end
 
--- S2 — Attente pickup TV (troupes ou véhicule chargé) [waitFor]
+-- S2 — Wait for TV pickup (troops or vehicle loaded) [waitFor]
 steps[2] = function()
     instruct(
-        "Step 2/4 — ATTENTE PICKUP TV (MT-09)\n"..
-        "L'héli "..AI_UNIT.." doit se poser sur "..AIZ_P..".\n"..
-        "Détection du pickup (troupes ou véhicule chargé).\n"..
-        "Timeout : 300 s."
+        "Step 2/4 — WAIT FOR TV PICKUP (MT-09)\n"..
+        "Heli "..AI_UNIT.." must land on "..AIZ_P..".\n"..
+        "Detecting the pickup (troops or vehicle loaded).\n"..
+        "Timeout: 300 s."
     )
     waitFor(
         function()
@@ -349,28 +349,28 @@ steps[2] = function()
                 hasVeh = #loaded > 0
             end
 
-            check("MT-09.2.0", "Heli AI présent", unit ~= nil and unit:isExist())
+            check("MT-09.2.0", "AI heli present", unit ~= nil and unit:isExist())
 
             if hasTr then
                 local list = tm:getInTransit(AI_UNIT) or {}
                 local total = 0
                 for _, grp in ipairs(list) do total = total + (grp.unitTotal or 0) end
-                log("Troupes à bord: "..total.." soldat(s)")
+                log("Troops onboard: "..total.." soldier(s)")
             end
             if hasVeh and ok and vs then
                 local loaded = vs:findLoadedVehicles(unit)
                 if loaded and #loaded > 0 then
-                    log("Véhicule à bord: type="..tostring(loaded[1].vehicleType))
+                    log("Vehicle onboard: type="..tostring(loaded[1].vehicleType))
                 end
             end
 
             local pickupOk = hasTr or hasVeh
-            check("MT-09.2.1", "Pickup TV détecté (troupes ou véhicule)", pickupOk)
-            log("STEP 2 OK — en vol vers "..AIZ_D)
+            check("MT-09.2.1", "TV pickup detected (troops or vehicle)", pickupOk)
+            log("STEP 2 OK — in flight toward "..AIZ_D)
             advanceStep()
         end,
         function()
-            -- Vérifier si le cycle est peut-être déjà complet (groupes déployés près de AIZ_D)
+            -- Check whether the cycle may already be complete (groups deployed near AIZ_D)
             local dcsZoneD = trigger.misc.getZone(AIZ_D)
             local deployedCount = 0
             if dcsZoneD then
@@ -386,10 +386,10 @@ steps[2] = function()
                     end
                 end
             end
-            check("MT-09.2.1", "Cycle TV complet (groupes déployés près de "..AIZ_D..")", deployedCount > 0,
+            check("MT-09.2.1", "TV cycle complete (groups deployed near "..AIZ_D..")", deployedCount > 0,
                 "deployed_groups_near_AIZ_D="..deployedCount)
             if deployedCount > 0 then
-                log("Cycle rapide détecté: "..deployedCount.." groupe(s) déployés — skip step 3")
+                log("Fast cycle detected: "..deployedCount.." group(s) deployed — skip step 3")
                 -- Skip step 3, cycle already done
                 S.step = S.step + 1  -- will be at 3, advanceStep will go to 4
             end
@@ -398,13 +398,13 @@ steps[2] = function()
     )
 end
 
--- S3 — Attente dropoff TV (plus de troupes ni véhicule) [waitFor]
+-- S3 — Wait for TV dropoff (no more troops or vehicle) [waitFor]
 steps[3] = function()
     instruct(
-        "Step 3/4 — ATTENTE DROPOFF TV (MT-09)\n"..
-        "L'héli "..AI_UNIT.." doit se poser sur "..AIZ_D..".\n"..
-        "Détection du dropoff (plus de troupes ni véhicule).\n"..
-        "Timeout : 600 s."
+        "Step 3/4 — WAIT FOR TV DROPOFF (MT-09)\n"..
+        "Heli "..AI_UNIT.." must land on "..AIZ_D..".\n"..
+        "Detecting the dropoff (no more troops or vehicle).\n"..
+        "Timeout: 600 s."
     )
     waitFor(
         function()
@@ -421,7 +421,7 @@ steps[3] = function()
         function()
             local tm   = CTLDTroopManager.getInstance()
             local hasTr = tm:hasTroops(AI_UNIT)
-            check("MT-09.3.1", "hasTroops=false après dropoff sur "..AIZ_D, not hasTr,
+            check("MT-09.3.1", "hasTroops=false after dropoff on "..AIZ_D, not hasTr,
                 "hasTroops="..tostring(hasTr))
 
             local unit = Unit.getByName(AI_UNIT)
@@ -429,25 +429,25 @@ steps[3] = function()
             if ok and vs and unit then
                 local loaded = vs:findLoadedVehicles(unit)
                 local hasVeh = #loaded > 0
-                check("MT-09.3.2", "Plus de véhicule à bord après dropoff", not hasVeh,
+                check("MT-09.3.2", "No more vehicle onboard after dropoff", not hasVeh,
                     "nb_loaded="..tostring(#loaded))
             end
 
-            log("Troupes + véhicule déposés sur "..AIZ_D)
+            log("Troops + vehicle dropped on "..AIZ_D)
             advanceStep()
         end,
         function()
-            fail("MT-09.3.1", "timeout 600s — pas de dropoff sur "..AIZ_D)
+            fail("MT-09.3.1", "timeout 600s — no dropoff on "..AIZ_D)
             advanceStep()
         end
     )
 end
 
--- S4 — Finalisation [auto]
+-- S4 — Finalization [auto]
 steps[4] = function()
-    instruct("Step 4/4 — FINALISATION")
+    instruct("Step 4/4 — FINALIZATION")
     waitThen(1, function()
-        log("MT-09 cycle complet troupes + véhicule entier validé")
+        log("MT-09 full cycle troops + whole vehicle validated")
         advanceStep()
     end)
 end
@@ -470,7 +470,7 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
     _SCN_MT09_RESULT = "[MT-09] ABORT"
     return _SCN_MT09_RESULT
@@ -511,7 +511,7 @@ menu_init:refresh()
 _SCN_MT09_CLEANUP = cleanup
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 _SCN_MT09_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_MT09_RESULT until PASS/FAIL
 advanceStep()
 

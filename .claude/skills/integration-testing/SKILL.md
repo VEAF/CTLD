@@ -36,18 +36,27 @@ Once these are up, `exec_lua` is available as an MCP tool.
 ## The injection loop
 
 ```
-Modify src/  →  Rebuild (if src/ changed)  →  exec_lua CTLD.lua  →  wait ~3-5s for init
+Modify src/  →  Rebuild (if src/ changed)  →  reload mission (Shift+R, if src/ changed)
              →  exec_lua the scenario  →  read the verdict  →  iterate on FAIL
 ```
 
 1. **Rebuild** if `src/` changed:
    `powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1`
-2. **Inject CTLD.lua**: `exec_lua(code=<contents of CTLD.lua>)`, then wait 3-5s (CTLD init is
-   async — `CTLDCoreManager` and friends aren't available immediately).
-3. **Inject the scenario**: `exec_lua(code=<contents of the scenario file>)`.
+2. **Load the new CTLD code** — how depends on whether `src/` changed:
+   - **Scenario-only change** (no `src/` change): nothing to reload — CTLD is already in memory,
+     just inject the scenario (step 3).
+   - **`src/` changed** (so `CTLD.lua` was rebuilt): **ask the user to reload the mission with
+     `Shift+R`** in DCS. This restarts the mission from a clean state and re-`dofile`s the fresh
+     `CTLD.lua` from disk (the MISSION START trigger does this).
+     ⚠️ Do **NOT** inject the whole `CTLD.lua` via `exec_lua`/`--inject-ctld`: the file is ~1.2 MB
+     and a single exec **times out (HTTP 504)**. And do **NOT** `dofile("…/CTLD.lua")` over a live
+     mission — it re-runs CTLD init (scheduler, event handlers, timers) on top of the existing
+     one and **freezes the DCS Lua thread**. Reloading the mission is the only safe way.
+3. **Inject the scenario**: `exec_lua(code=<contents of the scenario file>)` (small file — fine).
 4. **Read the verdict** — see the return contract below.
 5. **Iterate**: on FAIL, fix and re-inject without waiting for the user (autonomous debug loop —
-   the user does not need to be in the loop between injections).
+   the user does not need to be in the loop between injections). If the fix is in `src/`, a
+   mission reload (`Shift+R`) is needed again before re-testing.
 
 You (the AI) drive this loop end to end. Only pause for the user when a scenario requires a
 human F10 action it cannot itself take (see pilotActive scenarios).
@@ -102,12 +111,19 @@ filters on — it must reflect what the scenario actually needs, not just its fo
 | Tier | Operative test |
 |---|---|
 | `auto` | A single `exec_lua` call returns the definitive verdict (`PASS`/`FAIL`/`ABORT`). No player, no polling, no human/AI judgment. Includes scenarios using a *mocked* timer that fires synchronously. |
-| `auto-check` | Resolves automatically (no human/AI judgment) but not in one call — returns `STARTED`, a real timer/`waitFor` resolves `_SCN_<ID>_RESULT` later. The runner must poll or re-inject. Rare: only scenarios with genuine unmocked async resolution qualify. |
-| `ia` | Needs an AI agent or human in the loop — either a live player-controlled unit (dcs-bridge has no flight-control API; something has to fly the aircraft into position: all of `pilotActive/`/`pilotPassive/`) or a scenario that returns `STARTED` and never resolves programmatically, instead asking for an F10/visual confirmation the code itself never checks. |
+| `auto-check` | Resolves automatically (no human/AI judgment) but not in one call — returns `STARTED`/`RUNNING`, a real timer/`waitFor` (or a re-injected step machine) resolves `_SCN_<ID>_RESULT` within seconds. The runner polls or re-injects. Fast enough for the `--headless` sweep. |
+| `auto-slow` | No human either, but takes **minutes** to resolve — either an AI helicopter (`heliai_*`) flying a multi-waypoint route to a pickup/dropoff zone, or a long internal timer chain (e.g. the JTAC drone's ~13 min of VERIFY steps). Excluded from `--headless` (would spam + stall the sweep); run explicitly with `--tier auto-slow --poll-timeout 900`. Player just parked in a slot. |
+| `ia` | Needs a human in the loop — a live player who must FLY (takeoff/land, `ia (fly)`) or CLICK an F10 item / make a visual judgment the code never checks (`ia (menu)`). dcs-bridge has no flight-control API, so these can't be automated at all. |
 
 Default for new scenarios: `noPlayer/` → `auto` unless it genuinely needs polling (`auto-check`)
 or never resolves without a human look (`ia`, with a one-line rationale comment since the tier
-isn't inferable from the folder); `pilotActive/`/`pilotPassive/` → always `ia`.
+isn't inferable from the folder); `pilotActive/`/`pilotPassive/` → default to `ia`, but check the
+actual code before tagging — a scenario there only needs `ia` if it checks real flight state
+or waits on F10. One that just reads `coalition.getPlayers(...)[1]` once for position/groupId
+and never touches flight state is `auto`/`auto-check` wearing the wrong folder, not `ia` (see
+`tools/integration-runner/README.md`'s "What `ia` actually asks of you" for the `(menu)`/`(fly)`
+qualifier used on genuine `ia` scenarios, and the mistagging example found in
+`CATCH-UP-PILOT-SCENARIOS` ticket 03).
 
 ## Automated runs (no AI agent)
 
@@ -115,9 +131,22 @@ For `auto`/`auto-check` scenarios, you don't need to drive the injection loop by
 Claude) — `tools/integration-runner/run_scenarios.py` runs them headlessly against a live
 `dcs-serve` and writes a JUnit report. Dependency-free (stdlib only), reads the same
 `dcs-client.yaml`. See `tools/integration-runner/README.md` for the full flag reference; typical
-use: `python tools/integration-runner/run_scenarios.py --no-ai --inject-ctld`. `ia`-tier
-scenarios (player/F10 required) are never selected by `--no-ai` — those still need this skill's
-AI-driven `exec_lua` loop.
+use: `python tools/integration-runner/run_scenarios.py --headless --inject-ctld`. `ia`-tier
+scenarios (player/F10 required) are never selected by `--headless`.
+
+For a **full back-to-back sweep** add `--reset-before-each`: scenarios share CTLD's singletons
+and some leave residue (phantom `_players`, a wiped player menu) that aborts the next
+player-dependent scenario. That flag injects `tests/dcs/_reset_state.lua` before each scenario to
+restore a clean player/menu baseline (`net.load_mission` is unavailable on a client, so we can't
+reload the mission from Lua). Running one scenario at a time doesn't need it.
+
+Most `ia`-tier `pilotActive`/`pilotPassive` scenarios self-verify (same `checkMenuExpected()`
+pattern as `auto`) and only need a live pilot, not AI judgment — run those interactively from
+the terminal with `tools/integration-runner/run_manual_scenario.py --scenario <name>` instead of
+this skill's manual `exec_lua` loop (see that tool's README for details, including how to
+restart a crashed test by just re-running the same command). Fall back to the manual
+`exec_lua` loop below only for genuine visual/subjective-judgment scenarios (e.g. "menu looks
+identical after a second refresh") or when debugging a scenario itself.
 
 ## Debug config
 

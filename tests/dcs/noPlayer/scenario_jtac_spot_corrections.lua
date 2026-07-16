@@ -1,11 +1,11 @@
 ---@diagnostic disable
 -- @tier: auto
 -- ============================================================
--- JTAC Spot Corrections toggle — recette automatique
+-- JTAC Spot Corrections toggle — automatic test
 -- ============================================================
--- Vérifie toggleSpotCorrections : basculement laseSpotCorrections,
--- labels dynamiques menu, confirmation messages.
--- Famille : auto (aucune intervention humaine)
+-- Verifies toggleSpotCorrections: laseSpotCorrections toggle,
+-- dynamic menu labels, confirmation messages.
+-- Family: auto (no human intervention)
 -- ============================================================
 
 -- ── CTLD-ready guard ───────────────────────────────────────────────────────
@@ -81,7 +81,7 @@ check("F-SC-2b confirmation msg sent",             #capturedMsgs == 1)
 check("F-SC-2c msg contains 'deactivated'",        capturedMsgs[1] and capturedMsgs[1]:find("deactivated") ~= nil)
 check("F-SC-2d _rebuildJTACCommandBranch called",  rebuildCalled == true)
 
--- ── F-SC-3 : labels dynamiques ──────────────────────────────
+-- ── F-SC-3 : dynamic labels ──────────────────────────────────
 mockJTAC.laseSpotCorrections = false
 local labelOff = mockJTAC.laseSpotCorrections
     and ctld.tr("Spot Corrections [deactivate]")
@@ -96,7 +96,7 @@ local labelOn = mockJTAC.laseSpotCorrections
 check("F-SC-3b label when on = [deactivate]",
     labelOn == ctld.tr("Spot Corrections [deactivate]"))
 
--- ── F-SC-4 : JTAC inexistant → message erreur ───────────────
+-- ── F-SC-4 : nonexistent JTAC → error message ───────────────
 capturedMsgs = {}
 mgr:toggleSpotCorrections("nonexistent_jtac", GROUP_ID)
 check("F-SC-4 unknown JTAC → error msg", #capturedMsgs == 1)
@@ -106,7 +106,7 @@ mgr.jtacs[JTAC_NAME]           = nil
 trigger.action.outTextForGroup = _origOut
 mgr._rebuildJTACCommandBranch  = _origRebuild
 
--- ── Résultat ─────────────────────────────────────────────────
+-- ── Result ───────────────────────────────────────────────────
 local total = passed + failed
 local msg = string.format("[F-SC] %d/%d PASS", passed, total)
 if #failures > 0 then msg = msg .. " | FAIL: " .. table.concat(failures, ", ") end

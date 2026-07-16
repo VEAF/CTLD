@@ -1,28 +1,28 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: human (fly)  -- takeoff/landing required (sol/vol/sol menu check)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_troop_menu_sol_vol_visual.lua
--- CTLD — Troop Commands menu : vérification sol / vol / sol (visual)
+-- CTLD — Troop Commands menu: ground / air / ground check (visual)
 --
--- Mini-application de recette interactive : injection unique, avance
--- automatiquement (waitFor décollage/atterrissage) ou via menu F10
--- "Recette CTLD" (vérifications visuelles et auto).
+-- Interactive test mini-application: single injection, advances
+-- automatically (waitFor takeoff/landing) or via the F10 menu
+-- "CTLD Test" (visual and auto checks).
 --
--- Prérequis :
---   - Slot UH-1H BLUE occupé, hélico au sol dans/près d'une TRZ (Troop Zone)
---   - troopsEnabled=true, canParachuteDrop=true pour le type UH-1H
---   - Au moins un template de troupes configuré
+-- Prerequisites:
+--   - UH-1H BLUE slot occupied, helo on the ground in/near a TRZ (Troop Zone)
+--   - troopsEnabled=true, canParachuteDrop=true for the UH-1H type
+--   - At least one troop template configured
 --
--- Cinématique (5 steps, injection unique) :
---   S1 [F10]  Vérifier menu sol + embarquer des troupes
---   S2 [auto] Décoller → détecté via inAir()
---   S3 [auto] Vérifier menu vol (Parachute Troops VISIBLE)
---   S4 [auto] Atterrir → détecté via not inAir()
---   S5 [auto] Vérifier menu sol restauré (Disembark VISIBLE, Parachute ABSENT)
+-- Sequence (5 steps, single injection):
+--   S1 [F10]  Check ground menu + embark troops
+--   S2 [auto] Take off → detected via inAir()
+--   S3 [auto] Check air menu (Parachute Troops VISIBLE)
+--   S4 [auto] Land → detected via not inAir()
+--   S5 [auto] Check ground menu restored (Disembark VISIBLE, Parachute ABSENT)
 --
 -- @scenario  TMFV
 -- @version   1.0 — 2026-06-30
--- @coverage  F-183 (sol), F-184 (vol), F-185 (restauration sol)
+-- @coverage  F-183 (ground), F-184 (air), F-185 (ground restore)
 -- =============================================================================
 
 -- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_TMFV_RUNNING then
-    trigger.action.outText("[TMFV] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[TMFV] already running — wait for completion or restart DCS.", 10)
     return _SCN_TMFV_RESULT or "[TMFV] RUNNING"
 end
 _SCN_TMFV_RUNNING = true
@@ -56,9 +56,9 @@ cfg.settings["debugScreenLog"] = false
 
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG             = "[TMFV]"
-local NAME            = "Troop Commands menu — sol/vol/sol"
-local HUMAN_TIMEOUT_S = 300
-local MENU_NAME       = "Recette CTLD"
+local NAME            = "Troop Commands menu — ground/air/ground"
+local HUMAN_TIMEOUT_S = 3600  -- generous: a real pilot session, not a race against the clock
+local MENU_NAME       = "CTLD Test"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }
 local TROOP_SUB       = ctld.tr("Troop Commands")
 
@@ -86,7 +86,7 @@ end
 local function pass(id, msg) S.passed = S.passed + 1 ; log("[PASS] "..id..": "..(msg or "")) end
 local function fail(id, msg) S.failed = S.failed + 1 ; table.insert(S.failReasons, id..": "..(msg or "")) ; log("[FAIL] "..id..": "..(msg or "")) end
 
--- Capture l'état du menu Troop Commands dans CTLD.log.
+-- Capture the Troop Commands menu state into CTLD.log.
 local function logMenuSnapshot()
     local ok, err = pcall(function()
         local pm = CTLDPlayerManager.getInstance()
@@ -111,7 +111,7 @@ local function logMenuSnapshot()
                 if name ~= "" and not name:find(".", 1, true) then
                     if not seen[name] then
                         seen[name] = true
-                        local enabled = node.enabled ~= false and "VISIBLE" or "MASQUE "
+                        local enabled = node.enabled ~= false and "VISIBLE" or "HIDDEN "
                         table.insert(items, "  "..enabled.." : "..name)
                     end
                 else
@@ -119,7 +119,7 @@ local function logMenuSnapshot()
                     if parent and not seen[parent] then
                         seen[parent] = true
                         local parentNode = menu._lookup[prefix .. parent]
-                        local enabled = (parentNode and parentNode.enabled ~= false) and "VISIBLE" or "MASQUE "
+                        local enabled = (parentNode and parentNode.enabled ~= false) and "VISIBLE" or "HIDDEN "
                         table.insert(items, "  "..enabled.." : "..parent)
                     end
                 end
@@ -127,12 +127,12 @@ local function logMenuSnapshot()
         end
         table.sort(items)
         if #items == 0 then
-            log("[SNAPSHOT] Troop Commands : aucun item trouvé (prefix="..prefix..")")
+            log("[SNAPSHOT] Troop Commands: no item found (prefix="..prefix..")")
         else
-            log("[SNAPSHOT] Troop Commands :\n"..table.concat(items, "\n"))
+            log("[SNAPSHOT] Troop Commands:\n"..table.concat(items, "\n"))
         end
     end)
-    if not ok then log("[SNAPSHOT] ERREUR: "..tostring(err)) end
+    if not ok then log("[SNAPSHOT] ERROR: "..tostring(err)) end
 end
 
 -- ── 8. Cleanup ───────────────────────────────────────────────────────────────
@@ -195,7 +195,7 @@ local function waitThen(delayS, callback)
 end
 
 -- Auto-verify Troop Commands menu state.
--- expected = list of {name=string, state="VISIBLE"|"MASQUE"|"ABSENT"}
+-- expected = list of {name=string, state="VISIBLE"|"HIDDEN"|"ABSENT"}
 local function checkMenuExpected(expected)
     local pm = CTLDPlayerManager.getInstance()
     local playerObj
@@ -220,7 +220,7 @@ local function checkMenuExpected(expected)
             if name and name ~= "" and not seen[name] then
                 seen[name] = true
                 local parentNode = menu._lookup[prefix .. name]
-                actual[name] = (parentNode and parentNode.enabled ~= false) and "VISIBLE" or "MASQUE"
+                actual[name] = (parentNode and parentNode.enabled ~= false) and "VISIBLE" or "HIDDEN"
             end
         end
     end
@@ -265,7 +265,7 @@ local function finalizeScenario()
     if not ok then log("WARN cleanup: "..tostring(err)) ; _SCN_TMFV_RUNNING = false end
 end
 
--- ── 11. Step humain (MenuManager) ────────────────────────────────────────────
+-- ── 11. Human step (MenuManager) ─────────────────────────────────────────────
 local advanceStep
 
 local function setHumanStep(stepId, title, options)
@@ -302,7 +302,7 @@ local function setHumanStep(stepId, title, options)
         S.timerHandle = nil
         log("[TIMEOUT] step "..S.step.." ("..stepId..") — ABORT")
         pcall(function() menu:clearBranch(MENU_PATH) ; menu:refresh() end)
-        fail(stepId, "timeout "..HUMAN_TIMEOUT_S.."s sans réponse")
+        fail(stepId, "timeout "..HUMAN_TIMEOUT_S.."s with no response")
         finalizeScenario()
     end, nil, timer.getTime() + HUMAN_TIMEOUT_S)
 end
@@ -316,61 +316,61 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
 
 -- ── 13. Steps ────────────────────────────────────────────────────────────────
 
--- S1 — Vérification menu sol + embarquer des troupes [F10]
+-- S1 — Ground menu check + embark troops [F10]
 steps[1] = function()
     if not (ctld.gs("enableTroops") ~= false) then
-        instruct("Step 1/5 — ABORT PRÉREQUIS\nenableTroops=false dans la config.")
+        instruct("Step 1/5 — ABORT PREREQUISITE\nenableTroops=false in the config.")
         fail("F-183", "enableTroops=false — test impossible") ; finalizeScenario() ; return
     end
     instruct(
-        "Step 1/5 — MENU SOL TROUPES (F-183)\n"..
-        "Prérequis : hélico AU SOL dans ou près d'une zone de troupes (TRZ)\n"..
-        "\nA) Vérifier F10 → CTLD → Troop Commands :\n"..
-        "  ✅ VISIBLE  : Embark / Extract Troops\n"..
-        "  ✅ VISIBLE  : Check Cargo\n"..
-        "  ❌ ABSENT   : Parachute Troops (sol uniquement)\n"..
-        "  ❌ ABSENT   : Disembark Troops (aucune troupe à bord)\n"..
-        "\nB) Embarquer des troupes :\n"..
-        "  F10 → CTLD → Troop Commands → Embark / Extract Troops → [zone] → Load [modèle]\n"..
-        "  → Confirmation d'embarquement affichée\n"..
-        "\nRépondre OUI/NON après A+B."
+        "Step 1/5 — GROUND TROOP MENU (F-183)\n"..
+        "Prerequisite: helo ON THE GROUND in or near a troop zone (TRZ)\n"..
+        "\nA) Check F10 → CTLD → Troop Commands:\n"..
+        "  VISIBLE  : Embark / Extract Troops\n"..
+        "  VISIBLE  : Check Cargo\n"..
+        "  ABSENT   : Parachute Troops (ground only)\n"..
+        "  ABSENT   : Disembark Troops (no troops on board)\n"..
+        "\nB) Embark troops:\n"..
+        "  F10 → CTLD → Troop Commands → Embark / Extract Troops → [zone] → Load [template]\n"..
+        "  → Embark confirmation shown\n"..
+        "\nAnswer YES/NO after A+B."
     )
-    setHumanStep("F-183", "Menu sol troupes correct + troupes embarquées ?", {
-        { label = "OUI — menu OK et troupes embarquées",  fn = function() pass("F-183", "menu sol troupes OK") ; advanceStep() end },
-        { label = "NON — menu incorrect",                 fn = function() fail("F-183", "menu sol troupes KO") ; advanceStep() end },
-        { label = "SKIP — ne peut vérifier",              fn = function() log("[SKIP] S1")                      ; advanceStep() end },
+    setHumanStep("F-183", "Ground troop menu correct + troops embarked?", {
+        { label = "YES — menu OK and troops embarked",  fn = function() pass("F-183", "ground troop menu OK") ; advanceStep() end },
+        { label = "NO — menu incorrect",                fn = function() fail("F-183", "ground troop menu KO") ; advanceStep() end },
+        { label = "SKIP — cannot verify",               fn = function() log("[SKIP] S1")                      ; advanceStep() end },
     })
 end
 
--- S2 — Décoller [auto]
+-- S2 — Take off [auto]
 steps[2] = function()
     instruct(
-        "Step 2/5 — DÉCOLLER (auto)\n"..
-        "Décoller — le scénario avancera automatiquement\n"..
-        "dès la détection du décollage."
+        "Step 2/5 — TAKE OFF (auto)\n"..
+        "Take off — the scenario will advance automatically\n"..
+        "as soon as takeoff is detected."
     )
     waitFor(
         function() return S.transport:isExist() and S.transport:inAir() end,
         3, 300,
-        function() pass("S2", "décollage détecté") ; advanceStep() end,
-        function() fail("S2", "timeout décollage") ; advanceStep() end
+        function() pass("S2", "takeoff detected") ; advanceStep() end,
+        function() fail("S2", "takeoff timeout") ; advanceStep() end
     )
 end
 
--- S3 — Vérification menu vol [AUTO]
--- F-184: Parachute Troops doit être VISIBLE en vol si troupes à bord + canParachuteDrop.
--- Disembark Troops doit être ABSENT (sol uniquement).
+-- S3 — Air menu check [AUTO]
+-- F-184: Parachute Troops must be VISIBLE in the air if troops on board + canParachuteDrop.
+-- Disembark Troops must be ABSENT (ground only).
 steps[3] = function()
     instruct(
-        "Step 3/5 — VÉRIFICATION AUTO MENU VOL (F-184)\n"..
-        "Vérification automatique du menu en cours (2s)…"
+        "Step 3/5 — AUTO AIR MENU CHECK (F-184)\n"..
+        "Automatic menu check in progress (2s)…"
     )
     local EXPECTED_VOL = {
         { name = "Parachute Troops",         state = "VISIBLE" },
@@ -386,18 +386,18 @@ steps[3] = function()
         if pm and pm._players then for _, p in pairs(pm._players) do playerObj = p ; break end end
         local inAirNow = S.transport and S.transport:isExist() and S.transport:inAir() or false
         log("[AUTO-CHECK] S3 inAir="..tostring(inAirNow))
-        if playerObj then tm:refreshMenuSection(playerObj) end
+        if playerObj then tm:refreshMenuSection(playerObj, inAirNow) end
 
         local ok, issues = checkMenuExpected(EXPECTED_VOL)
         logMenuSnapshot()
         if ok then
-            pass("F-184", "menu vol troupes auto-vérifié OK")
-            local msg = TAG.." ✅ F-184 menu vol troupes OK (auto-vérifié)\nParachute Troops VISIBLE en vol."
+            pass("F-184", "air troop menu auto-verified OK")
+            local msg = TAG.." ✅ F-184 air troop menu OK (auto-verified)\nParachute Troops VISIBLE in the air."
             log("[AUTO-CHECK] F-184 PASS")
             trigger.action.outText(msg, 15, true)
         else
-            fail("F-184", "menu vol troupes KO: "..table.concat(issues, " | "))
-            local msg = TAG.." ❌ F-184 menu vol troupes KO (auto-vérifié)\n"..table.concat(issues, "\n")
+            fail("F-184", "air troop menu KO: "..table.concat(issues, " | "))
+            local msg = TAG.." ❌ F-184 air troop menu KO (auto-verified)\n"..table.concat(issues, "\n")
             log("[AUTO-CHECK] F-184 FAIL: "..table.concat(issues, " | "))
             trigger.action.outText(msg, 20, true)
         end
@@ -405,27 +405,27 @@ steps[3] = function()
     end)
 end
 
--- S4 — Atterrir [auto]
+-- S4 — Land [auto]
 steps[4] = function()
     instruct(
-        "Step 4/5 — ATTERRIR (auto)\n"..
-        "Atterrir SANS larguer les troupes.\n"..
-        "Le scénario avancera automatiquement à la détection de l'atterrissage."
+        "Step 4/5 — LAND (auto)\n"..
+        "Land WITHOUT dropping the troops.\n"..
+        "The scenario will advance automatically when landing is detected."
     )
     waitFor(
         function() return S.transport:isExist() and not S.transport:inAir() end,
         3, 300,
-        function() pass("S4", "atterrissage détecté") ; advanceStep() end,
-        function() fail("S4", "timeout atterrissage") ; advanceStep() end
+        function() pass("S4", "landing detected") ; advanceStep() end,
+        function() fail("S4", "landing timeout") ; advanceStep() end
     )
 end
 
--- S5 — Vérification menu sol restauré [AUTO]
--- F-185: Parachute Troops → ABSENT (sol). Disembark Troops → VISIBLE (troupes toujours à bord).
+-- S5 — Ground menu restored check [AUTO]
+-- F-185: Parachute Troops → ABSENT (ground). Disembark Troops → VISIBLE (troops still on board).
 steps[5] = function()
     instruct(
-        "Step 5/5 — VÉRIFICATION AUTO SOL RESTAURÉ (F-185)\n"..
-        "Vérification automatique du menu en cours (2s)…"
+        "Step 5/5 — AUTO GROUND RESTORED CHECK (F-185)\n"..
+        "Automatic menu check in progress (2s)…"
     )
     local EXPECTED_SOL_KEY = {
         { name = "Parachute Troops",   state = "ABSENT"  },
@@ -438,18 +438,18 @@ steps[5] = function()
         if pm and pm._players then for _, p in pairs(pm._players) do playerObj = p ; break end end
         local inAirNow = S.transport and S.transport:isExist() and S.transport:inAir() or false
         log("[AUTO-CHECK] S5 inAir="..tostring(inAirNow))
-        if playerObj then tm:refreshMenuSection(playerObj) end
+        if playerObj then tm:refreshMenuSection(playerObj, inAirNow) end
 
         local ok, issues = checkMenuExpected(EXPECTED_SOL_KEY)
         logMenuSnapshot()
         if ok then
-            pass("F-185", "sol restauré troupes auto-vérifié OK")
-            local msg = TAG.." ✅ F-185 sol restauré troupes OK (auto-vérifié)\nParachute Troops ABSENT, Disembark VISIBLE."
+            pass("F-185", "ground restored troops auto-verified OK")
+            local msg = TAG.." ✅ F-185 ground restored troops OK (auto-verified)\nParachute Troops ABSENT, Disembark VISIBLE."
             log("[AUTO-CHECK] F-185 PASS")
             trigger.action.outText(msg, 15, true)
         else
-            fail("F-185", "sol restauré troupes KO: "..table.concat(issues, " | "))
-            local msg = TAG.." ❌ F-185 sol restauré troupes KO (auto-vérifié)\n"..table.concat(issues, "\n")
+            fail("F-185", "ground restored troops KO: "..table.concat(issues, " | "))
+            local msg = TAG.." ❌ F-185 ground restored troops KO (auto-verified)\n"..table.concat(issues, "\n")
             log("[AUTO-CHECK] F-185 FAIL: "..table.concat(issues, " | "))
             trigger.action.outText(msg, 20, true)
         end
@@ -475,8 +475,8 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
-    _SCN_TMFV_RESULT = TAG.." ABORT: aucun joueur BLUE"
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
+    _SCN_TMFV_RESULT = TAG.." ABORT: no BLUE player"
     cleanup() ; return _SCN_TMFV_RESULT
 end
 
@@ -506,7 +506,7 @@ if not menu_init then
     cleanup() ; return _SCN_TMFV_RESULT
 end
 menu_init:addSubMenu({ ctld.tr("CTLD") }, MENU_NAME, { order = 0, enabled = true })
--- Force order=0 + enabled=true même si nœud existe déjà (addSubMenu idempotent met à jour depuis CTLD_menu.lua fix)
+-- Force order=0 + enabled=true even if the node already exists (idempotent addSubMenu updates it since the CTLD_menu.lua fix)
 local _rNode = menu_init:_getNode(MENU_PATH)
 if _rNode then _rNode.order = 0 ; _rNode.enabled = true end
 menu_init:refresh()
@@ -515,7 +515,7 @@ _SCN_TMFV_CLEANUP = cleanup
 _SCN_TMFV_RESULT  = TAG.." STARTED"
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | 5 steps ===")
-trigger.action.outText(TAG.." démarrage — 5 steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — 5 steps | "..S.transport:getName(), 8)
 advanceStep()
 
 end  -- do isolation scope

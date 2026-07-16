@@ -52,3 +52,6 @@ dofile(SRC .. "CTLD_player.lua")
 
 -- ── Orchestrator ──────────────────────────────────────────────
 dofile(SRC .. "CTLD_core.lua")
+
+-- ── Legacy v1→v2 API wrappers (last in listToMerge, before CTLD_userConfig) ──
+dofile(SRC .. "legacy/legacy_api.lua")

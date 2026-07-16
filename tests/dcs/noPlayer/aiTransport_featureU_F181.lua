@@ -4,10 +4,10 @@
 -- aiTransport_featureU_F181.lua  [AUTO]
 -- F-181 — Feature U : getTemplateByName + aiPickVehicleEntry isAASystem
 --
--- PRÉREQUIS : CTLD initialisé, CTLDCrateAssemblyManager et CTLDSceneManager accessibles.
---   Ne nécessite pas de zones DCS dans le .miz.
+-- PREREQUISITES: CTLD initialized, CTLDCrateAssemblyManager and CTLDSceneManager accessible.
+--   Does not require any DCS zones in the .miz.
 --
--- OBJECTIF : vérifier que :
+-- GOAL: verify that:
 --   F-181.1  getTemplateByName("HAWK AA System")   → template non-nil
 --   F-181.2  getTemplateByName("Patriot AA System") → template non-nil
 --   F-181.3  getTemplateByName("NASAMS AA System")  → template non-nil
@@ -15,9 +15,9 @@
 --   F-181.5  getTemplateByName("KUB AA System")     → template non-nil
 --   F-181.6  getTemplateByName("S-300 AA System")   → template non-nil
 --   F-181.7  getTemplateByName("Unknown System")    → nil
---   F-181.8  aiPickVehicleEntry sur stock { ["HAWK AA System"]=1 } → isAASystem=true, isScene=false
---   F-181.9  aiPickVehicleEntry sur stock { ["FARP Alpha"]=1 }     → isScene=true,    isAASystem=false/nil
---   F-181.10 aiPickVehicleEntry sur stock { ["Hummer"]=1 }         → isScene=false,   isAASystem=false/nil
+--   F-181.8  aiPickVehicleEntry on stock { ["HAWK AA System"]=1 } → isAASystem=true, isScene=false
+--   F-181.9  aiPickVehicleEntry on stock { ["FARP Alpha"]=1 }     → isScene=true,    isAASystem=false/nil
+--   F-181.10 aiPickVehicleEntry on stock { ["Hummer"]=1 }         → isScene=false,   isAASystem=false/nil
 -- =============================================================================
 
 -- ── CTLD-ready guard ─────────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ report("==== START " .. START .. " ====")
 
 local aam = CTLDCrateAssemblyManager.getInstance()
 
--- ── F-181.1 à F-181.6 : getTemplateByName — tous les templates connus ───────
+-- ── F-181.1 to F-181.6 : getTemplateByName — all known templates ────────────
 local knownTemplates = {
     "HAWK AA System",
     "Patriot AA System",
@@ -80,20 +80,20 @@ for i, name in ipairs(knownTemplates) do
     if t then
         check("F-181." .. i .. "b", "template.name == '" .. name .. "'",
               t.name == name, tostring(t.name))
-        check("F-181." .. i .. "c", "template.parts non-vide",
+        check("F-181." .. i .. "c", "template.parts non-empty",
               type(t.parts) == "table" and #t.parts > 0,
               "parts count=" .. tostring(t.parts and #t.parts))
     end
 end
 
--- ── F-181.7 : nom inconnu → nil ─────────────────────────────────────────────
+-- ── F-181.7 : unknown name → nil ────────────────────────────────────────────
 check("F-181.7", "getTemplateByName('Unknown System') → nil",
       aam:getTemplateByName("Unknown System") == nil)
 check("F-181.7b", "getTemplateByName(nil) → nil (guard)",
       aam:getTemplateByName(nil) == nil)
 
 -- ── F-181.8 : aiPickVehicleEntry HAWK AA System → isAASystem=true ───────────
--- Fake zones : tables brutes avec les champs requis ; on appelle la méthode en dot notation
+-- Fake zones: raw tables with the required fields; the method is called in dot notation
 local function makeFakeZone(stockTable)
     return { _aiVehicleStock = { isAll=false, init=stockTable, current=stockTable } }
 end
@@ -117,19 +117,19 @@ check("F-181.9", "entry FARP Alpha non-nil", entryFarp ~= nil)
 if entryFarp then
     check("F-181.9b", "entry.isScene=true (CTLDSceneManager)",
           entryFarp.isScene == true, tostring(entryFarp.isScene))
-    check("F-181.9c", "entry.isAASystem=false (scène passe avant AA)",
+    check("F-181.9c", "entry.isAASystem=false (scene takes precedence over AA)",
           entryFarp.isAASystem == false or entryFarp.isAASystem == nil,
           tostring(entryFarp.isAASystem))
 end
 
--- ── F-181.10 : Hummer → DCS natif (isScene=false, isAASystem=false) ──────────
+-- ── F-181.10 : Hummer → native DCS (isScene=false, isAASystem=false) ─────────
 local fakeZoneHummer = makeFakeZone({ ["Hummer"] = 1 })
 local entryHummer = CTLDTroopZone.aiPickVehicleEntry(fakeZoneHummer)
 check("F-181.10", "entry Hummer non-nil", entryHummer ~= nil)
 if entryHummer then
-    check("F-181.10b", "entry.isScene=false (DCS natif)",
+    check("F-181.10b", "entry.isScene=false (native DCS)",
           entryHummer.isScene == false, tostring(entryHummer.isScene))
-    check("F-181.10c", "entry.isAASystem=false (DCS natif, pas de template AA)",
+    check("F-181.10c", "entry.isAASystem=false (native DCS, no AA template)",
           entryHummer.isAASystem == false or entryHummer.isAASystem == nil,
           tostring(entryHummer.isAASystem))
 end

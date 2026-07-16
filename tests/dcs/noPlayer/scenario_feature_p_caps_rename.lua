@@ -1,26 +1,26 @@
 ---@diagnostic disable
 -- @tier: auto
 -- =============================================================================
--- AUTO — Feature P : validation renommage capabilitiesByType + groundVehicleWeights
+-- AUTO — Feature P: capabilitiesByType + groundVehicleWeights rename validation
 -- =============================================================================
--- Vérifie que tous les champs renommés sont correctement définis en config
--- et correctement lus par les managers (CTLDTroopManager, CTLDCrateManager,
+-- Verifies that all renamed fields are correctly defined in config
+-- and correctly read by the managers (CTLDTroopManager, CTLDCrateManager,
 -- CTLDPlayerManager, CTLDVehicleSpawner).
 --
--- U-97 : capabilitiesByType["UH-1H"] — tous champs renommés + valeurs attendues
--- U-98 : capabilitiesByType["Mi-24P"] — champs sans parachute/véhicule entier
--- U-99 : groundVehicleWeights — valeurs attendues
+-- U-97 : capabilitiesByType["UH-1H"] — all renamed fields + expected values
+-- U-98 : capabilitiesByType["Mi-24P"] — fields without parachute/whole vehicle
+-- U-99 : groundVehicleWeights — expected values
 -- F-159 : _transportLimit("UH-1H") → 8
 -- F-160 : _transportLimit("Mi-24P") → 10
--- F-161 : _transportLimit("unknown_type") → fallback numberOfTroops
+-- F-161 : _transportLimit("unknown_type") → numberOfTroops fallback
 -- F-162 : _isDynamicCapable(mockUH1H) → true
 -- F-163 : _isDynamicCapable(mockSK60) → false
 -- F-164 : _detectCapabilities(mockUH1H) → isTransport=true, canCarryVehicles=true
 -- F-165 : _detectCapabilities(mockMi24P) → isTransport=true, canCarryVehicles=false
--- F-166 : loadVehicle 2ème chargement bloqué par maxWholeVehiclesOnboard=1
+-- F-166 : loadVehicle 2nd load blocked by maxWholeVehiclesOnboard=1
 --
--- Prérequis : aucun (entièrement mocké)
--- Famille   : auto
+-- Prerequisites: none (fully mocked)
+-- Family    : auto
 -- =============================================================================
 
 -- ── CTLD-ready guard ───────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ if uh1h then
     check     ("U-97 maxTroopsOnboard",           uh1h.maxTroopsOnboard,         8)
     check     ("U-97 maxCratesOnboard",           uh1h.maxCratesOnboard,         1)
     check     ("U-97 maxWholeVehiclesOnboard",    uh1h.maxWholeVehiclesOnboard,  1)
-    -- vérifier que les ANCIENS noms n'existent plus
+    -- verify the OLD names no longer exist
     checkFalse("U-97 old 'crates' gone",              uh1h.crates)
     checkFalse("U-97 old 'troops' gone",              uh1h.troops)
     checkFalse("U-97 old 'unitLoadLimits' gone",      uh1h.unitLoadLimits)
@@ -129,7 +129,7 @@ check("U-99 BRDM-2 weight",          gvw["BRDM-2"],               7000)
 check("U-99 BTR_D weight",           gvw["BTR_D"],                8000)
 check("U-99 M1045 HMMWV TOW weight", gvw["M1045 HMMWV TOW"],      5000)
 check("U-99 M1043 HMMWV Arm weight", gvw["M1043 HMMWV Armament"], 2500)
--- vérifier que l'ancien nom ne retourne rien
+-- verify the old name returns nothing
 local old_vw = ctld.gs("vehiclesWeight")
 checkFalse("U-99 old 'vehiclesWeight' key gone", old_vw ~= nil)
 
@@ -173,7 +173,7 @@ local isTransport165, canCarry165 = pm:_detectCapabilities(mockMi24_unit)
 checkTrue ("F-165 isTransport(Mi-24P)",           isTransport165)
 checkFalse("F-165 canCarryVehicles(Mi-24P)=false", canCarry165)
 
--- ── F-166 : loadVehicle bloqué par maxWholeVehiclesOnboard=1 ─────────────────
+-- ── F-166 : loadVehicle blocked by maxWholeVehiclesOnboard=1 ─────────────────
 ctld.utils.log("INFO", "── F-166 : maxWholeVehiclesOnboard capacity guard ──")
 local vs = CTLDVehicleSpawner.getInstance()
 
@@ -187,18 +187,18 @@ local mockTransport166 = {
 local veh0 = CTLDVehicle:new({ id = "fp166_v0", vehicleType = "M1043 HMMWV Armament" })
 local veh1 = CTLDVehicle:new({ id = "fp166_v1", vehicleType = "M1045 HMMWV TOW" })
 
--- veh0 : déjà LOADED sur ce transport (occupe le slot unique)
+-- veh0: already LOADED on this transport (occupies the single slot)
 veh0.state             = CTLDVehicle.STATE.LOADED
 veh0.loadTransportName = TRANSPORT_NAME
 veh0.loadMethod        = "menu_ctld"
 
--- veh1 : en attente de chargement
+-- veh1: waiting to be loaded
 veh1.state = CTLDVehicle.STATE.WAITING
 
 vs._vehicles["fp166_v0"] = veh0
 vs._vehicles["fp166_v1"] = veh1
 
--- Intercepter le log WARNING "vehicle capacity"
+-- Intercept the WARNING log "vehicle capacity"
 local _orig_log = ctld.utils.log
 local warnSeen = false
 ctld.utils.log = function(level, msg, ...)
@@ -219,7 +219,7 @@ check("F-166 veh1 still WAITING after blocked load",   veh1:getState(), CTLDVehi
 vs._vehicles["fp166_v0"] = nil
 vs._vehicles["fp166_v1"] = nil
 
--- ── Résultat final ────────────────────────────────────────────────────────────
+-- ── Final result ──────────────────────────────────────────────────────────────
 cfg.settings["debug"] = _saved_debug
 cfg.settings["debugScreenLog"] = _savedDebugScreenLog
 
@@ -227,7 +227,7 @@ local total = pass + fail
 local msg = string.format(
     "[FEAT-P] DONE — %d/%d PASS%s",
     pass, total,
-    fail > 0 and (" | " .. fail .. " FAIL — voir CTLD.log") or ""
+    fail > 0 and (" | " .. fail .. " FAIL — see CTLD.log") or ""
 )
 trigger.action.outText(msg, 15, true)
 ctld.utils.log("INFO", msg)

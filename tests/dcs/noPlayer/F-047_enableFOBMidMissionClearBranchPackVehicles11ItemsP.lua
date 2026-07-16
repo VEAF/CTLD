@@ -1,6 +1,6 @@
 ---@diagnostic disable
--- @tier: ia  (never resolves programmatically -- requires F10 visual confirmation)
--- F-47 : Enable FOB mid-mission + clearBranch Pack Vehicles + 11 items + pagination réelle
+-- @tier: human (menu)  (never resolves programmatically -- requires F10 visual confirmation)
+-- F-47 : Enable FOB mid-mission + clearBranch Pack Vehicles + 11 items + real pagination
 -- REQUIRES: F-45 executed first
 trigger.action.outText("F-47: Enable FOB + clearBranch + 11 items + pagination", 10)
 
@@ -21,15 +21,22 @@ end
 
 _SCN_F47_RESULT = "[F-47] STARTED"
 timer.scheduleFunction(function()
-    menu:setBranchEnabled({"CTLD Commands","FOB"}, true)
-    menu:clearBranch({"CTLD Commands","Pack Vehicles"})
+    local root      = ctld.tr("CTLD")
+    local cratesSub = ctld.tr("Crate Commands")
+    local packSub   = ctld.tr("Pack Equipt")
+    local fobSub    = ctld.tr("FOBs List")
+
+    menu:setBranchEnabled({root, fobSub}, true)
+    menu:addSubMenu({root, cratesSub}, packSub, { order = 25 })
+    menu:setBranchEnabled({root, cratesSub, packSub}, true)
+    menu:clearBranch({root, cratesSub, packSub})
     for i = 1, 11 do
-        menu:addCommand({"CTLD Commands","Pack Vehicles"}, "Vehicle_"..i,
+        menu:addCommand({root, cratesSub, packSub}, "Vehicle_"..i,
             function(arg) end, { id=i })
     end
     menu:refresh()
     trigger.action.outText(
-        "F-47 VISUAL CHECK:\n  FOB now visible.\n  Pack Vehicles: 9 items + Next Page (11 total).", 30)
+        "F-47 VISUAL CHECK:\n  FOBs List now visible.\n  Crate Commands > Pack Equipt: 9 items + Next Page (11 total).", 30)
     env.info("[F-47] Menu updated. Awaiting visual confirmation.")
 end, {}, timer.getTime() + 3)
 

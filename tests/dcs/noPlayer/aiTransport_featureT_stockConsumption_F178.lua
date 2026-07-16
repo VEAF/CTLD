@@ -2,14 +2,14 @@
 -- @tier: auto
 -- =============================================================================
 -- aiTransport_featureT_stockConsumption_F178.lua  [AUTO]
--- F-178 — Feature T : décrément du stock lors du pickup AI
+-- F-178 — Feature T: stock decrement on AI pickup
 --
--- PRÉREQUIS : CTLD initialisé (classes disponibles en mémoire).
---   Ne nécessite pas de zones DCS dans le .miz.
+-- PREREQUISITE: CTLD initialized (classes available in memory).
+--   Does not require DCS zones in the .miz.
 --
--- OBJECTIF : vérifier que aiConsumeTroopStock() et aiConsumeVehicleStock()
---   décrémentent correctement le stock courant, sans descendre sous 0,
---   et sans effet quand isAll=true.
+-- GOAL: verify that aiConsumeTroopStock() and aiConsumeVehicleStock()
+--   correctly decrement the current stock, without going below 0,
+--   and have no effect when isAll=true.
 -- =============================================================================
 
 -- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
@@ -69,38 +69,38 @@ local _ok, _err = pcall(function()
         },
     })
 
-    -- A.1 : premier consume → current = 2
+    -- A.1: first consume → current = 2
     zone:aiConsumeTroopStock("Standard Group")
-    check("F-178.1", "après 1 consume : current[Standard Group] = 2",
+    check("F-178.1", "after 1 consume: current[Standard Group] = 2",
           zone._aiTroopStock.current["Standard Group"] == 2,
           tostring(zone._aiTroopStock.current["Standard Group"]))
 
-    -- A.2 : deuxième consume → current = 1
+    -- A.2: second consume → current = 1
     zone:aiConsumeTroopStock("Standard Group")
-    check("F-178.2", "après 2 consumes : current[Standard Group] = 1",
+    check("F-178.2", "after 2 consumes: current[Standard Group] = 1",
           zone._aiTroopStock.current["Standard Group"] == 1,
           tostring(zone._aiTroopStock.current["Standard Group"]))
 
-    -- A.3 : troisième consume → current = 0
+    -- A.3: third consume → current = 0
     zone:aiConsumeTroopStock("Standard Group")
-    check("F-178.3", "après 3 consumes : current[Standard Group] = 0",
+    check("F-178.3", "after 3 consumes: current[Standard Group] = 0",
           zone._aiTroopStock.current["Standard Group"] == 0,
           tostring(zone._aiTroopStock.current["Standard Group"]))
 
-    -- A.4 : quatrième consume (sur stock=0) → toujours 0, pas de négatif
+    -- A.4: fourth consume (on stock=0) → still 0, no negative
     zone:aiConsumeTroopStock("Standard Group")
-    check("F-178.4", "consume sur stock=0 : toujours 0 (pas de négatif)",
+    check("F-178.4", "consume on stock=0: still 0 (no negative)",
           zone._aiTroopStock.current["Standard Group"] == 0,
           tostring(zone._aiTroopStock.current["Standard Group"]))
 
-    -- A.5 : consume d'une clé absente → pas d'erreur, autres clés intactes
+    -- A.5: consume of an absent key → no error, other keys intact
     zone._aiTroopStock.current["Standard Group"] = 2
     zone:aiConsumeTroopStock("Unknown Template")
-    check("F-178.5", "consume template absent : Standard Group intact",
+    check("F-178.5", "consume absent template: Standard Group intact",
           zone._aiTroopStock.current["Standard Group"] == 2,
           tostring(zone._aiTroopStock.current["Standard Group"]))
 
-    -- A.6 : isAll=true → consume est no-op (aucun current à modifier)
+    -- A.6: isAll=true → consume is no-op (no current to modify)
     local zoneAll = CTLDTroopZone:new({
         zoneName     = "TEST_CONSUME_T_ALL",
         isAIPickup   = true,
@@ -108,7 +108,7 @@ local _ok, _err = pcall(function()
         _aiTroopStock = { isAll = true, init = {}, current = {} },
     })
     zoneAll:aiConsumeTroopStock("Standard Group")  -- must not error
-    check("F-178.6", "isAll=true : consume est no-op (pas d'erreur)", true)
+    check("F-178.6", "isAll=true: consume is no-op (no error)", true)
 
     -- ═══════════════════════════════════════════════════════════════════════
     -- SECTION B — Vehicle stock consumption
@@ -125,25 +125,25 @@ local _ok, _err = pcall(function()
         },
     })
 
-    -- B.1 : premier consume véhicule → 1
+    -- B.1: first vehicle consume → 1
     zoneV:aiConsumeVehicleStock("Hummer")
-    check("F-178.7", "après 1 consume vehicule : current[Hummer] = 1",
+    check("F-178.7", "after 1 vehicle consume: current[Hummer] = 1",
           zoneV._aiVehicleStock.current["Hummer"] == 1,
           tostring(zoneV._aiVehicleStock.current["Hummer"]))
 
-    -- B.2 : deuxième consume → 0
+    -- B.2: second consume → 0
     zoneV:aiConsumeVehicleStock("Hummer")
-    check("F-178.8", "après 2 consumes vehicule : current[Hummer] = 0",
+    check("F-178.8", "after 2 vehicle consumes: current[Hummer] = 0",
           zoneV._aiVehicleStock.current["Hummer"] == 0,
           tostring(zoneV._aiVehicleStock.current["Hummer"]))
 
-    -- B.3 : troisième consume (stock=0) → toujours 0
+    -- B.3: third consume (stock=0) → still 0
     zoneV:aiConsumeVehicleStock("Hummer")
-    check("F-178.9", "consume vehicule sur stock=0 : toujours 0",
+    check("F-178.9", "vehicle consume on stock=0: still 0",
           zoneV._aiVehicleStock.current["Hummer"] == 0,
           tostring(zoneV._aiVehicleStock.current["Hummer"]))
 
-    -- B.4 : stock=-1 (illimité) → consume est no-op (s=-1, condition s>0 fausse)
+    -- B.4: stock=-1 (unlimited) → consume is no-op (s=-1, condition s>0 false)
     local zoneVUnlimited = CTLDTroopZone:new({
         zoneName    = "TEST_CONSUME_V_UNLIMITED",
         isAIPickup  = true,
@@ -155,11 +155,11 @@ local _ok, _err = pcall(function()
         },
     })
     zoneVUnlimited:aiConsumeVehicleStock("M1025 HMMWV Armament")
-    check("F-178.10", "stock=-1 (illimité) : consume est no-op, reste -1",
+    check("F-178.10", "stock=-1 (unlimited): consume is no-op, stays -1",
           zoneVUnlimited._aiVehicleStock.current["M1025 HMMWV Armament"] == -1,
           tostring(zoneVUnlimited._aiVehicleStock.current["M1025 HMMWV Armament"]))
 
-    report("✅ F-178 ALL PASS — décrément stock troop/vehicle correct")
+    report("✅ F-178 ALL PASS — troop/vehicle stock decrement correct")
 
 end)
 

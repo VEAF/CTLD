@@ -107,4 +107,4 @@ nav:
     - Migration v1 → v2: developer/migration-v1-v2.md
     - API reference: developer/api-reference.md
     - Design spec: developer/design-spec.md
-  - Integration Testing: recette-procedure.md
+  - Integration Testing: integration-testing.md

@@ -1,31 +1,31 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-slow  (no human, but needs minutes of real AI-heli flight to resolve -- excluded from the fast --headless sweep; run with --tier auto-slow. Core logic already covered fast by noPlayer aiTransport_featureT/U F-176..182. See ticket 06/07)
 -- =============================================================================
 -- tests/dcs/pilotPassive/scenario_mt10_ai_postspawn_task.lua
 -- CTLD — AI post-spawn task assignment: gotoNearestWPZ + AttackNearestEnemyOnLos
 --
--- Chaque run spawne des clones des groupes IA via env.mission + coalition.addGroup,
--- puis les détruit en cleanup. Les groupes late-activation du .miz (heliai_mt10a/b)
--- ne sont jamais activés : répétable sans redémarrage de mission.
+-- Each run spawns clones of the AI groups via env.mission + coalition.addGroup,
+-- then destroys them in cleanup. The .miz late-activation groups (heliai_mt10a/b)
+-- are never activated: repeatable without restarting the mission.
 --
--- Prérequis mission :
---   - heliai_mt10a : UH-1H BLUE, AI, activation retardée (jamais activé, template seul)
---   - heliai_mt10b : UH-1H BLUE, AI, activation retardée (jamais activé, template seul)
---   - AIZ_depot_B_P_T_10   : zone pickup T, stock=10, r~60m
---   - AIZ_mt10d_B_D_G      : zone dropoff G (sol), r~274m
---   - WPZ_mt10_B           : zone waypoint BLUE (clé parsée "mt10")
---   - mt10_enemy_RED       : groupe sol RED, <3 km de AIZ_livraison, LOS dégagée
---   - ctldLogPath défini dans le .miz (trigger MISSION START)
---   - Slot BLUE occupé (joueur humain pour MenuManager)
---   - CTLD.lua injecté avant ce script (attendre 3-5 s)
+-- Mission pre-requisites:
+--   - heliai_mt10a : UH-1H BLUE, AI, delayed activation (never activated, template only)
+--   - heliai_mt10b : UH-1H BLUE, AI, delayed activation (never activated, template only)
+--   - AIZ_depot_B_P_T_10   : T pickup zone, stock=10, r~60m
+--   - AIZ_mt10d_B_D_G      : G dropoff zone (ground), r~274m
+--   - WPZ_mt10_B           : BLUE waypoint zone (parsed key "mt10")
+--   - mt10_enemy_RED       : RED ground group, <3 km from delivery AIZ, clear LOS
+--   - ctldLogPath defined in the .miz (MISSION START trigger)
+--   - BLUE slot occupied (human player for MenuManager)
+--   - CTLD.lua injected before this script (wait 3-5 s)
 --
--- Cinématique (6 steps, injection unique) :
---   S1 [auto]  Setup A : vérifie prérequis, spawne clone mt10a_run, force template WPZ
---   S2 [auto]  Attente cycle complet A (pickup → dropoff) via waitFor deux-phases
---   S3 [auto]  Vérification A : CTLD.log contient gotoNearestWPZ → 'mt10'
---   S4 [auto]  Setup B : reset stock, spawne clone mt10b_run, force template Attack
---   S5 [auto]  Attente cycle complet B (pickup → dropoff) via waitFor deux-phases
---   S6 [auto]  Vérification B : CTLD.log contient AttackNearestEnemyOnLos avec coords
+-- Sequence (6 steps, single injection):
+--   S1 [auto]  Setup A: check pre-requisites, spawn clone mt10a_run, force WPZ template
+--   S2 [auto]  Await full cycle A (pickup → dropoff) via two-phase waitFor
+--   S3 [auto]  Check A: CTLD.log contains gotoNearestWPZ → 'mt10'
+--   S4 [auto]  Setup B: reset stock, spawn clone mt10b_run, force Attack template
+--   S5 [auto]  Await full cycle B (pickup → dropoff) via two-phase waitFor
+--   S6 [auto]  Check B: CTLD.log contains AttackNearestEnemyOnLos with coords
 --
 -- @scenario  MT-10
 -- @version   4.0 — 2026-07-01
@@ -41,7 +41,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_MT10_RUNNING then
-    trigger.action.outText("[MT-10] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[MT-10] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_MT10_RESULT or "[MT-10] RUNNING"
 end
 _SCN_MT10_RUNNING = true
@@ -64,13 +64,13 @@ cfg.settings["debugScreenLog"] = false
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG       = "[MT-10]"
 local NAME      = "AI post-spawn task: gotoNearestWPZ + AttackNearestEnemyOnLos"
-local MENU_NAME = "Recette CTLD"
+local MENU_NAME = "CTLD Test"
 local MENU_PATH = { ctld.tr("CTLD"), MENU_NAME }
 
--- Sources dans la mission (late-activation, jamais activés — servent de templates)
+-- Sources in the mission (late-activation, never activated — used as templates)
 local AI_SRC_A  = "heliai_mt10a"
 local AI_SRC_B  = "heliai_mt10b"
--- Noms des clones spawned dynamiquement (utilisés dans tous les checks CTLD)
+-- Names of the dynamically spawned clones (used in all CTLD checks)
 local AI_UNIT_A = "mt10a_run"
 local AI_UNIT_B = "mt10b_run"
 
@@ -110,7 +110,7 @@ local function check(id, desc, cond, details)
     else fail(id, desc .. (details and (" | "..details) or "")) end
 end
 
--- Deep copy de table (env.mission retourne des tables non copiables par ctld.utils.deepCopy)
+-- Deep copy of a table (env.mission returns tables not copyable by ctld.utils.deepCopy)
 local function deepCopy(orig)
     local copy
     if type(orig) == "table" then
@@ -123,7 +123,7 @@ local function deepCopy(orig)
     return copy
 end
 
--- Cherche un groupe par nom dans env.mission ; retourne (groupData, countryId) ou (nil, nil)
+-- Finds a group by name in env.mission; returns (groupData, countryId) or (nil, nil)
 local function findGrpInMission(name)
     for _, cData in pairs(env.mission.coalition or {}) do
         for _, country in ipairs(cData.country or {}) do
@@ -137,17 +137,17 @@ local function findGrpInMission(name)
     return nil, nil
 end
 
--- Spawne un clone du groupe srcName nommé cloneName ; retourne (group, nil) ou (nil, errMsg)
--- L'unité du clone est nommée cloneName pour compatibilité CTLD transportPilotNames.
+-- Spawns a clone of group srcName named cloneName; returns (group, nil) or (nil, errMsg)
+-- The clone's unit is named cloneName for CTLD transportPilotNames compatibility.
 local function spawnClone(srcName, cloneName)
     local tmpl, ctryId = findGrpInMission(srcName)
     if not tmpl then return nil, "not found in env.mission: " .. srcName end
     local clone = deepCopy(tmpl)
     clone.name            = cloneName
-    clone.units[1].name   = cloneName   -- nom unité = nom groupe → Unit.getByName(cloneName) OK
+    clone.units[1].name   = cloneName   -- unit name = group name → Unit.getByName(cloneName) OK
     clone.groupId         = nil
     clone.units[1].unitId = nil
-    clone.lateActivation  = false       -- forcer activation immédiate au spawn
+    clone.lateActivation  = false       -- force immediate activation at spawn
     local ok, _ = pcall(coalition.addGroup, ctryId, Group.Category.HELICOPTER, clone)
     if not ok then return nil, "coalition.addGroup failed for " .. cloneName end
     local g = Group.getByName(cloneName)
@@ -217,7 +217,7 @@ local function forceAITeam(core, tm, taskName, unitName)
     return baseTmpl, nil
 end
 
--- Détruit un clone spawned si existant
+-- Destroys a spawned clone if it exists
 local function destroyClone(cloneName)
     local g = Group.getByName(cloneName)
     if g and g:isExist() then
@@ -240,12 +240,12 @@ local function cleanup()
             end)
         end
     end
-    -- Retirer les clones de transportPilotNames
+    -- Remove the clones from transportPilotNames
     local names = cfg.settings["transportPilotNames"] or {}
     for i = #names, 1, -1 do
         if names[i] == AI_UNIT_A or names[i] == AI_UNIT_B then table.remove(names, i) end
     end
-    -- Restaurer specificParams du template forcé
+    -- Restore specificParams of the forced template
     if S.forcedTmplKey then
         local ok2, tm2 = pcall(CTLDTroopManager.getInstance)
         if ok2 and tm2 then
@@ -258,10 +258,10 @@ local function cleanup()
         end
     end
     S.forcedTmplKey = nil ; S.savedSP = nil
-    -- Détruire les clones spawned
+    -- Destroy the spawned clones
     destroyClone(AI_UNIT_A)
     destroyClone(AI_UNIT_B)
-    -- Détruire les troupes déposées pendant le scénario
+    -- Destroy the troops dropped during the scenario
     local ok3, tm3 = pcall(CTLDTroopManager.getInstance)
     if ok3 and tm3 and tm3._droppedGroups then
         for _, grpName in ipairs(tm3._droppedGroups[2] or {}) do
@@ -359,25 +359,25 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
 
 -- ── 12. Steps ────────────────────────────────────────────────────────────────
 
--- Marqueurs de début de cycle pour scanLogAfter (écrits dans le log au début de chaque setup)
+-- Cycle-start markers for scanLogAfter (written to the log at the start of each setup)
 local MARKER_A = "MT10_CYCLE_A_START"
 local MARKER_B = "MT10_CYCLE_B_START"
 
--- S1 — Setup A : vérifie prérequis, spawne clone mt10a_run, force template WPZ [auto]
+-- S1 — Setup A: check pre-requisites, spawn clone mt10a_run, force WPZ template [auto]
 steps[1] = function()
     instruct(
-        "Step 1/6 — SETUP A : WPZ TASK (MT-10)\n"..
-        "Spawn clone "..AI_UNIT_A.." et configuration gotoNearestWPZ…"
+        "Step 1/6 — SETUP A: WPZ TASK (MT-10)\n"..
+        "Spawn clone "..AI_UNIT_A.." and configure gotoNearestWPZ…"
     )
     waitThen(1, function()
-        log(MARKER_A)   -- marqueur début cycle A pour scanLogAfter
+        log(MARKER_A)   -- cycle A start marker for scanLogAfter
         cfg.settings["transportPilotNames"] = { AI_UNIT_A }
         CTLDCoreManager.getInstance():_initAITransports()
 
@@ -387,8 +387,8 @@ steps[1] = function()
 
         local zP = zm._troopZones[AIZ_P]
         local zD = zm._troopZones[AIZ_D]
-        check("MT-10.1.1", "AIZ_P trouvée: "..AIZ_P, zP ~= nil)
-        check("MT-10.1.2", "AIZ_D trouvée: "..AIZ_D, zD ~= nil)
+        check("MT-10.1.1", "AIZ_P found: "..AIZ_P, zP ~= nil)
+        check("MT-10.1.2", "AIZ_D found: "..AIZ_D, zD ~= nil)
         if zP then
             check("MT-10.1.3", "AIZ_P.isAIPickup=true",  zP.isAIPickup == true)
             check("MT-10.1.4", "AIZ_P.aiCargoType=T",    zP.aiCargoType == "T")
@@ -402,39 +402,39 @@ steps[1] = function()
         end
 
         local wpzZone = zm._troopZones[WPZ_KEY]
-        check("MT-10.1.6", "WPZ trouvée (clé='"..WPZ_KEY.."')", wpzZone ~= nil)
+        check("MT-10.1.6", "WPZ found (key='"..WPZ_KEY.."')", wpzZone ~= nil)
         if wpzZone then
             check("MT-10.1.7", "WPZ.isWaypoint=true", wpzZone.isWaypoint == true,
                 "isWaypoint="..tostring(wpzZone.isWaypoint))
         end
 
         local enemyGrp = Group.getByName(ENEMY_GRP)
-        check("MT-10.1.8", "Groupe ennemi RED: "..ENEMY_GRP, enemyGrp ~= nil)
+        check("MT-10.1.8", "RED enemy group: "..ENEMY_GRP, enemyGrp ~= nil)
 
-        -- Spawn clone A depuis env.mission (ne jamais activer le groupe source)
+        -- Spawn clone A from env.mission (never activate the source group)
         local cloneA, errA = spawnClone(AI_SRC_A, AI_UNIT_A)
-        check("MT-10.1.11", "Clone "..AI_UNIT_A.." spawné depuis "..AI_SRC_A, cloneA ~= nil, errA)
+        check("MT-10.1.11", "Clone "..AI_UNIT_A.." spawned from "..AI_SRC_A, cloneA ~= nil, errA)
 
         local tmplWPZ, errT = forceAITeam(core, tm, "gotoNearestWPZ", AI_UNIT_A)
-        check("MT-10.1.9",  "Template WPZ créé (total<=transportLimit)", tmplWPZ ~= nil, errT)
-        check("MT-10.1.10", "_aiTeams[2] forcé sur 1 template", #core._aiTeams[2] == 1)
+        check("MT-10.1.9",  "WPZ template created (total<=transportLimit)", tmplWPZ ~= nil, errT)
+        check("MT-10.1.10", "_aiTeams[2] forced to 1 template", #core._aiTeams[2] == 1)
         if tmplWPZ then
             log("Template: '"..tmplWPZ.name.."' total="..tmplWPZ.total.." task="..tmplWPZ.specificParams.task)
         end
 
-        log("STEP 1 OK — clone "..AI_UNIT_A.." spawné, attente cycle complet (pickup + dropoff)")
+        log("STEP 1 OK — clone "..AI_UNIT_A.." spawned, awaiting full cycle (pickup + dropoff)")
         advanceStep()
     end)
 end
 
--- S2 — Attente cycle complet A : phase 1 pickup, phase 2 dropoff [waitFor deux-phases]
+-- S2 — Await full cycle A: phase 1 pickup, phase 2 dropoff [two-phase waitFor]
 steps[2] = function()
     instruct(
-        "Step 2/6 — ATTENTE PICKUP A (MT-10)\n"..
-        "Attente que "..AI_UNIT_A.." charge les troupes (hasTroops=true).\n"..
-        "Timeout : 900 s."
+        "Step 2/6 — AWAIT PICKUP A (MT-10)\n"..
+        "Waiting for "..AI_UNIT_A.." to load the troops (hasTroops=true).\n"..
+        "Timeout: 900 s."
     )
-    -- Phase 1 : attente pickup (hasTroops=true)
+    -- Phase 1: await pickup (hasTroops=true)
     waitFor(
         function()
             local tm = CTLDTroopManager.getInstance()
@@ -442,13 +442,13 @@ steps[2] = function()
         end,
         5, 900,
         function()
-            log("Cycle A : pickup OK — hasTroops=true, attente dropoff...")
+            log("Cycle A: pickup OK — hasTroops=true, awaiting dropoff...")
             instruct(
-                "Step 2/6 — ATTENTE DROPOFF A (MT-10)\n"..
-                "Troupes chargées. Attente dépôt (hasTroops=false).\n"..
-                "Timeout : 900 s."
+                "Step 2/6 — AWAIT DROPOFF A (MT-10)\n"..
+                "Troops loaded. Awaiting drop-off (hasTroops=false).\n"..
+                "Timeout: 900 s."
             )
-            -- Phase 2 : attente dropoff (hasTroops=false)
+            -- Phase 2: await dropoff (hasTroops=false)
             waitFor(
                 function()
                     local tm = CTLDTroopManager.getInstance()
@@ -458,62 +458,62 @@ steps[2] = function()
                 function()
                     local tm    = CTLDTroopManager.getInstance()
                     local hasTr = tm:hasTroops(AI_UNIT_A)
-                    check("MT-10.2.1", "hasTroops=false (cycle complet)", not hasTr,
+                    check("MT-10.2.1", "hasTroops=false (full cycle)", not hasTr,
                         "hasTroops="..tostring(hasTr))
                     local deployed = {}
                     local tm2 = CTLDTroopManager.getInstance()
                     for _, grpName in ipairs(tm2._droppedGroups[2] or {}) do
                         deployed[#deployed + 1] = grpName
                     end
-                    check("MT-10.2.4", "Au moins 1 groupe BLUE déposé", #deployed > 0, "count="..#deployed)
-                    log("Cycle A terminé — attente 3s pour lecture log")
+                    check("MT-10.2.4", "At least 1 BLUE group dropped", #deployed > 0, "count="..#deployed)
+                    log("Cycle A finished — waiting 3s to read log")
                     waitThen(3, function() advanceStep() end)
                 end,
                 function()
-                    fail("MT-10.2.1", "timeout 900s — dropoff cycle A pas terminé")
+                    fail("MT-10.2.1", "timeout 900s — cycle A dropoff not finished")
                     advanceStep()
                 end
             )
         end,
         function()
-            fail("MT-10.2.1", "timeout 900s — pickup cycle A pas commencé (hasTroops jamais true)")
+            fail("MT-10.2.1", "timeout 900s — cycle A pickup did not start (hasTroops never true)")
             advanceStep()
         end
     )
 end
 
--- S3 — Vérification A : CTLD.log contient gotoNearestWPZ [auto]
+-- S3 — Check A: CTLD.log contains gotoNearestWPZ [auto]
 steps[3] = function()
     instruct(
-        "Step 3/6 — VÉRIF LOG A (MT-10)\n"..
-        "Lecture du CTLD.log pour gotoNearestWPZ → '"..WPZ_KEY.."'…"
+        "Step 3/6 — LOG CHECK A (MT-10)\n"..
+        "Reading CTLD.log for gotoNearestWPZ → '"..WPZ_KEY.."'…"
     )
-    waitThen(3, function()  -- délai 3s pour flush log
+    waitThen(3, function()  -- 3s delay to flush the log
         local logLine = scanLogAfter(MARKER_A, "_assignPostSpawnTask")
-        check("MT-10.2.2", "CTLD.log contient '_assignPostSpawnTask' (cycle A)",
-            logLine ~= nil, logLine or "aucune ligne après "..MARKER_A)
+        check("MT-10.2.2", "CTLD.log contains '_assignPostSpawnTask' (cycle A)",
+            logLine ~= nil, logLine or "no line after "..MARKER_A)
         if logLine then
             trigger.action.outText(TAG.." Log A: "..logLine, 30)
-            check("MT-10.2.3", "Tâche = 'gotoNearestWPZ'",
-                string.find(logLine, "gotoNearestWPZ", 1, true) ~= nil, "ligne="..logLine)
-            check("MT-10.2.4b", "Cible = WPZ '"..WPZ_KEY.."'",
-                string.find(logLine, WPZ_KEY, 1, true) ~= nil, "ligne="..logLine)
+            check("MT-10.2.3", "Task = 'gotoNearestWPZ'",
+                string.find(logLine, "gotoNearestWPZ", 1, true) ~= nil, "line="..logLine)
+            check("MT-10.2.4b", "Target = WPZ '"..WPZ_KEY.."'",
+                string.find(logLine, WPZ_KEY, 1, true) ~= nil, "line="..logLine)
         end
-        -- Détruire le clone A maintenant que le cycle est terminé
+        -- Destroy clone A now that the cycle is finished
         destroyClone(AI_UNIT_A)
-        log("STEP 3 OK — Sub-test A WPZ validé, passage au setup B")
+        log("STEP 3 OK — sub-test A WPZ validated, moving to setup B")
         advanceStep()
     end)
 end
 
--- S4 — Setup B : reset stock, spawne clone mt10b_run, force template Attack [auto]
+-- S4 — Setup B: reset stock, spawn clone mt10b_run, force Attack template [auto]
 steps[4] = function()
     instruct(
-        "Step 4/6 — SETUP B : ATTACK TASK (MT-10)\n"..
-        "Spawn clone "..AI_UNIT_B.." et configuration AttackNearestEnemyOnLos…"
+        "Step 4/6 — SETUP B: ATTACK TASK (MT-10)\n"..
+        "Spawn clone "..AI_UNIT_B.." and configure AttackNearestEnemyOnLos…"
     )
     waitThen(1, function()
-        log(MARKER_B)   -- marqueur début cycle B pour scanLogAfter
+        log(MARKER_B)   -- cycle B start marker for scanLogAfter
         local zm   = CTLDZoneManager.getInstance()
         local tm   = CTLDTroopManager.getInstance()
         local core = CTLDCoreManager.getInstance()
@@ -525,7 +525,7 @@ steps[4] = function()
             log("Stock AIZ_P reset: cur="..zP.pickCurrentStock)
         end
 
-        -- Restaurer specificParams du template forcé de la phase A
+        -- Restore specificParams of the phase A forced template
         if S.forcedTmplKey then
             for _, t in ipairs(tm._templates) do
                 if (t._dbKey or t.name) == S.forcedTmplKey then
@@ -535,35 +535,35 @@ steps[4] = function()
             S.forcedTmplKey = nil ; S.savedSP = nil
         end
 
-        -- Spawn clone B depuis env.mission
+        -- Spawn clone B from env.mission
         local cloneB, errB = spawnClone(AI_SRC_B, AI_UNIT_B)
-        check("MT-10.3.4", "Clone "..AI_UNIT_B.." spawné depuis "..AI_SRC_B, cloneB ~= nil, errB)
+        check("MT-10.3.4", "Clone "..AI_UNIT_B.." spawned from "..AI_SRC_B, cloneB ~= nil, errB)
 
         local tmplAttack, errT = forceAITeam(core, tm, "AttackNearestEnemyOnLos", AI_UNIT_B)
         core._aiPilotNames[AI_UNIT_B] = true
-        check("MT-10.3.1", "Template Attack créé (total<=transportLimit)", tmplAttack ~= nil, errT)
-        check("MT-10.3.2", "_aiTeams[2] forcé sur 1 template", #core._aiTeams[2] == 1)
+        check("MT-10.3.1", "Attack template created (total<=transportLimit)", tmplAttack ~= nil, errT)
+        check("MT-10.3.2", "_aiTeams[2] forced to 1 template", #core._aiTeams[2] == 1)
         if tmplAttack then
             log("Template: '"..tmplAttack.name.."' total="..tmplAttack.total.." task="..tmplAttack.specificParams.task)
         end
 
         local enemyGrp = Group.getByName(ENEMY_GRP)
         local alive = enemyGrp ~= nil and enemyGrp:getSize() > 0
-        check("MT-10.3.3", "Ennemi RED vivant pour LOS", alive)
+        check("MT-10.3.3", "RED enemy alive for LOS", alive)
 
-        log("STEP 4 OK — clone "..AI_UNIT_B.." spawné, attente cycle complet")
+        log("STEP 4 OK — clone "..AI_UNIT_B.." spawned, awaiting full cycle")
         advanceStep()
     end)
 end
 
--- S5 — Attente cycle complet B : phase 1 pickup, phase 2 dropoff [waitFor deux-phases]
+-- S5 — Await full cycle B: phase 1 pickup, phase 2 dropoff [two-phase waitFor]
 steps[5] = function()
     instruct(
-        "Step 5/6 — ATTENTE PICKUP B (MT-10)\n"..
-        "Attente que "..AI_UNIT_B.." charge les troupes (hasTroops=true).\n"..
-        "Timeout : 900 s."
+        "Step 5/6 — AWAIT PICKUP B (MT-10)\n"..
+        "Waiting for "..AI_UNIT_B.." to load the troops (hasTroops=true).\n"..
+        "Timeout: 900 s."
     )
-    -- Phase 1 : attente pickup (hasTroops=true)
+    -- Phase 1: await pickup (hasTroops=true)
     waitFor(
         function()
             local tm = CTLDTroopManager.getInstance()
@@ -571,13 +571,13 @@ steps[5] = function()
         end,
         5, 900,
         function()
-            log("Cycle B : pickup OK — hasTroops=true, attente dropoff...")
+            log("Cycle B: pickup OK — hasTroops=true, awaiting dropoff...")
             instruct(
-                "Step 5/6 — ATTENTE DROPOFF B (MT-10)\n"..
-                "Troupes chargées. Attente dépôt (hasTroops=false).\n"..
-                "Timeout : 900 s."
+                "Step 5/6 — AWAIT DROPOFF B (MT-10)\n"..
+                "Troops loaded. Awaiting drop-off (hasTroops=false).\n"..
+                "Timeout: 900 s."
             )
-            -- Phase 2 : attente dropoff (hasTroops=false)
+            -- Phase 2: await dropoff (hasTroops=false)
             waitFor(
                 function()
                     local tm = CTLDTroopManager.getInstance()
@@ -587,38 +587,38 @@ steps[5] = function()
                 function()
                     local tm    = CTLDTroopManager.getInstance()
                     local hasTr = tm:hasTroops(AI_UNIT_B)
-                    check("MT-10.4.1", "hasTroops=false (cycle complet)", not hasTr,
+                    check("MT-10.4.1", "hasTroops=false (full cycle)", not hasTr,
                         "hasTroops="..tostring(hasTr))
-                    log("Cycle B terminé — attente 3s pour lecture log")
+                    log("Cycle B finished — waiting 3s to read log")
                     waitThen(3, function() advanceStep() end)
                 end,
                 function()
-                    fail("MT-10.4.1", "timeout 900s — dropoff cycle B pas terminé")
+                    fail("MT-10.4.1", "timeout 900s — cycle B dropoff not finished")
                     advanceStep()
                 end
             )
         end,
         function()
-            fail("MT-10.4.1", "timeout 900s — pickup cycle B pas commencé (hasTroops jamais true)")
+            fail("MT-10.4.1", "timeout 900s — cycle B pickup did not start (hasTroops never true)")
             advanceStep()
         end
     )
 end
 
--- S6 — Vérification B : CTLD.log contient AttackNearestEnemyOnLos [auto]
+-- S6 — Check B: CTLD.log contains AttackNearestEnemyOnLos [auto]
 steps[6] = function()
     instruct(
-        "Step 6/6 — VÉRIF LOG B (MT-10)\n"..
-        "Lecture du CTLD.log pour AttackNearestEnemyOnLos…"
+        "Step 6/6 — LOG CHECK B (MT-10)\n"..
+        "Reading CTLD.log for AttackNearestEnemyOnLos…"
     )
-    waitThen(3, function()  -- délai 3s pour flush log
+    waitThen(3, function()  -- 3s delay to flush the log
         local logLine = scanLogAfter(MARKER_B, "_assignPostSpawnTask")
         if logLine and not string.find(logLine, "AttackNearestEnemyOnLos", 1, true) then
             logLine = nil
         end
         if not logLine then
             local enemyGrp = Group.getByName(ENEMY_GRP)
-            local diagInfo = "groupe="..ENEMY_GRP.." present="..tostring(enemyGrp ~= nil)
+            local diagInfo = "group="..ENEMY_GRP.." present="..tostring(enemyGrp ~= nil)
             if enemyGrp then
                 local u0 = enemyGrp:getUnit(1)
                 if u0 then
@@ -632,17 +632,17 @@ steps[6] = function()
                     end
                 end
             end
-            log("DIAG ennemi: "..diagInfo)
+            log("enemy DIAG: "..diagInfo)
         end
-        check("MT-10.4.2", "CTLD.log contient 'AttackNearestEnemyOnLos'", logLine ~= nil,
-            logLine or "ennemi hors portée ou pas en LOS")
+        check("MT-10.4.2", "CTLD.log contains 'AttackNearestEnemyOnLos'", logLine ~= nil,
+            logLine or "enemy out of range or not in LOS")
         if logLine then
             trigger.action.outText(TAG.." Log B: "..logLine, 30)
             local hasCoords = string.find(logLine, "%d+%.%d") ~= nil
-            check("MT-10.4.3", "Coordonnées cible loggées (ennemi en LOS)", hasCoords,
-                "ligne="..logLine)
+            check("MT-10.4.3", "Target coordinates logged (enemy in LOS)", hasCoords,
+                "line="..logLine)
         end
-        log("MT-10 ALL — gotoNearestWPZ + AttackNearestEnemyOnLos validés")
+        log("MT-10 ALL — gotoNearestWPZ + AttackNearestEnemyOnLos validated")
         advanceStep()
     end)
 end
@@ -665,7 +665,7 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
     _SCN_MT10_RESULT = "[MT-10] ABORT"
     return _SCN_MT10_RESULT
@@ -706,7 +706,7 @@ menu_init:refresh()
 _SCN_MT10_CLEANUP = cleanup
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 _SCN_MT10_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_MT10_RESULT until PASS/FAIL
 advanceStep()
 

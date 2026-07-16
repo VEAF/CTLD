@@ -2,13 +2,13 @@
 -- @tier: auto
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_farp_countryside_spawn.lua
--- CTLD — Spawn scène "Countryside FARP" à la position du static coord_farp-1
+-- CTLD — Spawn "Countryside FARP" scene at the coord_farp-1 static position
 --
--- Exécute playSceneAtPos "Countryside FARP" au point du static "coord_farp-1".
--- Scénario d'utilité ponctuelle : injection unique, pas de steps humains.
+-- Runs playSceneAtPos "Countryside FARP" at the "coord_farp-1" static point.
+-- One-off utility scenario: single injection, no human steps.
 --
--- Prérequis :
---   - Static object "coord_farp-1" présent dans la mission
+-- Prerequisites:
+--   - Static object "coord_farp-1" present in the mission
 --   - Inject CTLD.lua first, wait 3–5 s for init.
 --
 -- @scenario  CS-FARP-SPAWN
@@ -24,7 +24,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_CSFARPSPAWN_RUNNING then
-    trigger.action.outText("[CS-FARP-SPAWN] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[CS-FARP-SPAWN] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_CSFARPSPAWN_RESULT or "[CS-FARP-SPAWN] RUNNING"
 end
 _SCN_CSFARPSPAWN_RUNNING = true
@@ -53,21 +53,15 @@ local function cleanup()
     log("cleanup done")
 end
 
--- ── 13. Exécution principale ─────────────────────────────────────────────────
+-- ── 13. Main execution ───────────────────────────────────────────────────────
 log("=== START: "..NAME.." ===")
 
 local ok, err = pcall(function()
-    local anchor = StaticObject.getByName("coord_farp-1")
-    if not anchor or not anchor:isExist() then
-        trigger.action.outText(TAG.." [FAIL] static 'coord_farp-1' not found", 15)
-        log("[FAIL] static 'coord_farp-1' not found")
-        _SCN_CSFARPSPAWN_RESULT = TAG.." FAIL: static 'coord_farp-1' not found"
-        return
-    end
-
-    local pos         = anchor:getPoint()
+    -- coord_farp-1 anchor hardcoded: the static is absent from the VEAF test mission.
+    -- Map coords provided by David (X/Z in metres, ~6.4 m ≈ 21 ft).
+    local pos         = { x = -356482, y = 6.4, z = 616908 }
     local coalitionId = coalition.side.BLUE
-    local countryId   = anchor:getCountry()
+    local countryId   = country.id.USA
 
     log(string.format("anchor pos=(%.1f, %.1f, %.1f) coa=%d cty=%d",
         pos.x, pos.y, pos.z, coalitionId, countryId))
@@ -89,7 +83,7 @@ local ok, err = pcall(function()
 end)
 
 if not ok then
-    local msg = TAG.." ❌ [KO] "..NAME.." — ERREUR: "..tostring(err)
+    local msg = TAG.." ❌ [KO] "..NAME.." — ERROR: "..tostring(err)
     log(msg)
     trigger.action.outText(msg, 15)
     _SCN_CSFARPSPAWN_RESULT = TAG.." FAIL: "..tostring(err)

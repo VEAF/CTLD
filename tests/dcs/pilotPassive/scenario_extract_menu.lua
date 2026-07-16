@@ -1,5 +1,7 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot occupied -- structural precondition, not piloting/
+--                     judgment; no F10 interaction despite the vestigial "CTLD Test"
+--                     menu scaffolding -- fully automatic per its own header)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_extract_menu.lua
 -- CTLD — Extract-from-field menu logic (single vs multi-group)
@@ -9,8 +11,8 @@
 --   F-146 : 2+ dropped groups nearby → "Extract from field" subMenu
 --           with distance-annotated entries for each group
 --
--- Cinématique (1 step auto) :
---   S1 [auto]  Toutes les vérifications menu F-145/F-146
+-- Sequence (1 auto step):
+--   S1 [auto]  All F-145/F-146 menu checks
 --
 -- Pre-requisites:
 --   - CTLD fully initialised (inject CTLD.lua + 5s wait)
@@ -29,7 +31,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_EXTRACT_MENU_RUNNING then
-    trigger.action.outText("[EXTRACT-MENU] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[EXTRACT-MENU] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_EXTRACTMENU_RESULT or "[EXTRACT-MENU] RUNNING"
 end
 _SCN_EXTRACT_MENU_RUNNING = true
@@ -52,7 +54,7 @@ cfg.settings["debugScreenLog"] = false
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG             = "[EXTRACT-MENU]"
 local NAME            = "Extract-from-field menu logic"
-local MENU_NAME       = "Recette CTLD"
+local MENU_NAME       = "CTLD Test"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }
 
 -- ── 6. State ─────────────────────────────────────────────────────────────────
@@ -263,7 +265,7 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
@@ -272,7 +274,7 @@ end
 
 -- S1 — F-145 / F-146 : extract-from-field menu structure
 steps[1] = function()
-    instruct("Step 1/1 — F-145/F-146: structure menu extract-from-field (auto)")
+    instruct("Step 1/1 — F-145/F-146: extract-from-field menu structure (auto)")
 
     local tm = CTLDTroopManager.getInstance()
 
@@ -329,7 +331,7 @@ steps[1] = function()
     check("F-146.4", "entry 'Dropped Alpha' has distance annotation (45m)", hasAlphaDist)
     check("F-146.5", "entry 'Dropped Bravo' has distance annotation (80m)", hasBravoDist)
 
-    log("S1 done — finalisation")
+    log("S1 done — finalization")
     advanceStep()
 end
 
@@ -351,7 +353,7 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
     _SCN_EXTRACTMENU_RESULT = "[EXTRACT-MENU] ABORT"
     return _SCN_EXTRACTMENU_RESULT
@@ -392,7 +394,7 @@ menu_init:refresh()
 _SCN_EXTRACT_MENU_CLEANUP = cleanup
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 _SCN_EXTRACTMENU_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_EXTRACTMENU_RESULT until PASS/FAIL
 advanceStep()
 

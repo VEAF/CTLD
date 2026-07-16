@@ -1,27 +1,27 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-slow  (no human, but needs minutes of real AI-heli flight to resolve -- excluded from the fast --headless sweep; run with --tier auto-slow. Core logic already covered fast by noPlayer aiTransport_featureT/U F-176..182. See ticket 06/07)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_mt12_ai_vehicle_native.lua
--- CTLD — AI auto-pickup d'un véhicule DCS natif via vehicleStock (Feature T)
+-- CTLD — AI auto-pickup of a native DCS vehicle via vehicleStock (Feature T)
 --
--- Mini-application de recette interactive : injection unique, avance
--- automatiquement (waitFor) pour détecter pickup et dropoff virtuels.
+-- Interactive test mini-application: single injection, advances
+-- automatically (waitFor) to detect the virtual pickup and dropoff.
 --
--- Prérequis :
---   - Héli BLUE nommé "heliai_mt12" (UH-60L ou canTransportWholeVehicle=true)
---   - Route : WP1 = posé sur AIZ_mt12_B_P_V → WP3 = posé sur AIZ_mt12_B_D
---   - Zone DCS trigger "AIZ_mt12_B_P_V" (rayon ~200 m)
---   - Zone DCS trigger "AIZ_mt12_B_D"   (rayon ~200 m)
---   - AUCUN groupe DCS véhicule dans AIZ_mt12_B_P_V (sinon C1 prend le dessus sur C2)
---   - vehicleStock = { ["Hummer"] = 2 } dans la config zone
---   - Slot BLUE occupé (joueur humain pour MenuManager)
---   - CTLD.lua injecté avant ce script (attendre 3-5 s)
+-- Prerequisites:
+--   - BLUE heli named "heliai_mt12" (UH-60L or canTransportWholeVehicle=true)
+--   - Route: WP1 = landed on AIZ_mt12_B_P_V → WP3 = landed on AIZ_mt12_B_D
+--   - DCS trigger zone "AIZ_mt12_B_P_V" (radius ~200 m)
+--   - DCS trigger zone "AIZ_mt12_B_D"   (radius ~200 m)
+--   - NO DCS vehicle group inside AIZ_mt12_B_P_V (otherwise C1 takes precedence over C2)
+--   - vehicleStock = { ["Hummer"] = 2 } in the zone config
+--   - BLUE slot occupied (human player for MenuManager)
+--   - CTLD.lua injected before this script (wait 3-5 s)
 --
--- Cinématique (4 steps, injection unique) :
---   S1 [auto]  Init + vérification zones + vehicleStock initial
---   S2 [auto]  Attente pickup virtuel (_aiTransportVehicle peuplé) via waitFor
---   S3 [auto]  Attente dropoff (_aiTransportVehicle vidé = spawn DCS) via waitFor
---   S4 [auto]  Finalisation
+-- Sequence (4 steps, single injection):
+--   S1 [auto]  Init + zone verification + initial vehicleStock
+--   S2 [auto]  Wait for virtual pickup (_aiTransportVehicle populated) via waitFor
+--   S3 [auto]  Wait for dropoff (_aiTransportVehicle cleared = DCS spawn) via waitFor
+--   S4 [auto]  Finalization
 --
 -- @scenario  MT-12
 -- @version   4.0 — 2026-07-01
@@ -37,7 +37,7 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_MT12_RUNNING then
-    trigger.action.outText("[MT-12] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[MT-12] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_MT12_RESULT or "[MT-12] RUNNING"
 end
 _SCN_MT12_RUNNING = true
@@ -59,12 +59,12 @@ cfg.settings["debugScreenLog"] = false
 
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG       = "[MT-12]"
-local NAME      = "AI vehicle natif pickup/dropoff via vehicleStock"
-local MENU_NAME = "Recette CTLD"
+local NAME      = "AI native vehicle pickup/dropoff via vehicleStock"
+local MENU_NAME = "CTLD Test"
 local MENU_PATH = { ctld.tr("CTLD"), MENU_NAME }
 
-local AI_SRC   = "heliai_mt12"      -- source late-activation dans le .miz (jamais activé)
-local AI_UNIT  = "heliai_mt12_run"  -- clone temporaire (spawné + détruit en cleanup)
+local AI_SRC   = "heliai_mt12"      -- late-activation source in the .miz (never activated)
+local AI_UNIT  = "heliai_mt12_run"  -- temporary clone (spawned + destroyed at cleanup)
 local AIZ_P    = "AIZ_mt12_B_P_V"
 local AIZ_D    = "AIZ_mt12_B_D"
 local VEH_TYPE = "Hummer"
@@ -84,7 +84,7 @@ local S = {
 -- ── 7. Helpers ───────────────────────────────────────────────────────────────
 local function log(msg) ctld.utils.log("INFO", "%s %s", TAG, msg) end
 
--- Clone helpers (ctld.utils.deepCopy retourne nil — deepCopy locale obligatoire)
+-- Clone helpers (ctld.utils.deepCopy returns nil — a local deepCopy is required)
 local function deepCopy(orig)
     local copy
     if type(orig) == "table" then
@@ -250,18 +250,18 @@ advanceStep = function()
     local ok, err = pcall(steps[S.step])
     if not ok then
         fail("S"..S.step, "pcall: "..tostring(err))
-        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERREUR: "..tostring(err), 15, false)
+        trigger.action.outText(TAG.." ⚠️ S"..S.step.." ERROR: "..tostring(err), 15, false)
         advanceStep()
     end
 end
 
 -- ── 12. Steps ────────────────────────────────────────────────────────────────
 
--- S1 — Init + vérification zones + vehicleStock initial [auto]
+-- S1 — Init + zone verification + initial vehicleStock [auto]
 steps[1] = function()
     instruct(
         "Step 1/4 — INIT AI VEHICLE NATIVE (MT-12)\n"..
-        "Vérification vehicleStock Hummer (isScene=false)…"
+        "Verifying Hummer vehicleStock (isScene=false)…"
     )
     waitThen(1, function()
         cfg.settings["transportPilotNames"] = { AI_UNIT }
@@ -270,8 +270,8 @@ steps[1] = function()
         local zm = CTLDZoneManager.getInstance()
         local zP = zm._troopZones[AIZ_P]
         local zD = zm._troopZones[AIZ_D]
-        check("MT-12.1.1", "AIZ_P trouvée : "..AIZ_P, zP ~= nil)
-        check("MT-12.1.2", "AIZ_D trouvée : "..AIZ_D, zD ~= nil)
+        check("MT-12.1.1", "AIZ_P found: "..AIZ_P, zP ~= nil)
+        check("MT-12.1.2", "AIZ_D found: "..AIZ_D, zD ~= nil)
         if zP then
             check("MT-12.1.3", "AIZ_P.isAIPickup=true",        zP.isAIPickup == true)
             check("MT-12.1.4", "AIZ_P.aiCargoType='V'",         zP.aiCargoType == "V",
@@ -285,37 +285,37 @@ steps[1] = function()
                       vs.init[VEH_TYPE] == 2, tostring(vs.init[VEH_TYPE]))
                 check("MT-12.1.9", "current[Hummer]=2 (init)",
                       vs.current[VEH_TYPE] == 2, tostring(vs.current[VEH_TYPE]))
-                check("MT-12.1.10", "pickMaxStock=0 (gate illimitée)",
+                check("MT-12.1.10", "pickMaxStock=0 (unlimited gate)",
                       zP.pickMaxStock == 0, tostring(zP.pickMaxStock))
             end
         end
 
         local sm = CTLDSceneManager.getInstance()
-        check("MT-12.1.11", "Hummer n'est pas une scène CTLDSceneManager",
+        check("MT-12.1.11", "Hummer is not a CTLDSceneManager scene",
               sm:getScene(VEH_TYPE) == nil)
 
         local cloneG, cloneErr = spawnClone(AI_SRC, AI_UNIT)
-        check("MT-12.1.12", "Clone '"..AI_UNIT.."' spawné depuis '"..AI_SRC.."'",
+        check("MT-12.1.12", "Clone '"..AI_UNIT.."' spawned from '"..AI_SRC.."'",
               cloneG ~= nil, tostring(cloneErr))
 
         local unit = Unit.getByName(AI_UNIT)
 
         local cm = CTLDCoreManager.getInstance()
-        check("MT-12.1.13", "_aiTransportVehicle["..AI_UNIT.."] vide initialement",
+        check("MT-12.1.13", "_aiTransportVehicle["..AI_UNIT.."] empty initially",
               cm._aiTransportVehicle[AI_UNIT] == nil)
 
-        log("STEP 1 OK — C1 (physique) absent → C2 (virtuel Hummer) s'applique")
-        log("Attente pose sur "..AIZ_P)
+        log("STEP 1 OK — C1 (physical) absent → C2 (virtual Hummer) applies")
+        log("Waiting for landing on "..AIZ_P)
         advanceStep()
     end)
 end
 
--- S2 — Attente pickup virtuel (_aiTransportVehicle peuplé) [waitFor]
+-- S2 — Wait for virtual pickup (_aiTransportVehicle populated) [waitFor]
 steps[2] = function()
     instruct(
-        "Step 2/4 — ATTENTE PICKUP VIRTUEL (MT-12)\n"..
-        "L'héli "..AI_UNIT.." doit se poser sur "..AIZ_P..".\n"..
-        "Détection de _aiTransportVehicle peuplé (C2 Hummer). Timeout : 300 s."
+        "Step 2/4 — WAIT FOR VIRTUAL PICKUP (MT-12)\n"..
+        "Heli "..AI_UNIT.." must land on "..AIZ_P..".\n"..
+        "Detecting _aiTransportVehicle populated (C2 Hummer). Timeout: 300 s."
     )
     waitFor(
         function()
@@ -326,49 +326,49 @@ steps[2] = function()
         function()
             local cm = CTLDCoreManager.getInstance()
             local vEntry = cm._aiTransportVehicle[AI_UNIT]
-            check("MT-12.2.1", "_aiTransportVehicle peuplé au pickup", vEntry ~= nil)
+            check("MT-12.2.1", "_aiTransportVehicle populated at pickup", vEntry ~= nil)
             if vEntry then
                 check("MT-12.2.2", "type='Hummer'", vEntry.type == VEH_TYPE,
                       tostring(vEntry.type))
-                check("MT-12.2.3", "isScene=false (DCS natif, pas de scène)",
+                check("MT-12.2.3", "isScene=false (DCS native, no scene)",
                       vEntry.isScene == false, tostring(vEntry.isScene))
-                log("En transit : "..tostring(vEntry.type).." | isScene="..tostring(vEntry.isScene))
+                log("In transit: "..tostring(vEntry.type).." | isScene="..tostring(vEntry.isScene))
             end
 
             local zm = CTLDZoneManager.getInstance()
             local zP = zm._troopZones[AIZ_P]
             if zP and zP._aiVehicleStock then
                 local cur = zP._aiVehicleStock.current[VEH_TYPE]
-                check("MT-12.2.4", "stock Hummer décrémenté (1 consommé → current=1)",
+                check("MT-12.2.4", "Hummer stock decremented (1 consumed → current=1)",
                       cur == 1, "current="..tostring(cur))
             end
             advanceStep()
         end,
         function()
-            -- Diagnostic C1/C2
+            -- C1/C2 diagnostic
             local ok, vs = pcall(CTLDVehicleSpawner.getInstance)
             if ok and vs then
                 local u = Unit.getByName(AI_UNIT)
                 local loaded = u and u:isExist() and vs:findLoadedVehicles(u) or {}
                 if #loaded > 0 then
-                    fail("MT-12.2.0", "C1 (physique) a pris le dessus : retirer le groupe DCS de "..AIZ_P)
+                    fail("MT-12.2.0", "C1 (physical) took precedence: remove the DCS group from "..AIZ_P)
                 else
-                    fail("MT-12.2.1", "timeout 300s — _aiTransportVehicle pas peuplé sur "..AIZ_P)
+                    fail("MT-12.2.1", "timeout 300s — _aiTransportVehicle not populated on "..AIZ_P)
                 end
             else
-                fail("MT-12.2.1", "timeout 300s — pickup non détecté sur "..AIZ_P)
+                fail("MT-12.2.1", "timeout 300s — pickup not detected on "..AIZ_P)
             end
             advanceStep()
         end
     )
 end
 
--- S3 — Attente dropoff (_aiTransportVehicle vidé) [waitFor]
+-- S3 — Wait for dropoff (_aiTransportVehicle cleared) [waitFor]
 steps[3] = function()
     instruct(
-        "Step 3/4 — ATTENTE DROPOFF (MT-12)\n"..
-        "L'héli "..AI_UNIT.." doit se poser sur "..AIZ_D..".\n"..
-        "Détection du spawn DCS Hummer (_aiTransportVehicle=nil). Timeout : 600 s."
+        "Step 3/4 — WAIT FOR DROPOFF (MT-12)\n"..
+        "Heli "..AI_UNIT.." must land on "..AIZ_D..".\n"..
+        "Detecting the DCS Hummer spawn (_aiTransportVehicle=nil). Timeout: 600 s."
     )
     waitFor(
         function()
@@ -379,23 +379,23 @@ steps[3] = function()
         function()
             local cm = CTLDCoreManager.getInstance()
             local vEntry = cm._aiTransportVehicle[AI_UNIT]
-            check("MT-12.3.1", "_aiTransportVehicle vidé après dropoff", vEntry == nil)
-            log("Dropoff confirmé — Hummer apparu près de "..AIZ_D)
-            log("Message coalition attendu : 'AI "..AI_UNIT.." delivered vehicle: "..VEH_TYPE.."'")
+            check("MT-12.3.1", "_aiTransportVehicle cleared after dropoff", vEntry == nil)
+            log("Dropoff confirmed — Hummer appeared near "..AIZ_D)
+            log("Expected coalition message: 'AI "..AI_UNIT.." delivered vehicle: "..VEH_TYPE.."'")
             advanceStep()
         end,
         function()
-            fail("MT-12.3.1", "timeout 600s — dropoff non détecté sur "..AIZ_D)
+            fail("MT-12.3.1", "timeout 600s — dropoff not detected on "..AIZ_D)
             advanceStep()
         end
     )
 end
 
--- S4 — Finalisation [auto]
+-- S4 — Finalization [auto]
 steps[4] = function()
-    instruct("Step 4/4 — FINALISATION")
+    instruct("Step 4/4 — FINALIZATION")
     waitThen(1, function()
-        log("MT-12 ALL SUCCESS — pickup virtuel Hummer (isScene=false) + stock décrément + spawn DCS confirmés")
+        log("MT-12 ALL SUCCESS — virtual Hummer pickup (isScene=false) + stock decrement + DCS spawn confirmed")
         advanceStep()
     end)
 end
@@ -418,7 +418,7 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
     _SCN_MT12_RESULT = "[MT-12] ABORT"
     return _SCN_MT12_RESULT
@@ -459,7 +459,7 @@ menu_init:refresh()
 _SCN_MT12_CLEANUP = cleanup
 
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 _SCN_MT12_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_MT12_RESULT until PASS/FAIL
 advanceStep()
 

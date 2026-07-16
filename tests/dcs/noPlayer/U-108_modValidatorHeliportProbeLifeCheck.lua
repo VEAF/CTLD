@@ -1,12 +1,22 @@
 ---@diagnostic disable
 -- @tier: auto
 -- U-108: CTLDModValidator — _probeHeliport via getDesc().life detection
--- DCS substitue visuellement les types inconnus par SINGLE_HELIPAD mais life==0 trahit la substitution.
+-- DCS visually substitutes unknown types with SINGLE_HELIPAD but life==0 betrays the substitution.
 -- C1: valid HELIPORT (SINGLE_HELIPAD) → cache=true (life>0)
 -- C2: invalid HELIPORT → cache=false (life==0)
 -- C3: cache hit valid → no new probe
 -- C4: cache hit invalid → no new probe
--- Note: ghost spawné 800km est, hors zone visible — vérifier F10 si souhaité
+-- Note: ghost spawned 800km east, outside the visible area — check F10 if desired
+
+-- Run-once guard: the valid probe spawns a real DCS ghost airbase that cannot be
+-- destroyed (DCS limitation). Re-running in the same session would accumulate ghosts,
+-- so short-circuit with an explicit PASS after the first run.
+if _U108_LIFECHECK_DONE then
+    _SCN_U108_RESULT = "[U-108] PASS (run-once: already probed this session)"
+    trigger.action.outText("[U-108] run-once guard: already probed this session", 10)
+    return _SCN_U108_RESULT
+end
+_U108_LIFECHECK_DONE = true
 
 local _t = { pass=0, fail=0, msgs={} }
 local function chk(label, cond)

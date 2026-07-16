@@ -70,6 +70,11 @@ class DeriveResultVarTests(unittest.TestCase):
     def test_none_when_absent(self):
         self.assertIsNone(rs.derive_result_var("local x = 1\nreturn x"))
 
+    def test_finds_compound_id_result_var(self):
+        # IDs with underscores (e.g. FI_ATK) must be recognised.
+        src = '_SCN_FI_ATK_RESULT = "[FI-ATK] STARTED"\nreturn _SCN_FI_ATK_RESULT'
+        self.assertEqual(rs.derive_result_var(src), "_SCN_FI_ATK_RESULT")
+
 
 class FilterScenariosTests(unittest.TestCase):
     def _fake(self, rel_dir, name, tier):
@@ -103,6 +108,25 @@ class FilterScenariosTests(unittest.TestCase):
     def test_no_filters_returns_all(self):
         out = rs.filter_scenarios(self.scenarios)
         self.assertEqual(len(out), 4)
+
+
+class DefaultTiersTests(unittest.TestCase):
+    def _fake(self, tier):
+        return rs.ScenarioInfo(path=Path("x.lua"), rel_dir="pilotPassive", tier=tier)
+
+    def test_excludes_disabled_tier(self):
+        scenarios = [self._fake("auto"), self._fake("auto-slow"), self._fake("disabled")]
+        self.assertEqual(rs.default_tiers(scenarios), ["auto", "auto-slow"])
+
+    def test_no_disabled_present(self):
+        scenarios = [self._fake("auto"), self._fake("auto-check")]
+        self.assertEqual(rs.default_tiers(scenarios), ["auto", "auto-check"])
+
+    def test_disabled_reachable_only_when_explicit(self):
+        scenarios = [self._fake("auto"), self._fake("disabled")]
+        self.assertNotIn("disabled", rs.default_tiers(scenarios))
+        out = rs.filter_scenarios(scenarios, tiers=["disabled"])
+        self.assertEqual(len(out), 1)
 
 
 class DiscoverScenariosTests(unittest.TestCase):
@@ -198,6 +222,37 @@ class RunScenarioTests(unittest.TestCase):
             self.assertEqual(result.verdict, "PASS")
             self.assertEqual(len(calls), 1)
 
+    def test_reset_source_injected_before_scenario(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            scenario = self._write_scenario(tmp, "-- @tier: auto\nreturn 1")
+            calls = []
+
+            def http_post(code):
+                calls.append(code)
+                return "[F-001] PASS", None
+
+            result = rs.run_scenario(
+                scenario, http_post, sleep=lambda s: None,
+                reset_source="-- RESET SNIPPET --")
+            self.assertEqual(result.verdict, "PASS")
+            # Reset must be posted FIRST, then the scenario source.
+            self.assertEqual(len(calls), 2)
+            self.assertEqual(calls[0], "-- RESET SNIPPET --")
+            self.assertIn("@tier: auto", calls[1])
+
+    def test_reset_error_is_nonfatal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            scenario = self._write_scenario(tmp, "-- @tier: auto\nreturn 1")
+            responses = iter([(None, "HTTP 504: timeout"), ("[F-001] PASS", None)])
+
+            def http_post(code):
+                return next(responses)
+
+            # Reset fails, but the scenario still runs and passes.
+            result = rs.run_scenario(
+                scenario, http_post, sleep=lambda s: None, reset_source="-- RESET --")
+            self.assertEqual(result.verdict, "PASS")
+
     def test_async_resolves_after_polling(self):
         with tempfile.TemporaryDirectory() as tmp:
             scenario = self._write_scenario(
@@ -235,16 +290,47 @@ class RunScenarioTests(unittest.TestCase):
             self.assertEqual(result.verdict, "FAIL")
             self.assertIn("timeout", result.message)
 
-    def test_running_token_is_not_automatable(self):
+    def test_running_token_reinjects_full_source_to_advance(self):
         with tempfile.TemporaryDirectory() as tmp:
-            scenario = self._write_scenario(tmp, "-- @tier: ia\nreturn 1")
+            # auto-check scenario using the RUNNING/re-injection pattern (no physical DCS-side
+            # action needed between steps -- just a timed delay, safe to automate headlessly).
+            source = "-- @tier: auto-check\n_SCN_JTAC_RESULT = 'x'\nreturn _SCN_JTAC_RESULT"
+            scenario = self._write_scenario(tmp, source)
+            calls = []
+            responses = iter([
+                ("[JTAC] RUNNING: step=1 SUCCESS", None),  # injection
+                ("[JTAC] RUNNING: step=2 SUCCESS", None),  # re-injection 1
+                ("[JTAC] PASS (120ms)", None),              # re-injection 2 -- terminal
+            ])
 
             def http_post(code):
-                return "[FRP] RUNNING: step=2 SUCCESS", None
+                calls.append(code)
+                return next(responses)
 
-            result = rs.run_scenario(scenario, http_post, sleep=lambda s: None)
+            result = rs.run_scenario(scenario, http_post, poll_interval=0, sleep=lambda s: None)
+            self.assertEqual(result.verdict, "PASS")
+            self.assertEqual(len(calls), 3)
+            self.assertEqual(calls[1], source)
+            self.assertEqual(calls[2], source)
+
+    def test_running_token_that_never_resolves_times_out(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            # A RUNNING-pattern scenario genuinely needing a physical DCS-side action (e.g. an
+            # ia-tier scenario reached via an explicit --tier ia) just spins harmlessly until
+            # poll_timeout instead of making progress -- reported as FAIL, not a crash.
+            scenario = self._write_scenario(
+                tmp, "-- @tier: ia\n_SCN_FRP_RESULT = 'x'\nreturn _SCN_FRP_RESULT")
+
+            def http_post(code):
+                return "[FRP] RUNNING: step=2 waiting for landing", None
+
+            times = iter([0.0] + [100.0] * 10)
+            result = rs.run_scenario(
+                scenario, http_post, poll_interval=0, poll_timeout=5,
+                sleep=lambda s: None, now=lambda: next(times),
+            )
             self.assertEqual(result.verdict, "FAIL")
-            self.assertIn("not runnable headlessly", result.message)
+            self.assertIn("timeout", result.message)
 
     def test_http_error_is_reported(self):
         with tempfile.TemporaryDirectory() as tmp:

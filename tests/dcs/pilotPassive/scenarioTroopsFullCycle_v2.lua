@@ -1,13 +1,17 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: auto-check  (needs a BLUE slot occupied -- structural precondition, not piloting/
+--                     judgment; never checks flight state or waits on F10 -- re-injects on
+--                     a timer to advance _G[STEP_N])
 -- =============================================================================
 -- SCENARIO: scenarioTroopsFullCycle_v2.lua
 -- Full troop lifecycle — CTLDTroopGroup (inf=4, jtac=2), 8-step state machine
 --
 -- Pre-requisites:
 --   - BLUE player slot occupied (UH-1H or any transport)
---   - TRZ zone "TRZ_alpha_B_10_nil_0" in mission
 --   - ctldLogPath set via patch_logpath.lua after each CTLD injection
+--   (Step 2 builds its own CTLDTroopGroup directly in _inTransit -- it never calls
+--    embarkFromTroopZone or looks up a real mission zone, so no TRZ zone is actually
+--    required despite an earlier version of this scenario needing one.)
 --
 -- Steps:
 --   1. Spawn 4 RED Hummers ~300m south + create "Test2JTAC" template (inf=4, jtac=2)
@@ -171,6 +175,22 @@ local function cleanupAll()
     end
 
     log("cleanupAll done")
+end
+
+-- Full external reset (exposed as _SCN_TFC_CLEANUP): unlike the pilotActive human-step
+-- scenarios, this state machine has no "already running" guard to trip on double-injection --
+-- but a FAIL inside a check() aborts via error() before the step reaches its own state reset
+-- (e.g. Phase B's _TFC_STEP7_DONE/_TFC_STEP7_CLAIM_LOG), leaving _G[STEP_N] stuck re-validating
+-- the same stale data forever. Re-running after a FAIL (or a mid-flight DCS crash) needs this.
+_SCN_TFC_CLEANUP = function()
+    cleanupAll()
+    _G[STEP_N]                 = 1
+    _G["_TFC_ALIVE_JTAC"]       = nil
+    _G["_TFC_TARGET_UNITS"]     = nil
+    _G["_TFC_STEP7_CLAIM_LOG"]  = nil
+    _G["_TFC_STEP7_DONE"]       = nil
+    _G["_TFC_STEP7_IDX"]        = nil
+    log("_SCN_TFC_CLEANUP: full reset done, restarting from Step 1")
 end
 
 -- ── SPAWN HELPER ──────────────────────────────────────────────────────────────
@@ -650,6 +670,15 @@ elseif step == 7 then
         _G[STEP_N] = 8
         _result = "step=7 SUCCESS"
 
+    elseif _G["_TFC_STEP7_CLAIM_LOG"] ~= nil then
+        -- Monitoring timer already installed (re-injected before it finished) -- do NOT
+        -- reinstall: a second concurrent destroy/snapshot timer would race the first one,
+        -- destroying targets out of sequence and corrupting the claim log. Just report
+        -- still-running; the next re-injection after the timer actually completes hits
+        -- Phase B above (_TFC_STEP7_DONE == true).
+        log("Step 7 Phase A: monitoring already in progress, re-injection ignored")
+        _result = "step=7 MONITORING (already in progress)"
+
     else
         -- Phase A: install timer-driven sequence
         local aliveJtacKey  = _G["_TFC_ALIVE_JTAC"]
@@ -762,6 +791,18 @@ cfg.settings["debugScreenLog"] = _savedDebugScreenLog
 local _ms = math.floor((os.clock() - _step_start) * 1000)
 
 if not _ok then
+    -- Tear down on failure too -- otherwise a failed step (e.g. step 7) leaves this run's JTACs
+    -- and target claims registered, contaminating the next scenario, and _G[STEP_N] stuck so a
+    -- re-run resumes mid-cycle instead of restarting clean.
+    pcall(function()
+        cleanupAll()
+        _G["_TFC_ALIVE_JTAC"]      = nil
+        _G["_TFC_TARGET_UNITS"]    = nil
+        _G["_TFC_STEP7_CLAIM_LOG"] = nil
+        _G["_TFC_STEP7_DONE"]      = nil
+        _G["_TFC_STEP7_IDX"]       = nil
+        _G[STEP_N] = 1
+    end)
     _SCN_TFC_RESULT = TAG .. " FAIL: " .. tostring(_err)
     trigger.action.outText(TAG .. " ❌ step=" .. step .. " FAIL", 60, true)
     return _SCN_TFC_RESULT
@@ -771,5 +812,8 @@ if _result == "ALL SUCCESS" then
     trigger.action.outText(TAG .. " ✅ ALL SUCCESS (" .. _ms .. "ms)", 30, true)
     return _SCN_TFC_RESULT
 end
-_SCN_TFC_RESULT = TAG .. " STARTED"
+-- Not done yet: RUNNING (not STARTED) per the return contract -- this scenario needs the
+-- full source re-posted to advance _G[STEP_N] to the next step, it does not resolve on its
+-- own via an internal timer the way a genuine async STARTED scenario does.
+_SCN_TFC_RESULT = TAG .. " RUNNING: " .. tostring(_result)
 return _SCN_TFC_RESULT

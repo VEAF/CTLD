@@ -1,22 +1,22 @@
 ---@diagnostic disable
--- @tier: ia
+-- @tier: human
 -- =============================================================================
 -- live_tests/scenarios/_template_interactive.lua
 -- CTLD Interactive Scenario Template
 --
--- Mini-application de recette interactive : injection unique, avance
--- automatiquement (waitFor / waitThen) ou via menu F10 "Recette CTLD"
--- (vérifications visuelles humaines).
+-- Interactive test mini-application: single injection, advances
+-- automatically (waitFor / waitThen) or via the F10 "CTLD Test" menu
+-- (human visual checks).
 --
--- Prérequis :
+-- Pre-requisites:
 --   - Inject CTLD.lua first, wait 3–5 s for init.
---   - Slot BLUE occupé (hélico ou avion selon le scénario).
---   - Config CTLD appropriée au scénario (activer les features testées).
+--   - BLUE slot occupied (helicopter or plane depending on the scenario).
+--   - CTLD config appropriate to the scenario (enable the tested features).
 --
--- Cinématique (3 steps d'exemple) :
---   S1 [F10]   Vérification manuelle initiale  → OUI / NON / SKIP
---   S2 [auto]  Condition DCS détectée (waitFor) → auto
---   S3 [auto]  Vérification différée (waitThen) → auto
+-- Sequence (3 example steps):
+--   S1 [F10]   Initial manual check            → YES / NO / SKIP
+--   S2 [auto]  DCS condition detected (waitFor) → auto
+--   S3 [auto]  Deferred check (waitThen)        → auto
 --
 -- @scenario  SCN-XXX
 -- @version   3.0 — 2026-06-30
@@ -32,13 +32,13 @@ end
 
 -- ── 2. Double-injection guard ────────────────────────────────────────────────
 if _SCN_XXX_RUNNING then
-    trigger.action.outText("[SCN-XXX] déjà actif — attendre la fin ou redémarrer DCS.", 10)
+    trigger.action.outText("[SCN-XXX] already running — wait for it to finish or restart DCS.", 10)
     return _SCN_XXX_RESULT or "[SCN-XXX] RUNNING"
 end
 _SCN_XXX_RUNNING = true
-_SCN_XXX_CLEANUP = nil   -- exposé pour reset externe (reset script)
+_SCN_XXX_CLEANUP = nil   -- exposed for external reset (reset script)
 
--- ── 3. Global show callback (closure Lua compatible MenuManager) ─────────────
+-- ── 3. Global show callback (Lua closure compatible with MenuManager) ────────
 _SCN_XXX_INSTR = ""
 _SCN_XXX_SHOW  = function()
     trigger.action.outText(_SCN_XXX_INSTR, 30)
@@ -50,14 +50,14 @@ local cfg                  = CTLDConfig.get()
 local _savedDebug          = cfg.settings["debug"]
 local _savedDebugScreenLog = cfg.settings["debugScreenLog"]
 cfg.settings["debug"]          = true
-cfg.settings["debugScreenLog"] = false   -- traces internes via log() uniquement, pas écran
+cfg.settings["debugScreenLog"] = false   -- internal traces via log() only, not on screen
 
 -- ── 5. Constants ─────────────────────────────────────────────────────────────
 local TAG             = "[SCN-XXX]"
-local NAME            = "Description du scénario"
-local HUMAN_TIMEOUT_S = 300
-local MENU_NAME       = "Recette CTLD"
-local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }   -- nested sous CTLD (order=0 → premier)
+local NAME            = "Scenario description"
+local HUMAN_TIMEOUT_S = 3600  -- generous: a real pilot session, not a race against the clock
+local MENU_NAME       = "CTLD Test"
+local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }   -- nested under CTLD (order=0 → first)
 
 -- ── 6. State ─────────────────────────────────────────────────────────────────
 local S = {
@@ -67,7 +67,7 @@ local S = {
     failReasons = {},
     groupId     = nil,   -- player groupId for MenuManager lookups
     timerHandle = nil,
-    timerGen    = 0,     -- generation counter : invalide les timers d'une précédente waitFor
+    timerGen    = 0,     -- generation counter: invalidates timers from a previous waitFor
     transport   = nil,
 }
 
@@ -86,7 +86,7 @@ local function fail(id, msg) S.failed = S.failed + 1 ; table.insert(S.failReason
 -- ── 8. Cleanup ───────────────────────────────────────────────────────────────
 local function cleanup()
     if S.timerHandle then timer.removeFunction(S.timerHandle) ; S.timerHandle = nil end
-    -- Masquer le menu scénario via MenuManager (clearBranch + setBranchEnabled + refresh)
+    -- Hide the scenario menu via MenuManager (clearBranch + setBranchEnabled + refresh)
     if S.groupId then
         local mm = ctld.MenuManager:getInstance()
         local menu = mm and mm:getMenuByGroupId(S.groupId)
@@ -108,7 +108,7 @@ end
 
 -- ── 9. Timer helpers ─────────────────────────────────────────────────────────
 local function cancelTimer()
-    S.timerGen = S.timerGen + 1   -- invalide tout poll existant même si removeFunction échoue
+    S.timerGen = S.timerGen + 1   -- invalidate any existing poll even if removeFunction fails
     if S.timerHandle then
         pcall(timer.removeFunction, S.timerHandle)
         S.timerHandle = nil
@@ -120,7 +120,7 @@ local function waitFor(checkFn, intervalS, timeoutS, onSuccess, onFail)
     local myGen = S.timerGen
     local elapsed = 0
     local function poll()
-        if S.timerGen ~= myGen then return nil end  -- invalidé : arrêt silencieux
+        if S.timerGen ~= myGen then return nil end  -- invalidated: silent stop
         elapsed = elapsed + intervalS
         if checkFn() then
             S.timerHandle = nil ; onSuccess()
@@ -147,7 +147,7 @@ end
 -- ── 10. Finalization ─────────────────────────────────────────────────────────
 local function finalizeScenario()
     cancelTimer()
-    -- Masquer le menu scénario via MenuManager
+    -- Hide the scenario menu via MenuManager
     if S.groupId then
         local mm = ctld.MenuManager:getInstance()
         local menu = mm and mm:getMenuByGroupId(S.groupId)
@@ -174,14 +174,14 @@ local function finalizeScenario()
     if not ok then log("WARN cleanup: "..tostring(err)) ; _SCN_XXX_RUNNING = false end
 end
 
--- ── 11. Step humain (MenuManager) ────────────────────────────────────────────
--- Le sous-menu "Recette CTLD" est créé UNE SEULE FOIS dans Start (order=0).
--- Seules les commandes enfants sont effacées/recréées entre les steps (clearBranch).
+-- ── 11. Human step (MenuManager) ─────────────────────────────────────────────
+-- The "CTLD Test" submenu is created ONLY ONCE in Start (order=0).
+-- Only the child commands are cleared/recreated between steps (clearBranch).
 local advanceStep
 
 local function setHumanStep(stepId, title, options)
     cancelTimer()
-    local myGen = S.timerGen  -- capture après cancelTimer (gen actuel)
+    local myGen = S.timerGen  -- capture after cancelTimer (current gen)
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm and mm:getMenuByGroupId(S.groupId)
@@ -192,13 +192,13 @@ local function setHumanStep(stepId, title, options)
         return
     end
 
-    -- Effacer les commandes du step précédent et reconstruire (assurer visibilité du nœud)
+    -- Clear the previous step's commands and rebuild (ensure node visibility)
     pcall(function() menu:clearBranch(MENU_PATH) end)
     pcall(function() menu:setBranchEnabled(MENU_PATH, true) end)
     menu:addCommand(MENU_PATH, "↩ Step "..S.step..": "..title, _SCN_XXX_SHOW)
 
     local function onResponse(opt_fn)
-        if S.timerGen ~= myGen then return end  -- doublon ou post-timeout : ignorer
+        if S.timerGen ~= myGen then return end  -- duplicate or post-timeout: ignore
         cancelTimer()
         pcall(function() menu:clearBranch(MENU_PATH) ; menu:refresh() end)
         opt_fn()
@@ -210,13 +210,13 @@ local function setHumanStep(stepId, title, options)
     end
     menu:refresh()
 
-    -- Timer de timeout (géré manuellement pour contrôler timerGen précisément)
+    -- Timeout timer (managed manually to control timerGen precisely)
     S.timerHandle = timer.scheduleFunction(function()
         if S.timerGen ~= myGen then return nil end
         S.timerHandle = nil
         log("[TIMEOUT] step "..S.step.." ("..stepId..") — ABORT")
         pcall(function() menu:clearBranch(MENU_PATH) ; menu:refresh() end)
-        fail(stepId, "timeout "..HUMAN_TIMEOUT_S.."s sans réponse")
+        fail(stepId, "timeout "..HUMAN_TIMEOUT_S.."s without response")
         finalizeScenario()
     end, nil, timer.getTime() + HUMAN_TIMEOUT_S)
 end
@@ -232,7 +232,7 @@ advanceStep = function()
     end
     local ok, err = pcall(steps[S.step])
     if not ok then
-        local msg = "S"..S.step.." ERREUR: "..tostring(err)
+        local msg = "S"..S.step.." ERROR: "..tostring(err)
         fail("S"..S.step, "pcall: "..tostring(err))
         trigger.action.outText(TAG.." ⚠️ "..msg, 15, false)
         advanceStep()
@@ -241,56 +241,56 @@ end
 
 -- ── 13. Steps ────────────────────────────────────────────────────────────────
 
--- S1 — Vérification manuelle initiale [F10 humain]
+-- S1 — Initial manual check [F10 human]
 steps[1] = function()
     instruct(
-        "Step 1/3 — VÉRIFICATION INITIALE (F-XXX)\n"..
-        "Décrire ici ce que le testeur doit observer ou faire.\n"..
-        "\nExemple :\n"..
-        "  F10 → CTLD → [sous-menu] → [action]\n"..
-        "  ✅ attendu : [item VISIBLE]\n"..
-        "  ❌ attendu : [item MASQUÉ]\n"..
-        "\nRépondre OUI/NON/SKIP via F10 → CTLD → Recette CTLD."
+        "Step 1/3 — INITIAL CHECK (F-XXX)\n"..
+        "Describe here what the tester must observe or do.\n"..
+        "\nExample:\n"..
+        "  F10 → CTLD → [submenu] → [action]\n"..
+        "  ✅ expected: [item VISIBLE]\n"..
+        "  ❌ expected: [item HIDDEN]\n"..
+        "\nAnswer YES/NO/SKIP via F10 → CTLD → CTLD Test."
     )
-    setHumanStep("F-XXX", "Résultat correct ?", {
-        { label = "OUI — résultat attendu",    fn = function() pass("F-XXX", "vérif initiale OK") ; advanceStep() end },
-        { label = "NON — résultat incorrect",  fn = function() fail("F-XXX", "vérif initiale KO") ; advanceStep() end },
-        { label = "SKIP — ne peut vérifier",   fn = function() log("[SKIP] S1")                   ; advanceStep() end },
+    setHumanStep("F-XXX", "Correct result?", {
+        { label = "YES — expected result",    fn = function() pass("F-XXX", "initial check OK") ; advanceStep() end },
+        { label = "NO — incorrect result",    fn = function() fail("F-XXX", "initial check KO") ; advanceStep() end },
+        { label = "SKIP — cannot verify",     fn = function() log("[SKIP] S1")                  ; advanceStep() end },
     })
 end
 
--- S2 — Condition DCS auto-détectée [POLLED via waitFor]
+-- S2 — DCS condition auto-detected [POLLED via waitFor]
 steps[2] = function()
     instruct(
-        "Step 2/3 — ACTION AUTO-DÉTECTÉE (S2)\n"..
-        "Effectuer l'action DCS (ex : décoller, approcher zone...).\n"..
-        "Le scénario avancera automatiquement à la détection."
+        "Step 2/3 — AUTO-DETECTED ACTION (S2)\n"..
+        "Perform the DCS action (e.g. take off, approach zone...).\n"..
+        "The scenario will advance automatically upon detection."
     )
     waitFor(
         function()
-            -- Remplacer par la condition DCS réelle (ex: S.transport:inAir())
+            -- Replace with the real DCS condition (e.g. S.transport:inAir())
             return S.transport and S.transport:isExist() and S.transport:inAir()
         end,
         3, 300,
-        function() pass("S2", "condition détectée") ; advanceStep() end,
+        function() pass("S2", "condition detected") ; advanceStep() end,
         function() fail("S2", "timeout condition")  ; advanceStep() end
     )
 end
 
--- S3 — Vérification différée auto [waitThen]
+-- S3 — Deferred auto check [waitThen]
 steps[3] = function()
     instruct(
-        "Step 3/3 — VÉRIFICATION AUTO DIFFÉRÉE (F-YYY)\n"..
-        "Vérification automatique en cours (2s)…"
+        "Step 3/3 — DEFERRED AUTO CHECK (F-YYY)\n"..
+        "Automatic check in progress (2s)…"
     )
     waitThen(2, function()
-        -- Remplacer par les assertions automatiques réelles.
-        local ok = true   -- exemple : résultat du check
+        -- Replace with the real automatic assertions.
+        local ok = true   -- example: check result
         if ok then
-            pass("F-YYY", "vérif auto OK")
+            pass("F-YYY", "auto check OK")
             log("[AUTO-CHECK] F-YYY PASS")
         else
-            fail("F-YYY", "vérif auto KO")
+            fail("F-YYY", "auto check KO")
             log("[AUTO-CHECK] F-YYY FAIL")
         end
         advanceStep()
@@ -315,13 +315,13 @@ S.transport = (function()
 end)()
 
 if not S.transport then
-    _SCN_XXX_RESULT = TAG.." ABORT: aucun joueur BLUE"
-    trigger.action.outText(TAG.." ABORT : aucun joueur BLUE. Occuper un slot avant injection.", 20)
+    _SCN_XXX_RESULT = TAG.." ABORT: no BLUE player"
+    trigger.action.outText(TAG.." ABORT: no BLUE player. Occupy a slot before injection.", 20)
     cleanup()
     return _SCN_XXX_RESULT
 end
 
--- Récupérer le groupId du joueur via CTLDPlayerManager
+-- Get the player's groupId via CTLDPlayerManager
 local pm_start = CTLDPlayerManager.getInstance()
 local playerObjStart
 if pm_start and pm_start._players then
@@ -331,7 +331,7 @@ if pm_start and pm_start._players then
         end
     end
     if not playerObjStart then
-        -- Fallback: premier joueur disponible
+        -- Fallback: first available player
         for _, p in pairs(pm_start._players) do playerObjStart = p ; break end
     end
 end
@@ -343,8 +343,8 @@ end
 
 S.groupId = playerObjStart.groupId
 
--- Créer le sous-menu "Recette CTLD" sous "CTLD" via MenuManager (order=0)
--- Le nesting garantit que le sous-menu reste dans l'arbre CTLD à chaque refresh.
+-- Create the "CTLD Test" submenu under "CTLD" via MenuManager (order=0)
+-- Nesting guarantees the submenu stays in the CTLD tree on every refresh.
 local mm_init   = ctld.MenuManager:getInstance()
 local menu_init = mm_init and mm_init:getMenuByGroupId(S.groupId)
 if not menu_init then
@@ -353,17 +353,17 @@ if not menu_init then
     cleanup() ; return _SCN_XXX_RESULT
 end
 menu_init:addSubMenu({ ctld.tr("CTLD") }, MENU_NAME, { order = 0 })
--- addSubMenu est idempotent : si le nœud existait déjà (cleanup précédent), il ne met pas à jour
--- order ni enabled. Forcer les deux via _getNode.
+-- addSubMenu is idempotent: if the node already existed (previous cleanup), it does not update
+-- order nor enabled. Force both via _getNode.
 local _rNode = menu_init:_getNode(MENU_PATH)
 if _rNode then _rNode.order = 0 ; _rNode.enabled = true end
 menu_init:refresh()
 
-_SCN_XXX_CLEANUP = cleanup   -- exposé pour reset externe
+_SCN_XXX_CLEANUP = cleanup   -- exposed for external reset
 
 _SCN_XXX_RESULT = TAG.." STARTED"   -- async: runner polls _SCN_XXX_RESULT until PASS/FAIL
 log("=== START: "..NAME.." | transport="..S.transport:getName().." | groupId="..tostring(S.groupId).." | "..#steps.." steps ===")
-trigger.action.outText(TAG.." démarrage — "..#steps.." steps | "..S.transport:getName(), 8)
+trigger.action.outText(TAG.." starting — "..#steps.." steps | "..S.transport:getName(), 8)
 advanceStep()
 
 end  -- do isolation scope
