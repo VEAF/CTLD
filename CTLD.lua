@@ -3202,6 +3202,35 @@ local utils = {}
 ctld.utils = utils
 if not ctld.utils.marks then ctld.utils.marks = {}; end
 
+-- ====================================================================================================
+-- Version comparison — "MAJOR.MINOR.PATCH" with an optional "-pre" suffix (e.g. "2.0.0-rc1").
+-- Semver rules: a release outranks the same version's pre-release; pre-release trailing numbers
+-- compare numerically (rc10 > rc2). Returns -1 (a<b), 0 (a==b), 1 (a>b).
+-- ====================================================================================================
+local function _parseVersion(v)
+    v = tostring(v or "")
+    local major, minor, patch, pre = v:match("^(%d+)%.(%d+)%.(%d+)%-?(.*)$")
+    return tonumber(major) or 0, tonumber(minor) or 0, tonumber(patch) or 0,
+           (pre ~= nil and pre ~= "" and pre or nil)
+end
+
+function ctld.utils.compareVersions(a, b)
+    local a1, a2, a3, ap = _parseVersion(a)
+    local b1, b2, b3, bp = _parseVersion(b)
+    if a1 ~= b1 then return a1 < b1 and -1 or 1 end
+    if a2 ~= b2 then return a2 < b2 and -1 or 1 end
+    if a3 ~= b3 then return a3 < b3 and -1 or 1 end
+    -- Equal cores: compare pre-release. No pre = release = highest.
+    if ap == bp then return 0 end
+    if not ap then return 1 end
+    if not bp then return -1 end
+    local an = tonumber(ap:match("%d+"))
+    local bn = tonumber(bp:match("%d+"))
+    if an and bn and an ~= bn then return an < bn and -1 or 1 end
+    if ap == bp then return 0 end
+    return ap < bp and -1 or 1
+end
+
 function ctld.utils.drawQuad(coalitionId, vec3Points1To4, message)
     local coalitionId = coalitionId or 2
     local markId = ctld.utils.getNextMarkId()
@@ -7187,6 +7216,17 @@ function CTLDSceneManager:registerSceneModel(model)
     end
     self._models[model.name] = model
     ctld.utils.log("INFO", "CTLDSceneManager: registered scene model '%s'", model.name)
+    -- Plugin compatibility: a scene may declare a minimum CTLD version. If CTLD is older, warn
+    -- (best-effort — the scene still registers, it may simply misbehave against an old API).
+    if model.requiresCtld and ctld.utils.compareVersions(ctld.VERSION, model.requiresCtld) < 0 then
+        local msg = string.format(
+            "[CTLD] Scene '%s' requires CTLD >= %s but running %s — it may not work correctly.",
+            model.name, tostring(model.requiresCtld), tostring(ctld.VERSION))
+        ctld.utils.log("WARN", msg)
+        if trigger and trigger.action and trigger.action.outText then
+            trigger.action.outText(msg, 20)
+        end
+    end
     -- If CTLDCrateManager is already initialized (late scene registration, e.g. dcs-bridge injection),
     -- inject the crate descriptor immediately so it appears in the Request Equipment menu.
     if model.crate and CTLDCrateManager and CTLDCrateManager._instance then

@@ -280,6 +280,17 @@ function CTLDSceneManager:registerSceneModel(model)
     end
     self._models[model.name] = model
     ctld.utils.log("INFO", "CTLDSceneManager: registered scene model '%s'", model.name)
+    -- Plugin compatibility: a scene may declare a minimum CTLD version. If CTLD is older, warn
+    -- (best-effort — the scene still registers, it may simply misbehave against an old API).
+    if model.requiresCtld and ctld.utils.compareVersions(ctld.VERSION, model.requiresCtld) < 0 then
+        local msg = string.format(
+            "[CTLD] Scene '%s' requires CTLD >= %s but running %s — it may not work correctly.",
+            model.name, tostring(model.requiresCtld), tostring(ctld.VERSION))
+        ctld.utils.log("WARN", msg)
+        if trigger and trigger.action and trigger.action.outText then
+            trigger.action.outText(msg, 20)
+        end
+    end
     -- If CTLDCrateManager is already initialized (late scene registration, e.g. dcs-bridge injection),
     -- inject the crate descriptor immediately so it appears in the Request Equipment menu.
     if model.crate and CTLDCrateManager and CTLDCrateManager._instance then
