@@ -99,11 +99,18 @@ CTLDPlayerManager._instance = nil
 CTLDPlayerManager._deferredSections = {}
 
 --- Queue a menu section definition for registration at init time.
+-- Load-position-independent: if the manager is already initialised (e.g. a plugin scene loaded
+-- from a mission-start trigger after CTLD), route straight to registerMenuSection instead of
+-- queuing into the already-drained pre-init queue. Otherwise queue for the init-time flush.
 -- Safe to call from module top-level code before CTLDPlayerManager.getInstance().
 -- @param sectionDef table  same format as registerMenuSection()
 function CTLDPlayerManager.deferMenuSection(sectionDef)
     if not sectionDef or not sectionDef.key then return end
-    CTLDPlayerManager._deferredSections[#CTLDPlayerManager._deferredSections + 1] = sectionDef
+    if CTLDPlayerManager._instance then
+        CTLDPlayerManager._instance:registerMenuSection(sectionDef)
+    else
+        CTLDPlayerManager._deferredSections[#CTLDPlayerManager._deferredSections + 1] = sectionDef
+    end
 end
 
 --- Return (or create) the singleton instance.
