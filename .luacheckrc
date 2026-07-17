@@ -48,7 +48,6 @@ globals = {
     "CTLDTypeCollector",
     "CTLDParachuteEffect",
     "CTLDNullParachuteEffect",
-    "CTLDModValidator",
     -- Domain classes
     "CTLDCrate",
     "CTLDCrateManager",

@@ -36,7 +36,6 @@ dofile(SRC .. "CTLD_menu.lua")
 dofile(SRC .. "core/CTLD_objectRegistry.lua")
 dofile(SRC .. "core/CTLD_typeCollector.lua")
 dofile(SRC .. "core/CTLDParachuteEffect.lua")
-dofile(SRC .. "core/CTLD_modValidator.lua")
 
 -- ── Business domain managers ──────────────────────────────────
 dofile(SRC .. "CTLD_sceneManager.lua")
