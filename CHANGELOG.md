@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### DCS integration testing — plugin post-init contract (TEST-PLUGIN-POSTINIT)
+
+- **F-124** (`noPlayer`, tier `auto`): new L3 scenario verifying the SCENE-PLUGINS post-init
+  contract end-to-end in live DCS — `registerSceneModel` called after init adds the model to the
+  scene registry; `deferMenuSection` called after init routes directly into `_menuSections` without
+  queuing in `_deferredSections`; `requiresCtld` version mismatch logs WARN but still registers
+  the model (soft-fail).
+
 ### Bug fixes — AI transport C2 (virtual stock) path
 
 - **Fix (Bug 1)**: C2 virtual-stock path no longer activates when a physical vehicle is
