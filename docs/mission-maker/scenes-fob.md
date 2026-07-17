@@ -26,13 +26,25 @@ appears in the **Request Equipment** menu automatically once CTLD is loaded (no 
 | --- | --- | --- |
 | `FARP Alpha` | 1 | Full FARP: helipad, tent, ammo dump, fuel + repair trucks, security squad, decor. Warehouse stocked with 10 000 L of each fuel type. |
 | `Countryside FARP` | 3 | Discreet Invisible-FARP heliport + tent, trucks, guard team, lights, windsock. Warehouse zeroed by default (visual FARP, no fuel service). Supports FARP pack. |
-| `Metal FARP` | 1 | Metallic helipad (**requires the `Farp_FG_Petit_Helipad` mod**) + trucks, tent, ammo, lights. Warehouse stocked with 10 000 L of each fuel type. Supports FARP pack. |
 | `mineField` | 1 | Lays a configurable grid of landmines ahead of the helicopter, marked on the F10 map. See [Minefield](minefield.md). |
 | `FOB` | 3 | Forward Operating Base: an animated build that ends as a logistics zone. See [FOB](#fob-forward-operating-base) below. |
 
-> `Metal FARP` needs the `Farp_FG_Petit_Helipad` external mod installed on **all** clients. CTLD
-> cannot validate the mod at runtime, so it emits a warning at init and still shows the menu — only
-> offer this scene if you are sure every client has the mod.
+### Plugin scenes
+
+Some scenes are not bundled in `CTLD.lua` — typically because they depend on a DCS **mod**. They
+live in the separate [`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins) repository and are
+loaded on demand, so a mission only pays for them if it opts in.
+
+To add a plugin scene to your mission:
+
+1. Download the plugin's `.lua` from the [plugin catalogue](https://veaf.github.io/CTLD_plugins/).
+2. In the Mission Editor, add a `DO SCRIPT FILE` trigger at **MISSION START**, **after** the trigger
+   that loads `CTLD.lua`. The scene self-registers and its crate appears in **Request Equipment**.
+3. If the plugin requires a DCS mod, ensure **every** client has it installed (the plugin's page
+   lists prerequisites). The plugin warns in-game if your CTLD version is too old.
+
+> **`Metal FARP`** is now a plugin (it requires the `Farp_FG_Petit_Helipad` mod). It used to be
+> built in; missions that used it must now load the Metal FARP plugin as above.
 
 ### How a scene is built
 
@@ -180,7 +192,7 @@ instead of the defaults.
 cfg.settings["enableFARPRepack"] = false  -- default: true
 ```
 
-**Scenes that support packing:** `Countryside FARP`, `Metal FARP`.
+**Scenes that support packing:** `Countryside FARP` (and the `Metal FARP` plugin).
 
 To make a **custom** scene packable, add an `onRepack(scene, repackData)` hook that records what
 should be restored, and have your warehouse step check `ctx.scene._params.repackData` to decide

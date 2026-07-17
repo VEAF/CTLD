@@ -889,7 +889,7 @@ Pack a deployed FARP scene back into crates to redeploy it elsewhere. The FARP w
 
 **Enable:** `_cfg.settings["enableFARPRepack"] = true` (default: `true`)
 
-**Supported scenes:** `Countryside FARP`, `Metal FARP`. Custom scenes can support packing by implementing an `onRepack(scene, repackData)` hook — see the [Scenes & FOB guide](docs/mission-maker/scenes-fob.md).
+**Supported scenes:** `Countryside FARP` (and the `Metal FARP` plugin). Custom scenes can support packing by implementing an `onRepack(scene, repackData)` hook — see the [Scenes & FOB guide](docs/mission-maker/scenes-fob.md).
 
 ---
 

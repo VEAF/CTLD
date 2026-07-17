@@ -158,16 +158,18 @@ CTLDObjectRegistry.registerIfAbsent("Farp_FG_Petit_Helipad", {
 })
 ```
 
-**Atténuation pour les scenes qui utilisent des mods heliport :** déclarer `requiresMod` sur le
-modèle de scene. `CTLDSceneManager:_auditAfterModValidator()` émet un `outText` `WARN` au démarrage de
-la mission pour rappeler au mission maker que tous les clients doivent avoir le mod installé :
+**Scenes utilisant des types mod :** une scene déclare les types hors-stock qu'elle spawn dans
+`model.modTypes`. Le hard-gate d'assets au design-time (`tests/ci/unit/scene_asset_gate_spec.lua`)
+valide tous les autres types contre le jeu datamine tout en acceptant les types mod déclarés — une
+faute de frappe reste donc détectée. L'audit runtime des scenes a été retiré (ADR 0007) ; une scene
+dépendante d'un mod comme Metal FARP est désormais un plugin optionnel dans
+[`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins) plutôt que d'avertir à chaque mission.
 
 ```lua
-metalFarpScene.requiresMod = "Farp_FG_Petit_Helipad"
+someModScene.modTypes    = { "Some_Mod_Type" }   -- whitelist design-time (reste strict sur le reste)
+someModScene.requiresMod = "Some Mod Name"       -- libellé lisible pour le catalogue
+someModScene.requiresCtld = "2.0.0"              -- optionnel : avertit si CTLD est plus ancien
 ```
-
-Ce `WARN` est le seul mécanisme disponible — la suppression automatique du menu n'est pas possible
-pour les mods de type heliport.
 
 ### `core/CTLDParachuteEffect.lua`
 
