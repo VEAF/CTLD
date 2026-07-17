@@ -25,7 +25,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Description |
 |-----|-------------|
-| `CLEANUP-LEGACY-DCS-TESTS` | Purge the ~194 dead FullGas relics under `tests/dcs/noPlayer/` (dangling `dofile` of `DCS-CTLD_FG/recette/setup.lua`, absent `ctld_test` framework, hardcoded `Users/Moi` paths — never re-tooled at the VEAF bootstrap). **Talk to FullGas before purging** (confirm none are worth re-tooling). Separate PR from the DCS-bridge triptych. |
+| `CLEANUP-LEGACY-DCS-TESTS` | Purge 194 dead FullGas relics under `tests/dcs/noPlayer/` (dangling `dofile`, absent `ctld_test`, hardcoded paths). FullGas confirmed: purge. 45 live scenarios unaffected. |
 
 ### Delivered (socle, this program)
 
