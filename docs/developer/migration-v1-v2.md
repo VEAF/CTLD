@@ -27,7 +27,7 @@ function ctld.JTACAutoLase(_jtacGroupName, _laserCode, _smoke, _lock, _colour, _
 end
 ```
 
-The legacy file is loaded last (after all managers, just before `CTLD_userConfig.lua`) so every
+The legacy file is loaded last (after all managers, just before `CTLD_bootstrap.lua`) so every
 target manager is defined by the time a wrapper can be called.
 
 ## Migration table

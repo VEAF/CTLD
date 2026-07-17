@@ -1,10 +1,11 @@
 -- ============================================================
 -- CTLD_userConfig.lua
--- User configuration — load AFTER CTLD.lua in the mission.
+-- User configuration — load BEFORE CTLD.lua in the mission.
 --
 -- HOW TO USE
 --   In the Mission Editor, add a trigger "MISSION START → DO SCRIPT FILE"
---   and select this file.  It must run AFTER CTLD.lua.
+--   and select this file BEFORE the CTLD.lua trigger.
+--   This file is optional: if omitted, CTLD starts with factory defaults.
 --
 -- All values below are the factory defaults.
 -- Uncomment and edit only the lines you want to change.
@@ -965,44 +966,4 @@ end
 --     },
 -- }
 
--- ============================================================
--- AUTO-START
--- Boots all CTLD singletons after config is applied.
--- Set ctld.dontInitialize = true in your mission script BEFORE
--- loading CTLD.lua if you need to call ctld.initialize()
--- manually (e.g. to run additional setup between loading and starting).
--- ============================================================
 
----@diagnostic disable-next-line: lowercase-global
-function ctld.initialize()
-    CTLDConfig.get():load()
-    ctld.utils.initLog()
-
-    -- Boot all domain managers first so they can register their menu sections.
-    -- Order matters: PlayerManager must be up before any other manager calls
-    -- registerMenuSection(), and _scanExistingPlayers() must run last so all
-    -- sections are registered before menus are built for pre-existing players.
-    CTLDPlayerManager.getInstance()   -- creates _menuSections registry
-    CTLDZoneManager.getInstance()
-    CTLDTroopManager.getInstance()    -- registers "troops" section
-    CTLDCrateManager.getInstance()    -- registers "crates" + "smoke" sections
-    CTLDVehicleSpawner.getInstance()  -- registers "vehicles" section
-    CTLDFOBManager.getInstance()
-    CTLDBeaconManager.getInstance()   -- registers "beacons" section
-    CTLDReconManager.getInstance()    -- registers "recon" section
-    CTLDJTACManager.getInstance()             -- registers "jtac" section
-    CTLDCrateAssemblyManager.getInstance()
-    CTLDCoreManager.getInstance()     -- INIT-B (MM crates) + INIT-C (MM JTACs)
-
-    -- Now that all sections are registered, build menus for any player
-    -- already in a slot (no retroactive S_EVENT_PLAYER_ENTER_UNIT).
-    CTLDPlayerManager.getInstance():_scanExistingPlayers()
-
-    ctld.utils.log("INFO", "CTLD initialized.")
-end
-
-if ctld.dontInitialize then
-    ctld.utils.log("INFO", "CTLD auto-start skipped (ctld.dontInitialize=true). Call ctld.initialize() manually.")
-else
-    ctld.initialize()
-end

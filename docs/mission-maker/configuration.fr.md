@@ -22,17 +22,19 @@ ctld.gs("parameterName")   -- the only authorised read form
 
 ### Ordre de chargement dans le Mission Editor
 
-Ajoutez deux triggers `DO SCRIPT FILE` au **MISSION START**, dans cet ordre :
+`CTLD.lua` démarre automatiquement avec les valeurs par défaut — aucun fichier de config
+n'est requis. Si vous souhaitez personnaliser, ajoutez `CTLD_userConfig.lua` comme **premier**
+trigger, avant `CTLD.lua` :
 
-| Ordre | Action | Fichier |
-|---|---|---|
-| 1 | DO SCRIPT FILE | `CTLD.lua` |
-| 2 | DO SCRIPT FILE | `CTLD_userConfig.lua` |
+| Ordre | Action | Fichier | Requis ? |
+|---|---|---|---|
+| 1 | DO SCRIPT FILE | `CTLD_userConfig.lua` | Optionnel — uniquement si personnalisation |
+| 2 | DO SCRIPT FILE | `CTLD.lua` | Toujours |
 
-`CTLD.lua` définit le framework ; `CTLD_userConfig.lua` applique vos surcharges puis démarre
-automatiquement CTLD. (Si vous devez exécuter une configuration supplémentaire entre le
-chargement et le démarrage, positionnez `ctld.dontInitialize = true` avant le chargement de
-`CTLD.lua` et appelez `ctld.initialize()` vous-même.)
+`CTLD_userConfig.lua` pose vos surcharges dans l'environnement global ; `CTLD.lua` les lit
+au démarrage et initialise CTLD automatiquement. (Si vous devez exécuter une configuration
+supplémentaire entre le chargement et le démarrage, positionnez `ctld.dontInitialize = true`
+avant le chargement de `CTLD.lua` et appelez `ctld.initialize()` vous-même.)
 
 ### Deux façons de surcharger
 

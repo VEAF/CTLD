@@ -33,5 +33,5 @@ scenes/CTLD_farpAlphaScene.lua
 CTLD_core.lua
 -- Legacy API compatibility (after all managers)
 legacy/legacy_api.lua
--- User configuration (always last)
-CTLD_userConfig.lua
+-- Engine bootstrap: ctld.initialize() definition + auto-start guard (always last)
+CTLD_bootstrap.lua

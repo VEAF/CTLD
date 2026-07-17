@@ -10,7 +10,7 @@ src/                    Source modules (pure Lua 5.1, one class per file)
   legacy/               Legacy v1 API wrappers (thin delegates, deprecated)
   CTLD_*.lua            Domain managers (config, i18n, utils, menu, zone, troop, crate,
                         vehicle, fob, aasystem, beacon, recon, jtac, player, core…)
-  CTLD_userConfig.lua   User configuration (merged last)
+  CTLD_bootstrap.lua    Engine bootstrap — ctld.initialize() + auto-start guard (merged last)
 tools/
   build/                Build tooling: merge_CTLD.ps1, listToMerge.txt, generate_i18n_dicts.ps1
 tests/
@@ -83,7 +83,7 @@ entry — `embarkFromField` uses a 130 kg/unit fallback.
 1. Create `src/CTLD_mymodule.lua` using the class/singleton idiom above (`CTLDMyManager = class()`,
    `_instance`, `getInstance()`).
 2. Add the filename to `tools/build/listToMerge.txt` in dependency order (foundations first,
-   then domain managers, then scenes, then `CTLD_core.lua`, then `legacy/`, `CTLD_userConfig.lua`
+   then domain managers, then scenes, then `CTLD_core.lua`, then `legacy/`, `CTLD_bootstrap.lua`
    last).
 3. Add the same `dofile` entry to `tests/ci/helpers/loader.lua`.
 4. Write busted specs in `tests/ci/unit/mymodule_spec.lua` (test-first — see

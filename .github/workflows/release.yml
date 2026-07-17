@@ -39,5 +39,5 @@ jobs:
           $version = "${{ steps.ver.outputs.version }}"
           $tag     = "${{ github.ref_name }}"
           $notes   = if (Test-Path "RELEASE_NOTES.md") { "--notes-file", "RELEASE_NOTES.md" } else { "--generate-notes" }
-          gh release create $tag CTLD.lua dist\CTLD_asset_check.lua --title "CTLD v$version" @notes
+          gh release create $tag CTLD.lua dist\CTLD_userConfig.lua dist\CTLD_asset_check.lua --title "CTLD v$version" @notes
         shell: pwsh
