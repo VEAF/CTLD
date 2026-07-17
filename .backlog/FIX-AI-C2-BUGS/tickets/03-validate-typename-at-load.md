@@ -1,5 +1,4 @@
-Status: ⬜ ready
-Type: AFK
+Status: 🚫 wontfix
 
 # 03 — Validate vehicleStock typeNames at zone-load time
 
@@ -9,26 +8,20 @@ CTLD currently passes vehicleStock keys to `coalition.addGroup()` without any va
 When a key is not a valid DCS typeName, DCS silently substitutes Leopard-2 — no Lua error,
 no CTLD log. Mission makers have no feedback.
 
-After `parseStockTable` builds `_aiVehicleStock` in `CTLDZoneManager` (during zone config
-parsing), iterate each typeName key. Call `Unit.getDescByType(typeName)`: if it returns nil,
-log a CTLD ERROR and remove the entry from the stock table. `isAll` zones (no explicit type
-list) bypass this check. Rebuild `CTLD.lua`.
+## Why not implemented
 
-Add an L3 (`noPlayer`) test: configure an AIZ zone with one valid and one deliberately
-invalid vehicleStock entry. After zone init, assert the invalid entry is absent from
-`_aiVehicleStock.current` and that a CTLD ERROR was emitted. Prior art:
-`tests/dcs/noPlayer/aiTransport_featureT_stockParsing_F176.lua`.
+`Unit.getDescByType(typeName)` does not exist in the DCS Lua API — calling it raises
+`attempt to call field 'getDescByType' (a nil value)` and crashes the init.
 
-## Acceptance criteria
+The proper fix requires a shared type registry (`CTLDTypeCollector`, datamine-backed) that
+is being built in the `ASSET-VALIDATION-REVAMP` lot. The validation of `vehicleStock`
+typeNames should be deferred to that lot and done via the same mechanism as crate/troop
+type validation.
 
-- [ ] At mission start, each vehicleStock key is validated via `Unit.getDescByType()`
-- [ ] An invalid key produces a CTLD ERROR log entry and is absent from `_aiVehicleStock.current`
-- [ ] A valid key is retained unchanged
-- [ ] `isAll` zones are not affected
-- [ ] L3 test passes in DCS (noPlayer): invalid entry removed, valid entry retained, ERROR logged
-- [ ] `CTLD.lua` rebuilt from `src/`
-- [ ] `luacheck` clean on modified files
+Bug 2a (replacing the invalid `M1025 HMMWV Armament` example with `M1045 HMMWV TOW`)
+mitigates the immediate problem. The deeper guard is out of scope until
+`CTLDTypeCollector` exists.
 
 ## Blocked by
 
-None — can start immediately.
+`ASSET-VALIDATION-REVAMP` (provides the type registry needed for a safe static lookup).

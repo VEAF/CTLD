@@ -17,11 +17,9 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - **Fix (Bug 2a)**: invalid DCS typeName `"M1025 HMMWV Armament"` replaced by
   `"M1045 HMMWV TOW"` in the example `vehicleStock` config and all documentation. The
   former caused a silent DCS Leopard-2 substitution at vehicle spawn time.
-- **Fix (Bug 2b)**: `CTLDZoneManager` now validates every typeName in `vehicleStock` via
-  `Unit.getDescByType()` at zone-load time. Unknown typeNames are logged as ERROR and
-  skipped, preventing silent DCS substitution at runtime.
-- **Test**: `F-176` updated to reflect `M1045 HMMWV TOW`; new `F-176b` scenario verifies
-  that invalid typeNames are rejected at load time and absent from `_aiVehicleStock.current`.
+- **Test**: `F-176` updated to reflect `M1045 HMMWV TOW`; `scenario_mt08b_weight_exceeded`
+  (`auto-slow`) added as end-to-end regression — confirms no spawn at dropoff when C1
+  rejects the physical vehicle on weight. PASS 7/7.
 
 ### Tooling — test taxonomy formalisation
 
