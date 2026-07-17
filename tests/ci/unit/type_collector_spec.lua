@@ -61,4 +61,44 @@ describe("CTLDTypeCollector.collect", function()
         CTLDConfig.get().settings["modTypes"] = nil
     end)
 
+    it("collects DCS typeNames from aiZones vehicleStock", function()
+        local prev = CTLDConfig.get().settings["aiZones"]
+        CTLDConfig.get().settings["aiZones"] = {
+            { dcsZoneName = "TC_Zone", coalition = "BLUE", isPickup = true, cargoType = "V",
+              vehicleStock = { ["TC_HMMWV_Probe"] = 1 } },
+        }
+        local result = CTLDTypeCollector.collect()
+        assert.is_not_nil(result.types["TC_HMMWV_Probe"],
+            "vehicleStock typeName not collected from aiZones")
+        CTLDConfig.get().settings["aiZones"] = prev
+    end)
+
+    it("collects DCS typeNames from capabilitiesByType loadableVehiclesRED/BLUE", function()
+        local prev = CTLDConfig.get().settings["capabilitiesByType"]
+        CTLDConfig.get().settings["capabilitiesByType"] = {
+            ["TC_Transport"] = {
+                loadableVehiclesRED  = { "TC_Vehicle_RED" },
+                loadableVehiclesBLUE = { "TC_Vehicle_BLUE" },
+            },
+        }
+        local result = CTLDTypeCollector.collect()
+        assert.is_not_nil(result.types["TC_Vehicle_RED"],
+            "loadableVehiclesRED typeName not collected")
+        assert.is_not_nil(result.types["TC_Vehicle_BLUE"],
+            "loadableVehiclesBLUE typeName not collected")
+        CTLDConfig.get().settings["capabilitiesByType"] = prev
+    end)
+
+    it("collects DCS typeNames from aiZones vehicleTypes", function()
+        local prev = CTLDConfig.get().settings["aiZones"]
+        CTLDConfig.get().settings["aiZones"] = {
+            { dcsZoneName = "TC_Zone2", coalition = "BLUE", isPickup = true, cargoType = "V",
+              vehicleTypes = { "TC_VehicleType_Probe" } },
+        }
+        local result = CTLDTypeCollector.collect()
+        assert.is_not_nil(result.types["TC_VehicleType_Probe"],
+            "vehicleTypes typeName not collected from aiZones")
+        CTLDConfig.get().settings["aiZones"] = prev
+    end)
+
 end)
