@@ -21,16 +21,18 @@ ctld.gs("parameterName")   -- the only authorised read form
 
 ### Load order in the Mission Editor
 
-Add two `DO SCRIPT FILE` triggers at **MISSION START**, in this order:
+`CTLD.lua` auto-starts with factory defaults when loaded — no config file required. If you
+want to customise, add `CTLD_userConfig.lua` as a **first** trigger, before `CTLD.lua`:
 
-| Order | Action | File |
-|---|---|---|
-| 1 | DO SCRIPT FILE | `CTLD.lua` |
-| 2 | DO SCRIPT FILE | `CTLD_userConfig.lua` |
+| Order | Action | File | Required? |
+|---|---|---|---|
+| 1 | DO SCRIPT FILE | `CTLD_userConfig.lua` | Optional — only if customising |
+| 2 | DO SCRIPT FILE | `CTLD.lua` | Always |
 
-`CTLD.lua` defines the framework; `CTLD_userConfig.lua` applies your overrides and then
-auto-starts CTLD. (If you need to run extra setup between loading and starting, set
-`ctld.dontInitialize = true` before `CTLD.lua` loads and call `ctld.initialize()` yourself.)
+`CTLD_userConfig.lua` sets your overrides in the global environment; `CTLD.lua` reads them
+during init and auto-starts CTLD. (If you need to run extra setup between loading and
+starting, set `ctld.dontInitialize = true` before `CTLD.lua` loads and call
+`ctld.initialize()` yourself.)
 
 ### Two ways to override
 
