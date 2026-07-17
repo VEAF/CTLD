@@ -174,6 +174,24 @@ props (guards, workers, static decoration) never pollute the result. The F10 **P
 submenu is populated automatically when a transport lands within
 `ctld.gs("maximumDistancePackableUnitsSearch")` of a packable vehicle.
 
+## Scenes moved to plugins (2.0.0)
+
+The **Metal FARP** scene is no longer bundled in `CTLD.lua`. It is now an opt-in plugin in the
+[`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins) repository (it depends on the
+`Farp_FG_Petit_Helipad` mod, which does not belong in the core deliverable).
+
+If your mission offered Metal FARP, download its plugin `.lua` from the
+[plugin catalogue](https://veaf.github.io/CTLD_plugins/) and load it from a **mission-start trigger,
+after** the trigger that loads `CTLD.lua`:
+
+```
+Trigger 1 (MISSION START): DO SCRIPT FILE → CTLD.lua
+Trigger 2 (MISSION START): DO SCRIPT FILE → metal-farp.lua
+```
+
+The scene then self-registers exactly as before and its crate reappears in **Request Equipment**. No
+other change is required; the other FARP/FOB/minefield scenes remain built in.
+
 ---
 
 See [Architecture](architecture.md) for the manager / singleton idiom these calls rely on, and the

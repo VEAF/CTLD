@@ -154,16 +154,18 @@ CTLDObjectRegistry.registerIfAbsent("Farp_FG_Petit_Helipad", {
 })
 ```
 
-**Mitigation for scenes using heliport mods:** declare `requiresMod` on the scene model.
-`CTLDSceneManager:_auditAfterModValidator()` emits a `WARN` `outText` at mission start reminding the
-mission maker that all clients must have the mod installed:
+**Scenes using mod types:** a scene declares the non-stock types it spawns in `model.modTypes`. The
+design-time asset hard-gate (`tests/ci/unit/scene_asset_gate_spec.lua`) validates every other type
+against the datamine set while accepting the declared mod types, so a typo is still caught. The
+runtime scene audit was removed (ADR 0007); a mod-dependent scene like Metal FARP now ships as an
+opt-in plugin in [`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins) rather than warning in
+every mission.
 
 ```lua
-metalFarpScene.requiresMod = "Farp_FG_Petit_Helipad"
+someModScene.modTypes    = { "Some_Mod_Type" }   -- design-time whitelist (kept strict on the rest)
+someModScene.requiresMod = "Some Mod Name"       -- human label for the catalogue
+someModScene.requiresCtld = "2.0.0"              -- optional: warn if CTLD is older
 ```
-
-This `WARN` is the only mechanism available — automatic menu suppression is not possible for
-heliport-type mods.
 
 ### `core/CTLDParachuteEffect.lua`
 

@@ -74,21 +74,6 @@ CTLDObjectRegistry._db = {
         rate                 = 100,
     },
 
-    ["Farp_FG_Petit_Helipad"] = {  -- specific mod
-        groupType            = "STATIC",
-        namePrefix           = "FARP_Helipad",
-        type                 = "Farp_FG_Petit_Helipad",
-        category             = "Heliports",
-        shape_name           = "Farp_FG_Petit_Helipad.edm",
-        heliport_frequency   = "127.5",
-        heliport_callsign_id = 1,
-        heliport_modulation  = 0,
-        -- DCS scripting API limitation: for custom mod heliports, getDesc().life == 0 whether the mod
-        -- is installed or not (identical to an invalid type). No reliable discriminant exists.
-        -- probeSkip suppresses the false NOT FOUND alarm; the mod cannot be validated at runtime.
-        probeSkip            = true,
-    },
-
     -- ------------------------------------------------------------------
     -- FORTIFICATIONS
     -- ------------------------------------------------------------------

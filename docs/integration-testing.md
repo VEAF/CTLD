@@ -208,7 +208,7 @@ Run scenarios matching the modified feature:
 | Vehicle transport | `scenario_fq_vehicle_whole_transport.lua`, `scenario_mt05_crate_vehicle.lua` |
 | AI zones | `scenario_fr_ai_zones.lua` |
 | Extractable groups | `scenario_fo_extractable_groups.lua` |
-| Countryside/Metal FARP spawn | `scenario_farp_countryside_spawn.lua`, `scenario_farp_metal_spawn.lua` |
+| Countryside FARP spawn | `scenario_farp_countryside_spawn.lua` |
 
 ---
 

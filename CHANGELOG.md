@@ -8,6 +8,22 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Scenes — pluggable scenes (SCENE-PLUGINS)
+
+- **BREAKING**: the **Metal FARP** scene is no longer bundled in `CTLD.lua`. It is now an opt-in
+  **plugin** in the new [`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins) repository.
+  Missions that use Metal FARP must load its plugin `.lua` from a **mission-start trigger, after
+  CTLD** (see the [Scenes & FOB guide](docs/mission-maker/scenes-fob.md#plugin-scenes) and the
+  [migration guide](docs/developer/migration-v1-v2.md)). This removes the mod-dependent scene — and
+  the warning it printed at every mission start — from the core deliverable.
+- **Scenes are now load-position-independent**: the same scene source works whether merged into
+  `CTLD.lua` or loaded as a plugin after CTLD. `CTLDPlayerManager.deferMenuSection` routes to the
+  live manager when called after init, so a plugin scene's radio submenu still attaches.
+- **Change**: scene DCS-asset validation moved from a runtime probe to a **design-time busted
+  hard-gate** (datamine set ∪ per-scene `modTypes`). The runtime scene audit
+  (`_auditAfterModValidator`) and its `requiresMod` warning were removed; `CTLD_modValidator`
+  (crates/troops) is unchanged. A scene may declare `requiresCtld` to warn on an incompatible CTLD.
+
 ### Docs — README cleanup
 
 - **Fix**: README H1 renamed from the stale `DCS-CTLD Next` temporary-repo title to `CTLD`.

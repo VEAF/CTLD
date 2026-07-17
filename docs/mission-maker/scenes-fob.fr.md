@@ -29,14 +29,29 @@ CTLD chargé (aucune config supplémentaire).
 | --- | --- | --- |
 | `FARP Alpha` | 1 | FARP complète : helipad, tente, dépôt de munitions, camions de carburant + réparation, escouade de sécurité, décor. Warehouse approvisionné avec 10 000 L de chaque type de carburant. |
 | `Countryside FARP` | 3 | Heliport Invisible-FARP discret + tente, camions, équipe de garde, lumières, manche à air. Warehouse mis à zéro par défaut (FARP visuelle, pas de service carburant). Supporte le pack de FARP. |
-| `Metal FARP` | 1 | Helipad métallique (**nécessite le mod `Farp_FG_Petit_Helipad`**) + camions, tente, munitions, lumières. Warehouse approvisionné avec 10 000 L de chaque type de carburant. Supporte le pack de FARP. |
 | `mineField` | 1 | Dispose une grille configurable de mines terrestres devant l'hélicoptère, marquée sur la carte F10. Voir [Champ de mines](minefield.md). |
 | `FOB` | 3 | Forward Operating Base : une construction animée qui se termine en logistics zone. Voir [FOB](#fob-forward-operating-base) ci-dessous. |
 
-> `Metal FARP` nécessite l'installation du mod externe `Farp_FG_Petit_Helipad` sur **tous** les
-> clients. CTLD ne peut pas valider le mod à l'exécution, il émet donc un avertissement à l'init et
-> affiche quand même le menu — ne proposez cette scene que si vous êtes certain que chaque client a
-> le mod.
+### Scènes plugin
+
+Certaines scènes ne sont pas embarquées dans `CTLD.lua` — généralement parce qu'elles dépendent d'un
+**mod** DCS. Elles vivent dans le dépôt séparé
+[`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins) et se chargent à la demande : une mission
+ne les embarque que si elle le décide.
+
+Pour ajouter une scène plugin à votre mission :
+
+1. Téléchargez le `.lua` du plugin depuis le
+   [catalogue des plugins](https://veaf.github.io/CTLD_plugins/).
+2. Dans l'éditeur de mission, ajoutez un déclencheur `DO SCRIPT FILE` au **démarrage de la mission**,
+   **après** le déclencheur qui charge `CTLD.lua`. La scène s'enregistre et sa caisse apparaît dans
+   **Request Equipment**.
+3. Si le plugin requiert un mod DCS, assurez-vous que **tous** les clients l'ont installé (la page du
+   plugin liste les prérequis). Le plugin prévient en jeu si votre version de CTLD est trop ancienne.
+
+> **`Metal FARP`** est désormais un plugin (il nécessite le mod `Farp_FG_Petit_Helipad`). Il était
+> auparavant intégré ; les missions qui l'utilisaient doivent maintenant charger le plugin Metal
+> FARP comme ci-dessus.
 
 ### Comment une scene est construite
 
@@ -190,7 +205,7 @@ capturés au lieu des valeurs par défaut.
 cfg.settings["enableFARPRepack"] = false  -- default: true
 ```
 
-**Scenes qui supportent le pack :** `Countryside FARP`, `Metal FARP`.
+**Scenes qui supportent le pack :** `Countryside FARP` (et le plugin `Metal FARP`).
 
 Pour rendre une scene **personnalisée** packable, ajoutez un hook `onRepack(scene, repackData)` qui
 enregistre ce qui doit être restauré, et faites en sorte que votre warehouse step vérifie

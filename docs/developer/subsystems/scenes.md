@@ -144,20 +144,40 @@ The relevant identifiers (`onRepack`, `findNearbyRepackableScenes`, `packScene`,
 7. To make the scene deployable as a FOB, set `fobCompatible = true` **inside the `crate` table**
    (`myScene.crate.fobCompatible`). A FOB scene typically also supplies a custom
    `crate.unpack = function(unit, unitName, sceneName) … end` delegating to `CTLDFOBManager`.
-8. If the scene needs a mod that cannot be probed (heliport types with `probeSkip = true`), set
-   `myScene.requiresMod = "<registryKey>"` so `_auditAfterModValidator` emits a startup WARN.
+8. If the scene spawns a **mod** (non-stock) type, list it in `myScene.modTypes = { "Type_Name" }`
+   (the design-time asset gate accepts it while staying strict on every other type) and set
+   `myScene.requiresMod = "<human label>"` for the catalogue. Optionally set
+   `myScene.requiresCtld = "X.Y.Z"` to warn on an incompatible CTLD.
 
 `src/scenes/CTLD_countrysideFarpScene.lua` is the reference implementation (Invisible FARP +
 warehouse stocking + `onRepack`); `src/scenes/CTLD_fobScene.lua` shows the FOB variant.
 
-## Mod validation
+## Plugin scenes (load-position-independent)
 
-After `CTLDModValidator` runs, `CTLDCoreManager:init()` calls
-`CTLDSceneManager:_auditAfterModValidator()`. It walks every registered model's steps, resolves
-each `registryKey` in `CTLDObjectRegistry`, and — skipping entries flagged `probeSkip` — checks the
-DCS type against the validator (`isStaticInvalid` / `isGroundInvalid`). A model with any missing
-type is marked `_disabled`, reported via `trigger.action.outText`, and purged from the Request
-Equipment menu (`CTLDCrateManager:_purgeDisabledScenes`). Models declaring `requiresMod` (which
-cannot be auto-validated) instead emit a WARN reminding mission makers that all clients need the
-mod. `isSceneEnabled(name)` reflects the result. See [Architecture](../architecture.md) for the
-`probeSkip` rationale and the object registry.
+A scene's source is **load-position-independent**: the same file works whether merged into
+`CTLD.lua` (built-in) or loaded from a mission-start trigger **after** CTLD (a plugin, distributed
+by [`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins)). Mod-dependent or niche scenes ship
+as plugins so a mission only pays for them if it opts in.
+
+This works because every extension point tolerates being invoked after CTLD init:
+
+- `registerSceneModel` injects the crate immediately if `CTLDCrateManager` is already initialised;
+- i18n assignments are plain table writes (order-independent);
+- `CTLDPlayerManager.deferMenuSection` routes to the live manager (`registerMenuSection`) when
+  called post-init instead of queuing into the drained pre-init queue.
+
+Contract for a plugin scene: load at **mission start only** (before players slot in), declare
+`requiresCtld`, and declare any mod types in `modTypes`. The `_template` reference scene in
+CTLD_plugins exercises every extension point (including a radio submenu).
+
+## Asset validation (design-time)
+
+Scene DCS types are validated at **dev/CI time**, not at runtime (ADR 0007). The busted hard-gate
+`tests/ci/unit/scene_asset_gate_spec.lua` collects the types each scene spawns (STATIC `desc.type`,
+GROUND `desc.units[].type`) and fails on any type absent from the vendored datamine set
+(`tests/data/dcs_types.lua`) ∪ the union of every scene's `modTypes`. `modTypes` is additive, so a
+typo in a stock type is still caught even in a descriptor that also uses a whitelisted mod type.
+
+The old runtime audit (`_auditAfterModValidator`, `model._disabled`, `_purgeDisabledScenes`) was
+removed; `CTLDModValidator` (crates/troops) is unchanged. `isSceneEnabled(name)` now simply reports
+whether the model is registered.

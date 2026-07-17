@@ -40,7 +40,13 @@ redefined terms are added here in the same move as the decision that introduces 
 - **Beacon** — radio beacon (VHF/UHF/FM) attached to a deployed asset.
 - **Recon** — line-of-sight detection that renders persistent F10-map markers (FARP/FOB layers).
 - **FOB / FARP** — Forward Operating Base / Forward Arming and Refuelling Point built via crates.
-- **Scene** — a pre-defined multi-step build (FARP, FOB, minefield…) run by the SceneManager.
+- **Scene** — a pre-defined multi-step build (FARP, FOB, minefield…) run by the SceneManager. A
+  scene's source is **load-position-independent**: the same file works whether merged into `CTLD.lua`
+  or loaded from a mission-start trigger after CTLD.
+  - **Built-in scene** — a scene merged into the `CTLD.lua` deliverable (via `listToMerge.txt`).
+  - **Plugin scene** — a scene distributed by the separate **CTLD_plugins** repo, built to a single
+    loadable `.lua` and loaded by a mission-start trigger *after* CTLD. One plugin = one scene
+    (plus its optional Lua deps). "Plugin" is a distribution vehicle, not a gameplay concept.
 - **AA system** — multi-crate air-defence assembly (HAWK, NASAMS, KUB, BUK, Patriot, S-300).
 
 ## Zones
