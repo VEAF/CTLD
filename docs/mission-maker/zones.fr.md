@@ -238,7 +238,7 @@ _cfg.settings["aiZones"] = {
     -- Vehicle-only pickup (vehicles must be physically in the zone)
     { dcsZoneName = "armor_depot", coalition = "BLUE",
       isPickup = true, cargoType = "V",
-      vehicleStock = { ["Hummer"] = 3, ["M1025 HMMWV Armament"] = -1 } },
+      vehicleStock = { ["Hummer"] = 3, ["M1045 HMMWV TOW"] = -1 } },
 
     -- Troops + vehicle pickup
     { dcsZoneName = "hub_tv", coalition = "BLUE",

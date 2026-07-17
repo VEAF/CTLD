@@ -8,6 +8,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Bug fixes — AI transport C2 (virtual stock) path
+
+- **Fix (Bug 1)**: C2 virtual-stock path no longer activates when a physical vehicle is
+  present in the pickup zone but exceeds the helicopter's weight limit. Guard changed from
+  `not physicalLoaded` to `not physicalLoaded and not physicalPresent`, matching the
+  existing code comment.
+- **Fix (Bug 2a)**: invalid DCS typeName `"M1025 HMMWV Armament"` replaced by
+  `"M1045 HMMWV TOW"` in the example `vehicleStock` config and all documentation. The
+  former caused a silent DCS Leopard-2 substitution at vehicle spawn time.
+- **Test**: `F-176` updated to reflect `M1045 HMMWV TOW`; `scenario_mt08b_weight_exceeded`
+  (`auto-slow`) added as end-to-end regression — confirms no spawn at dropoff when C1
+  rejects the physical vehicle on weight. PASS 7/7.
+
 ### Tooling — test taxonomy formalisation
 
 - **Docs**: `CONTEXT.md` Testing terms section rewritten with canonical tier definitions
@@ -19,6 +32,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   both scenarios retagged `disabled` → `auto-slow`. MT-08 PASS 12/12, MT-14 PASS.
 - **Fix**: stale `recette/` paths in `tests/manual_test_sequences.md` (MT-06 prerequisites)
   corrected to `tests/dcs/util/`.
+
 ### Asset validation — no more runtime probe (ASSET-VALIDATION-REVAMP)
 
 - **BREAKING (behavioural)**: CTLD no longer probe-spawns objects at mission start to validate DCS

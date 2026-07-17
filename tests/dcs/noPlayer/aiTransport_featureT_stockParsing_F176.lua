@@ -95,8 +95,8 @@ local _ok, _err = pcall(function()
         check("F-176.13", "_aiVehicleStock.isAll=false", vs and vs.isAll == false)
         check("F-176.14", "init[Hummer]=3",              vs and vs.init["Hummer"] == 3,
               tostring(vs and vs.init["Hummer"]))
-        check("F-176.15", "init[M1025 HMMWV Armament]=-1", vs and vs.init["M1025 HMMWV Armament"] == -1,
-              tostring(vs and vs.init["M1025 HMMWV Armament"]))
+        check("F-176.15", "init[M1045 HMMWV TOW]=-1", vs and vs.init["M1045 HMMWV TOW"] == -1,
+              tostring(vs and vs.init["M1045 HMMWV TOW"]))
         check("F-176.16", "_aiTroopStock=nil (V-only zone)", zVeh._aiTroopStock == nil)
     end
 
