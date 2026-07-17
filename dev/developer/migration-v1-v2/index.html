@@ -2187,7 +2187,7 @@ warnings are a nudge to migrate, not an error.</p>
 <span class="w">    </span><span class="nv">CTLDJTACManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">autoLase</span><span class="p">(</span><span class="nv">_jtacGroupName</span><span class="p">,</span><span class="w"> </span><span class="nv">_laserCode</span><span class="p">,</span><span class="w"> </span><span class="nv">_smoke</span><span class="p">,</span><span class="w"> </span><span class="nv">_lock</span><span class="p">,</span><span class="w"> </span><span class="nv">_colour</span><span class="p">,</span><span class="w"> </span><span class="nv">_radio</span><span class="p">)</span>
 <span class="kr">end</span>
 </code></pre></div>
-<p>The legacy file is loaded last (after all managers, just before <code>CTLD_userConfig.lua</code>) so every
+<p>The legacy file is loaded last (after all managers, just before <code>CTLD_bootstrap.lua</code>) so every
 target manager is defined by the time a wrapper can be called.</p>
 <h2 id="migration-table">Migration table<a class="headerlink" href="#migration-table" title="Permanent link">&para;</a></h2>
 <p>Replace each v1 <code>ctld.*</code> call with the v2 form on the right. Argument order and names below match

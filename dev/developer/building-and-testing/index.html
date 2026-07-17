@@ -2044,7 +2044,7 @@ engine — the script aborts if a BOM is detected). The build:</p>
 <li>fails with a non-zero exit code if no files were merged or a BOM slipped in.</li>
 </ul>
 <p>The order in <code>listToMerge.txt</code> is authoritative (foundations first, then domain managers, then
-scenes, then <code>CTLD_core.lua</code>, <code>legacy/</code>, and <code>CTLD_userConfig.lua</code> last). See
+scenes, then <code>CTLD_core.lua</code>, <code>legacy/</code>, and <code>CTLD_bootstrap.lua</code> last). See
 <a href="../architecture/">Architecture</a> for the rationale and for how to slot a new module into the list.</p>
 <p><strong>CI build:</strong> the <code>build</code> job runs the same <code>merge_CTLD.ps1</code> on <code>windows-latest</code>, verifies the
 output exists and is non-empty, and uploads <code>CTLD.lua</code> as a build artifact.</p>

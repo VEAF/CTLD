@@ -2398,31 +2398,36 @@ every parameter is read through a single accessor:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">gs</span><span class="p">(</span><span class="s2">&quot;parameterName&quot;</span><span class="p">)</span><span class="w">   </span><span class="c1">-- the only authorised read form</span>
 </code></pre></div>
 <h3 id="load-order-in-the-mission-editor">Load order in the Mission Editor<a class="headerlink" href="#load-order-in-the-mission-editor" title="Permanent link">&para;</a></h3>
-<p>Add two <code>DO SCRIPT FILE</code> triggers at <strong>MISSION START</strong>, in this order:</p>
+<p><code>CTLD.lua</code> auto-starts with factory defaults when loaded — no config file required. If you
+want to customise, add <code>CTLD_userConfig.lua</code> as the <strong>first</strong> trigger, before <code>CTLD.lua</code>:</p>
 <table>
 <thead>
 <tr>
 <th>Order</th>
 <th>Action</th>
 <th>File</th>
+<th>Required?</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>1</td>
 <td>DO SCRIPT FILE</td>
-<td><code>CTLD.lua</code></td>
+<td><code>CTLD_userConfig.lua</code></td>
+<td>Optional — only if customising</td>
 </tr>
 <tr>
 <td>2</td>
 <td>DO SCRIPT FILE</td>
-<td><code>CTLD_userConfig.lua</code></td>
+<td><code>CTLD.lua</code></td>
+<td>Always</td>
 </tr>
 </tbody>
 </table>
-<p><code>CTLD.lua</code> defines the framework; <code>CTLD_userConfig.lua</code> applies your overrides and then
-auto-starts CTLD. (If you need to run extra setup between loading and starting, set
-<code>ctld.dontInitialize = true</code> before <code>CTLD.lua</code> loads and call <code>ctld.initialize()</code> yourself.)</p>
+<p><code>CTLD_userConfig.lua</code> sets your overrides in the global environment; <code>CTLD.lua</code> reads them
+during init and auto-starts CTLD. (If you need to run extra setup between loading and
+starting, set <code>ctld.dontInitialize = true</code> before <code>CTLD.lua</code> loads and call
+<code>ctld.initialize()</code> yourself.)</p>
 <h3 id="two-ways-to-override">Two ways to override<a class="headerlink" href="#two-ways-to-override" title="Permanent link">&para;</a></h3>
 <p><strong>Scalars</strong> (booleans, numbers, strings) go in the <code>ctld.yamlConfigDatas</code> block, one
 <code>ctld.parameterName: value</code> line each:</p>
