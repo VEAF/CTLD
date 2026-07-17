@@ -1,11 +1,6 @@
 ---@diagnostic disable
--- @tier: disabled  (QUARANTINE -- code AND mission are both correct: the Land-task point is
---   INSIDE the pickup zone (48 m from centre, verified in Test_CTLDNEXT_01.miz). But the DCS AI
---   helo orbits the LZ without ever landing on this exact spot (terrain/pathfinding, not CTLD),
---   so the whole-cycle test never completes. AA-assembly logic is covered fast+deterministic by
---   noPlayer aiTransport_featureU spawnSystemAt (F-182). Excluded from every default sweep;
---   reachable only via `--tier disabled`. To re-enable: relocate this group's Land point to
---   clearer terrain.)
+-- @tier: auto-slow  (Land waypoint relocated to clear terrain in Test_CTLDNEXT_01.miz,
+--   TOOLING-TEST-TAXONOMY ticket 03a/03b — pending PASS verification in live DCS)
 -- =============================================================================
 -- scenario_mt14_ai_aa_system.lua  [INTERACTIVE]
 -- MT-14 — AI auto-pickup of an AA system (HAWK) via vehicleStock (Feature U)

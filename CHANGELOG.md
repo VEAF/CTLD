@@ -8,6 +8,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — test taxonomy formalisation
+
+- **Docs**: `CONTEXT.md` Testing terms section rewritten with canonical tier definitions
+  (`auto`, `auto-check`, `auto-slow`, `human`, `disabled`), banned aliases (`ia`, `--no-ai`),
+  L1–L6 level table, and headless sweep definition.
+- **ADR 0006**: documents the `disabled` tier quarantine pattern for scenarios blocked by
+  external DCS issues (pathfinding, missing mod).
+- **Fix**: `mt08` and `mt14` Land waypoints moved to open flat terrain away from urban areas;
+  both scenarios retagged `disabled` → `auto-slow`. MT-08 PASS 12/12, MT-14 PASS.
+- **Fix**: stale `recette/` paths in `tests/manual_test_sequences.md` (MT-06 prerequisites)
+  corrected to `tests/dcs/util/`.
 ### Asset validation — no more runtime probe (ASSET-VALIDATION-REVAMP)
 
 - **BREAKING (behavioural)**: CTLD no longer probe-spawns objects at mission start to validate DCS

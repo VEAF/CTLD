@@ -1,11 +1,6 @@
 ---@diagnostic disable
--- @tier: disabled  (QUARANTINE -- code AND mission are both correct: the Land-task point is
---   INSIDE the pickup zone (8 m from centre, verified in Test_CTLDNEXT_01.miz). But the DCS AI
---   helo orbits the LZ without ever landing on this exact spot (terrain/pathfinding, not CTLD),
---   so the whole-cycle test never completes -- fails even at a 900 s timeout. Logic coverage is
---   assured fast+deterministic by noPlayer aiTransport_featureT/U (F-176..182) and by the sibling
---   scenarios that pass (mt09/mt10/mt12/mt13). Excluded from every default sweep; reachable only
---   via `--tier disabled`. To re-enable: relocate this group's Land point to clearer terrain.)
+-- @tier: auto-slow  (Land waypoint relocated to clear terrain in Test_CTLDNEXT_01.miz,
+--   TOOLING-TEST-TAXONOMY ticket 03a/03b — pending PASS verification in live DCS)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_mt08_ai_vehicle.lua
 -- CTLD — AI auto-pickup / auto-dropoff: whole vehicle alone (landed → landed)
@@ -60,6 +55,13 @@ do  -- isolation scope
 local cfg                  = CTLDConfig.get()
 local _savedDebug          = cfg.settings["debug"]
 local _savedDebugScreenLog = cfg.settings["debugScreenLog"]
+-- Override Hummer weight so UH-1H (maxVehicleWeight=1360 kg) can load it.
+-- Real weight is 2400 kg (intentionally above UH-1H limit for gameplay).
+-- This scenario tests the pickup/dropoff detection mechanic, not weight limits.
+local _gvw                 = cfg.settings["groundVehicleWeights"] or {}
+local _savedHummerWeight   = _gvw["Hummer"]
+_gvw["Hummer"]             = 1100
+cfg.settings["groundVehicleWeights"] = _gvw
 cfg.settings["debug"]          = true
 cfg.settings["debugScreenLog"] = false
 
@@ -180,6 +182,7 @@ local function cleanup()
     _SCN_MT08_INSTR = nil ; _SCN_MT08_SHOW = nil
     cfg.settings["debug"]          = _savedDebug
     cfg.settings["debugScreenLog"] = _savedDebugScreenLog
+    _gvw["Hummer"]                 = _savedHummerWeight
     _SCN_MT08_RUNNING = false
     _SCN_MT08_CLEANUP = nil
     log("cleanup done")
@@ -338,7 +341,7 @@ steps[2] = function()
         "Step 2/4 — WAIT FOR VEHICLE LOAD (MT-08)\n"..
         "Helo "..AI_UNIT.." must land on "..AIZ_P.." with the HMMWV.\n"..
         "Automatic load detection.\n"..
-        "Timeout: 300 s."
+        "Timeout: 600 s."
     )
     waitFor(
         function()
@@ -349,7 +352,7 @@ steps[2] = function()
             local loaded = vs:findLoadedVehicles(unit)
             return loaded and #loaded > 0
         end,
-        3, 300,
+        3, 600,
         function()
             local unit = Unit.getByName(AI_UNIT)
             local ok, vs = pcall(CTLDVehicleSpawner.getInstance)
@@ -371,7 +374,7 @@ steps[2] = function()
             advanceStep()
         end,
         function()
-            fail("MT-08.2.1", "timeout 300s — no load on "..AIZ_P)
+            fail("MT-08.2.1", "timeout 600s — no load on "..AIZ_P)
             advanceStep()
         end
     )

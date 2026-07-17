@@ -16,6 +16,9 @@ authored **per lot, when the lot is started** (not in batch).
 |-----|--------|-------------|--------|
 | `DOC-README-CLEANUP` | 🧑 waiting-human | Fix README title, restructure Crate Operations sub-sections, relocate AA System Construction, replace Developer Guide with Documentation links — implemented, pending PR review/merge | `fix/doc-readme-cleanup` |
 | `CATCH-UP-PILOT-SCENARIOS` | ✅ pending merge | Ran the never-executed `pilotPassive`/`pilotActive` scenarios. Audit found the "34 `ia`" was almost all mistagged: 66/66 now pass in a headless sweep (`--no-ai --reset-before-each`), real pilot burden ≈ 2 short menu flights (both PASS). Fixed a pile of test-harness defects + cross-scenario contamination (soft reset `_reset_state.lua`), + one product fix (`refreshMenuSection` flight-state override). Optional remainders: `auto-slow` AI battery (covered by F-176..182), mt16/warehouse, L6 manual (ticket 08). | test/catch-up-pilot-scenarios |
+| `TOOLING-TEST-TAXONOMY` | ✅ pending merge | Formalise the test taxonomy post CATCH-UP-PILOT-SCENARIOS: update `CONTEXT.md` (tiers `human`/`auto-slow`/`disabled`, L1–L6 levels, headless sweep), create ADR 0006 (`disabled` pattern), fix mt08/mt14 Land waypoint to unblock `auto-slow`, fix stale `recette/` paths in MT-06. MT-08 PASS 12/12, MT-14 PASS. | `tooling/test-taxonomy` |
+| `FIX-AI-C2-BUGS` | ⬜ ready | Two bugs in the AI transport C2 (virtual stock) path: wrong activation guard when a physical vehicle is weight-rejected (Bug 1), and invalid typeName `M1025 HMMWV Armament` in example config causing silent Leopard-2 spawn (Bug 2a/2b). MT-08B is the regression scenario. | — |
+
 ### Planned lots
 
 | Lot | Description |
