@@ -69,11 +69,21 @@ jobs:
           if (-not (Test-Path CTLD.lua)) { Write-Host "::error::CTLD.lua not produced"; exit 1 }
           if ((Get-Item CTLD.lua).Length -eq 0) { Write-Host "::error::CTLD.lua is empty"; exit 1 }
         shell: pwsh
-      - name: Upload build artifact
+      - name: Build the dev-time asset-check companion
+        run: powershell -ExecutionPolicy Bypass -File tools\companion\build_companion.ps1
+        shell: pwsh
+      - name: Verify companion output
+        run: |
+          if (-not (Test-Path dist\CTLD_asset_check.lua)) { Write-Host "::error::companion not produced"; exit 1 }
+          if ((Get-Item dist\CTLD_asset_check.lua).Length -eq 0) { Write-Host "::error::companion is empty"; exit 1 }
+        shell: pwsh
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
           name: CTLD
-          path: CTLD.lua
+          path: |
+            CTLD.lua
+            dist/CTLD_asset_check.lua
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────
