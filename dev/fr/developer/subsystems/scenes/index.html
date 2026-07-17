@@ -1429,10 +1429,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validation-des-mods" class="md-nav__link">
+  <a href="#scenes-plugin-independantes-de-la-position-de-chargement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validation des mods
+        Scènes plugin (indépendantes de la position de chargement)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-des-assets-design-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation des assets (design-time)
       
     </span>
   </a>
@@ -1998,10 +2009,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validation-des-mods" class="md-nav__link">
+  <a href="#scenes-plugin-independantes-de-la-position-de-chargement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validation des mods
+        Scènes plugin (indépendantes de la position de chargement)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-des-assets-design-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation des assets (design-time)
       
     </span>
   </a>
@@ -2197,23 +2219,39 @@ l'inventaire au lieu de les remettre à zéro.</p>
    de la table <code>crate</code></strong> (<code>myScene.crate.fobCompatible</code>). Une scène FOB fournit aussi typiquement un
    <code>crate.unpack = function(unit, unitName, sceneName) … end</code> personnalisé qui délègue à
    <code>CTLDFOBManager</code>.</li>
-<li>Si la scène a besoin d'un mod qui ne peut pas être sondé (types d'héliport avec <code>probeSkip = true</code>),
-   définir <code>myScene.requiresMod = "&lt;registryKey&gt;"</code> afin que <code>_auditAfterModValidator</code> émette un WARN
-   au démarrage.</li>
+<li>Si la scène spawn un type <strong>mod</strong> (hors-stock), le lister dans <code>myScene.modTypes = { "Type_Name" }</code>
+   (le gate d'assets design-time l'accepte tout en restant strict sur tous les autres types) et
+   définir <code>myScene.requiresMod = "&lt;libellé lisible&gt;"</code> pour le catalogue. Optionnellement, définir
+   <code>myScene.requiresCtld = "X.Y.Z"</code> pour avertir si CTLD est incompatible.</li>
 </ol>
 <p><code>src/scenes/CTLD_countrysideFarpScene.lua</code> est l'implémentation de référence (Invisible FARP +
 approvisionnement d'entrepôt + <code>onRepack</code>) ; <code>src/scenes/CTLD_fobScene.lua</code> illustre la variante FOB.</p>
-<h2 id="validation-des-mods">Validation des mods<a class="headerlink" href="#validation-des-mods" title="Permanent link">&para;</a></h2>
-<p>Après l'exécution de <code>CTLDModValidator</code>, <code>CTLDCoreManager:init()</code> appelle
-<code>CTLDSceneManager:_auditAfterModValidator()</code>. Cette méthode parcourt les étapes de chaque modèle
-enregistré, résout chaque <code>registryKey</code> dans <code>CTLDObjectRegistry</code> et — en ignorant les entrées
-marquées <code>probeSkip</code> — vérifie le type DCS auprès du validateur (<code>isStaticInvalid</code> /
-<code>isGroundInvalid</code>). Un modèle comportant un type manquant est marqué <code>_disabled</code>, signalé via
-<code>trigger.action.outText</code>, et purgé du menu Request Equipment
-(<code>CTLDCrateManager:_purgeDisabledScenes</code>). Les modèles déclarant <code>requiresMod</code> (qui ne peuvent pas
-être validés automatiquement) émettent à la place un WARN rappelant aux concepteurs de mission que
-tous les clients ont besoin du mod. <code>isSceneEnabled(name)</code> reflète le résultat. Voir
-<a href="../../architecture/">Architecture</a> pour la justification de <code>probeSkip</code> et le registre d'objets.</p>
+<h2 id="scenes-plugin-independantes-de-la-position-de-chargement">Scènes plugin (indépendantes de la position de chargement)<a class="headerlink" href="#scenes-plugin-independantes-de-la-position-de-chargement" title="Permanent link">&para;</a></h2>
+<p>Le source d'une scène est <strong>indépendant de sa position de chargement</strong> : le même fichier fonctionne
+qu'il soit mergé dans <code>CTLD.lua</code> (intégré) ou chargé depuis un déclencheur au démarrage de la mission
+<strong>après</strong> CTLD (un plugin, distribué par
+<a href="https://github.com/VEAF/CTLD_plugins"><code>VEAF/CTLD_plugins</code></a>). Les scènes dépendantes d'un mod ou de
+niche sont livrées en plugins : une mission ne les embarque que si elle le décide.</p>
+<p>Cela fonctionne parce que chaque point d'extension tolère d'être invoqué après l'init de CTLD :</p>
+<ul>
+<li><code>registerSceneModel</code> injecte la caisse immédiatement si <code>CTLDCrateManager</code> est déjà initialisé ;</li>
+<li>les affectations i18n sont de simples écritures de table (indépendantes de l'ordre) ;</li>
+<li><code>CTLDPlayerManager.deferMenuSection</code> route vers le manager vivant (<code>registerMenuSection</code>) lorsqu'il
+  est appelé post-init, au lieu de remplir la file pré-init déjà vidée.</li>
+</ul>
+<p>Contrat d'une scène plugin : charger <strong>au démarrage de la mission uniquement</strong> (avant slot-in des
+joueurs), déclarer <code>requiresCtld</code>, et déclarer les types mod dans <code>modTypes</code>. La scène de référence
+<code>_template</code> dans CTLD_plugins exerce tous les points d'extension (y compris un sous-menu radio).</p>
+<h2 id="validation-des-assets-design-time">Validation des assets (design-time)<a class="headerlink" href="#validation-des-assets-design-time" title="Permanent link">&para;</a></h2>
+<p>Les types DCS des scènes sont validés au <strong>dev/CI</strong>, pas au runtime (ADR 0007). Le hard-gate busted
+<code>tests/ci/unit/scene_asset_gate_spec.lua</code> collecte les types spawnés par chaque scène (STATIC
+<code>desc.type</code>, GROUND <code>desc.units[].type</code>) et échoue sur tout type absent du jeu datamine vendorisé
+(<code>tests/data/dcs_types.lua</code>) ∪ l'union des <code>modTypes</code> de chaque scène. <code>modTypes</code> est additif : une
+faute de frappe dans un type stock reste détectée même dans un descripteur qui utilise aussi un type
+mod whitelisté.</p>
+<p>L'ancien audit runtime (<code>_auditAfterModValidator</code>, <code>model._disabled</code>, <code>_purgeDisabledScenes</code>) a été
+retiré ; <code>CTLDModValidator</code> (crates/troops) est inchangé. <code>isSceneEnabled(name)</code> indique désormais
+simplement si le modèle est enregistré.</p>
 
 
 

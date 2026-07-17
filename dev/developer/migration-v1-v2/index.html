@@ -1853,6 +1853,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#scenes-moved-to-plugins-200" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenes moved to plugins (2.0.0)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2088,6 +2099,17 @@
     <span class="md-ellipsis">
       
         Pack vehicle (new in v2)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenes-moved-to-plugins-200" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenes moved to plugins (2.0.0)
       
     </span>
   </a>
@@ -2369,6 +2391,18 @@ but also callable directly:</p>
 props (guards, workers, static decoration) never pollute the result. The F10 <strong>Pack Vehicle</strong>
 submenu is populated automatically when a transport lands within
 <code>ctld.gs("maximumDistancePackableUnitsSearch")</code> of a packable vehicle.</p>
+<h2 id="scenes-moved-to-plugins-200">Scenes moved to plugins (2.0.0)<a class="headerlink" href="#scenes-moved-to-plugins-200" title="Permanent link">&para;</a></h2>
+<p>The <strong>Metal FARP</strong> scene is no longer bundled in <code>CTLD.lua</code>. It is now an opt-in plugin in the
+<a href="https://github.com/VEAF/CTLD_plugins"><code>VEAF/CTLD_plugins</code></a> repository (it depends on the
+<code>Farp_FG_Petit_Helipad</code> mod, which does not belong in the core deliverable).</p>
+<p>If your mission offered Metal FARP, download its plugin <code>.lua</code> from the
+<a href="https://veaf.github.io/CTLD_plugins/">plugin catalogue</a> and load it from a <strong>mission-start trigger,
+after</strong> the trigger that loads <code>CTLD.lua</code>:</p>
+<div class="highlight"><pre><span></span><code>Trigger 1 (MISSION START): DO SCRIPT FILE → CTLD.lua
+Trigger 2 (MISSION START): DO SCRIPT FILE → metal-farp.lua
+</code></pre></div>
+<p>The scene then self-registers exactly as before and its crate reappears in <strong>Request Equipment</strong>. No
+other change is required; the other FARP/FOB/minefield scenes remain built in.</p>
 <hr />
 <p>See <a href="../architecture/">Architecture</a> for the manager / singleton idiom these calls rely on, and the
 <a href="../api-reference/">API reference</a> for the full method surface of each manager.</p>

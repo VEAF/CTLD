@@ -1853,6 +1853,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#scenes-deplacees-en-plugins-200" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scènes déplacées en plugins (2.0.0)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2088,6 +2099,17 @@
     <span class="md-ellipsis">
       
         Pack de véhicule (nouveau en v2)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenes-deplacees-en-plugins-200" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scènes déplacées en plugins (2.0.0)
       
     </span>
   </a>
@@ -2371,6 +2393,19 @@ piloté depuis le menu F10 mais aussi appelable directement :</p>
 sorte que les props de décor (guards, workers, décoration statique) ne polluent jamais le résultat.
 Le sous-menu F10 <strong>Pack Vehicle</strong> est peuplé automatiquement lorsqu'un transport se pose à moins de
 <code>ctld.gs("maximumDistancePackableUnitsSearch")</code> d'un véhicule packable.</p>
+<h2 id="scenes-deplacees-en-plugins-200">Scènes déplacées en plugins (2.0.0)<a class="headerlink" href="#scenes-deplacees-en-plugins-200" title="Permanent link">&para;</a></h2>
+<p>La scène <strong>Metal FARP</strong> n'est plus embarquée dans <code>CTLD.lua</code>. C'est désormais un plugin optionnel du
+dépôt <a href="https://github.com/VEAF/CTLD_plugins"><code>VEAF/CTLD_plugins</code></a> (elle dépend du mod
+<code>Farp_FG_Petit_Helipad</code>, qui n'a pas sa place dans le livrable de base).</p>
+<p>Si votre mission proposait Metal FARP, téléchargez le <code>.lua</code> du plugin depuis le
+<a href="https://veaf.github.io/CTLD_plugins/">catalogue des plugins</a> et chargez-le depuis un déclencheur
+au <strong>démarrage de la mission, après</strong> le déclencheur qui charge <code>CTLD.lua</code> :</p>
+<div class="highlight"><pre><span></span><code>Déclencheur 1 (MISSION START) : DO SCRIPT FILE → CTLD.lua
+Déclencheur 2 (MISSION START) : DO SCRIPT FILE → metal-farp.lua
+</code></pre></div>
+<p>La scène s'enregistre alors exactement comme avant et sa caisse réapparaît dans <strong>Request
+Equipment</strong>. Aucun autre changement n'est nécessaire ; les autres scènes FARP/FOB/champ de mines
+restent intégrées.</p>
 <hr />
 <p>Voir <a href="../architecture/">Architecture</a> pour l'idiome manager / singleton sur lequel ces appels
 reposent, et la <a href="../api-reference/">Référence de l'API</a> pour la surface complète des méthodes de chaque

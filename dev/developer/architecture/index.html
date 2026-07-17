@@ -2295,13 +2295,16 @@ always reports it as present — a false-positive "mod found" even when the mod 
 <span class="w">    </span><span class="c1">-- …</span>
 <span class="p">})</span>
 </code></pre></div>
-<p><strong>Mitigation for scenes using heliport mods:</strong> declare <code>requiresMod</code> on the scene model.
-<code>CTLDSceneManager:_auditAfterModValidator()</code> emits a <code>WARN</code> <code>outText</code> at mission start reminding the
-mission maker that all clients must have the mod installed:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">metalFarpScene</span><span class="p">.</span><span class="py">requiresMod</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Farp_FG_Petit_Helipad&quot;</span>
+<p><strong>Scenes using mod types:</strong> a scene declares the non-stock types it spawns in <code>model.modTypes</code>. The
+design-time asset hard-gate (<code>tests/ci/unit/scene_asset_gate_spec.lua</code>) validates every other type
+against the datamine set while accepting the declared mod types, so a typo is still caught. The
+runtime scene audit was removed (ADR 0007); a mod-dependent scene like Metal FARP now ships as an
+opt-in plugin in <a href="https://github.com/VEAF/CTLD_plugins"><code>VEAF/CTLD_plugins</code></a> rather than warning in
+every mission.</p>
+<div class="highlight"><pre><span></span><code><span class="nv">someModScene</span><span class="p">.</span><span class="py">modTypes</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Some_Mod_Type&quot;</span><span class="w"> </span><span class="p">}</span><span class="w">   </span><span class="c1">-- design-time whitelist (kept strict on the rest)</span>
+<span class="nv">someModScene</span><span class="p">.</span><span class="py">requiresMod</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Some Mod Name&quot;</span><span class="w">       </span><span class="c1">-- human label for the catalogue</span>
+<span class="nv">someModScene</span><span class="p">.</span><span class="py">requiresCtld</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2.0.0&quot;</span><span class="w">              </span><span class="c1">-- optional: warn if CTLD is older</span>
 </code></pre></div>
-<p>This <code>WARN</code> is the only mechanism available — automatic menu suppression is not possible for
-heliport-type mods.</p>
 <h3 id="corectldparachuteeffectlua"><code>core/CTLDParachuteEffect.lua</code><a class="headerlink" href="#corectldparachuteeffectlua" title="Permanent link">&para;</a></h3>
 <p>Visual parachute effect helper used when dropping crates/troops from altitude.</p>
 <h3 id="ctld_utilslua-utility-functions"><code>CTLD_utils.lua</code> — utility functions<a class="headerlink" href="#ctld_utilslua-utility-functions" title="Permanent link">&para;</a></h3>

@@ -1023,6 +1023,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#plugin-scenes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugin scenes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#how-a-scene-is-built" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2027,6 +2038,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#plugin-scenes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugin scenes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#how-a-scene-is-built" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2203,11 +2225,6 @@ appears in the <strong>Request Equipment</strong> menu automatically once CTLD i
 <td>Discreet Invisible-FARP heliport + tent, trucks, guard team, lights, windsock. Warehouse zeroed by default (visual FARP, no fuel service). Supports FARP pack.</td>
 </tr>
 <tr>
-<td><code>Metal FARP</code></td>
-<td>1</td>
-<td>Metallic helipad (<strong>requires the <code>Farp_FG_Petit_Helipad</code> mod</strong>) + trucks, tent, ammo, lights. Warehouse stocked with 10 000 L of each fuel type. Supports FARP pack.</td>
-</tr>
-<tr>
 <td><code>mineField</code></td>
 <td>1</td>
 <td>Lays a configurable grid of landmines ahead of the helicopter, marked on the F10 map. See <a href="../minefield/">Minefield</a>.</td>
@@ -2219,10 +2236,21 @@ appears in the <strong>Request Equipment</strong> menu automatically once CTLD i
 </tr>
 </tbody>
 </table>
+<h3 id="plugin-scenes">Plugin scenes<a class="headerlink" href="#plugin-scenes" title="Permanent link">&para;</a></h3>
+<p>Some scenes are not bundled in <code>CTLD.lua</code> — typically because they depend on a DCS <strong>mod</strong>. They
+live in the separate <a href="https://github.com/VEAF/CTLD_plugins"><code>VEAF/CTLD_plugins</code></a> repository and are
+loaded on demand, so a mission only pays for them if it opts in.</p>
+<p>To add a plugin scene to your mission:</p>
+<ol>
+<li>Download the plugin's <code>.lua</code> from the <a href="https://veaf.github.io/CTLD_plugins/">plugin catalogue</a>.</li>
+<li>In the Mission Editor, add a <code>DO SCRIPT FILE</code> trigger at <strong>MISSION START</strong>, <strong>after</strong> the trigger
+   that loads <code>CTLD.lua</code>. The scene self-registers and its crate appears in <strong>Request Equipment</strong>.</li>
+<li>If the plugin requires a DCS mod, ensure <strong>every</strong> client has it installed (the plugin's page
+   lists prerequisites). The plugin warns in-game if your CTLD version is too old.</li>
+</ol>
 <blockquote>
-<p><code>Metal FARP</code> needs the <code>Farp_FG_Petit_Helipad</code> external mod installed on <strong>all</strong> clients. CTLD
-cannot validate the mod at runtime, so it emits a warning at init and still shows the menu — only
-offer this scene if you are sure every client has the mod.</p>
+<p><strong><code>Metal FARP</code></strong> is now a plugin (it requires the <code>Farp_FG_Petit_Helipad</code> mod). It used to be
+built in; missions that used it must now load the Metal FARP plugin as above.</p>
 </blockquote>
 <h3 id="how-a-scene-is-built">How a scene is built<a class="headerlink" href="#how-a-scene-is-built" title="Permanent link">&para;</a></h3>
 <p>A scene model is a table with a <code>name</code>, an optional self-declared <code>crate</code>, and an ordered list of
@@ -2449,7 +2477,7 @@ Commands</strong>. Packing it:</p>
 instead of the defaults.</p>
 <div class="highlight"><pre><span></span><code><span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;enableFARPRepack&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">  </span><span class="c1">-- default: true</span>
 </code></pre></div>
-<p><strong>Scenes that support packing:</strong> <code>Countryside FARP</code>, <code>Metal FARP</code>.</p>
+<p><strong>Scenes that support packing:</strong> <code>Countryside FARP</code> (and the <code>Metal FARP</code> plugin).</p>
 <p>To make a <strong>custom</strong> scene packable, add an <code>onRepack(scene, repackData)</code> hook that records what
 should be restored, and have your warehouse step check <code>ctx.scene._params.repackData</code> to decide
 between restoring the snapshot and applying defaults:</p>
