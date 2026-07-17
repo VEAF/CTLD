@@ -21,6 +21,8 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Description |
 |-----|-------------|
+| `SCENE-PLUGINS` | Make scenes pluggable + extract Metal FARP (mod-dependent) to a new `VEAF/CTLD_plugins` repo, killing its every-mission-start WARN. Scenes become load-position-independent; scene asset validation moves to a design-time hard-gate (busted, datamine ∪ whitelist); `_auditAfterModValidator` removed. ADRs [0006](../dev/adr/0006-pluggable-scenes.md)/[0007](../dev/adr/0007-design-time-asset-validation.md). |
+| `ASSET-VALIDATION-REVAMP` | Replace `CTLD_modValidator`'s runtime probe-spawn (crates/troops/AA/registry) with a no-spawn datamine lookup + mission-maker mod whitelist → WARN. No spurious `S_EVENT_BIRTH`/destroy. Follows `SCENE-PLUGINS`. ADR [0007](../dev/adr/0007-design-time-asset-validation.md). |
 | `CLEANUP-LEGACY-DCS-TESTS` | Purge the ~194 dead FullGas relics under `tests/dcs/noPlayer/` (dangling `dofile` of `DCS-CTLD_FG/recette/setup.lua`, absent `ctld_test` framework, hardcoded `Users/Moi` paths — never re-tooled at the VEAF bootstrap). **Talk to FullGas before purging** (confirm none are worth re-tooling). Separate PR from the DCS-bridge triptych. |
 
 ### Delivered (socle, this program)
