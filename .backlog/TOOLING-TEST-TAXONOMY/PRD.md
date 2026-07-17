@@ -1,4 +1,4 @@
-Status: ⬜ ready
+Status: ✅ done
 
 # Lot TOOLING-TEST-TAXONOMY — Formalise the test taxonomy post CATCH-UP-PILOT-SCENARIOS
 

@@ -1,4 +1,4 @@
-Status: ⬜ ready
+Status: ✅ done
 Type: HITL (DCS live + dcs-bridge requis)
 
 # 03b — Vérifier PASS de mt08/mt14 en DCS live
