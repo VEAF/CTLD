@@ -52,7 +52,33 @@ redefined terms are added here in the same move as the decision that introduces 
 
 - **Integration test** — a test injecting Lua into a live DCS mission (the practice previously
   called "recette", a banned French term).
-- **Tier** — a scenario's automation level, tagged `-- @tier: auto | auto-check | ia`
-  (deterministic no-AI / unattended-with-AI-check / AI-piloted).
-- **Runner** — the Python harness replaying `auto` scenarios via VEAF-dcs-bridge, no AI.
+- **Test level** — the execution context of a test, L1 to L6:
+
+  | Level | Folder | Who drives |
+  |-------|--------|------------|
+  | L1 | `tests/ci/unit/` | CI — busted, no DCS |
+  | L2 | `tests/ci/functional/` | CI — busted, no DCS |
+  | L3 | `tests/dcs/noPlayer/` | script only, no player slot |
+  | L4 | `tests/dcs/pilotPassive/` | script drives, player parked in cockpit |
+  | L5 | `tests/dcs/pilotActive/` | player executes F10 actions |
+  | L6 | `tests/manual_test_sequences.md` | player + manual checklist, no runner |
+
+- **Tier** — a scenario's automation level, declared `-- @tier: <value>` in each scenario file.
+  Values:
+  - `auto` — single injection returns an immediate verdict; fully headless.
+  - `auto-check` — resolves automatically via timers / `waitFor` / re-injection within seconds;
+    headless.
+  - `auto-slow` — no human needed, but takes minutes (AI-heli flight or long timer chain);
+    excluded from the headless sweep, run explicitly with `--tier auto-slow`.
+  - `human` — requires a live pilot: `human (fly)` (must fly/land) or `human (menu)` (F10 click
+    or visual judgment the code cannot verify). _Avoid_: `ia` (old name, banned).
+  - `disabled` — quarantined: code and mission are correct but the scenario cannot reach a
+    verdict due to an external blocker (DCS AI pathfinding, missing mod). Never run by default;
+    reachable only via `--tier disabled`. See ADR 0006.
+- **Headless sweep** — running all `auto` + `auto-check` scenarios via
+  `run_scenarios.py --headless --reset-before-each`, player parked in a BLUE slot, no human
+  input required. _Avoid_: `--no-ai` (old flag name, banned).
+- **Runner** — the Python harness: `run_scenarios.py` (batch, headless/auto-slow) and
+  `run_manual_scenario.py` (one `human`-tier scenario at a time, interactive).
+  _Avoid_: `run_ia_scenario.py` (old name, banned).
 - **dcs-bridge** — VEAF-dcs-bridge: the live Lua injection bridge (`exec_lua`), replacing Witchcraft.

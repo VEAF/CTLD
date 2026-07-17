@@ -1,11 +1,6 @@
 ---@diagnostic disable
--- @tier: disabled  (QUARANTINE -- code AND mission are both correct: the Land-task point is
---   INSIDE the pickup zone (8 m from centre, verified in Test_CTLDNEXT_01.miz). But the DCS AI
---   helo orbits the LZ without ever landing on this exact spot (terrain/pathfinding, not CTLD),
---   so the whole-cycle test never completes -- fails even at a 900 s timeout. Logic coverage is
---   assured fast+deterministic by noPlayer aiTransport_featureT/U (F-176..182) and by the sibling
---   scenarios that pass (mt09/mt10/mt12/mt13). Excluded from every default sweep; reachable only
---   via `--tier disabled`. To re-enable: relocate this group's Land point to clearer terrain.)
+-- @tier: auto-slow  (Land waypoint relocated to clear terrain in Test_CTLDNEXT_01.miz,
+--   TOOLING-TEST-TAXONOMY ticket 03a/03b — pending PASS verification in live DCS)
 -- =============================================================================
 -- live_tests/scenarios/interactive/scenario_mt08_ai_vehicle.lua
 -- CTLD — AI auto-pickup / auto-dropoff: whole vehicle alone (landed → landed)
