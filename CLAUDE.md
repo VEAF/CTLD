@@ -40,6 +40,8 @@
 
 - `.backlog/` is the single source of truth (one dir per lot: `PRD.md` + `tickets/`;
   `.backlog/README.md` = index). Lots closed >3 days → `.backlog/archive/<LOT-ID>.md`.
+- Before opening a new lot, check `dev/roadmap.md` — if the idea is already there, formalize
+  from the existing entry. Future ideas not yet ready for a lot → `dev/roadmap.md`.
 - Never create a separate todolist file (TodoWrite is intra-session only).
 
 ## Default workflow
