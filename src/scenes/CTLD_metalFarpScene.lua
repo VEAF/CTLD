@@ -135,6 +135,9 @@ CTLDObjectRegistry.registerIfAbsent("Windsock", {
 local metalFarpScene = {}
 metalFarpScene.name       = "Metal FARP"
 metalFarpScene.requiresMod = "Farp_FG_Petit_Helipad"  -- cannot be auto-validated (probeSkip); WARN emitted at init
+-- Non-stock (mod) DCS types this scene spawns. Added to the known set by the design-time
+-- asset hard-gate (datamine ∪ modTypes) so validation still catches typos in every stock type.
+metalFarpScene.modTypes   = { "Farp_FG_Petit_Helipad" }
 
 metalFarpScene.crate = {
     weight         = 1001.26,
