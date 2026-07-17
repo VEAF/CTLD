@@ -23,9 +23,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 ### Planned lots
 
-| Lot | Description |
-|-----|-------------|
-| `CLEANUP-LEGACY-DCS-TESTS` | Purge 194 dead FullGas relics under `tests/dcs/noPlayer/` (dangling `dofile`, absent `ctld_test`, hardcoded paths). FullGas confirmed: purge. 45 live scenarios unaffected. |
+None.
 
 ### Delivered (socle, this program)
 
@@ -49,6 +47,8 @@ authored **per lot, when the lot is started** (not in batch).
 | `FIX-LIVE-DCS-FAILURES` ✅ | Triaged the 10 (of 18) failures from the first live run (2026-07-10) not already fixed by `POST-FULLGAS-FIXES` — all 10 turned out to be cross-scenario state contamination, cleared by a mission reload (48/48 green, no src/test change). Also closed the L4 gap on Feature Q's whole-vehicle Request Equipment menu. PR #23. |
 | `SCENE-PLUGINS` ✅ | Pluggable scenes + extracted the mod-dependent Metal FARP into the new [`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins) repo (killing its every-mission-start WARN). Scenes are load-position-independent; scene asset validation moved to a design-time busted hard-gate (datamine ∪ `modTypes`); runtime scene audit removed; `requiresCtld` version check. ADRs [0006](../dev/adr/0006-pluggable-scenes.md)/[0007](../dev/adr/0007-design-time-asset-validation.md). CTLD PR #26; plugins repo bootstrapped (PR #1/#2). |
 | `ASSET-VALIDATION-REVAMP` ✅ | Removed `CTLD_modValidator`'s runtime probe-spawn (no more spurious `S_EVENT_BIRTH`/destroy at mission start). Shared `CTLDTypeCollector` (fixes the GROUND `unitType` gate gap); `modTypes` config setting; optional dev-time asset-check companion (`dist/CTLD_asset_check.lua`, no-spawn lookup). ADR [0007](../dev/adr/0007-design-time-asset-validation.md). CTLD PR #27; plugins gate fix PR #3. |
+| `CLEANUP-LEGACY-DCS-TESTS` ✅ | Purged 194 dead FullGas relics from `tests/dcs/noPlayer/` (dangling `dofile`, absent `ctld_test`, hardcoded paths). FullGas confirmed. 45 live dcs-bridge scenarios unaffected. PR #33. |
+| `USERCONFIG-LOADING` ✅ | `CTLD_userConfig.lua` removed from build merge; new `CTLD_bootstrap.lua` keeps auto-start in deliverable; userConfig delivered in `dist/` as standalone MM template. PR #32. |
 
 ## Dropped lots
 
