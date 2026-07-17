@@ -22,7 +22,7 @@ ctld.gs("parameterName")   -- the only authorised read form
 ### Load order in the Mission Editor
 
 `CTLD.lua` auto-starts with factory defaults when loaded — no config file required. If you
-want to customise, add `CTLD_userConfig.lua` as a **first** trigger, before `CTLD.lua`:
+want to customise, add `CTLD_userConfig.lua` as the **first** trigger, before `CTLD.lua`:
 
 | Order | Action | File | Required? |
 |---|---|---|---|

@@ -23,7 +23,7 @@ ctld.gs("parameterName")   -- the only authorised read form
 ### Ordre de chargement dans le Mission Editor
 
 `CTLD.lua` démarre automatiquement avec les valeurs par défaut — aucun fichier de config
-n'est requis. Si vous souhaitez personnaliser, ajoutez `CTLD_userConfig.lua` en **premier**
+n'est requis. Si vous souhaitez personnaliser, ajoutez `CTLD_userConfig.lua` comme **premier**
 trigger, avant `CTLD.lua` :
 
 | Ordre | Action | Fichier | Requis ? |

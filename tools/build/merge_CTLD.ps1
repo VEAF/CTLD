@@ -84,6 +84,10 @@ if ($bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
 Write-Host "OK - no BOM detected."
 
 # Copy CTLD_userConfig.lua to dist/ as a standalone MM template
+if (-not (Test-Path $userCfgSrc)) {
+    Write-Error "CTLD_userConfig.lua not found at '$userCfgSrc'. Ensure the source file exists before building."
+    exit 1
+}
 if (-not (Test-Path $distDir)) { New-Item -ItemType Directory -Path $distDir | Out-Null }
 Copy-Item -Path $userCfgSrc -Destination $userCfgDest -Force
 Write-Host "Copied  : CTLD_userConfig.lua → dist/CTLD_userConfig.lua"
