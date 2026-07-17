@@ -142,7 +142,7 @@ git tag vX.Y  ->  CI Release job builds and publishes CTLD.lua
 **Scripts:** `tests/ci/unit/*_spec.lua` — 21 files, ~105 tests.
 **Runner:** `busted tests/ci/` (Job 3 in `.github/workflows/ci.yml`).
 
-Scope: Config, EventDispatcher, Zones, Crates, Troops, JTAC, Menu, Utils, i18n, ModValidator.
+Scope: Config, EventDispatcher, Zones, Crates, Troops, JTAC, Menu, Utils, i18n.
 All DCS API calls replaced by stubs in `tests/ci/helpers/dcs_stubs.lua`.
 
 ---
@@ -208,7 +208,7 @@ Run scenarios matching the modified feature:
 | Vehicle transport | `scenario_fq_vehicle_whole_transport.lua`, `scenario_mt05_crate_vehicle.lua` |
 | AI zones | `scenario_fr_ai_zones.lua` |
 | Extractable groups | `scenario_fo_extractable_groups.lua` |
-| Countryside/Metal FARP spawn | `scenario_farp_countryside_spawn.lua`, `scenario_farp_metal_spawn.lua` |
+| Countryside FARP spawn | `scenario_farp_countryside_spawn.lua` |
 
 ---
 

@@ -73,6 +73,7 @@ _cfg.settings["capabilitiesByType"] = { --[[ ... ]] }
 | `debugScreenLog` | `false` | Répète aussi les messages de log à l'écran DCS via `outText` |
 | `location_DMS` | `false` | Affiche les coordonnées en Degrés-Minutes-Secondes au lieu de Degrés-Minutes-Décimales |
 | `disableAllSmoke` | `false` | Désactive globalement toute la smoke aux zones de pickup et de drop-off |
+| `modTypes` | `{}` | Noms de types DCS hors-stock (mod) utilisés par votre config custom (crates, parts AA, rôles de troupes). Consulté uniquement par le [compagnon asset-check](asset-validation.md) dev-time pour ne pas les signaler — voir cette page |
 
 ### Crates & slingload
 

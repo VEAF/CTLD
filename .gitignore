@@ -5,6 +5,9 @@
 # CTLD.lua is intentionally tracked — available at repo root for DCS missions.
 # Do NOT add it to .gitignore.
 
+# Build outputs (the dev-time companion is built by CI / release, not committed).
+dist/
+
 # ── Local-only recette scratch files (never commit) ──────────────────────────
 # recette/local/ no longer exists in the repo.
 # Diagnostic probes are in recette/dev/diag/ (tracked).

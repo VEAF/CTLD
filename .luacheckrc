@@ -45,9 +45,9 @@ globals = {
     -- Utils / infrastructure
     "EventDispatcher",
     "CTLDObjectRegistry",
+    "CTLDTypeCollector",
     "CTLDParachuteEffect",
     "CTLDNullParachuteEffect",
-    "CTLDModValidator",
     -- Domain classes
     "CTLDCrate",
     "CTLDCrateManager",
@@ -82,8 +82,9 @@ globals = {
 
 -- Per-file overrides
 files["tests/"] = {
-    -- Test helpers may use additional globals
-    globals = { "describe", "it", "before_each", "after_each",
+    -- Test helpers may use additional globals. `_CTLD_assetCheck` / `_CTLD_STOCK_TYPES` come from
+    -- the dev-time companion (tools/companion/, itself excluded from luacheck) exercised by its spec.
+    globals = { "describe", "it", "setup", "teardown", "before_each", "after_each",
                 "assert", "spy", "mock", "stub",
-                "ctld_test" },
+                "ctld_test", "_CTLD_assetCheck", "_CTLD_STOCK_TYPES" },
 }

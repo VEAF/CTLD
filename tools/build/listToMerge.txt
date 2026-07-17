@@ -9,8 +9,8 @@ CTLD_i18n_ko.lua
 CTLD_utils.lua
 CTLD_menu.lua
 core/CTLD_objectRegistry.lua
+core/CTLD_typeCollector.lua
 core/CTLDParachuteEffect.lua
-core/CTLD_modValidator.lua
 -- Business domain managers
 CTLD_sceneManager.lua
 CTLD_zone.lua
@@ -29,7 +29,6 @@ scenes/CTLD_fobScene.lua
 scenes/CTLD_mineFieldScene.lua
 scenes/CTLD_countrysideFarpScene.lua
 scenes/CTLD_farpAlphaScene.lua
-scenes/CTLD_metalFarpScene.lua
 -- Orchestrator (instantiates all managers, including CTLDCrateManager._processSpawnableCrates)
 CTLD_core.lua
 -- Legacy API compatibility (after all managers)

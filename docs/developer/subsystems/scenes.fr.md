@@ -155,22 +155,42 @@ Les identifiants concernés (`onRepack`, `findNearbyRepackableScenes`, `packScen
    de la table `crate`** (`myScene.crate.fobCompatible`). Une scène FOB fournit aussi typiquement un
    `crate.unpack = function(unit, unitName, sceneName) … end` personnalisé qui délègue à
    `CTLDFOBManager`.
-8. Si la scène a besoin d'un mod qui ne peut pas être sondé (types d'héliport avec `probeSkip = true`),
-   définir `myScene.requiresMod = "<registryKey>"` afin que `_auditAfterModValidator` émette un WARN
-   au démarrage.
+8. Si la scène spawn un type **mod** (hors-stock), le lister dans `myScene.modTypes = { "Type_Name" }`
+   (le gate d'assets design-time l'accepte tout en restant strict sur tous les autres types) et
+   définir `myScene.requiresMod = "<libellé lisible>"` pour le catalogue. Optionnellement, définir
+   `myScene.requiresCtld = "X.Y.Z"` pour avertir si CTLD est incompatible.
 
 `src/scenes/CTLD_countrysideFarpScene.lua` est l'implémentation de référence (Invisible FARP +
 approvisionnement d'entrepôt + `onRepack`) ; `src/scenes/CTLD_fobScene.lua` illustre la variante FOB.
 
-## Validation des mods
+## Scènes plugin (indépendantes de la position de chargement)
 
-Après l'exécution de `CTLDModValidator`, `CTLDCoreManager:init()` appelle
-`CTLDSceneManager:_auditAfterModValidator()`. Cette méthode parcourt les étapes de chaque modèle
-enregistré, résout chaque `registryKey` dans `CTLDObjectRegistry` et — en ignorant les entrées
-marquées `probeSkip` — vérifie le type DCS auprès du validateur (`isStaticInvalid` /
-`isGroundInvalid`). Un modèle comportant un type manquant est marqué `_disabled`, signalé via
-`trigger.action.outText`, et purgé du menu Request Equipment
-(`CTLDCrateManager:_purgeDisabledScenes`). Les modèles déclarant `requiresMod` (qui ne peuvent pas
-être validés automatiquement) émettent à la place un WARN rappelant aux concepteurs de mission que
-tous les clients ont besoin du mod. `isSceneEnabled(name)` reflète le résultat. Voir
-[Architecture](../architecture.md) pour la justification de `probeSkip` et le registre d'objets.
+Le source d'une scène est **indépendant de sa position de chargement** : le même fichier fonctionne
+qu'il soit mergé dans `CTLD.lua` (intégré) ou chargé depuis un déclencheur au démarrage de la mission
+**après** CTLD (un plugin, distribué par
+[`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins)). Les scènes dépendantes d'un mod ou de
+niche sont livrées en plugins : une mission ne les embarque que si elle le décide.
+
+Cela fonctionne parce que chaque point d'extension tolère d'être invoqué après l'init de CTLD :
+
+- `registerSceneModel` injecte la caisse immédiatement si `CTLDCrateManager` est déjà initialisé ;
+- les affectations i18n sont de simples écritures de table (indépendantes de l'ordre) ;
+- `CTLDPlayerManager.deferMenuSection` route vers le manager vivant (`registerMenuSection`) lorsqu'il
+  est appelé post-init, au lieu de remplir la file pré-init déjà vidée.
+
+Contrat d'une scène plugin : charger **au démarrage de la mission uniquement** (avant slot-in des
+joueurs), déclarer `requiresCtld`, et déclarer les types mod dans `modTypes`. La scène de référence
+`_template` dans CTLD_plugins exerce tous les points d'extension (y compris un sous-menu radio).
+
+## Validation des assets (design-time)
+
+Les types DCS des scènes sont validés au **dev/CI**, pas au runtime (ADR 0007). Le hard-gate busted
+`tests/ci/unit/scene_asset_gate_spec.lua` collecte les types spawnés par chaque scène (STATIC
+`desc.type`, GROUND `desc.units[].type`) et échoue sur tout type absent du jeu datamine vendorisé
+(`tests/data/dcs_types.lua`) ∪ l'union des `modTypes` de chaque scène. `modTypes` est additif : une
+faute de frappe dans un type stock reste détectée même dans un descripteur qui utilise aussi un type
+mod whitelisté.
+
+L'ancien audit runtime (`_auditAfterModValidator`, `model._disabled`, `_purgeDisabledScenes`) a été
+retiré ; la sonde runtime `CTLD_modValidator` a également été retirée pour les crates/troops (ASSET-VALIDATION-REVAMP) — la validation est au design-time (`CTLDTypeCollector` + gates) plus le compagnon dev-time optionnel. `isSceneEnabled(name)` indique désormais
+simplement si le modèle est enregistré.

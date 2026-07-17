@@ -19,53 +19,9 @@ describe("config type-name linter", function()
         known = dofile("tests/data/dcs_types.lua")
     end)
 
-    local function collectConfiguredTypes()
-        local types = {}
-        local function add(t)
-            if type(t) == "string" and t ~= "" then types[t] = true end
-        end
-
-        local sc = ctld.gs("spawnableCrates") or {}
-        for _, items in pairs(sc) do
-            if type(items) == "table" then
-                for _, item in ipairs(items) do
-                    if type(item) == "table" and item.unit and not item._repairFor and not item.spawnAs then
-                        add(item.unit)
-                    end
-                end
-            end
-        end
-
-        local aa = (type(CTLDCrateAssemblyManager) == "table" and CTLDCrateAssemblyManager.TEMPLATES) or {}
-        for _, tmpl in ipairs(aa) do
-            if type(tmpl) == "table" and type(tmpl.parts) == "table" then
-                for _, part in ipairs(tmpl.parts) do
-                    if type(part) == "table" then add(part.DCSTypename) end
-                end
-            end
-        end
-
-        local lg = ctld.gs("loadableGroups") or {}
-        for _, tmpl in ipairs(lg) do
-            if type(tmpl) == "table" and type(tmpl.componentTypes) == "table" then
-                for _, coaTable in pairs(tmpl.componentTypes) do
-                    if type(coaTable) == "table" then
-                        for _, tn in pairs(coaTable) do add(tn) end
-                    end
-                end
-            end
-        end
-
-        if type(CTLDObjectRegistry) == "table" and type(CTLDObjectRegistry._db) == "table" then
-            for _, desc in pairs(CTLDObjectRegistry._db) do
-                if type(desc) == "table" and desc.groupType == "STATIC" and desc.type then
-                    add(desc.type)
-                end
-            end
-        end
-
-        return types
-    end
+    -- Configured type names come from the shared CTLDTypeCollector (single source of truth; it also
+    -- covers GROUND descriptor unit types via unitType(coalitionId), which the old inline collector
+    -- missed).
 
     it("loads the vendored DCS type set", function()
         assert.is_table(known)
@@ -75,12 +31,13 @@ describe("config type-name linter", function()
     end)
 
     it("collects configured type names and reports any not in the stock DCS set", function()
-        local configured = collectConfiguredTypes()
+        local result = CTLDTypeCollector.collect()
 
         local total, unknown = 0, {}
-        for t in pairs(configured) do
+        for t in pairs(result.types) do
             total = total + 1
-            if not known[t] then unknown[#unknown + 1] = t end
+            -- Declared mod types (scene modTypes ∪ config modTypes) are intentional — not reported.
+            if not known[t] and not result.extras[t] then unknown[#unknown + 1] = t end
         end
         table.sort(unknown)
 

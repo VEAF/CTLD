@@ -618,6 +618,12 @@ function CTLDConfig:load()
     self.settings["JTAC_WEIGHT"] = 15    -- kg
     self.settings["CIV_WEIGHT"] = 2      -- kg — light personal items for civilian role
 
+    -- Non-stock (mod) DCS type names your mission's custom config uses (crates, AA parts, troop
+    -- roles). Declaring them here keeps the optional dev-time asset validator (companion) from
+    -- flagging them as unknown, while every other type is still checked. Example:
+    --   self.settings["modTypes"] = { "Some_Mod_Type", "Another_Mod_Type" }
+    self.settings["modTypes"] = {}
+
     -- ************** INFANTRY GROUPS FOR PICKUP ******************
     -- Unit Types
     -- inf is normal infantry
@@ -656,8 +662,8 @@ function CTLDConfig:load()
         -- componentTypes example: custom DCS typeNames per role (including mod units).
         -- Roles not in the standard set (inf/mg/at/aa/mortar/jtac/civ) are supported as
         -- custom roles (e.g. civ1, civ2, civ3) — each maps to a distinct 3D model.
-        -- CTLDModValidator probes each typeName at mission start and logs missing mods.
-        -- If a typeName is not found in DCS, CTLD falls back to the standard soldier model.
+        -- Custom typeNames are used as-is at runtime; validate them at dev time with the
+        -- asset-check companion (declare mod types in the `modTypes` setting above).
         --
         -- { name = "Civilian Crowd", civ1 = 3, civ2 = 2, civ3 = 1,
         --   componentTypes = {

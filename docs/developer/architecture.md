@@ -114,56 +114,32 @@ CTLDObjectRegistry.spawnObject(key, coa, country, x, z, hdg, opts)
 Scenes register their component descriptors at dofile time; troop and vehicle templates are
 registered by their managers at init.
 
-### `core/CTLD_modValidator.lua` — mod presence probe
+### Asset validation — design-time, not a runtime probe
 
-`CTLDModValidator` probes whether optional DCS mods (HAWK, Patriot, NASAMS…) are present by
-attempting a `coalition.addStaticObject` with the mod's unit type and immediately destroying it.
+CTLD does **not** probe-spawn objects to check DCS type presence. Type names are validated at
+dev/CI time against a vendored datamine stock-type set (`tests/data/dcs_types.lua`):
 
-```lua
-CTLDModValidator.getInstance():isPresent("AAA_HAWK_SR")  -- → bool (cached after first probe)
-```
+- **`CTLDTypeCollector`** (`core/CTLD_typeCollector.lua`) is the single source of truth for *which*
+  DCS types a mission configures — registry STATIC (`desc.type`) and GROUND
+  (`desc.units[].unitType(coalitionId)`), `spawnableCrates`, AA templates, `loadableGroups` — and
+  *which are declared non-stock (mod) types*: scene `model.modTypes` ∪ the `modTypes` config setting.
+- The **busted gates** (`scene_asset_gate_spec` — hard fail; `config_types_lint_spec` — lenient
+  report) consume it to catch types that are neither stock nor declared.
+- The optional **asset-check companion** (`tools/companion/`, built to `dist/CTLD_asset_check.lua`)
+  is the dev-time runtime equivalent: a mission maker loads it after CTLD during development and it
+  WARNs on unknown configured types — a pure table lookup, **no spawning, no events**.
 
-Results are cached in `_cache[typeName]`. The probe is deferred to first use so mission load time
-is not impacted.
-
-#### `probeSkip` — heliport-type objects cannot be probed
-
-The probe technique works for `STATIC` and `GROUND` objects. It does **not** work for objects
-registered with `category = "Heliports"` (spawned via the airbase API rather than the static object
-API).
-
-**Root cause (verified by live DCS diagnostic):** when a heliport-type static is spawned via
-`coalition.addStaticObject`, DCS registers it as an `Airbase` entry regardless of whether the mod is
-installed. All API fields — `getTypeName()`, `getCategory()`, `getCategoryEx()`, `getCallsign()`,
-`getDesc().life`, `getDesc().displayName` — return identical values whether the mod is present or
-absent. There is no signal in the Lua scripting API to distinguish the two states.
-
-**Consequence:** if a heliport registry entry does not set `probeSkip = true`, `CTLDModValidator`
-always reports it as present — a false-positive "mod found" even when the mod is missing.
-
-**Rule:** any registry entry with `category = "Heliports"` **must** set `probeSkip = true`.
+A scene or mission declares its mod types so validation stays strict on everything else:
 
 ```lua
-CTLDObjectRegistry.registerIfAbsent("Farp_FG_Petit_Helipad", {
-    groupType = "STATIC",
-    category  = "Heliports",
-    -- probeSkip suppresses the ModValidator probe: DCS returns life=0 and identical
-    -- API data regardless of mod installation state — no reliable detection is possible.
-    probeSkip = true,
-    -- …
-})
+someScene.modTypes = { "Some_Mod_Type" }        -- on a scene model
+_cfg.settings["modTypes"] = { "Some_Mod_Type" } -- for a mission's own crate/troop/AA config
 ```
 
-**Mitigation for scenes using heliport mods:** declare `requiresMod` on the scene model.
-`CTLDSceneManager:_auditAfterModValidator()` emits a `WARN` `outText` at mission start reminding the
-mission maker that all clients must have the mod installed:
-
-```lua
-metalFarpScene.requiresMod = "Farp_FG_Petit_Helipad"
-```
-
-This `WARN` is the only mechanism available — automatic menu suppression is not possible for
-heliport-type mods.
+> **Historical note (ADR 0007):** earlier versions probe-spawned a static/group per type at mission
+> start (`CTLD_modValidator`) and could not probe heliport mods at all — `getDesc().life == 0`
+> whether the mod was installed or not. That probe was removed: it wasted resources and fired
+> spurious `S_EVENT_BIRTH`/destroy events that custom mission handlers observed.
 
 ### `core/CTLDParachuteEffect.lua`
 

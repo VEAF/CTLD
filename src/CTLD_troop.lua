@@ -307,14 +307,8 @@ function CTLDTroopManager:_registerOneTemplate(tmpl)
             local desired = componentTypes and componentTypes[role]
                 and componentTypes[role][cid]
             if desired then
-                local validator = CTLDModValidator._instance
-                if validator and validator:isGroundInvalid(desired) then
-                    ctld.utils.log("WARN",
-                        "_registerOneTemplate: typeName '%s' (role=%s) not in DCS — fallback to standard soldier",
-                        desired, role)
-                    return CTLDTroopManager._ROLE_TYPENAMES["inf"][cid]
-                        or CTLDTroopManager._ROLE_TYPENAMES["inf"][2]
-                end
+                -- Custom componentType used as-is. Validity is checked at dev time (the asset-check
+                -- companion / design-time gate), not by a runtime probe (ADR 0007).
                 return desired
             end
             -- Standard table fallback

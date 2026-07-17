@@ -176,6 +176,25 @@ sorte que les props de décor (guards, workers, décoration statique) ne polluen
 Le sous-menu F10 **Pack Vehicle** est peuplé automatiquement lorsqu'un transport se pose à moins de
 `ctld.gs("maximumDistancePackableUnitsSearch")` d'un véhicule packable.
 
+## Scènes déplacées en plugins (2.0.0)
+
+La scène **Metal FARP** n'est plus embarquée dans `CTLD.lua`. C'est désormais un plugin optionnel du
+dépôt [`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins) (elle dépend du mod
+`Farp_FG_Petit_Helipad`, qui n'a pas sa place dans le livrable de base).
+
+Si votre mission proposait Metal FARP, téléchargez le `.lua` du plugin depuis le
+[catalogue des plugins](https://veaf.github.io/CTLD_plugins/) et chargez-le depuis un déclencheur
+au **démarrage de la mission, après** le déclencheur qui charge `CTLD.lua` :
+
+```
+Déclencheur 1 (MISSION START) : DO SCRIPT FILE → CTLD.lua
+Déclencheur 2 (MISSION START) : DO SCRIPT FILE → metal-farp.lua
+```
+
+La scène s'enregistre alors exactement comme avant et sa caisse réapparaît dans **Request
+Equipment**. Aucun autre changement n'est nécessaire ; les autres scènes FARP/FOB/champ de mines
+restent intégrées.
+
 ---
 
 Voir [Architecture](architecture.md) pour l'idiome manager / singleton sur lequel ces appels

@@ -5,7 +5,7 @@
 -- CTLD — Full FARP warehouse snapshot cycle
 --
 -- Validates the full pack + warehouse snapshot chain:
---   - Metal FARP crate spawned via F10 menu
+--   - Countryside FARP crate spawned via F10 menu
 --   - Player loads/flies/lands/unpacks FARP via F10
 --   - Script sets known fuel levels in the warehouse
 --   - Player packs FARP via F10 "Pack FARP"
@@ -25,7 +25,7 @@
 --
 -- Prerequisites:
 --   - UH-1H BLUE slot occupied, helo on the ground
---   - Farp_FG_Petit_Helipad mod installed (required for the warehouse checks)
+--   - (no mod required — Countryside FARP uses the base-game Invisible FARP airbase)
 --   - enableFARPRepack=true (enabled automatically by S1)
 --   - Inject CTLD.lua first, wait 3–5 s for init.
 --
@@ -262,19 +262,19 @@ end
 -- S1 — Setup + instructions (auto)
 steps[1] = function()
     -- (removed dead FullGas ctld_test.cleanup() -- nil at runtime, same cause as the 194 relics;
-    -- the scenario does its own Metal FARP scene cleanup just below.)
+    -- the scenario does its own Countryside FARP scene cleanup just below.)
     cfg.settings["enableFARPRepack"] = true
 
-    -- Destroy any existing Metal FARP scene
+    -- Destroy any existing Countryside FARP scene
     local sm = CTLDSceneManager.getInstance()
     for _, sc in pairs(sm._active) do
-        if sc._modelName == "Metal FARP" then sm:packScene(sc) end
+        if sc._modelName == "Countryside FARP" then sm:packScene(sc) end
     end
 
-    -- Verify Metal FARP descriptor
+    -- Verify Countryside FARP descriptor
     local mgr_c = CTLDCrateManager.getInstance()
-    local desc  = mgr_c:findDescriptorByUnitType("Metal FARP")
-    check("W.1.1", "Metal FARP descriptor available", desc ~= nil)
+    local desc  = mgr_c:findDescriptorByUnitType("Countryside FARP")
+    check("W.1.1", "Countryside FARP descriptor available", desc ~= nil)
 
     -- Force cratesRequired=1 for this test (restored after unpack at step 4)
     if desc then
@@ -293,8 +293,8 @@ steps[1] = function()
         "Step 1/"..#steps.." — SETUP ACTIVE (enableFARPRepack=true)\n"..
         "FUEL TARGET : Jet=5000 / AvGas=10000 / MW50=15000 / Diesel=20000\n"..
         "\nActions to perform:\n"..
-        "  1. F10 → Request Equipment → [zone] → Metal FARP (request 1 crate)\n"..
-        "  2. F10 → Crate Commands → Load Crate → Metal FARP\n"..
+        "  1. F10 → Request Equipment → [zone] → Countryside FARP (request 1 crate)\n"..
+        "  2. F10 → Crate Commands → Load Crate → Countryside FARP\n"..
         "  3. Take off\n"..
         "  4. Land\n"..
         "\nConfirm YES when done."
@@ -324,7 +324,7 @@ steps[2] = function()
         "Step 2/"..#steps.." — UNLOAD + UNPACK FARP\n"..
         "\nActions to perform:\n"..
         "  1. F10 → Crate Commands → Unload Crate\n"..
-        "  2. F10 → Crate Commands → Unpack Crate → Metal FARP\n"..
+        "  2. F10 → Crate Commands → Unpack Crate → Countryside FARP\n"..
         "  3. Wait ~15s for the FARP scene to deploy\n"..
         "\nConfirm YES when the FARP is deployed."
     )
@@ -364,7 +364,7 @@ steps[3] = function()
         if not ab then fail("W.3.3b", "Airbase.getByName returned nil") ; advanceStep() ; return end
 
         local w = ab:getWarehouse()
-        check("W.3.4", "warehouse accessible (Farp_FG_Petit_Helipad mod required)", w ~= nil,
+        check("W.3.4", "warehouse accessible (Invisible FARP, base-game)", w ~= nil,
             "getWarehouse() returned nil — this scene has no accessible warehouse")
         if not w then fail("W.3.4b", "warehouse nil") ; advanceStep() ; return end
 
@@ -388,7 +388,7 @@ steps[3] = function()
             "Step 3/"..#steps.." — FUEL SET ✅\n"..
             "Jet=5000 / AvGas=10000 / MW50=15000 / Diesel=20000\n"..
             "\nActions to perform:\n"..
-            "  1. F10 → Crate Commands → Pack FARP → Pack Metal FARP\n"..
+            "  1. F10 → Crate Commands → Pack FARP → Pack Countryside FARP\n"..
             "  2. F10 → Crate Commands → Load Crate (the crate that just appeared)\n"..
             "\nConfirm YES when the crate is loaded."
         )
@@ -479,7 +479,7 @@ steps[5] = function()
             "Step 5/"..#steps.." — RELOCATION ✅\n"..
             "\nActions to perform:\n"..
             "  1. F10 → Crate Commands → Unload Crate\n"..
-            "  2. F10 → Crate Commands → Unpack Crate → Metal FARP\n"..
+            "  2. F10 → Crate Commands → Unpack Crate → Countryside FARP\n"..
             "  3. Wait ~15s for the FARP scene to deploy\n"..
             "\nConfirm YES when the FARP is deployed at the new position."
         )
@@ -504,7 +504,7 @@ steps[6] = function()
 
         local farpName2 = farpScene2._params and farpScene2._params.farpName
         check("W.6.2", "farpName set in new scene._params", farpName2 ~= nil,
-            "Mod required — without it the warehouse check at S7 will fail")
+            "airbase required — without it the warehouse check at S7 will fail")
         log("W.6.2 [INFO] FARP airbase name: "..tostring(farpName2))
 
         advanceStep()
@@ -525,8 +525,8 @@ steps[7] = function()
 
         local farpName2 = farpScene2._params and farpScene2._params.farpName
         check("W.7.2", "farpName available from scene._params", farpName2 ~= nil,
-            "Farp_FG_Petit_Helipad mod required")
-        if not farpName2 then fail("W.7.2b", "farpName nil — mod missing") ; advanceStep() ; return end
+            "Invisible FARP airbase should be present")
+        if not farpName2 then fail("W.7.2b", "farpName nil — no airbase") ; advanceStep() ; return end
 
         local ab = Airbase.getByName(farpName2)
         check("W.7.3", "Airbase '"..farpName2.."' accessible", ab ~= nil)

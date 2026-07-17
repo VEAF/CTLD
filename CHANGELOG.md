@@ -19,6 +19,37 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   both scenarios retagged `disabled` → `auto-slow`. MT-08 PASS 12/12, MT-14 PASS.
 - **Fix**: stale `recette/` paths in `tests/manual_test_sequences.md` (MT-06 prerequisites)
   corrected to `tests/dcs/util/`.
+### Asset validation — no more runtime probe (ASSET-VALIDATION-REVAMP)
+
+- **BREAKING (behavioural)**: CTLD no longer probe-spawns objects at mission start to validate DCS
+  type names. `CTLD_modValidator` is removed. The probe wasted resources and fired real
+  `S_EVENT_BIRTH`/destroy events that custom mission handlers could observe (ADR 0007).
+- **New**: `CTLDTypeCollector` — one source of truth for the DCS types a mission configures
+  (registry incl. GROUND `unitType(coalitionId)`, `spawnableCrates`, AA templates, `loadableGroups`)
+  and the declared mod types. Fixes a gap where GROUND group unit types were skipped by the scene
+  asset gate.
+- **New**: optional dev-time **asset-check companion** (`CTLD_asset_check.lua`, a release asset) — a
+  mission maker loads it after CTLD during development and it WARNs on unknown configured types (pure
+  lookup, no spawning). See [Validating your config](docs/mission-maker/asset-validation.md).
+- **New**: `modTypes` config setting to declare a mission's own non-stock (mod) types.
+- Custom troop `componentTypes` are used as-is at runtime (no more probe fallback to a standard
+  soldier); validity is a dev-time concern now.
+
+### Scenes — pluggable scenes (SCENE-PLUGINS)
+
+- **BREAKING**: the **Metal FARP** scene is no longer bundled in `CTLD.lua`. It is now an opt-in
+  **plugin** in the new [`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins) repository.
+  Missions that use Metal FARP must load its plugin `.lua` from a **mission-start trigger, after
+  CTLD** (see the [Scenes & FOB guide](docs/mission-maker/scenes-fob.md#plugin-scenes) and the
+  [migration guide](docs/developer/migration-v1-v2.md)). This removes the mod-dependent scene — and
+  the warning it printed at every mission start — from the core deliverable.
+- **Scenes are now load-position-independent**: the same scene source works whether merged into
+  `CTLD.lua` or loaded as a plugin after CTLD. `CTLDPlayerManager.deferMenuSection` routes to the
+  live manager when called after init, so a plugin scene's radio submenu still attaches.
+- **Change**: scene DCS-asset validation moved from a runtime probe to a **design-time busted
+  hard-gate** (datamine set ∪ per-scene `modTypes`). The runtime scene audit
+  (`_auditAfterModValidator`) and its `requiresMod` warning were removed; `CTLD_modValidator`
+  (crates/troops) is unchanged. A scene may declare `requiresCtld` to warn on an incompatible CTLD.
 
 ### Docs — README cleanup
 
