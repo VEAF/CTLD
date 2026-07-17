@@ -1019,6 +1019,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../mission-maker/asset-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validating your config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../mission-maker/translations/" class="md-nav__link">
         
   
@@ -2250,7 +2278,7 @@ joueurs), déclarer <code>requiresCtld</code>, et déclarer les types mod dans <
 faute de frappe dans un type stock reste détectée même dans un descripteur qui utilise aussi un type
 mod whitelisté.</p>
 <p>L'ancien audit runtime (<code>_auditAfterModValidator</code>, <code>model._disabled</code>, <code>_purgeDisabledScenes</code>) a été
-retiré ; <code>CTLDModValidator</code> (crates/troops) est inchangé. <code>isSceneEnabled(name)</code> indique désormais
+retiré ; la sonde runtime <code>CTLD_modValidator</code> a également été retirée pour les crates/troops (ASSET-VALIDATION-REVAMP) — la validation est au design-time (<code>CTLDTypeCollector</code> + gates) plus le compagnon dev-time optionnel. <code>isSceneEnabled(name)</code> indique désormais
 simplement si le modèle est enregistré.</p>
 
 

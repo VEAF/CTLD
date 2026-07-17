@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="fr" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -10,35 +10,35 @@
       
       
       
-        <link rel="canonical" href="https://veaf.github.io/CTLD/dev/pilot/beacons/">
+        <link rel="canonical" href="https://veaf.github.io/CTLD/dev/fr/mission-maker/asset-validation/">
       
       
-        <link rel="prev" href="../recon/">
+        <link rel="prev" href="../minefield/">
       
       
-        <link rel="next" href="../smoke/">
+        <link rel="next" href="../translations/">
       
       
         
-          <link rel="alternate" href="./" hreflang="en">
+          <link rel="alternate" href="../../../mission-maker/asset-validation/" hreflang="en">
         
-          <link rel="alternate" href="../../fr/pilot/beacons/" hreflang="fr">
+          <link rel="alternate" href="./" hreflang="fr">
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Beacons - CTLD</title>
+        <title>Validating your config - CTLD</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -57,7 +57,7 @@
       
     
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -82,8 +82,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#beacons" class="md-skip">
-          Skip to content
+        <a href="#valider-votre-config-pendant-le-developpement" class="md-skip">
+          Aller au contenu
         </a>
       
     </div>
@@ -99,8 +99,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="CTLD" class="md-header__button md-logo" aria-label="CTLD" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href="../../" title="CTLD" class="md-header__button md-logo" aria-label="CTLD" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Beacons
+              Validating your config
             
           </span>
         </div>
@@ -160,20 +160,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Select language">
+    <button class="md-header__button md-icon" aria-label="Sélectionner la langue">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="en" class="md-select__link">
+            <a href="../../../mission-maker/asset-validation/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../fr/pilot/beacons/" hreflang="fr" class="md-select__link">
+            <a href="./" hreflang="fr" class="md-select__link">
               Français
             </a>
           </li>
@@ -194,16 +194,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Search">
+      <nav class="md-search__options" aria-label="Recherche">
         
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -216,7 +216,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Initializing search
+            Initialisation de la recherche
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -228,7 +228,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/VEAF/CTLD" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/VEAF/CTLD" title="Aller au dépôt" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
@@ -249,7 +249,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Onglets" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -259,7 +259,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../" class="md-tabs__link">
         
   
   
@@ -276,13 +276,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../pilot/" class="md-tabs__link">
           
   
   
@@ -298,11 +296,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../mission-maker/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -375,7 +375,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="CTLD" class="md-nav__button md-logo" aria-label="CTLD" data-md-component="logo">
+    <a href="../../" title="CTLD" class="md-nav__button md-logo" aria-label="CTLD" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -385,7 +385,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/VEAF/CTLD" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/VEAF/CTLD" title="Aller au dépôt" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
@@ -405,7 +405,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../" class="md-nav__link">
         
   
   
@@ -421,6 +421,373 @@
   
 
       </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pilot
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Pilot
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pilot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pilot/troop-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troop transport
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pilot/crates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Crates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pilot/vehicles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vehicles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pilot/slingload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sling-load
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pilot/parachute/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parachute
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pilot/jtac/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JTAC
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pilot/recon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pilot/beacons/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Beacons
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pilot/smoke/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Smoke
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pilot/pack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -450,17 +817,17 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    Pilot
+    Mission Maker
   
 
     
@@ -471,12 +838,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_2">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Pilot
+    Mission Maker
   
 
           </label>
@@ -517,14 +884,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../troop-transport/" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Troop transport
+    Configuration
   
 
     
@@ -545,14 +912,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../crates/" class="md-nav__link">
+      <a href="../zones/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Crates
+    Zone setup
   
 
     
@@ -573,14 +940,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../vehicles/" class="md-nav__link">
+      <a href="../scenes-fob/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Vehicles
+    Scenes & FOB
   
 
     
@@ -601,14 +968,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../slingload/" class="md-nav__link">
+      <a href="../crates-catalogue/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Sling-load
+    Crate catalogue
   
 
     
@@ -629,70 +996,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../parachute/" class="md-nav__link">
+      <a href="../minefield/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Parachute
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../jtac/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    JTAC
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../recon/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Recon
+    Minefield
   
 
     
@@ -729,7 +1040,7 @@
   <span class="md-ellipsis">
     
   
-    Beacons
+    Validating your config
   
 
     
@@ -747,7 +1058,7 @@
   <span class="md-ellipsis">
     
   
-    Beacons
+    Validating your config
   
 
     
@@ -759,7 +1070,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
   
   
   
@@ -768,73 +1079,46 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      Table des matières
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#deploying-a-beacon" class="md-nav__link">
+  <a href="#le-compagnon-asset-check" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Deploying a beacon
+        Le compagnon asset-check
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Le compagnon asset-check">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#utilisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utilisation
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#removing-a-beacon" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#declarer-les-types-mod" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Removing a beacon
+        Déclarer les types mod
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#listing-beacons" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Listing beacons
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-frequencies" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The frequencies
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#battery-life" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Battery life
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-beacon-map-layer" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The beacon map layer
-      
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -854,318 +1138,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../smoke/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Smoke
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../pack/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Pack
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Mission Maker
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Mission Maker
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../mission-maker/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../mission-maker/configuration/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Configuration
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../mission-maker/zones/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Zone setup
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../mission-maker/scenes-fob/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Scenes & FOB
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../mission-maker/crates-catalogue/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Crate catalogue
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../mission-maker/minefield/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Minefield
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../mission-maker/asset-validation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Validating your config
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../mission-maker/translations/" class="md-nav__link">
+      <a href="../translations/" class="md-nav__link">
         
   
   
@@ -1193,7 +1166,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../mission-maker/legacy-api/" class="md-nav__link">
+      <a href="../legacy-api/" class="md-nav__link">
         
   
   
@@ -1940,7 +1913,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
   
   
   
@@ -1949,73 +1922,46 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      Table des matières
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#deploying-a-beacon" class="md-nav__link">
+  <a href="#le-compagnon-asset-check" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Deploying a beacon
+        Le compagnon asset-check
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Le compagnon asset-check">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#utilisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utilisation
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#removing-a-beacon" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#declarer-les-types-mod" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Removing a beacon
+        Déclarer les types mod
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#listing-beacons" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Listing beacons
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-frequencies" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The frequencies
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#battery-life" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Battery life
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-beacon-map-layer" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The beacon map layer
-      
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2039,85 +1985,43 @@
   
 
 
-<h1 id="beacons">Beacons<a class="headerlink" href="#beacons" title="Permanent link">&para;</a></h1>
-<p>Radio beacons are deployable navigation aids you drop from your aircraft. Each beacon
-transmits on three frequencies at once — one you can home on with your ADF needle, plus a
-UHF and an FM channel — so any coalition aircraft can find the spot you marked: a landing
-zone, a rendezvous, a forward site, whatever you need to point people at.</p>
-<p>Every beacon runs on a battery. Once it is flat the beacon shuts itself down and disappears,
-so you do not have to police old beacons cluttering the airspace.</p>
-<h2 id="deploying-a-beacon">Deploying a beacon<a class="headerlink" href="#deploying-a-beacon" title="Permanent link">&para;</a></h2>
-<p><strong>Utility:</strong> Marks your current position with a navigation beacon the whole coalition can
-tune and home to.</p>
-<p><strong>How it works:</strong> CTLD spawns the beacon at your aircraft and picks three free frequencies
-for it — a VHF (ADF) channel, a UHF channel and an FM channel, all unique so no two active
-beacons collide. Transmission starts about a second after the drop. The coalition gets a
-text message with the assigned frequencies, for example:</p>
-<div class="highlight"><pre><span></span><code>Navigation beacon deployed - 245.00 kHz - 350.50 / 45.20 MHz
+<h1 id="valider-votre-config-pendant-le-developpement">Valider votre config pendant le développement<a class="headerlink" href="#valider-votre-config-pendant-le-developpement" title="Permanent link">&para;</a></h1>
+<p>CTLD ne vérifie <strong>plus</strong> les noms de types DCS au démarrage de la mission — il ne spawn plus d'objets
+sonde cachés (ça gaspillait des ressources et émettait des events de naissance/mort parasites que
+votre logique de mission pouvait voir). À la place, une faute de frappe ou un mod manquant se révèle
+au <strong>développement</strong> via un script compagnon optionnel.</p>
+<h2 id="le-compagnon-asset-check">Le compagnon asset-check<a class="headerlink" href="#le-compagnon-asset-check" title="Permanent link">&para;</a></h2>
+<p><code>CTLD_asset_check.lua</code> est un outil dev-time optionnel (téléchargez-le depuis les assets de release).
+Chargé après CTLD, il examine tout ce que votre mission configure — <code>spawnableCrates</code>, parts de
+systèmes AA, <code>loadableGroups</code>, objets de scènes — et affiche un message :</p>
+<ul>
+<li><strong>OK</strong> — chaque type DCS configuré est un type stock connu ou un type mod déclaré ; ou</li>
+<li><strong>WARN</strong> — une liste de types inconnus (faute de frappe probable, ou un mod non déclaré).</li>
+</ul>
+<p>C'est une simple lecture : <strong>aucun objet n'est spawné, aucun event n'est émis.</strong></p>
+<h3 id="utilisation">Utilisation<a class="headerlink" href="#utilisation" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Téléchargez <code>CTLD_asset_check.lua</code> depuis la <a href="https://github.com/VEAF/CTLD/releases">release CTLD</a>.</li>
+<li>Dans l'éditeur de mission, ajoutez un déclencheur <code>DO SCRIPT FILE</code> au <strong>démarrage de la mission</strong>,
+   <strong>après</strong> le déclencheur qui charge <code>CTLD.lua</code>.</li>
+<li>Lancez la mission une fois et lisez le message à l'écran (et <code>CTLD.log</code>). Corrigez toute faute
+   signalée.</li>
+<li><strong>Retirez le déclencheur du compagnon pour la production</strong> — c'est une aide au développement.</li>
+</ol>
+<h3 id="declarer-les-types-mod">Déclarer les types mod<a class="headerlink" href="#declarer-les-types-mod" title="Permanent link">&para;</a></h3>
+<p>Si votre config utilise légitimement le type DCS d'un mod, indiquez-le à CTLD pour que le compagnon
+ne le signale pas — listez le(s) nom(s) exact(s) dans le setting <code>modTypes</code> :</p>
+<div class="highlight"><pre><span></span><code><span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;modTypes&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Your_Mod_Type&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Another_Mod_Type&quot;</span><span class="w"> </span><span class="p">}</span>
 </code></pre></div>
-<p>On the ground the beacon is placed a few metres behind your aircraft so the ground unit does
-not spawn inside you; airborne, it drops at your position.</p>
-<p><strong>Activation:</strong> F10 → CTLD → Radio Beacons → Drop Beacon</p>
-<h2 id="removing-a-beacon">Removing a beacon<a class="headerlink" href="#removing-a-beacon" title="Permanent link">&para;</a></h2>
-<p><strong>Utility:</strong> Takes down a beacon you no longer need.</p>
-<p><strong>How it works:</strong> CTLD removes the closest friendly beacon within <strong>500 m</strong> of your aircraft —
-it stops the transmissions and deletes the beacon. Fly near the one you want gone before
-calling it. If nothing friendly is within range you get <em>"No Radio Beacons within 500m."</em></p>
-<p><strong>Activation:</strong> F10 → CTLD → Radio Beacons → Remove Closest Beacon</p>
-<h2 id="listing-beacons">Listing beacons<a class="headerlink" href="#listing-beacons" title="Permanent link">&para;</a></h2>
-<p><strong>Utility:</strong> Shows every active beacon for your coalition, with its name and frequencies, so
-you can read back a channel without hunting for the original drop message.</p>
-<p><strong>Activation:</strong> F10 → CTLD → Radio Beacons → List Beacons</p>
-<h2 id="the-frequencies">The frequencies<a class="headerlink" href="#the-frequencies" title="Permanent link">&para;</a></h2>
-<p>Each beacon broadcasts on three channels simultaneously:</p>
-<table>
-<thead>
-<tr>
-<th>Channel</th>
-<th>Band</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>VHF</td>
-<td>low frequency, shown in <strong>kHz</strong></td>
-<td>The ADF (NDB) channel — swing your automatic direction-finding needle onto it to home in.</td>
-</tr>
-<tr>
-<td>UHF</td>
-<td>shown in <strong>MHz</strong></td>
-<td>Silent carrier (no audio tone), intended for FC3-style aircraft.</td>
-</tr>
-<tr>
-<td>FM</td>
-<td>shown in <strong>MHz</strong></td>
-<td>Audible tone; supports FM homing on aircraft that have it.</td>
-</tr>
-</tbody>
-</table>
-<p>The frequency string always reads <code>VHF kHz - UHF / FM MHz</code> (e.g. <code>245.00 kHz - 350.50 /
-45.20 MHz</code>). Frequencies are assigned automatically — you cannot pick them from the cockpit.</p>
+<p>Tous les <em>autres</em> types restent vérifiés, donc une vraie faute de frappe est toujours détectée. (Les
+scènes déclarent leurs propres types mod dans <code>modTypes</code> sur le modèle de scène — voir
+<a href="../scenes-fob/">Scènes &amp; FOB</a>.)</p>
 <div class="admonition note">
-<p class="admonition-title">Audio requires embedded sound files</p>
-<p>The beacon tones only play if the mission has the beacon sound files embedded. If you
-hear silence on the VHF and FM channels, that is a mission setup matter, not a fault on
-your end — see the <a href="../../mission-maker/">Mission Maker guide</a>. The ADF needle can
-still react to the beacon even when no tone is heard.</p>
+<p class="admonition-title">Votre responsabilité</p>
+<p>Le compagnon confirme qu'un <em>nom</em> de type est connu ; il ne peut pas confirmer que chaque client
+a bien le mod installé. S'assurer que les mods requis sont présents sur tous les clients reste de
+votre ressort.</p>
 </div>
-<h2 id="battery-life">Battery life<a class="headerlink" href="#battery-life" title="Permanent link">&para;</a></h2>
-<p>A dropped beacon lasts for its battery life — <strong>30 minutes</strong> by default. When the battery
-runs out (or the beacon's units are destroyed), CTLD automatically stops the transmissions
-and removes it; its frequencies are freed for reuse. The mission maker can change the battery
-duration — see the <a href="../../mission-maker/">Mission Maker guide</a>.</p>
-<h2 id="the-beacon-map-layer">The beacon map layer<a class="headerlink" href="#the-beacon-map-layer" title="Permanent link">&para;</a></h2>
-<p>When the mission has the beacon map layer enabled, active beacons are drawn on the <strong>F10 map</strong>
-as coloured circle icons, each labelled with the beacon name and its MGRS coordinates. The
-layer keeps itself current: new drops are added, and icons for expired or removed beacons are
-erased automatically. Whether the layer is on, and its colours and refresh rate, are set by
-the mission — see the <a href="../../mission-maker/">Mission Maker guide</a>.</p>
-<p>For revealing and marking <em>detected units</em> (rather than your own beacons) on the F10 map, see
-<a href="../recon/">Recon</a>.</p>
 
 
 
@@ -2141,7 +2045,7 @@ the mission — see the <a href="../../mission-maker/">Mission Maker guide</a>.<
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Back to top
+  Retour en haut de la page
 </button>
         
       </main>
@@ -2173,10 +2077,10 @@ the mission — see the <a href="../../mission-maker/">Mission Maker guide</a>.<
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "dev", "provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": {"default": "dev", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

@@ -1019,6 +1019,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../mission-maker/asset-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validating your config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../mission-maker/translations/" class="md-nav__link">
         
   
@@ -1333,30 +1361,13 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#corectld_modvalidatorlua-sonde-de-presence-de-mods" class="md-nav__link">
+  <a href="#validation-dassets-au-design-time-pas-de-sonde-runtime" class="md-nav__link">
     <span class="md-ellipsis">
       
-        core/CTLD_modValidator.lua — sonde de présence de mods
+        Validation d'assets — au design-time, pas de sonde runtime
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="core/CTLD_modValidator.lua — sonde de présence de mods">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#probeskip-les-objets-de-type-heliport-ne-peuvent-pas-etre-sondes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        probeSkip — les objets de type heliport ne peuvent pas être sondés
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -2074,30 +2085,13 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#corectld_modvalidatorlua-sonde-de-presence-de-mods" class="md-nav__link">
+  <a href="#validation-dassets-au-design-time-pas-de-sonde-runtime" class="md-nav__link">
     <span class="md-ellipsis">
       
-        core/CTLD_modValidator.lua — sonde de présence de mods
+        Validation d'assets — au design-time, pas de sonde runtime
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="core/CTLD_modValidator.lua — sonde de présence de mods">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#probeskip-les-objets-de-type-heliport-ne-peuvent-pas-etre-sondes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        probeSkip — les objets de type heliport ne peuvent pas être sondés
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -2268,47 +2262,32 @@ spawn de group/unit DCS. Il gère des <strong>descripteurs</strong>, pas des ins
 </code></pre></div>
 <p>Les scenes enregistrent les descripteurs de leurs composants au moment du dofile ; les templates de
 troops et de vehicles sont enregistrés par leurs managers à l'init.</p>
-<h3 id="corectld_modvalidatorlua-sonde-de-presence-de-mods"><code>core/CTLD_modValidator.lua</code> — sonde de présence de mods<a class="headerlink" href="#corectld_modvalidatorlua-sonde-de-presence-de-mods" title="Permanent link">&para;</a></h3>
-<p><code>CTLDModValidator</code> teste si des mods DCS optionnels (HAWK, Patriot, NASAMS…) sont présents en tentant
-un <code>coalition.addStaticObject</code> avec le type d'unit du mod puis en le détruisant immédiatement.</p>
-<div class="highlight"><pre><span></span><code><span class="nv">CTLDModValidator</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">isPresent</span><span class="p">(</span><span class="s2">&quot;AAA_HAWK_SR&quot;</span><span class="p">)</span><span class="w">  </span><span class="c1">-- → bool (cached after first probe)</span>
+<h3 id="validation-dassets-au-design-time-pas-de-sonde-runtime">Validation d'assets — au design-time, pas de sonde runtime<a class="headerlink" href="#validation-dassets-au-design-time-pas-de-sonde-runtime" title="Permanent link">&para;</a></h3>
+<p>CTLD ne <strong>spawn plus</strong> d'objets pour tester la présence d'un type DCS. Les noms de types sont validés
+au dev/CI contre un jeu datamine de types stock vendorisé (<code>tests/data/dcs_types.lua</code>) :</p>
+<ul>
+<li><strong><code>CTLDTypeCollector</code></strong> (<code>core/CTLD_typeCollector.lua</code>) est la source de vérité unique pour <em>quels</em>
+  types DCS une mission configure — registry STATIC (<code>desc.type</code>) et GROUND
+  (<code>desc.units[].unitType(coalitionId)</code>), <code>spawnableCrates</code>, templates AA, <code>loadableGroups</code> — et
+  <em>lesquels sont des types hors-stock (mod) déclarés</em> : <code>model.modTypes</code> des scènes ∪ le setting
+  <code>modTypes</code>.</li>
+<li>Les <strong>gates busted</strong> (<code>scene_asset_gate_spec</code> — échec dur ; <code>config_types_lint_spec</code> — rapport
+  lenient) le consomment pour attraper les types ni stock ni déclarés.</li>
+<li>Le <strong>compagnon asset-check</strong> optionnel (<code>tools/companion/</code>, buildé en <code>dist/CTLD_asset_check.lua</code>)
+  est l'équivalent runtime au dev-time : le mission-maker le charge après CTLD pendant le
+  développement et il WARN sur les types configurés inconnus — une simple lecture de table,
+  <strong>sans spawn, sans event</strong>.</li>
+</ul>
+<p>Une scène ou une mission déclare ses types mod pour que la validation reste stricte sur le reste :</p>
+<div class="highlight"><pre><span></span><code><span class="nv">someScene</span><span class="p">.</span><span class="py">modTypes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Some_Mod_Type&quot;</span><span class="w"> </span><span class="p">}</span><span class="w">         </span><span class="c1">-- sur un modèle de scène</span>
+<span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;modTypes&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Some_Mod_Type&quot;</span><span class="w"> </span><span class="p">}</span><span class="w">  </span><span class="c1">-- pour la config crate/troop/AA d&#39;une mission</span>
 </code></pre></div>
-<p>Les résultats sont mis en cache dans <code>_cache[typeName]</code>. La sonde est différée à la première
-utilisation afin de ne pas impacter le temps de chargement de la mission.</p>
-<h4 id="probeskip-les-objets-de-type-heliport-ne-peuvent-pas-etre-sondes"><code>probeSkip</code> — les objets de type heliport ne peuvent pas être sondés<a class="headerlink" href="#probeskip-les-objets-de-type-heliport-ne-peuvent-pas-etre-sondes" title="Permanent link">&para;</a></h4>
-<p>La technique de sonde fonctionne pour les objets <code>STATIC</code> et <code>GROUND</code>. Elle ne fonctionne <strong>pas</strong>
-pour les objets enregistrés avec <code>category = "Heliports"</code> (spawnés via l'API airbase plutôt que via
-l'API static object).</p>
-<p><strong>Cause racine (vérifiée par diagnostic DCS en direct) :</strong> quand un static de type heliport est
-spawné via <code>coalition.addStaticObject</code>, DCS l'enregistre comme une entrée <code>Airbase</code>, que le mod soit
-installé ou non. Tous les champs de l'API — <code>getTypeName()</code>, <code>getCategory()</code>, <code>getCategoryEx()</code>,
-<code>getCallsign()</code>, <code>getDesc().life</code>, <code>getDesc().displayName</code> — renvoient des valeurs identiques que le
-mod soit présent ou absent. Il n'existe aucun signal dans l'API de scripting Lua pour distinguer les
-deux états.</p>
-<p><strong>Conséquence :</strong> si une entrée de registre heliport ne définit pas <code>probeSkip = true</code>,
-<code>CTLDModValidator</code> la signale toujours comme présente — un faux positif « mod trouvé » même lorsque
-le mod est absent.</p>
-<p><strong>Règle :</strong> toute entrée de registre avec <code>category = "Heliports"</code> <strong>doit</strong> définir
-<code>probeSkip = true</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="nv">CTLDObjectRegistry</span><span class="p">.</span><span class="nf">registerIfAbsent</span><span class="p">(</span><span class="s2">&quot;Farp_FG_Petit_Helipad&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nv">groupType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;STATIC&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nv">category</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Heliports&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="c1">-- probeSkip suppresses the ModValidator probe: DCS returns life=0 and identical</span>
-<span class="w">    </span><span class="c1">-- API data regardless of mod installation state — no reliable detection is possible.</span>
-<span class="w">    </span><span class="nv">probeSkip</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="c1">-- …</span>
-<span class="p">})</span>
-</code></pre></div>
-<p><strong>Scenes utilisant des types mod :</strong> une scene déclare les types hors-stock qu'elle spawn dans
-<code>model.modTypes</code>. Le hard-gate d'assets au design-time (<code>tests/ci/unit/scene_asset_gate_spec.lua</code>)
-valide tous les autres types contre le jeu datamine tout en acceptant les types mod déclarés — une
-faute de frappe reste donc détectée. L'audit runtime des scenes a été retiré (ADR 0007) ; une scene
-dépendante d'un mod comme Metal FARP est désormais un plugin optionnel dans
-<a href="https://github.com/VEAF/CTLD_plugins"><code>VEAF/CTLD_plugins</code></a> plutôt que d'avertir à chaque mission.</p>
-<div class="highlight"><pre><span></span><code><span class="nv">someModScene</span><span class="p">.</span><span class="py">modTypes</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Some_Mod_Type&quot;</span><span class="w"> </span><span class="p">}</span><span class="w">   </span><span class="c1">-- whitelist design-time (reste strict sur le reste)</span>
-<span class="nv">someModScene</span><span class="p">.</span><span class="py">requiresMod</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Some Mod Name&quot;</span><span class="w">       </span><span class="c1">-- libellé lisible pour le catalogue</span>
-<span class="nv">someModScene</span><span class="p">.</span><span class="py">requiresCtld</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2.0.0&quot;</span><span class="w">              </span><span class="c1">-- optionnel : avertit si CTLD est plus ancien</span>
-</code></pre></div>
+<blockquote>
+<p><strong>Note historique (ADR 0007) :</strong> les versions antérieures spawnaient une sonde (static/group) par
+type au démarrage (<code>CTLD_modValidator</code>) et ne pouvaient pas sonder les mods heliport du tout —
+<code>getDesc().life == 0</code> que le mod soit installé ou non. Cette sonde a été retirée : elle gaspillait
+des ressources et émettait des events <code>S_EVENT_BIRTH</code>/destroy parasites vus par les handlers custom.</p>
+</blockquote>
 <h3 id="corectldparachuteeffectlua"><code>core/CTLDParachuteEffect.lua</code><a class="headerlink" href="#corectldparachuteeffectlua" title="Permanent link">&para;</a></h3>
 <p>Helper d'effet visuel de parachute utilisé lors du largage de crates/troops depuis l'altitude.</p>
 <h3 id="ctld_utilslua-fonctions-utilitaires"><code>CTLD_utils.lua</code> — fonctions utilitaires<a class="headerlink" href="#ctld_utilslua-fonctions-utilitaires" title="Permanent link">&para;</a></h3>

@@ -1019,6 +1019,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../mission-maker/asset-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validating your config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../mission-maker/translations/" class="md-nav__link">
         
   
@@ -2237,7 +2265,7 @@ GROUND <code>desc.units[].type</code>) and fails on any type absent from the ven
 (<code>tests/data/dcs_types.lua</code>) ∪ the union of every scene's <code>modTypes</code>. <code>modTypes</code> is additive, so a
 typo in a stock type is still caught even in a descriptor that also uses a whitelisted mod type.</p>
 <p>The old runtime audit (<code>_auditAfterModValidator</code>, <code>model._disabled</code>, <code>_purgeDisabledScenes</code>) was
-removed; <code>CTLDModValidator</code> (crates/troops) is unchanged. <code>isSceneEnabled(name)</code> now simply reports
+removed; the <code>CTLD_modValidator</code> runtime probe was also removed for crates/troops (ASSET-VALIDATION-REVAMP) — validation is design-time (<code>CTLDTypeCollector</code> + gates) plus the optional dev-time companion. <code>isSceneEnabled(name)</code> now simply reports
 whether the model is registered.</p>
 
 
