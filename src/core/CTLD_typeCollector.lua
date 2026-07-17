@@ -111,6 +111,54 @@ function CTLDTypeCollector.collect()
         end
     end
 
+    -- Build a set of AA system template names to skip when scanning vehicleStock
+    -- (vehicleStock keys can be scene names, AA template names, or real DCS typeNames).
+    local aaTemplateNames = {}
+    for _, tmpl in ipairs(aaTmpls) do
+        if type(tmpl) == "table" and type(tmpl.name) == "string" then
+            aaTemplateNames[tmpl.name] = true
+        end
+    end
+
+    -- 5. aiZones[*].vehicleStock — keys are DCS unit typeNames
+    --    Skip scene model names and AA system template names (not DCS unit types).
+    local aiZones = ctld.gs("aiZones") or {}
+    for _, entry in ipairs(aiZones) do
+        if type(entry) == "table" and type(entry.vehicleStock) == "table" then
+            local zoneName = tostring(entry.dcsZoneName or "?")
+            for tn in pairs(entry.vehicleStock) do
+                if type(tn) == "string" then
+                    local isScene = sm and (sm:getModel(tn) ~= nil)
+                    if not isScene and not aaTemplateNames[tn] then
+                        add(tn, "aiZones[" .. zoneName .. "].vehicleStock")
+                    end
+                end
+            end
+        end
+    end
+
+    -- 6. capabilitiesByType[*].loadableVehiclesRED/BLUE — arrays of DCS unit typeNames
+    local capsByType = ctld.gs("capabilitiesByType") or {}
+    for transportType, c in pairs(capsByType) do
+        if type(c) == "table" then
+            local src = "capabilitiesByType[" .. tostring(transportType) .. "].loadableVehicles"
+            for _, tn in ipairs(c.loadableVehiclesRED  or {}) do add(tn, src) end
+            for _, tn in ipairs(c.loadableVehiclesBLUE or {}) do add(tn, src) end
+        end
+    end
+
+    -- 7. aiZones[*].vehicleTypes — whitelist of DCS unit typeNames
+    for _, entry in ipairs(aiZones) do
+        if type(entry) == "table" and type(entry.vehicleTypes) == "table" then
+            local zoneName = tostring(entry.dcsZoneName or "?")
+            for _, tn in ipairs(entry.vehicleTypes) do
+                if type(tn) == "string" then
+                    add(tn, "aiZones[" .. zoneName .. "].vehicleTypes")
+                end
+            end
+        end
+    end
+
     -- Declared non-stock types: scene model.modTypes ∪ the mission-maker config whitelist.
     local extras = {}
     if sm and type(sm._models) == "table" then
