@@ -192,5 +192,5 @@ faute de frappe dans un type stock reste détectée même dans un descripteur qu
 mod whitelisté.
 
 L'ancien audit runtime (`_auditAfterModValidator`, `model._disabled`, `_purgeDisabledScenes`) a été
-retiré ; `CTLDModValidator` (crates/troops) est inchangé. `isSceneEnabled(name)` indique désormais
+retiré ; la sonde runtime `CTLD_modValidator` a également été retirée pour les crates/troops (ASSET-VALIDATION-REVAMP) — la validation est au design-time (`CTLDTypeCollector` + gates) plus le compagnon dev-time optionnel. `isSceneEnabled(name)` indique désormais
 simplement si le modèle est enregistré.

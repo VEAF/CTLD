@@ -179,5 +179,5 @@ GROUND `desc.units[].type`) and fails on any type absent from the vendored datam
 typo in a stock type is still caught even in a descriptor that also uses a whitelisted mod type.
 
 The old runtime audit (`_auditAfterModValidator`, `model._disabled`, `_purgeDisabledScenes`) was
-removed; `CTLDModValidator` (crates/troops) is unchanged. `isSceneEnabled(name)` now simply reports
+removed; the `CTLD_modValidator` runtime probe was also removed for crates/troops (ASSET-VALIDATION-REVAMP) — validation is design-time (`CTLDTypeCollector` + gates) plus the optional dev-time companion. `isSceneEnabled(name)` now simply reports
 whether the model is registered.

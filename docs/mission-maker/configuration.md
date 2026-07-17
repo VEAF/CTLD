@@ -70,6 +70,7 @@ _cfg.settings["capabilitiesByType"] = { --[[ ... ]] }
 | `debugScreenLog` | `false` | Also echo log messages to the DCS screen via `outText` |
 | `location_DMS` | `false` | Show coordinates as Degrees-Minutes-Seconds instead of Degrees-Decimal-Minutes |
 | `disableAllSmoke` | `false` | Globally disable all smoke at pickup and drop-off zones |
+| `modTypes` | `{}` | Non-stock (mod) DCS type names your custom config uses (crates, AA parts, troop roles). Only consulted by the optional dev-time [asset-check companion](asset-validation.md) so it does not flag them — see that page |
 
 ### Crates & slingload
 
