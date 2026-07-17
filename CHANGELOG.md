@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Build — separate user config template from deliverable (USERCONFIG-LOADING)
+
+- **`CTLD_userConfig.lua` removed from the build merge**: the MM configuration template is no
+  longer embedded in `CTLD.lua`. It is delivered as a standalone file in `dist/` for Mission
+  Makers to customise and load via a `DO SCRIPT FILE` trigger **before** `CTLD.lua`.
+- **New `CTLD_bootstrap.lua`**: the engine bootstrap (`ctld.initialize()` + auto-start guard)
+  extracted into its own source file, merged last into `CTLD.lua`. `CTLD.lua` continues to
+  auto-start with factory defaults — no breaking change for existing missions.
+- **`dist/CTLD_userConfig.lua`** produced by the build script alongside `CTLD.lua`.
+
 ### DCS integration testing — plugin post-init contract (TEST-PLUGIN-POSTINIT)
 
 - **F-124** (`noPlayer`, tier `auto`): new L3 scenario verifying the SCENE-PLUGINS post-init

@@ -5,11 +5,14 @@
 
 $ErrorActionPreference = "Stop"
 
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot  = Resolve-Path (Join-Path $scriptDir "..\..")
-$listFile  = Join-Path $scriptDir "listToMerge.txt"
-$srcDir    = Join-Path $repoRoot  "src"
-$outFile   = Join-Path $repoRoot  "CTLD.lua"
+$scriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repoRoot    = Resolve-Path (Join-Path $scriptDir "..\..")
+$listFile    = Join-Path $scriptDir "listToMerge.txt"
+$srcDir      = Join-Path $repoRoot  "src"
+$outFile     = Join-Path $repoRoot  "CTLD.lua"
+$distDir     = Join-Path $repoRoot  "dist"
+$userCfgSrc  = Join-Path $srcDir    "CTLD_userConfig.lua"
+$userCfgDest = Join-Path $distDir   "CTLD_userConfig.lua"
 
 # UTF-8 without BOM encoder (works on PS 5 and PS 7)
 $utf8NoBOM = [System.Text.UTF8Encoding]::new($false)
@@ -79,3 +82,8 @@ if ($bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
 }
 
 Write-Host "OK - no BOM detected."
+
+# Copy CTLD_userConfig.lua to dist/ as a standalone MM template
+if (-not (Test-Path $distDir)) { New-Item -ItemType Directory -Path $distDir | Out-Null }
+Copy-Item -Path $userCfgSrc -Destination $userCfgDest -Force
+Write-Host "Copied  : CTLD_userConfig.lua → dist/CTLD_userConfig.lua"
