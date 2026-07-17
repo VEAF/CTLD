@@ -7811,6 +7811,19 @@ function CTLDZoneManager:_loadAIZonesFromConfig()
 
                 local aiTroopStock   = parseStockTable(entry.troopStock)
                 local aiVehicleStock = parseStockTable(entry.vehicleStock)
+                -- Validate vehicleStock typeNames at load time; skip unknowns to avoid
+                -- silent DCS Leopard-2 substitution at spawn time.
+                if aiVehicleStock and not aiVehicleStock.isAll then
+                    for typeName in pairs(aiVehicleStock.init) do
+                        if Unit.getDescByType(typeName) == nil then
+                            ctld.utils.log("ERROR",
+                                "CTLDZoneManager: zone '%s' vehicleStock contains unknown DCS typeName '%s' — entry skipped",
+                                dzn, typeName)
+                            aiVehicleStock.init[typeName]    = nil
+                            aiVehicleStock.current[typeName] = nil
+                        end
+                    end
+                end
 
                 -- pickMaxStock=0 (unlimited) so embarkFromTroopZone never blocks on stock;
                 -- per-template stock is managed by _aiTroopStock.
@@ -23945,7 +23958,8 @@ function CTLDCoreManager:onAILand(event)
             local alreadyLoaded = (self._aiTransportVehicle[unitName] ~= nil)
                                or (okVS and #vs:findLoadedVehicles(u) > 0)
             if not alreadyLoaded then
-                local physicalLoaded = false
+                local physicalLoaded  = false
+                local physicalPresent = false  -- true if any physical vehicle found (before weight filter)
 
                 -- C1: physical DCS vehicles in zone take priority
                 if okVS then
@@ -23959,6 +23973,7 @@ function CTLDCoreManager:onAILand(event)
                         end
                         loadables = filtered
                     end
+                    physicalPresent = #loadables > 0
                     local maxW    = caps.maxVehicleWeight
                     local weights = ctld.gs("groundVehicleWeights") or {}
                     local compatible = {}
@@ -23981,8 +23996,8 @@ function CTLDCoreManager:onAILand(event)
                     end
                 end
 
-                -- C2: virtual stock pickup only when no physical vehicle found
-                if not physicalLoaded then
+                -- C2: virtual stock pickup only when no physical vehicle found in zone
+                if not physicalLoaded and not physicalPresent then
                     local vEntry = pickZone:aiPickVehicleEntry()  -- nil if isAll
                     if vEntry then
                         pickZone:aiConsumeVehicleStock(vEntry.type)
@@ -24852,7 +24867,7 @@ if _cfg.settings["debug"] == true then
           troopStock = { ["Standard Group"] = 5, ["Anti Tank"] = 2 } },
         { dcsZoneName="AIZ_front_B_D",         coalition="BLUE", isDropoff=true, aiDropMode="GP" },
         { dcsZoneName="AIZ_depot_B_P_V_10",    coalition="BLUE", isPickup=true,  cargoType="V",
-          vehicleStock = { ["Hummer"] = 3, ["M1025 HMMWV Armament"] = -1 } },
+          vehicleStock = { ["Hummer"] = 3, ["M1045 HMMWV TOW"] = -1 } },
         { dcsZoneName="AIZ_depot_B_P_TV_5_10", coalition="BLUE", isPickup=true,  cargoType="TV",
           troopStock = { ["All"] = -1 }, vehicleStock = { ["Hummer"] = 5 } },
         { dcsZoneName="AIZ_livraison_B_D_G",   coalition="BLUE", isDropoff=true, aiDropMode="G"  },

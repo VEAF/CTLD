@@ -633,7 +633,7 @@ if _cfg.settings["debug"] == true then
           troopStock = { ["Standard Group"] = 5, ["Anti Tank"] = 2 } },
         { dcsZoneName="AIZ_front_B_D",         coalition="BLUE", isDropoff=true, aiDropMode="GP" },
         { dcsZoneName="AIZ_depot_B_P_V_10",    coalition="BLUE", isPickup=true,  cargoType="V",
-          vehicleStock = { ["Hummer"] = 3, ["M1025 HMMWV Armament"] = -1 } },
+          vehicleStock = { ["Hummer"] = 3, ["M1045 HMMWV TOW"] = -1 } },
         { dcsZoneName="AIZ_depot_B_P_TV_5_10", coalition="BLUE", isPickup=true,  cargoType="TV",
           troopStock = { ["All"] = -1 }, vehicleStock = { ["Hummer"] = 5 } },
         { dcsZoneName="AIZ_livraison_B_D_G",   coalition="BLUE", isDropoff=true, aiDropMode="G"  },

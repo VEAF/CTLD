@@ -246,7 +246,7 @@ _cfg.settings["aiZones"] = {
     -- Pickup: vehicles — stock managed by CTLD (not physical DCS units)
     { dcsZoneName = "AIZ_depot_hmwv",  coalition = "BLUE",
       isPickup = true, cargoType = "V",
-      vehicleStock = { ["Hummer"] = 3, ["M1025 HMMWV Armament"] = -1 } },
+      vehicleStock = { ["Hummer"] = 3, ["M1045 HMMWV TOW"] = -1 } },
 
     -- Pickup: troops + vehicles combined zone, unlimited troops
     { dcsZoneName = "AIZ_depot_tv",    coalition = "BLUE",

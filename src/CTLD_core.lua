@@ -748,7 +748,8 @@ function CTLDCoreManager:onAILand(event)
             local alreadyLoaded = (self._aiTransportVehicle[unitName] ~= nil)
                                or (okVS and #vs:findLoadedVehicles(u) > 0)
             if not alreadyLoaded then
-                local physicalLoaded = false
+                local physicalLoaded  = false
+                local physicalPresent = false  -- true if any physical vehicle found (before weight filter)
 
                 -- C1: physical DCS vehicles in zone take priority
                 if okVS then
@@ -762,6 +763,7 @@ function CTLDCoreManager:onAILand(event)
                         end
                         loadables = filtered
                     end
+                    physicalPresent = #loadables > 0
                     local maxW    = caps.maxVehicleWeight
                     local weights = ctld.gs("groundVehicleWeights") or {}
                     local compatible = {}
@@ -784,8 +786,8 @@ function CTLDCoreManager:onAILand(event)
                     end
                 end
 
-                -- C2: virtual stock pickup only when no physical vehicle found
-                if not physicalLoaded then
+                -- C2: virtual stock pickup only when no physical vehicle found in zone
+                if not physicalLoaded and not physicalPresent then
                     local vEntry = pickZone:aiPickVehicleEntry()  -- nil if isAll
                     if vEntry then
                         pickZone:aiConsumeVehicleStock(vEntry.type)

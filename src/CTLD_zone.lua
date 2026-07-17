@@ -665,6 +665,19 @@ function CTLDZoneManager:_loadAIZonesFromConfig()
 
                 local aiTroopStock   = parseStockTable(entry.troopStock)
                 local aiVehicleStock = parseStockTable(entry.vehicleStock)
+                -- Validate vehicleStock typeNames at load time; skip unknowns to avoid
+                -- silent DCS Leopard-2 substitution at spawn time.
+                if aiVehicleStock and not aiVehicleStock.isAll then
+                    for typeName in pairs(aiVehicleStock.init) do
+                        if Unit.getDescByType(typeName) == nil then
+                            ctld.utils.log("ERROR",
+                                "CTLDZoneManager: zone '%s' vehicleStock contains unknown DCS typeName '%s' — entry skipped",
+                                dzn, typeName)
+                            aiVehicleStock.init[typeName]    = nil
+                            aiVehicleStock.current[typeName] = nil
+                        end
+                    end
+                end
 
                 -- pickMaxStock=0 (unlimited) so embarkFromTroopZone never blocks on stock;
                 -- per-template stock is managed by _aiTroopStock.
