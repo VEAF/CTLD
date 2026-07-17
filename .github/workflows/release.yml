@@ -20,6 +20,10 @@ jobs:
         run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1
         shell: pwsh
 
+      - name: Build the dev-time asset-check companion
+        run: powershell -ExecutionPolicy Bypass -File tools\companion\build_companion.ps1
+        shell: pwsh
+
       - name: Resolve version from tag
         id: ver
         run: |
@@ -35,5 +39,5 @@ jobs:
           $version = "${{ steps.ver.outputs.version }}"
           $tag     = "${{ github.ref_name }}"
           $notes   = if (Test-Path "RELEASE_NOTES.md") { "--notes-file", "RELEASE_NOTES.md" } else { "--generate-notes" }
-          gh release create $tag CTLD.lua --title "CTLD v$version" @notes
+          gh release create $tag CTLD.lua dist\CTLD_asset_check.lua --title "CTLD v$version" @notes
         shell: pwsh
