@@ -1,7 +1,7 @@
 # Lot SCENE-PLUGINS — pluggable scenes + extract Metal FARP to CTLD_plugins
 
-Status: 🧑 planned
-Branch: feature/scene-plugins → PR → develop
+Status: ✅ done (CTLD PR #26 merged; plugins repo bootstrapped, PR #1/#2 merged)
+Branch: feature/scene-plugins → PR #26 → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 ADRs: [0006 pluggable scenes](../../dev/adr/0006-pluggable-scenes.md),
 [0007 design-time asset validation](../../dev/adr/0007-design-time-asset-validation.md)

@@ -1,6 +1,6 @@
 # Lot ASSET-VALIDATION-REVAMP — replace the runtime probe with a dev-time companion validator
 
-Status: 🧑 planned
+Status: 🚧 in progress
 Branch: feature/asset-validation-revamp → PR → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 ADRs: [0007 design-time asset validation](../../dev/adr/0007-design-time-asset-validation.md)

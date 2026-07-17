@@ -672,6 +672,12 @@ function CTLDConfig:load()
     self.settings["JTAC_WEIGHT"] = 15    -- kg
     self.settings["CIV_WEIGHT"] = 2      -- kg — light personal items for civilian role
 
+    -- Non-stock (mod) DCS type names your mission's custom config uses (crates, AA parts, troop
+    -- roles). Declaring them here keeps the optional dev-time asset validator (companion) from
+    -- flagging them as unknown, while every other type is still checked. Example:
+    --   self.settings["modTypes"] = { "Some_Mod_Type", "Another_Mod_Type" }
+    self.settings["modTypes"] = {}
+
     -- ************** INFANTRY GROUPS FOR PICKUP ******************
     -- Unit Types
     -- inf is normal infantry
@@ -710,8 +716,8 @@ function CTLDConfig:load()
         -- componentTypes example: custom DCS typeNames per role (including mod units).
         -- Roles not in the standard set (inf/mg/at/aa/mortar/jtac/civ) are supported as
         -- custom roles (e.g. civ1, civ2, civ3) — each maps to a distinct 3D model.
-        -- CTLDModValidator probes each typeName at mission start and logs missing mods.
-        -- If a typeName is not found in DCS, CTLD falls back to the standard soldier model.
+        -- Custom typeNames are used as-is at runtime; validate them at dev time with the
+        -- asset-check companion (declare mod types in the `modTypes` setting above).
         --
         -- { name = "Civilian Crowd", civ1 = 3, civ2 = 2, civ3 = 1,
         --   componentTypes = {
@@ -6501,6 +6507,143 @@ end
 
 -- End : core/CTLD_objectRegistry.lua
 -- ====================================================================================================
+-- Start : core/CTLD_typeCollector.lua
+---@diagnostic disable
+-- CTLD_typeCollector.lua
+-- CTLDTypeCollector — single source of truth for "which DCS type names does this mission configure,
+-- and which are declared non-stock (mod) types". Consumed at design time by the busted config/scene
+-- gates and at dev-time by the optional companion validator (ASSET-VALIDATION-REVAMP). Pure lookup,
+-- no spawning.
+--
+-- Dependencies: ctld.gs, CTLDObjectRegistry, CTLDSceneManager, CTLDCrateAssemblyManager (all read).
+-- ====================================================================================================
+
+CTLDTypeCollector = {}
+
+--- DCS type names a single registry descriptor spawns.
+--   STATIC : desc.type
+--   GROUND : desc.units[i].unitType(coalitionId) for RED/BLUE (a per-coalition function), or a
+--            static desc.units[i].type as a fallback.
+-- @param desc table  a CTLDObjectRegistry descriptor
+-- @return table  array of type-name strings (deduplicated)
+function CTLDTypeCollector.typesOfDescriptor(desc)
+    local out, seen = {}, {}
+    if type(desc) ~= "table" then return out end
+    local function push(tn)
+        if type(tn) == "string" and tn ~= "" and not seen[tn] then
+            seen[tn] = true
+            out[#out + 1] = tn
+        end
+    end
+    if desc.groupType == "STATIC" then
+        push(desc.type)
+    elseif desc.groupType == "GROUND" and type(desc.units) == "table" then
+        for _, u in ipairs(desc.units) do
+            if type(u) == "table" then
+                if type(u.unitType) == "function" then
+                    for _, cid in ipairs({ 1, 2 }) do
+                        local ok, tn = pcall(u.unitType, cid)
+                        if ok then push(tn) end
+                    end
+                else
+                    push(u.type)
+                end
+            end
+        end
+    end
+    return out
+end
+
+--- Collect every configured DCS type name and the declared non-stock (mod) type set.
+-- @return table {
+--   types  = { [typeName] = { sources = { "Registry[..]", "spawnableCrates[..]", … } } },
+--   extras = { [typeName] = true },   -- scene model.modTypes ∪ ctld.gs("modTypes")
+-- }
+function CTLDTypeCollector.collect()
+    local types = {}
+    local function add(name, source)
+        if type(name) ~= "string" or name == "" then return end
+        local e = types[name]
+        if not e then e = { sources = {} }; types[name] = e end
+        e.sources[#e.sources + 1] = source
+    end
+
+    local sm = (type(CTLDSceneManager) == "table") and CTLDSceneManager.getInstance() or nil
+
+    -- 1. Object registry (scene props, crate statics, troop groups…)
+    if type(CTLDObjectRegistry) == "table" and type(CTLDObjectRegistry._db) == "table" then
+        for regKey, desc in pairs(CTLDObjectRegistry._db) do
+            for _, tn in ipairs(CTLDTypeCollector.typesOfDescriptor(desc)) do
+                add(tn, "Registry[" .. tostring(regKey) .. "]")
+            end
+        end
+    end
+
+    -- 2. spawnableCrates — skip scene sentinels, repair entries and aircraft.
+    local buildable = ctld.gs("spawnableCrates") or {}
+    for sectionName, items in pairs(buildable) do
+        if type(items) == "table" then
+            for _, item in ipairs(items) do
+                if type(item) == "table" and item.unit then
+                    local isScene = sm and (sm:getModel(item.unit) ~= nil)
+                    if not isScene and not item._repairFor and not item.spawnAs then
+                        add(item.unit, "spawnableCrates[" .. tostring(sectionName) .. "]")
+                    end
+                end
+            end
+        end
+    end
+
+    -- 3. AA system templates (CTLDCrateAssemblyManager.TEMPLATES)
+    local aaTmpls = (type(CTLDCrateAssemblyManager) == "table")
+        and CTLDCrateAssemblyManager.TEMPLATES or {}
+    for _, tmpl in ipairs(aaTmpls) do
+        if type(tmpl) == "table" and type(tmpl.parts) == "table" then
+            for _, part in ipairs(tmpl.parts) do
+                if type(part) == "table" and part.DCSTypename then
+                    add(part.DCSTypename, "AASystem[" .. tostring(tmpl.name) .. "]")
+                end
+            end
+        end
+    end
+
+    -- 4. loadableGroups[].componentTypes (custom troop roles)
+    local loadable = ctld.gs("loadableGroups") or {}
+    for _, tmpl in ipairs(loadable) do
+        if type(tmpl) == "table" and type(tmpl.componentTypes) == "table" then
+            for _, coaTable in pairs(tmpl.componentTypes) do
+                if type(coaTable) == "table" then
+                    for _, tn in pairs(coaTable) do
+                        add(tn, "loadableGroups[" .. tostring(tmpl.name) .. "]")
+                    end
+                end
+            end
+        end
+    end
+
+    -- Declared non-stock types: scene model.modTypes ∪ the mission-maker config whitelist.
+    local extras = {}
+    if sm and type(sm._models) == "table" then
+        for _, model in pairs(sm._models) do
+            if type(model.modTypes) == "table" then
+                for _, tn in ipairs(model.modTypes) do
+                    if type(tn) == "string" then extras[tn] = true end
+                end
+            end
+        end
+    end
+    local cfgMods = ctld.gs("modTypes") or {}
+    if type(cfgMods) == "table" then
+        for _, tn in ipairs(cfgMods) do
+            if type(tn) == "string" then extras[tn] = true end
+        end
+    end
+
+    return { types = types, extras = extras }
+end
+
+-- End : core/CTLD_typeCollector.lua
+-- ====================================================================================================
 -- Start : core/CTLDParachuteEffect.lua
 -- ============================================================
 -- CTLDParachuteEffect.lua
@@ -6555,368 +6698,6 @@ CTLDNullParachuteEffect = class(CTLDParachuteEffect)
 -- Inherits all three no-ops — zero overhead, safe default.
 
 -- End : core/CTLDParachuteEffect.lua
--- ====================================================================================================
--- Start : core/CTLD_modValidator.lua
----@diagnostic disable
--- CTLD_modValidator.lua
--- Probes all DCS typeNames declared in CTLD configuration at mission start.
--- Detects missing mods (unknown typeNames) before any player-facing spawn occurs.
---
--- Detection methods (validated empirically):
---   GROUND: coalition.addGroup → unit:getTypeName() ~= requested → invalid (DCS silently substitutes)
---   STATIC: coalition.addStaticObject → returns nil → invalid
---
--- Usage:
---   CTLDModValidator.getInstance():run()   -- call once in CTLDCoreManager:init()
---   CTLDModValidator.getInstance():isGroundInvalid(typeName) → bool
---   CTLDModValidator.getInstance():isStaticInvalid(typeName) → bool
-
-CTLDModValidator = {}
-CTLDModValidator.__index = CTLDModValidator
-CTLDModValidator._instance = nil
-
--- ============================================================
--- Singleton
--- ============================================================
-
-function CTLDModValidator.getInstance()
-    if not CTLDModValidator._instance then
-        CTLDModValidator._instance = setmetatable({}, CTLDModValidator)
-        CTLDModValidator._instance:_initState()
-    end
-    return CTLDModValidator._instance
-end
-
-function CTLDModValidator:_initState()
-    self._cache    = {}   -- ["G:typeName"] / ["S:typeName"] = true|false
-    self._probeIdx = 0
-    self._probePos = nil
-end
-
--- ============================================================
--- Public API
--- ============================================================
-
---- Returns true if the ground typeName was probed and found invalid.
-function CTLDModValidator:isGroundInvalid(typeName)
-    return self._cache["G:" .. typeName] == false
-end
-
---- Returns true if the static typeName was probed and found invalid.
-function CTLDModValidator:isStaticInvalid(typeName)
-    return self._cache["S:" .. typeName] == false
-end
-
---- Main entry point. Collect all typeNames, probe each, emit a unified report.
--- Safe to call multiple times (cached results are reused).
-function CTLDModValidator:run()
-    self._probePos = self:_getProbePos()
-
-    local entries  = self:_collectTypeNames()
-    local invalids = {}
-
-    for _, entry in ipairs(entries) do
-        local valid
-        if entry.probeType == "GROUND" then
-            valid = self:_probeGround(entry.typeName)
-        elseif entry.probeType == "HELIPORT" then
-            valid = self:_probeHeliport(entry.typeName, entry.category, entry.extras)
-        else
-            valid = self:_probeStatic(entry.typeName, entry.category, entry.extras)
-        end
-        if not valid then
-            invalids[#invalids + 1] = entry
-        end
-    end
-
-    if #invalids > 0 then
-        local lines = { string.format("[CTLD] Mod validation — %d type(s) not found in DCS:", #invalids) }
-        for _, inv in ipairs(invalids) do
-            local suffix = inv.role and (" role=" .. inv.role) or ""
-            lines[#lines + 1] = string.format("  %s '%s' (source: %s)%s",
-                inv.probeType, inv.typeName, inv.source, suffix)
-        end
-        local msg = table.concat(lines, "\n")
-        ctld.utils.log("WARN", msg)
-        trigger.action.outText(msg, 30)
-    else
-        ctld.utils.log("INFO",
-            "CTLDModValidator: all %d probed type(s) present in DCS", #entries)
-    end
-end
-
--- ============================================================
--- TypeName collection
--- ============================================================
-
-function CTLDModValidator:_collectTypeNames()
-    local entries = {}
-    local seen    = {}
-
-    -- Reserved keys not forwarded to addStaticObject
-    local _skipDescKeys = {
-        groupType=true, namePrefix=true, type=true, category=true, probeSkip=true,
-    }
-
-    local function add(typeName, probeType, category, source, role, extras)
-        if not typeName or typeName == "" then return end
-        local key = probeType .. ":" .. typeName
-        if seen[key] then return end
-        seen[key] = true
-        entries[#entries + 1] = {
-            typeName  = typeName,
-            probeType = probeType,
-            category  = category,
-            source    = source,
-            role      = role,
-            extras    = extras,   -- optional: extra descriptor fields for static spawn
-        }
-    end
-
-    -- 1. CTLDObjectRegistry._db ─────────────────────────────────────────────
-    for regKey, desc in pairs(CTLDObjectRegistry._db) do
-        if desc.groupType == "STATIC" and desc.type then
-            -- Heliport detection: DCS substitutes unknown types with SINGLE_HELIPAD visually,
-            -- but getTypeName() returns the requested name (not the substitute).
-            -- Detection via StaticObject:getDesc().life: valid type → life>0, invalid → life==0.
-            -- Spawned off-map (+800 km east) to keep any ghost outside the visible play area.
-            if desc.category == "Heliports" then
-                if desc.probeSkip then
-                    -- Custom mod heliport: DCS scripting API cannot distinguish installed from missing
-                    -- (getDesc().life == 0 for both valid mod and invalid type). Skip to avoid false alarm.
-                    ctld.utils.log("INFO",
-                        "ModValidator HELIPORT '%s' skipped (probeSkip=true — custom mod, DCS API limitation)",
-                        desc.type)
-                else
-                    local extras = {}
-                    for k, v in pairs(desc) do
-                        if not _skipDescKeys[k] then extras[k] = v end
-                    end
-                    add(desc.type, "HELIPORT", desc.category, "Registry[" .. regKey .. "]", nil, extras)
-                end
-            else
-                -- Collect extra descriptor fields needed by addStaticObject (e.g. shape_name, livery_id)
-                local extras = {}
-                for k, v in pairs(desc) do
-                    if not _skipDescKeys[k] then extras[k] = v end
-                end
-                add(desc.type, "STATIC", desc.category, "Registry[" .. regKey .. "]", nil, extras)
-            end
-        elseif desc.groupType == "GROUND" and desc.units then
-            for _, u in ipairs(desc.units) do
-                if u.unitType then
-                    for _, cid in ipairs({ 1, 2 }) do
-                        local ok, tn = pcall(u.unitType, cid)
-                        if ok and tn then
-                            add(tn, "GROUND", nil, "Registry[" .. regKey .. "]", nil)
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    -- 2. spawnableCrates (Combat Vehicles and other sections) ────────────────
-    -- Skip FOB sentinel, scene sentinels (auto-detected via CTLDSceneManager registry),
-    -- repair entries and aircraft — none of these are DCS unit typeNames.
-    local _sm = (type(CTLDSceneManager) == "table") and CTLDSceneManager.getInstance() or nil
-    local buildable = ctld.gs("spawnableCrates") or {}
-    for sectionName, items in pairs(buildable) do
-        if type(items) == "table" then
-            for _, item in ipairs(items) do
-                local isSceneSentinel = _sm and (_sm:getModel(item.unit) ~= nil)
-                if item.unit and not isSceneSentinel
-                    and not item._repairFor
-                    and not item.spawnAs       -- aircraft (spawnAs="AIRPLANE"/"HELICOPTER") probed separately
-                then
-                    add(item.unit, "GROUND", nil,
-                        "spawnableCrates[" .. tostring(sectionName) .. "]", nil)
-                end
-            end
-        end
-    end
-
-    -- 3. CTLDCrateAssemblyManager.TEMPLATES (AA systems) ────────────────────
-    -- Only probe part.DCSTypename — real DCS unit types spawned by spawnSystemAt.
-    -- tmpl.repair is a struct {desc,weight,side}, not a DCS typeName — never probed.
-    local _aaTmpls = (type(CTLDCrateAssemblyManager) == "table")
-        and CTLDCrateAssemblyManager.TEMPLATES or {}
-    for _, tmpl in ipairs(_aaTmpls) do
-        if tmpl.parts then
-            for _, part in ipairs(tmpl.parts) do
-                if part.DCSTypename then
-                    add(part.DCSTypename, "GROUND", nil,
-                        "AASystem[" .. tostring(tmpl.name) .. "]", nil)
-                end
-            end
-        end
-    end
-
-    -- 4. loadableGroups[].componentTypes (custom troop roles) ────────────────
-    local loadable = ctld.gs("loadableGroups") or {}
-    for _, tmpl in ipairs(loadable) do
-        local ct = tmpl.componentTypes
-        if type(ct) == "table" then
-            for role, coaTable in pairs(ct) do
-                if type(coaTable) == "table" then
-                    for _, tn in pairs(coaTable) do
-                        add(tn, "GROUND", nil,
-                            "loadableGroups[" .. tostring(tmpl.name) .. "]", role)
-                    end
-                end
-            end
-        end
-    end
-
-    return entries
-end
-
--- ============================================================
--- Probe helpers
--- ============================================================
-
-function CTLDModValidator:_getProbePos()
-    for _, coa in ipairs({ coalition.side.BLUE, coalition.side.RED }) do
-        local ok, groups = pcall(coalition.getGroups, coa)
-        if ok and groups and #groups > 0 then
-            local units = groups[1]:getUnits()
-            if units and #units > 0 then
-                local pt = units[1]:getPoint()
-                return { x = pt.x, z = pt.z }
-            end
-        end
-    end
-    return { x = 0, z = 0 }
-end
-
-function CTLDModValidator:_nextIdx()
-    self._probeIdx = self._probeIdx + 1
-    return self._probeIdx
-end
-
-function CTLDModValidator:_probeGround(typeName)
-    local cacheKey = "G:" .. typeName
-    if self._cache[cacheKey] ~= nil then return self._cache[cacheKey] end
-
-    local idx = self:_nextIdx()
-    local pos = self._probePos
-    local groupData = {
-        task  = "Ground Nothing",
-        name  = "CTLD_MVP_G" .. idx,
-        units = {{
-            type    = typeName,
-            name    = "CTLD_MVP_G" .. idx .. "_u1",
-            x       = pos.x + idx * 3,
-            y       = pos.z + idx * 3,
-            heading = 0,
-            skill   = "Average",
-        }}
-    }
-
-    local ok, grp = pcall(coalition.addGroup, country.id.USA, Group.Category.GROUND, groupData)
-    local valid = false
-    if ok and grp then
-        local units = grp:getUnits()
-        if #units > 0 then
-            local okT, actual = pcall(function() return units[1]:getTypeName() end)
-            valid = okT and (actual == typeName)
-        end
-        local _okD1 = pcall(function() grp:destroy() end)
-
-        if not _okD1 then ctld.utils.log("WARN", "ModValidator: failed to destroy test group") end
-    end
-
-    self._cache[cacheKey] = valid
-    ctld.utils.log("INFO", "ModValidator GROUND '%s' → %s", typeName, valid and "OK" or "NOT FOUND")
-    return valid
-end
-
-function CTLDModValidator:_probeStatic(typeName, category, extras)
-    local cacheKey = "S:" .. typeName
-    if self._cache[cacheKey] ~= nil then return self._cache[cacheKey] end
-
-    local idx = self:_nextIdx()
-    local pos = self._probePos
-
-    -- Base fields
-    local staticData = {
-        name          = "CTLD_MVP_S" .. idx,
-        type          = typeName,
-        category      = category or "Fortifications",
-        x             = pos.x + idx * 3,
-        y             = pos.z + idx * 3,
-        heading       = 0,
-        start_time    = 0,
-        transportable = { randomTransportable = false },
-        dead          = false,
-    }
-    -- Forward extra descriptor fields (shape_name, livery_id, rate, …)
-    if extras then
-        for k, v in pairs(extras) do staticData[k] = v end
-    end
-
-    local ok, obj = pcall(coalition.addStaticObject, country.id.USA, staticData)
-    local valid = ok and (obj ~= nil)
-    if ok and obj then
-        local _okD2 = pcall(function() obj:destroy() end)
-
-        if not _okD2 then ctld.utils.log("WARN", "ModValidator: failed to destroy test static object") end
-    end
-
-    self._cache[cacheKey] = valid
-    ctld.utils.log("INFO", "ModValidator STATIC '%s' → %s", typeName, valid and "OK" or "NOT FOUND")
-    return valid
-end
-
-function CTLDModValidator:_probeHeliport(typeName, category, extras)
-    local cacheKey = "S:" .. typeName
-    if self._cache[cacheKey] ~= nil then return self._cache[cacheKey] end
-
-    local idx  = self:_nextIdx()
-    local pos  = self._probePos
-    local name = "CTLD_MVP_H" .. idx
-
-    -- Spawn off-map (+800 km east) so the unavoidable ghost stays outside the visible play area.
-    local staticData = {
-        name          = name,
-        type          = typeName,
-        category      = category or "Heliports",
-        x             = pos.x + idx * 3,
-        y             = pos.z + 800000,
-        heading       = 0,
-        start_time    = 0,
-        transportable = { randomTransportable = false },
-        dead          = false,
-    }
-    if extras then
-        for k, v in pairs(extras) do staticData[k] = v end
-    end
-
-    local ok, obj = pcall(coalition.addStaticObject, country.id.USA, staticData)
-    -- Detection: DCS substitutes unknown Heliport types visually but getTypeName() is unreliable.
-    -- getDesc().life == 0 when the type is unknown; valid types have life > 0.
-    local valid = false
-    if ok and obj ~= nil then
-        local so = StaticObject.getByName(name)
-        if so then
-            local okD, d = pcall(function() return so:getDesc() end)
-            valid = okD and type(d) == "table" and (d.life or 0) > 0
-        end
-        local ab = Airbase.getByName(name)
-        if ab then
-            local _okD3 = pcall(function() ab:destroy() end)
-            if not _okD3 then ctld.utils.log("WARN", "ModValidator: failed to destroy test airbase") end
-        end
-    end
-
-    self._cache[cacheKey] = valid
-    ctld.utils.log("INFO", "ModValidator HELIPORT '%s' → %s (off-map probe, life-check)",
-        typeName, valid and "OK" or "NOT FOUND")
-    return valid
-end
-
-
--- End : core/CTLD_modValidator.lua
 -- ====================================================================================================
 -- Start : CTLD_sceneManager.lua
 ---@diagnostic disable
@@ -9227,14 +9008,8 @@ function CTLDTroopManager:_registerOneTemplate(tmpl)
             local desired = componentTypes and componentTypes[role]
                 and componentTypes[role][cid]
             if desired then
-                local validator = CTLDModValidator._instance
-                if validator and validator:isGroundInvalid(desired) then
-                    ctld.utils.log("WARN",
-                        "_registerOneTemplate: typeName '%s' (role=%s) not in DCS — fallback to standard soldier",
-                        desired, role)
-                    return CTLDTroopManager._ROLE_TYPENAMES["inf"][cid]
-                        or CTLDTroopManager._ROLE_TYPENAMES["inf"][2]
-                end
+                -- Custom componentType used as-is. Validity is checked at dev time (the asset-check
+                -- companion / design-time gate), not by a runtime probe (ADR 0007).
                 return desired
             end
             -- Standard table fallback
@@ -23871,13 +23646,10 @@ function CTLDCoreManager:init()
     -- INIT-E: register MM pre-placed groups as extractable
     self:_initExtractableGroups()
 
-    -- INIT-MOD: probe all DCS typeNames declared in config — detect missing mods
-    CTLDModValidator.getInstance():run()
-
     -- INIT-A: AI transport auto-pickup/dropoff loop
     self:_initAITransports()
 
-    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D + INIT-E + INIT-MOD)")
+    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D + INIT-E)")
 end
 
 -- INIT-B -----------------------------------------------------------

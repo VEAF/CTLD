@@ -83,6 +83,7 @@ nav:
     - Scenes & FOB: mission-maker/scenes-fob.md
     - Crate catalogue: mission-maker/crates-catalogue.md
     - Minefield: mission-maker/minefield.md
+    - Validating your config: mission-maker/asset-validation.md
     - Translations: mission-maker/translations.md
     - Legacy API: mission-maker/legacy-api.md
   - Developer:

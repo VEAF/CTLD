@@ -142,7 +142,7 @@ git tag vX.Y  ->  CI Release job builds and publishes CTLD.lua
 **Scripts:** `tests/ci/unit/*_spec.lua` — 21 files, ~105 tests.
 **Runner:** `busted tests/ci/` (Job 3 in `.github/workflows/ci.yml`).
 
-Scope: Config, EventDispatcher, Zones, Crates, Troops, JTAC, Menu, Utils, i18n, ModValidator.
+Scope: Config, EventDispatcher, Zones, Crates, Troops, JTAC, Menu, Utils, i18n.
 All DCS API calls replaced by stubs in `tests/ci/helpers/dcs_stubs.lua`.
 
 ---

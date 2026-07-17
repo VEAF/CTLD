@@ -8,6 +8,22 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Asset validation — no more runtime probe (ASSET-VALIDATION-REVAMP)
+
+- **BREAKING (behavioural)**: CTLD no longer probe-spawns objects at mission start to validate DCS
+  type names. `CTLD_modValidator` is removed. The probe wasted resources and fired real
+  `S_EVENT_BIRTH`/destroy events that custom mission handlers could observe (ADR 0007).
+- **New**: `CTLDTypeCollector` — one source of truth for the DCS types a mission configures
+  (registry incl. GROUND `unitType(coalitionId)`, `spawnableCrates`, AA templates, `loadableGroups`)
+  and the declared mod types. Fixes a gap where GROUND group unit types were skipped by the scene
+  asset gate.
+- **New**: optional dev-time **asset-check companion** (`CTLD_asset_check.lua`, a release asset) — a
+  mission maker loads it after CTLD during development and it WARNs on unknown configured types (pure
+  lookup, no spawning). See [Validating your config](docs/mission-maker/asset-validation.md).
+- **New**: `modTypes` config setting to declare a mission's own non-stock (mod) types.
+- Custom troop `componentTypes` are used as-is at runtime (no more probe fallback to a standard
+  soldier); validity is a dev-time concern now.
+
 ### Scenes — pluggable scenes (SCENE-PLUGINS)
 
 - **BREAKING**: the **Metal FARP** scene is no longer bundled in `CTLD.lua`. It is now an opt-in

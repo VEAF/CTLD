@@ -115,61 +115,34 @@ CTLDObjectRegistry.spawnObject(key, coa, country, x, z, hdg, opts)
 Les scenes enregistrent les descripteurs de leurs composants au moment du dofile ; les templates de
 troops et de vehicles sont enregistrés par leurs managers à l'init.
 
-### `core/CTLD_modValidator.lua` — sonde de présence de mods
+### Validation d'assets — au design-time, pas de sonde runtime
 
-`CTLDModValidator` teste si des mods DCS optionnels (HAWK, Patriot, NASAMS…) sont présents en tentant
-un `coalition.addStaticObject` avec le type d'unit du mod puis en le détruisant immédiatement.
+CTLD ne **spawn plus** d'objets pour tester la présence d'un type DCS. Les noms de types sont validés
+au dev/CI contre un jeu datamine de types stock vendorisé (`tests/data/dcs_types.lua`) :
 
-```lua
-CTLDModValidator.getInstance():isPresent("AAA_HAWK_SR")  -- → bool (cached after first probe)
-```
+- **`CTLDTypeCollector`** (`core/CTLD_typeCollector.lua`) est la source de vérité unique pour *quels*
+  types DCS une mission configure — registry STATIC (`desc.type`) et GROUND
+  (`desc.units[].unitType(coalitionId)`), `spawnableCrates`, templates AA, `loadableGroups` — et
+  *lesquels sont des types hors-stock (mod) déclarés* : `model.modTypes` des scènes ∪ le setting
+  `modTypes`.
+- Les **gates busted** (`scene_asset_gate_spec` — échec dur ; `config_types_lint_spec` — rapport
+  lenient) le consomment pour attraper les types ni stock ni déclarés.
+- Le **compagnon asset-check** optionnel (`tools/companion/`, buildé en `dist/CTLD_asset_check.lua`)
+  est l'équivalent runtime au dev-time : le mission-maker le charge après CTLD pendant le
+  développement et il WARN sur les types configurés inconnus — une simple lecture de table,
+  **sans spawn, sans event**.
 
-Les résultats sont mis en cache dans `_cache[typeName]`. La sonde est différée à la première
-utilisation afin de ne pas impacter le temps de chargement de la mission.
-
-#### `probeSkip` — les objets de type heliport ne peuvent pas être sondés
-
-La technique de sonde fonctionne pour les objets `STATIC` et `GROUND`. Elle ne fonctionne **pas**
-pour les objets enregistrés avec `category = "Heliports"` (spawnés via l'API airbase plutôt que via
-l'API static object).
-
-**Cause racine (vérifiée par diagnostic DCS en direct) :** quand un static de type heliport est
-spawné via `coalition.addStaticObject`, DCS l'enregistre comme une entrée `Airbase`, que le mod soit
-installé ou non. Tous les champs de l'API — `getTypeName()`, `getCategory()`, `getCategoryEx()`,
-`getCallsign()`, `getDesc().life`, `getDesc().displayName` — renvoient des valeurs identiques que le
-mod soit présent ou absent. Il n'existe aucun signal dans l'API de scripting Lua pour distinguer les
-deux états.
-
-**Conséquence :** si une entrée de registre heliport ne définit pas `probeSkip = true`,
-`CTLDModValidator` la signale toujours comme présente — un faux positif « mod trouvé » même lorsque
-le mod est absent.
-
-**Règle :** toute entrée de registre avec `category = "Heliports"` **doit** définir
-`probeSkip = true`.
+Une scène ou une mission déclare ses types mod pour que la validation reste stricte sur le reste :
 
 ```lua
-CTLDObjectRegistry.registerIfAbsent("Farp_FG_Petit_Helipad", {
-    groupType = "STATIC",
-    category  = "Heliports",
-    -- probeSkip suppresses the ModValidator probe: DCS returns life=0 and identical
-    -- API data regardless of mod installation state — no reliable detection is possible.
-    probeSkip = true,
-    -- …
-})
+someScene.modTypes = { "Some_Mod_Type" }         -- sur un modèle de scène
+_cfg.settings["modTypes"] = { "Some_Mod_Type" }  -- pour la config crate/troop/AA d'une mission
 ```
 
-**Scenes utilisant des types mod :** une scene déclare les types hors-stock qu'elle spawn dans
-`model.modTypes`. Le hard-gate d'assets au design-time (`tests/ci/unit/scene_asset_gate_spec.lua`)
-valide tous les autres types contre le jeu datamine tout en acceptant les types mod déclarés — une
-faute de frappe reste donc détectée. L'audit runtime des scenes a été retiré (ADR 0007) ; une scene
-dépendante d'un mod comme Metal FARP est désormais un plugin optionnel dans
-[`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins) plutôt que d'avertir à chaque mission.
-
-```lua
-someModScene.modTypes    = { "Some_Mod_Type" }   -- whitelist design-time (reste strict sur le reste)
-someModScene.requiresMod = "Some Mod Name"       -- libellé lisible pour le catalogue
-someModScene.requiresCtld = "2.0.0"              -- optionnel : avertit si CTLD est plus ancien
-```
+> **Note historique (ADR 0007) :** les versions antérieures spawnaient une sonde (static/group) par
+> type au démarrage (`CTLD_modValidator`) et ne pouvaient pas sonder les mods heliport du tout —
+> `getDesc().life == 0` que le mod soit installé ou non. Cette sonde a été retirée : elle gaspillait
+> des ressources et émettait des events `S_EVENT_BIRTH`/destroy parasites vus par les handlers custom.
 
 ### `core/CTLDParachuteEffect.lua`
 
