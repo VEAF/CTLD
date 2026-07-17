@@ -29,7 +29,7 @@ local ROOT = debug.getinfo(1, "S").source:match("^@(.+)tests[\\/]ci[\\/]unit[\\/
 
 local SCENE_FILES = {
     "CTLD_farpScene", "CTLD_fobScene", "CTLD_mineFieldScene",
-    "CTLD_countrysideFarpScene", "CTLD_farpAlphaScene", "CTLD_metalFarpScene",
+    "CTLD_countrysideFarpScene", "CTLD_farpAlphaScene",
 }
 
 -- DCS type names a registry descriptor spawns. STATIC → desc.type; GROUND → desc.units[i].type.
@@ -59,10 +59,9 @@ end
 
 describe("scene asset hard-gate", function()
 
-    local myModels     -- the six built-in scene models (captured, not the polluted _models)
-    local sceneDescs   -- label → descriptor, contributed by the six scenes (both sources)
+    local myModels     -- the built-in scene models (captured, not the polluted _models)
+    local sceneDescs   -- label → descriptor, contributed by the scenes (both sources)
     local known        -- datamine ∪ ⋃ scene.modTypes
-    local modUnion
 
     setup(function()
         ctld.i18n = ctld.i18n or {}
@@ -114,18 +113,18 @@ describe("scene asset hard-gate", function()
         end
 
         -- Known set = stock types ∪ every captured model's declared non-stock types.
-        known, modUnion = {}, {}
+        known = {}
         local stock = dofile(ROOT .. "tests/data/dcs_types.lua")
         for t in pairs(stock) do known[t] = true end
         for _, model in ipairs(myModels) do
             if type(model.modTypes) == "table" then
-                for _, t in ipairs(model.modTypes) do known[t] = true; modUnion[t] = true end
+                for _, t in ipairs(model.modTypes) do known[t] = true end
             end
         end
     end)
 
-    it("all six built-in scene files register a model", function()
-        assert.equals(6, #myModels)
+    it("all built-in scene files register a model", function()
+        assert.equals(#SCENE_FILES, #myModels)
     end)
 
     it("every type the built-in scenes spawn is stock or declared (no unknowns)", function()
@@ -153,10 +152,6 @@ describe("scene asset hard-gate", function()
         local bad = unknownTypes(fake, { SOME_MOD_TYPE = true })
         assert.equals(1, #bad)
         assert.equals("grp: TYPO_NOT_STOCK", bad[1])
-    end)
-
-    it("metalFarp's mod type is covered by its modTypes declaration", function()
-        assert.is_true(modUnion["Farp_FG_Petit_Helipad"] == true)
     end)
 
 end)

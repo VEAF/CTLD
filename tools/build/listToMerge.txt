@@ -29,7 +29,6 @@ scenes/CTLD_fobScene.lua
 scenes/CTLD_mineFieldScene.lua
 scenes/CTLD_countrysideFarpScene.lua
 scenes/CTLD_farpAlphaScene.lua
-scenes/CTLD_metalFarpScene.lua
 -- Orchestrator (instantiates all managers, including CTLDCrateManager._processSpawnableCrates)
 CTLD_core.lua
 -- Legacy API compatibility (after all managers)
