@@ -1,4 +1,4 @@
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 # 04 — MT-08B regression: verify PASS after all C2 fixes

@@ -1,4 +1,4 @@
-Status: ⬜ ready
+Status: ✅ done
 
 # FIX-AI-C2-BUGS — Fix two bugs in the AI transport C2 (virtual stock) path
 

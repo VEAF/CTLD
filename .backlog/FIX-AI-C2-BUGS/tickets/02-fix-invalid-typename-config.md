@@ -1,4 +1,4 @@
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 # 02 — Replace invalid typeName in virtual stock example config

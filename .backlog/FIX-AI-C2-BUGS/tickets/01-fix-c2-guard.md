@@ -1,4 +1,4 @@
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 
 # 01 — Fix C2 activation guard in `onAILand`
