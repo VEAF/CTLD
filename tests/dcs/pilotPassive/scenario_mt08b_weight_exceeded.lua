@@ -375,7 +375,21 @@ steps[3] = function()
                     fail("MT-08B.3.1", "Unexpected vehicle(s) spawned at dropoff: "..detail)
                     log("UNEXPECTED SPAWN at "..AIZ_D..": "..detail)
                 end
-                advanceStep()
+                -- Wait for helo to take off again before cleanup,
+                -- so the full DCS AI route completes and the clone is not destroyed mid-sequence.
+                log("Waiting for helo to take off from dropoff (spd > 5 m/s)...")
+                waitFor(
+                    function()
+                        local unit = Unit.getByName(AI_UNIT)
+                        if not unit or not unit:isExist() then return true end  -- already gone
+                        local vel = unit:getVelocity()
+                        local spd = math.sqrt(vel.x*vel.x + vel.y*vel.y + vel.z*vel.z)
+                        return spd > 5.0
+                    end,
+                    2, 120,
+                    function() log("Helo took off from dropoff — sequence complete.") ; advanceStep() end,
+                    function() log("Timeout waiting for helo takeoff — proceeding anyway.") ; advanceStep() end
+                )
             end)
         end,
         function()
