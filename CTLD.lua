@@ -7211,10 +7211,6 @@ function CTLDSceneManager:playScene(unit, modelName, params, onComplete)
         ctld.utils.log("WARN", "CTLDSceneManager:playScene: unknown model '%s'", tostring(modelName))
         return nil
     end
-    if model._disabled then
-        ctld.utils.log("WARN", "CTLDSceneManager:playScene: scene '%s' is disabled (missing DCS type)", tostring(modelName))
-        return nil
-    end
     local scene = CtldScene:new(unit, model, params, onComplete)
     self._active[scene._name] = scene
     scene:_execute()
@@ -7262,78 +7258,13 @@ function CTLDSceneManager:getScene(name)
     return self._models[name]
 end
 
---- Returns true when the scene model is registered and NOT disabled by _auditAfterModValidator.
+--- Returns true when the scene model is registered.
+-- Scene DCS types are validated at design time (busted asset hard-gate), not at runtime, so a
+-- registered scene is always enabled. Kept for AI vehicle pickup, which distinguishes scenes
+-- from whole-unit types.
 -- @param name string  model name
 function CTLDSceneManager:isSceneEnabled(name)
-    local m = self._models[name]
-    return m ~= nil and not m._disabled
-end
-
---- Post-validator audit: scan every registered scene model, check each step's registry entry
--- against CTLDModValidator results, disable models with missing types, and purge their menu
--- entries from CTLDCrateManager.
--- Called from CTLDCoreManager:init() immediately after CTLDModValidator:run().
--- Also emits WARN outText for scenes that declare requiresMod (cannot be auto-validated).
-function CTLDSceneManager:_auditAfterModValidator()
-    local mv  = CTLDModValidator.getInstance()
-    local reg = CTLDObjectRegistry
-    local invalids = {}   -- sceneName → { typeName, ... }
-
-    for modelName, model in pairs(self._models) do
-        local missingTypes = {}
-        for _, step in ipairs(model.steps or {}) do
-            local rk   = step.registryKey
-            local desc = rk and reg._db[rk]
-            if desc and not desc.probeSkip then
-                local t = desc.type
-                if t then
-                    if desc.groupType == "STATIC" and mv:isStaticInvalid(t) then
-                        missingTypes[#missingTypes + 1] = t
-                    elseif desc.groupType == "GROUND" and mv:isGroundInvalid(t) then
-                        missingTypes[#missingTypes + 1] = t
-                    end
-                end
-            end
-        end
-
-        if #missingTypes > 0 then
-            model._disabled    = true
-            invalids[modelName] = missingTypes
-        end
-    end
-
-    -- Report disabled scenes
-    if next(invalids) then
-        local lines = { "[CTLD] Scenes disabled — missing DCS type(s):" }
-        for sn, types in pairs(invalids) do
-            -- Remove duplicates in types list
-            local seen, uniq = {}, {}
-            for _, t in ipairs(types) do
-                if not seen[t] then seen[t] = true; uniq[#uniq + 1] = t end
-            end
-            lines[#lines + 1] = string.format("  '%s': %s", sn, table.concat(uniq, ", "))
-        end
-        local msg = table.concat(lines, "\n")
-        ctld.utils.log("WARN", msg)
-        trigger.action.outText(msg, 30)
-    end
-
-    -- Warn about requiresMod scenes (cannot be auto-validated; menu is still shown)
-    for modelName, model in pairs(self._models) do
-        if model.requiresMod and not model._disabled then
-            local msg = string.format(
-                "[CTLD] Scene '%s' requires mod '%s' — cannot be auto-validated. "
-                .. "Ensure all clients have this mod installed.",
-                modelName, model.requiresMod)
-            ctld.utils.log("WARN", msg)
-            trigger.action.outText(msg, 20)
-        end
-    end
-
-    -- Purge disabled scenes from the Request Equipment menu
-    if next(invalids) and CTLDCrateManager and CTLDCrateManager._instance then
-        CTLDCrateManager._instance:_purgeDisabledScenes()
-    end
+    return self._models[name] ~= nil
 end
 
 -- ====================================================================================================
@@ -11601,47 +11532,15 @@ function CTLDCrateManager.getInstance()
     return _cmInstance
 end
 
---- Remove all scene crate entries from _processedCrates and _weightIndex whose models are
--- marked _disabled by CTLDSceneManager:_auditAfterModValidator().
--- Called once, immediately after the scene audit, before any player menu is built.
-function CTLDCrateManager:_purgeDisabledScenes()
-    local sm = CTLDSceneManager.getInstance()
-    for cat, catData in pairs(self._processedCrates) do
-        local kept = {}
-        for _, pe in ipairs(catData.singleCrates) do
-            local sc = pe.singleCrate
-            if sc then
-                local model = sm:getModel(sc.unit)
-                if model and model._disabled then
-                    -- Remove from weight index too
-                    if self._weightIndex[sc.weight] and self._weightIndex[sc.weight].unit == sc.unit then
-                        self._weightIndex[sc.weight] = nil
-                    end
-                    ctld.utils.log("WARN",
-                        "_purgeDisabledScenes: removed '%s' from Request Equipment menu (missing DCS type)",
-                        sc.unit)
-                else
-                    kept[#kept + 1] = pe
-                end
-            else
-                kept[#kept + 1] = pe
-            end
-        end
-        catData.singleCrates = kept
-    end
-end
-
 --- Inject a single scene model's crate descriptor into _weightIndex and _processedCrates.
 -- Called by _processSpawnableCrates (batch, at init) and by CTLDSceneManager:registerSceneModel
 -- (incremental, for scenes registered after CTLDCrateManager is already initialized).
 -- Weight collision resolution: if the declared weight is taken by a different unit, the next
 -- free slot in the same 1001.xx range is used and a WARN is logged.
 -- No-op if the scene is already present in _weightIndex (idempotent).
--- No-op if the scene model is marked _disabled (missing DCS type — suppressed by audit).
 -- @param sceneName  string  model.name
 -- @param model      table   scene model with model.crate set
 function CTLDCrateManager:_injectSceneCrate(sceneName, model)
-    if model._disabled then return end  -- scene disabled by mod audit — do not add to menu
     local cd       = model.crate
     local w        = cd.weight
     local existing = self._weightIndex[w]
@@ -23632,7 +23531,7 @@ CTLDObjectRegistry.registerIfAbsent("Windsock", {
 
 local metalFarpScene = {}
 metalFarpScene.name       = "Metal FARP"
-metalFarpScene.requiresMod = "Farp_FG_Petit_Helipad"  -- cannot be auto-validated (probeSkip); WARN emitted at init
+metalFarpScene.requiresMod = "Farp_FG_Petit_Helipad"  -- human-readable required-mod label (docs/catalogue)
 -- Non-stock (mod) DCS types this scene spawns. Added to the known set by the design-time
 -- asset hard-gate (datamine ∪ modTypes) so validation still catches typos in every stock type.
 metalFarpScene.modTypes   = { "Farp_FG_Petit_Helipad" }
@@ -24264,13 +24163,11 @@ function CTLDCoreManager:init()
 
     -- INIT-MOD: probe all DCS typeNames declared in config — detect missing mods
     CTLDModValidator.getInstance():run()
-    -- INIT-SCENE-AUDIT: disable scenes with missing DCS types + purge from Request Equipment menu
-    CTLDSceneManager.getInstance():_auditAfterModValidator()
 
     -- INIT-A: AI transport auto-pickup/dropoff loop
     self:_initAITransports()
 
-    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D + INIT-E + INIT-MOD + INIT-SCENE-AUDIT)")
+    ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D + INIT-E + INIT-MOD)")
 end
 
 -- INIT-B -----------------------------------------------------------
