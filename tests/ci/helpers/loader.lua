@@ -34,6 +34,7 @@ dofile(SRC .. "CTLD_i18n.lua")
 dofile(SRC .. "CTLD_i18n_en.lua")
 dofile(SRC .. "CTLD_menu.lua")
 dofile(SRC .. "core/CTLD_objectRegistry.lua")
+dofile(SRC .. "core/CTLD_typeCollector.lua")
 dofile(SRC .. "core/CTLDParachuteEffect.lua")
 dofile(SRC .. "core/CTLD_modValidator.lua")
 

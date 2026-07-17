@@ -45,6 +45,7 @@ globals = {
     -- Utils / infrastructure
     "EventDispatcher",
     "CTLDObjectRegistry",
+    "CTLDTypeCollector",
     "CTLDParachuteEffect",
     "CTLDNullParachuteEffect",
     "CTLDModValidator",

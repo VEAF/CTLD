@@ -9,6 +9,7 @@ CTLD_i18n_ko.lua
 CTLD_utils.lua
 CTLD_menu.lua
 core/CTLD_objectRegistry.lua
+core/CTLD_typeCollector.lua
 core/CTLDParachuteEffect.lua
 core/CTLD_modValidator.lua
 -- Business domain managers

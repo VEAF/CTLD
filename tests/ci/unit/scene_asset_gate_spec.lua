@@ -32,18 +32,10 @@ local SCENE_FILES = {
     "CTLD_countrysideFarpScene", "CTLD_farpAlphaScene",
 }
 
--- DCS type names a registry descriptor spawns. STATIC → desc.type; GROUND → desc.units[i].type.
+-- DCS type names a registry descriptor spawns — via the shared collector, which handles both
+-- STATIC (desc.type) and GROUND (desc.units[i].unitType(coalitionId), a per-coalition function).
 local function spawnedTypesOf(desc)
-    local out = {}
-    if type(desc) ~= "table" then return out end
-    if desc.groupType == "GROUND" and type(desc.units) == "table" then
-        for _, u in ipairs(desc.units) do
-            if type(u) == "table" and u.type then out[#out + 1] = u.type end
-        end
-    elseif desc.type then
-        out[#out + 1] = desc.type
-    end
-    return out
+    return CTLDTypeCollector.typesOfDescriptor(desc)
 end
 
 -- "descriptorLabel: type" pairs whose type is not in `known`.
