@@ -20,7 +20,7 @@ authored **per lot, when the lot is started** (not in batch).
 | `FIX-AI-C2-BUGS` | ✅ merged (PR #30) | Two bugs in the AI transport C2 (virtual stock) path: wrong activation guard when a physical vehicle is weight-rejected (Bug 1), and invalid typeName `M1025 HMMWV Armament` in example config causing silent Leopard-2 spawn (Bug 2a/2b). MT-08B PASS 7/7. | — |
 | `USERCONFIG-LOADING` | ✅ merged (PR #32) | Separate `CTLD_userConfig.lua` from the build merge: new `CTLD_bootstrap.lua` keeps the engine auto-start in the deliverable; userConfig delivered in `dist/` as a standalone MM template loaded before `CTLD.lua`. Zero breaking change. | — |
 | `TEST-PLUGIN-POSTINIT` | ✅ merged (PR #31) | L3 `noPlayer` `auto` scenario (F-124) verifying the post-init plugin contract: `registerSceneModel` after init, `deferMenuSection` direct routing (not queued), `requiresCtld` soft-fail. PASS 7/7. | — |
-| `TEST-TYPENAME-VALIDATION` | ⬜ ready | Extend `CTLDTypeCollector.collect()` to cover `aiZones[*].vehicleStock`, `capabilitiesByType[*].loadableVehiclesRED/BLUE`, and `aiZones[*].vehicleTypes` — closing the CI type-linter gap exposed by the `M1025 HMMWV Armament` silent-spawn bug. | fix/test-typename-validation |
+| `TEST-TYPENAME-VALIDATION` | ✅ merged (PR #36) | Extend `CTLDTypeCollector.collect()` to cover `aiZones[*].vehicleStock`, `capabilitiesByType[*].loadableVehiclesRED/BLUE`, and `aiZones[*].vehicleTypes` — closing the CI type-linter gap exposed by the `M1025 HMMWV Armament` silent-spawn bug. | — |
 
 ### Planned lots
 
