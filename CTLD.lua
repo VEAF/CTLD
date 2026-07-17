@@ -672,6 +672,12 @@ function CTLDConfig:load()
     self.settings["JTAC_WEIGHT"] = 15    -- kg
     self.settings["CIV_WEIGHT"] = 2      -- kg — light personal items for civilian role
 
+    -- Non-stock (mod) DCS type names your mission's custom config uses (crates, AA parts, troop
+    -- roles). Declaring them here keeps the optional dev-time asset validator (companion) from
+    -- flagging them as unknown, while every other type is still checked. Example:
+    --   self.settings["modTypes"] = { "Some_Mod_Type", "Another_Mod_Type" }
+    self.settings["modTypes"] = {}
+
     -- ************** INFANTRY GROUPS FOR PICKUP ******************
     -- Unit Types
     -- inf is normal infantry
