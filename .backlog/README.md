@@ -23,12 +23,12 @@ authored **per lot, when the lot is started** (not in batch).
 | `TEST-TYPENAME-VALIDATION` | ✅ merged (PR #36) | Extend `CTLDTypeCollector.collect()` to cover `aiZones[*].vehicleStock`, `capabilitiesByType[*].loadableVehiclesRED/BLUE`, and `aiZones[*].vehicleTypes` — closing the CI type-linter gap exposed by the `M1025 HMMWV Armament` silent-spawn bug. | — |
 | `FIX-LGZ-POLL-NIL-ISFLYING` | ✅ merged (PR #37) | LGZ ground-position poll skips players with `_isFlying=nil` (never flown) — `== false` guard → `~= true`; regression test. Diagnosed via dcs-bridge 2026-07-19. | — |
 | `FIX-PLUGIN-CRATE-INSTANT-REFRESH` | ✅ merged (PR #38) | Immediate Request Equipment refresh on post-init scene crate injection — eliminates the 10s delay between plugin load and crate appearing in menu. | — |
+| `CHORE-DOC-GATES` | ✅ merged (PR #39) | Enforce CHANGELOG + backlog-index bookkeeping instead of relying on discipline: CI `changelog-guard` job failing a `src/`-touching PR with no `CHANGELOG.md` edit (escape hatch: `skip-changelog` label), + workflow rewording so the index update happens inside the delivering PR. Root-cause fix for #36/#37/#38 shipping without a CHANGELOG entry. | — |
 
 ### Planned lots
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `CHORE-DOC-GATES` | ⬜ ready | Enforce CHANGELOG + backlog-index bookkeeping instead of relying on discipline: CI guard failing a `src/`-touching PR with no `CHANGELOG.md` edit (escape hatch: `skip-changelog` label), + workflow rewording so the index update happens inside the delivering PR. Root-cause fix for #36/#37/#38 shipping without a CHANGELOG entry. | chore/doc-gates |
 | `DEV-LOCAL-MIZ` | ⬜ ready | Kill the hardcoded `CTLD.lua` path in the shared martyr miz: MISSION START trigger loads via `CTLD_DEV_ROOT` env var (de-sanitized DCS), hardened with explicit on-screen failure; delete the dead `ctldLogPath` line; dev-setup checklist in `building-and-testing` (EN+FR) + realign `dcs-runtime-debug`. Stops the committed binary miz from carrying machine paths. | chore/dev-local-miz |
 
 Other candidates → [`dev/roadmap.md`](../dev/roadmap.md).
