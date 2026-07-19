@@ -28,7 +28,11 @@ authored **per lot, when the lot is started** (not in batch).
 
 ### Planned lots
 
-None. Future candidates → [`dev/roadmap.md`](../dev/roadmap.md).
+| Lot | Status | Description | Branch |
+|-----|--------|-------------|--------|
+| `RELEASE-RC-CHANNEL` | ⬜ ready | Add a pre-release (rc) channel + `published-latest` floating tag to the tag-driven CD (porting VMCT's two mechanics): a `-rc`-suffixed version publishes a GitHub pre-release and leaves `published-latest` on the last stable; a plain `x.y.z` advances it. `release.yml` + rc-aware `release` skill. Enables cutting `2.0.0-rc1` then `2.0.0`. | chore/release-rc-channel |
+
+Other candidates → [`dev/roadmap.md`](../dev/roadmap.md).
 
 ### Delivered (socle, this program)
 
