@@ -16,7 +16,7 @@
         <link rel="prev" href="../i18n/">
       
       
-        <link rel="next" href="../migration-v1-v2/">
+        <link rel="next" href="../integration-testing/">
       
       
         
@@ -331,25 +331,6 @@
         </a>
       </li>
     
-  
-
-      
-        
-  
-  
-  
-  
-    <li class="md-tabs__item">
-      <a href="../../integration-testing/" class="md-tabs__link">
-        
-  
-  
-    
-  
-  Integration Testing
-
-      </a>
-    </li>
   
 
       
@@ -1808,6 +1789,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../integration-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integration testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../migration-v1-v2/" class="md-nav__link">
         
   
@@ -1888,33 +1897,6 @@
           </ul>
         </nav>
       
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../integration-testing/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Integration Testing
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -2024,9 +2006,9 @@
 <p>Cette page couvre tout ce dont vous avez besoin pour transformer <code>src/</code> en livrable final et pour
 exécuter la suite de tests automatisés en local. Les deux sont également appliqués en intégration
 continue, si bien que les commandes ci-dessous reflètent ce que fait la CI à chaque push.</p>
-<p>Les tests d'intégration en DCS live (injection du script compilé dans une mission en cours) ne sont
-<strong>pas</strong> couverts ici — c'est documenté séparément, dans un lot ultérieur. Cette page se limite à la
-chaîne de build et aux tests basés sur busted qui s'exécutent entièrement sans DCS.</p>
+<p>Les tests d'intégration en DCS live — charger votre build dans la mission de test et y exécuter des
+scénarios — sont couverts dans <a href="../integration-testing/">Tests d'intégration</a>. Cette page se
+limite à la chaîne de build et aux tests basés sur busted qui s'exécutent entièrement sans DCS.</p>
 <h2 id="chaine-de-build">Chaîne de build<a class="headerlink" href="#chaine-de-build" title="Permanent link">&para;</a></h2>
 <p>CTLD est distribué sous forme d'un fichier unique, <code>CTLD.lua</code>, à la racine du dépôt. Il est
 <strong>généré</strong> en fusionnant les modules en Lua pur situés sous <code>src/</code> dans l'ordre de dépendance — ne

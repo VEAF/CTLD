@@ -16,7 +16,7 @@
         <link rel="prev" href="../i18n/">
       
       
-        <link rel="next" href="../migration-v1-v2/">
+        <link rel="next" href="../integration-testing/">
       
       
         
@@ -331,25 +331,6 @@
         </a>
       </li>
     
-  
-
-      
-        
-  
-  
-  
-  
-    <li class="md-tabs__item">
-      <a href="../../integration-testing/" class="md-tabs__link">
-        
-  
-  
-    
-  
-  Integration Testing
-
-      </a>
-    </li>
   
 
       
@@ -1808,6 +1789,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../integration-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integration testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../migration-v1-v2/" class="md-nav__link">
         
   
@@ -1888,33 +1897,6 @@
           </ul>
         </nav>
       
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../integration-testing/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Integration Testing
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -2024,9 +2006,9 @@
 <p>This page covers everything you need to turn <code>src/</code> into the shipping deliverable and to run
 the automated test suite locally. Both are also enforced in continuous integration, so the
 commands below mirror what CI does on every push.</p>
-<p>Live-DCS integration testing (injecting the built script into a running mission) is <strong>not</strong>
-covered here — it is documented separately, in a later lot. This page is limited to the build
-pipeline and the busted-based tests that run entirely without DCS.</p>
+<p>Live-DCS integration testing — loading your build into the test mission and running scenarios
+against it — is covered in <a href="../integration-testing/">Integration testing</a>. This page is
+limited to the build pipeline and the busted-based tests that run entirely without DCS.</p>
 <h2 id="build-pipeline">Build pipeline<a class="headerlink" href="#build-pipeline" title="Permanent link">&para;</a></h2>
 <p>CTLD ships as a single file, <code>CTLD.lua</code>, at the repository root. It is <strong>generated</strong> by merging
 the pure-Lua modules under <code>src/</code> in dependency order — never hand-edit it, and rebuild after any
