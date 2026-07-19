@@ -3,7 +3,7 @@
 
 --[[
     CTLD.lua - Combined Transport and Logistics Dispatcher for DCS World
-    Version : 2.0.0
+    Version : 2.0.0-rc1
     Built   : 2026-07-19
     Source  : https://github.com/VEAF/CTLD
     Licence : MIT
@@ -56,7 +56,7 @@ end
 -- src version — do not edit source/ original
 ctld = ctld or {}
 
-ctld.VERSION = "2.0.0"
+ctld.VERSION = "2.0.0-rc1"
 
 CTLDConfig = {}
 CTLDConfig._instance = nil
