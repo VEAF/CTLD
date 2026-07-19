@@ -8,6 +8,26 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Bug fixes — plugin crate instant refresh (FIX-PLUGIN-CRATE-INSTANT-REFRESH)
+
+- **Fix**: a scene crate injected after init (`_injectSceneCrate`, e.g. a post-init scene
+  plugin) now refreshes the transport players' Request Equipment menu immediately instead of
+  waiting for the next 10s poll cycle — the crate appears in the menu as soon as the plugin
+  loads.
+
+### Bug fixes — LGZ ground poll nil `_isFlying` (FIX-LGZ-POLL-NIL-ISFLYING)
+
+- **Fix**: the LGZ ground-position poll no longer skips players that have never flown
+  (`_isFlying == nil`). Guard changed from `== false` to `~= true`, so a nil flight state is
+  treated as ground. Regression test added; diagnosed via dcs-bridge (2026-07-19).
+
+### Config validation — extend type collector coverage (TEST-TYPENAME-VALIDATION)
+
+- **`CTLDTypeCollector.collect()`** extended to cover `aiZones[*].vehicleStock`,
+  `capabilitiesByType[*].loadableVehiclesRED/BLUE`, and `aiZones[*].vehicleTypes` — closing the
+  CI type-linter gap that let the invalid `"M1025 HMMWV Armament"` typeName through to a silent
+  DCS spawn substitution.
+
 ### Build — separate user config template from deliverable (USERCONFIG-LOADING)
 
 - **`CTLD_userConfig.lua` removed from the build merge**: the MM configuration template is no
