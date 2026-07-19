@@ -1,6 +1,6 @@
 # Lot DEV-LOCAL-MIZ — load each developer's local CTLD.lua via an env var instead of a hardcoded miz path
 
-Status: ⬜ ready
+Status: ✅ done
 Branch: chore/dev-local-miz → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 ADRs: none (dev tooling, not a deliverable-architecture decision)

@@ -1,6 +1,6 @@
 # 01 — Replace the hardcoded miz path with the CTLD_DEV_ROOT trigger
 
-Status: ⬜ ready
+Status: ✅ done
 Type: hybrid (AFK authoring + live DCS validation)
 Repo: CTLD
 GitHub: —

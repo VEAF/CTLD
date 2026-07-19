@@ -8,6 +8,20 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — dev-local martyr load via `CTLD_DEV_ROOT` (DEV-LOCAL-MIZ)
+
+- **Test mission (`Test_CTLDNEXT_01.miz`, the "martyr")**: the MISSION START trigger now loads
+  `CTLD.lua` from a per-developer `CTLD_DEV_ROOT` environment variable instead of a hardcoded
+  absolute path. The committed `.miz` no longer carries any machine-specific path (no more git
+  noise / leaked personal paths). The trigger is hardened to fail loudly (log + on-screen) on a
+  sanitized DCS install, an unset variable, or a bad path. The dead `ctldLogPath = "C:/CTLD.lua"`
+  line is removed.
+- **Docs**: the live-DCS testing page (`integration-testing`, L1–L6) moved into `docs/developer/`
+  and gained a "Loading your build into the test mission (martyr)" section (de-sanitize DCS,
+  `setx CTLD_DEV_ROOT`, restart DCS). The `dcs-runtime-debug` skill's `CTLD.log` section is
+  realigned onto on-demand `diag_enable_ctld_log.lua` injection (it no longer references a
+  `ctldLogPath` set in the `.miz`).
+
 ### Tooling — CHANGELOG guard + index-in-PR convention (CHORE-DOC-GATES)
 
 - **New CI job `changelog-guard`**: a pull request that touches `src/**` must also update
