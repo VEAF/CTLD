@@ -4,9 +4,9 @@ Cette page couvre tout ce dont vous avez besoin pour transformer `src/` en livra
 exécuter la suite de tests automatisés en local. Les deux sont également appliqués en intégration
 continue, si bien que les commandes ci-dessous reflètent ce que fait la CI à chaque push.
 
-Les tests d'intégration en DCS live (injection du script compilé dans une mission en cours) ne sont
-**pas** couverts ici — c'est documenté séparément, dans un lot ultérieur. Cette page se limite à la
-chaîne de build et aux tests basés sur busted qui s'exécutent entièrement sans DCS.
+Les tests d'intégration en DCS live — charger votre build dans la mission de test et y exécuter des
+scénarios — sont couverts dans [Tests d'intégration](integration-testing.md). Cette page se
+limite à la chaîne de build et aux tests basés sur busted qui s'exécutent entièrement sans DCS.
 
 ## Chaîne de build
 

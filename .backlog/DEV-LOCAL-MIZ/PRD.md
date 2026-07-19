@@ -94,7 +94,7 @@ end
   with the runner's `REPO_ROOT`, reusable if another repo file ever needs loading.
 - **Inline snippet** in the DO SCRIPT action (not an embedded `DO SCRIPT FILE` bootstrap): the logic is
   frozen (load one file — YAGNI), and `DO SCRIPT FILE` would introduce an embed-vs-repo desync trap.
-  The snippet is mirrored in `docs/developer/building-and-testing` as the copyable reference.
+  The snippet is mirrored in the live-DCS testing page as the copyable reference.
 - **Explicit failure, no fallback**: on any of the three failure modes, log `env.error` **and**
   `outText` (30 s) — no silent `lfs.writedir()` fallback that would load a surprise CTLD. `os and …`
   guards against a sanitized install where `os` is nil.
@@ -132,6 +132,7 @@ end
   `diag_enable_ctld_log.lua` (on-demand injection), same-movement doc hygiene.
 - **Proposed ticket split** (tracer-bullet):
   1. `01` — miz trigger snippet + editor edit + in-game validation (hybrid: AFK authoring + live DCS).
-  2. `02` — docs (`building-and-testing` EN+FR dev-setup checklist) + `dcs-runtime-debug` skill fix (AFK).
+  2. `02` — docs: move the existing live-DCS page into `docs/developer/`, add the martyr build-loading
+     section (EN+FR) + `dcs-runtime-debug` skill fix (AFK).
 - **The security angle** the roadmap raised (leaking a personal path into `master`) is structurally
   eliminated: the committed miz no longer contains any machine path.

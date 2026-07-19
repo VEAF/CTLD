@@ -15,6 +15,7 @@ Mission Maker guide instead.
 | [Events](events.md) | The internal event bus and the full event catalogue |
 | [Internationalisation](i18n.md) | How i18n works, adding keys and languages, mission-maker overrides |
 | [Building & testing](building-and-testing.md) | Build pipeline, busted, coverage, logging, debug config |
+| [Integration testing](integration-testing.md) | Live-DCS test levels (L1–L6), the martyr setup, tiers, running scenarios |
 | [Migration v1 → v2](migration-v1-v2.md) | Legacy wrapper principle, migration table, worked example |
 | [API reference](api-reference.md) | Public methods of every manager |
 | [Design spec](design-spec.md) | The rationale behind the v2 architecture |

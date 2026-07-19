@@ -11,7 +11,52 @@ est `auto` ou `auto-check` et peut être **pilotée sans intervention humaine** 
 `tools/integration-runner/run_scenarios.py`, plutôt qu'en injectant chaque script à la main —
 voir [Niveaux d'automatisation](#niveaux-dautomatisation) ci-dessous.
 
-Pour la configuration de debug et la mise en place de CTLD.log, voir [Building & testing](developer/building-and-testing.md).
+Pour la configuration de debug et la mise en place de CTLD.log, voir [Build et tests](building-and-testing.md).
+
+---
+
+## Charger votre build dans la mission de test (martyr)
+
+L3–L6 s'exécutent contre la mission de test partagée `missions/Test_CTLDNEXT_01.miz` (la
+« martyr »). Elle charge `CTLD.lua` depuis une variable d'environnement propre à chaque développeur,
+de sorte que le `.miz` versionné ne contient jamais de chemin propre à une machine. Configuration
+unique sur la machine de chaque développeur :
+
+1. **Désanitiser DCS.** `os.getenv` n'est disponible que si l'environnement Lua de DCS n'est pas
+   sanitizé — réactivez `os` / `io` / `lfs` dans `Scripts/MissionScripting.lua`. Sans cela, le
+   trigger de mission échoue avec un message explicite à l'écran et CTLD n'est pas chargé.
+2. **Définir `CTLD_DEV_ROOT`** sur la racine de votre dépôt, puis **relancer DCS** :
+
+   ```
+   setx CTLD_DEV_ROOT "D:\chemin\vers\CTLD"
+   ```
+
+   `setx` persiste la valeur dans le registre utilisateur Windows (`HKCU\Environment`), elle survit
+   donc aux redémarrages. Le piège n'est **pas** la persistance mais l'héritage de processus : un
+   **DCS déjà lancé ne voit pas la nouvelle variable** — fermez DCS (et son launcher) puis
+   rouvrez-le. En cas de doute, déconnectez-vous puis reconnectez-vous.
+3. C'est tout — le trigger MISSION START de la martyr charge `<CTLD_DEV_ROOT>/CTLD.lua`. Aucun
+   développeur ne modifie le `.miz`. Après un changement `src/`, rebuildez `CTLD.lua` et rechargez
+   la mission (`Shift+R`) pour que le trigger refasse un `dofile` du build frais.
+
+Le trigger est durci pour échouer visiblement (log + écran) sur une installation sanitizée, une
+variable non définie, ou un chemin erroné. Pour référence, le snippet exact du trigger est :
+
+```lua
+local root = os and os.getenv("CTLD_DEV_ROOT")   -- os absent = DCS sanitizé
+if not root then
+  local msg = "[CTLD dev] os/CTLD_DEV_ROOT unavailable -- de-sanitize MissionScripting.lua and "
+           .. "run 'setx CTLD_DEV_ROOT <repo>' then restart DCS. CTLD.lua NOT loaded."
+  env.error(msg); trigger.action.outText(msg, 30)
+  return
+end
+local path = root .. "/CTLD.lua"
+local ok, err = pcall(dofile, path)
+if not ok then
+  local msg = "[CTLD dev] dofile(" .. path .. ") failed: " .. tostring(err)
+  env.error(msg); trigger.action.outText(msg, 30)
+end
+```
 
 ---
 
