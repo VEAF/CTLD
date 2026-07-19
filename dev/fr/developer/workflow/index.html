@@ -1308,6 +1308,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#processus-de-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Processus de release
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#skills-decriture" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2039,6 +2050,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#processus-de-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Processus de release
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#skills-decriture" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2154,8 +2176,9 @@ dans <code>dev/agents/triage-labels.md</code>.</p>
 <li><strong>Une branche / une PR par lot</strong> — tous les tickets d'un lot atterrissent ensemble, même si le
   backlog les découpe individuellement.</li>
 <li>Les commits suivent les <strong>Conventional Commits</strong> en anglais.</li>
-<li><code>develop</code> est la branche d'intégration ; les releases sont promues de <code>develop</code> vers <code>master</code>
-  (voir le processus de release).</li>
+<li><code>develop</code> est la branche d'intégration ; <code>master</code> est réservée aux merges de jalons stables et
+  n'est câblée à aucune automatisation de release. Voir <a href="#processus-de-release">Processus de release</a>
+  ci-dessous.</li>
 </ul>
 <h2 id="developpement-pilote-par-les-tests">Développement piloté par les tests<a class="headerlink" href="#developpement-pilote-par-les-tests" title="Permanent link">&para;</a></h2>
 <p>Toute logique nouvelle ou modifiée est livrée <strong>test-first</strong> : écrire une spec
@@ -2179,6 +2202,25 @@ couverture, la journalisation et la configuration de débogage.</p>
 </li>
 <li><strong>Docs</strong> — quand un comportement ou une interface change, les pages <code>docs/</code> concernées changent
   dans la même PR.</li>
+</ul>
+<h2 id="processus-de-release">Processus de release<a class="headerlink" href="#processus-de-release" title="Permanent link">&para;</a></h2>
+<p>Les releases sont <strong>pilotées par tag</strong>, pas par branche — aucun push sur <code>develop</code> ou <code>master</code> ne
+publie quoi que ce soit. Le skill interactif <code>release</code> conduit le flux :</p>
+<ol>
+<li>Sur une branche <code>release/x.y.z</code> créée depuis <code>develop</code> : rédiger <code>RELEASE_NOTES.md</code>, incrémenter
+   <code>ctld.VERSION</code> dans <code>src/CTLD_config.lua</code>, mettre à jour <code>CHANGELOG.md</code>, rebuilder <code>CTLD.lua</code>. La
+   PR cible <strong><code>develop</code></strong>.</li>
+<li>Après le merge, pousser le tag <strong><code>published-vx.y.z</code></strong> manuellement — cela déclenche
+   <code>.github/workflows/release.yml</code>, qui rebuild et publie la GitHub Release avec <code>CTLD.lua</code> attaché.</li>
+</ol>
+<p>Deux canaux, choisis par la chaîne de version :</p>
+<ul>
+<li><strong>Pre-release</strong> (<code>x.y.z-rcN</code>, ex. <code>2.0.0-rc1</code>) → publiée en tant que <em>pre-release</em> GitHub.
+  <code>## [Unreleased]</code> reste ouvert (les correctifs post-rc continuent d'y atterrir) et le tag flottant
+  <code>published-latest</code> n'est <strong>pas</strong> déplacé — ceux qui le suivent restent sur la dernière stable.</li>
+<li><strong>Stable</strong> (<code>x.y.z</code>) → une release normale ; <code>## [Unreleased]</code> est figé en <code>## [x.y.z] — date</code>, et
+  <code>published-latest</code> est avancé jusqu'à elle — un pointeur de téléchargement permanent vers la
+  « dernière stable ».</li>
 </ul>
 <h2 id="skills-decriture">Skills d'écriture<a class="headerlink" href="#skills-decriture" title="Permanent link">&para;</a></h2>
 <p>Le programme de ré-outillage est mené avec trois skills d'écriture agnostiques du tracker (ils

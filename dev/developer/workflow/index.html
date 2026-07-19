@@ -1308,6 +1308,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#release-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release process
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#authoring-skills" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2039,6 +2050,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#release-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release process
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#authoring-skills" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2152,8 +2174,8 @@ state; <code>.backlog/README.md</code> mirrors it in the index.</p>
 <li><strong>One branch / one PR per lot</strong> — all of a lot's tickets land together, even though the backlog
   slices them individually.</li>
 <li>Commits follow <strong>Conventional Commits</strong> in English.</li>
-<li><code>develop</code> is the integration branch; releases are promoted from <code>develop</code> to <code>master</code>
-  (see the release process).</li>
+<li><code>develop</code> is the integration branch; <code>master</code> is reserved for stable milestone merges and is not
+  wired to any release automation. See <a href="#release-process">Release process</a> below.</li>
 </ul>
 <h2 id="test-driven-development">Test-driven development<a class="headerlink" href="#test-driven-development" title="Permanent link">&para;</a></h2>
 <p>New or changed logic ships <strong>test-first</strong>: write a failing <a href="../building-and-testing/">busted</a> spec,
@@ -2176,6 +2198,24 @@ logging, and debug configuration.</p>
 </li>
 <li><strong>Docs</strong> — when a behaviour or interface changes, the relevant <code>docs/</code> pages change in the same
   PR.</li>
+</ul>
+<h2 id="release-process">Release process<a class="headerlink" href="#release-process" title="Permanent link">&para;</a></h2>
+<p>Releases are <strong>tag-driven</strong>, not branch-driven — no push to <code>develop</code> or <code>master</code> publishes
+anything. The interactive <code>release</code> skill drives the flow:</p>
+<ol>
+<li>On a <code>release/x.y.z</code> branch from <code>develop</code>: draft <code>RELEASE_NOTES.md</code>, bump <code>ctld.VERSION</code> in
+   <code>src/CTLD_config.lua</code>, update <code>CHANGELOG.md</code>, rebuild <code>CTLD.lua</code>. The PR targets <strong><code>develop</code></strong>.</li>
+<li>After merge, push the tag <strong><code>published-vx.y.z</code></strong> manually — this triggers
+   <code>.github/workflows/release.yml</code>, which rebuilds and publishes the GitHub Release with <code>CTLD.lua</code>
+   attached.</li>
+</ol>
+<p>Two channels, selected by the version string:</p>
+<ul>
+<li><strong>Pre-release</strong> (<code>x.y.z-rcN</code>, e.g. <code>2.0.0-rc1</code>) → published as a GitHub <em>pre-release</em>.
+  <code>## [Unreleased]</code> stays open (post-rc fixes keep landing there) and the floating <code>published-latest</code>
+  tag is <strong>not</strong> moved — users tracking it stay on the last stable.</li>
+<li><strong>Stable</strong> (<code>x.y.z</code>) → a normal release; <code>## [Unreleased]</code> is frozen to <code>## [x.y.z] — date</code>, and
+  <code>published-latest</code> is advanced to it — a permanent "last stable <code>CTLD.lua</code>" download pointer.</li>
 </ul>
 <h2 id="authoring-skills">Authoring skills<a class="headerlink" href="#authoring-skills" title="Permanent link">&para;</a></h2>
 <p>The re-tooling program is run with three tracker-agnostic authoring skills (they write into the
