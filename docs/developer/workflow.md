@@ -79,7 +79,10 @@ logging, and debug configuration.
 ## Release process
 
 Releases are **tag-driven**, not branch-driven — no push to `develop` or `master` publishes
-anything. The interactive `release` skill drives the flow:
+anything. The interactive Claude Code skill **`release`** (invoke it with `/release`) drives the
+whole process step by step: consolidation interview, community-facing `RELEASE_NOTES.md`, version
+bump, channel-aware `CHANGELOG` update, rebuild, release PR, and the final tag commands. The steps
+it walks through:
 
 1. On a `release/x.y.z` branch from `develop`: draft `RELEASE_NOTES.md`, bump `ctld.VERSION` in
    `src/CTLD_config.lua`, update `CHANGELOG.md`, rebuild `CTLD.lua`. The PR targets **`develop`**.
