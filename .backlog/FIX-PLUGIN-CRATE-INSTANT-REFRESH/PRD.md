@@ -1,4 +1,4 @@
-Status: ⬜ ready
+Status: ✅ merged (PR #38)
 
 # FIX-PLUGIN-CRATE-INSTANT-REFRESH — Immediate Request Equipment refresh on post-init scene crate injection
 

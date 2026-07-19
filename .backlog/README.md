@@ -22,7 +22,7 @@ authored **per lot, when the lot is started** (not in batch).
 | `TEST-PLUGIN-POSTINIT` | ✅ merged (PR #31) | L3 `noPlayer` `auto` scenario (F-124) verifying the post-init plugin contract: `registerSceneModel` after init, `deferMenuSection` direct routing (not queued), `requiresCtld` soft-fail. PASS 7/7. | — |
 | `TEST-TYPENAME-VALIDATION` | ✅ merged (PR #36) | Extend `CTLDTypeCollector.collect()` to cover `aiZones[*].vehicleStock`, `capabilitiesByType[*].loadableVehiclesRED/BLUE`, and `aiZones[*].vehicleTypes` — closing the CI type-linter gap exposed by the `M1025 HMMWV Armament` silent-spawn bug. | — |
 | `FIX-LGZ-POLL-NIL-ISFLYING` | ✅ merged (PR #37) | LGZ ground-position poll skips players with `_isFlying=nil` (never flown) — `== false` guard → `~= true`; regression test. Diagnosed via dcs-bridge 2026-07-19. | — |
-| `FIX-PLUGIN-CRATE-INSTANT-REFRESH` | ⬜ ready | Immediate Request Equipment refresh on post-init scene crate injection — eliminates the 10s delay between plugin load and crate appearing in menu. | — |
+| `FIX-PLUGIN-CRATE-INSTANT-REFRESH` | ✅ merged (PR #38) | Immediate Request Equipment refresh on post-init scene crate injection — eliminates the 10s delay between plugin load and crate appearing in menu. | — |
 
 ### Planned lots
 
