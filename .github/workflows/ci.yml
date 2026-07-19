@@ -123,4 +123,38 @@ jobs:
             exit 1
           }
 
+  # ─────────────────────────────────────────────────────────────
+  # CHANGELOG guard — a PR that touches src/** must also update CHANGELOG.md.
+  # Runs on pull requests only. Escape hatch: add the 'skip-changelog' label
+  # to the PR (handled inside the step so the job succeeds rather than being
+  # skipped, which keeps required-check semantics predictable).
+  # ─────────────────────────────────────────────────────────────
+  changelog-guard:
+    name: CHANGELOG Guard
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Require a CHANGELOG entry when src/ changes
+        env:
+          HAS_SKIP: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$HAS_SKIP" = "true" ]; then
+            echo "skip-changelog label present — guard bypassed."
+            exit 0
+          fi
+          changed=$(git diff --name-only "$BASE_SHA"...HEAD)
+          if echo "$changed" | grep -q '^src/'; then
+            if ! echo "$changed" | grep -qx 'CHANGELOG.md'; then
+              echo "::error::This PR modifies src/ but does not update CHANGELOG.md. Add an entry under [Unreleased], or apply the 'skip-changelog' label if the change genuinely needs none."
+              exit 1
+            fi
+            echo "src/ changed and CHANGELOG.md updated — OK."
+          else
+            echo "No src/ changes — CHANGELOG guard not applicable."
+          fi
+
   # Releases are handled by .github/workflows/release.yml (tag published-v*).

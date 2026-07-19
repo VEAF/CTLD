@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — CHANGELOG guard + index-in-PR convention (CHORE-DOC-GATES)
+
+- **New CI job `changelog-guard`**: a pull request that touches `src/**` must also update
+  `CHANGELOG.md`, or the check fails. Escape hatch: label the PR `skip-changelog`. Runs on pull
+  requests only. Root-cause fix for three lots that merged without a CHANGELOG entry (#36/#37/#38).
+- **Workflow docs**: `CLAUDE.md` and `dev/agents/issue-tracker.md` now state that a lot's
+  `.backlog/README.md` index line is set to `merged (PR #NN)` **within the delivering PR** (covered
+  by review), never left `pending merge` for a separate post-merge commit. The PR template's
+  CHANGELOG checkbox points to the `skip-changelog` escape hatch.
+
 ### Bug fixes — plugin crate instant refresh (FIX-PLUGIN-CRATE-INSTANT-REFRESH)
 
 - **Fix**: a scene crate injected after init (`_injectSceneCrate`, e.g. a post-init scene

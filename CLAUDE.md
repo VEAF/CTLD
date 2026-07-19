@@ -48,8 +48,13 @@
 
 Sync (`git pull --ff-only` on `develop`) → create lot in `.backlog/` → branch → implement + tests
 (TDD) + rebuild if `src/` changed + update `docs/` → `busted tests/ci/` → luacheck → `CHANGELOG.md`
-`[Unreleased]` → commit + push → PR to `develop` → address review/CI → merge → back to `develop`.
+`[Unreleased]` → commit + push → PR to `develop` → set the lot's `.backlog/README.md` index line to
+`merged (PR #NN)` **in this PR** (never leave it `pending merge` for a separate post-merge commit) →
+address review/CI → merge → back to `develop`.
 If the user must test manually in DCS, stop and wait for explicit approval before continuing.
+
+A PR that changes `src/` must update `CHANGELOG.md` `[Unreleased]` — enforced by the CI
+`changelog-guard` job. If a `src/` change genuinely needs no entry, label the PR `skip-changelog`.
 
 ## CTLD conventions
 

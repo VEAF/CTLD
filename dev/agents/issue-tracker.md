@@ -12,6 +12,8 @@ under `.backlog/`. The `to-prd` and `to-issues` skills (tracker-agnostic) write 
   (tracer-bullet vertical slices).
 - Status = a `Status:` line at the top of each PRD / ticket file.
 - Index = `.backlog/README.md`, a hand-maintained table of all lots + status (no generator).
+  The index line for a lot is moved to `merged (PR #NN)` **within the delivering PR** (so the update
+  is covered by review), never left at `pending merge` for a separate post-merge commit.
 - Lots closed for more than 3 days are compacted into `.backlog/archive/<LOT-ID>.md` (the ticket
   table is preserved).
 

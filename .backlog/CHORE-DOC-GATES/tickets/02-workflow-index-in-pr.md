@@ -1,6 +1,6 @@
 # 02 — Model the index-in-PR step + wire the CHANGELOG escape hatch into docs
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 Repo: CTLD
 GitHub: —

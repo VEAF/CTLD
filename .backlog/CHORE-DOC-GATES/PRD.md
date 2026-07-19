@@ -1,6 +1,6 @@
 # Lot CHORE-DOC-GATES — enforce CHANGELOG + backlog-index bookkeeping instead of relying on discipline
 
-Status: ⬜ ready
+Status: ✅ done
 Branch: chore/doc-gates → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 ADRs: none (process / tooling lot)
