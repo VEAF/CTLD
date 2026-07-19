@@ -1,4 +1,4 @@
-Status: ⬜ ready
+Status: ✅ merged (PR #37)
 
 # FIX-LGZ-POLL-NIL-ISFLYING — LGZ ground-position poll skips players with unset _isFlying
 
