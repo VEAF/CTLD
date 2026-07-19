@@ -8,6 +8,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — release pre-release channel + `published-latest` (RELEASE-RC-CHANNEL)
+
+- **`release.yml`**: a `-rc`-suffixed version (e.g. `published-v2.0.0-rc1`) now publishes the GitHub
+  Release as a **pre-release**, and a new floating **`published-latest`** tag tracks the last
+  **stable** release (advanced only by a non-rc release; a pre-release leaves it on the previous
+  stable). Trigger model unchanged (tag-driven `published-v*`); `published-latest` is not matched by
+  that glob, so it does not re-trigger the workflow.
+- **`release` skill**: rc-aware — supports an `x.y.z-rcN` target, keeps `## [Unreleased]` open for a
+  pre-release (only a stable release freezes it to `## [x.y.z] — date`), and documents the CD effect
+  of an rc vs stable tag.
+
 ### Tooling — dev-local martyr load via `CTLD_DEV_ROOT` (DEV-LOCAL-MIZ)
 
 - **Test mission (`Test_CTLDNEXT_01.miz`, the "martyr")**: the MISSION START trigger now loads

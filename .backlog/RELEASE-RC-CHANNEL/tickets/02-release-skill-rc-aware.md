@@ -1,6 +1,6 @@
 # 02 — release skill: rc-aware bump + conditional CHANGELOG freeze
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 Repo: CTLD
 GitHub: —

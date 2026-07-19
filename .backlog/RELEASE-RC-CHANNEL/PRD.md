@@ -1,6 +1,6 @@
 # Lot RELEASE-RC-CHANNEL — add a pre-release (rc) channel + `published-latest` floating tag to the CD
 
-Status: ⬜ ready
+Status: ✅ done
 Branch: chore/release-rc-channel → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 ADRs: none (CI/release tooling)
