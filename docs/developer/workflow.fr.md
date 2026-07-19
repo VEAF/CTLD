@@ -52,8 +52,9 @@ dans `dev/agents/triage-labels.md`.
 - **Une branche / une PR par lot** — tous les tickets d'un lot atterrissent ensemble, même si le
   backlog les découpe individuellement.
 - Les commits suivent les **Conventional Commits** en anglais.
-- `develop` est la branche d'intégration ; les releases sont promues de `develop` vers `master`
-  (voir le processus de release).
+- `develop` est la branche d'intégration ; `master` est réservée aux merges de jalons stables et
+  n'est câblée à aucune automatisation de release. Voir [Processus de release](#processus-de-release)
+  ci-dessous.
 
 ## Développement piloté par les tests
 
@@ -78,6 +79,26 @@ couverture, la journalisation et la configuration de débogage.
     - Build de fusion — `CTLD.lua` est produit d'une seule manière canonique à partir de `src/`.
 - **Docs** — quand un comportement ou une interface change, les pages `docs/` concernées changent
   dans la même PR.
+
+## Processus de release
+
+Les releases sont **pilotées par tag**, pas par branche — aucun push sur `develop` ou `master` ne
+publie quoi que ce soit. Le skill interactif `release` conduit le flux :
+
+1. Sur une branche `release/x.y.z` créée depuis `develop` : rédiger `RELEASE_NOTES.md`, incrémenter
+   `ctld.VERSION` dans `src/CTLD_config.lua`, mettre à jour `CHANGELOG.md`, rebuilder `CTLD.lua`. La
+   PR cible **`develop`**.
+2. Après le merge, pousser le tag **`published-vx.y.z`** manuellement — cela déclenche
+   `.github/workflows/release.yml`, qui rebuild et publie la GitHub Release avec `CTLD.lua` attaché.
+
+Deux canaux, choisis par la chaîne de version :
+
+- **Pre-release** (`x.y.z-rcN`, ex. `2.0.0-rc1`) → publiée en tant que *pre-release* GitHub.
+  `## [Unreleased]` reste ouvert (les correctifs post-rc continuent d'y atterrir) et le tag flottant
+  `published-latest` n'est **pas** déplacé — ceux qui le suivent restent sur la dernière stable.
+- **Stable** (`x.y.z`) → une release normale ; `## [Unreleased]` est figé en `## [x.y.z] — date`, et
+  `published-latest` est avancé jusqu'à elle — un pointeur de téléchargement permanent vers la
+  « dernière stable ».
 
 ## Skills d'écriture
 

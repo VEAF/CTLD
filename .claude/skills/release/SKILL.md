@@ -16,12 +16,16 @@ operations or push without an explicit go.
 - Version lives in `src/CTLD_config.lua` as `ctld.VERSION = "x.y.z"`; the build extracts it.
 - The tag `published-vx.y.z` is pushed **manually by the user after merge** — pushing it triggers
   `.github/workflows/release.yml`, which rebuilds `CTLD.lua` and publishes the GitHub Release.
+- **Pre-release channel**: a `-rc` suffix in the version (`x.y.z-rcN`) makes the CD publish a GitHub
+  *pre-release* and leaves the floating `published-latest` tag on the previous stable. A plain
+  `x.y.z` publishes a **stable** release and advances `published-latest` (the "last stable"
+  download pointer).
 
 ## Steps
 
 1. **Sync**: `git fetch` + `git pull --ff-only` on `develop`. Read the `[Unreleased]` section of
    `CHANGELOG.md`. Ask the user for the target version (propose a semver bump from the current
-   `ctld.VERSION`).
+   `ctld.VERSION`, or an `x.y.z-rcN` pre-release when iterating toward an unreleased version).
 
 2. **Consolidation interview** (3 questions):
    - Major theme of this release (one line)?
@@ -34,9 +38,13 @@ operations or push without an explicit go.
 
 4. **Apply** (after validation):
    - Write `RELEASE_NOTES.md`.
-   - In `CHANGELOG.md`, replace `## [Unreleased]` with `## [x.y.z] — YYYY-MM-DD` (ask the user for
-     the date or use today's).
-   - Bump `ctld.VERSION` in `src/CTLD_config.lua` to `x.y.z`.
+   - **CHANGELOG** — conditional on rc vs stable:
+     - **Stable** (`x.y.z`): replace `## [Unreleased]` with `## [x.y.z] — YYYY-MM-DD` (ask the user
+       for the date or use today's).
+     - **Pre-release** (`x.y.z-rcN`): **leave `## [Unreleased]` open** so post-rc fixes keep landing
+       there — do not freeze the changelog. (Optionally add a dated `## [x.y.z-rcN]` heading above
+       `[Unreleased]` capturing the rc snapshot; the invariant is that `[Unreleased]` survives.)
+   - Bump `ctld.VERSION` in `src/CTLD_config.lua` to the target (suffix included for an rc).
    - **Rebuild** the deliverable: `powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1`
      (the version changed in `src/`).
 

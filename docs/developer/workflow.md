@@ -50,8 +50,8 @@ The tracker configuration lives in `dev/agents/issue-tracker.md`; the status voc
 - **One branch / one PR per lot** — all of a lot's tickets land together, even though the backlog
   slices them individually.
 - Commits follow **Conventional Commits** in English.
-- `develop` is the integration branch; releases are promoted from `develop` to `master`
-  (see the release process).
+- `develop` is the integration branch; `master` is reserved for stable milestone merges and is not
+  wired to any release automation. See [Release process](#release-process) below.
 
 ## Test-driven development
 
@@ -75,6 +75,25 @@ logging, and debug configuration.
     - Merge build — `CTLD.lua` is produced one canonical way from `src/`.
 - **Docs** — when a behaviour or interface changes, the relevant `docs/` pages change in the same
   PR.
+
+## Release process
+
+Releases are **tag-driven**, not branch-driven — no push to `develop` or `master` publishes
+anything. The interactive `release` skill drives the flow:
+
+1. On a `release/x.y.z` branch from `develop`: draft `RELEASE_NOTES.md`, bump `ctld.VERSION` in
+   `src/CTLD_config.lua`, update `CHANGELOG.md`, rebuild `CTLD.lua`. The PR targets **`develop`**.
+2. After merge, push the tag **`published-vx.y.z`** manually — this triggers
+   `.github/workflows/release.yml`, which rebuilds and publishes the GitHub Release with `CTLD.lua`
+   attached.
+
+Two channels, selected by the version string:
+
+- **Pre-release** (`x.y.z-rcN`, e.g. `2.0.0-rc1`) → published as a GitHub *pre-release*.
+  `## [Unreleased]` stays open (post-rc fixes keep landing there) and the floating `published-latest`
+  tag is **not** moved — users tracking it stay on the last stable.
+- **Stable** (`x.y.z`) → a normal release; `## [Unreleased]` is frozen to `## [x.y.z] — date`, and
+  `published-latest` is advanced to it — a permanent "last stable `CTLD.lua`" download pointer.
 
 ## Authoring skills
 

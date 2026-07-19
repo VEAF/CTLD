@@ -25,14 +25,11 @@ authored **per lot, when the lot is started** (not in batch).
 | `FIX-PLUGIN-CRATE-INSTANT-REFRESH` | ✅ merged (PR #38) | Immediate Request Equipment refresh on post-init scene crate injection — eliminates the 10s delay between plugin load and crate appearing in menu. | — |
 | `CHORE-DOC-GATES` | ✅ merged (PR #39) | Enforce CHANGELOG + backlog-index bookkeeping instead of relying on discipline: CI `changelog-guard` job failing a `src/`-touching PR with no `CHANGELOG.md` edit (escape hatch: `skip-changelog` label), + workflow rewording so the index update happens inside the delivering PR. Root-cause fix for #36/#37/#38 shipping without a CHANGELOG entry. | — |
 | `DEV-LOCAL-MIZ` | ✅ merged (PR #40) | Kill the hardcoded `CTLD.lua` path in the shared martyr miz: MISSION START trigger loads via `CTLD_DEV_ROOT` env var (de-sanitized DCS), hardened with explicit on-screen failure; delete the dead `ctldLogPath` line. Relocated the live-DCS testing page into `docs/developer/` + martyr setup section + realigned `dcs-runtime-debug`. Stops the committed binary miz from carrying machine paths. | — |
+| `RELEASE-RC-CHANNEL` | ✅ merged (PR #41) | Add a pre-release (rc) channel + `published-latest` floating tag to the tag-driven CD (porting VMCT's two mechanics): a `-rc`-suffixed version publishes a GitHub pre-release and leaves `published-latest` on the last stable; a plain `x.y.z` advances it. `release.yml` + rc-aware `release` skill. Enables cutting `2.0.0-rc1` then `2.0.0`. | — |
 
 ### Planned lots
 
-| Lot | Status | Description | Branch |
-|-----|--------|-------------|--------|
-| `RELEASE-RC-CHANNEL` | ⬜ ready | Add a pre-release (rc) channel + `published-latest` floating tag to the tag-driven CD (porting VMCT's two mechanics): a `-rc`-suffixed version publishes a GitHub pre-release and leaves `published-latest` on the last stable; a plain `x.y.z` advances it. `release.yml` + rc-aware `release` skill. Enables cutting `2.0.0-rc1` then `2.0.0`. | chore/release-rc-channel |
-
-Other candidates → [`dev/roadmap.md`](../dev/roadmap.md).
+None. Future candidates → [`dev/roadmap.md`](../dev/roadmap.md).
 
 ### Delivered (socle, this program)
 

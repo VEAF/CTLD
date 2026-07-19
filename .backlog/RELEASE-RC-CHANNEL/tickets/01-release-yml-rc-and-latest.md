@@ -1,6 +1,6 @@
 # 01 — release.yml: pre-release detection + published-latest floating tag
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 Repo: CTLD
 GitHub: —

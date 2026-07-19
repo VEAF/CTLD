@@ -1,6 +1,6 @@
 # Lot RELEASE-RC-CHANNEL — add a pre-release (rc) channel + `published-latest` floating tag to the CD
 
-Status: ⬜ ready
+Status: ✅ done
 Branch: chore/release-rc-channel → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`)
 ADRs: none (CI/release tooling)
@@ -70,8 +70,9 @@ advances `published-latest`.
 - **Cutting the actual `2.0.0-rc1` / `2.0.0` release** — a follow-up step once this tooling lands.
 - **Branch-driven CD** (release on push to `develop`/`master`) — VMCT doesn't do it either; rejected.
 - **Multi-OS binaries / an updater** — VMCT-specific (PyInstaller); N/A for our single `CTLD.lua`.
-- A published `docs/` page for the release process — the skill is the process doc; a `published-latest`
-  download-link mention in user docs can be a later touch (noted below).
+- A `published-latest` download-link mention in user docs (pilot/mission-maker) — a later touch.
+  (A "Release process" section was added to `developer/workflow.md` during this lot; a dedicated
+  download page is what remains deferred.)
 
 ## Further Notes
 

@@ -27,9 +27,13 @@ jobs:
       - name: Resolve version from tag
         id: ver
         run: |
-          $tag = "${{ github.ref_name }}"          # e.g. published-v2.1.0
+          $tag = "${{ github.ref_name }}"          # e.g. published-v2.0.0 or published-v2.0.0-rc1
           $version = $tag -replace '^published-v', ''
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          # A semver pre-release suffix (a '-' in the version, e.g. -rc1) marks a pre-release:
+          # publish it as such and leave the published-latest floating tag untouched.
+          $prerelease = if ($version -match '-') { 'true' } else { 'false' }
+          "prerelease=$prerelease" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         shell: pwsh
 
       - name: Create GitHub Release
@@ -39,5 +43,18 @@ jobs:
           $version = "${{ steps.ver.outputs.version }}"
           $tag     = "${{ github.ref_name }}"
           $notes   = if (Test-Path "RELEASE_NOTES.md") { "--notes-file", "RELEASE_NOTES.md" } else { "--generate-notes" }
-          gh release create $tag CTLD.lua dist\CTLD_userConfig.lua dist\CTLD_asset_check.lua --title "CTLD v$version" @notes
+          # rc-suffixed versions publish as a GitHub pre-release (not the default "Latest").
+          $pre     = if ("${{ steps.ver.outputs.prerelease }}" -eq "true") { @("--prerelease") } else { @() }
+          gh release create $tag CTLD.lua dist\CTLD_userConfig.lua dist\CTLD_asset_check.lua --title "CTLD v$version" @notes @pre
+        shell: pwsh
+
+      # A floating "published-latest" tag tracks the last STABLE release. Only a real
+      # release advances it; a pre-release (rc) leaves production users on the previous
+      # stable. "published-latest" is not matched by the 'published-v*' trigger, so this
+      # push does not re-trigger the workflow.
+      - name: Advance published-latest (stable only)
+        if: steps.ver.outputs.prerelease != 'true'
+        run: |
+          git tag -f published-latest "${{ github.ref_name }}"
+          git push origin -f published-latest
         shell: pwsh
