@@ -1,6 +1,6 @@
 # 01 — CI CHANGELOG guard job
 
-Status: ⬜ ready
+Status: ✅ done
 Type: AFK
 Repo: CTLD
 GitHub: —

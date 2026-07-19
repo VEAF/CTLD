@@ -8,7 +8,7 @@ Brief description of the change and the lot/ticket it belongs to (`.backlog/<LOT
 - [ ] `CTLD.lua` rebuilt if `src/` changed (`tools/build/merge_CTLD.ps1`)
 - [ ] Unit tests added/updated (`busted tests/ci/`) — TDD
 - [ ] `luacheck --config .luacheckrc src/` clean (or relying on CI)
-- [ ] `CHANGELOG.md` `[Unreleased]` updated
+- [ ] `CHANGELOG.md` `[Unreleased]` updated (required when `src/` changes — CI `changelog-guard`; label `skip-changelog` to waive)
 - [ ] Docs updated if user-facing behavior changed
 
 ## Notes
