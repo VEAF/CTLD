@@ -105,7 +105,7 @@ nav:
     - Events: developer/events.md
     - Internationalisation: developer/i18n.md
     - Building & testing: developer/building-and-testing.md
+    - Integration testing: developer/integration-testing.md
     - Migration v1 → v2: developer/migration-v1-v2.md
     - API reference: developer/api-reference.md
     - Design spec: developer/design-spec.md
-  - Integration Testing: integration-testing.md

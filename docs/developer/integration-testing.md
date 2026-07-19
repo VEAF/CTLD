@@ -10,7 +10,50 @@ whether it needs an AI agent or human in the loop at all. Most of L3 (`noPlayer/
 `auto-check` and can be **driven headlessly** by `tools/integration-runner/run_scenarios.py`
 instead of injecting each script by hand — see [Automation tiers](#automation-tiers) below.
 
-For debug configuration and CTLD.log setup, see [Building & testing](developer/building-and-testing.md).
+For debug configuration and CTLD.log setup, see [Building & testing](building-and-testing.md).
+
+---
+
+## Loading your build into the test mission (martyr)
+
+L3–L6 run against the shared test mission `missions/Test_CTLDNEXT_01.miz` (the "martyr"). It loads
+`CTLD.lua` from a per-developer environment variable, so the committed `.miz` never carries a
+machine-specific path. One-time setup on each developer's machine:
+
+1. **De-sanitize DCS.** `os.getenv` is only available when the DCS Lua environment is not sanitized
+   — re-enable `os` / `io` / `lfs` in `Scripts/MissionScripting.lua`. Without this the mission
+   trigger fails with an explicit on-screen message and CTLD is not loaded.
+2. **Set `CTLD_DEV_ROOT`** to your repository root, then **restart DCS**:
+
+   ```
+   setx CTLD_DEV_ROOT "D:\path\to\CTLD"
+   ```
+
+   `setx` persists the value in the Windows user registry (`HKCU\Environment`), so it survives
+   reboots. The pitfall is **not** persistence but process inheritance: a **running DCS does not see
+   the new variable** — close DCS (and its launcher) and reopen it. When in doubt, log off and on.
+3. That is all — the martyr's MISSION START trigger loads `<CTLD_DEV_ROOT>/CTLD.lua`. No developer
+   edits the `.miz`. After a `src/` change, rebuild `CTLD.lua` and reload the mission (`Shift+R`) so
+   the trigger re-`dofile`s the fresh build.
+
+The trigger is hardened to fail loudly (log + on-screen) on a sanitized install, an unset variable,
+or a bad path. For reference, the exact snippet in the trigger is:
+
+```lua
+local root = os and os.getenv("CTLD_DEV_ROOT")   -- os absent = sanitized DCS
+if not root then
+  local msg = "[CTLD dev] os/CTLD_DEV_ROOT unavailable -- de-sanitize MissionScripting.lua and "
+           .. "run 'setx CTLD_DEV_ROOT <repo>' then restart DCS. CTLD.lua NOT loaded."
+  env.error(msg); trigger.action.outText(msg, 30)
+  return
+end
+local path = root .. "/CTLD.lua"
+local ok, err = pcall(dofile, path)
+if not ok then
+  local msg = "[CTLD dev] dofile(" .. path .. ") failed: " .. tostring(err)
+  env.error(msg); trigger.action.outText(msg, 30)
+end
+```
 
 ---
 

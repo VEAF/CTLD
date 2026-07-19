@@ -15,6 +15,7 @@ intégrez CTLD dans une mission plutôt que de le modifier, consultez plutôt le
 | [Événements](events.md) | Le bus d'événements interne et le catalogue complet des événements |
 | [Internationalisation](i18n.md) | Fonctionnement de l'i18n, ajout de clés et de langues, overrides mission-maker |
 | [Build & tests](building-and-testing.md) | Pipeline de build, busted, couverture, logging, configuration de debug |
+| [Tests d'intégration](integration-testing.md) | Niveaux de test DCS live (L1–L6), la configuration martyr, tiers, exécution des scénarios |
 | [Migration v1 → v2](migration-v1-v2.md) | Principe du wrapper legacy, table de migration, exemple concret |
 | [Référence API](api-reference.md) | Méthodes publiques de chaque manager |
 | [Spécification de conception](design-spec.md) | La justification derrière l'architecture v2 |

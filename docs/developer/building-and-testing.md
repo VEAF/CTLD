@@ -4,9 +4,9 @@ This page covers everything you need to turn `src/` into the shipping deliverabl
 the automated test suite locally. Both are also enforced in continuous integration, so the
 commands below mirror what CI does on every push.
 
-Live-DCS integration testing (injecting the built script into a running mission) is **not**
-covered here — it is documented separately, in a later lot. This page is limited to the build
-pipeline and the busted-based tests that run entirely without DCS.
+Live-DCS integration testing — loading your build into the test mission and running scenarios
+against it — is covered in [Integration testing](integration-testing.md). This page is
+limited to the build pipeline and the busted-based tests that run entirely without DCS.
 
 ## Build pipeline
 

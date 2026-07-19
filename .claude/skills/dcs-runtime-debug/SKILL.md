@@ -16,10 +16,14 @@ module init, Lua errors.
 
 ## CTLD log
 
-- Written to `tests/dcs/CTLD.log` (gitignored).
-- Enable with **`cfg.settings["debug"] = true`** — never `ctld.debug = true`, which does **not**
-  enable file logging.
-- Requires a `ctldLogPath` set in the test `.miz` (MISSION START trigger; local path, never committed).
+- Optional CTLD-only file mirror of the log (everything is *also* in `dcs.log` via `env.info`, so
+  this is a convenience filter, not a separate source).
+- Written under `ctld.path` (gitignored), e.g. `tests/dcs/CTLD.log`.
+- Enable it **on demand** by injecting `tests/dcs/dev/diag/diag_enable_ctld_log.lua`: it sets
+  `ctldLogPath` and turns on debug file logging at runtime — no rebuild, no `.miz` edit. (The martyr
+  does **not** set `ctldLogPath` itself; the DEV-LOCAL-MIZ trigger only loads `CTLD.lua`.)
+- File logging is gated on **`cfg.settings["debug"] = true`** — `ctld.debug = true` does **not**
+  enable it.
 - `cfg.settings["debugScreenLog"] = true` mirrors every `ctld.utils.log()` on screen;
   `cfg.settings["debugScreenLogDuration"]` sets the duration (default 10 s).
 
