@@ -18,6 +18,9 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - **`release` skill**: rc-aware — supports an `x.y.z-rcN` target, keeps `## [Unreleased]` open for a
   pre-release (only a stable release freezes it to `## [x.y.z] — date`), and documents the CD effect
   of an rc vs stable tag.
+- **Docs**: `developer/workflow.md` (EN+FR) gains a "Release process" section describing the
+  tag-driven flow and the rc/stable channels; corrected the stale "releases promoted to master"
+  wording (`master` is not wired to release automation).
 
 ### Tooling — dev-local martyr load via `CTLD_DEV_ROOT` (DEV-LOCAL-MIZ)
 
