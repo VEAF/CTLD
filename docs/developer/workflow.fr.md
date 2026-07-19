@@ -83,7 +83,10 @@ couverture, la journalisation et la configuration de débogage.
 ## Processus de release
 
 Les releases sont **pilotées par tag**, pas par branche — aucun push sur `develop` ou `master` ne
-publie quoi que ce soit. Le skill interactif `release` conduit le flux :
+publie quoi que ce soit. Le skill Claude Code interactif **`release`** (invoqué avec `/release`)
+pilote tout le processus pas à pas : interview de consolidation, `RELEASE_NOTES.md` orienté
+communauté, incrément de version, mise à jour du `CHANGELOG` selon le canal, rebuild, PR de release,
+et les commandes de tag finales. Les étapes qu'il déroule :
 
 1. Sur une branche `release/x.y.z` créée depuis `develop` : rédiger `RELEASE_NOTES.md`, incrémenter
    `ctld.VERSION` dans `src/CTLD_config.lua`, mettre à jour `CHANGELOG.md`, rebuilder `CTLD.lua`. La
