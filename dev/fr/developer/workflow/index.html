@@ -2205,7 +2205,10 @@ couverture, la journalisation et la configuration de débogage.</p>
 </ul>
 <h2 id="processus-de-release">Processus de release<a class="headerlink" href="#processus-de-release" title="Permanent link">&para;</a></h2>
 <p>Les releases sont <strong>pilotées par tag</strong>, pas par branche — aucun push sur <code>develop</code> ou <code>master</code> ne
-publie quoi que ce soit. Le skill interactif <code>release</code> conduit le flux :</p>
+publie quoi que ce soit. Le skill Claude Code interactif <strong><code>release</code></strong> (invoqué avec <code>/release</code>)
+pilote tout le processus pas à pas : interview de consolidation, <code>RELEASE_NOTES.md</code> orienté
+communauté, incrément de version, mise à jour du <code>CHANGELOG</code> selon le canal, rebuild, PR de release,
+et les commandes de tag finales. Les étapes qu'il déroule :</p>
 <ol>
 <li>Sur une branche <code>release/x.y.z</code> créée depuis <code>develop</code> : rédiger <code>RELEASE_NOTES.md</code>, incrémenter
    <code>ctld.VERSION</code> dans <code>src/CTLD_config.lua</code>, mettre à jour <code>CHANGELOG.md</code>, rebuilder <code>CTLD.lua</code>. La
