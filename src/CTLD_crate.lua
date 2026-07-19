@@ -307,7 +307,7 @@ function CTLDCrateManager.getInstance()
             local cm_ref = CTLDCrateManager.getInstance()
             local zm_ref = CTLDZoneManager.getInstance()
             for _, pObj in pairs(pm_ref._players) do
-                if pObj._isFlying == false then
+                if pObj._isFlying ~= true then
                     local unit = Unit.getByName(pObj.unitName)
                     if unit and unit:isExist() and not ctld.utils.inAir(unit) then
                         local zones  = zm_ref:getLogisticZonesAtPoint(
