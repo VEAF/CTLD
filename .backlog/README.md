@@ -21,6 +21,7 @@ authored **per lot, when the lot is started** (not in batch).
 | `USERCONFIG-LOADING` | ✅ merged (PR #32) | Separate `CTLD_userConfig.lua` from the build merge: new `CTLD_bootstrap.lua` keeps the engine auto-start in the deliverable; userConfig delivered in `dist/` as a standalone MM template loaded before `CTLD.lua`. Zero breaking change. | — |
 | `TEST-PLUGIN-POSTINIT` | ✅ merged (PR #31) | L3 `noPlayer` `auto` scenario (F-124) verifying the post-init plugin contract: `registerSceneModel` after init, `deferMenuSection` direct routing (not queued), `requiresCtld` soft-fail. PASS 7/7. | — |
 | `TEST-TYPENAME-VALIDATION` | ✅ merged (PR #36) | Extend `CTLDTypeCollector.collect()` to cover `aiZones[*].vehicleStock`, `capabilitiesByType[*].loadableVehiclesRED/BLUE`, and `aiZones[*].vehicleTypes` — closing the CI type-linter gap exposed by the `M1025 HMMWV Armament` silent-spawn bug. | — |
+| `FIX-LGZ-POLL-NIL-ISFLYING` | ⬜ ready | LGZ ground-position poll skips players with `_isFlying=nil` (never flown) — `== false` guard → `~= true`; regression test. Diagnosed via dcs-bridge 2026-07-19. | — |
 
 ### Planned lots
 
