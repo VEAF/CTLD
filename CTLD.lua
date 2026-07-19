@@ -11445,6 +11445,16 @@ function CTLDCrateManager:_injectSceneCrate(sceneName, model)
         table.insert(self._processedCrates[cat].singleCrates, pe)
     end
     ctld.utils.log("INFO", "_injectSceneCrate: injected '%s' weight=%.2f", sceneName, w)
+    -- Immediately refresh the Request Equipment menu for all active transport players so
+    -- the new crate is visible without waiting for the next LGZ ground-position poll tick.
+    local pm = CTLDPlayerManager and CTLDPlayerManager._instance
+    if pm then
+        for _, pObj in pairs(pm._players) do
+            if pObj.isTransport then
+                self:refreshRequestEquipmentSection(pObj)
+            end
+        end
+    end
 end
 
 --- Pre-process spawnableCrates config into an internal structure used by the menu builder.

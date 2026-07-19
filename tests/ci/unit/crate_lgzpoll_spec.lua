@@ -133,3 +133,103 @@ describe("CTLDCrateManager LGZ ground-position poll guard", function()
     end)
 
 end)
+
+-- ============================================================
+-- CTLDCrateManager _injectSceneCrate — instant player refresh
+-- Regression test for FIX-PLUGIN-CRATE-INSTANT-REFRESH (ticket 02).
+-- ============================================================
+
+describe("CTLDCrateManager _injectSceneCrate instant refresh", function()
+
+    local cm, pm
+    local origCmInstance, origPmInstance
+
+    -- Minimal stub scene with a crate descriptor.
+    local function makeStubModel(name, weight)
+        return {
+            name  = name or "TestInstantRefresh",
+            steps = {},
+            crate = {
+                weight         = weight or 1234.56,
+                i18nKey        = name or "TestInstantRefresh",
+                deployKey      = "Deploy " .. (name or "TestInstantRefresh"),
+                cratesRequired = 1,
+                side           = nil,
+                showSets       = false,
+            },
+        }
+    end
+
+    before_each(function()
+        origCmInstance = CTLDCrateManager._instance
+        origPmInstance = CTLDPlayerManager._instance
+
+        -- Fresh instances so _processedCrates starts empty.
+        local origSchedule = timer.scheduleFunction
+        timer.scheduleFunction = function() return 0 end
+        CTLDCrateManager._instance = nil
+        cm = CTLDCrateManager.getInstance()
+        timer.scheduleFunction = origSchedule
+
+        pm = CTLDPlayerManager.getInstance()
+        pm._players = {}
+    end)
+
+    after_each(function()
+        CTLDCrateManager._instance = origCmInstance
+        CTLDPlayerManager._instance = origPmInstance
+    end)
+
+    -- Helper: spy on refreshRequestEquipmentSection.
+    local function spyRefresh(instance)
+        local calls = 0
+        instance.refreshRequestEquipmentSection = function(self, pObj)
+            calls = calls + 1
+        end
+        return function() return calls end
+    end
+
+    -- ── 1. Transport player → refresh called ─────────────────────────────────
+    it("calls refreshRequestEquipmentSection for an active transport player", function()
+        pm._players["t1"] = { unitName = "t1", isTransport = true, groupId = 1 }
+        local callCount = spyRefresh(cm)
+
+        cm:_injectSceneCrate("TestInstantRefresh", makeStubModel())
+
+        assert.equals(1, callCount())
+    end)
+
+    -- ── 2. Non-transport player → NOT refreshed ───────────────────────────────
+    it("does NOT refresh a non-transport player", function()
+        pm._players["p1"] = { unitName = "p1", isTransport = false, groupId = 2 }
+        local callCount = spyRefresh(cm)
+
+        cm:_injectSceneCrate("TestInstantRefresh", makeStubModel())
+
+        assert.equals(0, callCount())
+    end)
+
+    -- ── 3. No players → no error, no call ────────────────────────────────────
+    it("does not error when no players are active", function()
+        local callCount = spyRefresh(cm)
+
+        assert.has_no_error(function()
+            cm:_injectSceneCrate("TestInstantRefresh", makeStubModel())
+        end)
+        assert.equals(0, callCount())
+    end)
+
+    -- ── 4. Idempotent second inject → NO refresh ──────────────────────────────
+    it("does not refresh on idempotent second _injectSceneCrate for same scene", function()
+        pm._players["t1"] = { unitName = "t1", isTransport = true, groupId = 1 }
+        local model = makeStubModel()
+
+        cm:_injectSceneCrate("TestInstantRefresh", model)  -- first: inserts
+
+        local callCount = spyRefresh(cm)  -- spy AFTER first inject
+        cm:_injectSceneCrate("TestInstantRefresh", model)  -- second: idempotent
+
+        assert.equals(0, callCount())
+    end)
+
+end)
