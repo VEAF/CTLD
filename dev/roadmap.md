@@ -13,10 +13,8 @@ peut être remplacée par des scènes pilotées par `CTLDSceneManager`. Les scè
 spawn ; la question porte sur la mécanique d'*assembly* (construction progressive depuis des
 caisses) : absorbable par les scènes, ou couche séparée inévitable ?
 
-## DEV-LOCAL-MIZ — Chargement dynamique des fichiers locaux de développement
+<!-- DEV-LOCAL-MIZ — formalisé en lot `.backlog/DEV-LOCAL-MIZ/` (grill-with-docs, 2026-07-19). -->
 
-Contexte: `Test_CTLDNEXT_01.miz` contient des chemins absolus vers les fichiers locaux de chaque
-développeur (`CTLD.lua`, `dcs-bridge.lua`). Chaque dev doit modifier le `.miz` pour ses chemins,
-ce qui génère du bruit git et risque de laisser un chemin de machine personnelle dans master.
-L'objectif est un mécanisme de trigger dynamique permettant à chaque dev de charger ses fichiers
-locaux sans modifier le `.miz` partagé.
+_(Note post-formalisation : le constat « chemins absolus… `dcs-bridge.lua` » était partiellement
+inexact — `dcs-bridge.lua` est embarqué dans le miz, pas chargé par chemin ; seul `CTLD.lua` était
+un chemin machine. Détail dans le PRD.)_
