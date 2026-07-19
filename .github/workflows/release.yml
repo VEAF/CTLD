@@ -37,16 +37,19 @@ jobs:
         shell: pwsh
 
       - name: Create GitHub Release
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $version = "${{ steps.ver.outputs.version }}"
-          $tag     = "${{ github.ref_name }}"
-          $notes   = if (Test-Path "RELEASE_NOTES.md") { "--notes-file", "RELEASE_NOTES.md" } else { "--generate-notes" }
+          notes=(--generate-notes)
+          [ -f RELEASE_NOTES.md ] && notes=(--notes-file RELEASE_NOTES.md)
           # rc-suffixed versions publish as a GitHub pre-release (not the default "Latest").
-          $pre     = if ("${{ steps.ver.outputs.prerelease }}" -eq "true") { @("--prerelease") } else { @() }
-          gh release create $tag CTLD.lua dist\CTLD_userConfig.lua dist\CTLD_asset_check.lua --title "CTLD v$version" @notes @pre
-        shell: pwsh
+          pre=()
+          [ "${{ steps.ver.outputs.prerelease }}" = "true" ] && pre=(--prerelease)
+          gh release create "${{ github.ref_name }}" \
+            CTLD.lua dist/CTLD_userConfig.lua dist/CTLD_asset_check.lua \
+            --title "CTLD v${{ steps.ver.outputs.version }}" \
+            "${notes[@]}" "${pre[@]}"
 
       # A floating "published-latest" tag tracks the last STABLE release. Only a real
       # release advances it; a pre-release (rc) leaves production users on the previous
