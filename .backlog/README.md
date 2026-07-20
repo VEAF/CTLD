@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `FEAT-USERCONFIG-API` | ⬜ ready | Replace broken Section 2 of `CTLD_userConfig.lua` with a safe MM API (`ctld.userSetup` callbacks + helpers), relocate `injectAACrates` to bootstrap, fix all parity bugs in userConfig template. | — |
+| `FEAT-USERCONFIG-API` | ✅ merged (PR #45) | Replace broken Section 2 of `CTLD_userConfig.lua` with a safe MM API (`ctld.userSetup` callbacks + helpers), relocate `injectAACrates` to bootstrap, fix all parity bugs in userConfig template. | `feature/userconfig-api` |
 | `CTLD-TOOLS-CONFIG` | ⬜ ready | Lot 2 of `ctld-tools` ([ADR 0009](../dev/adr/0009-external-yaml-authoring-ctld-tools.md)): move engine defaults out of `CTLD_config.lua` into `ctld-config.yaml` (source of truth, sectioned MM-facing/advanced); Python `ctld-tools` package + `gen-config` (YAML→Lua) as a build step; Lua-5.1 round-trip parity test guards the switch-over. MM volet / miz injection / TUI out of scope. | — |
 | `CTLD-TOOLS-USERCONFIG` | ⬜ ready | Lot 3 of `ctld-tools` ([ADR 0009](../dev/adr/0009-external-yaml-authoring-ctld-tools.md)): MM volet — `validate` (user-config.yaml against the reference + datamine, clear report) + `gen-user` (compile add/delete/edit ops into `CTLD_userConfig.lua` calling the `ctld.userSetup` helpers) + `gen-user --scaffold` (commented starter); `ctld-tools.exe` attached to GitHub Releases. Depends on `FEAT-USERCONFIG-API` + `CTLD-TOOLS-CONFIG`. miz injection / TUI out of scope. | — |
 | `DOC-README-CLEANUP` | ✅ merged (PR #21) | Fix README title, restructure Crate Operations sub-sections, relocate AA System Construction, replace Developer Guide with Documentation links. | — |
