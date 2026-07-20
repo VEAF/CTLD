@@ -21,6 +21,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Docs: `mission-maker/ctld-tools.md` (EN + FR) gains the injection flow, with a back-up + test-in-DCS
   warning.
 
+### Feature — Anchored zones via DCS Moving Zone (FEAT-MOVING-ZONE)
+
+- `CTLDLogisticZone` and `CTLDTroopZone`: `getCenter()` now calls `trigger.misc.getZone()` at
+  every invocation — Moving Zones (trigger zones attached to a unit in the ME) follow their anchor
+  unit live; fixed zones are transparent (same behavior).
+- Zone discovery (`_discoverTRZ` / `_discoverLGZ`): detect `linkUnit` in
+  `env.mission.triggers.zones` at init and resolve the anchor unit name via `coalition.getGroups()`.
+- `isDynamic()` / `isAlive()` extended on both zone entity types to cover Moving Zone anchors;
+  `isAlive()` returns false when the anchor unit is destroyed.
+- Polygon Moving Zones: vertex relative offsets stored at init, reconstructed to absolute
+  coordinates from the live center in `isInZone()`.
+- `CTLDTroopZone:isDynamic()` and `isAlive()` added (previously absent).
+
 ### Tooling — ctld-tools finalize: gen-au-build, `.exe` distribution, MM docs (CTLD-TOOLS-FINALIZE)
 
 - **gen-au-build**: `merge_CTLD.ps1` now regenerates `src/CTLD_config_defaults.lua` from
