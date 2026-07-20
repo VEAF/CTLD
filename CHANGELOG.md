@@ -8,6 +8,20 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — Mission Maker YAML authoring: `validate` + `gen-user` (CTLD-TOOLS-USERCONFIG)
+
+- **`ctld-tools` gains the MM volet**: `validate` (checks a `user-config.yaml` against the reference
+  catalogue + embedded DCS type set, reporting errors with suggestions) and `gen-user` (compiles
+  `add` / `remove` / `patch` operations into a `CTLD_userConfig.lua` calling the `ctld.userSetup`
+  helpers). Mission Makers target crates and troop groups **by name** — ctld-tools resolves names to
+  the unique weight the runtime uses, and flags unknown/ambiguous names.
+- **`gen-user --scaffold`** writes a commented starter `user-config.yaml` (block + flow styles).
+- **Embedded datamine**: a machine-readable DCS type set (`dcs_types.json`) is bundled in the
+  package (kept in sync with `tests/data/dcs_types.lua`) for offline `unit` validation.
+- **Distribution**: `release.yml` builds and attaches **`ctld-tools.exe`** (PyInstaller), isolated so
+  a packaging hiccup never blocks the `CTLD.lua` release.
+- Docs: `mission-maker/configuration.md` (EN + FR) present the YAML authoring flow as recommended.
+
 ### Tooling — engine config as YAML source of truth + `ctld-tools` (CTLD-TOOLS-CONFIG)
 
 - **Engine defaults moved out of Lua into `src/CTLD_config.yaml`** (sectioned MM-facing / advanced),

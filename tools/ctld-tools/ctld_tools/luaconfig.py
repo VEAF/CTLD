@@ -42,18 +42,25 @@ def _to_py(value):
     return {_to_py(k): _to_py(value[k]) for k in keys}
 
 
-def load_default_settings(src_dir: str | Path, tr: str = IDENTITY_TR) -> dict:
+def load_default_settings(src_dir: str | Path, tr: str = IDENTITY_TR, inject_aa: bool = False) -> dict:
     """Run CTLD_config.lua and return its default `settings` table as Python data.
 
     `tr` is the Lua body of ctld.tr (defaults to identity, preserving i18n keys).
     Tests can pass a distinctive translator to prove the desc/name wrappers are
     actually emitted by the generator.
+
+    `inject_aa` runs CTLDCrateAssemblyManager.injectAACrates() so `spawnableCrates`
+    includes the AA-system crate sections (needed to resolve/validate AA crate names).
     """
     src = str(src_dir).replace("\\", "/")
     if not src.endswith("/"):
         src += "/"
     lua = lupa.LuaRuntime(unpack_returned_tuples=True)
     lua.execute(_BOOTSTRAP.format(src=src, tr=tr))
+    if inject_aa:
+        # injectAACrates logs via ctld.utils.log; stub it (utils isn't loaded here).
+        lua.execute("ctld.utils = ctld.utils or {}; ctld.utils.log = ctld.utils.log or function() end")
+        lua.execute("CTLDCrateAssemblyManager.injectAACrates(CTLDConfig.get().settings.spawnableCrates)")
     settings = lua.eval("CTLDConfig.get().settings")
     result = _to_py(settings)
     if not isinstance(result, dict):
