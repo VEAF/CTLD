@@ -2446,6 +2446,20 @@ façon chirurgicale au lieu de le recopier et de le maintenir en entier :</p>
 sans helper (<code>capabilitiesByType</code>, <code>aiZones</code>, …) s'éditent directement sur l'argument <code>cfg</code>. Appelez
 <code>ctld.logDefaults("spawnableCrates")</code> depuis un trigger de mission pour écrire les valeurs par
 défaut courantes dans <code>CTLD.log</code>, et consultez <code>CTLD_userConfig.lua</code> pour le modèle complet documenté.</p>
+<div class="admonition tip">
+<p class="admonition-title">Recommandé : écrire en YAML avec <code>ctld-tools</code></p>
+<p>Plutôt que d'écrire du Lua à la main, le flux recommandé est d'éditer un petit
+<strong><code>user-config.yaml</code></strong> et de laisser <code>ctld-tools</code> générer <code>CTLD_userConfig.lua</code>. Vous désignez
+crates et groupes de troupes <strong>par leur nom</strong> (aucun poids à retrouver) ; l'outil les résout,
+valide votre fichier contre le vrai catalogue et la liste des types DCS, et signale les erreurs
+avec des suggestions :</p>
+<div class="highlight"><pre><span></span><code>ctld-tools gen-user --scaffold --out user-config.yaml   # squelette commenté
+ctld-tools validate  --yaml user-config.yaml --src src
+ctld-tools gen-user  --yaml user-config.yaml --src src --out CTLD_userConfig.lua
+</code></pre></div>
+<p><code>ctld-tools.exe</code> est attaché à chaque Release GitHub (pas besoin de Python). L'édition manuelle
+du modèle Lua reste possible pour les utilisateurs avancés.</p>
+</div>
 <h2 id="reglages-globaux">Réglages globaux<a class="headerlink" href="#reglages-globaux" title="Permanent link">&para;</a></h2>
 <h3 id="systeme">Système<a class="headerlink" href="#systeme" title="Permanent link">&para;</a></h3>
 <table>
