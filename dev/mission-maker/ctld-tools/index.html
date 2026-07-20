@@ -1055,6 +1055,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Loading in the Mission Editor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-injection-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic injection (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -2105,6 +2122,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Loading in the Mission Editor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-injection-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic injection (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -2215,6 +2249,10 @@ style; it's the same YAML:
 <td><code>gen-user --yaml user-config.yaml --src src --out CTLD_userConfig.lua</code></td>
 <td>Compile to Lua (runs <code>validate</code> first, refuses on error).</td>
 </tr>
+<tr>
+<td><code>inject --miz mission.miz --userconfig CTLD_userConfig.lua [--out out.miz]</code></td>
+<td>Inject the generated Lua into a <code>.miz</code> as a MISSION START trigger (optional — see below).</td>
+</tr>
 </tbody>
 </table>
 <p><strong>What validation checks:</strong> every <code>unit</code> is a real DCS type; a crate you <code>remove</code>/<code>patch</code> exists
@@ -2227,6 +2265,18 @@ exist. Unknown names get a <em>"did you mean …?"</em> suggestion.</p>
 <li><strong>MISSION START → DO SCRIPT FILE</strong> → <code>CTLD.lua</code></li>
 </ol>
 <p>The user-config trigger must come <strong>before</strong> the CTLD trigger.</p>
+<h3 id="automatic-injection-optional">Automatic injection (optional)<a class="headerlink" href="#automatic-injection-optional" title="Permanent link">&para;</a></h3>
+<p>Instead of adding the trigger by hand, <code>ctld-tools inject</code> inserts it for you — a MISSION START
+trigger placed <strong>first</strong>, so it runs before your CTLD trigger. It is <strong>idempotent</strong> (re-injecting
+updates the same trigger instead of duplicating it):</p>
+<div class="highlight"><pre><span></span><code>ctld-tools inject --miz MyMission.miz --userconfig CTLD_userConfig.lua --out MyMission.injected.miz
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Back up your mission and test it in DCS</p>
+<p>Injection edits the mission triggers directly. <strong>Keep a backup</strong> (use <code>--out</code> to write a copy),
+and open the result in DCS once to confirm it loads and that CTLD picks up your config. The tool
+validates the file structure, but only DCS confirms the mission runs.</p>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Prefer to hand-write Lua?</p>
 <p>You still can — see <a href="../configuration/">Configuration</a>. <code>ctld-tools</code> is the recommended path for
