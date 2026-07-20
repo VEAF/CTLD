@@ -1730,6 +1730,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#configuration-moteur-ctld-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration moteur (ctld-tools)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#executer-les-tests-busted-sans-dcs" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1939,6 +1950,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#configuration-moteur-ctld-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration moteur (ctld-tools)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#executer-les-tests-busted-sans-dcs" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2031,6 +2053,20 @@ les scenes, puis <code>CTLD_core.lua</code>, <code>legacy/</code>, et <code>CTLD
 module dans la liste.</p>
 <p><strong>Build en CI :</strong> le job <code>build</code> exécute le même <code>merge_CTLD.ps1</code> sur <code>windows-latest</code>, vérifie que
 la sortie existe et n'est pas vide, et téléverse <code>CTLD.lua</code> en tant qu'artefact de build.</p>
+<h2 id="configuration-moteur-ctld-tools">Configuration moteur (<code>ctld-tools</code>)<a class="headerlink" href="#configuration-moteur-ctld-tools" title="Permanent link">&para;</a></h2>
+<p>Les valeurs par défaut du moteur sont des <strong>données</strong>, pas du code : elles vivent dans
+<code>src/CTLD_config.yaml</code> (source de vérité unique, sectionnée <code>mm_facing</code> / <code>advanced</code>). Un module
+généré <code>src/CTLD_config_defaults.lua</code> définit <code>ctld.__configDefaults</code>, que <code>CTLDConfig:load()</code>
+recopie dans ses settings. <strong>Éditez le YAML, jamais le Lua généré.</strong> Les deux fichiers sont committés.</p>
+<p>Après modification de <code>src/CTLD_config.yaml</code>, régénérez le Lua et committez les deux :</p>
+<div class="highlight"><pre><span></span><code>cd tools/ctld-tools
+poetry install
+poetry run ctld-tools gen-config --yaml ../../src/CTLD_config.yaml --out ../../src/CTLD_config_defaults.lua
+</code></pre></div>
+<p><code>tools/ctld-tools/</code> est un projet poetry isolé (typer, ruamel.yaml, lupa, pytest + ruff + mypy),
+suivant les conventions Python de VMCT. Le job CI <code>python-quality</code> applique un <strong>garde de parité</strong>
+(régénérer depuis le YAML reproduit les settings d'origine, wrappers <code>ctld.tr</code> inclus) et un
+<strong>contrôle de dérive</strong> (le Lua généré committé doit être égal à un <code>gen-config</code> frais).</p>
 <h2 id="executer-les-tests-busted-sans-dcs">Exécuter les tests (busted, sans DCS)<a class="headerlink" href="#executer-les-tests-busted-sans-dcs" title="Permanent link">&para;</a></h2>
 <p>La suite automatisée s'exécute avec <a href="https://lunarmodules.github.io/busted/">busted</a>. Chaque appel
 à l'API DCS est stubbé, aucune installation de DCS n'est donc requise.</p>
