@@ -14,6 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
+| `FEAT-USERCONFIG-API` | ⬜ ready | Replace broken Section 2 of `CTLD_userConfig.lua` with a safe MM API (`ctld.userSetup` callbacks + helpers), relocate `injectAACrates` to bootstrap, fix all parity bugs in userConfig template. | — |
 | `DOC-README-CLEANUP` | ✅ merged (PR #21) | Fix README title, restructure Crate Operations sub-sections, relocate AA System Construction, replace Developer Guide with Documentation links. | — |
 | `CATCH-UP-PILOT-SCENARIOS` | ✅ merged (PR #24) | Ran the never-executed `pilotPassive`/`pilotActive` scenarios. Audit found the "34 `ia`" was almost all mistagged: 66/66 now pass in a headless sweep (`--no-ai --reset-before-each`), real pilot burden ≈ 2 short menu flights (both PASS). Fixed a pile of test-harness defects + cross-scenario contamination (soft reset `_reset_state.lua`), + one product fix (`refreshMenuSection` flight-state override). Optional remainders: `auto-slow` AI battery (covered by F-176..182), mt16/warehouse, L6 manual (ticket 08). | — |
 | `TOOLING-TEST-TAXONOMY` | ✅ merged (PR #29) | Formalise the test taxonomy post CATCH-UP-PILOT-SCENARIOS: update `CONTEXT.md` (tiers `human`/`auto-slow`/`disabled`, L1–L6 levels, headless sweep), create ADR 0006 (`disabled` pattern), fix mt08/mt14 Land waypoint to unblock `auto-slow`, fix stale `recette/` paths in MT-06. MT-08 PASS 12/12, MT-14 PASS. | — |

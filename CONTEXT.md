@@ -12,6 +12,9 @@ redefined terms are added here in the same move as the decision that introduces 
   single deliverable `CTLD.lua`.
 - **Legacy / `source`** — the original monolithic v1 `CTLD.lua` in `migration/source/`, kept as the
   immutable functional-parity reference.
+- **Mission Maker (MM)** — the person who creates a DCS World mission using CTLD: configures zones,
+  aircraft types, crate catalogues and troop templates via `CTLD_userConfig.lua`. Target proficiency:
+  comfortable with DCS ME triggers and copy-paste Lua, but not necessarily a Lua developer.
 
 ## Architecture terms
 
