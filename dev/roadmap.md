@@ -15,12 +15,20 @@ caisses) : absorbable par les scènes, ou couche séparée inévitable ?
 
 <!-- ctld-tools — injection .miz automatique : livré (lot CTLD-TOOLS-MIZ-INJECT, PR #50). -->
 
-## ctld-tools — mode TUI interactif
+## ctld-tools — validation `modTypes` + dépréciation du companion asset-check
 
-Contexte: surcouche d'ergonomie pour créer/éditer le `user-config.yaml` sans écrire de YAML brut,
-pour les MM non-développeurs. Le premier périmètre livre à la place `gen-user --scaffold` (YAML
-commenté) + `validate` (rapport clair). À prioriser après la V1 **si** l'usage réel montre que le
-YAML brut rebute. Sorti du premier périmètre (grill-with-docs, 2026-07-20).
+Contexte (émergé du grill TUI) : deux points liés.
+1. `ctld-tools validate` ne vérifie un `unit` que contre le **datamine stock** — il ignore les
+   `modTypes` déclarés par le MM, donc un type de **mod légitime** est signalé « unknown » à tort.
+   À corriger : valider `unit ∈ datamine ∪ (modTypes du user-config)`.
+2. Le **companion asset-check** (`dist/CTLD_asset_check.lua`, `tools/companion/`) fait exactement la
+   même validation (même datamine stock + `modTypes`), mais **dans DCS après coup** → largement
+   **redondant** avec `ctld-tools`. Une fois (1) fait, le déprécier/retirer. Résidu couvert : les
+   types **injectés au runtime** (scènes de plugins) que le design-time ne voit pas — marginal, et
+   rattrapé par le test-en-DCS. `logDefaults` reste (debug power-user). Décision David (2026-07-20) :
+   pas maintenant, à faire en lot séparé.
+
+<!-- ctld-tools — mode TUI interactif : formalisé en lot `.backlog/CTLD-TOOLS-TUI/` (grill-with-docs, 2026-07-20). -->
 
 <!-- DEV-LOCAL-MIZ — formalisé en lot `.backlog/DEV-LOCAL-MIZ/` (grill-with-docs, 2026-07-19). -->
 
