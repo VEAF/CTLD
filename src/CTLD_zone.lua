@@ -92,8 +92,12 @@ function CTLDTroopZone:init(data)
     self._aiTroopStock   = data._aiTroopStock   or nil
     self._aiVehicleStock = data._aiVehicleStock or nil
 
-    self.smoke  = (data.smoke ~= nil) and data.smoke or -1
-    self.active = (data.active ~= nil) and data.active or true
+    self.smoke            = (data.smoke ~= nil) and data.smoke or -1
+    self.active           = (data.active ~= nil) and data.active or true
+    self._anchorUnitName  = data.anchorUnitName  or nil
+    -- For anchored polygon zones: vertices are relative offsets from the anchor unit.
+    -- For static polygon zones: verticies already contains absolute world coordinates.
+    self._vertexOffsets   = data.vertexOffsets   or nil
 end
 
 --- True if this zone acts as a pickup zone (troops can board here).
@@ -128,10 +132,19 @@ end
 
 --- True if point is inside the zone (circular or polygonal).
 function CTLDTroopZone:isInZone(point)
+    if self._vertexOffsets and #self._vertexOffsets >= 3 then
+        -- Anchored polygon: reconstruct absolute vertices from live center + relative offsets.
+        local ctr = self:getCenter()
+        local absVerts = {}
+        for i, v in ipairs(self._vertexOffsets) do
+            absVerts[i] = { x = ctr.x + v.x, y = ctr.z + v.y }
+        end
+        return CTLDTroopZone._raycast(point, absVerts)
+    end
     if self.verticies and #self.verticies >= 3 then
         return CTLDTroopZone._raycast(point, self.verticies)
     end
-    return ctld.utils.getDistance("CTLDTroopZone:isInZone", point, self.center) <= self.radius
+    return ctld.utils.getDistance("CTLDTroopZone:isInZone", point, self:getCenter()) <= self.radius
 end
 
 --- Jordan ray-casting for polygonal zones.
@@ -318,7 +331,27 @@ function CTLDTroopZone:incrementObjective(soldierCount)
     return true, before, after
 end
 
-function CTLDTroopZone:getCenter() return self.center end
+--- Return current center. Uses trigger.misc.getZone for live position (Moving Zones).
+function CTLDTroopZone:getCenter()
+    if self.dcsName then
+        local trig = trigger.misc.getZone(self.dcsName)
+        if trig then return trig.point end
+    end
+    return self.center
+end
+
+--- True if this zone is anchored to a moving DCS unit (Moving Zone or legacy linkedUnit).
+function CTLDTroopZone:isDynamic()
+    return self._anchorUnitName ~= nil
+end
+
+--- True if the anchor unit is still alive (always true for static zones).
+function CTLDTroopZone:isAlive()
+    if not self._anchorUnitName then return true end
+    local u = Unit.getByName(self._anchorUnitName)
+    return u ~= nil and u:isExist()
+end
+
 function CTLDTroopZone:activate()   self.active = true  end
 function CTLDTroopZone:deactivate() self.active = false end
 
@@ -333,38 +366,49 @@ CTLDLogisticZone = class()
 -- @param data table
 --   Required : name, coalition, center (vec3), radius
 --   Optional : linkedUnit (Unit — dynamic zone follows this unit),
+--              dcsZoneName (string — ME trigger zone name for live lookup),
 --              active, services table
 function CTLDLogisticZone:init(data)
-    self.name        = data.name
-    self.coalition   = data.coalition or 0
-    self._center     = data.center
-    self.radius      = data.radius   or 200
-    self._linkedUnit = data.linkedUnit or nil
-    self.active      = (data.active ~= nil) and data.active or true
-    self.services    = data.services or {
+    self.name          = data.name
+    self.coalition     = data.coalition or 0
+    self._center       = data.center
+    self.radius        = data.radius   or 200
+    self._linkedUnit      = data.linkedUnit      or nil
+    self._dcsZoneName     = data.dcsZoneName     or nil
+    self._anchorUnitName  = data.anchorUnitName  or nil
+    self.active           = (data.active ~= nil) and data.active or true
+    self.services      = data.services or {
         cratesPickup  = true,
         cratesDropoff = true,
         vehicleSpawn  = true,
     }
 end
 
---- Return current center. Dynamic zones follow their linked unit.
+--- Return current center. Priority: linkedUnit > trigger.misc.getZone > _center.
 function CTLDLogisticZone:getCenter()
     if self._linkedUnit and self._linkedUnit:isExist() then
         return self._linkedUnit:getPoint()
     end
+    if self._dcsZoneName then
+        local trig = trigger.misc.getZone(self._dcsZoneName)
+        if trig then return trig.point end
+    end
     return self._center
 end
 
---- True if this zone is anchored to a moving DCS unit.
+--- True if this zone is anchored to a moving DCS unit (Moving Zone or legacy linkedUnit).
 function CTLDLogisticZone:isDynamic()
-    return self._linkedUnit ~= nil
+    return self._linkedUnit ~= nil or self._anchorUnitName ~= nil
 end
 
---- True if the linked unit is still alive (always true for static zones).
+--- True if the anchor unit is still alive (always true for static zones).
 function CTLDLogisticZone:isAlive()
-    if not self._linkedUnit then return true end
-    return self._linkedUnit:isExist()
+    if self._linkedUnit then return self._linkedUnit:isExist() end
+    if self._anchorUnitName then
+        local u = Unit.getByName(self._anchorUnitName)
+        return u ~= nil and u:isExist()
+    end
+    return true
 end
 
 --- True if point is inside the zone (circular only — logistic zones are always circular).
@@ -447,6 +491,28 @@ local function _buildCenter(zd)
     local z = zd.y   -- mission-file Y = world Z
     local y = land.getHeight({ x = x, y = z })
     return { x = x, y = y, z = z }
+end
+
+--- Resolve a DCS unit ID (from linkUnit in env.mission) to a unit name.
+-- Iterates coalition.getGroups for all sides. Returns nil if not found.
+local function _resolveUnitNameById(unitId)
+    local sides = { coalition.side.RED, coalition.side.BLUE, coalition.side.NEUTRAL }
+    for _, side in ipairs(sides) do
+        local groups = coalition.getGroups(side)
+        if groups then
+            for _, grp in ipairs(groups) do
+                local units = grp:getUnits()
+                if units then
+                    for _, u in ipairs(units) do
+                        if u:getID() == unitId then
+                            return u:getName()
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return nil
 end
 
 function CTLDZoneManager:_count(tbl)
@@ -570,19 +636,25 @@ function CTLDZoneManager:_discoverTRZ()
             if not parsed then
                 ctld.utils.log("WARN", "CTLDZoneManager: cannot parse TRZ '%s': %s", name, tostring(err))
             elseif not self._troopZones[parsed.zoneName] then
+                local anchorName = zd.linkUnit and _resolveUnitNameById(zd.linkUnit) or nil
+                -- Anchored polygon (type=2 + linkUnit): vertices in env.mission are relative offsets.
+                -- Static polygon (type=2, no linkUnit): vertices are absolute world coordinates.
+                local isAnchoredPolygon = anchorName and zd.type == 2 and zd.verticies
                 local zone = CTLDTroopZone:new({
-                    dcsName        = name,
-                    zoneName       = parsed.zoneName,
-                    coalition      = parsed.coalition,
-                    center         = _buildCenter(zd),
-                    radius         = zd.radius or 500,
-                    verticies      = zd.verticies or nil,
-                    pickMaxStock   = parsed.pickMaxStock,
-                    objectiveFlag  = parsed.objectiveFlag,
-                    objectiveTarget= parsed.objectiveTarget,
-                    smoke          = ctld.gs("troopZoneSmokeColor") and
-                                     ctld.gs("troopZoneSmokeColor")[parsed.coalition] or -1,
-                    active         = true,
+                    dcsName         = name,
+                    zoneName        = parsed.zoneName,
+                    coalition       = parsed.coalition,
+                    center          = _buildCenter(zd),
+                    radius          = zd.radius or 500,
+                    verticies       = (not isAnchoredPolygon) and zd.verticies or nil,
+                    vertexOffsets   = isAnchoredPolygon and zd.verticies or nil,
+                    pickMaxStock    = parsed.pickMaxStock,
+                    objectiveFlag   = parsed.objectiveFlag,
+                    objectiveTarget = parsed.objectiveTarget,
+                    smoke           = ctld.gs("troopZoneSmokeColor") and
+                                      ctld.gs("troopZoneSmokeColor")[parsed.coalition] or -1,
+                    active          = true,
+                    anchorUnitName  = anchorName,
                 })
                 if zone.objectiveFlag then
                     trigger.action.setUserFlag(zone.objectiveFlag, 0)
@@ -605,12 +677,15 @@ function CTLDZoneManager:_discoverLGZ()
         if string.sub(name, 1, 4) == "LGZ_" then
             local parsed = self:_parseLGZ(name)
             if parsed and not self._logisticZones[parsed.name] then
+                local anchorName = zd.linkUnit and _resolveUnitNameById(zd.linkUnit) or nil
                 local zone = CTLDLogisticZone:new({
-                    name      = parsed.name,
-                    coalition = parsed.coalition,
-                    center    = _buildCenter(zd),
-                    radius    = ctld.gs("dynamicZoneRadius") or 200,
-                    active    = true,
+                    name            = parsed.name,
+                    coalition       = parsed.coalition,
+                    center          = _buildCenter(zd),
+                    radius          = ctld.gs("dynamicZoneRadius") or 200,
+                    dcsZoneName     = name,
+                    anchorUnitName  = anchorName,
+                    active          = true,
                 })
                 self._logisticZones[parsed.name] = zone
                 ctld.utils.log("INFO", "CTLDZoneManager: LGZ '%s' coalition=%d",
@@ -863,12 +938,12 @@ function CTLDZoneManager:_scheduleSmoke()
         -- Smoke troop zones
         for _, zone in pairs(self_ref._troopZones) do
             if zone.active and zone.smoke and zone.smoke >= 0 then
-                trigger.action.smoke(zone.center, zone.smoke)
+                trigger.action.smoke(zone:getCenter(), zone.smoke)
                 tZoneData[#tZoneData + 1] = {
                     fullName        = zone.dcsName,
                     zoneName        = zone.zoneName,
                     coalition       = zone.coalition,
-                    position        = zone.center,
+                    position        = zone:getCenter(),
                     radius          = zone.radius,
                     hasPickup       = zone:hasPickup(),
                     hasExtract      = zone:hasExtract(),
