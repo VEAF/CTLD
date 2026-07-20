@@ -27,6 +27,9 @@ dofile(SRC .. "CTLD_config.lua")
 
 -- Minimal i18n stub so ctld.tr() is available before CTLD_i18n loads
 ctld.tr = ctld.tr or function(key, default) return default or key end
+-- Engine defaults are generated from ctld-config.yaml; the generated module
+-- calls ctld.tr at load time, so it loads after the stub and before load().
+dofile(SRC .. "CTLD_config_defaults.lua")
 CTLDConfig.get():load()
 
 dofile(SRC .. "CTLD_utils.lua")

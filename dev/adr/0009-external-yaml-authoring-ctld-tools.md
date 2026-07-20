@@ -1,7 +1,23 @@
 # ADR 0009 — External YAML authoring for CTLD configuration (ctld-tools)
 
 ## Status
-Proposed (grill-with-docs, 2026-07-20) — to be Accepted when the config-extraction lot lands.
+Accepted (CTLD-TOOLS-CONFIG, 2026-07-20).
+
+## Implementation notes (as delivered — refinements to the original proposal)
+
+- **Tooling stack follows VMCT** (VEAF-Mission-Creation-Tools), the reference re-tooling model:
+  isolated **poetry** sub-project `tools/ctld-tools/`, **typer** CLI, **ruamel.yaml**, **lupa**
+  (runs `CTLD_config.lua` in-process to read the defaults; `ctld.tr` stubbed to identity),
+  pytest + ruff + mypy, workflow `python-quality.yml`. A **single** package `ctld_tools`.
+- **Generated Lua is committed, not build-generated.** Following the VEAF pattern
+  (`dcsUnits.lua`, `dcs_types.lua`), `src/CTLD_config_defaults.lua` is committed and merged as-is;
+  the build stays pure PowerShell (no poetry in the Windows build). A **drift check** in the
+  quality gate (`gen-config` output == committed file) guards staleness. This supersedes the
+  "gen-config as a build step" wording.
+- **Merge order**: the generated defaults module evaluates `ctld.tr(...)` at load time, so it is
+  merged **after the `CTLD_i18n_*` modules** (not merely after `CTLD_config.lua`).
+- **`CTLDConfig:load()`** copies `ctld.__configDefaults` into `self.settings`; the `TEMPLATES`
+  block and the user-YAML merge / backward-compat sequence stay untouched.
 
 ## Context
 

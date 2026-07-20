@@ -8,6 +8,21 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — engine config as YAML source of truth + `ctld-tools` (CTLD-TOOLS-CONFIG)
+
+- **Engine defaults moved out of Lua into `src/CTLD_config.yaml`** (sectioned MM-facing / advanced),
+  now the single source of truth. `CTLDConfig:load()` copies a generated `ctld.__configDefaults`
+  table (`src/CTLD_config_defaults.lua`) instead of writing ~800 lines of defaults inline; the
+  `TEMPLATES` block and the user-YAML merge are unchanged. No in-game behaviour change.
+- **New `ctld-tools` Python package** (isolated poetry sub-project `tools/ctld-tools/`, following the
+  VMCT stack: typer, ruamel.yaml, lupa, pytest + ruff + mypy): `extract` (one-shot Lua→YAML) and
+  `gen-config` (YAML→Lua, re-emitting `ctld.tr()` on desc/name). See ADR 0009.
+- **CI**: new `python-quality` workflow (ruff + mypy + pytest). Parity is guarded by a frozen
+  reference (yaml→lua→settings == original, with a distinctive translator proving the `ctld.tr`
+  wrappers) and a drift check (committed generated Lua == fresh `gen-config`).
+- The generated `CTLD_config_defaults.lua` is committed (VEAF pattern) and merged after the
+  `CTLD_i18n_*` modules (it calls `ctld.tr` at load time).
+
 ### Feature — safe Mission Maker config API `ctld.userSetup` (FEAT-USERCONFIG-API)
 
 - **New `ctld.userSetup` API**: Mission Makers customise the complex config tables from setup

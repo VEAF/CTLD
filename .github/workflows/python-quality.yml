@@ -1,0 +1,50 @@
+name: Python Quality
+
+on:
+  push:
+    branches: [develop, master]
+    paths:
+      - "tools/ctld-tools/**"
+      - "src/CTLD_config.yaml"
+      - "src/CTLD_config_defaults.lua"
+      - ".github/workflows/python-quality.yml"
+  pull_request:
+    paths:
+      - "tools/ctld-tools/**"
+      - "src/CTLD_config.yaml"
+      - "src/CTLD_config_defaults.lua"
+      - ".github/workflows/python-quality.yml"
+
+jobs:
+  python-quality:
+    name: ctld-tools quality gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/ctld-tools
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install --without build
+
+      - name: Lint (ruff check)
+        run: poetry run ruff check ctld_tools tests
+
+      - name: Format check (ruff format)
+        run: poetry run ruff format --check ctld_tools tests
+
+      - name: Type check (mypy)
+        run: poetry run mypy ctld_tools
+
+      # Tests include the parity guard (yaml -> lua -> settings == frozen reference)
+      # and the drift check (committed CTLD_config_defaults.lua == fresh gen-config).
+      - name: Tests (pytest + coverage)
+        run: poetry run pytest
