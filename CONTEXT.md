@@ -73,6 +73,13 @@ redefined terms are added here in the same move as the decision that introduces 
 
 - **TRZ_** — troop zone. **LGZ_** — logistic zone. **WPZ_** — waypoint zone. **EXZ_** — extraction
   zone. **AIZ_** — AI-transport zone (auto pickup/dropoff).
+- **Anchored zone** — any CTLD zone whose position is resolved at runtime rather than snapshotted
+  at init. Two anchor mechanisms exist: a **DCS Moving Zone** (trigger zone attached to a unit in
+  the ME — position retrieved via `trigger.misc.getZone()` each evaluation) and a **linked unit**
+  (legacy `logisticUnits` config — position retrieved via `unit:getPoint()` each evaluation).
+  A zone without an anchor has a fixed position captured once at init.
+- **Anchor** — the DCS object (unit or Moving Zone) to which a CTLD zone is attached for dynamic
+  position resolution. Destroying the anchor freezes the zone at its last known position.
 
 ## Testing terms
 
