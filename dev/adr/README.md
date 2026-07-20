@@ -14,4 +14,4 @@ Retroactive ADRs document decisions already made during the v2.0.0 rewrite.
 | [0006](0006-pluggable-scenes.md) | Pluggable scenes in a separate CTLD_plugins repo | Accepted |
 | [0007](0007-design-time-asset-validation.md) | Design-time asset validation over runtime probing | Accepted |
 | [0008](0008-userconfig-api-and-aa-injection-in-bootstrap.md) | userConfig API and AA injection relocated to bootstrap | Accepted |
-| [0009](0009-external-yaml-authoring-ctld-tools.md) | External YAML authoring for CTLD configuration (ctld-tools) | Proposed |
+| [0009](0009-external-yaml-authoring-ctld-tools.md) | External YAML authoring for CTLD configuration (ctld-tools) | Accepted |

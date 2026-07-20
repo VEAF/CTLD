@@ -36,6 +36,26 @@ scenes, then `CTLD_core.lua`, `legacy/`, and `CTLD_bootstrap.lua` last). See
 **CI build:** the `build` job runs the same `merge_CTLD.ps1` on `windows-latest`, verifies the
 output exists and is non-empty, and uploads `CTLD.lua` as a build artifact.
 
+## Engine configuration (`ctld-tools`)
+
+The engine defaults are **data**, not code: they live in `src/CTLD_config.yaml` (the single source
+of truth, sectioned `mm_facing` / `advanced`). A generated module `src/CTLD_config_defaults.lua`
+defines `ctld.__configDefaults`, which `CTLDConfig:load()` copies into its settings. **Edit the YAML,
+never the generated Lua.** Both files are committed.
+
+After changing `src/CTLD_config.yaml`, regenerate the Lua and commit both:
+
+```
+cd tools/ctld-tools
+poetry install
+poetry run ctld-tools gen-config --yaml ../../src/CTLD_config.yaml --out ../../src/CTLD_config_defaults.lua
+```
+
+`tools/ctld-tools/` is an isolated poetry project (typer, ruamel.yaml, lupa, pytest + ruff + mypy),
+following the VMCT Python conventions. The `python-quality` CI job enforces a **parity guard**
+(regenerating from the YAML reproduces the original settings, `ctld.tr` wrappers included) and a
+**drift check** (the committed generated Lua must equal a fresh `gen-config`).
+
 ## Running tests (busted, no DCS)
 
 The automated suite runs on [busted](https://lunarmodules.github.io/busted/). Every DCS API call

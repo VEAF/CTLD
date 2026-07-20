@@ -7,6 +7,8 @@ CTLD_i18n_en.lua
 CTLD_i18n_fr.lua
 CTLD_i18n_es.lua
 CTLD_i18n_ko.lua
+-- Generated engine defaults (from ctld-config.yaml via ctld-tools); calls ctld.tr, so after i18n.
+CTLD_config_defaults.lua
 CTLD_utils.lua
 CTLD_menu.lua
 core/CTLD_objectRegistry.lua

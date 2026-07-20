@@ -37,6 +37,26 @@ module dans la liste.
 **Build en CI :** le job `build` exécute le même `merge_CTLD.ps1` sur `windows-latest`, vérifie que
 la sortie existe et n'est pas vide, et téléverse `CTLD.lua` en tant qu'artefact de build.
 
+## Configuration moteur (`ctld-tools`)
+
+Les valeurs par défaut du moteur sont des **données**, pas du code : elles vivent dans
+`src/CTLD_config.yaml` (source de vérité unique, sectionnée `mm_facing` / `advanced`). Un module
+généré `src/CTLD_config_defaults.lua` définit `ctld.__configDefaults`, que `CTLDConfig:load()`
+recopie dans ses settings. **Éditez le YAML, jamais le Lua généré.** Les deux fichiers sont committés.
+
+Après modification de `src/CTLD_config.yaml`, régénérez le Lua et committez les deux :
+
+```
+cd tools/ctld-tools
+poetry install
+poetry run ctld-tools gen-config --yaml ../../src/CTLD_config.yaml --out ../../src/CTLD_config_defaults.lua
+```
+
+`tools/ctld-tools/` est un projet poetry isolé (typer, ruamel.yaml, lupa, pytest + ruff + mypy),
+suivant les conventions Python de VMCT. Le job CI `python-quality` applique un **garde de parité**
+(régénérer depuis le YAML reproduit les settings d'origine, wrappers `ctld.tr` inclus) et un
+**contrôle de dérive** (le Lua généré committé doit être égal à un `gen-config` frais).
+
 ## Exécuter les tests (busted, sans DCS)
 
 La suite automatisée s'exécute avec [busted](https://lunarmodules.github.io/busted/). Chaque appel
