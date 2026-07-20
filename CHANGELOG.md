@@ -8,6 +8,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — ctld-tools: automatic `.miz` injection (CTLD-TOOLS-MIZ-INJECT)
+
+- **`ctld-tools inject`**: inserts a generated `CTLD_userConfig.lua` into a `.miz` as a **MISSION
+  START trigger placed first** (runs before the CTLD trigger), **idempotently** (re-injection
+  updates the same trigger, matched by comment). The mission `trig`/`trigrules` tables are patched
+  in place — existing triggers are shifted and their in-code `[idx]` self-references rewritten (the
+  VMCT mission-builder approach).
+- Vendored `luadata` (parse/serialize the Lua `mission`, indices kept as dict keys) under
+  `ctld_tools/vendor/` (excluded from lint/type/coverage). Tested end to end: injected mission
+  reparses, is valid Lua, and re-injection stays single. **Final validation is a load in DCS.**
+- Docs: `mission-maker/ctld-tools.md` (EN + FR) gains the injection flow, with a back-up + test-in-DCS
+  warning.
+
 ### Tooling — ctld-tools finalize: gen-au-build, `.exe` distribution, MM docs (CTLD-TOOLS-FINALIZE)
 
 - **gen-au-build**: `merge_CTLD.ps1` now regenerates `src/CTLD_config_defaults.lua` from

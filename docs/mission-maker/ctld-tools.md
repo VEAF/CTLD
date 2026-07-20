@@ -96,6 +96,7 @@ arrays:
 | `gen-user --scaffold --out user-config.yaml` | Write a commented starter file. |
 | `validate --yaml user-config.yaml --src src` | Check the file; prints findings, exits non-zero on error. |
 | `gen-user --yaml user-config.yaml --src src --out CTLD_userConfig.lua` | Compile to Lua (runs `validate` first, refuses on error). |
+| `inject --miz mission.miz --userconfig CTLD_userConfig.lua [--out out.miz]` | Inject the generated Lua into a `.miz` as a MISSION START trigger (optional — see below). |
 
 **What validation checks:** every `unit` is a real DCS type; a crate you `remove`/`patch` exists
 (and is unambiguous); a crate you `add` has a unique `weight_kg`; troop groups and array settings
@@ -109,6 +110,21 @@ The generated `CTLD_userConfig.lua` loads exactly like the hand-written template
 2. **MISSION START → DO SCRIPT FILE** → `CTLD.lua`
 
 The user-config trigger must come **before** the CTLD trigger.
+
+### Automatic injection (optional)
+
+Instead of adding the trigger by hand, `ctld-tools inject` inserts it for you — a MISSION START
+trigger placed **first**, so it runs before your CTLD trigger. It is **idempotent** (re-injecting
+updates the same trigger instead of duplicating it):
+
+```
+ctld-tools inject --miz MyMission.miz --userconfig CTLD_userConfig.lua --out MyMission.injected.miz
+```
+
+!!! warning "Back up your mission and test it in DCS"
+    Injection edits the mission triggers directly. **Keep a backup** (use `--out` to write a copy),
+    and open the result in DCS once to confirm it loads and that CTLD picks up your config. The tool
+    validates the file structure, but only DCS confirms the mission runs.
 
 !!! note "Prefer to hand-write Lua?"
     You still can — see [Configuration](configuration.md). `ctld-tools` is the recommended path for
