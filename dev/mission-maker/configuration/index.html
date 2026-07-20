@@ -2425,11 +2425,24 @@ starting, set <code>ctld.dontInitialize = true</code> before <code>CTLD.lua</cod
 
 <span class="s">]]</span>
 </code></pre></div>
-<p><strong>Tables</strong> (aircraft capabilities, zone lists, crate catalogues…) are assigned directly on
-the config instance. Each table you assign <strong>replaces</strong> its default entirely:</p>
-<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">_cfg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">CTLDConfig</span><span class="p">.</span><span class="nf">get</span><span class="p">()</span>
-<span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;capabilitiesByType&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">--[[ ... ]]</span><span class="w"> </span><span class="p">}</span>
+<p><strong>Tables</strong> (crate catalogues, troop groups, zone lists, aircraft capabilities…) are customised
+from one or more <strong>setup callbacks</strong> registered in <code>ctld.userSetup</code>. CTLD runs each callback once
+during initialization, after the factory defaults (and the auto-injected AA-system crates) are in
+place — so you patch the real catalogue surgically instead of copy-pasting and owning it wholesale:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="py">userSetup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ctld</span><span class="p">.</span><span class="py">userSetup</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="p">{}</span>
+<span class="nb">table.insert</span><span class="p">(</span><span class="nv">ctld</span><span class="p">.</span><span class="py">userSetup</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">cfg</span><span class="p">)</span>
+<span class="w">    </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">addCrate</span><span class="p">(</span><span class="s2">&quot;Support&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">weight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2000.01</span><span class="p">,</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Ural Ammo&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Ural-375&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">side</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">})</span>
+<span class="w">    </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">removeCrate</span><span class="p">(</span><span class="mf">1000.05</span><span class="p">)</span><span class="w">                         </span><span class="c1">-- drop a default crate by weight</span>
+<span class="w">    </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">patchCrate</span><span class="p">(</span><span class="mf">1000.02</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">cratesRequired</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">})</span><span class="w">  </span><span class="c1">-- change one field, keep the rest</span>
+<span class="w">    </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">addTroopGroup</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Recon Team&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">inf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nv">jtac</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">})</span>
+<span class="w">    </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">addTo</span><span class="p">(</span><span class="s2">&quot;transportPilotNames&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;helicargo_custom_1&quot;</span><span class="p">)</span>
+<span class="kr">end</span><span class="p">)</span>
 </code></pre></div>
+<p>The helpers — <code>ctld.addCrate</code>, <code>ctld.removeCrate</code>, <code>ctld.patchCrate</code>, <code>ctld.addTroopGroup</code>,
+<code>ctld.removeTroopGroup</code>, <code>ctld.addTo</code> — operate on the live config. Dictionaries without a helper
+(<code>capabilitiesByType</code>, <code>aiZones</code>, …) are edited directly on the <code>cfg</code> argument. Call
+<code>ctld.logDefaults("spawnableCrates")</code> from a mission trigger to dump the current defaults to
+<code>CTLD.log</code>, and see <code>CTLD_userConfig.lua</code> for the fully documented template.</p>
 <h2 id="global-settings">Global settings<a class="headerlink" href="#global-settings" title="Permanent link">&para;</a></h2>
 <h3 id="system">System<a class="headerlink" href="#system" title="Permanent link">&para;</a></h3>
 <table>
@@ -2975,8 +2988,8 @@ Late-activation JTAC groups are supported and registered automatically when they
 <p><code>capabilitiesByType</code> is the single table that defines every per-aircraft capability. <strong>Only
 aircraft listed here receive CTLD F10 menus.</strong> Each key is the <strong>exact DCS type name</strong> of the
 aircraft (mods included, e.g. <code>"Hercules"</code>, <code>"76MD"</code>, <code>"UH-60L"</code>).</p>
-<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">_cfg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">CTLDConfig</span><span class="p">.</span><span class="nf">get</span><span class="p">()</span>
-<span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;capabilitiesByType&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="c1">-- inside a ctld.userSetup callback:  table.insert(ctld.userSetup, function(cfg) ... end)</span>
+<span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;capabilitiesByType&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="p">[</span><span class="s2">&quot;UH-1H&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nv">cratesEnabled</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">   </span><span class="c1">-- can load/unpack crates</span>
 <span class="w">        </span><span class="nv">troopsEnabled</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">   </span><span class="c1">-- can load/deploy infantry</span>
@@ -3087,9 +3100,10 @@ type, that type appears in the <strong>Request Equipment</strong> F10 menu. Sele
 vehicle as a waiting unit near the transport (instead of a crate); the pilot then loads
 it from the cockpit. See the <a href="../../pilot/">Pilot guide</a> for the in-cockpit flow.</p>
 </div>
-<p>Aircraft <strong>not</strong> listed in <code>capabilitiesByType</code> receive no CTLD menus. Assigning your own
+<p>Aircraft <strong>not</strong> listed in <code>capabilitiesByType</code> receive no CTLD menus. Assigning the whole
 <code>capabilitiesByType</code> table replaces the built-in one entirely, so include every aircraft you
-want CTLD-capable.</p>
+want CTLD-capable — or patch a single field to keep the defaults, e.g.
+<code>cfg.settings["capabilitiesByType"]["Mi-8MT"].maxTroopsOnboard = 20</code>.</p>
 <h2 id="access-control">Access control<a class="headerlink" href="#access-control" title="Permanent link">&para;</a></h2>
 <p>Two parameters decide which player units get CTLD F10 menus.</p>
 <table>
@@ -3120,9 +3134,9 @@ multiplayer servers.</p>
 <code>transportPilotNames</code> get CTLD menus. Use this to restrict CTLD to a fixed set of named slots
 (e.g. a dedicated transport squadron). CTLD-capable aircraft <strong>not</strong> in the list join the
 mission normally but have no CTLD access.</p>
-<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">_cfg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">CTLDConfig</span><span class="p">.</span><span class="nf">get</span><span class="p">()</span>
-<span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;addPlayerAircraftByType&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
-<span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;transportPilotNames&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="c1">-- inside a ctld.userSetup callback:  table.insert(ctld.userSetup, function(cfg) ... end)</span>
+<span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;addPlayerAircraftByType&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;transportPilotNames&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="s2">&quot;transport_slot_1&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="s2">&quot;transport_slot_2&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="s2">&quot;transport_slot_3&quot;</span><span class="p">,</span>
