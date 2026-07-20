@@ -13,7 +13,7 @@ peut être remplacée par des scènes pilotées par `CTLDSceneManager`. Les scè
 spawn ; la question porte sur la mécanique d'*assembly* (construction progressive depuis des
 caisses) : absorbable par les scènes, ou couche séparée inévitable ?
 
-<!-- ctld-tools — injection .miz automatique : livré (lot CTLD-TOOLS-MIZ-INJECT, PR #NN). -->
+<!-- ctld-tools — injection .miz automatique : livré (lot CTLD-TOOLS-MIZ-INJECT, PR #50). -->
 
 ## ctld-tools — mode TUI interactif
 
