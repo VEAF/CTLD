@@ -19,6 +19,7 @@ The CI does not run this (network); it is a manual maintenance tool.
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -32,6 +33,9 @@ UNITS_PATH = "_G/db/Units"
 _REF_RE = re.compile(r"^[0-9A-Za-z._/-]+$")
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _OUT = _REPO_ROOT / "tests" / "data" / "dcs_types.lua"
+# Machine-readable copy embedded in the ctld-tools package (used by `validate`
+# and bundled into the MM .exe). Generated from the same run to stay in sync.
+_JSON_OUT = _REPO_ROOT / "tools" / "ctld-tools" / "ctld_tools" / "data" / "dcs_types.json"
 
 
 def _run(args: list[str], cwd: Path) -> None:
@@ -93,6 +97,9 @@ def main() -> int:
     _OUT.parent.mkdir(parents=True, exist_ok=True)
     _OUT.write_text(render_lua(names, DATAMINE_REF), encoding="utf-8", newline="\n")
     print(f"Wrote {_OUT.relative_to(_REPO_ROOT)} ({len(names)} types, ref {DATAMINE_REF[:8]})")
+    _JSON_OUT.parent.mkdir(parents=True, exist_ok=True)
+    _JSON_OUT.write_text(json.dumps(names, ensure_ascii=False, indent=0), encoding="utf-8", newline="\n")
+    print(f"Wrote {_JSON_OUT.relative_to(_REPO_ROOT)} ({len(names)} types)")
     return 0
 
 

@@ -41,6 +41,51 @@ def gen_config_cmd(
     typer.echo(f"gen-config: wrote {out}")
 
 
+@app.command("validate")
+def validate_cmd(
+    yaml_path: Path = typer.Option(..., "--yaml", help="path to the user-config.yaml"),
+    src: Path = typer.Option(..., "--src", help="path to the CTLD src/ directory (the reference)"),
+) -> None:
+    """Validate a user-config.yaml against the reference catalogue and DCS types."""
+    from ctld_tools.reference import Reference
+    from ctld_tools.validate import has_errors, load_user_config, validate
+
+    findings = validate(load_user_config(yaml_path), Reference.from_src(src))
+    for finding in findings:
+        typer.echo(str(finding))
+    if not findings:
+        typer.echo("validate: OK")
+    if has_errors(findings):
+        raise typer.Exit(1)
+
+
+@app.command("gen-user")
+def gen_user_cmd(
+    out: Path = typer.Option(..., "--out", help="path to the CTLD_userConfig.lua (or scaffold) to write"),
+    yaml_path: Path = typer.Option(None, "--yaml", help="path to the user-config.yaml (omit with --scaffold)"),
+    src: Path = typer.Option(None, "--src", help="path to the CTLD src/ directory (the reference)"),
+    scaffold: bool = typer.Option(False, "--scaffold", help="write a commented starter user-config.yaml instead"),
+) -> None:
+    """Compile a user-config.yaml into CTLD_userConfig.lua (or write a scaffold)."""
+    if scaffold:
+        from ctld_tools.scaffold import write_scaffold
+
+        write_scaffold(out)
+        typer.echo(f"gen-user: wrote scaffold {out}")
+        return
+    if yaml_path is None or src is None:
+        raise typer.BadParameter("--yaml and --src are required (unless --scaffold)")
+    from ctld_tools.genuser import UserConfigError, generate_user_file
+
+    try:
+        generate_user_file(yaml_path, src, out)
+    except UserConfigError as exc:
+        for finding in exc.findings:
+            typer.echo(str(finding))
+        raise typer.Exit(1) from exc
+    typer.echo(f"gen-user: wrote {out}")
+
+
 def main() -> None:
     app()
 

@@ -4,10 +4,20 @@ CTLD configuration authoring & generation. Isolated **poetry** sub-project,
 following the VMCT (VEAF-Mission-Creation-Tools) Python conventions: typer CLI,
 ruamel.yaml, lupa/luadata for Lua, pytest + ruff + mypy.
 
-## Commands (lot CTLD-TOOLS-CONFIG)
+## Commands
+
+Engine config (build side):
 
 - `ctld-tools extract`  — one-shot: read `src/CTLD_config.lua` defaults and write `ctld-config.yaml`.
 - `ctld-tools gen-config` — render the Lua defaults module from `ctld-config.yaml` (build step).
+
+Mission Maker side:
+
+- `ctld-tools validate --yaml user-config.yaml --src src` — check a user-config against the reference
+  catalogue + DCS type set; reports errors with suggestions (exit non-zero on error).
+- `ctld-tools gen-user --yaml user-config.yaml --src src --out CTLD_userConfig.lua` — compile the
+  add/remove/patch operations into `ctld.userSetup` helper calls (names resolved to weights).
+- `ctld-tools gen-user --scaffold --out user-config.yaml` — write a commented starter.
 
 ## Develop
 
