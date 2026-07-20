@@ -79,6 +79,7 @@ nav:
   - Mission Maker:
     - Overview: mission-maker/index.md
     - Configuration: mission-maker/configuration.md
+    - Configure with ctld-tools: mission-maker/ctld-tools.md
     - Zone setup: mission-maker/zones.md
     - Scenes & FOB: mission-maker/scenes-fob.md
     - Crate catalogue: mission-maker/crates-catalogue.md

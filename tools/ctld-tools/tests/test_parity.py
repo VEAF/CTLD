@@ -16,7 +16,6 @@ from ctld_tools.luaconfig import _to_py, load_default_settings
 REPO = Path(__file__).resolve().parents[3]
 SRC = REPO / "src"
 YAML = SRC / "CTLD_config.yaml"
-COMMITTED_LUA = SRC / "CTLD_config_defaults.lua"
 FIXTURE = Path(__file__).parent / "data" / "reference_settings.json"
 
 DISTINCTIVE = 'function(key, default) return "<<TR:" .. (default or key) .. ">>" end'
@@ -46,13 +45,3 @@ def test_loaded_config_matches_reference(reference):
     same settings as the original inline defaults (the migration parity guard)."""
     loaded = load_default_settings(SRC, tr=DISTINCTIVE)
     assert loaded == reference
-
-
-def test_committed_generated_lua_is_up_to_date(tmp_path):
-    """The committed src/CTLD_config_defaults.lua must equal a fresh gen-config."""
-    out = tmp_path / "fresh.lua"
-    generate_file(YAML, out)
-    assert out.read_text(encoding="utf-8") == COMMITTED_LUA.read_text(encoding="utf-8"), (
-        "src/CTLD_config_defaults.lua is stale — regenerate with "
-        "`ctld-tools gen-config --yaml src/CTLD_config.yaml --out src/CTLD_config_defaults.lua`"
-    )

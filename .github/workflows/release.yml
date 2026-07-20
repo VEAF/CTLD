@@ -16,6 +16,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install ctld-tools (the build regenerates CTLD_config_defaults.lua via gen-config)
+        working-directory: tools/ctld-tools
+        shell: bash
+        run: |
+          pip install poetry
+          poetry install --without dev --without build
+
       - name: Build CTLD.lua
         run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1
         shell: pwsh
@@ -51,36 +61,6 @@ jobs:
             --title "CTLD v${{ steps.ver.outputs.version }}" \
             "${notes[@]}" "${pre[@]}"
 
-      # Build and attach the Mission Maker tool ctld-tools.exe. Isolated from the
-      # deliverable: continue-on-error so a packaging hiccup never blocks the release
-      # of CTLD.lua. Uploaded to the release that the previous step just created.
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-        continue-on-error: true
-
-      - name: Build ctld-tools.exe
-        id: exe
-        continue-on-error: true
-        working-directory: tools/ctld-tools
-        shell: bash
-        run: |
-          pip install poetry
-          poetry install --with build
-          poetry run pyinstaller --onefile --name ctld-tools \
-            --collect-all lupa \
-            --add-data "ctld_tools/data/dcs_types.json;ctld_tools/data" \
-            ctld_tools/__main__.py
-
-      - name: Attach ctld-tools.exe to the release
-        if: steps.exe.outcome == 'success'
-        continue-on-error: true
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.ref_name }}" tools/ctld-tools/dist/ctld-tools.exe
-
       # A floating "published-latest" tag tracks the last STABLE release. Only a real
       # release advances it; a pre-release (rc) leaves production users on the previous
       # stable. "published-latest" is not matched by the 'published-v*' trigger, so this
@@ -91,3 +71,35 @@ jobs:
           git tag -f published-latest "${{ github.ref_name }}"
           git push origin -f published-latest
         shell: pwsh
+
+  # ─────────────────────────────────────────────────────────────
+  # Build the Mission Maker tool ctld-tools.exe (PyInstaller, lupa + datamine
+  # bundled) and attach it to the release. Separate job: if packaging fails, the
+  # CTLD.lua release (job above) is already published — only the exe is missing.
+  # ─────────────────────────────────────────────────────────────
+  build-exe:
+    name: Build & attach ctld-tools.exe
+    needs: release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Build ctld-tools.exe
+        working-directory: tools/ctld-tools
+        shell: bash
+        run: |
+          pip install poetry
+          poetry install --with build
+          poetry run pyinstaller --onefile --name ctld-tools \
+            --collect-all lupa \
+            --add-data "ctld_tools/data/dcs_types.json;ctld_tools/data" \
+            ctld_tools/__main__.py
+      - name: Attach ctld-tools.exe to the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.ref_name }}" tools/ctld-tools/dist/ctld-tools.exe

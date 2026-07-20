@@ -8,6 +8,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — ctld-tools finalize: gen-au-build, `.exe` distribution, MM docs (CTLD-TOOLS-FINALIZE)
+
+- **gen-au-build**: `merge_CTLD.ps1` now regenerates `src/CTLD_config_defaults.lua` from
+  `CTLD_config.yaml` via `ctld-tools` on **every build** — it is a git-ignored artifact, no longer
+  committed. The `build` + `busted` CI jobs and `release.yml` gain `setup-python` + poetry; the drift
+  check is dropped (the file is always fresh). Dev workflow is now simply "edit the YAML, rebuild".
+- **`ctld-tools.exe`** is built (PyInstaller, lupa + datamine bundled) and attached to each Release
+  by a **separate `build-exe` job**, isolated so a packaging issue never blocks the `CTLD.lua`
+  release. Verified end to end (the exe runs `validate` with the embedded Lua runtime + type set).
+- **Docs**: dedicated `mission-maker/ctld-tools.md` page (EN + FR), with the full `user-config.yaml`
+  format, commands and examples (block + flow), linked in the site nav.
+
 ### Tooling — Mission Maker YAML authoring: `validate` + `gen-user` (CTLD-TOOLS-USERCONFIG)
 
 - **`ctld-tools` gains the MM volet**: `validate` (checks a `user-config.yaml` against the reference

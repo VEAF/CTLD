@@ -14,6 +14,26 @@ $distDir     = Join-Path $repoRoot  "dist"
 $userCfgSrc  = Join-Path $srcDir    "CTLD_userConfig.lua"
 $userCfgDest = Join-Path $distDir   "CTLD_userConfig.lua"
 
+# Regenerate the engine defaults from the YAML source of truth (gen-au-build).
+# The generated CTLD_config_defaults.lua is a build artifact (git-ignored). ctld-tools
+# is an isolated poetry project — run `poetry install` in tools/ctld-tools once.
+$ctldToolsDir = Join-Path $repoRoot "tools\ctld-tools"
+$configYaml   = Join-Path $srcDir   "CTLD_config.yaml"
+$defaultsLua  = Join-Path $srcDir   "CTLD_config_defaults.lua"
+Write-Host "Generating CTLD_config_defaults.lua from CTLD_config.yaml (ctld-tools)..."
+Push-Location $ctldToolsDir
+try {
+    & poetry run ctld-tools gen-config --yaml $configYaml --out $defaultsLua
+    if ($LASTEXITCODE -ne 0) { throw "gen-config returned $LASTEXITCODE" }
+}
+catch {
+    Write-Host "[ERROR] Could not generate CTLD_config_defaults.lua via ctld-tools."
+    Write-Host "        Run 'poetry install' in tools/ctld-tools first (needs Python + poetry)."
+    Pop-Location
+    exit 1
+}
+Pop-Location
+
 # UTF-8 without BOM encoder (works on PS 5 and PS 7)
 $utf8NoBOM = [System.Text.UTF8Encoding]::new($false)
 
