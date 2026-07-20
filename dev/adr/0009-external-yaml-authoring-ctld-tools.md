@@ -1,0 +1,70 @@
+# ADR 0009 — External YAML authoring for CTLD configuration (ctld-tools)
+
+## Status
+Proposed (grill-with-docs, 2026-07-20) — to be Accepted when the config-extraction lot lands.
+
+## Context
+
+CTLD configuration lives in two Lua files hand-edited today:
+
+- `CTLD_config.lua` (~1149 lines) — the engine defaults, a ~900-line `self.settings[...]` block
+  inside `CTLDConfig:load()`, merged into the `CTLD.lua` deliverable.
+- `CTLD_userConfig.lua` — the Mission Maker (MM) surface. ADR 0008 replaces its broken Section 2
+  with a runtime helper API (`ctld.userSetup` + `ctld.addCrate/patchCrate/…`), still hand-edited.
+
+Editing complex Lua tables is hostile to MMs (non-Lua-developers): one missing comma breaks the
+mission, and the commented defaults rot. The VMCT project solves the equivalent problem with an
+external `veaf-tools.exe`. This ADR decides to bring the same model to CTLD.
+
+The data in `CTLD_config.lua` was audited: it is near-pure literal, with a **single** special
+construct — `ctld.tr("key")` i18n wrappers on text fields (`desc`, `name`) — so a YAML↔Lua
+round-trip is feasible provided the generator re-emits those wrappers by convention.
+
+## Decision
+
+1. **A standalone tool, `ctld-tools`** — a Python package that validates and generates CTLD
+   configuration from YAML. It embeds the default-config reference and the datamined DCS type set,
+   so validation is fully offline. Distributed to MMs as a self-contained `ctld-tools.exe`
+   (PyInstaller, Windows); the build/CI invoke the **Python package** directly (the merge job is
+   already on `windows-latest`). No runtime dependency on VEAF tooling — the tool is autonomous.
+
+2. **Engine config: YAML as the single source of truth (the "X" choice).** The defaults block moves
+   out of `CTLD_config.lua` into a `ctld-config` YAML (sectioned MM-facing vs advanced). The build
+   regenerates the Lua consumed by `load()`; `CTLDConfig:load()` shifts from *writing* defaults to
+   *copying* a generated table, keeping its user-merge / backward-compat sequence unchanged. The
+   frontier: **values → YAML**, **load sequence → Lua**.
+
+3. **MM config: YAML compiles to the ADR 0008 API (the "A" choice — layering, not replacement).**
+   The MM's `user-config` YAML is a list of **operations** (`add` / `delete` / `edit`) mapping 1:1
+   onto the `ctld.userSetup` helpers. ctld-tools validates each operation against the config
+   reference (existing `weight` for edit/delete, no collision for add) and the DCS type set (each
+   `unit`), then emits a `ctld.userSetup` callback. ADR 0008 stays the runtime contract, unchanged
+   and independently testable; the YAML is an authoring layer above it.
+
+4. **Deferred scope** (`dev/roadmap.md`): automatic `.miz` trigger injection and the interactive
+   TUI. The first increment ships the core value — reference + validation + generation (incl.
+   `gen-user --scaffold` for a commented YAML skeleton).
+
+## Considered alternatives
+
+- **(Y) Lua stays the source, YAML extracted as an artefact.** Rejected: it gives validation/guidance
+  but not YAML-based editing of the engine config, which is the intent behind X. Keeps parity risk
+  low but does not meet the goal.
+- **Declarative `user-config` (full catalogue, tool diffs it).** Rejected: forces the MM to own the
+  whole catalogue — the very hostility ADR 0008 removes. Operations keep edits minimal.
+- **A `.miz`-manipulation library that rebuilds the mission (e.g. pydcs).** Rejected for injection:
+  rebuilding a mission authored in the ME risks dropping anything the model does not represent. A
+  surgical home-grown patch is preferred when injection is implemented.
+
+## Consequences
+
+- The build acquires a **Python dependency** (today the merge is pure PowerShell). Consistent with
+  the rest of the tooling; the merge job is already on Windows, so `setup-python` suffices.
+- A **round-trip parity test** guards the extraction: regenerate the Lua from YAML and diff against
+  the current defaults (legacy parity is immutable).
+- The generator must re-emit `ctld.tr(...)` on i18n fields (`desc`, `name`) by convention.
+- Delivered as **three sequential lots**: (1) `FEAT-USERCONFIG-API` (ADR 0008, unchanged, first);
+  (2) the config reference + `gen-config` + build integration; (3) the MM volet (`validate`,
+  `gen-user`, `.exe` distribution). Exact filenames pinned per PRD.
+- ADR 0008's `logDefaults` / schema-comments become power-user/debug aids rather than the primary
+  MM path; its scope is not reduced.

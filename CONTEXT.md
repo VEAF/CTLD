@@ -13,8 +13,10 @@ redefined terms are added here in the same move as the decision that introduces 
 - **Legacy / `source`** — the original monolithic v1 `CTLD.lua` in `migration/source/`, kept as the
   immutable functional-parity reference.
 - **Mission Maker (MM)** — the person who creates a DCS World mission using CTLD: configures zones,
-  aircraft types, crate catalogues and troop templates via `CTLD_userConfig.lua`. Target proficiency:
-  comfortable with DCS ME triggers and copy-paste Lua, but not necessarily a Lua developer.
+  aircraft types, crate catalogues and troop templates. Historically hand-edited in
+  `CTLD_userConfig.lua`; the target authoring surface is a validated YAML processed by
+  [ctld-tools](#configuration--authoring), which generates the Lua. Target proficiency: comfortable
+  with DCS ME triggers, not necessarily a Lua developer.
 
 ## Architecture terms
 
@@ -27,6 +29,21 @@ redefined terms are added here in the same move as the decision that introduces 
 - **`ctld.gs("param")`** — the only sanctioned config accessor.
 - **`ctld.utils`** — in-house replacement for MIST (math/vectors/geometry, scheduler, logging).
 - **Legacy API** — thin delegate wrappers (`src/legacy/legacy_api.lua`) keeping v1 missions working.
+
+## Configuration & authoring
+
+- **ctld-tools** — a standalone tool (a Python package; distributed to MMs as a self-contained
+  `ctld-tools.exe`) that validates and generates CTLD configuration from YAML. It embeds the
+  default-config reference and the datamined DCS type set to validate entries offline. The `.exe` is
+  a release artefact for MMs; the build/CI invoke the Python package directly. Exact filenames are
+  pinned per PRD. See ADR 0009.
+- **Config reference (`ctld-config`)** — the engine's default configuration, held as **YAML as the
+  single source of truth** (sectioned MM-facing vs advanced). The build regenerates the Lua consumed
+  by `CTLDConfig:load()`; the hand-edited Lua defaults block is retired.
+- **User config (`user-config`)** — the MM's YAML: a list of **operations** (`add` / `delete` /
+  `edit`) over the default catalogue, validated against the config reference and compiled by
+  ctld-tools into `ctld.userSetup` helper calls (the runtime API from ADR 0008).
+  _Avoid_: describing it as a full declarative catalogue — it is a diff, not a replacement.
 
 ## Gameplay domain
 
