@@ -40,22 +40,21 @@ la sortie existe et n'est pas vide, et téléverse `CTLD.lua` en tant qu'artefac
 ## Configuration moteur (`ctld-tools`)
 
 Les valeurs par défaut du moteur sont des **données**, pas du code : elles vivent dans
-`src/CTLD_config.yaml` (source de vérité unique, sectionnée `mm_facing` / `advanced`). Un module
-généré `src/CTLD_config_defaults.lua` définit `ctld.__configDefaults`, que `CTLDConfig:load()`
-recopie dans ses settings. **Éditez le YAML, jamais le Lua généré.** Les deux fichiers sont committés.
+`src/CTLD_config.yaml` (source de vérité unique, sectionnée `mm_facing` / `advanced`). Au moment du
+build, `merge_CTLD.ps1` régénère `src/CTLD_config_defaults.lua` depuis le YAML (via
+`ctld-tools gen-config`) ; ce fichier définit `ctld.__configDefaults`, que `CTLDConfig:load()`
+recopie dans ses settings. **Éditez le YAML** — le Lua généré est un **artefact de build (ignoré par
+git)**, jamais édité à la main ni committé.
 
-Après modification de `src/CTLD_config.yaml`, régénérez le Lua et committez les deux :
-
-```
-cd tools/ctld-tools
-poetry install
-poetry run ctld-tools gen-config --yaml ../../src/CTLD_config.yaml --out ../../src/CTLD_config_defaults.lua
-```
+Pour changer un défaut : éditez `src/CTLD_config.yaml`, rebuild (`merge_CTLD.ps1` régénère le Lua
+automatiquement), committez le YAML. **Le build nécessite désormais Python** : lancez `poetry install`
+dans `tools/ctld-tools` une fois (le merge appelle `ctld-tools` ; il s'arrête avec un message clair si
+poetry est absent).
 
 `tools/ctld-tools/` est un projet poetry isolé (typer, ruamel.yaml, lupa, pytest + ruff + mypy),
-suivant les conventions Python de VMCT. Le job CI `python-quality` applique un **garde de parité**
-(régénérer depuis le YAML reproduit les settings d'origine, wrappers `ctld.tr` inclus) et un
-**contrôle de dérive** (le Lua généré committé doit être égal à un `gen-config` frais).
+suivant les conventions Python de VMCT. Le job CI `python-quality` applique un **garde de parité** :
+régénérer depuis le YAML reproduit les settings d'origine, wrappers `ctld.tr` inclus (une référence
+figée, détectée avec un traducteur distinctif).
 
 ## Exécuter les tests (busted, sans DCS)
 

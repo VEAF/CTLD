@@ -9,11 +9,12 @@ Accepted (CTLD-TOOLS-CONFIG, 2026-07-20).
   isolated **poetry** sub-project `tools/ctld-tools/`, **typer** CLI, **ruamel.yaml**, **lupa**
   (runs `CTLD_config.lua` in-process to read the defaults; `ctld.tr` stubbed to identity),
   pytest + ruff + mypy, workflow `python-quality.yml`. A **single** package `ctld_tools`.
-- **Generated Lua is committed, not build-generated.** Following the VEAF pattern
-  (`dcsUnits.lua`, `dcs_types.lua`), `src/CTLD_config_defaults.lua` is committed and merged as-is;
-  the build stays pure PowerShell (no poetry in the Windows build). A **drift check** in the
-  quality gate (`gen-config` output == committed file) guards staleness. This supersedes the
-  "gen-config as a build step" wording.
+- **Generated Lua is build-generated (gen-au-build), not committed.** `merge_CTLD.ps1` runs
+  `ctld-tools gen-config` before merging, so `src/CTLD_config_defaults.lua` is always fresh from the
+  YAML; it is a **git-ignored build artifact**. The build (and the busted CI job, whose loader loads
+  it) therefore require Python + poetry. This keeps the dev workflow to "edit the YAML, rebuild" with
+  no manual regen step. (An earlier iteration committed the file with a drift check; dropped in
+  favour of gen-au-build per maintainer preference.)
 - **Merge order**: the generated defaults module evaluates `ctld.tr(...)` at load time, so it is
   merged **after the `CTLD_i18n_*` modules** (not merely after `CTLD_config.lua`).
 - **`CTLDConfig:load()`** copies `ctld.__configDefaults` into `self.settings`; the `TEMPLATES`
