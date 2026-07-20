@@ -888,6 +888,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../mission-maker/ctld-tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configure with ctld-tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../mission-maker/zones/" class="md-nav__link">
         
   
@@ -2054,18 +2082,18 @@ scenes, then <code>CTLD_core.lua</code>, <code>legacy/</code>, and <code>CTLD_bo
 output exists and is non-empty, and uploads <code>CTLD.lua</code> as a build artifact.</p>
 <h2 id="engine-configuration-ctld-tools">Engine configuration (<code>ctld-tools</code>)<a class="headerlink" href="#engine-configuration-ctld-tools" title="Permanent link">&para;</a></h2>
 <p>The engine defaults are <strong>data</strong>, not code: they live in <code>src/CTLD_config.yaml</code> (the single source
-of truth, sectioned <code>mm_facing</code> / <code>advanced</code>). A generated module <code>src/CTLD_config_defaults.lua</code>
-defines <code>ctld.__configDefaults</code>, which <code>CTLDConfig:load()</code> copies into its settings. <strong>Edit the YAML,
-never the generated Lua.</strong> Both files are committed.</p>
-<p>After changing <code>src/CTLD_config.yaml</code>, regenerate the Lua and commit both:</p>
-<div class="highlight"><pre><span></span><code>cd tools/ctld-tools
-poetry install
-poetry run ctld-tools gen-config --yaml ../../src/CTLD_config.yaml --out ../../src/CTLD_config_defaults.lua
-</code></pre></div>
+of truth, sectioned <code>mm_facing</code> / <code>advanced</code>). At build time <code>merge_CTLD.ps1</code> regenerates
+<code>src/CTLD_config_defaults.lua</code> from the YAML (via <code>ctld-tools gen-config</code>); that file defines
+<code>ctld.__configDefaults</code>, which <code>CTLDConfig:load()</code> copies into its settings. <strong>Edit the YAML</strong> — the
+generated Lua is a <strong>build artifact (git-ignored)</strong>, never hand-edited or committed.</p>
+<p>To change a default: edit <code>src/CTLD_config.yaml</code>, rebuild (<code>merge_CTLD.ps1</code> regenerates the Lua
+automatically), commit the YAML. <strong>The build now needs Python</strong>: run <code>poetry install</code> in
+<code>tools/ctld-tools</code> once (the merge calls <code>ctld-tools</code>; it aborts with a clear message if poetry is
+missing).</p>
 <p><code>tools/ctld-tools/</code> is an isolated poetry project (typer, ruamel.yaml, lupa, pytest + ruff + mypy),
-following the VMCT Python conventions. The <code>python-quality</code> CI job enforces a <strong>parity guard</strong>
-(regenerating from the YAML reproduces the original settings, <code>ctld.tr</code> wrappers included) and a
-<strong>drift check</strong> (the committed generated Lua must equal a fresh <code>gen-config</code>).</p>
+following the VMCT Python conventions. The <code>python-quality</code> CI job enforces a <strong>parity guard</strong>:
+regenerating from the YAML reproduces the original settings, <code>ctld.tr</code> wrappers included (a frozen
+reference caught with a distinctive translator).</p>
 <h2 id="running-tests-busted-no-dcs">Running tests (busted, no DCS)<a class="headerlink" href="#running-tests-busted-no-dcs" title="Permanent link">&para;</a></h2>
 <p>The automated suite runs on <a href="https://lunarmodules.github.io/busted/">busted</a>. Every DCS API call
 is stubbed, so no DCS installation is required.</p>

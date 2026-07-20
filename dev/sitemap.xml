@@ -183,6 +183,13 @@
         <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/devfr/mission-maker/crates-catalogue/"/>
     </url>
     <url>
+        <loc>https://veaf.github.io/CTLD/dev/mission-maker/ctld-tools/</loc>
+        <lastmod>2026-07-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/dev/mission-maker/ctld-tools/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/devfr/mission-maker/ctld-tools/"/>
+    </url>
+    <url>
         <loc>https://veaf.github.io/CTLD/dev/mission-maker/legacy-api/</loc>
         <lastmod>2026-07-20</lastmod>
         <changefreq>daily</changefreq>
@@ -475,6 +482,13 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/dev/fr/mission-maker/crates-catalogue/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/devmission-maker/crates-catalogue/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/dev/fr/mission-maker/ctld-tools/</loc>
+        <lastmod>2026-07-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/dev/fr/mission-maker/ctld-tools/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/devmission-maker/ctld-tools/"/>
     </url>
     <url>
         <loc>https://veaf.github.io/CTLD/dev/fr/mission-maker/legacy-api/</loc>
