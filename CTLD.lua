@@ -8114,6 +8114,9 @@ local function _resolveUnitNameById(unitId)
             end
         end
     end
+    ctld.utils.log("WARN",
+        "CTLDZoneManager: linkUnit id=%d not found in any coalition group — zone will be static",
+        unitId)
     return nil
 end
 
