@@ -86,6 +86,20 @@ def gen_user_cmd(
     typer.echo(f"gen-user: wrote {out}")
 
 
+@app.command("inject")
+def inject_cmd(
+    miz: Path = typer.Option(..., "--miz", help="the .miz mission to modify"),
+    userconfig: Path = typer.Option(..., "--userconfig", help="the generated CTLD_userConfig.lua"),
+    out: Path = typer.Option(None, "--out", help="output .miz (default: overwrite --miz)"),
+) -> None:
+    """Inject a generated CTLD_userConfig.lua into a .miz as a MISSION START trigger (idempotent)."""
+    from ctld_tools.miz import inject_userconfig
+
+    target = out or miz
+    inject_userconfig(miz, userconfig.read_text(encoding="utf-8"), target)
+    typer.echo(f"inject: wrote {target}")
+
+
 def main() -> None:
     app()
 

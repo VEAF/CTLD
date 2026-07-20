@@ -40,7 +40,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.ruff]
 line-length = 120
 target-version = "py313"
-exclude = [".venv", "dist", "build"]
+exclude = [".venv", "dist", "build", "ctld_tools/vendor"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP"]
@@ -55,6 +55,7 @@ ignore = ["E501"]
 [tool.mypy]
 python_version = "3.13"
 files = ["ctld_tools"]
+exclude = ["ctld_tools/vendor"]
 ignore_missing_imports = true
 check_untyped_defs = true
 disallow_untyped_defs = false
@@ -76,7 +77,7 @@ addopts = [
 
 [tool.coverage.run]
 source = ["ctld_tools"]
-omit = ["*/test_*.py"]
+omit = ["*/test_*.py", "*/vendor/*"]
 
 [tool.coverage.report]
 exclude_lines = [
