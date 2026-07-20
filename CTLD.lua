@@ -8106,7 +8106,7 @@ local function _resolveUnitNameById(unitId)
                 local units = grp:getUnits()
                 if units then
                     for _, u in ipairs(units) do
-                        if u:getID() == unitId then
+                        if tonumber(u:getID()) == unitId then
                             return u:getName()
                         end
                     end
