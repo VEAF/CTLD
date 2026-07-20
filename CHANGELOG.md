@@ -8,6 +8,23 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Feature — safe Mission Maker config API `ctld.userSetup` (FEAT-USERCONFIG-API)
+
+- **New `ctld.userSetup` API**: Mission Makers customise the complex config tables from setup
+  callbacks instead of the silently-broken Section 2 of `CTLD_userConfig.lua` (which called
+  `CTLDConfig.get()` before CTLD had defined it). Helpers on `ctld`: `addCrate`, `removeCrate`,
+  `patchCrate` (deep-merge one level), `addTroopGroup`, `removeTroopGroup`, `addTo`, `logDefaults`.
+  Each callback runs guarded, so a failing one warns without aborting the others or the mission.
+- **`injectAACrates` relocated** from `CTLDCrateManager:_processSpawnableCrates()` to
+  `ctld.initialize()` (before the userSetup callbacks), so the AA-system crate sections are visible
+  and patchable from a callback. `ctld.initialize()` is now the single place that materialises the
+  full config: defaults → AA injection → userSetup callbacks → managers.
+- **`CTLD_userConfig.lua` template rewritten**: the broken Section 2 (direct `CTLDConfig.get()`
+  edits) is replaced by documented `ctld.userSetup` examples + per-table field schemas; the
+  test-only debug block (with its hardcoded `aiZones`) is removed; Section 1 scalar defaults
+  corrected (`parachuteMinAltitude*` = 152, `JTAC_droneAltitude` = 4000).
+- **Docs**: `mission-maker/configuration.md` (EN + FR) updated to the callback-based flow.
+
 ### Tooling — release pre-release channel + `published-latest` (RELEASE-RC-CHANNEL)
 
 - **`release.yml`**: a `-rc`-suffixed version (e.g. `published-v2.0.0-rc1`) now publishes the GitHub
