@@ -426,9 +426,8 @@ end
 -- Results stored in self._processedCrates[category] and self._weightIndex[weight].
 function CTLDCrateManager:_processSpawnableCrates()
     local spawnableCrates = ctld.gs("spawnableCrates") or {}
-    -- Inject AA system crate entries (parts + repair) from CTLDCrateAssemblyManager.TEMPLATES.
-    -- Must run before the main loop so injected entries enter _processedCrates and _weightIndex.
-    CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)
+    -- AA system crate entries are injected once by ctld.initialize() (before the userSetup
+    -- callbacks), so spawnableCrates already contains them here — see ADR 0008/0009.
     local showCrateSets   = ctld.gs("enableAllCrates") ~= false
     local allSuffix       = " - " .. ctld.tr("All crates")
 

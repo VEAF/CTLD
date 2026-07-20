@@ -55,14 +55,28 @@ ctld.slingLoad: true
 ]]
 ```
 
-Les **tables** (capacités d'appareils, listes de zones, catalogues de crate…) sont affectées
-directement sur l'instance de configuration. Chaque table que vous affectez **remplace**
-entièrement sa valeur par défaut :
+Les **tables** (catalogues de crate, groupes de troupes, listes de zones, capacités d'appareils…)
+se personnalisent depuis un ou plusieurs **callbacks de configuration** enregistrés dans
+`ctld.userSetup`. CTLD exécute chaque callback une fois à l'initialisation, après la mise en place
+des valeurs par défaut (et des crates AA auto-injectées) — vous modifiez donc le vrai catalogue de
+façon chirurgicale au lieu de le recopier et de le maintenir en entier :
 
 ```lua
-local _cfg = CTLDConfig.get()
-_cfg.settings["capabilitiesByType"] = { --[[ ... ]] }
+ctld.userSetup = ctld.userSetup or {}
+table.insert(ctld.userSetup, function(cfg)
+    ctld.addCrate("Support", { weight = 2000.01, desc = "Ural Ammo", unit = "Ural-375", side = 1 })
+    ctld.removeCrate(1000.05)                         -- retire une crate par défaut par son poids
+    ctld.patchCrate(1000.02, { cratesRequired = 3 })  -- change un champ, garde le reste
+    ctld.addTroopGroup({ name = "Recon Team", inf = 3, jtac = 1 })
+    ctld.addTo("transportPilotNames", "helicargo_custom_1")
+end)
 ```
+
+Les helpers — `ctld.addCrate`, `ctld.removeCrate`, `ctld.patchCrate`, `ctld.addTroopGroup`,
+`ctld.removeTroopGroup`, `ctld.addTo` — opèrent sur la configuration vivante. Les dictionnaires
+sans helper (`capabilitiesByType`, `aiZones`, …) s'éditent directement sur l'argument `cfg`. Appelez
+`ctld.logDefaults("spawnableCrates")` depuis un trigger de mission pour écrire les valeurs par
+défaut courantes dans `CTLD.log`, et consultez `CTLD_userConfig.lua` pour le modèle complet documenté.
 
 ## Réglages globaux
 
@@ -232,8 +246,8 @@ appareils listés ici reçoivent les menus F10 de CTLD.** Chaque clé est le **n
 exact** de l'appareil (mods inclus, ex. `"Hercules"`, `"76MD"`, `"UH-60L"`).
 
 ```lua
-local _cfg = CTLDConfig.get()
-_cfg.settings["capabilitiesByType"] = {
+-- dans un callback ctld.userSetup :  table.insert(ctld.userSetup, function(cfg) ... end)
+cfg.settings["capabilitiesByType"] = {
     ["UH-1H"] = {
         cratesEnabled            = true,   -- can load/unpack crates
         troopsEnabled            = true,   -- can load/deploy infantry
@@ -286,9 +300,10 @@ _cfg.settings["capabilitiesByType"] = {
     charge ensuite depuis le cockpit. Voir le [guide Pilote](../pilot/index.md) pour le
     déroulement en cockpit.
 
-Les appareils **non** listés dans `capabilitiesByType` ne reçoivent aucun menu CTLD. Affecter
-votre propre table `capabilitiesByType` remplace entièrement celle intégrée, donc incluez chaque
-appareil que vous voulez rendre CTLD-capable.
+Les appareils **non** listés dans `capabilitiesByType` ne reçoivent aucun menu CTLD. Affecter la
+table `capabilitiesByType` entière remplace celle intégrée, donc incluez chaque appareil que vous
+voulez rendre CTLD-capable — ou modifiez un seul champ pour conserver les défauts, p. ex.
+`cfg.settings["capabilitiesByType"]["Mi-8MT"].maxTroopsOnboard = 20`.
 
 ## Contrôle d'accès
 
@@ -309,9 +324,9 @@ ensemble fixe de slots nommés (ex. une escadrille de transport dédiée). Les a
 CTLD-capables **non** listés rejoignent la mission normalement mais n'ont aucun accès CTLD.
 
 ```lua
-local _cfg = CTLDConfig.get()
-_cfg.settings["addPlayerAircraftByType"] = false
-_cfg.settings["transportPilotNames"] = {
+-- dans un callback ctld.userSetup :  table.insert(ctld.userSetup, function(cfg) ... end)
+cfg.settings["addPlayerAircraftByType"] = false
+cfg.settings["transportPilotNames"] = {
     "transport_slot_1",
     "transport_slot_2",
     "transport_slot_3",

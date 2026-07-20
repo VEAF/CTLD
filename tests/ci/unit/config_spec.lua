@@ -206,3 +206,56 @@ describe("CTLDConfig", function()
     end)
 
 end)
+
+-- ─────────────────────────────────────────────────────────────
+-- ctld.userSetup dispatch (FEAT-USERCONFIG-API): callbacks run in order, nil-safe,
+-- mutations land in the live config, one failing callback does not abort the rest.
+describe("ctld.userSetup dispatch", function()
+
+    before_each(function()
+        CTLDConfig._instance = nil
+        ctld.yamlConfigDatas = nil
+        ctld.userSetup = nil
+        CTLDConfig.get():load()
+    end)
+
+    after_each(function()
+        ctld.userSetup = nil
+    end)
+
+    it("runs callbacks in registration order", function()
+        local order = {}
+        ctld.userSetup = {
+            function() table.insert(order, "a") end,
+            function() table.insert(order, "b") end,
+        }
+        ctld.runUserSetup()
+        assert.same({ "a", "b" }, order)
+    end)
+
+    it("does not error when ctld.userSetup is nil", function()
+        ctld.userSetup = nil
+        assert.has_no_error(function() ctld.runUserSetup() end)
+    end)
+
+    it("makes callback mutations visible in the live config", function()
+        ctld.userSetup = { function() ctld.addTo("transportPilotNames", "FromCallback") end }
+        ctld.runUserSetup()
+        local names = CTLDConfig.get().settings["transportPilotNames"]
+        assert.equals("FromCallback", names[#names])
+    end)
+
+    it("isolates a failing callback and still runs the others", function()
+        local ran = false
+        local warn = spy.on(ctld, "logWarning")
+        ctld.userSetup = {
+            function() error("boom") end,
+            function() ran = true end,
+        }
+        ctld.runUserSetup()
+        assert.is_true(ran)
+        assert.spy(warn).was_called()
+        ctld.logWarning:revert()
+    end)
+
+end)
