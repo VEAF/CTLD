@@ -17,7 +17,7 @@ La configuration est en lecture seule et s'accède via `ctld.gs("paramName")` �
 `config:getSetting()`. Voir [Architecture](architecture.md) pour l'idiome singleton et
 [Migration v1 → v2](migration-v1-v2.md) pour le principe des wrappers legacy.
 
-## Sommaire
+## Sommaire { #contents }
 
 - [EventDispatcher](#eventdispatcher)
 - [CTLDTroopManager](#ctldtroopmanager)

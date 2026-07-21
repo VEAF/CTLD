@@ -21,7 +21,7 @@ Deux diagrammes accompagnent cette page :
 - [Machine à états du cycle de vie Troop + JTAC](../../assets/troops_jtac_lifecycle.svg) — chaque état et chaque transition.
 - [Flux de transport des troops](../../assets/troops_transport_flows.svg) — chemins de chargement / déploiement / parachutage.
 
-## Les trois variantes de JTAC
+## Les trois variantes de JTAC { #the-three-jtac-flavours }
 
 Un descripteur JTAC pilote le lasage quelle que soit sa catégorie DCS. Ce qui diffère d'une variante à l'autre, c'est
 si le vecteur peut être **packed** (détruit et retransformé en crates) et s'il peut être **loaded**
@@ -43,7 +43,7 @@ Les méthodes de spawn/pack/load côté véhicule et drone vivent dans les manag
 `CTLDJTACManager:deployAirJTAC()`) ; cette page décrit comment elles appellent `CTLDJTACManager`, pas
 leurs rouages internes.
 
-## Machine à états du troop group
+## Machine à états du troop group { #troop-group-state-machine }
 
 Un `CTLDTroopGroup` suit les troops du chargement à la disposition finale. Ce n'est **pas un objet DCS** — il vit
 entièrement en mémoire Lua, dans `CTLDTroopManager._inTransit[unitName]` (une liste, pour qu'un transport puisse
@@ -96,7 +96,7 @@ table `STATE`, mais les chemins actuels ne les assignent pas. Un drop en objecti
 `group.unitTotal`), et `returnToTroopZone()` jette purement et simplement l'instance
 (`_inTransit[unitName] = nil`) plutôt que de la garer dans un état terminal.
 
-### Suivi des unités de `CTLDTroopGroup`
+### Suivi des unités de `CTLDTroopGroup` { #ctldtroopgroup-unit-tracking }
 
 ```lua
 self._aliveUnits = {}  -- [unitName] = dcsUnit (DCS Unit reference, not an index)
@@ -110,7 +110,7 @@ les préfixes `INF` / `MG` / `AT` / `AA` / `MORTAR` / personnalisés. Les servan
 exclus des deux maps et de `unitTotal`. Une clé par `unitName` (jamais par index de groupe) signifie que la
 ré-indexation par DCS des unités survivantes après une mort ne peut pas corrompre le suivi.
 
-## Modèle d'instance JTAC
+## Modèle d'instance JTAC { #jtac-instance-model }
 
 `CTLDJTAC.STATE` possède cinq valeurs : `IDLE`, `LASING`, `ORBITING` (en vol, implique le lasage),
 `IN_TRANSIT` (JTAC au sol embarqué) et `DEAD`. Le manager conserve **un `CTLDJTAC` par unité JTAC
@@ -135,7 +135,7 @@ Chaque JTAC se voit attribuer un laser code depuis un pool séquentiel (`LASER_C
 une fréquence de guidage FM à partir du code (`30 + floor((code-1000)/100) + ((code-1000) mod 100) * 0.05`),
 donnant environ 31,5–40,4 MHz sur l'ensemble du pool.
 
-## Points d'entrée de spawn JTAC par variante
+## Points d'entrée de spawn JTAC par variante { #jtac-spawn-entry-points-per-flavour }
 
 | Variante | Chemin | JTAC enregistré par | État résultant |
 | --- | --- | --- | --- |
@@ -151,7 +151,7 @@ dans `_inTransit`. C'est pourquoi un soldat JTAC ne lase rien pendant qu'il voya
 n'existe pas encore). `startLaseTroopUnit()` tolère une unité pas-encore-vivante : le premier `_autoLaseLoop`
 est décalé de +1 s et se contente de re-sonder.
 
-## Règles de transition Troop-JTAC par chemin de sortie
+## Règles de transition Troop-JTAC par chemin de sortie { #troop-jtac-transition-rules-per-exit-path }
 
 | Chemin de sortie | État | Action JTAC requise |
 | --- | --- | --- |
@@ -168,7 +168,7 @@ L'ordonnancement **deregister-before-destroy** dans `embarkFromField()` est l'in
 `group:destroy()` déclenche `S_EVENT_DEAD` pour chaque unité JTAC, et sans deregister préalable cet
 événement déclencherait à tort `killJTAC()` sur un JTAC qui est en réalité récupéré, pas tué.
 
-## Transitions Vehicle & drone
+## Transitions Vehicle & drone { #vehicle-drone-transitions }
 
 Les JTAC de véhicules terrestres et de drones sont clé groupe ; leurs transitions load/unload/pack appellent donc
 directement les méthodes clé groupe de `CTLDJTACManager`. Résumé des états qu'ils pilotent :
@@ -192,7 +192,7 @@ cachée à l'intérieur de l'aéronef au load natif DCS). `deregisterJTAC()` est
 retire l'entrée du registre, et ne publie **pas** `OnJTACDead` — un pack n'est pas une mort au combat.
 Les drones ne peuvent pas être loaded, donc `IN_TRANSIT` ne s'applique jamais à eux.
 
-## Synchronisation `S_EVENT_DEAD`
+## Synchronisation `S_EVENT_DEAD` { #s_event_dead-synchronisation }
 
 Chaque mort d'une unité dans un troop group déployé est routée depuis `CTLDDCSEventBridge` vers
 `CTLDTroopManager:onUnitDead(unitName)` :
@@ -205,7 +205,7 @@ Chaque mort d'une unité dans un troop group déployé est routée depuis `CTLDD
 4. Si `wasJtac`, `CTLDJTACManager:deregisterJTAC(unitName)` est appelé — le nettoyage clé unité qui
    libère le laser sans toucher au groupe composite survivant.
 
-## Kill de transport avec troops FIELD_LOADED
+## Kill de transport avec troops FIELD_LOADED { #transport-kill-with-field_loaded-troops }
 
 Quand un transport portant des troops `FIELD_LOADED` est abattu, les `_jtacUnits` que ces troops détenaient sont
 encore référencés dans `CTLDJTACManager.jtacs` et deviendraient des zombies orphelins (les unités DCS n'existent
@@ -215,7 +215,7 @@ plus, il itère les `_jtacUnits` de chaque groupe et appelle `deregisterJTAC()` 
 slot `_inTransit`. `onTransportDead()` déclenche ce nettoyage immédiatement sur l'événement de mort du transport
 plutôt que d'attendre le prochain tick de poll.
 
-## Terminologie legacy (v1 → v2)
+## Terminologie legacy (v1 → v2) { #legacy-terminology-v1-v2 }
 
 La réécriture v2 a renommé le vocabulaire du cycle de vie des troops pour rendre explicite la sémantique
 load/deploy/recover. Voir [Migration v1 → v2](../migration-v1-v2.md) pour la couche wrapper.
@@ -234,7 +234,7 @@ load/deploy/recover. Voir [Migration v1 → v2](../migration-v1-v2.md) pour la c
 `CTLDTroopGroup.deploy` est conservé comme alias de `disembark` pour la compatibilité ascendante pendant la
 transition.
 
-## Déconfliction de cibles multi-JTAC
+## Déconfliction de cibles multi-JTAC { #multi-jtac-target-deconfliction }
 
 Quand plusieurs JTAC sont actifs simultanément — n'importe quel mélange d'infanterie, de véhicule et de drone — `CTLDJTACManager`
 les empêche de tous laser la même cible via une table de revendications partagée :

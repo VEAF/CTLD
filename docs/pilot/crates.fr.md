@@ -10,7 +10,7 @@ Tout se trouve sous **F10 → CTLD → Crate Commands**. Ce que vous pouvez rama
 assembler provient du crate catalogue configuré par votre mission maker — voir
 [Crate catalogue](../mission-maker/crates-catalogue.md).
 
-## Visibilité du menu — au sol ou en vol
+## Visibilité du menu — au sol ou en vol { #menu-visibility-ground-vs-airborne }
 
 Le sous-menu **Crate Commands** est contextuel : les entrées apparaissent ou disparaissent
 automatiquement selon que vous êtes au sol ou en vol, et selon les capacités de votre
@@ -103,7 +103,7 @@ sous-menu est masqué lorsque rien de packable n'est à proximité.
 > [Pack](pack.md). La demande et le loading de véhicules entiers sont sur
 > [Vehicles](vehicles.md).
 
-## Actions en vol
+## Actions en vol { #airborne-actions }
 
 Celles-ci apparaissent une fois que vous volez, et uniquement si votre aéronef les prend en
 charge :

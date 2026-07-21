@@ -11,7 +11,7 @@ cargaison, ainsi que l'arbre de menu complet tel qu'il est rendu en jeu.
 **Source :** `src/CTLD_menu.lua` (le moteur), `src/CTLD_player.lua` (propriété et orchestration
 des sections).
 
-## Architecture à deux couches
+## Architecture à deux couches { #two-layer-architecture }
 
 La conception sépare *ce que contient le menu* de *la façon dont DCS le rend*. L'API DCS
 `missionCommands.*` est fragile — il n'y a aucun moyen d'interroger le menu courant, pas de mise
@@ -42,7 +42,7 @@ CTLDPlayerManager                 ctld.MenuManager
                                     _getNode(pathTable) / refresh()
 ```
 
-## Le modèle de menu — `ctld.Menu`
+## Le modèle de menu — `ctld.Menu` { #the-menu-model-ctldmenu }
 
 Un `ctld.Menu` est un arbre de nœuds. Les appelants manipulent exclusivement cet arbre ; ils
 n'appellent jamais `missionCommands.*` directement. Il existe deux types de nœuds, plus l'objet
@@ -81,7 +81,7 @@ menu racine lui-même.
 }
 ```
 
-### Convention d'ordre
+### Convention d'ordre { #order-convention }
 
 Chaque nœud peut porter un champ `order` optionnel (un nombre). Avant le rendu, les frères et
 sœurs sont triés par `order` **croissant**, indépendamment de l'ordre d'insertion ou de la
@@ -92,7 +92,7 @@ stables. L'espacement recommandé est des multiples de 10 (10, 20, 30…) pour l
 aux insertions futures. Les nœuds sans valeur `order` sont ajoutés en dernier (`math.huge`) ; à
 égalité, l'ordre d'insertion est préservé (tri stable).
 
-### Convention d'activation
+### Convention d'activation { #enabled-convention }
 
 Chaque nœud porte un champ `enabled` (booléen, `true` par défaut). Un nœud désactivé
 (`enabled == false`) est invisible dans DCS mais **reste dans l'arbre en mémoire, préservant son
@@ -102,7 +102,7 @@ occupée s'il avait toujours été visible. On le bascule avec `setBranchEnabled
 trigger de mission activant la construction de FOB en cours de mission) sans perturber les
 créneaux voisins.
 
-### Table `_lookup`
+### Table `_lookup` { #_lookup-table }
 
 La table `_lookup` associe une chaîne de chemin pointée à une référence de nœud, offrant une
 résolution de chemin en O(1) au lieu d'un parcours d'arbre en O(profondeur × frères) :
@@ -118,9 +118,9 @@ _lookup = {
 Elle est maintenue automatiquement par `addSubMenu` / `addCommand` et élaguée par `clearBranch`,
 `removeMenuBranch`, et (indirectement) `buildMenu` lorsqu'il réinitialise le modèle.
 
-## Rendu — `ctld.MenuManager`
+## Rendu — `ctld.MenuManager` { #rendering-ctldmenumanager }
 
-### Rafraîchissement atomique
+### Rafraîchissement atomique { #atomic-refresh }
 
 DCS n'offre aucune mise à jour par item, donc un rafraîchissement est tout ou rien : le manager
 supprime les entrées de premier niveau courantes de CTLD, puis reconstruit l'arbre entier depuis
@@ -146,7 +146,7 @@ refreshMenuForGroup(groupId)
 `addCommandForGroup`, et descend récursivement dans les enfants du submenu via
 `_rebuildPagedChildren`.
 
-### Rafraîchissement débouncé
+### Rafraîchissement débouncé { #debounced-refresh }
 
 `ctld.Menu:refresh()` ne reconstruit pas immédiatement — il appelle
 `ctld.MenuManager:deferredRefreshForGroup(groupId)`, qui fusionne toutes les demandes de
@@ -183,7 +183,7 @@ F10 → Vehicles → → Next Page:
   (F11 Previous Page — provided by DCS)
 ```
 
-### Enrobage du callback
+### Enrobage du callback { #callback-wrapping }
 
 Lorsqu'une commande est rendue, son callback utilisateur est enrobé dans une closure qui isole les
 échecs avec `pcall`, de sorte qu'un callback défectueux ne peut pas faire planter tout le rendu du
@@ -203,7 +203,7 @@ Le callback reçoit exactement la table `anyArgument` fournie au moment de `addC
 `{}`) ; il n'est pas augmenté du group id. Les appelants qui ont besoin du groupe l'encodent
 eux-mêmes dans `anyArgument`.
 
-## API de `ctld.Menu`
+## API de `ctld.Menu` { #ctldmenu-api }
 
 Toutes les méthodes de mutation retournent une table de statut `{ success = bool, message = string, ... }`
 plutôt que de lever des erreurs (Lua 5.1 n'a pas d'exceptions ; des retours explicites sont plus
@@ -233,7 +233,7 @@ end
 menu:refresh()   -- single atomic, debounced rebuild
 ```
 
-## API de `ctld.MenuManager`
+## API de `ctld.MenuManager` { #ctldmenumanager-api }
 
 | Méthode | Objet |
 | --- | --- |
@@ -250,7 +250,7 @@ La résolution du nom de groupe (`_getGroupName`) itère sur les trois coalition
 correspondre `group:getID()`, car `Group.getByID()` n'existe pas dans l'API de scripting DCS —
 seul `Group.getByName()` est disponible.
 
-## Enregistrement des sections — `CTLDPlayerManager`
+## Enregistrement des sections — `CTLDPlayerManager` { #section-registration-ctldplayermanager }
 
 Le submenu racine `CTLD` et la commande `Check Cargo` sont ajoutés directement par
 `CTLDPlayerManager`. Toute autre section de premier niveau est contribuée par le manager qui la
@@ -301,7 +301,7 @@ figure dans `transportPilotNames` reçoivent un menu CTLD.
 `refreshForUnit(unitName)` et `refreshAll()` déclenchent un rafraîchissement débouncé pour un / tous
 les joueurs suivis.
 
-## Rafraîchissement selon l'état de vol
+## Rafraîchissement selon l'état de vol { #flight-state-refresh }
 
 Les items dont la disponibilité dépend d'être en vol ou au sol (p. ex. `Release Slingload`
 uniquement en l'air, `Load Crate` uniquement au sol) sont basculés via `setBranchEnabled` / des
@@ -332,7 +332,7 @@ fuir des items de menu orphelins). Deux mécanismes pilotent cela :
 | Embarquement/débarquement de troops | Troop : section de menu |
 | Spawn/mort de JTAC | JTAC : branche de commande par JTAC, pour tous les joueurs de la coalition |
 
-## L'arbre de menu F10
+## L'arbre de menu F10 { #the-f10-menu-tree }
 
 L'arbre ci-dessous est le menu CTLD complet tel qu'il est rendu en jeu. Les valeurs d'ordre de
 premier niveau déterminent les positions des touches F ; la visibilité de chaque section dépend des
@@ -357,7 +357,7 @@ CTLD (root, order=10)
 > deux `order=60`, donc l'ordre de rendu entre les deux dépend de la séquence d'initialisation des
 > managers. C'est une lacune connue — l'un devrait être renuméroté (p. ex. FOB → `order=55`).
 
-### Table d'enregistrement des sections
+### Table d'enregistrement des sections { #section-registration-table }
 
 | Section | Manager | Ordre | Contrôle config | Contrôle capacité / état |
 | --- | --- | --- | --- | --- |
@@ -578,7 +578,7 @@ les joueurs de la coalition. Indicateurs de config affectant le menu :
 | `JTAC_allowSmokeRequest` | Affiche/masque « Request Smoke on Target » |
 | `JTAC_allow9Line` | Affiche/masque « Request 9-Line » |
 
-## Ajouter une section de menu à un nouveau module
+## Ajouter une section de menu à un nouveau module { #adding-a-menu-section-to-a-new-module }
 
 1. Dans le `getInstance()` de votre manager (ou, pour une scène chargée tôt, au niveau supérieur du
    module via `CTLDPlayerManager.deferMenuSection`), appelez
@@ -594,7 +594,7 @@ les joueurs de la coalition. Indicateurs de config affectant le menu :
 4. Déclenchez `CTLDPlayerManager.getInstance():refreshForUnit(unitName)` sur tout changement d'état
    qui affecte la visibilité de votre section.
 
-## Contraintes et limites de l'API DCS
+## Contraintes et limites de l'API DCS { #dcs-api-constraints-and-limits }
 
 - **Pas d'API de listing du menu** — DCS ne peut pas rapporter les items de menu existants ; l'arbre
   en mémoire est l'unique source de vérité, validé localement avant tout appel DCS.
@@ -615,7 +615,7 @@ les joueurs de la coalition. Indicateurs de config affectant le menu :
 | Menus simultanés | Illimité (un par groupe) |
 | Fréquence de rafraîchissement | Débouncée à 0.15 s ; rester bien en dessous d'1 refresh/s par groupe |
 
-## Décisions de conception
+## Décisions de conception { #design-decisions }
 
 - **Arbre en mémoire avant application DCS** — permet des reconstructions atomiques, tout ou rien,
   et garde le modèle comme référence.
@@ -628,7 +628,7 @@ les joueurs de la coalition. Indicateurs de config affectant le menu :
 - **Tables de statut, pas d'exceptions** — Lua 5.1 n'a pas de gestion d'exceptions ; les retours
   `{ success, message }` sont plus robustes dans un moteur mono-thread.
 
-## Différences avec la v1
+## Différences avec la v1 { #differences-from-v1 }
 
 | v1 (`old/CTLD_menus.lua`) | v2 |
 | --- | --- |
@@ -639,7 +639,7 @@ les joueurs de la coalition. Indicateurs de config affectant le menu :
 | Nommage de zones PKZ / EXZ | Nommage de zones TRZ (voir la documentation des zones de troops) |
 | Pas d'intégration menu du véhicule entier | Feature Q : véhicules entiers proposés dans Request Equipment |
 
-## Sous-systèmes liés
+## Sous-systèmes liés { #related-subsystems }
 
 - [Suivi des joueurs](players.md) — l'entité `CTLDPlayer` et le cycle de vie de `CTLDPlayerManager`
   qui possède ce menu.

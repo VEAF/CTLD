@@ -10,7 +10,7 @@ apparaissent selon que vous êtes au sol ou en vol, et selon que vous vous trouv
 zone pertinente. Il est reconstruit automatiquement à chaque atterrissage ou décollage, et
 immédiatement après chaque chargement ou dépose.
 
-## Le cycle de transport
+## Le cycle de transport { #the-transport-cycle }
 
 Une sortie typique enchaîne ces étapes. Chacune fait passer le groupe dans un nouvel état :
 
@@ -34,7 +34,7 @@ mission maker — voir [Configuration des zones](../mission-maker/zones.md) et
 > [flux de transport de troops](../assets/troops_transport_flows.svg) et
 > [cycle de vie troop + JTAC](../assets/troops_jtac_lifecycle.svg).
 
-## Le menu F10
+## Le menu F10 { #the-f10-menu }
 
 ```
 CTLD
@@ -64,7 +64,7 @@ configurés pour les largages aériens). Si **Embark / Extract Troops** n'a rien
 êtes à pleine capacité, aucune pickup zone n'est à portée et aucun groupe ami n'est dans le rayon
 d'extraction — l'entrée est grisée.
 
-## Charger des troops
+## Charger des troops { #loading-troops }
 
 Atterrissez dans une pickup zone (`TRZ_`), puis **F10 → CTLD → Troop Commands → Embark / Extract
 Troops → Load from TRZ_&lt;zone&gt;**, et choisissez une équipe. Seules les équipes qui tiennent
@@ -75,7 +75,7 @@ Vous devez réellement être **à l'intérieur** de la zone et au sol, la zone d
 il doit lui rester des troops en stock — sinon le chargement est refusé avec un message expliquant
 pourquoi.
 
-## Débarquer des troops
+## Débarquer des troops { #disembarking-troops }
 
 Avec des troops à bord, **F10 → CTLD → Troop Commands → Disembark Troops**. Ce qui se passe dépend
 de l'endroit où vous vous trouvez :
@@ -105,7 +105,7 @@ Si ces conditions sont réunies, **Disembark Troops** fait descendre l'équipe e
 confirmation indique « fast-roped ... into combat. » Si vous êtes trop haut ou trop rapide, la
 dépose est refusée avec un message vous demandant de descendre en stationnaire ou d'atterrir.
 
-## Extraire depuis le terrain
+## Extraire depuis le terrain { #extracting-from-the-field }
 
 Pour récupérer un groupe déposé plus tôt, atterrissez dans le rayon d'extraction (par défaut
 **125 m**, `maxExtractDistance`) et utilisez **Embark / Extract Troops** :
@@ -121,18 +121,18 @@ redéposer ailleurs.
 Les mission makers peuvent aussi rendre extractables de cette façon des groupes pré-placés sur la
 carte, sans pickup zone — voir [Configuration des zones](../mission-maker/zones.md).
 
-## Parachuter des troops
+## Parachuter des troops { #parachuting-troops }
 
 En vol au-dessus de la zone de largage, **F10 → CTLD → Troop Commands → Parachute Troops** largue
 l'équipe par parachute virtuel (disponible uniquement sur les aéronefs autorisés par la mission aux
 largages aériens). Voir [Parachute](parachute.md) pour l'ensemble des mécaniques de largage.
 
-## Vérifier le chargement
+## Vérifier le chargement { #checking-cargo }
 
 Au sol, **F10 → CTLD → Troop Commands → Check Cargo** rapporte ce que vous transportez — nom de
 l'équipe, nombre de troops et poids, avec une ligne de total lorsque plusieurs groupes sont à bord.
 
-## Transporter plusieurs groupes à la fois
+## Transporter plusieurs groupes à la fois { #carrying-several-groups-at-once }
 
 Vous pouvez charger plus d'une équipe, tant que le nombre total de troops reste dans la capacité de
 votre aéronef. Chaque groupe est suivi séparément. Dès que vous en avez deux ou plus à bord, les
@@ -141,13 +141,13 @@ entrées **Disembark Troops** et **Parachute Troops** se transforment en sous-me
 - **Disembark All** / **Parachute All** — déployer tous les groupes à la suite.
 - **[1] &lt;name&gt;**, **[2] &lt;name&gt;** — déployer un groupe précis.
 
-## Équipes JTAC
+## Équipes JTAC { #jtac-teams }
 
 Certaines équipes incluent un JTAC. Lorsque vous débarquez un tel groupe, le JTAC commence
 automatiquement à illuminer des cibles ; si vous extrayez ou rendez le groupe, son illumination
 s'arrête. Voir [JTAC](jtac.md) pour l'utilisation des JTAC une fois au sol.
 
-## Voir aussi
+## Voir aussi { #see-also }
 
 - [Parachute](parachute.md) — larguer troops et crates par voie aérienne
 - [JTAC](jtac.md) — déployer et utiliser des équipes JTAC

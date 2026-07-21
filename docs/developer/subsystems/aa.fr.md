@@ -53,7 +53,7 @@ Champs d'une pièce :
 `count` est le nombre de **types de pièces uniques** qui doivent être vivants pour que le système
 soit considéré comme complet ; il est vérifié par `countComplete()` et `_rearm()`.
 
-## Injection des crates dans `spawnableCrates`
+## Injection des crates dans `spawnableCrates` { #crate-injection-into-spawnablecrates }
 
 `CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)` est appelée par
 `CTLDCrateManager._processSpawnableCrates()` avant sa boucle principale — à ce moment,
@@ -72,7 +72,7 @@ Une section peut contenir à la fois des entrées de crate déclarées manuellem
 injectées — c'est intentionnel. N'ajoutez **pas** d'entrées de pièces AA à `spawnableCrates` à la
 main, sans quoi elles apparaîtront en double.
 
-## Assemblage, rearm et réparation
+## Assemblage, rearm et réparation { #assembly-rearm-and-repair }
 
 Le contrôleur de menu M7 appelle le point d'entrée unique avant de retomber sur un unpack
 standard :
@@ -109,7 +109,7 @@ le respawn entièrement rearm dans la même disposition, puis détruit le crate 
 respawner sur place un système endommagé, puis détruit le crate de réparation. Si aucun système
 endommagé du template ne se trouve à moins de `_REARM_DIST`, elle signale `Cannot repair …`.
 
-## Géométrie de spawn
+## Géométrie de spawn { #spawn-geometry }
 
 Toutes les pièces sont placées relativement au **transport de déballage**, et non par rapport aux
 positions dispersées des crates (même schéma que `CTLD_fob.lua`). `_computeOrigin(transport)`
@@ -119,7 +119,7 @@ chaque pièce du template un segment d'arc égal afin que les unités ne s'empil
 construit un groupe `Group.Category.GROUND` via `ctld.utils.dynAdd` (en utilisant la convention
 dynAdd `y == world Z`) et renvoie le `Group` DCS résultant.
 
-## Limites de systèmes
+## Limites de systèmes { #system-limits }
 
 `countComplete(coalitionId)` compte les systèmes vivants dans `_completeSystems` qui contiennent
 encore au moins `template.count` types de pièces uniques vivants. `getAllowedCount(coalitionId)`
@@ -134,7 +134,7 @@ renvoie le plafond par coalition défini dans la config :
 
 L'assemblage est refusé avec un message de rupture de pièces lorsque `active + 1 > allowed`.
 
-## Livraison par zone IA (`isAASystem`)
+## Livraison par zone IA (`isAASystem`) { #ai-zone-delivery-isaasystem }
 
 Les transports IA peuvent livrer un système entier sans assemblage de crates. Un dropoff résout
 le type livré via `CTLDZoneManager` (`getTypeAt`), qui tague les templates AA avec
@@ -156,7 +156,7 @@ CTLDCrateAssemblyManager.getInstance():spawnSystemAt(vEntry.type, pt, coa, u:get
 applique la même limite de coalition, construit la disposition en cercle autour de `point`, spawn
 le groupe, l'enregistre dans `_completeSystems` et publie `OnAASystemDeployed`.
 
-## Événements
+## Événements { #events }
 
 Le manager publie sur le [bus d'événements](../events.md) via
 `EventDispatcher.getInstance():publish(...)` :
@@ -170,7 +170,7 @@ Le manager publie sur le [bus d'événements](../events.md) via
 Chaque payload porte `systemName`, `groupName`, `coalition`, `timestamp` et (sauf pour le
 déploiement IA) l'unité `heli` ; les payloads de déploiement incluent également `position`.
 
-## Voir aussi
+## Voir aussi { #related }
 
 - [Crates](crates.md) — spawn/chargement/déchargement des crates et le menu unpack M7 qui pilote l'assemblage
 - [Architecture](../architecture.md) — l'idiome manager/singleton et la séquence d'init

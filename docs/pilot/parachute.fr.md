@@ -6,7 +6,7 @@ parachute vous permet de livrer des crates, des troops et des vehicles tout en r
 survolez le point de largage, actionnez la bonne entrée F10, et CTLD fait descendre le cargo en
 douceur à votre place.
 
-## Utilité
+## Utilité { #utility }
 
 Un largage par parachute est une **livraison en survol**. Tout ce que vous transportez — crates
 CTLD, troops embarquées ou vehicle chargé — quitte l'aéronef à l'instant où vous déclenchez le
@@ -18,9 +18,9 @@ l'altitude.
 La livraison est *virtuelle* : pour les hélicoptères, CTLD calcule où le cargo se pose et l'y
 place après une courte descente, si bien que vous ne verrez pas de voilure 3D sous l'aéronef.
 (Certains transports à voilure fixe utilisent le parachute natif de DCS à la place, avec une vraie
-voilure animée — voir [Comment ça marche](#comment-ca-marche).)
+voilure animée — voir [Comment ça marche](#how-it-works).)
 
-## Comment ça marche
+## Comment ça marche { #how-it-works }
 
 Lorsque vous déclenchez un largage, chaque élément est retiré de l'aéronef immédiatement et
 programmé pour toucher le sol après une descente simulée. Le point d'atterrissage n'est pas

@@ -8,7 +8,7 @@ désignant crates et groupes de troupes **par leur nom** — et l'outil les vali
 Vous n'avez jamais à retrouver le poids d'une crate, et les erreurs sont détectées chez vous (avec
 des suggestions) au lieu de l'être dans DCS.
 
-## Récupérer l'outil
+## Récupérer l'outil { #get-the-tool }
 
 Téléchargez **`ctld-tools.exe`** depuis la page [GitHub Releases](https://github.com/VEAF/CTLD/releases)
 — il est attaché à chaque release. **Pas besoin de Python ni du dossier `src/` de CTLD** : le
@@ -18,7 +18,7 @@ développeur.)
 
 Placez-le où vous voulez ; lancez-le depuis un terminal dans le dossier de votre mission.
 
-## L'éditeur interactif (`ctld-tools tui`) — recommandé
+## L'éditeur interactif (`ctld-tools tui`) — recommandé { #the-interactive-editor-ctld-tools-tui-recommended }
 
 ```
 ctld-tools tui                            # ouvre user-config.yaml ici s'il existe, sinon démarre vide
@@ -57,7 +57,7 @@ Une console plein écran — aucun YAML à écrire, aucune commande à enchaîne
 - **Langue** : l'interface suit la **langue du système** (français ou anglais). Forcez-la avec
   `ctld-tools tui --lang fr` / `--lang en` (ou la variable d'environnement `CTLD_LANG`).
 
-## Le flux en ligne de commande
+## Le flux en ligne de commande { #the-command-line-workflow }
 
 Si vous préférez les scripts ou un pipeline sans interface, les mêmes opérations sont disponibles en
 commandes :
@@ -73,12 +73,12 @@ ctld-tools gen-user  --yaml user-config.yaml --out CTLD_userConfig.lua  # 4. gé
 Le catalogue embarqué est utilisé par défaut. Les développeurs travaillant dans le dépôt peuvent
 ajouter `--src chemin/vers/src` pour résoudre les noms contre un dossier `src/` de CTLD vivant.
 
-## Le format `user-config.yaml`
+## Le format `user-config.yaml` { #the-user-configyaml-format }
 
 Quatre sections optionnelles de premier niveau. **N'incluez que ce que vous changez.** Les crates et
 groupes de troupes sont désignés **par leur nom**.
 
-### `settings` — valeurs simples
+### `settings` — valeurs simples { #settings-simple-values }
 
 ```yaml
 settings:
@@ -86,7 +86,7 @@ settings:
   slingLoad: true
 ```
 
-### `crates` — ajouter / retirer / modifier
+### `crates` — ajouter / retirer / modifier { #crates-add-remove-patch }
 
 ```yaml
 crates:
@@ -104,7 +104,7 @@ crates:
       cratesRequired: 3
 ```
 
-### `troops` — ajouter / retirer / modifier
+### `troops` — ajouter / retirer / modifier { #troops-add-remove-patch }
 
 ```yaml
 troops:
@@ -119,7 +119,7 @@ troops:
       inf: 8
 ```
 
-### `arrays` — ajouter à des réglages de type liste
+### `arrays` — ajouter à des réglages de type liste { #arrays-append-to-list-settings }
 
 ```yaml
 arrays:
@@ -137,7 +137,7 @@ arrays:
         - { section: Support, name: Ural Ammo, unit: Ural-375, side: 1, weight_kg: 2000 }
     ```
 
-## Commandes
+## Commandes { #commands }
 
 | Commande | Rôle |
 |---|---|
@@ -155,7 +155,7 @@ Toutes les commandes utilisent la référence embarquée par défaut ; ajoutez `
 `patch` — a un `weight_kg` unique ; les groupes de troupes et réglages-listes existent. Un nom
 inconnu reçoit une suggestion *« vouliez-vous dire … ? »*.
 
-## Chargement dans l'éditeur de mission
+## Chargement dans l'éditeur de mission { #loading-in-the-mission-editor }
 
 Le `CTLD_userConfig.lua` généré se charge exactement comme le modèle écrit à la main :
 
@@ -164,7 +164,7 @@ Le `CTLD_userConfig.lua` généré se charge exactement comme le modèle écrit 
 
 Le trigger du user-config doit venir **avant** le trigger CTLD.
 
-### Injection automatique (optionnel)
+### Injection automatique (optionnel) { #automatic-injection-optional }
 
 Plutôt que d'ajouter le trigger à la main, `ctld-tools inject` le pose pour vous — un trigger
 MISSION START placé **en premier**, donc exécuté avant votre trigger CTLD. C'est **idempotent**

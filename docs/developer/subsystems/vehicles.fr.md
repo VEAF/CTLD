@@ -35,7 +35,7 @@ end
 (détection de chargement natif, rafraîchissement de l'atterrissage pour packing, indice de vol
 stationnaire).
 
-## Machine à états
+## Machine à états { #state-machine }
 
 `CTLDVehicle.STATE` déclare trois états :
 
@@ -61,7 +61,7 @@ Les transitions réellement effectuées par le code actuel sont :
 afin qu'il puisse être rechargé une fois de retour au sol. `setState(newState)` n'effectue aucune
 validation — la correction incombe aux appelants.
 
-## Méthodes de chargement et déchargement
+## Méthodes de chargement et déchargement { #load-and-unload-methods }
 
 Le chargement et le déchargement portent chacun une chaîne `method` :
 
@@ -73,7 +73,7 @@ Le chargement et le déchargement portent chacun une chaîne `method` :
 | Unload | `dcs_native` | DCS a déjà posé l'unité au sol ; CTLD ne récupère que la référence vivante |
 | Unload | `parachute` | Largage en vol via **Parachute Vehicle** |
 
-## D'où vient un véhicule `WAITING`
+## D'où vient un véhicule `WAITING` { #where-a-waiting-vehicle-comes-from }
 
 Un `CTLDVehicle` chargeable en état `WAITING` est enregistré par l'un de ces chemins :
 
@@ -102,7 +102,7 @@ puis `CTLDJTACManager:startLase(...)`.
 > (order 25) ne spawne jamais que des crates**. Le chargement de véhicules entiers est piloté par
 > le menu Vehicle Commands dédié, à l'encontre de véhicules déjà `WAITING`.
 
-## Pipeline de chargement — `loadVehicle(vehicle, transport, player, method)`
+## Pipeline de chargement — `loadVehicle(vehicle, transport, player, method)` { #load-pipeline-loadvehiclevehicle-transport-player-method }
 
 1. Rejeter sauf si le véhicule est `WAITING`.
 2. Garde-fou de capacité `menu_ctld` : lire `caps.maxWholeVehiclesOnboard` (défaut `1`) depuis
@@ -120,7 +120,7 @@ puis `CTLDJTACManager:startLase(...)`.
 La distance de ramassage maximale n'est **pas** appliquée dans `loadVehicle` ; elle l'est en amont
 dans `findLoadableVehicles` (≤ `maximumDistancePackableUnitsSearch`, défaut 200 m).
 
-## Pipeline de déchargement — `unloadVehicle(vehicle, transport, player, method, rearSector)`
+## Pipeline de déchargement — `unloadVehicle(vehicle, transport, player, method, rearSector)` { #unload-pipeline-unloadvehiclevehicle-transport-player-method-rearsector }
 
 1. Rejeter sauf si le véhicule est `LOADED`.
 2. Calculer une position de spawn avec `_computeSpawnPosition(transport, rearSector)`.
@@ -136,7 +136,7 @@ dans `findLoadableVehicles` (≤ `maximumDistancePackableUnitsSearch`, défaut 2
 > `CTLDObjectRegistry.spawnObject` ; le code actuel respawne via `ctld.utils.dynAdd` et n'utilise
 > pas l'object registry ici.
 
-## Positionnement au spawn
+## Positionnement au spawn { #spawn-positioning }
 
 `_computeSpawnPosition(transport, rearSector)` (wrapper public `computeSafeDropPos`) place l'unité
 dans un secteur de ±45° par rapport au cap du transport — le secteur **avant** par défaut, ou le
@@ -145,7 +145,7 @@ trajectoire de décollage d'un hélicoptère IA. Le décalage radial provient de
 diagonale de la bounding box `sqrt(halfLen² + halfWid²) × 2 + 10` m, avec un repli à 60 m lorsque
 `getDesc().box` est indisponible.
 
-## Chargement de véhicule entier natif DCS — `_checkNativeLoading` (tick 1 s)
+## Chargement de véhicule entier natif DCS — `_checkNativeLoading` (tick 1 s) { #dcs-native-whole-vehicle-loading-_checknativeloading-1-s-tick }
 
 Pour les transports à cargo natif, le chargement est détecté géométriquement plutôt que via un
 menu. À chaque tick :
@@ -164,7 +164,7 @@ La branche de **sortie** de bbox est présente mais actuellement inopérante (la
 chargée ne peut plus être interrogée une fois détruite) ; le déchargement natif est géré via le
 chemin de déchargement `dcs_native` plutôt que par cette boucle.
 
-## Filtrage des chargeables — `findLoadableVehicles` / `_isTypeLoadable`
+## Filtrage des chargeables — `findLoadableVehicles` / `_isTypeLoadable` { #loadable-filtering-findloadablevehicles-_istypeloadable }
 
 `findLoadableVehicles(transport)` retourne les véhicules `WAITING` qu'un transport donné peut
 charger, en appliquant trois filtres par-dessus la porte de capacité :
@@ -178,7 +178,7 @@ charger, en appliquant trois filtres par-dessus la porte de capacité :
 Les références d'unité des véhicules sont résolues paresseusement dans la boucle (`Group.getByName`
 peut avoir une frame de retard sur `coalition.addGroup`).
 
-## Capacités de transport
+## Capacités de transport { #transport-capabilities }
 
 Le comportement des véhicules entiers est piloté par l'entrée `capabilitiesByType` du transport
 (`ctld.gs("capabilitiesByType")`), plus le flag par joueur `canCarryVehicles` :
@@ -191,7 +191,7 @@ Le comportement des véhicules entiers est piloté par l'entrée `capabilitiesBy
 | `canParachuteDrop` | Active l'entrée **Parachute Vehicle** |
 | `useNativeDcsCargoSystem` | Marque le type comme porteur à cargo natif |
 
-## Packing d'un véhicule en crates — `packVehicle`
+## Packing d'un véhicule en crates — `packVehicle` { #packing-a-vehicle-back-into-crates-packvehicle }
 
 `findPackableVehicles(transport)` liste les véhicules `WAITING` gérés par CTLD situés à moins de
 `maximumDistancePackableUnitsSearch` (uniquement les véhicules suivis — jamais des props de scène
@@ -210,7 +210,7 @@ arbitraires). `packVehicle(transportUnitName, packableUnitName, playerObj)` :
 Le rafraîchissement du menu de pack déclenché à l'atterrissage (`_checkPackingLanding`, tick 3 s)
 est conditionné à `ctld.gs("enablePackingVehicles")`.
 
-## Largage en parachute — `parachuteVehicle`
+## Largage en parachute — `parachuteVehicle` { #parachute-drop-parachutevehicle }
 
 Requiert `caps.canParachuteDrop`. Vérifie l'AGL par rapport à `parachuteMinAltitudeVehicles`
 (défaut 30 m) et refuse si trop bas. Résout le véhicule (id explicite, sinon le premier véhicule
@@ -219,14 +219,14 @@ utilisant `parachuteDescentRateVehicles` (défaut 8 m/s), repasse le véhicule �
 `OnVehicleParachuting`, et après le délai de descente le respawne à la position d'atterrissage et
 publie `OnVehicleParachuteLanded` (en reprenant le lasing JTAC le cas échéant).
 
-## Poids de cargo
+## Poids de cargo { #cargo-weight }
 
 `getLoadedVehicleWeight(transportUnitName)` somme `ctld.gs("groundVehicleWeights")` pour les
 véhicules `LOADED` en `menu_ctld` uniquement (défaut 2500 kg par type inconnu) ; le poids
 `dcs_native` est laissé à DCS. `_updateVehicleCargo` délègue à `ctld.utils.updateTransportWeight`,
 qui agrège troops, crates et véhicules en un unique appel `setUnitInternalCargo`.
 
-## Menu F10 — `buildMenuSection`
+## Menu F10 — `buildMenuSection` { #f10-menu-buildmenusection }
 
 Ajouté uniquement lorsque l'unité du joueur possède `canCarryVehicles`. Il crée **Vehicle Commands**
 (`order = 30`) avec trois branches dynamiques :
@@ -245,7 +245,7 @@ et les événements de load/unload eux-mêmes. Un timer d'indice de vol stationn
 (`_checkVehicleHoverHint`, tick 5 s, cooldown de 30 s par joueur) incite un porteur en vol
 stationnaire à se poser au-dessus d'un véhicule `WAITING` voisin.
 
-## Gestion des événements DCS
+## Gestion des événements DCS { #dcs-event-handling }
 
 - **`onDead` (`S_EVENT_DEAD`)** — si l'unité morte est un véhicule suivi, la retirer et publier
   `OnVehicleDead` + `OnGroundUnitRemoved`. Sinon, s'il s'agit d'un transport qui portait des
@@ -253,7 +253,7 @@ stationnaire à se poser au-dessus d'un véhicule `WAITING` voisin.
   `OnVehicleDead` est publié pour lui.
 - **`onBirth` (`S_EVENT_BIRTH`)** — voir la source d'activation retardée ci-dessus.
 
-## Événements publiés
+## Événements publiés { #events-published }
 
 | Événement | Quand |
 | --- | --- |

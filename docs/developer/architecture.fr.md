@@ -1,6 +1,6 @@
 # Architecture
 
-## Structure du dépôt
+## Structure du dépôt { #repository-structure }
 
 ```
 src/                    Source modules (pure Lua 5.1, one class per file)
@@ -27,7 +27,7 @@ migration/
 CTLD.lua                Generated deliverable — never hand-edit (rebuilt from src/)
 ```
 
-## Idiome Manager / singleton
+## Idiome Manager / singleton { #manager-singleton-idiom }
 
 Les classes sont construites avec le micro-framework OOP minimal de `src/core/class.lua` :
 
@@ -61,7 +61,7 @@ end
 
 La configuration est en lecture seule via `ctld.gs("paramName")` — jamais `config:getSetting()`.
 
-## Séquence d'init de `CTLDCoreManager`
+## Séquence d'init de `CTLDCoreManager` { #ctldcoremanager-init-sequence }
 
 `CTLDCoreManager:init()` s'exécute une seule fois au démarrage de la mission et déroule ces phases
 dans l'ordre :
@@ -79,7 +79,7 @@ entrée, et insère le nom du groupe dans `CTLDTroopManager._droppedGroups[coali
 introuvables sont journalisés en `WARN` et ignorés. Il n'y a pas d'activation tardive (iso-legacy)
 ni d'entrée `_droppedTemplates` — `embarkFromField` utilise un repli à 130 kg/unité.
 
-## Ajouter un nouveau module
+## Ajouter un nouveau module { #adding-a-new-module }
 
 1. Créer `src/CTLD_mymodule.lua` en utilisant l'idiome class/singleton ci-dessus (`CTLDMyManager = class()`,
    `_instance`, `getInstance()`).
@@ -94,14 +94,14 @@ L'ordre de merge dans `listToMerge.txt` fait foi : les scenes sont listées apr�
 pour que l'auto-injection de `model.crate` se résolve, et `CTLD_core.lua` (l'orchestrateur) vient
 après les scenes qu'il instancie.
 
-## Bibliothèques internes
+## Bibliothèques internes { #internal-libraries }
 
-### `core/class.lua` — base OOP
+### `core/class.lua` — base OOP { #coreclasslua-oop-base }
 
 Le système de classes à héritage simple utilisé partout dans CTLD (voir l'idiome ci-dessus).
 `class()` crée une classe dont le `__index` est elle-même ; `class(base)` chaîne vers un parent.
 
-### `core/CTLD_objectRegistry.lua` — magasin de descripteurs de spawn
+### `core/CTLD_objectRegistry.lua` — magasin de descripteurs de spawn { #corectld_objectregistrylua-spawn-descriptor-store }
 
 `CTLDObjectRegistry` est un registre statique qui associe des clés de template à des descripteurs de
 spawn de group/unit DCS. Il gère des **descripteurs**, pas des instances.
@@ -115,7 +115,7 @@ CTLDObjectRegistry.spawnObject(key, coa, country, x, z, hdg, opts)
 Les scenes enregistrent les descripteurs de leurs composants au moment du dofile ; les templates de
 troops et de vehicles sont enregistrés par leurs managers à l'init.
 
-### Validation d'assets — au design-time, pas de sonde runtime
+### Validation d'assets — au design-time, pas de sonde runtime { #asset-validation-design-time-not-a-runtime-probe }
 
 CTLD ne **spawn plus** d'objets pour tester la présence d'un type DCS. Les noms de types sont validés
 au dev/CI contre un jeu datamine de types stock vendorisé (`tests/data/dcs_types.lua`) :
@@ -148,7 +148,7 @@ _cfg.settings["modTypes"] = { "Some_Mod_Type" }  -- pour la config crate/troop/A
 
 Helper d'effet visuel de parachute utilisé lors du largage de crates/troops depuis l'altitude.
 
-### `CTLD_utils.lua` — fonctions utilitaires
+### `CTLD_utils.lua` — fonctions utilitaires { #ctld_utilslua-utility-functions }
 
 Fonctions clés disponibles sous `ctld.utils.*` :
 

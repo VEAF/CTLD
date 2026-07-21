@@ -16,7 +16,7 @@ Le code source se trouve dans `src/CTLD_recon.lua`, qui définit deux collaborat
 Voir [Architecture](../architecture.md) pour l'idiome manager/singleton et
 [Événements](../events.md) pour les événements listés ci-dessous.
 
-## Pipeline scan → mark
+## Pipeline scan → mark { #scan-mark-pipeline }
 
 Une session de recon pour un joueur exécute la boucle suivante :
 
@@ -29,7 +29,7 @@ Une session de recon pour un joueur exécute la boucle suivante :
    nouvelles / déplacées / perdues.
 4. Arrêter RECON supprime toutes les marks et annule le timer.
 
-### `scan(playerUnit, player)` — démarrage / re-scan
+### `scan(playerUnit, player)` — démarrage / re-scan { #scanplayerunit-player-start-re-scan }
 
 `scan()` est l'action F10 « RECON [Start] » et il est aussi appelé en interne lors du toggle d'un
 layer pendant qu'un scan est actif (un re-scan avec l'ensemble de layers mis à jour). Il :
@@ -50,7 +50,7 @@ RECON démarre même quand aucun layer n'est activé : le joueur peut activer de
 ensuite, sans redémarrer. Lors d'un démarrage à neuf sans layer, un message d'information est
 affiché ; lors d'un re-scan par toggle de layer, il est supprimé.
 
-### `_scanLOS(playerUnit, enabledLayers, searchRadius)` — cœur LOS
+### `_scanLOS(playerUnit, enabledLayers, searchRadius)` — cœur LOS { #_scanlosplayerunit-enabledlayers-searchradius-los-core }
 
 `_scanLOS()` construit la liste des noms d'unités ennemies (`_getEnemyUnitNames()` couvre `GROUND`,
 `AIRPLANE`, `HELICOPTER`, `SHIP` pour la coalition adverse), puis appelle
@@ -59,7 +59,7 @@ visible, il résout le meilleur layer via `_matchLayer()` et, si ce layer est ac
 enregistrement de cible portant `unit`, `unitName`, `unitType`, `coalition`, `playerCoalition`,
 `position`, `distance` et `layer`.
 
-### Rafraîchissement automatique : `_doRefresh(playerName, unitName, _t)`
+### Rafraîchissement automatique : `_doRefresh(playerName, unitName, _t)` { #auto-refresh-_dorefreshplayername-unitname-_t }
 
 Le callback du timer réexécute `_scanLOS()`, indexe les cibles précédentes par `unitName`, et
 classifie les cibles courantes :
@@ -75,7 +75,7 @@ classifie les cibles courantes :
 Le tick met à jour `scan.targets`, re-synchronise les marks FARP/FOB, se re-planifie lui-même, et
 publie `OnReconScanRefresh` avec le détail complet new/moved/lost.
 
-### Arrêt et toggle
+### Arrêt et toggle { #stop-and-toggle }
 
 - `stopScan()` (F10 « RECON [Stop] ») annule le timer, supprime toutes les marks de cibles et les
   marks FARP/FOB, efface `_activeScans[player]`, et publie `OnReconHideTargets`. Les états
@@ -119,7 +119,7 @@ Le layer `farp_fob` a `filterAttrib = nil` à dessein : `_matchLayer()` ignore l
 `filterAttrib`, car la détection FARP/FOB utilise un pipeline dédié plutôt qu'une correspondance par
 attribut d'unité.
 
-## Cycle de vie du layer FARP/FOB
+## Cycle de vie du layer FARP/FOB { #farpfob-layer-lifecycle }
 
 Les marks FARP/FOB ne suivent pas le cycle de vie des enregistrements de cible. Elles sont gérées par
 `_syncFarpMarks()` et suivies dans `self._farpMarks[player]` (indexé par object id → mark id). La
@@ -138,7 +138,7 @@ watcher supprime l'icône, efface l'entrée, et publie `ReconFarpLost`. Les mark
 et les marks survivent jusqu'à la mort de l'objet ou l'effacement du layer/scan. `_clearFarpMarks()`
 supprime toutes les marks FARP/FOB d'un joueur et annule ses watchers.
 
-## Rendu des icônes
+## Rendu des icônes { #icon-rendering }
 
 `CTLDReconRenderer.createIcon(target, markId)` dispatche sur `target.layer.iconRenderer` vers la
 fonction de dessin correspondante (`drawInfantryIcon`, `drawVehicleIcon`, `drawAAIcon`,
@@ -153,7 +153,7 @@ n'entrent jamais en collision. La taille de l'icône est mise à l'échelle avec
 coalition du joueur, et tous les identifiants de mark proviennent du compteur monotone applicatif
 global `ctld.utils.getNextMarkId()` via `_nextMark()`.
 
-## Menu F10
+## Menu F10 { #f10-menu }
 
 `CTLDReconManager` enregistre une section de menu lors de l'`init()` via
 `CTLDPlayerManager.getInstance():registerMenuSection({ key = "recon", ..., configKey =
@@ -168,13 +168,13 @@ sous-menu `RECON` sous `CTLD` et délègue à `_addReconCommands()`, qui met en 
 Après tout changement d'état (démarrage, arrêt, toggle de layer), `_rebuildReconBranch()` efface la
 branche RECON et ré-ajoute les commandes avec des libellés à jour, puis rafraîchit le menu.
 
-## API de requête
+## API de requête { #query-api }
 
 - `getActiveScan(player)` — l'état du scan courant (`playerUnit`, `coalition`, `targets`, `layers`,
   `autoRefresh`, `refreshTimer`) ou `nil`.
 - `getPlayerLayers(player)` — le tableau de layers du joueur (initialisé paresseusement).
 
-## Événements émis
+## Événements émis { #emitted-events }
 
 | Événement | Quand |
 | --- | --- |
@@ -185,7 +185,7 @@ branche RECON et ré-ajoute les commandes avec des libellés à jour, puis rafra
 | `OnReconLayerToggled` | Un layer est activé/désactivé |
 | `ReconFarpDetected` / `ReconFarpLost` | Une mark FARP/FOB est ajoutée / son objet meurt |
 
-## Clés de configuration
+## Clés de configuration { #configuration-keys }
 
 | Clé | Valeur de repli | Rôle |
 | --- | --- | --- |

@@ -5,7 +5,7 @@ sous-systèmes, son outillage de build et de test, son modèle d'événements, s
 internationalisation et le workflow de développement utilisé pour mener le projet. Si vous
 intégrez CTLD dans une mission plutôt que de le modifier, consultez plutôt le guide Mission Maker.
 
-## Organisation de cette section
+## Organisation de cette section { #how-this-section-is-organised }
 
 | Page | Ce que vous y trouverez |
 | --- | --- |
@@ -20,7 +20,7 @@ intégrez CTLD dans une mission plutôt que de le modifier, consultez plutôt le
 | [Référence API](api-reference.md) | Méthodes publiques de chaque manager |
 | [Spécification de conception](design-spec.md) | La justification derrière l'architecture v2 |
 
-## L'architecture en un coup d'œil
+## L'architecture en un coup d'œil { #architecture-at-a-glance }
 
 CTLD v2 est une **réécriture modulaire et testable** du script monolithique d'origine. Le source
 Lua 5.1 pur vit sous `src/` (une classe par fichier) et est fusionné dans l'unique livrable

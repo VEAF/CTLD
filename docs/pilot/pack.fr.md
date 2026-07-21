@@ -16,7 +16,7 @@ construit pour vous à la volée et n'apparaît que lorsque le pack est réellem
     **Pack Equipt**, c'est qu'il n'y a rien à packer à proximité (ou que votre mission a désactivé
     les deux options de pack).
 
-## Packer un vehicle
+## Packer un vehicle { #packing-a-vehicle }
 
 Tout ground vehicle que vous avez déployé via CTLD — depuis un dépaquetage de crate ou depuis
 **Request Equipment** — peut être replié en crates.
@@ -39,7 +39,7 @@ fallu plusieurs pour la construire. Vous recevez un message de confirmation :
     qu'ils sont inactifs (non taskés). Les unités arbitraires de la carte, les décors et les
     gardes n'apparaissent jamais — le menu reste ainsi épuré.
 
-## Packer une FARP
+## Packer une FARP { #packing-a-farp }
 
 Une scène FARP déployée peut être packée de la même manière, et CTLD **mémorise son carburant**
 pendant le trajet.
@@ -57,7 +57,7 @@ pendant le trajet.
     Seuls les types de FARP que la mission a configurés comme packables peuvent être packés —
     voir le guide Mission Maker ci-dessous.
 
-## Désactiver la fonction
+## Désactiver la fonction { #turning-it-off }
 
 Les deux moitiés de Pack Equipt sont activées par défaut et contrôlées indépendamment par la
 mission :
@@ -71,7 +71,7 @@ mission :
 Si `enablePackingVehicles` et `enableFARPRepack` sont toutes deux désactivées, le sous-menu
 **Pack Equipt** n'apparaît jamais.
 
-## Voir aussi
+## Voir aussi { #see-also }
 
 - [Crates](crates.md) — faire apparaître, charger, larguer et dépaqueter les crates que vous
   récupérez.

@@ -6,7 +6,7 @@ CTLD permet aux équipages d'hélicoptères de transporter des troops, de déplo
 sling-loader des crates, d'opérer des JTAC, et bien plus — le tout piloté par un menu F10 et un
 moteur Lua v2 modulaire.
 
-## Liens rapides
+## Liens rapides { #quick-links }
 
 - [Guide pilote](pilot/index.md) — opérer CTLD depuis le cockpit (menu F10)
 - [Guide mission maker](mission-maker/index.md) — configurer CTLD dans votre mission
@@ -19,7 +19,7 @@ moteur Lua v2 modulaire.
 3. Optionnellement, ajoutez un second trigger chargeant votre `CTLD_userConfig.lua` pour surcharger
    les valeurs par défaut.
 
-## Compatibilité
+## Compatibilité { #compatibility }
 
 - DCS World (toute carte)
 - Lua 5.1 (bac à sable DCS)

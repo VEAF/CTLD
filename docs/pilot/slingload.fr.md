@@ -17,7 +17,7 @@ jamais d'un vrai crochet gréé de votre part.
     crate, votre appareil n'est probablement pas configuré pour cela — voir
     [Configuration](../mission-maker/configuration.md) dans le guide du créateur de mission.
 
-## Accrocher un crate
+## Accrocher un crate { #hooking-a-crate }
 
 Pour accrocher un crate, placez-vous en hover stable directement au-dessus de lui :
 
@@ -47,7 +47,7 @@ Si la mission a désactivé la récupération en hover (`enableHoverSlingload = 
 rebours ne s'exécute jamais. Vous pouvez toujours charger un crate par le sol, via **F10 → CTLD
 → Crate Commands → Load Crate**, tant que `loadCrateFromMenu` est activé.
 
-## Transporter et déposer
+## Transporter et déposer { #carrying-and-dropping }
 
 Une fois un crate accroché, deux entrées apparaissent sous **Crate Commands** — mais **uniquement
 tant que vous êtes en vol avec un sling-load actif** :
@@ -68,14 +68,14 @@ tant que vous êtes en vol avec un sling-load actif** :
   actuelle. Plus vous allez vite, plus il glisse loin de la verticale sous vous. Ralentissez
   avant de couper si vous voulez qu'il atterrisse là où vous l'attendez.
 
-## Restez lent
+## Restez lent { #keep-it-slow }
 
 Il existe une limite de vitesse stricte lorsque vous transportez un crate en sling. Dépassez
 `maxSlingloadSpeed` — **50 m/s, soit environ 180 km/h**, par défaut — et le crate est **arraché
 et perdu**. Vous recevez un avertissement et le crate a disparu. Transportez votre cargo lentement
 et à basse altitude.
 
-## Voir aussi
+## Voir aussi { #see-also }
 
 - [Crates](crates.md) — spawn, chargement depuis le menu, dépose et unpack des crates.
 - [Configuration](../mission-maker/configuration.md) — activer le sling-load par appareil

@@ -5,12 +5,12 @@ trigger zones selon une convention structurée. Pour la plupart des zones, aucun
 nécessaire : CTLD lit le nom de chaque trigger zone au démarrage de la mission, analyse celles
 qui correspondent à un préfixe connu, et les enregistre automatiquement. Les zones de transport
 IA constituent la seule exception — elles sont déclarées dans `CTLD_userConfig.lua` (voir
-[Zones de transport IA](#zones-de-transport-ia-aiz) ci-dessous).
+[Zones de transport IA](#ai-transport-zones-aiz) ci-dessous).
 
 Pour savoir comment les pilotes *utilisent* concrètement ces zones depuis le cockpit, consultez
 le [Guide du pilote](../pilot/index.md).
 
-## Convention de nommage
+## Convention de nommage { #naming-convention }
 
 Le nom d'une zone encode son type et tous ses paramètres, séparés par `_` :
 
@@ -21,7 +21,7 @@ TYPE_name_param1_param2_..._paramN
 > **Règle :** `_` est le séparateur de champ. Il est **interdit à l'intérieur de toute valeur de
 > champ** (nom de zone, nom de flag, etc.). Utilisez `farmmain`, et non `farp_main`.
 
-## Vue d'ensemble des types de zones
+## Vue d'ensemble des types de zones { #zone-types-at-a-glance }
 
 Trois préfixes sont auto-découverts à partir des noms de trigger zones de DCS :
 
@@ -32,11 +32,11 @@ Trois préfixes sont auto-découverts à partir des noms de trigger zones de DCS
 | `LGZ` | Zone logistique — services de crate et de véhicules | `LGZ_<name>_[R\|B\|N]` |
 
 Un quatrième type — les **zones de transport IA (AIZ)** — n'est pas découvert par le nom. Il est
-déclaré entièrement en configuration ; voir [Zones de transport IA](#zones-de-transport-ia-aiz).
+déclaré entièrement en configuration ; voir [Zones de transport IA](#ai-transport-zones-aiz).
 
 > Il n'existe pas de préfixe `EXZ` distinct. Les objectifs d'extract sont une **fonction d'une
 > TRZ** (une zone de troupes avec `stock = 0` et un flag d'objectif), décrite sous
-> [Zones de troupes](#zones-de-troupes-trz).
+> [Zones de troupes](#troop-zones-trz).
 
 **Paramètre de coalition :**
 
@@ -53,7 +53,7 @@ déclaré entièrement en configuration ; voir [Zones de transport IA](#zones-de
 
 ---
 
-## Zones de troupes (TRZ)
+## Zones de troupes (TRZ) { #troop-zones-trz }
 
 Une zone de troupes fournit un **pickup joueur** et/ou un **objectif d'extract**.
 
@@ -72,7 +72,7 @@ invalide — un avertissement est écrit dans `CTLD.log` et la zone est ignorée
 
 > **Mots réservés** — interdits comme `name` ou `flag` : `nil`, `A`, `R`, `B`, `N`.
 
-### Valeurs de stock
+### Valeurs de stock { #stock-values }
 
 | `stock` | Capacité de pickup | Ce que voit le pilote |
 | --- | --- | --- |
@@ -82,7 +82,7 @@ invalide — un avertissement est écrit dans `CTLD.log` et la zone est ignorée
 
 > Utilisez `999` pour un pickup illimité — **pas** `0`. `0` signifie *aucune capacité de pickup*.
 
-### Valeurs de flag et de target
+### Valeurs de flag et de target { #flag-and-target-values }
 
 | `flag` | `target` | Comportement |
 | --- | --- | --- |
@@ -90,7 +90,7 @@ invalide — un avertissement est écrit dans `CTLD.log` et la zone est ignorée
 | un nom de flag | `0` | Objectif actif, sans seuil. CTLD incrémente le flag du nombre de soldats à chaque déploiement de troupes à l'intérieur. |
 | un nom de flag | `N≥1` | Objectif avec seuil. CTLD incrémente le flag ; **c'est vous** qui écrivez le trigger de victoire DCS `flag >= N`. CTLD initialise le flag à `0` au démarrage de la mission et ne termine jamais la mission de lui-même. |
 
-### Exemples
+### Exemples { #examples }
 
 | Nom de zone | Coalition | Stock | Flag | Target | Comportement |
 | --- | --- | --- | --- | --- | --- |
@@ -131,7 +131,7 @@ Voir [Transport de troupes](../pilot/troop-transport.md) pour le workflow côté
 
 ---
 
-## Zones de waypoint (WPZ)
+## Zones de waypoint (WPZ) { #waypoint-zones-wpz }
 
 Quand des troupes sont déployées (fast-rope ou dépose au sol) en un point qui tombe **à
 l'intérieur** d'une WPZ active, elles marchent automatiquement vers le **centre** de cette zone au
@@ -151,7 +151,7 @@ Le rayon de la zone est repris de l'éditeur de trigger zone de DCS.
 
 ---
 
-## Zones logistiques (LGZ)
+## Zones logistiques (LGZ) { #logistic-zones-lgz }
 
 Une zone logistique définit une base où les pilotes peuvent spawner et packer des crates et des
 véhicules depuis le menu F10. Un pilote doit se trouver à l'intérieur d'une zone logistique pour
@@ -173,7 +173,7 @@ utiliser ces services.
 Voir [Catalogue des crates](crates-catalogue.md) pour ce qui peut être spawné, et
 [Crates](../pilot/crates.md) pour le workflow du pilote.
 
-### Zones logistiques créées à l'exécution
+### Zones logistiques créées à l'exécution { #logistic-zones-created-at-runtime }
 
 La seule façon d'ajouter une nouvelle zone logistique pendant une mission en cours est de
 **déployer une FOB**. Quand la construction de la FOB est terminée, CTLD enregistre
@@ -182,7 +182,7 @@ automatiquement une zone logistique circulaire centrée sur le site de la FOB (r
 de config n'est requise. Voir [Scenes & FOB](scenes-fob.md) pour le cycle de vie complet de la
 FOB, y compris comment une FOB détruite retire sa zone logistique.
 
-### Désactivation et réactivation d'une zone logistique
+### Désactivation et réactivation d'une zone logistique { #deactivating-and-reactivating-a-logistic-zone }
 
 Utilisez l'API `CTLDZoneManager` depuis un trigger **DO SCRIPT** pour simuler une capture de zone
 ou une perte temporaire. Cela fonctionne à la fois pour les trigger zones `LGZ_` et pour les zones
@@ -200,7 +200,7 @@ La zone reste enregistrée et peut être basculée autant de fois que souhaité.
 
 ---
 
-## Zones de transport IA (AIZ)
+## Zones de transport IA (AIZ) { #ai-transport-zones-aiz }
 
 Les zones AIZ contrôlent le comportement automatique des **transports IA** (unités listées dans
 `transportPilotNames`). Les joueurs humains ne sont jamais affectés par elles.
@@ -219,7 +219,7 @@ Les zones AIZ contrôlent le comportement automatique des **transports IA** (uni
 
 Une zone peut être pickup uniquement, drop-off uniquement, ou les deux.
 
-### Déclaration en config
+### Déclaration en config { #config-declaration }
 
 Les zones sont déclarées dans `_cfg.settings["aiZones"]`, un tableau d'entrées :
 
@@ -255,7 +255,7 @@ _cfg.settings["aiZones"] = {
 }
 ```
 
-### Paramètres
+### Paramètres { #parameters }
 
 | Paramètre | Type | Requis | Description |
 | --- | --- | --- | --- |
@@ -273,7 +273,7 @@ _cfg.settings["aiZones"] = {
 > `troopStock` et `vehicleStock` sont des **tables**, pas de simples entiers. Le stock par template
 > / par type a remplacé l'ancienne forme à entier unique.
 
-### Configuration du transport IA
+### Configuration du transport IA { #ai-transport-setup }
 
 1. Créez des trigger zones dans le ME (nom quelconque, rayon adapté à l'atterrissage).
 2. Déclarez-les dans `_cfg.settings["aiZones"]` (ci-dessus).
@@ -293,7 +293,7 @@ _cfg.settings["aiZones"] = {
 > et qu'au moins un aéronef a `canTransportWholeVehicle = true`. Voir
 > [Configuration](configuration.md) pour les poids et les capacités.
 
-### Rapport de validation
+### Rapport de validation { #validation-report }
 
 Au démarrage de la mission, CTLD valide chaque entrée `aiZones` et, s'il y a quoi que ce soit à
 signaler, affiche à l'écran (30 s) et dans `CTLD.log` une liste groupée d'erreurs et
@@ -312,7 +312,7 @@ pickup+drop-off).
 
 ---
 
-## Configuration de zone héritée (legacy)
+## Configuration de zone héritée (legacy) { #legacy-zone-configuration }
 
 Les missions construites à la manière classique de CTLD v1 — noms de zones listés dans des tables
 de config plutôt qu'analysés depuis les noms de trigger — restent supportées. Le caractère `_`

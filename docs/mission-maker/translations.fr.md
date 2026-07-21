@@ -10,7 +10,7 @@ les traducteurs maintiennent les dictionnaires, comment contribuer une nouvelle 
 consultez le [guide d'internationalisation](../developer/i18n.md) dans la documentation
 développeur. Cette page ne couvre que ce dont un mission maker a besoin.
 
-## Langues disponibles
+## Langues disponibles { #available-languages }
 
 CTLD est livré avec quatre dictionnaires intégrés :
 
@@ -24,7 +24,7 @@ CTLD est livré avec quatre dictionnaires intégrés :
 L'anglais est la référence : il contient toujours toutes les chaînes, il sert donc de repli
 chaque fois qu'une traduction manque.
 
-## Choisir la langue
+## Choisir la langue { #choosing-the-language }
 
 La langue active est sélectionnée en haut de `src/CTLD_i18n.lua`. Décommentez la seule ligne
 souhaitée et laissez les autres en commentaire :
@@ -40,7 +40,7 @@ Une seule ligne doit être active à la fois ; la valeur par défaut est `en`. C
 dans son propre fichier, séparé de la logique principale, afin qu'un traducteur non développeur
 puisse le modifier sans toucher au moindre script.
 
-## Comment fonctionne le repli
+## Comment fonctionne le repli { #how-fallback-works }
 
 Vous n'avez jamais à vous soucier d'un message vide ou manquant. Si une chaîne est absente ou
 vide dans la langue active, CTLD bascule automatiquement, dans l'ordre :
@@ -51,7 +51,7 @@ vide dans la langue active, CTLD bascule automatiquement, dans l'ordre :
 
 Un message n'est **jamais** vide ni `nil`.
 
-## Redéfinir des chaînes spécifiques
+## Redéfinir des chaînes spécifiques { #overriding-specific-strings }
 
 Vous pouvez modifier n'importe quelle chaîne depuis votre mission — sans avoir à éditer un
 fichier source de CTLD. Déclarez `ctld.i18n_overrides` dans votre `CTLD_userConfig.lua` :
@@ -78,7 +78,7 @@ dictionnaires intégrés. Vous pouvez redéfinir n'importe quelle langue indépe
 qui est active — vous pouvez par exemple ajuster la formulation anglaise tout en faisant tourner
 la mission en français.
 
-## Pages liées
+## Pages liées { #related-pages }
 
 - [Configuration](configuration.md) — réglages globaux et capacités par appareil
 - [Configuration des zones](zones.md) — zones de troupes, logistique, extraction et waypoint

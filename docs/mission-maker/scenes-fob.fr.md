@@ -19,7 +19,7 @@ mettre en scène une construction réaliste — une FARP qui se matérialise pi�
 mines qui se déploie — sans scripting spécifique à chaque mission : vous utilisez soit une scene
 intégrée, soit vous déclarez un modèle de scene une seule fois.
 
-### Scenes intégrées
+### Scenes intégrées { #built-in-scenes }
 
 Celles-ci sont livrées avec CTLD et sont prêtes à être proposées aux pilotes. Chacune déclare
 elle-même sa crate, elle apparaît donc automatiquement dans le menu **Request Equipment** une fois
@@ -32,7 +32,7 @@ CTLD chargé (aucune config supplémentaire).
 | `mineField` | 1 | Dispose une grille configurable de mines terrestres devant l'hélicoptère, marquée sur la carte F10. Voir [Champ de mines](minefield.md). |
 | `FOB` | 3 | Forward Operating Base : une construction animée qui se termine en logistics zone. Voir [FOB](#fob-forward-operating-base) ci-dessous. |
 
-### Scènes plugin
+### Scènes plugin { #plugin-scenes }
 
 Certaines scènes ne sont pas embarquées dans `CTLD.lua` — généralement parce qu'elles dépendent d'un
 **mod** DCS. Elles vivent dans le dépôt séparé
@@ -53,7 +53,7 @@ Pour ajouter une scène plugin à votre mission :
 > auparavant intégré ; les missions qui l'utilisaient doivent maintenant charger le plugin Metal
 > FARP comme ci-dessus.
 
-### Comment une scene est construite
+### Comment une scene est construite { #how-a-scene-is-built }
 
 Un modèle de scene est une table avec un `name`, une `crate` auto-déclarée optionnelle et une liste
 ordonnée de `steps`. Chaque step est d'un des trois types.
@@ -63,7 +63,7 @@ position et au cap de l'hélicoptère (capturés au moment de l'unpack).
 
 | Champ | Type | Description |
 |---|---|---|
-| `registryKey` | string | Clé de l'objet à spawn (voir [Objects](#objects-le-registry)) |
+| `registryKey` | string | Clé de l'objet à spawn (voir [Objects](#objects-the-registry)) |
 | `polar` | table | `{ distance=N, angle=N }` — distance en mètres, angle en degrés dans le sens horaire depuis le cap de l'appareil (`0` = midi) |
 | `relativeHeadingInDegrees` | number | Cap de l'objet spawné relatif au cap de l'appareil |
 | `relativeAltitudeInMeters` | number | Décalage d'altitude par rapport à l'altitude de l'hélicoptère |
@@ -112,7 +112,7 @@ Chaque hook reçoit une unique table de contexte `ctx` :
 Un modèle de scene peut aussi définir `model.onComplete = function(scene) ... end`, appelé une fois
 le dernier step terminé.
 
-### Objects : le registry
+### Objects : le registry { #objects-the-registry }
 
 Les steps de scene référencent les objets par un `registryKey` qui se résout via
 **`CTLDObjectRegistry`** — un catalogue de descripteurs DCS enrichis (fréquence de helipad,
@@ -134,7 +134,7 @@ objets communs (`SINGLE_HELIPAD`, `Fuel_Truck`, `FARP_Tent`, `ammo_cargo`, `Wind
 `NF-2_LightOn`…) sans conflit. Vérifiez tout `type` DCS par rapport au dataset datamine avant de vous
 y fier.
 
-### Déclarer une scene personnalisée
+### Déclarer une scene personnalisée { #declaring-a-custom-scene }
 
 **Étape 1 — enregistrez les objets** que vos steps utilisent (comme ci-dessus), s'ils ne sont pas
 déjà dans le registry.
@@ -187,7 +187,7 @@ la cible et font l'unpack — la scene se joue automatiquement.
 > table de contexte **`func(ctx)`** et une **table `crate` auto-déclarée** sur le modèle. Mettez à
 > jour les anciens scripts de scene en conséquence.
 
-### Pack de FARP
+### Pack de FARP { #farp-pack }
 
 Lorsque `enableFARPRepack = true` (par défaut), un pilote au sol à moins de **300 m** d'une scene de
 FARP déployée qui supporte le pack obtient une entrée **Pack Equipt → Pack `<scene name>`** sous
@@ -246,7 +246,7 @@ Le FOB est livré comme la scene intégrée **`FOB`** : une construction animée
 termine en enregistrant la base. Il nécessite **3 crates de FOB** par défaut (défini sur la table
 `crate` de la scene, pas dans un réglage global).
 
-### Déroulé de la construction (côté pilote)
+### Déroulé de la construction (côté pilote) { #build-flow-pilot-side }
 
 1. Le pilote charge les crates de FOB requises et vole jusqu'à la zone cible.
 2. L'unpack est déclenché depuis le menu F10 (**Crate Commands → Unpack Crate(s)** avec des crates de
@@ -259,7 +259,7 @@ termine en enregistrant la base. Il nécessite **3 crates de FOB** par défaut (
 
 Les pilotes peuvent lister les FOB actifs via **CTLD → FOBs List → List active FOBs**.
 
-### Destruction d'un FOB
+### Destruction d'un FOB { #fob-destruction }
 
 Si une action ennemie détruit suffisamment de structures de FOB pour que la fraction survivante passe
 sous `(1 - fobDestructionThreshold)`, le FOB est considéré comme détruit : sa logistics zone est
@@ -300,7 +300,7 @@ cfg.settings["fobTroopPickupRadius"]    = 150
 > la scene. Les anciennes docs référençaient `cratesRequiredForFOB` et `buildTimeFOB` ; ces réglages
 > n'existent plus.
 
-### Événements
+### Événements { #events }
 
 | Événement | Déclenché quand |
 |---|---|

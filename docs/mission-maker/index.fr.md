@@ -4,7 +4,7 @@ Cette section s'adresse aux **concepteurs de mission** — comment ajouter CTLD 
 configurer dans l'éditeur de mission de DCS et le fichier `CTLD_userConfig.lua`. Si vous souhaitez
 *piloter* CTLD depuis le cockpit (le menu F10), consultez plutôt le [Guide du pilote](../pilot/index.md).
 
-## Pour commencer
+## Pour commencer { #getting-started }
 
 1. Ajoutez `CTLD.lua` à votre mission avec un déclencheur **DO SCRIPT FILE**.
 2. Ajoutez éventuellement un second déclencheur **DO SCRIPT FILE** qui charge votre
@@ -14,7 +14,7 @@ configurer dans l'éditeur de mission de DCS et le fichier `CTLD_userConfig.lua`
 Tous les réglages sont lus via `ctld.gs("paramName")` à l'exécution ; vous les définissez dans
 `CTLD_userConfig.lua` (`_cfg.settings[...]`).
 
-## Sujets de configuration
+## Sujets de configuration { #configuration-topics }
 
 | Page | Ce que vous configurez |
 | --- | --- |

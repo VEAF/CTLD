@@ -7,7 +7,7 @@ réservé aux contacts ennemis. Les actifs amis (FOB que vous possédez, zones l
 [beacons](beacons.md) radio) ne sont jamais affichés ici ; ils vivent dans leurs propres
 menus.
 
-## Ce que le recon vous permet de faire
+## Ce que le recon vous permet de faire { #what-recon-lets-you-do }
 
 Vous choisissez quelles catégories de contact vous intéressent (infanterie, véhicules,
 défense antiaérienne, avions, hélicoptères, navires, FARP/FOB ennemis), vous lancez un scan,
@@ -17,7 +17,7 @@ si bien que les contacts apparaissent, se déplacent et disparaissent de la cart
 la situation évolue. Les marques n'appartiennent qu'à vous — elles ne sont dessinées que pour
 votre coalition.
 
-## Comment ça marche
+## Comment ça marche { #how-it-works }
 
 - **Ligne de visée.** Un scan ne révèle que les unités ennemies que votre aéronef peut
   réellement voir. Le relief, l'horizon et le rayon de scan limitent tous ce qui remonte —
@@ -53,7 +53,7 @@ puis activer des layers sans redémarrer.
 **Activation :** F10 → CTLD → RECON → **RECON [Start]** (puis **RECON [Stop]** pour
 terminer).
 
-### Bascules de layers
+### Bascules de layers { #layer-toggles }
 
 **Utilité :** afficher ou masquer une catégorie de contact. Chaque layer a sa propre entrée
 dont le libellé vous indique ce qu'un clic va faire — `[activate]` quand le layer est
@@ -74,7 +74,7 @@ Layers disponibles, dans l'ordre du menu :
 - Ships
 - FARP / FOB
 
-## Layers et icônes
+## Layers et icônes { #layers-and-icons }
 
 Chaque layer dessine une forme distincte pour que vous lisiez la catégorie d'un coup d'œil,
 tandis que la **couleur de l'icône suit le camp de l'unité détectée** — rouge pour RED, bleu

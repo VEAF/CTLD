@@ -30,7 +30,7 @@ quitte l'appareil, de sorte que les smokes larguées *avant* d'activer l'auto-re
 en compte elles aussi.
 
 - **[activate]** → le label bascule sur **[deactivate]**, et toutes vos smokes suivies sont
-  redéclenchées à intervalle fixe (voir [configuration côté mission](#configuration-cote-mission)).
+  redéclenchées à intervalle fixe (voir [configuration côté mission](#mission-configuration)).
 - **[deactivate]** → le label rebascule sur **[activate]**, vos positions de smoke enregistrées
   sont effacées, et toute smoke en train de brûler s'éteint simplement d'elle-même.
 
@@ -40,7 +40,7 @@ Un court message confirme le changement : `Smoke auto-resume ON (270s interval)`
 **Activation :** F10 → CTLD → Smoke → **Smoke Auto-Resume [activate]** /
 **Smoke Auto-Resume [deactivate]**
 
-## Configuration côté mission
+## Configuration côté mission { #mission-configuration }
 
 Le sous-menu Smoke n'apparaît que sur les **transport aircraft** dont la mission a activé la
 fonctionnalité, et l'intervalle d'auto-resume est fixé par la mission — pas par vous dans le
