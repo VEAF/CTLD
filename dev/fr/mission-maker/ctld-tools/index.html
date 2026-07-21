@@ -2196,8 +2196,17 @@ des suggestions) au lieu de l'être dans DCS.</p>
 catalogue de référence (crates, groupes de troupes, types d'unités DCS) est <strong>embarqué dans
 l'outil</strong>. (Les développeurs peuvent aussi le lancer depuis les sources avec <code>poetry</code> ; voir la doc
 développeur.)</p>
-<p>Placez-le où vous voulez ; lancez-le depuis un terminal dans le dossier de votre mission.</p>
+<p>Placez-le dans le dossier de votre mission. <strong>Double-cliquez dessus</strong> pour ouvrir directement
+l'éditeur interactif, ou lancez-le depuis un terminal.</p>
+<div class="admonition warning">
+<p class="admonition-title">Débloquez d'abord le .exe (Windows)</p>
+<p>Windows peut bloquer les fichiers <code>.exe</code> téléchargés depuis Internet. Si l'outil ne démarre pas,
+cliquez droit sur <code>ctld-tools.exe</code> → <strong>Propriétés</strong> → onglet <strong>Général</strong> → cochez <strong>Débloquer</strong> en
+bas de la fenêtre → <strong>OK</strong>.</p>
+</div>
 <h2 id="the-interactive-editor-ctld-tools-tui-recommended">L'éditeur interactif (<code>ctld-tools tui</code>) — recommandé<a class="headerlink" href="#the-interactive-editor-ctld-tools-tui-recommended" title="Permanent link">&para;</a></h2>
+<p><strong>Double-cliquer <code>ctld-tools.exe</code></strong> ouvre directement cet éditeur (aucun argument requis). Depuis un
+terminal :</p>
 <div class="highlight"><pre><span></span><code>ctld-tools tui                            # ouvre user-config.yaml ici s&#39;il existe, sinon démarre vide
 ctld-tools tui --yaml chemin/vers/autre.yaml  # ou pointer un autre fichier
 </code></pre></div>
@@ -2214,7 +2223,9 @@ ctld-tools tui --yaml chemin/vers/autre.yaml  # ou pointer un autre fichier
   plutôt qu'en faisant défiler. Quand vous choisissez un réglage, sa <strong>valeur par défaut est affichée
   et pré-remplie</strong>, vous partez donc de la vraie valeur par défaut. Pour un réglage <strong>vrai/faux</strong>, ou
   à <strong>valeurs prédéfinies</strong> (ex. <code>JTAC_lock</code> : all / vehicle / troop), vous <strong>choisissez la valeur
-  dans une liste</strong> au lieu de la taper.</li>
+  dans une liste</strong> au lieu de la taper. Chaque réglage affiche une courte <strong>description</strong> (dans votre
+  langue), et vous pouvez <strong>la chercher</strong> — tapez un mot de la description, pas seulement le nom du
+  réglage.</li>
 <li><strong>Modifications non enregistrées</strong> : quitter avec des modifications non sauvegardées demande
   confirmation et rappelle quand vous avez enregistré pour la dernière fois.</li>
 <li><strong>Validation en direct</strong> : chaque modification est vérifiée immédiatement contre le catalogue

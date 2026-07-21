@@ -2195,8 +2195,17 @@ in DCS.</p>
 — it is attached to each release. <strong>No Python and no CTLD <code>src/</code> folder needed</strong>: the reference
 catalogue (crates, troop groups, DCS unit types) is <strong>embedded in the tool</strong>. (Developers can also
 run it from source with <code>poetry</code>; see the developer docs.)</p>
-<p>Put it anywhere; run it from a terminal in your mission folder.</p>
+<p>Put it in your mission folder. <strong>Double-click it</strong> to open the interactive editor directly, or run it
+from a terminal.</p>
+<div class="admonition warning">
+<p class="admonition-title">Unblock the .exe first (Windows)</p>
+<p>Windows may block <code>.exe</code> files downloaded from the internet. If the tool doesn't start,
+right-click <code>ctld-tools.exe</code> → <strong>Properties</strong> → <strong>General</strong> tab → check <strong>Unblock</strong> at the bottom
+→ <strong>OK</strong>.</p>
+</div>
 <h2 id="the-interactive-editor-ctld-tools-tui-recommended">The interactive editor (<code>ctld-tools tui</code>) — recommended<a class="headerlink" href="#the-interactive-editor-ctld-tools-tui-recommended" title="Permanent link">&para;</a></h2>
+<p><strong>Double-clicking <code>ctld-tools.exe</code></strong> opens this editor directly (no arguments needed). From a
+terminal:</p>
 <div class="highlight"><pre><span></span><code>ctld-tools tui                           # opens user-config.yaml here if it exists, else starts empty
 ctld-tools tui --yaml path/to/other.yaml # or point at another file
 </code></pre></div>
@@ -2211,7 +2220,9 @@ ctld-tools tui --yaml path/to/other.yaml # or point at another file
   troop group / <strong>setting</strong> by name, by typing a few letters instead of scrolling. When you pick a
   setting, its <strong>default value is shown and pre-filled</strong>, so you edit from the real default. For a
   <strong>true/false</strong> setting, or one with a <strong>fixed set of values</strong> (e.g. <code>JTAC_lock</code>: all / vehicle /
-  troop), you <strong>pick the value from a list</strong> rather than typing it.</li>
+  troop), you <strong>pick the value from a list</strong> rather than typing it. Each setting shows a short
+  <strong>description</strong> (in your language), and you can <strong>search by it</strong> — type a word from the description,
+  not just the setting name.</li>
 <li><strong>Unsaved changes</strong>: quitting with unsaved edits asks for confirmation and reminds you when you
   last saved.</li>
 <li><strong>Live validation</strong>: every edit is checked instantly against the embedded catalogue, with inline
