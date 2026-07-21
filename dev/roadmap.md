@@ -28,7 +28,7 @@ Contexte (émergé du grill TUI) : deux points liés.
    rattrapé par le test-en-DCS. `logDefaults` reste (debug power-user). Décision David (2026-07-20) :
    pas maintenant, à faire en lot séparé.
 
-<!-- ctld-tools — mode TUI interactif : formalisé en lot `.backlog/CTLD-TOOLS-TUI/` (grill-with-docs, 2026-07-20). -->
+<!-- ctld-tools — mode TUI interactif : livré (lot CTLD-TOOLS-TUI, PR #52). -->
 
 ## ctld-tools — descriptions des settings dans la TUI
 
