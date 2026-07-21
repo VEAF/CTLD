@@ -301,7 +301,11 @@ describe("CTLDi18n", function()
             ctld.i18n_lang = origLang
             ctld.i18n["en"]["__TESTKEY__"] = nil
             ctld.i18n["fr"]["__TESTKEY__"] = nil
+            -- Restore a clean, defaults-loaded singleton so later specs don't inherit a
+            -- nil instance or our test's user-config.
+            ctld.yamlConfigDatas = nil
             CTLDConfig._instance = nil
+            CTLDConfig.get():load()
         end)
 
         it("uses en by default (no user-config, global 'en')", function()
