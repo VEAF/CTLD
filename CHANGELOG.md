@@ -8,6 +8,47 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — ctld-tools: interactive TUI + embedded reference (CTLD-TOOLS-TUI)
+
+- **`ctld-tools tui`**: a full-screen **textual** console for Mission Makers — a structured editor of
+  the `user-config.yaml` (settings / crates / troops / arrays) with **filter-as-you-type pickers**
+  (DCS types, catalogue crates/troops), **live validation**, and **save / generate / inject** in one
+  place. Generation is refused while any validation error remains.
+- **Actions**: three buttons — **Add / Remove / Patch** — each followed by a type chooser (only the
+  valid object kinds), then a guided form. **Edit** a tree entry (`e`) reopens its form pre-filled to
+  fix it in place; **delete** (with confirmation); **undo / redo** (Ctrl+Z / Ctrl+Y). **Patch** now
+  works on troop groups too.
+- **Settings help**: Set setting picks from the ~108 scalar settings via a filterable picker, showing
+  and pre-filling each setting's default; an unknown setting is flagged (warning, with a suggestion).
+  The embedded reference bundle now carries the scalar settings and their defaults. Boolean and
+  fixed-value settings are chosen from a **list** (true/false, or an enum such as `JTAC_lock`); the
+  allowed values come from a new authoring schema `src/CTLD_config_schema.yaml` (additive, not used
+  by the build), folded into the embedded bundle.
+- **Unsaved-changes guard**: quitting the TUI with unsaved edits asks for confirmation and shows how
+  long ago the last save was.
+- **Crate weight uniqueness on patch**: validation now also flags a `patch` that re-weights a crate
+  onto an already-used weight (previously only `add` was checked); `gen-user` maps a patch's
+  `weight_kg` to the runtime `weight` key, as `add` already did.
+- **Fixed file names**: Save always writes the same `user-config.yaml` and Generate the canonical
+  `CTLD_userConfig.lua` beside it (no path prompt); the TUI **auto-loads** `user-config.yaml` on
+  start if it exists. Inject opens a **file browser** (DirectoryTree filtered to `.miz`) to pick the
+  mission.
+- **Internationalisation (EN + FR)**: the TUI and the validation messages follow the **OS language**;
+  force it with `--lang` or `CTLD_LANG`. Tiny stdlib layer (flat JSON catalogs, `data/locales/`),
+  modelled on VMCT.
+- **Runtime**: new `ctld.patchTroopGroup(name, patch)` helper in `CTLD_userSetup.lua` (mirrors
+  `patchCrate`), so a troop group can be patched by name from the `user-config`.
+- **Embedded reference**: the catalogue is now bundled in the tool (`ctld_tools/data/reference.json`,
+  generated from `src/` by the new `gen-reference` build step and committed, golden-tested for
+  parity). `Reference.from_embedded()` is the default for `validate` / `gen-user` / `tui`, so the MM
+  needs **only the `.exe`** — no CTLD `src/`. `--src` stays as a dev override.
+- **lupa is now build-time-only** (moved to the `dev` group, imported lazily): the MM `.exe` ships
+  without lupa or the native Lua binary. Only `gen-reference` / `gen-config` / `extract` use it.
+- Edit logic (`EditModel`) and the picker filter are pure modules, unit-tested independently of the
+  textual UI; a Pilot smoke test proves the UI↔model wiring. See [ADR 0009](dev/adr/0009-external-yaml-authoring-ctld-tools.md).
+- Docs: `mission-maker/ctld-tools.md` (EN + FR) gains the interactive-editor section and the
+  embedded-reference note (`--src` no longer required).
+
 ### Tooling — ctld-tools: automatic `.miz` injection (CTLD-TOOLS-MIZ-INJECT)
 
 - **`ctld-tools inject`**: inserts a generated `CTLD_userConfig.lua` into a `.miz` as a **MISSION

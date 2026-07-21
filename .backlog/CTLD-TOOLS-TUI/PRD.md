@@ -1,4 +1,4 @@
-Status: ready
+Status: done
 
 # PRD — CTLD-TOOLS-TUI
 
@@ -139,3 +139,40 @@ suite; dcs-bridge's `test_client_tui.py` for the textual `app.run_test()` + Pilo
 - The embedded-reference shift benefits the whole tool (usable without `src/`), not just the TUI, and
   is the prerequisite ticket.
 - Only ctld-tools roadmap item after this: none — `modTypes`/companion is the follow-up lot above.
+
+## Amendment (2026-07-21, post-first-run review)
+
+After trying the TUI, four enhancements were agreed and folded into the same lot/PR:
+
+1. **i18n (EN + FR)** following the OS language, forced by `--lang` / `CTLD_LANG` — modelled on VMCT
+   (stdlib layer, flat JSON catalogs). Covers the TUI **and** the validation findings.
+2. **Undo / redo** in the edit model (snapshot stack), bound to Ctrl+Z / Ctrl+Y.
+3. **Delete a tree entry** (with confirmation) — distinct from the catalogue-level `remove`.
+4. **Patch troop group** — adds a `ctld.patchTroopGroup` runtime helper (this **intentionally
+   extends the runtime API**, superseding the "no runtime API change" line above for this one
+   symmetric helper) and a 3-button **Add / Remove / Patch → type chooser** ergonomics.
+5. **Settings help** — Set setting is a filterable picker over the ~108 scalar settings, showing and
+   pre-filling each default; unknown settings are flagged (warning). The embedded reference bundle
+   gains `scalarSettings` (name → default).
+6. **Value pickers for settings** — booleans and fixed-value settings are chosen from a list (not
+   typed). Allowed values come from a new **authoring schema** `src/CTLD_config_schema.yaml`
+   (additive, NOT consumed by the build — keeps gen-config/extract/parity untouched), folded into
+   the embedded bundle by `gen-reference`. This file is also the intended home for the per-setting
+   **descriptions** (the earlier roadmap item), so that follow-up needs no new plumbing.
+7. **Unsaved-changes guard** — the edit model tracks a `dirty` flag; quitting the TUI while dirty
+   asks for confirmation and reports how long ago the last save was.
+8. **Default value highlighted** — in Set setting, the default is shown bold in the label and the
+   default option is marked "(default)" in the bool/enum lists.
+9. **Fixed file names + auto-load** — Save/Generate no longer prompt for a path (canonical
+   `user-config.yaml` / `CTLD_userConfig.lua`); the TUI auto-loads `user-config.yaml` on start if it
+   exists. Only Inject prompts (the `.miz`).
+10. **Edit a tree entry** (`e`) — reopens the matching form pre-filled with the current values and
+    updates the entry in place (via `EditModel.update_entry`), so a mistake (e.g. a crate added
+    without a name) can be corrected instead of deleted and re-entered. Covers all six entry kinds.
+11. **Weight uniqueness on patch** — a `patch` that changes a crate's weight is validated for
+    collision (excluding the target's own current weight), and `gen-user` maps the patch's
+    `weight_kg` to the runtime `weight` key. Uniqueness on `add` was already covered (now also
+    locked by a test for two same-weight adds).
+12. **File browser for inject** — Inject opens a `DirectoryTree` modal filtered to `.miz` files
+    (rooted at the user-config's folder) instead of a free-text path prompt. `PathPrompt` removed
+    (Save/Generate use fixed names).

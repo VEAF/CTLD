@@ -9,3 +9,6 @@ build/
 coverage.xml
 .coverage
 *.spec
+# MM working files if the tool is run from this dir
+user-config.yaml
+CTLD_userConfig.lua

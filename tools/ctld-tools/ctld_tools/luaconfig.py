@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import lupa
+# lupa is imported lazily inside the functions below: it is a build-time dependency
+# (this module runs CTLD_config.lua), and importing luaconfig must not pull it in — the
+# MM .exe ships without lupa and never reaches these functions.
 
 # Identity translator: keep the raw i18n key (do not resolve/translate).
 IDENTITY_TR = "function(key, default) return default or key end"
@@ -34,6 +36,8 @@ def _to_py(value):
     (Lua 5.x makes no array/dict distinction, so a `{[1]=..,[2]=..}` table maps
     to a list — semantically identical once regenerated for Lua 5.1.)
     """
+    import lupa
+
     if lupa.lua_type(value) != "table":
         return value
     keys = list(value.keys())
@@ -52,6 +56,8 @@ def load_default_settings(src_dir: str | Path, tr: str = IDENTITY_TR, inject_aa:
     `inject_aa` runs CTLDCrateAssemblyManager.injectAACrates() so `spawnableCrates`
     includes the AA-system crate sections (needed to resolve/validate AA crate names).
     """
+    import lupa
+
     src = str(src_dir).replace("\\", "/")
     if not src.endswith("/"):
         src += "/"

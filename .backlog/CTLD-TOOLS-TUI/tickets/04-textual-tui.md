@@ -1,6 +1,6 @@
 # 04 — Textual TUI app (the console)
 
-Status: 🧑 planned
+Status: ✅ done
 Type: AFK
 Repo: CTLD
 

@@ -28,7 +28,16 @@ Contexte (émergé du grill TUI) : deux points liés.
    rattrapé par le test-en-DCS. `logDefaults` reste (debug power-user). Décision David (2026-07-20) :
    pas maintenant, à faire en lot séparé.
 
-<!-- ctld-tools — mode TUI interactif : formalisé en lot `.backlog/CTLD-TOOLS-TUI/` (grill-with-docs, 2026-07-20). -->
+<!-- ctld-tools — mode TUI interactif : livré (lot CTLD-TOOLS-TUI, PR #52). -->
+
+## ctld-tools — descriptions des settings dans la TUI
+
+Le picker « Set setting » de la TUI affiche le nom et la **valeur par défaut** des ~108 settings, mais
+pas de **description**. Le fichier `src/CTLD_config_schema.yaml` (ajouté au lot TUI pour les `choices`)
+est prévu pour accueillir une clé `description:` par setting — la plomberie existe déjà (chargée dans
+le bundle embarqué). Candidat lot : rédiger ces descriptions (EN+FR), idéalement **extraites de la doc
+mission-maker existante** (`configuration.md`) plutôt que réinventées. Décision David (2026-07-21) :
+hors périmètre du lot TUI, à traiter séparément.
 
 <!-- DEV-LOCAL-MIZ — formalisé en lot `.backlog/DEV-LOCAL-MIZ/` (grill-with-docs, 2026-07-19). -->
 

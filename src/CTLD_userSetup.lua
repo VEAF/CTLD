@@ -130,6 +130,34 @@ function ctld.removeTroopGroup(name)
     return false
 end
 
+--- Patch an infantry group template found by name. Shallow merge at the top level,
+-- plus a one-level deep merge for table-valued fields — mirrors patchCrate, so a
+-- single field can be changed without rewriting the whole group.
+---@param name string
+---@param patch table
+---@return boolean patched
+function ctld.patchTroopGroup(name, patch)
+    local groups = _settings()["loadableGroups"]
+    if type(groups) == "table" then
+        for _, g in ipairs(groups) do
+            if g.name == name then
+                for k, v in pairs(patch or {}) do
+                    if type(v) == "table" and type(g[k]) == "table" then
+                        for kk, vv in pairs(v) do
+                            g[k][kk] = vv
+                        end
+                    else
+                        g[k] = v
+                    end
+                end
+                return true
+            end
+        end
+    end
+    ctld.logWarning("ctld.patchTroopGroup: no group named '%s' — nothing patched", tostring(name))
+    return false
+end
+
 --- Append an entry to an array-type setting (transportPilotNames, troopZones,
 -- wpZones, extractableGroups, logisticUnits, ...).
 ---@param settingName string

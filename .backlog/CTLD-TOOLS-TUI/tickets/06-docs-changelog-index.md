@@ -1,6 +1,6 @@
 # 06 — Docs, CHANGELOG, index
 
-Status: 🧑 planned
+Status: ✅ done
 Type: AFK
 Repo: CTLD
 

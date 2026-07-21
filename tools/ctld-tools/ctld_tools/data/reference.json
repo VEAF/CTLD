@@ -1,0 +1,702 @@
+{
+  "loadableGroups": [
+    {
+      "at": 2,
+      "inf": 6,
+      "mg": 2,
+      "name": "Standard Group"
+    },
+    {
+      "aa": 3,
+      "inf": 2,
+      "name": "Anti Air"
+    },
+    {
+      "at": 6,
+      "inf": 2,
+      "name": "Anti Tank"
+    },
+    {
+      "mortar": 6,
+      "name": "Mortar Squad"
+    },
+    {
+      "inf": 4,
+      "jtac": 1,
+      "name": "JTAC Group"
+    },
+    {
+      "inf": 4,
+      "jtac": 2,
+      "name": "JTAC Group 2"
+    },
+    {
+      "jtac": 1,
+      "name": "Single JTAC"
+    },
+    {
+      "at": 4,
+      "inf": 12,
+      "mg": 4,
+      "name": "2x - Standard Groups"
+    },
+    {
+      "aa": 6,
+      "inf": 4,
+      "name": "2x - Anti Air"
+    },
+    {
+      "at": 12,
+      "inf": 4,
+      "name": "2x - Anti Tank"
+    },
+    {
+      "at": 4,
+      "inf": 12,
+      "mg": 4,
+      "mortar": 12,
+      "name": "2x - Standard Groups + 2x Mortar"
+    },
+    {
+      "at": 6,
+      "inf": 18,
+      "mg": 6,
+      "name": "3x - Standard Groups"
+    },
+    {
+      "aa": 9,
+      "inf": 6,
+      "name": "3x - Anti Air"
+    },
+    {
+      "at": 18,
+      "inf": 6,
+      "name": "3x - Anti Tank"
+    },
+    {
+      "mortar": 18,
+      "name": "3x - Mortar Squad"
+    },
+    {
+      "mortar": 30,
+      "name": "5x - Mortar Squad"
+    }
+  ],
+  "scalarSettings": {
+    "AASystemCrateStacking": false,
+    "AASystemLimitBLUE": 20,
+    "AASystemLimitRED": 20,
+    "CIV_WEIGHT": 2,
+    "JTAC_LIMIT_BLUE": 10,
+    "JTAC_LIMIT_RED": 10,
+    "JTAC_WEIGHT": 15,
+    "JTAC_allow9Line": true,
+    "JTAC_allowSmokeRequest": true,
+    "JTAC_allowStandbyMode": true,
+    "JTAC_droneAltitude": 4000,
+    "JTAC_droneRadius": 1000,
+    "JTAC_dropEnabled": true,
+    "JTAC_jtacStatusF10": true,
+    "JTAC_laseIntervalSeconds": 15,
+    "JTAC_laseSpotCorrections": true,
+    "JTAC_location": true,
+    "JTAC_lock": "all",
+    "JTAC_maxDistance": 10000,
+    "JTAC_searchIntervalSeconds": 10,
+    "JTAC_smokeColour_BLUE": 1,
+    "JTAC_smokeColour_RED": 4,
+    "JTAC_smokeMarginOfError": 50,
+    "JTAC_smokeOffset_x": 0.0,
+    "JTAC_smokeOffset_y": 2.0,
+    "JTAC_smokeOffset_z": 0.0,
+    "JTAC_smokeOn_BLUE": false,
+    "JTAC_smokeOn_RED": false,
+    "JTAC_targetDeconfliction": true,
+    "KIT_WEIGHT": 20,
+    "MANPAD_WEIGHT": 18,
+    "MG_WEIGHT": 10,
+    "MORTAR_WEIGHT": 26,
+    "RIFLE_WEIGHT": 5,
+    "RPG_WEIGHT": 7.6,
+    "SOLDIER_WEIGHT": 80,
+    "aaLaunchers": 3,
+    "addPlayerAircraftByType": true,
+    "allowRandomAiTeamPickups": false,
+    "autoUnpackRadiusParachute": 1000,
+    "beaconAutoRefreshLayer": false,
+    "beaconIconRadius": 25,
+    "beaconLayerEnabled": false,
+    "beaconRefreshInterval": 60,
+    "beaconTextSize": 12,
+    "crateSpacing": 5,
+    "ctldLogPath": "",
+    "debug": false,
+    "debugScreenLog": false,
+    "debugScreenLogDuration": 10,
+    "demineRadius": 150,
+    "deployedBeaconBattery": 30,
+    "disableAllSmoke": false,
+    "dynamicZoneRadius": 200,
+    "enableAllCrates": true,
+    "enableAutoOrbitingFlyingJtacOnTarget": true,
+    "enableCrates": true,
+    "enableFARPRepack": true,
+    "enableFastRopeInsertion": true,
+    "enableHoverSlingload": true,
+    "enablePackingVehicles": true,
+    "enableSmokeDrop": true,
+    "enabledFOBBuilding": true,
+    "enabledRadioBeaconDrop": true,
+    "fastRopeMaximumHeight": 18.28,
+    "fobDestructionThreshold": 0.5,
+    "fobLogisticZoneRadius": 150,
+    "fobMinDistanceFromZones": 500,
+    "fobTroopPickupRadius": 150,
+    "groundAglThreshold": 5.0,
+    "hoverTime": 10,
+    "loadCrateFromMenu": true,
+    "location_DMS": false,
+    "maxDistanceFromCrate": 5.5,
+    "maxDropHeight": 7.5,
+    "maxExtractDistance": 125,
+    "maxSlingloadSpeed": 50,
+    "maxTransportWeight": 0,
+    "maximumDistanceLogistic": 200,
+    "maximumDistancePackableUnitsSearch": 200,
+    "maximumHoverHeight": 12.0,
+    "maximumSearchDistance": 3000,
+    "minimumHoverHeight": 7.5,
+    "numberOfTroops": 10,
+    "parachuteDescentRateCrates": 5,
+    "parachuteDescentRateTroops": 5,
+    "parachuteDescentRateVehicles": 8,
+    "parachuteInertiaFactor": 0.3,
+    "parachuteLateralDriftMax": 80,
+    "parachuteLateralDriftMin": 10,
+    "parachuteMinAltitudeCrates": 152,
+    "parachuteMinAltitudeTroops": 152,
+    "parachuteMinAltitudeVehicles": 152,
+    "radioSound": "beacon.ogg",
+    "radioSoundFC3": "beaconsilent.ogg",
+    "reconEnabled": false,
+    "reconF10Menu": true,
+    "reconIconScale": 1.0,
+    "reconMinAltitude": 50,
+    "reconRefreshInterval": 10,
+    "reconSearchRadius": 5000,
+    "showMinefieldOnF10Map": true,
+    "slingLoad": false,
+    "smokeAutoResume": false,
+    "smokeAutoResumeInterval": 270,
+    "smokeRefreshInterval": 300,
+    "spawnDistanceInCircle": 10,
+    "troopPickupAtFOB": true
+  },
+  "settingSchema": {
+    "JTAC_lock": {
+      "choices": [
+        "all",
+        "vehicle",
+        "troop"
+      ]
+    }
+  },
+  "spawnableCrates": {
+    "Artillery": [
+      {
+        "cratesRequired": 3,
+        "desc": "MLRS",
+        "side": 2,
+        "unit": "MLRS",
+        "weight": 1002.01
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "SpGH DANA",
+        "side": 2,
+        "unit": "SpGH_Dana",
+        "weight": 1002.02
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "T155 Firtina",
+        "side": 2,
+        "unit": "T155_Firtina",
+        "weight": 1002.03
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "Howitzer",
+        "side": 2,
+        "unit": "M-109",
+        "weight": 1002.04
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "SPH 2S19 Msta",
+        "side": 1,
+        "unit": "SAU Msta",
+        "weight": 1002.11
+      }
+    ],
+    "Combat Vehicles": [
+      {
+        "cratesRequired": 3,
+        "desc": "Humvee - MG",
+        "side": 2,
+        "unit": "M1043 HMMWV Armament",
+        "weight": 1000.01
+      },
+      {
+        "cratesRequired": 5,
+        "desc": "Humvee - TOW",
+        "side": 2,
+        "unit": "M1045 HMMWV TOW",
+        "weight": 1000.02
+      },
+      {
+        "cratesRequired": 2,
+        "desc": "Light Tank - MRAP",
+        "side": 2,
+        "unit": "MaxxPro_MRAP",
+        "weight": 1000.03
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "Med Tank - LAV-25",
+        "side": 2,
+        "unit": "LAV-25",
+        "weight": 1000.04
+      },
+      {
+        "cratesRequired": 4,
+        "desc": "Heavy Tank - Abrams",
+        "side": 2,
+        "unit": "M-1 Abrams",
+        "weight": 1000.05
+      },
+      {
+        "cratesRequired": 8,
+        "desc": "BTR-D",
+        "side": 1,
+        "unit": "BTR_D",
+        "weight": 1000.11
+      },
+      {
+        "cratesRequired": 7,
+        "desc": "BRDM-2",
+        "side": 1,
+        "unit": "BRDM-2",
+        "weight": 1000.12
+      }
+    ],
+    "Drone": [
+      {
+        "desc": "MQ-9 Repear - JTAC",
+        "isJTAC": true,
+        "side": 2,
+        "spawnAs": "AIRPLANE",
+        "specificParams": {
+          "alti": 3000,
+          "orbitRadiusNoLase": 2000,
+          "orbitRadiusOnLase": 1000,
+          "speed": 150
+        },
+        "unit": "MQ-9 Reaper",
+        "weight": 1006.01
+      },
+      {
+        "desc": "RQ-1A Predator - JTAC",
+        "isJTAC": true,
+        "side": 1,
+        "spawnAs": "AIRPLANE",
+        "specificParams": {
+          "alti": 3000,
+          "orbitRadiusNoLase": 2000,
+          "orbitRadiusOnLase": 1000,
+          "speed": 150
+        },
+        "unit": "RQ-1A Predator",
+        "weight": 1006.11
+      }
+    ],
+    "SAM long range": [
+      {
+        "cratesRequired": 1,
+        "desc": "Patriot Launcher",
+        "side": 2,
+        "unit": "Patriot ln",
+        "weight": 1005.01
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "Patriot Radar",
+        "side": 2,
+        "unit": "Patriot str",
+        "weight": 1005.02
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "Patriot ECS",
+        "side": 2,
+        "unit": "Patriot ECS",
+        "weight": 1005.03
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "Patriot AMG (optional)",
+        "side": 2,
+        "unit": "Patriot AMG",
+        "weight": 1005.06
+      },
+      {
+        "desc": "Patriot - All crates",
+        "mixedSet": [
+          1005.01,
+          1005.02,
+          1005.03
+        ],
+        "side": 2
+      },
+      {
+        "_repairFor": "Patriot AA System",
+        "cratesRequired": 1,
+        "desc": "Patriot Repair",
+        "side": 2,
+        "weight": 1005.07
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "S-300 Grumble TEL C",
+        "side": 1,
+        "unit": "S-300PS 5P85C ln",
+        "weight": 1005.11
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "S-300 Grumble Flap Lid-A TR",
+        "side": 1,
+        "unit": "S-300PS 40B6M tr",
+        "weight": 1005.12
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "S-300 Grumble Clam Shell SR",
+        "side": 1,
+        "unit": "S-300PS 40B6MD sr",
+        "weight": 1005.13
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "S-300 Grumble Big Bird SR",
+        "side": 1,
+        "unit": "S-300PS 64H6E sr",
+        "weight": 1005.14
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "S-300 Grumble C2",
+        "side": 1,
+        "unit": "S-300PS 54K6 cp",
+        "weight": 1005.15
+      },
+      {
+        "desc": "S-300 - All crates",
+        "mixedSet": [
+          1005.11,
+          1005.12,
+          1005.13,
+          1005.14,
+          1005.15
+        ],
+        "side": 1
+      },
+      {
+        "_repairFor": "S-300 AA System",
+        "cratesRequired": 1,
+        "desc": "S-300 Repair",
+        "side": 1,
+        "weight": 1005.16
+      }
+    ],
+    "SAM mid range": [
+      {
+        "cratesRequired": 1,
+        "desc": "HAWK Launcher",
+        "side": 2,
+        "unit": "Hawk ln",
+        "weight": 1004.01
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "HAWK Search Radar",
+        "side": 2,
+        "unit": "Hawk sr",
+        "weight": 1004.02
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "HAWK Track Radar",
+        "side": 2,
+        "unit": "Hawk tr",
+        "weight": 1004.03
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "HAWK PCP",
+        "side": 2,
+        "unit": "Hawk pcp",
+        "weight": 1004.04
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "HAWK CWAR",
+        "side": 2,
+        "unit": "Hawk cwar",
+        "weight": 1004.05
+      },
+      {
+        "desc": "HAWK - All crates",
+        "mixedSet": [
+          1004.01,
+          1004.02,
+          1004.03
+        ],
+        "side": 2
+      },
+      {
+        "_repairFor": "HAWK AA System",
+        "cratesRequired": 1,
+        "desc": "HAWK Repair",
+        "side": 2,
+        "weight": 1004.06
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "NASAMS Launcher 120C",
+        "side": 2,
+        "unit": "NASAMS_LN_C",
+        "weight": 1004.11
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "NASAMS Search/Track Radar",
+        "side": 2,
+        "unit": "NASAMS_Radar_MPQ64F1",
+        "weight": 1004.12
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "NASAMS Command Post",
+        "side": 2,
+        "unit": "NASAMS_Command_Post",
+        "weight": 1004.13
+      },
+      {
+        "desc": "NASAMS - All crates",
+        "mixedSet": [
+          1004.11,
+          1004.12,
+          1004.13
+        ],
+        "side": 2
+      },
+      {
+        "_repairFor": "NASAMS AA System",
+        "cratesRequired": 1,
+        "desc": "NASAMS Repair",
+        "side": 2,
+        "weight": 1004.14
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "BUK Launcher",
+        "side": 1,
+        "unit": "SA-11 Buk LN 9A310M1",
+        "weight": 1004.31
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "BUK Search Radar",
+        "side": 1,
+        "unit": "SA-11 Buk SR 9S18M1",
+        "weight": 1004.32
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "BUK CC Radar",
+        "side": 1,
+        "unit": "SA-11 Buk CC 9S470M1",
+        "weight": 1004.33
+      },
+      {
+        "desc": "BUK - All crates",
+        "mixedSet": [
+          1004.31,
+          1004.32,
+          1004.33
+        ],
+        "side": 1
+      },
+      {
+        "_repairFor": "BUK AA System",
+        "cratesRequired": 1,
+        "desc": "BUK Repair",
+        "side": 1,
+        "weight": 1004.34
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "KUB Launcher",
+        "side": 1,
+        "unit": "Kub 2P25 ln",
+        "weight": 1004.21
+      },
+      {
+        "cratesRequired": 1,
+        "desc": "KUB Radar",
+        "side": 1,
+        "unit": "Kub 1S91 str",
+        "weight": 1004.22
+      },
+      {
+        "desc": "KUB - All crates",
+        "mixedSet": [
+          1004.21,
+          1004.22
+        ],
+        "side": 1
+      },
+      {
+        "_repairFor": "KUB AA System",
+        "cratesRequired": 1,
+        "desc": "KUB Repair",
+        "side": 1,
+        "weight": 1004.23
+      }
+    ],
+    "SAM short range": [
+      {
+        "cratesRequired": 3,
+        "desc": "M1097 Avenger",
+        "side": 2,
+        "unit": "M1097 Avenger",
+        "weight": 1003.01
+      },
+      {
+        "cratesRequired": 2,
+        "desc": "M48 Chaparral",
+        "side": 2,
+        "unit": "M48 Chaparral",
+        "weight": 1003.02
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "Roland ADS",
+        "side": 2,
+        "unit": "Roland ADS",
+        "weight": 1003.03
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "Gepard AAA",
+        "side": 2,
+        "unit": "Gepard",
+        "weight": 1003.04
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "LPWS C-RAM",
+        "side": 2,
+        "unit": "HEMTT_C-RAM_Phalanx",
+        "weight": 1003.05
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "9K33 Osa",
+        "side": 1,
+        "unit": "Osa 9A33 ln",
+        "weight": 1003.11
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "9P31 Strela-1",
+        "side": 1,
+        "unit": "Strela-1 9P31",
+        "weight": 1003.12
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "9K35M Strela-10",
+        "side": 1,
+        "unit": "Strela-10M3",
+        "weight": 1003.13
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "9K331 Tor",
+        "side": 1,
+        "unit": "Tor 9A331",
+        "weight": 1003.14
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "2K22 Tunguska",
+        "side": 1,
+        "unit": "2S6 Tunguska",
+        "weight": 1003.15
+      }
+    ],
+    "Support": [
+      {
+        "cratesRequired": 2,
+        "desc": "Hummer - JTAC",
+        "isJTAC": true,
+        "side": 2,
+        "unit": "Hummer",
+        "weight": 1001.01
+      },
+      {
+        "cratesRequired": 2,
+        "desc": "M-818 Ammo Truck",
+        "side": 2,
+        "unit": "M 818",
+        "weight": 1001.02
+      },
+      {
+        "cratesRequired": 2,
+        "desc": "M-978 Tanker",
+        "side": 2,
+        "unit": "M978 HEMTT Tanker",
+        "weight": 1001.03
+      },
+      {
+        "desc": "SKP-11 - JTAC",
+        "isJTAC": true,
+        "side": 1,
+        "unit": "SKP-11",
+        "weight": 1001.11
+      },
+      {
+        "cratesRequired": 2,
+        "desc": "Ural-375 Ammo Truck",
+        "side": 1,
+        "unit": "Ural-375",
+        "weight": 1001.12
+      },
+      {
+        "cratesRequired": 2,
+        "desc": "KAMAZ Ammo Truck",
+        "side": 1,
+        "unit": "KAMAZ Truck",
+        "weight": 1001.13
+      },
+      {
+        "cratesRequired": 3,
+        "desc": "EWR Radar",
+        "unit": "FPS-117",
+        "weight": 1001.21
+      }
+    ]
+  }
+}
