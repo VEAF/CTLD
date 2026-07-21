@@ -1,6 +1,6 @@
 # 02 — User-config edit model (pure, testable)
 
-Status: 🧑 planned
+Status: ✅ done
 Type: AFK
 Repo: CTLD
 

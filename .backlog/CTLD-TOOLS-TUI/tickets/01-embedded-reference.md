@@ -1,6 +1,6 @@
 # 01 — Embedded reference catalogue (lupa build-time-only)
 
-Status: 🧑 planned
+Status: ✅ done
 Type: AFK
 Repo: CTLD
 

@@ -58,7 +58,8 @@ def _operations(cfg: dict, ref: Reference) -> list[str]:
     for entry in crates.get("patch") or []:
         target = entry.get("name", entry.get("weight"))
         weight, _ = ref.resolve_crate(target)
-        patch = {k: v for k, v in entry.items() if k not in ("name", "weight")}
+        # Map weight_kg -> weight (the runtime crate key), as _crate_add_entry does for add.
+        patch = {("weight" if k == "weight_kg" else k): v for k, v in entry.items() if k not in ("name", "weight")}
         lines.append(f"    ctld.patchCrate({weight}, {_render_value(patch, 1)})  -- {target}")
 
     troops = cfg.get("troops") or {}
@@ -66,6 +67,10 @@ def _operations(cfg: dict, ref: Reference) -> list[str]:
         lines.append(f"    ctld.addTroopGroup({_render_value(entry, 1)})")
     for name in troops.get("remove") or []:
         lines.append(f"    ctld.removeTroopGroup({_lua_str(name)})")
+    for entry in troops.get("patch") or []:
+        name = entry.get("name")
+        patch = {k: v for k, v in entry.items() if k != "name"}
+        lines.append(f"    ctld.patchTroopGroup({_lua_str(name)}, {_render_value(patch, 1)})")
 
     for setting, items in (cfg.get("arrays") or {}).items():
         for item in items:
@@ -98,9 +103,9 @@ def render_user_config(cfg: dict, ref: Reference) -> str:
     return "\n".join(lines) + "\n"
 
 
-def generate_user_file(yaml_path: str | Path, src_dir: str | Path, out_path: str | Path) -> None:
+def generate_user_file(yaml_path: str | Path, out_path: str | Path, src: str | Path | None = None) -> None:
     from ctld_tools.validate import load_user_config
 
     cfg = load_user_config(yaml_path)
-    ref = Reference.from_src(src_dir)
+    ref = Reference.from_src(src) if src else Reference.from_embedded()
     Path(out_path).write_text(render_user_config(cfg, ref), encoding="utf-8", newline="\n")

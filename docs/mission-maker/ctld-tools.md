@@ -1,8 +1,9 @@
 # Configuring CTLD with `ctld-tools`
 
-`ctld-tools` is a small command-line tool that lets you configure CTLD **without writing Lua**. You
-describe your changes in a short **`user-config.yaml`** — referring to crates and troop groups **by
-name** — and the tool validates it and generates the `CTLD_userConfig.lua` your mission loads.
+`ctld-tools` lets you configure CTLD **without writing Lua**. You describe your changes — referring
+to crates and troop groups **by name** — and the tool validates them and generates the
+`CTLD_userConfig.lua` your mission loads. There are two ways to use it: an **interactive editor**
+(the `tui` command, recommended) or a **command-line workflow** over a `user-config.yaml`.
 
 You never look up crate weights, and mistakes are caught at your desk (with suggestions) instead of
 in DCS.
@@ -10,23 +11,61 @@ in DCS.
 ## Get the tool
 
 Download **`ctld-tools.exe`** from the [GitHub Releases](https://github.com/VEAF/CTLD/releases) page
-— it is attached to each release. No Python needed. (Developers can also run it from source with
-`poetry`; see the developer docs.)
+— it is attached to each release. **No Python and no CTLD `src/` folder needed**: the reference
+catalogue (crates, troop groups, DCS unit types) is **embedded in the tool**. (Developers can also
+run it from source with `poetry`; see the developer docs.)
 
 Put it anywhere; run it from a terminal in your mission folder.
 
-## The workflow
+## The interactive editor (`ctld-tools tui`) — recommended
 
 ```
-ctld-tools gen-user --scaffold --out user-config.yaml          # 1. commented starter
-#   ... edit user-config.yaml ...                              # 2. describe your changes
-ctld-tools validate  --yaml user-config.yaml --src path/to/src # 3. check it
-ctld-tools gen-user  --yaml user-config.yaml --src path/to/src --out CTLD_userConfig.lua  # 4. generate
+ctld-tools tui                           # opens user-config.yaml here if it exists, else starts empty
+ctld-tools tui --yaml path/to/other.yaml # or point at another file
+```
+
+A full-screen console — no YAML to write, no commands to chain:
+
+- **Structured editor**: your config is laid out by section (**settings**, **crates**, **troops**,
+  **arrays**), with live validation on the right.
+- **Add / Remove / Patch**: three buttons drive everything. Pick the action, then the kind of thing
+  (crate, troop group, setting, array), then fill a guided form. **Patch** works on both crates and
+  troop groups (change one field, keep the rest).
+- **Filter-as-you-type pickers**: choose a crate's `unit` from the ~1100 DCS types, or a crate /
+  troop group / **setting** by name, by typing a few letters instead of scrolling. When you pick a
+  setting, its **default value is shown and pre-filled**, so you edit from the real default. For a
+  **true/false** setting, or one with a **fixed set of values** (e.g. `JTAC_lock`: all / vehicle /
+  troop), you **pick the value from a list** rather than typing it.
+- **Unsaved changes**: quitting with unsaved edits asks for confirmation and reminds you when you
+  last saved.
+- **Live validation**: every edit is checked instantly against the embedded catalogue, with inline
+  errors and *"did you mean …?"* suggestions.
+- **Edit a line**: select an entry in the tree and press **e** to reopen its form pre-filled — fix a
+  mistake (e.g. a crate added without a name) instead of deleting and re-entering everything.
+- **Delete a line**: select an entry in the tree and press **Delete** to remove it (with a
+  confirmation) — handy to drop something you just added.
+- **Undo / redo**: **Ctrl+Z** / **Ctrl+Y** step through your edits.
+- **All in one place**: **Save** (always the same `user-config.yaml`, no prompt), **Generate** the
+  `CTLD_userConfig.lua` next to it (its name is fixed — CTLD requires it), or **Inject** it straight
+  into a `.miz` (pick the mission in a **file browser** that lists only `.miz` files) — from the same
+  screen. Generation is refused while any error remains, so you never ship a broken config.
+- **Language**: the interface follows your **system language** (English or French). Force it with
+  `ctld-tools tui --lang en` / `--lang fr` (or the `CTLD_LANG` environment variable).
+
+## The command-line workflow
+
+If you prefer scripts or a headless pipeline, the same operations are available as commands:
+
+```
+ctld-tools gen-user --scaffold --out user-config.yaml   # 1. commented starter
+#   ... edit user-config.yaml ...                        # 2. describe your changes
+ctld-tools validate  --yaml user-config.yaml             # 3. check it
+ctld-tools gen-user  --yaml user-config.yaml --out CTLD_userConfig.lua  # 4. generate
 #   ... load CTLD_userConfig.lua before CTLD.lua in the Mission Editor ...   # 5. use it
 ```
 
-`--src` points at the CTLD `src/` folder (the reference catalogue): the tool reads it to resolve
-names, and to know which crates, troop groups and DCS unit types exist.
+The embedded catalogue is used by default. Developers working in the repo can add `--src path/to/src`
+to resolve names against a live CTLD `src/` folder instead.
 
 ## The `user-config.yaml` format
 
@@ -59,7 +98,7 @@ crates:
       cratesRequired: 3
 ```
 
-### `troops` — add / remove
+### `troops` — add / remove / patch
 
 ```yaml
 troops:
@@ -69,6 +108,9 @@ troops:
       jtac: 1
   remove:
     - 5x - Mortar Squad
+  patch:
+    - name: Standard Group   # change one field, keep the rest
+      inf: 8
 ```
 
 ### `arrays` — append to list settings
@@ -93,13 +135,17 @@ arrays:
 
 | Command | What it does |
 |---|---|
+| `tui [--yaml user-config.yaml]` | Launch the interactive editor (recommended). |
 | `gen-user --scaffold --out user-config.yaml` | Write a commented starter file. |
-| `validate --yaml user-config.yaml --src src` | Check the file; prints findings, exits non-zero on error. |
-| `gen-user --yaml user-config.yaml --src src --out CTLD_userConfig.lua` | Compile to Lua (runs `validate` first, refuses on error). |
+| `validate --yaml user-config.yaml` | Check the file; prints findings, exits non-zero on error. |
+| `gen-user --yaml user-config.yaml --out CTLD_userConfig.lua` | Compile to Lua (runs `validate` first, refuses on error). |
 | `inject --miz mission.miz --userconfig CTLD_userConfig.lua [--out out.miz]` | Inject the generated Lua into a `.miz` as a MISSION START trigger (optional — see below). |
 
+All commands use the embedded reference by default; add `--src path/to/src` (dev only) to resolve
+against a live CTLD `src/` folder.
+
 **What validation checks:** every `unit` is a real DCS type; a crate you `remove`/`patch` exists
-(and is unambiguous); a crate you `add` has a unique `weight_kg`; troop groups and array settings
+(and is unambiguous); a crate you `add` — or re-weight via `patch` — has a unique `weight_kg`; troop groups and array settings
 exist. Unknown names get a *"did you mean …?"* suggestion.
 
 ## Loading in the Mission Editor

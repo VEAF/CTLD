@@ -1,0 +1,13 @@
+# CTLD settings schema — authoring metadata for ctld-tools (the TUI / validate).
+#
+# This file is NOT consumed by the build (gen-config) — it only guides the authoring
+# tool. It is additive: list only the settings that need extra guidance beyond their
+# type. One entry per setting name, with any of:
+#   choices:      allowed values (a fixed enum) — offered as a picker in the TUI
+#   description:  short help text (EN) — reserved for a future lot
+#
+# Booleans need no entry: the TUI offers true/false generically. Free-form numbers and
+# strings need no entry either.
+
+JTAC_lock:
+  choices: [all, vehicle, troop]

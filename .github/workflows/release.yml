@@ -24,7 +24,8 @@ jobs:
         shell: bash
         run: |
           pip install poetry
-          poetry install --without dev --without build
+          # gen-config needs lupa, a build-time dep in the dev group; keep dev, drop build.
+          poetry install --without build
 
       - name: Build CTLD.lua
         run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1
@@ -73,9 +74,12 @@ jobs:
         shell: pwsh
 
   # ─────────────────────────────────────────────────────────────
-  # Build the Mission Maker tool ctld-tools.exe (PyInstaller, lupa + datamine
-  # bundled) and attach it to the release. Separate job: if packaging fails, the
-  # CTLD.lua release (job above) is already published — only the exe is missing.
+  # Build the Mission Maker tool ctld-tools.exe (PyInstaller) and attach it to the
+  # release. The exe bundles textual (the TUI), the embedded reference bundle and the
+  # DCS type set — but NOT lupa: the reference is committed data resolved without it,
+  # so we install without the dev group (lupa lives there) and exclude the module.
+  # Separate job: if packaging fails, the CTLD.lua release (job above) is already
+  # published — only the exe is missing.
   # ─────────────────────────────────────────────────────────────
   build-exe:
     name: Build & attach ctld-tools.exe
@@ -93,11 +97,21 @@ jobs:
         shell: bash
         run: |
           pip install poetry
-          poetry install --with build
+          # --without dev drops lupa (build-time only); --with build adds pyinstaller.
+          poetry install --without dev --with build
           poetry run pyinstaller --onefile --name ctld-tools \
-            --collect-all lupa \
+            --collect-all textual \
+            --exclude-module lupa \
             --add-data "ctld_tools/data/dcs_types.json;ctld_tools/data" \
+            --add-data "ctld_tools/data/reference.json;ctld_tools/data" \
+            --add-data "ctld_tools/data/locales;ctld_tools/data/locales" \
             ctld_tools/__main__.py
+      - name: Smoke-check the exe (lists the tui command, runs without lupa)
+        working-directory: tools/ctld-tools
+        shell: bash
+        run: |
+          ./dist/ctld-tools.exe --help | grep -q " tui " || { echo "::error::tui command missing from exe"; exit 1; }
+          ./dist/ctld-tools.exe tui --help | grep -qi "interactive" || { echo "::error::tui --help failed"; exit 1; }
       - name: Attach ctld-tools.exe to the release
         shell: bash
         env:

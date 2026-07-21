@@ -69,7 +69,8 @@ jobs:
         shell: bash
         run: |
           pip install poetry
-          poetry install --without dev --without build
+          # gen-config needs lupa, a build-time dep in the dev group; keep dev, drop build.
+          poetry install --without build
       - name: Build CTLD.lua
         run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1
         shell: pwsh
@@ -115,7 +116,8 @@ jobs:
         working-directory: tools/ctld-tools
         run: |
           pip install poetry
-          poetry install --without dev --without build
+          # gen-config needs lupa, a build-time dep in the dev group; keep dev, drop build.
+          poetry install --without build
           poetry run ctld-tools gen-config --yaml ../../src/CTLD_config.yaml --out ../../src/CTLD_config_defaults.lua
       - name: Install Lua + LuaRocks + busted + luacov
         run: |

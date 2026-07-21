@@ -144,6 +144,40 @@ describe("CTLD_userSetup helpers", function()
         end)
     end)
 
+    -- ── patchTroopGroup ───────────────────────────────────────
+    describe("ctld.patchTroopGroup", function()
+
+        local function findGroup(name)
+            for _, g in ipairs(cfg.settings["loadableGroups"]) do
+                if g.name == name then return g end
+            end
+            return nil
+        end
+
+        it("patches a top-level field, leaving others intact", function()
+            ctld.addTroopGroup({ name = "Patchable Squad", inf = 3, mg = 1 })
+            ctld.patchTroopGroup("Patchable Squad", { inf = 6 })
+            local g = findGroup("Patchable Squad")
+            assert.equals(6, g.inf)
+            assert.equals(1, g.mg)
+        end)
+
+        it("deep-merges one level into a table field", function()
+            ctld.addTroopGroup({ name = "Nested Squad", inf = 2, aa = { count = 1, type = "Igla" } })
+            ctld.patchTroopGroup("Nested Squad", { aa = { count = 3 } })
+            local g = findGroup("Nested Squad")
+            assert.equals(3, g.aa.count)
+            assert.equals("Igla", g.aa.type)
+        end)
+
+        it("logs a warning patching an unknown name", function()
+            local warn = spy.on(ctld, "logWarning")
+            ctld.patchTroopGroup("No Such Group 42", { inf = 1 })
+            assert.spy(warn).was_called()
+            ctld.logWarning:revert()
+        end)
+    end)
+
     -- ── addTo ─────────────────────────────────────────────────
     describe("ctld.addTo", function()
 

@@ -85,3 +85,19 @@ round-trip is feasible provided the generator re-emits those wrappers by convent
   `gen-user`, `.exe` distribution). Exact filenames pinned per PRD.
 - ADR 0008's `logDefaults` / schema-comments become power-user/debug aids rather than the primary
   MM path; its scope is not reduced.
+
+## Note — embedded reference & lupa build-time-only (CTLD-TOOLS-TUI, 2026-07-21)
+
+The interactive TUI (deferred scope point 4) requires the tool to run **without `src/`** — a
+non-dev MM only has the `.exe`. This shifts how the reference catalogue is resolved:
+
+- A build step **`gen-reference`** (lupa) freezes the catalogue slice the runtime needs
+  (`spawnableCrates` with AA injected, `loadableGroups`) into a JSON bundle,
+  `ctld_tools/data/reference.json`, **committed** and kept in sync with `src/` by a golden test —
+  the same pattern as the embedded `dcs_types.json`.
+- `Reference.from_embedded()` reads the bundle and becomes the **default** for `validate`,
+  `gen-user` and the TUI; `--src` → `from_src` stays as a dev override.
+- **lupa moves to build-time only** (the `dev` dependency group). The runtime path
+  (TUI / `validate` / `gen-user` via the embedded reference) no longer imports it, so the MM `.exe`
+  ships without lupa or the native Lua binary. Only `gen-reference` / `gen-config` / `extract`
+  (build steps) use lupa. lupa imports are lazy so importing a runtime module never pulls it in.

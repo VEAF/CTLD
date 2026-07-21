@@ -1,6 +1,6 @@
 # 05 — `tui` command + packaging (exe without lupa)
 
-Status: 🧑 planned
+Status: ✅ done
 Type: AFK
 Repo: CTLD
 

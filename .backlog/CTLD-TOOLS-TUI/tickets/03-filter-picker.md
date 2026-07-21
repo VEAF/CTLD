@@ -1,6 +1,6 @@
 # 03 — Filterable picker (filter logic + widget)
 
-Status: 🧑 planned
+Status: ✅ done
 Type: AFK
 Repo: CTLD
 

@@ -6,15 +6,26 @@ ctld-tools gen-config  --yaml src/CTLD_config.yaml --out src/CTLD_config_default
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import typer
 
+from ctld_tools.i18n import set_language, t
+
 app = typer.Typer(
-    help="CTLD configuration authoring & generation.",
     no_args_is_help=True,
     add_completion=False,
 )
+
+
+@app.callback(help=t("app.description"))
+def _root(
+    lang: str = typer.Option(None, "--lang", help=t("help.lang")),
+) -> None:
+    # Root options shared by every command; --lang forces the output language.
+    if lang:
+        set_language(lang)
 
 
 @app.command("extract")
@@ -44,13 +55,16 @@ def gen_config_cmd(
 @app.command("validate")
 def validate_cmd(
     yaml_path: Path = typer.Option(..., "--yaml", help="path to the user-config.yaml"),
-    src: Path = typer.Option(..., "--src", help="path to the CTLD src/ directory (the reference)"),
+    src: Path = typer.Option(
+        None, "--src", help="dev override: resolve from CTLD src/ instead of the embedded reference"
+    ),
 ) -> None:
     """Validate a user-config.yaml against the reference catalogue and DCS types."""
     from ctld_tools.reference import Reference
     from ctld_tools.validate import has_errors, load_user_config, validate
 
-    findings = validate(load_user_config(yaml_path), Reference.from_src(src))
+    ref = Reference.from_src(src) if src else Reference.from_embedded()
+    findings = validate(load_user_config(yaml_path), ref)
     for finding in findings:
         typer.echo(str(finding))
     if not findings:
@@ -63,7 +77,9 @@ def validate_cmd(
 def gen_user_cmd(
     out: Path = typer.Option(..., "--out", help="path to the CTLD_userConfig.lua (or scaffold) to write"),
     yaml_path: Path = typer.Option(None, "--yaml", help="path to the user-config.yaml (omit with --scaffold)"),
-    src: Path = typer.Option(None, "--src", help="path to the CTLD src/ directory (the reference)"),
+    src: Path = typer.Option(
+        None, "--src", help="dev override: resolve from CTLD src/ instead of the embedded reference"
+    ),
     scaffold: bool = typer.Option(False, "--scaffold", help="write a commented starter user-config.yaml instead"),
 ) -> None:
     """Compile a user-config.yaml into CTLD_userConfig.lua (or write a scaffold)."""
@@ -73,17 +89,45 @@ def gen_user_cmd(
         write_scaffold(out)
         typer.echo(f"gen-user: wrote scaffold {out}")
         return
-    if yaml_path is None or src is None:
-        raise typer.BadParameter("--yaml and --src are required (unless --scaffold)")
+    if yaml_path is None:
+        raise typer.BadParameter("--yaml is required (unless --scaffold)")
     from ctld_tools.genuser import UserConfigError, generate_user_file
 
     try:
-        generate_user_file(yaml_path, src, out)
+        generate_user_file(yaml_path, out, src=src)
     except UserConfigError as exc:
         for finding in exc.findings:
             typer.echo(str(finding))
         raise typer.Exit(1) from exc
     typer.echo(f"gen-user: wrote {out}")
+
+
+@app.command("gen-reference")
+def gen_reference_cmd(
+    src: Path = typer.Option(..., "--src", help="path to the CTLD src/ directory (the reference source)"),
+    out: Path = typer.Option(..., "--out", help="path to the reference bundle JSON to write"),
+) -> None:
+    """Freeze the embedded reference bundle from src/ (build step, lupa)."""
+    from ctld_tools.genreference import write_reference
+
+    write_reference(src, out)
+    typer.echo(f"gen-reference: wrote {out}")
+
+
+@app.command("tui")
+def tui_cmd(
+    yaml_path: Path = typer.Option(None, "--yaml", help="open an existing user-config.yaml (optional)"),
+    src: Path = typer.Option(
+        None, "--src", help="dev override: resolve from CTLD src/ instead of the embedded reference"
+    ),
+    lang: str = typer.Option(None, "--lang", help=t("help.lang")),
+) -> None:
+    """Launch the interactive user-config editor (the MM console)."""
+    if lang:
+        set_language(lang)
+    from ctld_tools.tui.app import run
+
+    run(yaml_path=yaml_path, src=src)
 
 
 @app.command("inject")
@@ -101,6 +145,16 @@ def inject_cmd(
 
 
 def main() -> None:
+    # Typer builds the (already-translated) help= strings before the callback runs, so
+    # parse --lang manually and early — that way even `--help` prints in the right language.
+    argv = sys.argv[1:]
+    for i, arg in enumerate(argv):
+        if arg == "--lang" and i + 1 < len(argv):
+            set_language(argv[i + 1])
+            break
+        if arg.startswith("--lang="):
+            set_language(arg.split("=", 1)[1])
+            break
     app()
 
 
