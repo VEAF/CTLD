@@ -964,10 +964,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-workflow" class="md-nav__link">
+  <a href="#the-interactive-editor-ctld-tools-tui-recommended" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The workflow
+        The interactive editor (ctld-tools tui) — recommended
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-command-line-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The command-line workflow
       
     </span>
   </a>
@@ -1009,10 +1020,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#troops-add-remove" class="md-nav__link">
+  <a href="#troops-add-remove-patch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        troops — add / remove
+        troops — add / remove / patch
       
     </span>
   </a>
@@ -2031,10 +2042,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-workflow" class="md-nav__link">
+  <a href="#the-interactive-editor-ctld-tools-tui-recommended" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The workflow
+        The interactive editor (ctld-tools tui) — recommended
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-command-line-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The command-line workflow
       
     </span>
   </a>
@@ -2076,10 +2098,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#troops-add-remove" class="md-nav__link">
+  <a href="#troops-add-remove-patch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        troops — add / remove
+        troops — add / remove / patch
       
     </span>
   </a>
@@ -2162,25 +2184,60 @@
 
 
 <h1 id="configuring-ctld-with-ctld-tools">Configuring CTLD with <code>ctld-tools</code><a class="headerlink" href="#configuring-ctld-with-ctld-tools" title="Permanent link">&para;</a></h1>
-<p><code>ctld-tools</code> is a small command-line tool that lets you configure CTLD <strong>without writing Lua</strong>. You
-describe your changes in a short <strong><code>user-config.yaml</code></strong> — referring to crates and troop groups <strong>by
-name</strong> — and the tool validates it and generates the <code>CTLD_userConfig.lua</code> your mission loads.</p>
+<p><code>ctld-tools</code> lets you configure CTLD <strong>without writing Lua</strong>. You describe your changes — referring
+to crates and troop groups <strong>by name</strong> — and the tool validates them and generates the
+<code>CTLD_userConfig.lua</code> your mission loads. There are two ways to use it: an <strong>interactive editor</strong>
+(the <code>tui</code> command, recommended) or a <strong>command-line workflow</strong> over a <code>user-config.yaml</code>.</p>
 <p>You never look up crate weights, and mistakes are caught at your desk (with suggestions) instead of
 in DCS.</p>
 <h2 id="get-the-tool">Get the tool<a class="headerlink" href="#get-the-tool" title="Permanent link">&para;</a></h2>
 <p>Download <strong><code>ctld-tools.exe</code></strong> from the <a href="https://github.com/VEAF/CTLD/releases">GitHub Releases</a> page
-— it is attached to each release. No Python needed. (Developers can also run it from source with
-<code>poetry</code>; see the developer docs.)</p>
+— it is attached to each release. <strong>No Python and no CTLD <code>src/</code> folder needed</strong>: the reference
+catalogue (crates, troop groups, DCS unit types) is <strong>embedded in the tool</strong>. (Developers can also
+run it from source with <code>poetry</code>; see the developer docs.)</p>
 <p>Put it anywhere; run it from a terminal in your mission folder.</p>
-<h2 id="the-workflow">The workflow<a class="headerlink" href="#the-workflow" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>ctld-tools gen-user --scaffold --out user-config.yaml          # 1. commented starter
-#   ... edit user-config.yaml ...                              # 2. describe your changes
-ctld-tools validate  --yaml user-config.yaml --src path/to/src # 3. check it
-ctld-tools gen-user  --yaml user-config.yaml --src path/to/src --out CTLD_userConfig.lua  # 4. generate
+<h2 id="the-interactive-editor-ctld-tools-tui-recommended">The interactive editor (<code>ctld-tools tui</code>) — recommended<a class="headerlink" href="#the-interactive-editor-ctld-tools-tui-recommended" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>ctld-tools tui                           # opens user-config.yaml here if it exists, else starts empty
+ctld-tools tui --yaml path/to/other.yaml # or point at another file
+</code></pre></div>
+<p>A full-screen console — no YAML to write, no commands to chain:</p>
+<ul>
+<li><strong>Structured editor</strong>: your config is laid out by section (<strong>settings</strong>, <strong>crates</strong>, <strong>troops</strong>,
+  <strong>arrays</strong>), with live validation on the right.</li>
+<li><strong>Add / Remove / Patch</strong>: three buttons drive everything. Pick the action, then the kind of thing
+  (crate, troop group, setting, array), then fill a guided form. <strong>Patch</strong> works on both crates and
+  troop groups (change one field, keep the rest).</li>
+<li><strong>Filter-as-you-type pickers</strong>: choose a crate's <code>unit</code> from the ~1100 DCS types, or a crate /
+  troop group / <strong>setting</strong> by name, by typing a few letters instead of scrolling. When you pick a
+  setting, its <strong>default value is shown and pre-filled</strong>, so you edit from the real default. For a
+  <strong>true/false</strong> setting, or one with a <strong>fixed set of values</strong> (e.g. <code>JTAC_lock</code>: all / vehicle /
+  troop), you <strong>pick the value from a list</strong> rather than typing it.</li>
+<li><strong>Unsaved changes</strong>: quitting with unsaved edits asks for confirmation and reminds you when you
+  last saved.</li>
+<li><strong>Live validation</strong>: every edit is checked instantly against the embedded catalogue, with inline
+  errors and <em>"did you mean …?"</em> suggestions.</li>
+<li><strong>Edit a line</strong>: select an entry in the tree and press <strong>e</strong> to reopen its form pre-filled — fix a
+  mistake (e.g. a crate added without a name) instead of deleting and re-entering everything.</li>
+<li><strong>Delete a line</strong>: select an entry in the tree and press <strong>Delete</strong> to remove it (with a
+  confirmation) — handy to drop something you just added.</li>
+<li><strong>Undo / redo</strong>: <strong>Ctrl+Z</strong> / <strong>Ctrl+Y</strong> step through your edits.</li>
+<li><strong>All in one place</strong>: <strong>Save</strong> (always the same <code>user-config.yaml</code>, no prompt), <strong>Generate</strong> the
+  <code>CTLD_userConfig.lua</code> next to it (its name is fixed — CTLD requires it), or <strong>Inject</strong> it straight
+  into a <code>.miz</code> (pick the mission in a <strong>file browser</strong> that lists only <code>.miz</code> files) — from the same
+  screen. Generation is refused while any error remains, so you never ship a broken config.</li>
+<li><strong>Language</strong>: the interface follows your <strong>system language</strong> (English or French). Force it with
+  <code>ctld-tools tui --lang en</code> / <code>--lang fr</code> (or the <code>CTLD_LANG</code> environment variable).</li>
+</ul>
+<h2 id="the-command-line-workflow">The command-line workflow<a class="headerlink" href="#the-command-line-workflow" title="Permanent link">&para;</a></h2>
+<p>If you prefer scripts or a headless pipeline, the same operations are available as commands:</p>
+<div class="highlight"><pre><span></span><code>ctld-tools gen-user --scaffold --out user-config.yaml   # 1. commented starter
+#   ... edit user-config.yaml ...                        # 2. describe your changes
+ctld-tools validate  --yaml user-config.yaml             # 3. check it
+ctld-tools gen-user  --yaml user-config.yaml --out CTLD_userConfig.lua  # 4. generate
 #   ... load CTLD_userConfig.lua before CTLD.lua in the Mission Editor ...   # 5. use it
 </code></pre></div>
-<p><code>--src</code> points at the CTLD <code>src/</code> folder (the reference catalogue): the tool reads it to resolve
-names, and to know which crates, troop groups and DCS unit types exist.</p>
+<p>The embedded catalogue is used by default. Developers working in the repo can add <code>--src path/to/src</code>
+to resolve names against a live CTLD <code>src/</code> folder instead.</p>
 <h2 id="the-user-configyaml-format">The <code>user-config.yaml</code> format<a class="headerlink" href="#the-user-configyaml-format" title="Permanent link">&para;</a></h2>
 <p>Four optional top-level sections. <strong>Only include what you change.</strong> Crates and troop groups are
 targeted <strong>by name</strong>.</p>
@@ -2204,7 +2261,7 @@ targeted <strong>by name</strong>.</p>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Humvee - TOW</span><span class="w">      </span><span class="c1"># change one field, keep the rest</span>
 <span class="w">      </span><span class="nt">cratesRequired</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
 </code></pre></div>
-<h3 id="troops-add-remove"><code>troops</code> — add / remove<a class="headerlink" href="#troops-add-remove" title="Permanent link">&para;</a></h3>
+<h3 id="troops-add-remove-patch"><code>troops</code> — add / remove / patch<a class="headerlink" href="#troops-add-remove-patch" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nt">troops</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">add</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recon Team</span>
@@ -2212,6 +2269,9 @@ targeted <strong>by name</strong>.</p>
 <span class="w">      </span><span class="nt">jtac</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">  </span><span class="nt">remove</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5x - Mortar Squad</span>
+<span class="w">  </span><span class="nt">patch</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Standard Group</span><span class="w">   </span><span class="c1"># change one field, keep the rest</span>
+<span class="w">      </span><span class="nt">inf</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
 </code></pre></div>
 <h3 id="arrays-append-to-list-settings"><code>arrays</code> — append to list settings<a class="headerlink" href="#arrays-append-to-list-settings" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nt">arrays</span><span class="p">:</span>
@@ -2238,15 +2298,19 @@ style; it's the same YAML:
 </thead>
 <tbody>
 <tr>
+<td><code>tui [--yaml user-config.yaml]</code></td>
+<td>Launch the interactive editor (recommended).</td>
+</tr>
+<tr>
 <td><code>gen-user --scaffold --out user-config.yaml</code></td>
 <td>Write a commented starter file.</td>
 </tr>
 <tr>
-<td><code>validate --yaml user-config.yaml --src src</code></td>
+<td><code>validate --yaml user-config.yaml</code></td>
 <td>Check the file; prints findings, exits non-zero on error.</td>
 </tr>
 <tr>
-<td><code>gen-user --yaml user-config.yaml --src src --out CTLD_userConfig.lua</code></td>
+<td><code>gen-user --yaml user-config.yaml --out CTLD_userConfig.lua</code></td>
 <td>Compile to Lua (runs <code>validate</code> first, refuses on error).</td>
 </tr>
 <tr>
@@ -2255,8 +2319,10 @@ style; it's the same YAML:
 </tr>
 </tbody>
 </table>
+<p>All commands use the embedded reference by default; add <code>--src path/to/src</code> (dev only) to resolve
+against a live CTLD <code>src/</code> folder.</p>
 <p><strong>What validation checks:</strong> every <code>unit</code> is a real DCS type; a crate you <code>remove</code>/<code>patch</code> exists
-(and is unambiguous); a crate you <code>add</code> has a unique <code>weight_kg</code>; troop groups and array settings
+(and is unambiguous); a crate you <code>add</code> — or re-weight via <code>patch</code> — has a unique <code>weight_kg</code>; troop groups and array settings
 exist. Unknown names get a <em>"did you mean …?"</em> suggestion.</p>
 <h2 id="loading-in-the-mission-editor">Loading in the Mission Editor<a class="headerlink" href="#loading-in-the-mission-editor" title="Permanent link">&para;</a></h2>
 <p>The generated <code>CTLD_userConfig.lua</code> loads exactly like the hand-written template:</p>
