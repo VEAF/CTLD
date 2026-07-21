@@ -194,6 +194,24 @@ async def test_inject_opens_file_browser(tmp_path):
         assert isinstance(app.screen, FileBrowserModal)
 
 
+async def test_settings_picker_searchable_by_description():
+    from ctld_tools.i18n import language
+
+    with language("en"):
+        app = CtldToolsApp()
+        async with app.run_test(size=(120, 40)) as pilot:
+            await pilot.click("#add")
+            await pilot.pause()
+            await pilot.click("#type-setting")
+            await pilot.pause()
+            picker = app.query_one("#setting-picker", FilterablePicker)
+            picker.query_one(Input).value = "interface"  # a word from i18n_lang's description, not its name
+            await pilot.pause()
+            option_list = picker.query_one(OptionList)
+            ids = [option_list.get_option_at_index(i).id for i in range(option_list.option_count)]
+            assert "i18n_lang" in ids  # matched via its description
+
+
 async def test_generate_disabled_while_errors():
     app = CtldToolsApp()
     async with app.run_test(size=(120, 40)) as pilot:

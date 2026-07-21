@@ -279,4 +279,42 @@ describe("CTLDi18n", function()
 
     end)
 
+    -- ── Active language driven by the i18n_lang setting (FIX-I18N-LANG-SETTING) ──
+    describe("active language via the i18n_lang setting", function()
+
+        before_each(function()
+            CTLDConfig._instance = nil
+            ctld.yamlConfigDatas = nil
+            CTLDConfig.get():load()
+            -- Test keys in each dictionary, independent of real translations.
+            ctld.i18n["en"]["__TESTKEY__"] = "hello"
+            ctld.i18n["fr"]["__TESTKEY__"] = "bonjour"
+        end)
+
+        it("defaults to en", function()
+            assert.equals("en", ctld.gs("i18n_lang"))
+        end)
+
+        it("tr uses the dictionary of the configured language", function()
+            CTLDConfig.get():setSetting("i18n_lang", "fr")
+            assert.equals("bonjour", ctld.tr("__TESTKEY__"))
+            CTLDConfig.get():setSetting("i18n_lang", "en")
+            assert.equals("hello", ctld.tr("__TESTKEY__"))
+        end)
+
+        it("falls back to en for an unknown language", function()
+            CTLDConfig.get():setSetting("i18n_lang", "zz")
+            assert.equals("hello", ctld.tr("__TESTKEY__"))
+        end)
+
+        it("a user-config value drives the language", function()
+            ctld.yamlConfigDatas = "ctld.i18n_lang: fr"
+            CTLDConfig._instance = nil
+            CTLDConfig.get():load()
+            assert.equals("fr", ctld.gs("i18n_lang"))
+            assert.equals("bonjour", ctld.tr("__TESTKEY__"))
+        end)
+
+    end)
+
 end)

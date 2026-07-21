@@ -263,11 +263,24 @@ class SetSettingForm(_FormScreen):
         self._key: str | None = None
         self._value_kind = "input"  # "input" | "bool" | "enum"
 
+    def _options(self):
+        """(value, label, search) per setting — label/search include the description."""
+        from ctld_tools.i18n import current_language
+
+        lang = current_language()
+        items = []
+        for name in sorted(self._settings):
+            desc = self._ref.setting_description(name, lang)
+            label = f"{name} — {desc}" if desc else name
+            search = f"{name} {desc}" if desc else name
+            items.append((name, label, search))
+        return items
+
     def compose(self) -> ComposeResult:
         with Vertical(classes="form"):
             yield Label(t("tui.form.set_setting"), classes="form-title")
             yield Label(t("tui.label.setting_none"), id="setting-label")
-            yield FilterablePicker(sorted(self._settings), placeholder=t("tui.ph.setting_filter"), id="setting-picker")
+            yield FilterablePicker(self._options(), placeholder=t("tui.ph.setting_filter"), id="setting-picker")
             yield Vertical(id="value-slot")
             with Horizontal(classes="form-buttons"):
                 yield Button(t("tui.btn.confirm"), id="submit", variant="primary")

@@ -144,6 +144,33 @@ def inject_cmd(
     typer.echo(f"inject: wrote {target}")
 
 
+def _bridge_target(args: list[str], is_tty: bool) -> list[str] | None:
+    """Route a command-less invocation into the TUI (VMCT approach).
+
+    When the tool is double-clicked from Explorer it runs with no command in a fresh
+    console (a tty), so an interactive terminal with no command → launch `tui`, carrying
+    any global options already given (e.g. --lang). Returns the rewritten args, or None
+    to let Typer run as-is (a real command, `--help`, or a non-interactive stdout).
+    """
+    if not is_tty:
+        return None
+    if any(a in ("--help", "-h") for a in args):
+        return None
+    # Drop the only value-taking global option (--lang) so its value isn't mistaken
+    # for a command, then: any remaining bare token means an explicit command was given.
+    rest, skip = [], False
+    for arg in args:
+        if skip:
+            skip = False
+        elif arg == "--lang":
+            skip = True
+        elif not arg.startswith("--lang="):
+            rest.append(arg)
+    if any(not token.startswith("-") for token in rest):
+        return None
+    return ["tui", *args]
+
+
 def main() -> None:
     # Typer builds the (already-translated) help= strings before the callback runs, so
     # parse --lang manually and early — that way even `--help` prints in the right language.
@@ -155,6 +182,11 @@ def main() -> None:
         if arg.startswith("--lang="):
             set_language(arg.split("=", 1)[1])
             break
+    # Double-click from Explorer (no command, fresh console) → launch the TUI.
+    is_tty = bool(sys.stdout) and sys.stdout.isatty()
+    target = _bridge_target(argv, is_tty)
+    if target is not None:
+        sys.argv = sys.argv[:1] + target
     app()
 
 

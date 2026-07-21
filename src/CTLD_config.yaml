@@ -784,6 +784,7 @@ advanced:
   enableAutoOrbitingFlyingJtacOnTarget: true
   groundAglThreshold: 5.0
   hoverTime: 10
+  i18n_lang: en
   maxDistanceFromCrate: 5.5
   maxDropHeight: 7.5
   maximumHoverHeight: 12.0

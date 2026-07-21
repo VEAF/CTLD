@@ -679,15 +679,24 @@ end
 ---@param text string The key to translate (= the English text)
 ---@param ... any Parameters to substitute for %1, %2, ... placeholders
 ---@return string
+--- Active language: the config setting wins (so the MM can set it from the user-config),
+--- then the module global `ctld.i18n_lang` (pre-config default), then "en". Guarded so a
+--- very early tr() call — before CTLDConfig exists — cannot throw.
+local function _activeLang()
+    local ok, fromSetting = pcall(function() return ctld.gs and ctld.gs("i18n_lang") end)
+    return (ok and fromSetting) or ctld.i18n_lang or "en"
+end
+
 function ctld.tr(text, ...)
     local _text
+    local lang = _activeLang()
 
-    if not ctld.i18n[ctld.i18n_lang] then
+    if not ctld.i18n[lang] then
         ctld.utils.log("WARN", "CTLDi18n.tr: language '%s' not found, defaulting to 'en'",
-            tostring(ctld.i18n_lang))
+            tostring(lang))
         _text = ctld.i18n["en"][text]
     else
-        _text = ctld.i18n[ctld.i18n_lang][text]
+        _text = ctld.i18n[lang][text]
     end
 
     -- Fallback to English
@@ -2902,6 +2911,7 @@ ctld.__configDefaults = {
         ["M1045 HMMWV TOW"] = 5000
     },
     hoverTime = 10,
+    i18n_lang = "en",
     loadCrateFromMenu = true,
     loadableGroups = {
         {

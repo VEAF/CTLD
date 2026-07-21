@@ -104,6 +104,13 @@ class Reference:
         choices = (self._setting_schema.get(name) or {}).get("choices")
         return list(choices) if choices else None
 
+    def setting_description(self, name, lang: str = "en") -> str | None:
+        """Help text for a setting in `lang` (falls back to EN), or None if undocumented."""
+        desc = (self._setting_schema.get(name) or {}).get("description")
+        if not isinstance(desc, dict):
+            return None
+        return desc.get(lang) or desc.get("en")
+
     def closest_setting(self, name) -> str | None:
         return _closest(str(name), self._scalar_settings.keys())
 

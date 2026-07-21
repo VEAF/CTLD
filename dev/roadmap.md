@@ -30,14 +30,13 @@ Contexte (émergé du grill TUI) : deux points liés.
 
 <!-- ctld-tools — mode TUI interactif : livré (lot CTLD-TOOLS-TUI, PR #52). -->
 
-## ctld-tools — descriptions des settings dans la TUI
+## ctld-tools — générer les tableaux de config de la doc depuis le schéma
 
-Le picker « Set setting » de la TUI affiche le nom et la **valeur par défaut** des ~108 settings, mais
-pas de **description**. Le fichier `src/CTLD_config_schema.yaml` (ajouté au lot TUI pour les `choices`)
-est prévu pour accueillir une clé `description:` par setting — la plomberie existe déjà (chargée dans
-le bundle embarqué). Candidat lot : rédiger ces descriptions (EN+FR), idéalement **extraites de la doc
-mission-maker existante** (`configuration.md`) plutôt que réinventées. Décision David (2026-07-21) :
-hors périmètre du lot TUI, à traiter séparément.
+Les **descriptions** des settings (EN+FR) vivent désormais dans `src/CTLD_config_schema.yaml`
+(seedées depuis `configuration(.fr).md`, lot CTLD-TOOLS-TUI-POLISH) et sont affichées + cherchables
+dans la TUI. Il reste une **duplication** : les tableaux de settings de `docs/mission-maker/
+configuration.md` / `.fr.md` répètent ces descriptions. Candidat lot : **générer** ces tableaux depuis
+le schéma (le schéma est la source de vérité) pour supprimer la double maintenance.
 
 <!-- DEV-LOCAL-MIZ — formalisé en lot `.backlog/DEV-LOCAL-MIZ/` (grill-with-docs, 2026-07-19). -->
 

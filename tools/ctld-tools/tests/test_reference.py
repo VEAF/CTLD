@@ -59,6 +59,20 @@ def test_enum_choices_from_schema(ref):
     assert ref.enum_choices("numberOfTroops") is None
 
 
+def test_i18n_lang_is_a_first_class_setting(ref):
+    # FIX-I18N-LANG-SETTING: now in the catalogue, with a value list.
+    assert ref.scalar_settings().get("i18n_lang") == "en"
+    assert ref.enum_choices("i18n_lang") == ["en", "fr", "es", "ko"]
+
+
+def test_setting_descriptions_are_bilingual(ref):
+    assert "interface" in ref.setting_description("i18n_lang", "en").lower()
+    assert "interface" in ref.setting_description("i18n_lang", "fr").lower()
+    # Unknown lang falls back to EN; undocumented setting → None.
+    assert ref.setting_description("i18n_lang", "zz") == ref.setting_description("i18n_lang", "en")
+    assert ref.setting_description("no_such_setting") is None
+
+
 def test_from_embedded_resolves_identically_to_from_src(ref):
     """The committed bundle (from_embedded) resolves the same as from_src."""
     embedded = Reference.from_embedded()

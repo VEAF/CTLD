@@ -10,13 +10,15 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 
+def matches(text: str, query: str) -> bool:
+    """True if `query` is a case-insensitive substring of `text` (empty query matches)."""
+    needle = query.strip().lower()
+    return not needle or needle in text.lower()
+
+
 def filter_options(options: Iterable[str], query: str) -> list[str]:
-    """Return the options containing `query` (case-insensitive substring), order kept.
+    """Return the options matching `query` (case-insensitive substring), order kept.
 
     An empty or whitespace-only query returns every option.
     """
-    items = list(options)
-    needle = query.strip().lower()
-    if not needle:
-        return items
-    return [option for option in items if needle in option.lower()]
+    return [option for option in options if matches(option, query)]
