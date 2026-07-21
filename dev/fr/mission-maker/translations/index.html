@@ -1121,7 +1121,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#langues-disponibles" class="md-nav__link">
+  <a href="#available-languages" class="md-nav__link">
     <span class="md-ellipsis">
       
         Langues disponibles
@@ -1132,7 +1132,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#choisir-la-langue" class="md-nav__link">
+  <a href="#choosing-the-language" class="md-nav__link">
     <span class="md-ellipsis">
       
         Choisir la langue
@@ -1143,7 +1143,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#comment-fonctionne-le-repli" class="md-nav__link">
+  <a href="#how-fallback-works" class="md-nav__link">
     <span class="md-ellipsis">
       
         Comment fonctionne le repli
@@ -1154,7 +1154,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#redefinir-des-chaines-specifiques" class="md-nav__link">
+  <a href="#overriding-specific-strings" class="md-nav__link">
     <span class="md-ellipsis">
       
         Redéfinir des chaînes spécifiques
@@ -1165,7 +1165,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pages-liees" class="md-nav__link">
+  <a href="#related-pages" class="md-nav__link">
     <span class="md-ellipsis">
       
         Pages liées
@@ -1953,7 +1953,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#langues-disponibles" class="md-nav__link">
+  <a href="#available-languages" class="md-nav__link">
     <span class="md-ellipsis">
       
         Langues disponibles
@@ -1964,7 +1964,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#choisir-la-langue" class="md-nav__link">
+  <a href="#choosing-the-language" class="md-nav__link">
     <span class="md-ellipsis">
       
         Choisir la langue
@@ -1975,7 +1975,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#comment-fonctionne-le-repli" class="md-nav__link">
+  <a href="#how-fallback-works" class="md-nav__link">
     <span class="md-ellipsis">
       
         Comment fonctionne le repli
@@ -1986,7 +1986,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#redefinir-des-chaines-specifiques" class="md-nav__link">
+  <a href="#overriding-specific-strings" class="md-nav__link">
     <span class="md-ellipsis">
       
         Redéfinir des chaînes spécifiques
@@ -1997,7 +1997,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pages-liees" class="md-nav__link">
+  <a href="#related-pages" class="md-nav__link">
     <span class="md-ellipsis">
       
         Pages liées
@@ -2036,7 +2036,7 @@ chaîne individuelle sans toucher au code de CTLD.</p>
 les traducteurs maintiennent les dictionnaires, comment contribuer une nouvelle langue),
 consultez le <a href="../../developer/i18n/">guide d'internationalisation</a> dans la documentation
 développeur. Cette page ne couvre que ce dont un mission maker a besoin.</p>
-<h2 id="langues-disponibles">Langues disponibles<a class="headerlink" href="#langues-disponibles" title="Permanent link">&para;</a></h2>
+<h2 id="available-languages">Langues disponibles<a class="headerlink" href="#available-languages" title="Permanent link">&para;</a></h2>
 <p>CTLD est livré avec quatre dictionnaires intégrés :</p>
 <table>
 <thead>
@@ -2066,7 +2066,7 @@ développeur. Cette page ne couvre que ce dont un mission maker a besoin.</p>
 </table>
 <p>L'anglais est la référence : il contient toujours toutes les chaînes, il sert donc de repli
 chaque fois qu'une traduction manque.</p>
-<h2 id="choisir-la-langue">Choisir la langue<a class="headerlink" href="#choisir-la-langue" title="Permanent link">&para;</a></h2>
+<h2 id="choosing-the-language">Choisir la langue<a class="headerlink" href="#choosing-the-language" title="Permanent link">&para;</a></h2>
 <p>La langue active est sélectionnée en haut de <code>src/CTLD_i18n.lua</code>. Décommentez la seule ligne
 souhaitée et laissez les autres en commentaire :</p>
 <div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="py">i18n_lang</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;en&quot;</span>
@@ -2077,7 +2077,7 @@ souhaitée et laissez les autres en commentaire :</p>
 <p>Une seule ligne doit être active à la fois ; la valeur par défaut est <code>en</code>. Ce sélecteur vit
 dans son propre fichier, séparé de la logique principale, afin qu'un traducteur non développeur
 puisse le modifier sans toucher au moindre script.</p>
-<h2 id="comment-fonctionne-le-repli">Comment fonctionne le repli<a class="headerlink" href="#comment-fonctionne-le-repli" title="Permanent link">&para;</a></h2>
+<h2 id="how-fallback-works">Comment fonctionne le repli<a class="headerlink" href="#how-fallback-works" title="Permanent link">&para;</a></h2>
 <p>Vous n'avez jamais à vous soucier d'un message vide ou manquant. Si une chaîne est absente ou
 vide dans la langue active, CTLD bascule automatiquement, dans l'ordre :</p>
 <ol>
@@ -2086,7 +2086,7 @@ vide dans la langue active, CTLD bascule automatiquement, dans l'ordre :</p>
 <li>le texte anglais lui-même.</li>
 </ol>
 <p>Un message n'est <strong>jamais</strong> vide ni <code>nil</code>.</p>
-<h2 id="redefinir-des-chaines-specifiques">Redéfinir des chaînes spécifiques<a class="headerlink" href="#redefinir-des-chaines-specifiques" title="Permanent link">&para;</a></h2>
+<h2 id="overriding-specific-strings">Redéfinir des chaînes spécifiques<a class="headerlink" href="#overriding-specific-strings" title="Permanent link">&para;</a></h2>
 <p>Vous pouvez modifier n'importe quelle chaîne depuis votre mission — sans avoir à éditer un
 fichier source de CTLD. Déclarez <code>ctld.i18n_overrides</code> dans votre <code>CTLD_userConfig.lua</code> :</p>
 <div class="highlight"><pre><span></span><code><span class="c1">-- CTLD_userConfig.lua</span>
@@ -2108,7 +2108,7 @@ que voient les joueurs. Les overrides sont appliqués une seule fois au démarra
 dictionnaires intégrés. Vous pouvez redéfinir n'importe quelle langue indépendamment de celle
 qui est active — vous pouvez par exemple ajuster la formulation anglaise tout en faisant tourner
 la mission en français.</p>
-<h2 id="pages-liees">Pages liées<a class="headerlink" href="#pages-liees" title="Permanent link">&para;</a></h2>
+<h2 id="related-pages">Pages liées<a class="headerlink" href="#related-pages" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../configuration/">Configuration</a> — réglages globaux et capacités par appareil</li>
 <li><a href="../zones/">Configuration des zones</a> — zones de troupes, logistique, extraction et waypoint</li>

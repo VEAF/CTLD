@@ -1747,7 +1747,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#chaine-de-build" class="md-nav__link">
+  <a href="#build-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
         Chaîne de build
@@ -1758,7 +1758,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-moteur-ctld-tools" class="md-nav__link">
+  <a href="#engine-configuration-ctld-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
         Configuration moteur (ctld-tools)
@@ -1769,7 +1769,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#executer-les-tests-busted-sans-dcs" class="md-nav__link">
+  <a href="#running-tests-busted-no-dcs" class="md-nav__link">
     <span class="md-ellipsis">
       
         Exécuter les tests (busted, sans DCS)
@@ -1780,7 +1780,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ratchet-de-couverture" class="md-nav__link">
+  <a href="#coverage-ratchet" class="md-nav__link">
     <span class="md-ellipsis">
       
         Ratchet de couverture
@@ -1791,7 +1791,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#integration-continue" class="md-nav__link">
+  <a href="#continuous-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
         Intégration continue
@@ -1802,7 +1802,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-de-la-journalisation-et-du-debug" class="md-nav__link">
+  <a href="#logging-debug-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
         Configuration de la journalisation et du debug
@@ -1967,7 +1967,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#chaine-de-build" class="md-nav__link">
+  <a href="#build-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
         Chaîne de build
@@ -1978,7 +1978,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-moteur-ctld-tools" class="md-nav__link">
+  <a href="#engine-configuration-ctld-tools" class="md-nav__link">
     <span class="md-ellipsis">
       
         Configuration moteur (ctld-tools)
@@ -1989,7 +1989,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#executer-les-tests-busted-sans-dcs" class="md-nav__link">
+  <a href="#running-tests-busted-no-dcs" class="md-nav__link">
     <span class="md-ellipsis">
       
         Exécuter les tests (busted, sans DCS)
@@ -2000,7 +2000,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ratchet-de-couverture" class="md-nav__link">
+  <a href="#coverage-ratchet" class="md-nav__link">
     <span class="md-ellipsis">
       
         Ratchet de couverture
@@ -2011,7 +2011,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#integration-continue" class="md-nav__link">
+  <a href="#continuous-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
         Intégration continue
@@ -2022,7 +2022,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-de-la-journalisation-et-du-debug" class="md-nav__link">
+  <a href="#logging-debug-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
         Configuration de la journalisation et du debug
@@ -2059,7 +2059,7 @@ continue, si bien que les commandes ci-dessous reflètent ce que fait la CI à c
 <p>Les tests d'intégration en DCS live — charger votre build dans la mission de test et y exécuter des
 scénarios — sont couverts dans <a href="../integration-testing/">Tests d'intégration</a>. Cette page se
 limite à la chaîne de build et aux tests basés sur busted qui s'exécutent entièrement sans DCS.</p>
-<h2 id="chaine-de-build">Chaîne de build<a class="headerlink" href="#chaine-de-build" title="Permanent link">&para;</a></h2>
+<h2 id="build-pipeline">Chaîne de build<a class="headerlink" href="#build-pipeline" title="Permanent link">&para;</a></h2>
 <p>CTLD est distribué sous forme d'un fichier unique, <code>CTLD.lua</code>, à la racine du dépôt. Il est
 <strong>généré</strong> en fusionnant les modules en Lua pur situés sous <code>src/</code> dans l'ordre de dépendance — ne
 le modifiez jamais à la main, et reconstruisez-le après toute modification de <code>src/</code>.</p>
@@ -2081,7 +2081,7 @@ les scenes, puis <code>CTLD_core.lua</code>, <code>legacy/</code>, et <code>CTLD
 module dans la liste.</p>
 <p><strong>Build en CI :</strong> le job <code>build</code> exécute le même <code>merge_CTLD.ps1</code> sur <code>windows-latest</code>, vérifie que
 la sortie existe et n'est pas vide, et téléverse <code>CTLD.lua</code> en tant qu'artefact de build.</p>
-<h2 id="configuration-moteur-ctld-tools">Configuration moteur (<code>ctld-tools</code>)<a class="headerlink" href="#configuration-moteur-ctld-tools" title="Permanent link">&para;</a></h2>
+<h2 id="engine-configuration-ctld-tools">Configuration moteur (<code>ctld-tools</code>)<a class="headerlink" href="#engine-configuration-ctld-tools" title="Permanent link">&para;</a></h2>
 <p>Les valeurs par défaut du moteur sont des <strong>données</strong>, pas du code : elles vivent dans
 <code>src/CTLD_config.yaml</code> (source de vérité unique, sectionnée <code>mm_facing</code> / <code>advanced</code>). Au moment du
 build, <code>merge_CTLD.ps1</code> régénère <code>src/CTLD_config_defaults.lua</code> depuis le YAML (via
@@ -2096,7 +2096,7 @@ poetry est absent).</p>
 suivant les conventions Python de VMCT. Le job CI <code>python-quality</code> applique un <strong>garde de parité</strong> :
 régénérer depuis le YAML reproduit les settings d'origine, wrappers <code>ctld.tr</code> inclus (une référence
 figée, détectée avec un traducteur distinctif).</p>
-<h2 id="executer-les-tests-busted-sans-dcs">Exécuter les tests (busted, sans DCS)<a class="headerlink" href="#executer-les-tests-busted-sans-dcs" title="Permanent link">&para;</a></h2>
+<h2 id="running-tests-busted-no-dcs">Exécuter les tests (busted, sans DCS)<a class="headerlink" href="#running-tests-busted-no-dcs" title="Permanent link">&para;</a></h2>
 <p>La suite automatisée s'exécute avec <a href="https://lunarmodules.github.io/busted/">busted</a>. Chaque appel
 à l'API DCS est stubbé, aucune installation de DCS n'est donc requise.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Installation (une seule fois)</span>
@@ -2144,7 +2144,7 @@ touchent jamais un vrai <code>CTLD.log</code>.</p>
 <p>Lorsque vous ajoutez un module, répercutez la modification dans <strong>les deux</strong>
 <code>tools/build/listToMerge.txt</code> et <code>tests/ci/helpers/loader.lua</code>, puis ajoutez des specs sous
 <code>tests/ci/unit/</code> ou <code>tests/ci/functional/</code> (test-first — écrivez la spec qui échoue avant le code).</p>
-<h2 id="ratchet-de-couverture">Ratchet de couverture<a class="headerlink" href="#ratchet-de-couverture" title="Permanent link">&para;</a></h2>
+<h2 id="coverage-ratchet">Ratchet de couverture<a class="headerlink" href="#coverage-ratchet" title="Permanent link">&para;</a></h2>
 <p>Le job CI <code>busted</code> s'exécute avec la couverture (<code>busted --coverage tests/ci/</code>), puis <code>luacov</code>
 produit <code>luacov.report.out</code>. Le job parse le pourcentage <code>Total</code> et le compare à un plancher stocké
 dans la variable d'environnement <code>COVERAGE_FLOOR</code> (actuellement <code>59</code>).</p>
@@ -2152,7 +2152,7 @@ dans la variable d'environnement <code>COVERAGE_FLOOR</code> (actuellement <code
 légèrement en dessous de la première couverture mesurée (61,56 %). Lorsque vous augmentez la
 couverture globale, relevez <code>COVERAGE_FLOOR</code> dans <code>.github/workflows/ci.yml</code> pour verrouiller le
 gain ; le job échoue si la couverture passe sous le plancher.</p>
-<h2 id="integration-continue">Intégration continue<a class="headerlink" href="#integration-continue" title="Permanent link">&para;</a></h2>
+<h2 id="continuous-integration">Intégration continue<a class="headerlink" href="#continuous-integration" title="Permanent link">&para;</a></h2>
 <p>La CI (<code>.github/workflows/ci.yml</code>) s'exécute à chaque push et pull request vers <code>develop</code> / <code>master</code>,
 et peut être déclenchée manuellement. Quatre jobs indépendants :</p>
 <table>
@@ -2190,7 +2190,7 @@ et peut être déclenchée manuellement. Quatre jobs indépendants :</p>
 celui-ci.</p>
 <p><code>luacheck --config .luacheckrc src/</code> est disponible comme étape d'analyse statique en local ; la
 barrière syntaxique appliquée par la CI est <code>luac5.1 -p</code> dans le job <code>lua-lint</code>.</p>
-<h2 id="configuration-de-la-journalisation-et-du-debug">Configuration de la journalisation et du debug<a class="headerlink" href="#configuration-de-la-journalisation-et-du-debug" title="Permanent link">&para;</a></h2>
+<h2 id="logging-debug-configuration">Configuration de la journalisation et du debug<a class="headerlink" href="#logging-debug-configuration" title="Permanent link">&para;</a></h2>
 <p>CTLD écrit un log d'exécution dans <code>CTLD.log</code>. La journalisation dans un fichier est <strong>conditionnée
 au paramètre <code>debug</code></strong> — elle est désactivée par défaut et n'ouvre le fichier que lorsque <code>debug</code>
 vaut true (et que l'installation DCS n'est pas sanitizée).</p>

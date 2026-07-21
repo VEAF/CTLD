@@ -1668,7 +1668,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#injection-des-crates-dans-spawnablecrates" class="md-nav__link">
+  <a href="#crate-injection-into-spawnablecrates" class="md-nav__link">
     <span class="md-ellipsis">
       
         Injection des crates dans spawnableCrates
@@ -1679,7 +1679,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#assemblage-rearm-et-reparation" class="md-nav__link">
+  <a href="#assembly-rearm-and-repair" class="md-nav__link">
     <span class="md-ellipsis">
       
         Assemblage, rearm et réparation
@@ -1690,7 +1690,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#geometrie-de-spawn" class="md-nav__link">
+  <a href="#spawn-geometry" class="md-nav__link">
     <span class="md-ellipsis">
       
         Géométrie de spawn
@@ -1701,7 +1701,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#limites-de-systemes" class="md-nav__link">
+  <a href="#system-limits" class="md-nav__link">
     <span class="md-ellipsis">
       
         Limites de systèmes
@@ -1712,7 +1712,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#livraison-par-zone-ia-isaasystem" class="md-nav__link">
+  <a href="#ai-zone-delivery-isaasystem" class="md-nav__link">
     <span class="md-ellipsis">
       
         Livraison par zone IA (isAASystem)
@@ -1723,7 +1723,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#evenements" class="md-nav__link">
+  <a href="#events" class="md-nav__link">
     <span class="md-ellipsis">
       
         Événements
@@ -1734,7 +1734,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#voir-aussi" class="md-nav__link">
+  <a href="#related" class="md-nav__link">
     <span class="md-ellipsis">
       
         Voir aussi
@@ -2002,7 +2002,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#injection-des-crates-dans-spawnablecrates" class="md-nav__link">
+  <a href="#crate-injection-into-spawnablecrates" class="md-nav__link">
     <span class="md-ellipsis">
       
         Injection des crates dans spawnableCrates
@@ -2013,7 +2013,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#assemblage-rearm-et-reparation" class="md-nav__link">
+  <a href="#assembly-rearm-and-repair" class="md-nav__link">
     <span class="md-ellipsis">
       
         Assemblage, rearm et réparation
@@ -2024,7 +2024,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#geometrie-de-spawn" class="md-nav__link">
+  <a href="#spawn-geometry" class="md-nav__link">
     <span class="md-ellipsis">
       
         Géométrie de spawn
@@ -2035,7 +2035,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#limites-de-systemes" class="md-nav__link">
+  <a href="#system-limits" class="md-nav__link">
     <span class="md-ellipsis">
       
         Limites de systèmes
@@ -2046,7 +2046,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#livraison-par-zone-ia-isaasystem" class="md-nav__link">
+  <a href="#ai-zone-delivery-isaasystem" class="md-nav__link">
     <span class="md-ellipsis">
       
         Livraison par zone IA (isAASystem)
@@ -2057,7 +2057,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#evenements" class="md-nav__link">
+  <a href="#events" class="md-nav__link">
     <span class="md-ellipsis">
       
         Événements
@@ -2068,7 +2068,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#voir-aussi" class="md-nav__link">
+  <a href="#related" class="md-nav__link">
     <span class="md-ellipsis">
       
         Voir aussi
@@ -2173,7 +2173,7 @@ si nécessaire. Chaque template décrit un système :</p>
 </table>
 <p><code>count</code> est le nombre de <strong>types de pièces uniques</strong> qui doivent être vivants pour que le système
 soit considéré comme complet ; il est vérifié par <code>countComplete()</code> et <code>_rearm()</code>.</p>
-<h2 id="injection-des-crates-dans-spawnablecrates">Injection des crates dans <code>spawnableCrates</code><a class="headerlink" href="#injection-des-crates-dans-spawnablecrates" title="Permanent link">&para;</a></h2>
+<h2 id="crate-injection-into-spawnablecrates">Injection des crates dans <code>spawnableCrates</code><a class="headerlink" href="#crate-injection-into-spawnablecrates" title="Permanent link">&para;</a></h2>
 <p><code>CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)</code> est appelée par
 <code>CTLDCrateManager._processSpawnableCrates()</code> avant sa boucle principale — à ce moment,
 <code>CTLDConfig:load()</code> a déjà rempli <code>TEMPLATES</code>. Pour chaque template, par <code>sectionName</code> :</p>
@@ -2190,7 +2190,7 @@ soit considéré comme complet ; il est vérifié par <code>countComplete()</cod
 <p>Une section peut contenir à la fois des entrées de crate déclarées manuellement et des entrées AA
 injectées — c'est intentionnel. N'ajoutez <strong>pas</strong> d'entrées de pièces AA à <code>spawnableCrates</code> à la
 main, sans quoi elles apparaîtront en double.</p>
-<h2 id="assemblage-rearm-et-reparation">Assemblage, rearm et réparation<a class="headerlink" href="#assemblage-rearm-et-reparation" title="Permanent link">&para;</a></h2>
+<h2 id="assembly-rearm-and-repair">Assemblage, rearm et réparation<a class="headerlink" href="#assembly-rearm-and-repair" title="Permanent link">&para;</a></h2>
 <p>Le contrôleur de menu M7 appelle le point d'entrée unique avant de retomber sur un unpack
 standard :</p>
 <div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">aam</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="nv">CTLDCrateAssemblyManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">()</span>
@@ -2219,7 +2219,7 @@ le respawn entièrement rearm dans la même disposition, puis détruit le crate 
 <p><strong><code>_repair</code></strong> utilise les <code>details</code> persistés (positions/types/caps capturés au spawn) pour
 respawner sur place un système endommagé, puis détruit le crate de réparation. Si aucun système
 endommagé du template ne se trouve à moins de <code>_REARM_DIST</code>, elle signale <code>Cannot repair …</code>.</p>
-<h2 id="geometrie-de-spawn">Géométrie de spawn<a class="headerlink" href="#geometrie-de-spawn" title="Permanent link">&para;</a></h2>
+<h2 id="spawn-geometry">Géométrie de spawn<a class="headerlink" href="#spawn-geometry" title="Permanent link">&para;</a></h2>
 <p>Toutes les pièces sont placées relativement au <strong>transport de déballage</strong>, et non par rapport aux
 positions dispersées des crates (même schéma que <code>CTLD_fob.lua</code>). <code>_computeOrigin(transport)</code>
 renvoie un point de référence à 100 m à 12 heures du transport ; <code>_buildSpawnArrays()</code> dispose
@@ -2227,7 +2227,7 @@ ensuite les pièces sur un cercle de rayon <code>_SPAWN_RADIUS</code> (50 m) aut
 chaque pièce du template un segment d'arc égal afin que les unités ne s'empilent pas. <code>_spawnGroup()</code>
 construit un groupe <code>Group.Category.GROUND</code> via <code>ctld.utils.dynAdd</code> (en utilisant la convention
 dynAdd <code>y == world Z</code>) et renvoie le <code>Group</code> DCS résultant.</p>
-<h2 id="limites-de-systemes">Limites de systèmes<a class="headerlink" href="#limites-de-systemes" title="Permanent link">&para;</a></h2>
+<h2 id="system-limits">Limites de systèmes<a class="headerlink" href="#system-limits" title="Permanent link">&para;</a></h2>
 <p><code>countComplete(coalitionId)</code> compte les systèmes vivants dans <code>_completeSystems</code> qui contiennent
 encore au moins <code>template.count</code> types de pièces uniques vivants. <code>getAllowedCount(coalitionId)</code>
 renvoie le plafond par coalition défini dans la config :</p>
@@ -2263,7 +2263,7 @@ renvoie le plafond par coalition défini dans la config :</p>
 </tbody>
 </table>
 <p>L'assemblage est refusé avec un message de rupture de pièces lorsque <code>active + 1 &gt; allowed</code>.</p>
-<h2 id="livraison-par-zone-ia-isaasystem">Livraison par zone IA (<code>isAASystem</code>)<a class="headerlink" href="#livraison-par-zone-ia-isaasystem" title="Permanent link">&para;</a></h2>
+<h2 id="ai-zone-delivery-isaasystem">Livraison par zone IA (<code>isAASystem</code>)<a class="headerlink" href="#ai-zone-delivery-isaasystem" title="Permanent link">&para;</a></h2>
 <p>Les transports IA peuvent livrer un système entier sans assemblage de crates. Un dropoff résout
 le type livré via <code>CTLDZoneManager</code> (<code>getTypeAt</code>), qui tague les templates AA avec
 <code>isAASystem = true</code> lorsque <code>getTemplateByName(typeName)</code> correspond ; un mission maker le demande
@@ -2277,7 +2277,7 @@ dropoff appelle :</p>
 <p><code>spawnSystemAt(templateName, point, coa, countryId)</code> résout le template par son display name,
 applique la même limite de coalition, construit la disposition en cercle autour de <code>point</code>, spawn
 le groupe, l'enregistre dans <code>_completeSystems</code> et publie <code>OnAASystemDeployed</code>.</p>
-<h2 id="evenements">Événements<a class="headerlink" href="#evenements" title="Permanent link">&para;</a></h2>
+<h2 id="events">Événements<a class="headerlink" href="#events" title="Permanent link">&para;</a></h2>
 <p>Le manager publie sur le <a href="../../events/">bus d'événements</a> via
 <code>EventDispatcher.getInstance():publish(...)</code> :</p>
 <table>
@@ -2304,7 +2304,7 @@ le groupe, l'enregistre dans <code>_completeSystems</code> et publie <code>OnAAS
 </table>
 <p>Chaque payload porte <code>systemName</code>, <code>groupName</code>, <code>coalition</code>, <code>timestamp</code> et (sauf pour le
 déploiement IA) l'unité <code>heli</code> ; les payloads de déploiement incluent également <code>position</code>.</p>
-<h2 id="voir-aussi">Voir aussi<a class="headerlink" href="#voir-aussi" title="Permanent link">&para;</a></h2>
+<h2 id="related">Voir aussi<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../crates/">Crates</a> — spawn/chargement/déchargement des crates et le menu unpack M7 qui pilote l'assemblage</li>
 <li><a href="../../architecture/">Architecture</a> — l'idiome manager/singleton et la séquence d'init</li>

@@ -1093,7 +1093,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#le-compagnon-asset-check" class="md-nav__link">
+  <a href="#the-asset-check-companion" class="md-nav__link">
     <span class="md-ellipsis">
       
         Le compagnon asset-check
@@ -1105,7 +1105,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#utilisation" class="md-nav__link">
+  <a href="#how-to-use-it" class="md-nav__link">
     <span class="md-ellipsis">
       
         Utilisation
@@ -1116,7 +1116,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#declarer-les-types-mod" class="md-nav__link">
+  <a href="#declaring-mod-types" class="md-nav__link">
     <span class="md-ellipsis">
       
         Déclarer les types mod
@@ -1937,7 +1937,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#le-compagnon-asset-check" class="md-nav__link">
+  <a href="#the-asset-check-companion" class="md-nav__link">
     <span class="md-ellipsis">
       
         Le compagnon asset-check
@@ -1949,7 +1949,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#utilisation" class="md-nav__link">
+  <a href="#how-to-use-it" class="md-nav__link">
     <span class="md-ellipsis">
       
         Utilisation
@@ -1960,7 +1960,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#declarer-les-types-mod" class="md-nav__link">
+  <a href="#declaring-mod-types" class="md-nav__link">
     <span class="md-ellipsis">
       
         Déclarer les types mod
@@ -2000,7 +2000,7 @@
 sonde cachés (ça gaspillait des ressources et émettait des events de naissance/mort parasites que
 votre logique de mission pouvait voir). À la place, une faute de frappe ou un mod manquant se révèle
 au <strong>développement</strong> via un script compagnon optionnel.</p>
-<h2 id="le-compagnon-asset-check">Le compagnon asset-check<a class="headerlink" href="#le-compagnon-asset-check" title="Permanent link">&para;</a></h2>
+<h2 id="the-asset-check-companion">Le compagnon asset-check<a class="headerlink" href="#the-asset-check-companion" title="Permanent link">&para;</a></h2>
 <p><code>CTLD_asset_check.lua</code> est un outil dev-time optionnel (téléchargez-le depuis les assets de release).
 Chargé après CTLD, il examine tout ce que votre mission configure — <code>spawnableCrates</code>, parts de
 systèmes AA, <code>loadableGroups</code>, objets de scènes — et affiche un message :</p>
@@ -2009,7 +2009,7 @@ systèmes AA, <code>loadableGroups</code>, objets de scènes — et affiche un m
 <li><strong>WARN</strong> — une liste de types inconnus (faute de frappe probable, ou un mod non déclaré).</li>
 </ul>
 <p>C'est une simple lecture : <strong>aucun objet n'est spawné, aucun event n'est émis.</strong></p>
-<h3 id="utilisation">Utilisation<a class="headerlink" href="#utilisation" title="Permanent link">&para;</a></h3>
+<h3 id="how-to-use-it">Utilisation<a class="headerlink" href="#how-to-use-it" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Téléchargez <code>CTLD_asset_check.lua</code> depuis la <a href="https://github.com/VEAF/CTLD/releases">release CTLD</a>.</li>
 <li>Dans l'éditeur de mission, ajoutez un déclencheur <code>DO SCRIPT FILE</code> au <strong>démarrage de la mission</strong>,
@@ -2018,7 +2018,7 @@ systèmes AA, <code>loadableGroups</code>, objets de scènes — et affiche un m
    signalée.</li>
 <li><strong>Retirez le déclencheur du compagnon pour la production</strong> — c'est une aide au développement.</li>
 </ol>
-<h3 id="declarer-les-types-mod">Déclarer les types mod<a class="headerlink" href="#declarer-les-types-mod" title="Permanent link">&para;</a></h3>
+<h3 id="declaring-mod-types">Déclarer les types mod<a class="headerlink" href="#declaring-mod-types" title="Permanent link">&para;</a></h3>
 <p>Si votre config utilise légitimement le type DCS d'un mod, indiquez-le à CTLD pour que le compagnon
 ne le signale pas — listez le(s) nom(s) exact(s) dans le setting <code>modTypes</code> :</p>
 <div class="highlight"><pre><span></span><code><span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;modTypes&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Your_Mod_Type&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Another_Mod_Type&quot;</span><span class="w"> </span><span class="p">}</span>

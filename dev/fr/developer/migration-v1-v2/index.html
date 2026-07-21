@@ -1803,7 +1803,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#principe-des-wrappers" class="md-nav__link">
+  <a href="#wrapper-principle" class="md-nav__link">
     <span class="md-ellipsis">
       
         Principe des wrappers
@@ -1814,7 +1814,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#table-de-migration" class="md-nav__link">
+  <a href="#migration-table" class="md-nav__link">
     <span class="md-ellipsis">
       
         Table de migration
@@ -1886,7 +1886,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#remplacer-ctldaddcallback" class="md-nav__link">
+  <a href="#replacing-ctldaddcallback" class="md-nav__link">
     <span class="md-ellipsis">
       
         Remplacer ctld.addCallback
@@ -1897,7 +1897,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exemple-complet-de-migration" class="md-nav__link">
+  <a href="#complete-migration-example" class="md-nav__link">
     <span class="md-ellipsis">
       
         Exemple complet de migration
@@ -1908,7 +1908,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pack-de-vehicule-nouveau-en-v2" class="md-nav__link">
+  <a href="#pack-vehicle-new-in-v2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Pack de véhicule (nouveau en v2)
@@ -1919,7 +1919,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#scenes-deplacees-en-plugins-200" class="md-nav__link">
+  <a href="#scenes-moved-to-plugins-200" class="md-nav__link">
     <span class="md-ellipsis">
       
         Scènes déplacées en plugins (2.0.0)
@@ -2028,7 +2028,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#principe-des-wrappers" class="md-nav__link">
+  <a href="#wrapper-principle" class="md-nav__link">
     <span class="md-ellipsis">
       
         Principe des wrappers
@@ -2039,7 +2039,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#table-de-migration" class="md-nav__link">
+  <a href="#migration-table" class="md-nav__link">
     <span class="md-ellipsis">
       
         Table de migration
@@ -2111,7 +2111,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#remplacer-ctldaddcallback" class="md-nav__link">
+  <a href="#replacing-ctldaddcallback" class="md-nav__link">
     <span class="md-ellipsis">
       
         Remplacer ctld.addCallback
@@ -2122,7 +2122,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exemple-complet-de-migration" class="md-nav__link">
+  <a href="#complete-migration-example" class="md-nav__link">
     <span class="md-ellipsis">
       
         Exemple complet de migration
@@ -2133,7 +2133,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pack-de-vehicule-nouveau-en-v2" class="md-nav__link">
+  <a href="#pack-vehicle-new-in-v2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Pack de véhicule (nouveau en v2)
@@ -2144,7 +2144,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#scenes-deplacees-en-plugins-200" class="md-nav__link">
+  <a href="#scenes-moved-to-plugins-200" class="md-nav__link">
     <span class="md-ellipsis">
       
         Scènes déplacées en plugins (2.0.0)
@@ -2181,7 +2181,7 @@ continuent de fonctionner sans modification — chaque point d'entrée v1 survit
 wrapper léger qui transmet l'appel au manager v2 correspondant et journalise un avertissement de
 dépréciation. Cette page explique le principe des wrappers, donne la correspondance complète v1 → v2,
 et montre comment porter le seul construct qui n'est <em>pas</em> wrappé : le callback fourre-tout.</p>
-<h2 id="principe-des-wrappers">Principe des wrappers<a class="headerlink" href="#principe-des-wrappers" title="Permanent link">&para;</a></h2>
+<h2 id="wrapper-principle">Principe des wrappers<a class="headerlink" href="#wrapper-principle" title="Permanent link">&para;</a></h2>
 <p>Les 22 fonctions globales v1 (<code>ctld.spawnGroupAtTrigger</code>, <code>ctld.JTACAutoLase</code>, …) résident dans
 <code>src/legacy/legacy_api.lua</code>. Chaque wrapper fait deux choses :</p>
 <ul>
@@ -2201,7 +2201,7 @@ tournent telles quelles ; les avertissements sont une incitation à migrer, pas 
 <p>Le fichier legacy est chargé en dernier (après tous les managers, juste avant
 <code>CTLD_userConfig.lua</code>) afin que chaque manager cible soit défini au moment où un wrapper peut être
 appelé.</p>
-<h2 id="table-de-migration">Table de migration<a class="headerlink" href="#table-de-migration" title="Permanent link">&para;</a></h2>
+<h2 id="migration-table">Table de migration<a class="headerlink" href="#migration-table" title="Permanent link">&para;</a></h2>
 <p>Remplacez chaque appel v1 <code>ctld.*</code> par la forme v2 sur la droite. L'ordre et les noms des arguments
 ci-dessous correspondent aux signatures réelles des wrappers dans <code>src/legacy/legacy_api.lua</code> —
 certaines documentations legacy citaient un ordre différent.</p>
@@ -2373,7 +2373,7 @@ unique, <code>setTroopZoneActive(name, active)</code>, et les helpers de comptag
 </tr>
 </tbody>
 </table>
-<h2 id="remplacer-ctldaddcallback">Remplacer <code>ctld.addCallback</code><a class="headerlink" href="#remplacer-ctldaddcallback" title="Permanent link">&para;</a></h2>
+<h2 id="replacing-ctldaddcallback">Remplacer <code>ctld.addCallback</code><a class="headerlink" href="#replacing-ctldaddcallback" title="Permanent link">&para;</a></h2>
 <p><code>ctld.addCallback</code> est le seul construct v1 qui n'est <strong>pas</strong> wrappé. La v1 enregistrait un unique
 handler fourre-tout qui recevait chaque événement et le démultiplexait sur un identifiant numérique :</p>
 <div class="highlight"><pre><span></span><code><span class="c1">-- v1</span>
@@ -2394,7 +2394,7 @@ quelconque d'abonnés peut écouter le même événement :</p>
 <p>Cela supprime la chaîne <code>if/elseif</code>, évite d'exécuter des handlers sans rapport, et permet à des
 fonctionnalités indépendantes de s'abonner au même événement sans interférer. Voir
 <a href="../events/">Événements</a> pour le catalogue complet des événements et la forme de leurs payloads.</p>
-<h2 id="exemple-complet-de-migration">Exemple complet de migration<a class="headerlink" href="#exemple-complet-de-migration" title="Permanent link">&para;</a></h2>
+<h2 id="complete-migration-example">Exemple complet de migration<a class="headerlink" href="#complete-migration-example" title="Permanent link">&para;</a></h2>
 <p>Un <strong>DO SCRIPT</strong> v1 représentatif et son équivalent v2.</p>
 <p><strong>v1 :</strong></p>
 <div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">spawnGroupAtTrigger</span><span class="p">(</span><span class="nv">coalition</span><span class="p">.</span><span class="py">side</span><span class="p">.</span><span class="py">BLUE</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;LZ_NORTH&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span>
@@ -2416,7 +2416,7 @@ fonctionnalités indépendantes de s'abonner au même événement sans interfér
 <span class="w">    </span><span class="nv">trigger</span><span class="p">.</span><span class="py">action</span><span class="p">.</span><span class="nf">outText</span><span class="p">(</span><span class="s2">&quot;Troops landed!&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span>
 <span class="kr">end</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="pack-de-vehicule-nouveau-en-v2">Pack de véhicule (nouveau en v2)<a class="headerlink" href="#pack-de-vehicule-nouveau-en-v2" title="Permanent link">&para;</a></h2>
+<h2 id="pack-vehicle-new-in-v2">Pack de véhicule (nouveau en v2)<a class="headerlink" href="#pack-vehicle-new-in-v2" title="Permanent link">&para;</a></h2>
 <p>La v1 n'avait aucun chemin fonctionnel de pack de véhicule. La v2 l'ajoute sur <code>CTLDVehicleSpawner</code>,
 piloté depuis le menu F10 mais aussi appelable directement :</p>
 <div class="highlight"><pre><span></span><code><span class="c1">-- Find CTLD-managed vehicles in WAITING state within pack range of a transport.</span>
@@ -2431,7 +2431,7 @@ piloté depuis le menu F10 mais aussi appelable directement :</p>
 sorte que les props de décor (guards, workers, décoration statique) ne polluent jamais le résultat.
 Le sous-menu F10 <strong>Pack Vehicle</strong> est peuplé automatiquement lorsqu'un transport se pose à moins de
 <code>ctld.gs("maximumDistancePackableUnitsSearch")</code> d'un véhicule packable.</p>
-<h2 id="scenes-deplacees-en-plugins-200">Scènes déplacées en plugins (2.0.0)<a class="headerlink" href="#scenes-deplacees-en-plugins-200" title="Permanent link">&para;</a></h2>
+<h2 id="scenes-moved-to-plugins-200">Scènes déplacées en plugins (2.0.0)<a class="headerlink" href="#scenes-moved-to-plugins-200" title="Permanent link">&para;</a></h2>
 <p>La scène <strong>Metal FARP</strong> n'est plus embarquée dans <code>CTLD.lua</code>. C'est désormais un plugin optionnel du
 dépôt <a href="https://github.com/VEAF/CTLD_plugins"><code>VEAF/CTLD_plugins</code></a> (elle dépend du mod
 <code>Farp_FG_Petit_Helipad</code>, qui n'a pas sa place dans le livrable de base).</p>

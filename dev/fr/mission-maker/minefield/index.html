@@ -1065,7 +1065,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#mise-a-disposition" class="md-nav__link">
+  <a href="#making-it-available" class="md-nav__link">
     <span class="md-ellipsis">
       
         Mise à disposition
@@ -1077,7 +1077,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#disposition-par-defaut" class="md-nav__link">
+  <a href="#default-layout" class="md-nav__link">
     <span class="md-ellipsis">
       
         Disposition par défaut
@@ -1104,7 +1104,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#avance-poser-un-minefield-depuis-un-script" class="md-nav__link">
+  <a href="#advanced-laying-a-minefield-from-a-script" class="md-nav__link">
     <span class="md-ellipsis">
       
         Avancé : poser un minefield depuis un script
@@ -1116,7 +1116,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#setlandmineauto-par-surface-et-nombre" class="md-nav__link">
+  <a href="#setlandmineauto-by-area-and-count" class="md-nav__link">
     <span class="md-ellipsis">
       
         setLandMineAuto — par surface et nombre
@@ -1127,7 +1127,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#setlandmine-grille-explicite" class="md-nav__link">
+  <a href="#setlandmine-explicit-grid" class="md-nav__link">
     <span class="md-ellipsis">
       
         setLandMine — grille explicite
@@ -1138,7 +1138,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cas-limites-de-disposition" class="md-nav__link">
+  <a href="#layout-edge-cases" class="md-nav__link">
     <span class="md-ellipsis">
       
         Cas limites de disposition
@@ -1987,7 +1987,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#mise-a-disposition" class="md-nav__link">
+  <a href="#making-it-available" class="md-nav__link">
     <span class="md-ellipsis">
       
         Mise à disposition
@@ -1999,7 +1999,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#disposition-par-defaut" class="md-nav__link">
+  <a href="#default-layout" class="md-nav__link">
     <span class="md-ellipsis">
       
         Disposition par défaut
@@ -2026,7 +2026,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#avance-poser-un-minefield-depuis-un-script" class="md-nav__link">
+  <a href="#advanced-laying-a-minefield-from-a-script" class="md-nav__link">
     <span class="md-ellipsis">
       
         Avancé : poser un minefield depuis un script
@@ -2038,7 +2038,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#setlandmineauto-par-surface-et-nombre" class="md-nav__link">
+  <a href="#setlandmineauto-by-area-and-count" class="md-nav__link">
     <span class="md-ellipsis">
       
         setLandMineAuto — par surface et nombre
@@ -2049,7 +2049,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#setlandmine-grille-explicite" class="md-nav__link">
+  <a href="#setlandmine-explicit-grid" class="md-nav__link">
     <span class="md-ellipsis">
       
         setLandMine — grille explicite
@@ -2060,7 +2060,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cas-limites-de-disposition" class="md-nav__link">
+  <a href="#layout-edge-cases" class="md-nav__link">
     <span class="md-ellipsis">
       
         Cas limites de disposition
@@ -2104,7 +2104,7 @@ l'étendue du champ.</p>
 régler son comportement. Les actions en cockpit — le unpack de la crate pour poser un champ,
 et l'utilisation du menu <strong>Clear Mine Field</strong> pour en retirer un — sont des opérations pilote,
 décrites dans le <a href="../../pilot/">guide Pilote</a>.</p>
-<h2 id="mise-a-disposition">Mise à disposition<a class="headerlink" href="#mise-a-disposition" title="Permanent link">&para;</a></h2>
+<h2 id="making-it-available">Mise à disposition<a class="headerlink" href="#making-it-available" title="Permanent link">&para;</a></h2>
 <p>Le minefield est une scene auto-enregistrée : dès que <code>CTLD.lua</code> est chargé, elle apparaît
 automatiquement comme <strong>Mine Field Crate</strong> dans le menu F10 <strong>Request Equipment</strong>, pour les
 deux coalitions, en ne demandant qu'une seule crate. Vous n'avez <strong>pas</strong> besoin de la déclarer
@@ -2112,7 +2112,7 @@ dans <code>spawnableCrates</code>. Voir le <a href="../crates-catalogue/">catalo
 les crates sont listées et demandées de manière générale.</p>
 <p>Les pilotes demandent alors la crate, la transportent et l'unpack au sol ; le champ est posé
 devant l'aéronef, dans l'axe de son cap. Voir le <a href="../../pilot/">guide Pilote</a>.</p>
-<h3 id="disposition-par-defaut">Disposition par défaut<a class="headerlink" href="#disposition-par-defaut" title="Permanent link">&para;</a></h3>
+<h3 id="default-layout">Disposition par défaut<a class="headerlink" href="#default-layout" title="Permanent link">&para;</a></h3>
 <p>La crate pose toujours le même champ fixe : une grille en quinconce calculée à partir de
 5 mines par rangée complète × 15 rangées, commençant 20 m devant l'unité, avec 6 m entre les
 mines adjacentes et 12 m entre les rangées. Les rangées impaires portent 5 mines, les rangées
@@ -2150,7 +2150,7 @@ x    x    x    x    x        &lt;- odd row
 <div class="highlight"><pre><span></span><code><span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;showMinefieldOnF10Map&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 <span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;demineRadius&quot;</span><span class="p">]</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="mi">150</span>
 </code></pre></div>
-<h2 id="avance-poser-un-minefield-depuis-un-script">Avancé : poser un minefield depuis un script<a class="headerlink" href="#avance-poser-un-minefield-depuis-un-script" title="Permanent link">&para;</a></h2>
+<h2 id="advanced-laying-a-minefield-from-a-script">Avancé : poser un minefield depuis un script<a class="headerlink" href="#advanced-laying-a-minefield-from-a-script" title="Permanent link">&para;</a></h2>
 <p>Si vous voulez placer des minefields depuis votre propre logique de mission (plutôt qu'en
 faisant unpack une crate par un pilote), récupérez le modèle de la scene et appelez l'une de
 ses deux fonctions de disposition. Les deux prennent un objet DCS Unit, qui définit l'origine
@@ -2159,7 +2159,7 @@ objects spawnés.</p>
 <p>Récupérez le modèle une fois :</p>
 <div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">mineField</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">CTLDSceneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">getModel</span><span class="p">(</span><span class="s2">&quot;mineField&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="setlandmineauto-par-surface-et-nombre"><code>setLandMineAuto</code> — par surface et nombre<a class="headerlink" href="#setlandmineauto-par-surface-et-nombre" title="Permanent link">&para;</a></h3>
+<h3 id="setlandmineauto-by-area-and-count"><code>setLandMineAuto</code> — par surface et nombre<a class="headerlink" href="#setlandmineauto-by-area-and-count" title="Permanent link">&para;</a></h3>
 <p>Fournissez les dimensions cibles et un nombre de mines souhaité ; CTLD calcule
 automatiquement la meilleure disposition colonnes/rangées.</p>
 <div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">ok</span><span class="p">,</span><span class="w"> </span><span class="nv">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">mineField</span><span class="p">.</span><span class="nf">setLandMineAuto</span><span class="p">(</span>
@@ -2172,7 +2172,7 @@ automatiquement la meilleure disposition colonnes/rangées.</p>
 <span class="c1">-- The actual count may differ slightly from the request due to quinconce rounding.</span>
 <span class="c1">-- Use #result for the exact number of mines spawned.</span>
 </code></pre></div>
-<h3 id="setlandmine-grille-explicite"><code>setLandMine</code> — grille explicite<a class="headerlink" href="#setlandmine-grille-explicite" title="Permanent link">&para;</a></h3>
+<h3 id="setlandmine-explicit-grid"><code>setLandMine</code> — grille explicite<a class="headerlink" href="#setlandmine-explicit-grid" title="Permanent link">&para;</a></h3>
 <p>Pour un contrôle total sur le nombre de colonnes, le nombre de rangées et les deux distances :</p>
 <div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">ok</span><span class="p">,</span><span class="w"> </span><span class="nv">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">mineField</span><span class="p">.</span><span class="nf">setLandMine</span><span class="p">(</span>
 <span class="w">    </span><span class="nv">transport</span><span class="p">,</span><span class="w">   </span><span class="c1">-- DCS Unit object</span>
@@ -2184,7 +2184,7 @@ automatiquement la meilleure disposition colonnes/rangées.</p>
 <span class="p">)</span>
 <span class="c1">-- Quinconce total: 8 odd rows x 5 + 7 even rows x 4 = 68 mines</span>
 </code></pre></div>
-<h3 id="cas-limites-de-disposition">Cas limites de disposition<a class="headerlink" href="#cas-limites-de-disposition" title="Permanent link">&para;</a></h3>
+<h3 id="layout-edge-cases">Cas limites de disposition<a class="headerlink" href="#layout-edge-cases" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>

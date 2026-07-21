@@ -1405,7 +1405,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#modele-de-donnees-interne" class="md-nav__link">
+  <a href="#internal-data-model" class="md-nav__link">
     <span class="md-ellipsis">
       
         Modèle de données interne
@@ -1416,7 +1416,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#execution-des-etapes" class="md-nav__link">
+  <a href="#step-execution" class="md-nav__link">
     <span class="md-ellipsis">
       
         Exécution des étapes
@@ -1428,7 +1428,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#points-dentree" class="md-nav__link">
+  <a href="#entry-points" class="md-nav__link">
     <span class="md-ellipsis">
       
         Points d'entrée
@@ -1444,7 +1444,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#flux-de-pack-de-farp" class="md-nav__link">
+  <a href="#farp-pack-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
         Flux de pack de FARP
@@ -1455,7 +1455,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ajouter-une-nouvelle-scene-checklist-dev" class="md-nav__link">
+  <a href="#adding-a-new-scene-dev-checklist" class="md-nav__link">
     <span class="md-ellipsis">
       
         Ajouter une nouvelle scène (checklist dev)
@@ -1466,7 +1466,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#scenes-plugin-independantes-de-la-position-de-chargement" class="md-nav__link">
+  <a href="#plugin-scenes-load-position-independent" class="md-nav__link">
     <span class="md-ellipsis">
       
         Scènes plugin (indépendantes de la position de chargement)
@@ -1477,7 +1477,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validation-des-assets-design-time" class="md-nav__link">
+  <a href="#asset-validation-design-time" class="md-nav__link">
     <span class="md-ellipsis">
       
         Validation des assets (design-time)
@@ -1986,7 +1986,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#modele-de-donnees-interne" class="md-nav__link">
+  <a href="#internal-data-model" class="md-nav__link">
     <span class="md-ellipsis">
       
         Modèle de données interne
@@ -1997,7 +1997,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#execution-des-etapes" class="md-nav__link">
+  <a href="#step-execution" class="md-nav__link">
     <span class="md-ellipsis">
       
         Exécution des étapes
@@ -2009,7 +2009,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#points-dentree" class="md-nav__link">
+  <a href="#entry-points" class="md-nav__link">
     <span class="md-ellipsis">
       
         Points d'entrée
@@ -2025,7 +2025,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#flux-de-pack-de-farp" class="md-nav__link">
+  <a href="#farp-pack-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
         Flux de pack de FARP
@@ -2036,7 +2036,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ajouter-une-nouvelle-scene-checklist-dev" class="md-nav__link">
+  <a href="#adding-a-new-scene-dev-checklist" class="md-nav__link">
     <span class="md-ellipsis">
       
         Ajouter une nouvelle scène (checklist dev)
@@ -2047,7 +2047,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#scenes-plugin-independantes-de-la-position-de-chargement" class="md-nav__link">
+  <a href="#plugin-scenes-load-position-independent" class="md-nav__link">
     <span class="md-ellipsis">
       
         Scènes plugin (indépendantes de la position de chargement)
@@ -2058,7 +2058,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validation-des-assets-design-time" class="md-nav__link">
+  <a href="#asset-validation-design-time" class="md-nav__link">
     <span class="md-ellipsis">
       
         Validation des assets (design-time)
@@ -2100,7 +2100,7 @@ entre chacune.</p>
 chargement via <code>CTLDSceneManager.getInstance():registerSceneModel(model)</code>.
 <code>CTLDSceneManager:_registerBuiltins()</code> est intentionnellement vide — il n'y a pas de liste de
 modèles codée en dur.</p>
-<h2 id="modele-de-donnees-interne">Modèle de données interne<a class="headerlink" href="#modele-de-donnees-interne" title="Permanent link">&para;</a></h2>
+<h2 id="internal-data-model">Modèle de données interne<a class="headerlink" href="#internal-data-model" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>CtldScene (une instance par déploiement actif)
   ├── _name        : &quot;&lt;modelName&gt;#&lt;counter&gt;&quot;  (unique par déploiement)
   ├── _modelName   : original model name (used for registry / pack lookups)
@@ -2128,7 +2128,7 @@ l'unité de déclenchement (<code>unit:getPoint()</code> et <code>ctld.utils.get
 ultérieure est positionnée relativement à cet instantané, si bien que la scène se déploie de manière
 cohérente même si l'unité bouge ou quitte les lieux. La <code>func</code> d'une étape peut écraser <code>_refX</code> /
 <code>_refZ</code> / <code>_refAlt</code> sur <code>ctx.scene</code> avant l'exécution des étapes de spawn suivantes.</p>
-<h2 id="execution-des-etapes">Exécution des étapes<a class="headerlink" href="#execution-des-etapes" title="Permanent link">&para;</a></h2>
+<h2 id="step-execution">Exécution des étapes<a class="headerlink" href="#step-execution" title="Permanent link">&para;</a></h2>
 <p>La machine à étapes est pilotée par <code>timer.scheduleFunction</code>. <code>CtldScene:_execute()</code> planifie la
 première étape après <code>steps[1].delayAfterPreviousStep</code> secondes ; <code>_runNextStep()</code> exécute alors
 l'étape courante et planifie la suivante. Chaque étape prend l'une des trois formes suivantes :</p>
@@ -2183,7 +2183,7 @@ délai initial depuis le déclenchement.</p>
 poursuit. Lorsque la dernière étape se termine, <code>_onComplete(scene)</code> se déclenche (également sous
 <code>pcall</code>). Un modèle peut définir <code>model.onComplete</code> ; un callback fourni par l'appelant à
 <code>playScene</code> le remplace.</p>
-<h3 id="points-dentree">Points d'entrée<a class="headerlink" href="#points-dentree" title="Permanent link">&para;</a></h3>
+<h3 id="entry-points">Points d'entrée<a class="headerlink" href="#entry-points" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -2203,7 +2203,7 @@ poursuit. Lorsque la dernière étape se termine, <code>_onComplete(scene)</code
 </tbody>
 </table>
 <p>Les deux enregistrent la nouvelle <code>CtldScene</code> dans <code>_active</code> avant l'exécution.</p>
-<h2 id="flux-de-pack-de-farp">Flux de pack de FARP<a class="headerlink" href="#flux-de-pack-de-farp" title="Permanent link">&para;</a></h2>
+<h2 id="farp-pack-flow">Flux de pack de FARP<a class="headerlink" href="#farp-pack-flow" title="Permanent link">&para;</a></h2>
 <p>Le pack démonte une scène de FARP déployée pour la remettre en crates tout en préservant l'état de
 son entrepôt (warehouse). Le flux est réparti entre le gestionnaire de scènes et
 <a href="../crates/"><code>CTLDCrateManager</code></a> :</p>
@@ -2233,7 +2233,7 @@ l'inventaire au lieu de les remettre à zéro.</p>
 <p>Les identifiants concernés (<code>onRepack</code>, <code>findNearbyRepackableScenes</code>, <code>packScene</code>, <code>repackData</code>,
 <code>warehouseSnapshot</code>) conservent leur orthographe dans le code ; le libellé F10 est
 <code>ctld.tr("Pack %1", …)</code>.</p>
-<h2 id="ajouter-une-nouvelle-scene-checklist-dev">Ajouter une nouvelle scène (checklist dev)<a class="headerlink" href="#ajouter-une-nouvelle-scene-checklist-dev" title="Permanent link">&para;</a></h2>
+<h2 id="adding-a-new-scene-dev-checklist">Ajouter une nouvelle scène (checklist dev)<a class="headerlink" href="#adding-a-new-scene-dev-checklist" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Créer <code>src/scenes/CTLD_myScene.lua</code> : une table de modèle locale avec <code>name</code> et <code>steps</code>, se
    terminant par <code>CTLDSceneManager.getInstance():registerSceneModel(myScene)</code>.</li>
@@ -2264,7 +2264,7 @@ l'inventaire au lieu de les remettre à zéro.</p>
 </ol>
 <p><code>src/scenes/CTLD_countrysideFarpScene.lua</code> est l'implémentation de référence (Invisible FARP +
 approvisionnement d'entrepôt + <code>onRepack</code>) ; <code>src/scenes/CTLD_fobScene.lua</code> illustre la variante FOB.</p>
-<h2 id="scenes-plugin-independantes-de-la-position-de-chargement">Scènes plugin (indépendantes de la position de chargement)<a class="headerlink" href="#scenes-plugin-independantes-de-la-position-de-chargement" title="Permanent link">&para;</a></h2>
+<h2 id="plugin-scenes-load-position-independent">Scènes plugin (indépendantes de la position de chargement)<a class="headerlink" href="#plugin-scenes-load-position-independent" title="Permanent link">&para;</a></h2>
 <p>Le source d'une scène est <strong>indépendant de sa position de chargement</strong> : le même fichier fonctionne
 qu'il soit mergé dans <code>CTLD.lua</code> (intégré) ou chargé depuis un déclencheur au démarrage de la mission
 <strong>après</strong> CTLD (un plugin, distribué par
@@ -2280,7 +2280,7 @@ niche sont livrées en plugins : une mission ne les embarque que si elle le déc
 <p>Contrat d'une scène plugin : charger <strong>au démarrage de la mission uniquement</strong> (avant slot-in des
 joueurs), déclarer <code>requiresCtld</code>, et déclarer les types mod dans <code>modTypes</code>. La scène de référence
 <code>_template</code> dans CTLD_plugins exerce tous les points d'extension (y compris un sous-menu radio).</p>
-<h2 id="validation-des-assets-design-time">Validation des assets (design-time)<a class="headerlink" href="#validation-des-assets-design-time" title="Permanent link">&para;</a></h2>
+<h2 id="asset-validation-design-time">Validation des assets (design-time)<a class="headerlink" href="#asset-validation-design-time" title="Permanent link">&para;</a></h2>
 <p>Les types DCS des scènes sont validés au <strong>dev/CI</strong>, pas au runtime (ADR 0007). Le hard-gate busted
 <code>tests/ci/unit/scene_asset_gate_spec.lua</code> collecte les types spawnés par chaque scène (STATIC
 <code>desc.type</code>, GROUND <code>desc.units[].type</code>) et échoue sur tout type absent du jeu datamine vendorisé
