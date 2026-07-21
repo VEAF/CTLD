@@ -1,4 +1,4 @@
-# Minefield
+# Champ de mines { #minefield }
 
 CTLD embarque une scene **minefield** intégrée. Lorsqu'elle est déployée, CTLD spawn de
 vrais statics de mines terrestres DCS selon un motif en quinconce devant l'unité de

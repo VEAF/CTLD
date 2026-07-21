@@ -1,4 +1,4 @@
-# API historique
+# API historique { #legacy-api }
 
 Si vous avez déjà une mission construite sur **CTLD v1**, ses triggers `DO SCRIPT` et scripts
 utilitaires continuent de fonctionner sous v2. CTLD fournit de fins wrappers de compatibilité

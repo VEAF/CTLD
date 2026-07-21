@@ -1,4 +1,4 @@
-# CTLD Next — Procédure de test de version
+# Procédure de test de version { #release-testing-procedure }
 
 Les tests sont organisés en six niveaux (L1 à L6).
 L1 et L2 s'exécutent automatiquement via la CI GitHub Actions.

@@ -1,4 +1,4 @@
-# Build et tests
+# Build et tests { #building-testing }
 
 Cette page couvre tout ce dont vous avez besoin pour transformer `src/` en livrable final et pour
 exécuter la suite de tests automatisés en local. Les deux sont également appliqués en intégration

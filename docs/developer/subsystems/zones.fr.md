@@ -1,4 +1,4 @@
-# Gestion des zones
+# Gestion des zones { #zone-management }
 
 **Source :** `src/CTLD_zone.lua`
 **Entités :** `CTLDTroopZone`, `CTLDLogisticZone`

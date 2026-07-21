@@ -1,4 +1,4 @@
-# Système de recon
+# Système de reconnaissance (recon) { #recon-system }
 
 Le système de recon permet aux joueurs de révéler les unités **ennemies** qu'une unité alliée peut
 réellement voir. Sa portée est délibérément restreinte : RECON n'affiche que les moyens ennemis

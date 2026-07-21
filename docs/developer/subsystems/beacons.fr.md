@@ -1,4 +1,4 @@
-# Système de beacons
+# Système de balises (beacons) { #beacon-system }
 
 **Source :** `src/CTLD_beacon.lua` · **Singleton :** `CTLDBeaconManager` · **Entité :** `CTLDBeacon`
 

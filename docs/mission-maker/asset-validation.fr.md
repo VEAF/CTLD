@@ -1,4 +1,4 @@
-# Valider votre config pendant le développement
+# Valider votre config pendant le développement { #validating-your-config-during-development }
 
 CTLD ne vérifie **plus** les noms de types DCS au démarrage de la mission — il ne spawn plus d'objets
 sonde cachés (ça gaspillait des ressources et émettait des events de naissance/mort parasites que

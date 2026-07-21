@@ -1,4 +1,4 @@
-# Catalogue de crates
+# Catalogue de caisses (crates) { #crate-catalogue }
 
 Cette page traite de **ce que vous proposez aux pilotes de faire spawner** : les crates, les
 véhicules complets, les systèmes AA et les unités JTAC qu'un mission maker définit dans la

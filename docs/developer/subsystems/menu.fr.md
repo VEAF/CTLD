@@ -1,4 +1,4 @@
-# Système de menu F10
+# Système de menu F10 { #f10-menu-system }
 
 Le menu radio F10 est l'interface principale de CTLD en mission : chaque action qu'un pilote de
 transport effectue — charger des crates, embarquer des troops, demander de l'équipement, activer

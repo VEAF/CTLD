@@ -53,6 +53,51 @@ plugins:
         - locale: fr
           name: Français
           build: true
+          nav_translations:
+            Home: Accueil
+            Pilot: Pilote
+            Overview: Vue d'ensemble
+            Troop transport: Transport de troupes
+            Crates: Caisses (crates)
+            Vehicles: Véhicules
+            Sling-load: Élingue (sling-load)
+            Parachute: Parachute
+            JTAC: JTAC
+            Recon: Reconnaissance (recon)
+            Beacons: Balises (beacons)
+            Smoke: Fumigène (smoke)
+            Pack: Pack
+            Mission Maker: Concepteur de mission (mission maker)
+            Configuration: Configuration
+            Configure with ctld-tools: Configurer avec ctld-tools
+            Zone setup: Configuration des zones
+            Scenes & FOB: Scènes & FOB
+            Crate catalogue: Catalogue de caisses (crates)
+            Minefield: Champ de mines
+            Validating your config: Valider votre configuration
+            Translations: Traductions
+            Legacy API: API historique
+            Developer: Développeur
+            Development workflow: Workflow de développement
+            Architecture: Architecture
+            Subsystems: Sous-systèmes
+            Scene engine: Moteur de scènes
+            Crate spawn pipeline: Pipeline de spawn des caisses (crates)
+            Troop + JTAC lifecycle: Cycle de vie troupes + JTAC (troops)
+            Zone management: Gestion des zones
+            Vehicle system: Système de véhicules
+            Beacon system: Système de balises (beacons)
+            Recon system: Système de reconnaissance (recon)
+            F10 menu system: Système de menu F10
+            Player tracking: Suivi des joueurs
+            AA system assembly: Assemblage des systèmes AA
+            Events: Événements
+            Internationalisation: Internationalisation
+            Building & testing: Build et tests
+            Integration testing: Tests d'intégration
+            Migration v1 → v2: Migration v1 → v2
+            API reference: Référence de l'API
+            Design spec: Spécification de conception
 
 extra:
   version:

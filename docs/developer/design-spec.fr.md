@@ -1,4 +1,4 @@
-# Design spec
+# Spécification de conception { #design-spec }
 
 Cette page constitue la **justification de conception** de CTLD v2 — le *pourquoi* derrière
 l'architecture, non le *comment*. Elle consigne les objectifs que la réécriture s'est fixés et les

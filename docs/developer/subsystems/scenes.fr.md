@@ -1,4 +1,4 @@
-# Moteur de scènes
+# Moteur de scènes { #scene-engine }
 
 **Source :** `src/CTLD_sceneManager.lua`, `src/scenes/*.lua`
 **Classes :** `CtldScene` (une instance en cours d'exécution), `CTLDSceneManager` (registre singleton + moteur)

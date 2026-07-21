@@ -1,4 +1,4 @@
-# Véhicules
+# Véhicules { #vehicles }
 
 Certains avions de transport peuvent embarquer un **véhicule terrestre entier** — un HMMWV, un
 camion-citerne, une pièce de DCA — au lieu de le décomposer en [crates](crates.md). Vous l'amenez

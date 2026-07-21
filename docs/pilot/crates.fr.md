@@ -1,4 +1,4 @@
-# Crates
+# Caisses (crates) { #crates }
 
 Les crates sont le pilier de la logistique CTLD. Vous demandez une crate dans une zone
 logistique amie, vous la transportez là où elle est nécessaire, puis vous l'unpackez en un

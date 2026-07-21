@@ -1,4 +1,4 @@
-# Configurer CTLD avec `ctld-tools`
+# Configurer CTLD avec `ctld-tools` { #configuring-ctld-with-ctld-tools }
 
 `ctld-tools` permet de configurer CTLD **sans écrire de Lua**. Vous décrivez vos changements — en
 désignant crates et groupes de troupes **par leur nom** — et l'outil les valide puis génère le

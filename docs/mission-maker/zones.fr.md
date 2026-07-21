@@ -1,4 +1,4 @@
-# Configuration des zones
+# Configuration des zones { #zone-setup }
 
 Les zones CTLD sont déclarées directement dans l'**éditeur de mission de DCS** en nommant vos
 trigger zones selon une convention structurée. Pour la plupart des zones, aucun script n'est

@@ -1,4 +1,4 @@
-# CTLD Next — Release Testing Procedure
+# Release Testing Procedure
 
 Testing is organized in six levels (L1 to L6).
 L1 and L2 run automatically via GitHub Actions CI.

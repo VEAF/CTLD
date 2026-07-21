@@ -1,4 +1,4 @@
-# Cycle de vie Troop + JTAC
+# Cycle de vie troupes + JTAC (troops) { #troop-jtac-lifecycle }
 
 **Source :** `src/CTLD_troop.lua`, `src/CTLD_jtac.lua`
 **Entités :** `CTLDTroopGroup`, `CTLDJTAC`, `CTLDJTACDetector` (helpers statiques), `CTLDJTACMessage` (statique)

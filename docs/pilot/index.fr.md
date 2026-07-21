@@ -1,4 +1,4 @@
-# Guide du pilote
+# Guide du pilote { #pilot-guide }
 
 Cette section s'adresse aux **pilotes** — comment utiliser CTLD depuis le cockpit via le menu
 radio F10 : transporter des troops, sling-loader des crates, déployer des véhicules et des JTAC,
