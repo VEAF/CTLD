@@ -16,9 +16,18 @@ catalogue de référence (crates, groupes de troupes, types d'unités DCS) est *
 l'outil**. (Les développeurs peuvent aussi le lancer depuis les sources avec `poetry` ; voir la doc
 développeur.)
 
-Placez-le où vous voulez ; lancez-le depuis un terminal dans le dossier de votre mission.
+Placez-le dans le dossier de votre mission. **Double-cliquez dessus** pour ouvrir directement
+l'éditeur interactif, ou lancez-le depuis un terminal.
+
+!!! warning "Débloquez d'abord le .exe (Windows)"
+    Windows peut bloquer les fichiers `.exe` téléchargés depuis Internet. Si l'outil ne démarre pas,
+    cliquez droit sur `ctld-tools.exe` → **Propriétés** → onglet **Général** → cochez **Débloquer** en
+    bas de la fenêtre → **OK**.
 
 ## L'éditeur interactif (`ctld-tools tui`) — recommandé { #the-interactive-editor-ctld-tools-tui-recommended }
+
+**Double-cliquer `ctld-tools.exe`** ouvre directement cet éditeur (aucun argument requis). Depuis un
+terminal :
 
 ```
 ctld-tools tui                            # ouvre user-config.yaml ici s'il existe, sinon démarre vide
@@ -38,7 +47,9 @@ Une console plein écran — aucun YAML à écrire, aucune commande à enchaîne
   plutôt qu'en faisant défiler. Quand vous choisissez un réglage, sa **valeur par défaut est affichée
   et pré-remplie**, vous partez donc de la vraie valeur par défaut. Pour un réglage **vrai/faux**, ou
   à **valeurs prédéfinies** (ex. `JTAC_lock` : all / vehicle / troop), vous **choisissez la valeur
-  dans une liste** au lieu de la taper.
+  dans une liste** au lieu de la taper. Chaque réglage affiche une courte **description** (dans votre
+  langue), et vous pouvez **la chercher** — tapez un mot de la description, pas seulement le nom du
+  réglage.
 - **Modifications non enregistrées** : quitter avec des modifications non sauvegardées demande
   confirmation et rappelle quand vous avez enregistré pour la dernière fois.
 - **Validation en direct** : chaque modification est vérifiée immédiatement contre le catalogue

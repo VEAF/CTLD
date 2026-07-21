@@ -279,4 +279,59 @@ describe("CTLDi18n", function()
 
     end)
 
+    -- ── Active language via the i18n_lang setting (CTLD-TOOLS-TUI-POLISH) ──
+    -- ctld.tr resolves the language via ctld.gs("i18n_lang") (user-config wins), then the
+    -- module global ctld.i18n_lang (legacy: edit CTLD_i18n.lua), then "en".
+    describe("active language via the i18n_lang setting", function()
+
+        local origLang
+
+        before_each(function()
+            origLang = ctld.i18n_lang
+            ctld.i18n_lang = "en"
+            CTLDConfig._instance = nil
+            ctld.yamlConfigDatas = nil
+            CTLDConfig.get():load()
+            -- Test keys in each dictionary, independent of real translations.
+            ctld.i18n["en"]["__TESTKEY__"] = "hello"
+            ctld.i18n["fr"]["__TESTKEY__"] = "bonjour"
+        end)
+
+        after_each(function()
+            ctld.i18n_lang = origLang
+            ctld.i18n["en"]["__TESTKEY__"] = nil
+            ctld.i18n["fr"]["__TESTKEY__"] = nil
+            -- Restore a clean, defaults-loaded singleton so later specs don't inherit a
+            -- nil instance or our test's user-config.
+            ctld.yamlConfigDatas = nil
+            CTLDConfig._instance = nil
+            CTLDConfig.get():load()
+        end)
+
+        it("uses en by default (no user-config, global 'en')", function()
+            assert.equals("hello", ctld.tr("__TESTKEY__"))
+        end)
+
+        it("a user-config value drives the language (settings win)", function()
+            ctld.yamlConfigDatas = "ctld.i18n_lang: fr"
+            CTLDConfig._instance = nil
+            CTLDConfig.get():load()
+            assert.equals("fr", ctld.gs("i18n_lang"))
+            assert.equals("bonjour", ctld.tr("__TESTKEY__"))
+        end)
+
+        it("falls back to the module global when unset in config (legacy method)", function()
+            ctld.i18n_lang = "fr"
+            assert.equals("bonjour", ctld.tr("__TESTKEY__"))
+        end)
+
+        it("falls back to en for an unknown language", function()
+            ctld.yamlConfigDatas = "ctld.i18n_lang: zz"
+            CTLDConfig._instance = nil
+            CTLDConfig.get():load()
+            assert.equals("hello", ctld.tr("__TESTKEY__"))
+        end)
+
+    end)
+
 end)

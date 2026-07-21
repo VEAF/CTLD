@@ -64,6 +64,11 @@ class Reference:
         else:
             self._scalar_settings = {k: v for k, v in settings.items() if isinstance(v, (bool, int, float, str))}
         self._setting_schema: dict = settings.get("settingSchema") or {}
+        # Schema settings carrying a `default` live outside the engine catalogue (e.g.
+        # i18n_lang, a bare ctld global) — surface them so the picker/validation know them.
+        for name, entry in self._setting_schema.items():
+            if isinstance(entry, dict) and "default" in entry and name not in self._scalar_settings:
+                self._scalar_settings[name] = entry["default"]
 
     @classmethod
     def from_src(cls, src_dir: str | Path) -> Reference:
@@ -103,6 +108,13 @@ class Reference:
         """Allowed values for an enum setting (from the schema), or None if free-form."""
         choices = (self._setting_schema.get(name) or {}).get("choices")
         return list(choices) if choices else None
+
+    def setting_description(self, name, lang: str = "en") -> str | None:
+        """Help text for a setting in `lang` (falls back to EN), or None if undocumented."""
+        desc = (self._setting_schema.get(name) or {}).get("description")
+        if not isinstance(desc, dict):
+            return None
+        return desc.get(lang) or desc.get("en")
 
     def closest_setting(self, name) -> str | None:
         return _closest(str(name), self._scalar_settings.keys())

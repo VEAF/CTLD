@@ -15,9 +15,18 @@ Download **`ctld-tools.exe`** from the [GitHub Releases](https://github.com/VEAF
 catalogue (crates, troop groups, DCS unit types) is **embedded in the tool**. (Developers can also
 run it from source with `poetry`; see the developer docs.)
 
-Put it anywhere; run it from a terminal in your mission folder.
+Put it in your mission folder. **Double-click it** to open the interactive editor directly, or run it
+from a terminal.
+
+!!! warning "Unblock the .exe first (Windows)"
+    Windows may block `.exe` files downloaded from the internet. If the tool doesn't start,
+    right-click `ctld-tools.exe` → **Properties** → **General** tab → check **Unblock** at the bottom
+    → **OK**.
 
 ## The interactive editor (`ctld-tools tui`) — recommended
+
+**Double-clicking `ctld-tools.exe`** opens this editor directly (no arguments needed). From a
+terminal:
 
 ```
 ctld-tools tui                           # opens user-config.yaml here if it exists, else starts empty
@@ -35,7 +44,9 @@ A full-screen console — no YAML to write, no commands to chain:
   troop group / **setting** by name, by typing a few letters instead of scrolling. When you pick a
   setting, its **default value is shown and pre-filled**, so you edit from the real default. For a
   **true/false** setting, or one with a **fixed set of values** (e.g. `JTAC_lock`: all / vehicle /
-  troop), you **pick the value from a list** rather than typing it.
+  troop), you **pick the value from a list** rather than typing it. Each setting shows a short
+  **description** (in your language), and you can **search by it** — type a word from the description,
+  not just the setting name.
 - **Unsaved changes**: quitting with unsaved edits asks for confirmation and reminds you when you
   last saved.
 - **Live validation**: every edit is checked instantly against the embedded catalogue, with inline

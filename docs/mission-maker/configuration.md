@@ -97,6 +97,7 @@ The helpers — `ctld.addCrate`, `ctld.removeCrate`, `ctld.patchCrate`, `ctld.ad
 | Parameter | Default | Description |
 |---|---|---|
 | `debug` | `false` | Verbose logging to `CTLD.log` (requires a non-sanitized DCS install) |
+| `i18n_lang` | `"en"` | CTLD interface language: `en`, `fr`, `es` or `ko` |
 | `ctldLogPath` | `""` | Override the log file path; empty = default DCS Saved Games folder |
 | `debugScreenLog` | `false` | Also echo log messages to the DCS screen via `outText` |
 | `location_DMS` | `false` | Show coordinates as Degrees-Minutes-Seconds instead of Degrees-Decimal-Minutes |

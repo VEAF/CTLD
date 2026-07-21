@@ -101,6 +101,7 @@ défaut courantes dans `CTLD.log`, et consultez `CTLD_userConfig.lua` pour le mo
 | Paramètre | Défaut | Description |
 |---|---|---|
 | `debug` | `false` | Journalisation verbeuse vers `CTLD.log` (nécessite une installation DCS non sanitized) |
+| `i18n_lang` | `"en"` | Langue de l'interface CTLD : `en`, `fr`, `es` ou `ko` |
 | `ctldLogPath` | `""` | Surcharge le chemin du fichier de log ; vide = dossier Saved Games DCS par défaut |
 | `debugScreenLog` | `false` | Répète aussi les messages de log à l'écran DCS via `outText` |
 | `location_DMS` | `false` | Affiche les coordonnées en Degrés-Minutes-Secondes au lieu de Degrés-Minutes-Décimales |

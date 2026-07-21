@@ -8,6 +8,25 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — interface language is now a real setting (CTLD-TOOLS-TUI-POLISH)
+
+- `i18n_lang` (the CTLD interface language, en/fr/es/ko) can now be set from the
+  user-config. `ctld.tr` resolves the active language via `ctld.gs("i18n_lang")`
+  (user-config wins), falling back to the module global `ctld.i18n_lang` (the legacy
+  "edit CTLD_i18n.lua" method still works), then `"en"`. Previously it was a bare global
+  read only by `tr`, so setting it from the user-config silently did nothing. It is
+  surfaced in the ctld-tools TUI with a value list via the schema (`default: en`,
+  `choices: [en, fr, es, ko]`) — deliberately **not** added to the engine defaults, so
+  the legacy global keeps working.
+- **Setting descriptions in the TUI**: `CTLD_config_schema.yaml` now carries a bilingual
+  `description` per setting (seeded from the mission-maker config docs, 73 settings). The
+  "Set setting" picker shows each setting's description in the current language and lets
+  you **search by it** (filter matches name *and* description). The schema is embedded in
+  the reference bundle; it is now the source of truth for these descriptions.
+- **Double-click launches the TUI**: run with no command in an interactive terminal —
+  including a double-click of `ctld-tools.exe` from Explorer — now opens the TUI directly
+  (VMCT approach). Docs note the Windows **Unblock** step for a downloaded `.exe`.
+
 ### Tooling — ctld-tools: interactive TUI + embedded reference (CTLD-TOOLS-TUI)
 
 - **`ctld-tools tui`**: a full-screen **textual** console for Mission Makers — a structured editor of
