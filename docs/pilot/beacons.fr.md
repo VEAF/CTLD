@@ -1,4 +1,4 @@
-# Beacons
+# Balises (beacons) { #beacons }
 
 Les radio beacons sont des aides à la navigation déployables que vous larguez depuis votre
 appareil. Chaque beacon émet sur trois fréquences à la fois — une sur laquelle vous pouvez

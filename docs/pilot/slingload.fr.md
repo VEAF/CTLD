@@ -1,4 +1,4 @@
-# Sling-load
+# Élingue (sling-load) { #sling-load }
 
 Le sling-load vous permet de récupérer un crate en **stationnant au-dessus de lui** — sans
 menu F10, sans équipe au sol. Vous maintenez un hover stable au-dessus du crate, un compte à

@@ -1,4 +1,4 @@
-# Recon
+# Reconnaissance (recon) { #recon }
 
 Le recon transforme votre aéronef en capteur : survolez le terrain hostile, lancez un scan,
 et chaque unité ennemie que votre ligne de visée atteint est dessinée sur la carte F10 —

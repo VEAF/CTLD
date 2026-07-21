@@ -1,4 +1,4 @@
-# Suivi des joueurs
+# Suivi des joueurs { #player-tracking }
 
 CTLD suit les joueurs humains connectés **sans MIST**. Deux singletons coopérants couvrent ce
 domaine :

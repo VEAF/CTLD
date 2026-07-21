@@ -1,4 +1,4 @@
-# Traductions
+# Traductions { #translations }
 
 CTLD s'adresse à vos joueurs dans leur propre langue. Chaque message affiché par le script —
 entrées du menu F10, appels radio, textes d'état — passe par une couche de traduction : vous

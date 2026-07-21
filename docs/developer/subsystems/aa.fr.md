@@ -1,4 +1,4 @@
-# Assemblage des systèmes AA
+# Assemblage des systèmes AA { #aa-system-assembly }
 
 `CTLDCrateAssemblyManager` (`src/CTLD_aasystem.lua`) transforme plusieurs crates déballés à
 proximité les uns des autres en un système de défense antiaérienne complet. C'est un singleton

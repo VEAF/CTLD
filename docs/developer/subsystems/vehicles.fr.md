@@ -1,4 +1,4 @@
-# Système de véhicules
+# Système de véhicules { #vehicle-system }
 
 Le système de véhicules transporte des **unités terrestres entières** par voie aérienne : un
 transport récupère un véhicule pilotable dans une zone logistique, le convoie, et le repose sur

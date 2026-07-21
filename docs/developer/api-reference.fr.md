@@ -1,4 +1,4 @@
-# Référence de l'API
+# Référence de l'API { #api-reference }
 
 La surface **publique** de chaque manager CTLD — les méthodes que les scripts de mission et les
 intégrations externes sont censés appeler. Les helpers internes (préfixés `_`) ne font pas partie

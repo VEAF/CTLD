@@ -1,4 +1,4 @@
-# Transport de troupes
+# Transport de troupes { #troop-transport }
 
 Votre aéronef de transport peut emmener des équipes d'infanterie au combat et les en extraire.
 Les troops ne sont jamais spawnées comme des unités DCS dans votre cabine — elles sont conservées

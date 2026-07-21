@@ -1,4 +1,4 @@
-# Smoke
+# Fumigène (smoke) { #smoke }
 
 Parfois, le moyen le plus rapide de marquer un endroit — une landing zone, un point de pickup,
 une cible pour un équipier — est de poser de la smoke colorée au sol. Si votre appareil est

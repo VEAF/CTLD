@@ -1,4 +1,4 @@
-# Scenes & FOB
+# Scènes & FOB { #scenes-fob }
 
 Cette page couvre deux outils liés que vous configurez en tant que mission maker : les **scenes**
 (déploiements séquencés tels qu'une FARP ou un champ de mines qui se matérialisent lorsqu'un pilote

@@ -1,4 +1,4 @@
-# Pipeline de spawn des crates
+# Pipeline de spawn des caisses (crates) { #crate-spawn-pipeline }
 
 Les crates sont la monnaie physique de la logistique CTLD : un transport demande de
 l'équipement sous forme de crate (ou d'un ensemble de crates), le transporte jusqu'à une
