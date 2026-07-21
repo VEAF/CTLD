@@ -36,7 +36,7 @@ types disponibles proviennent directement du catalogue de crates de la mission �
 [JTAC crates](../mission-maker/crates-catalogue.md) pour la façon dont un mission maker les
 configure.
 
-## Déployer un JTAC depuis une crate
+## Déployer un JTAC depuis une crate { #deploy-a-jtac-from-a-crate }
 
 **Utilité :** livre un JTAC en transportant sa crate là où vous le souhaitez, puis en la
 dépaquetant. À utiliser lorsque vous préférez élinguer ou transporter une crate plutôt que de
@@ -58,7 +58,7 @@ Les crates JTAC ne sont proposées ici que lorsque `JTAC_dropEnabled` est défin
 [Crates](crates.md) pour le workflow complet des crates et
 [JTAC crates](../mission-maker/crates-catalogue.md) pour les définitions de crates et de types.
 
-## Piloter un JTAC déployé
+## Piloter un JTAC déployé { #operate-a-deployed-jtac }
 
 **Utilité :** gérer chaque JTAC actif — vérifier son état, basculer son laser, affiner la tache,
 demander de la fumée sur la cible ou demander une 9-line.

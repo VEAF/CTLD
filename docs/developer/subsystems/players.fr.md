@@ -12,7 +12,7 @@ Les deux suivent l'idiome `X = class()` + `getInstance()` décrit dans
 [Architecture](../architecture.md) et consomment les événements de slot DCS via l'unique
 gestionnaire `CTLDDCSEventBridge` plutôt qu'en s'enregistrant directement auprès de `world`.
 
-## `CTLDPlayerTracker` — index d'identité des slots
+## `CTLDPlayerTracker` — index d'identité des slots { #ctldplayertracker-slot-identity-index }
 
 `CTLDPlayerTracker` maintient un double index des humains connectés, **sans dépendance à
 MIST** :
@@ -34,7 +34,7 @@ Le balayage est idempotent (il n'insère que les slots non encore indexés), si 
 sources n'entrent jamais en conflit. Après 3 minutes, le flux d'événements est jugé suffisant et
 le balayage périodique s'arrête.
 
-### API publique
+### API publique { #public-api }
 
 | Méthode | Retourne |
 | --- | --- |
@@ -46,7 +46,7 @@ le balayage périodique s'arrête.
 `CTLDPlayerTracker.getInstance()` requiert que `CTLDDCSEventBridge` soit initialisé au préalable,
 car `init()` enregistre ses gestionnaires sur le bridge.
 
-## `CTLDPlayer` — entité par joueur
+## `CTLDPlayer` — entité par joueur { #ctldplayer-per-player-entity }
 
 `CTLDPlayer = class()` est un instantané d'identité assorti d'un état de cargo mutable, construit
 par `CTLDPlayerManager` lorsqu'un humain entre dans un slot. Ses champs, renseignés dans
@@ -77,7 +77,7 @@ d'identité :
 par `CTLDTroopManager` et interrogés via `getInTransit(unitName)` (voir la commande « Check Cargo »
 ci-dessous).
 
-### Détection des capacités
+### Détection des capacités { #capability-detection }
 
 `CTLDPlayerManager:_detectCapabilities(unit)` dérive les deux drapeaux de capacité de
 `ctld.gs("capabilitiesByType")` indexé par `unit:getTypeName()` :
@@ -85,7 +85,7 @@ ci-dessous).
 - `isTransport` — `true` lorsque le type possède une entrée dans `capabilitiesByType`.
 - `canCarryVehicles` — `true` lorsque cette entrée définit `canTransportWholeVehicle == true`.
 
-## `CTLDPlayerManager` — cycle de vie et propriétaire du menu
+## `CTLDPlayerManager` — cycle de vie et propriétaire du menu { #ctldplayermanager-lifecycle-menu-owner }
 
 Le manager tient sa propre map, distincte de l'index d'identité du tracker :
 
@@ -93,7 +93,7 @@ Le manager tient sa propre map, distincte de l'index d'identité du tracker :
 self._players = {}   -- unitName → CTLDPlayer
 ```
 
-### Cycle de vie
+### Cycle de vie { #lifecycle }
 
 | Événement DCS | Gestionnaire | Action |
 | --- | --- | --- |
@@ -113,7 +113,7 @@ arrivants tardifs).
 d'unité listés dans `ctld.gs("transportPilotNames")` reçoivent un menu CTLD ; tous les autres sont
 journalisés et ignorés.
 
-### Sondage de l'état de vol
+### Sondage de l'état de vol { #flight-state-poller }
 
 Comme `S_EVENT_TAKEOFF` / `S_EVENT_LAND` se déclenchent avec un retard de 3 à 5 s pour les
 hélicoptères, `init()` démarre également un sondage `timer.scheduleFunction` toutes les 0,5 s. Il lit
@@ -122,7 +122,7 @@ ticks consécutifs (`DEBOUNCE_TICKS`, ~1 s), le valide dans `playerObj._isFlying
 chaîne de rafraîchissement de menu. Les gestionnaires `onTakeoff` / `onLand` se déclenchent toujours,
 mais à ce moment-là `_isFlying` correspond déjà et le rafraîchissement est un no-op rapide.
 
-### État du cargo via le bus d'événements
+### État du cargo via le bus d'événements { #cargo-state-via-the-event-bus }
 
 Le manager s'abonne à `EventDispatcher` (voir [Events](../events.md)) pour maintenir à jour les listes
 de cargo de chaque `CTLDPlayer`, puis rafraîchit les menus concernés :
@@ -136,7 +136,7 @@ de cargo de chaque `CTLDPlayer`, puis rafraîchit les menus concernés :
 
 `CTLDPlayerManager` **ne publie aucun événement**.
 
-### Menu F10
+### Menu F10 { #f10-menu }
 
 `CTLDPlayerManager` est propriétaire du menu F10 de CTLD. Les managers contribuent des sections via
 `registerMenuSection(sectionDef)` (idempotent par `key`) ; les fichiers de scène chargés avant que le

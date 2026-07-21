@@ -27,7 +27,7 @@ _cfg.settings["spawnableCrates"] = {
 }
 ```
 
-### Champs du descripteur
+### Champs du descripteur { #descriptor-fields }
 
 | Champ | Type | Signification |
 |---|---|---|
@@ -36,12 +36,12 @@ _cfg.settings["spawnableCrates"] = {
 | `unit` | string | **Type name** DCS de l'unité qui spawn quand le jeu de crates est unpacké (ex. `"M-1 Abrams"`). À vérifier contre le [dataset datamine](https://github.com/Quaggles/dcs-lua-datamine). |
 | `side` | number | Coalition à laquelle le crate est proposé : `2` = BLUE, `1` = RED. Omettre pour proposer aux deux. |
 | `cratesRequired` | number | Combien de crates de ce type doivent se trouver dans un rayon de 300 m les uns des autres pour l'unpack (défaut `1`). |
-| `isJTAC` | bool | Marque l'unité comme un JTAC — voir [unités JTAC](#unites-jtac) plus bas. |
+| `isJTAC` | bool | Marque l'unité comme un JTAC — voir [unités JTAC](#jtac-units) plus bas. |
 | `spawnAs` | string | Surcharge de catégorie de spawn pour les unités aériennes : `"AIRPLANE"` ou `"HELICOPTER"` (utilisé par les JTAC drones). Les véhicules terrestres n'ont besoin d'aucune surcharge. |
 | `specificParams` | table | Paramètres additionnels par unité (ex. `speed`, `alti`, rayons d'orbite d'un drone). |
 | `mixedSet` | array | Alternative à `weight` : une entrée dont la valeur est une liste de poids définit un **jeu combiné** — un seul item de menu qui fait spawner plusieurs types de crate différents d'un coup (voir plus bas). |
 
-### Crates simples vs jeux
+### Crates simples vs jeux { #single-crates-vs-sets }
 
 - Un descripteur avec un **`weight`** est un *type de crate simple*.
 - Quand `cratesRequired > 1` et que `enableAllCrates` vaut `true` (défaut), CTLD génère
@@ -52,13 +52,13 @@ _cfg.settings["spawnableCrates"] = {
   crate simple **dans la même section**, sinon le jeu est abandonné au démarrage avec un
   avertissement de mission.
 
-### Modèles visuels des crates
+### Modèles visuels des crates { #crate-visual-models }
 
 `spawnableCratesModels` définit les formes statiques DCS utilisées par les crates (`load`, `sling`,
 `dynamic`). Vous avez rarement besoin d'y toucher ; laissez les valeurs par défaut, sauf si vous
 voulez une apparence de cargo différente.
 
-### Catalogue par défaut (out of the box)
+### Catalogue par défaut (out of the box) { #default-catalogue-out-of-the-box }
 
 | Section | Contenu |
 |---|---|
@@ -70,7 +70,7 @@ voulez une apparence de cargo différente.
 | `SAM long range` | Crates de systèmes AA *auto-injectés* : Patriot (BLUE), S-300 (RED) |
 | `Drone` | MQ-9 Reaper JTAC (BLUE), RQ-1A Predator JTAC (RED) |
 
-### Réglages du système de crates
+### Réglages du système de crates { #crate-system-settings }
 
 | Paramètre | Défaut | Description |
 |---|---|---|
@@ -85,7 +85,7 @@ voulez une apparence de cargo différente.
 | `maxSlingloadSpeed` | `50` | Vitesse (m/s) au-delà de laquelle un crate en slingload est perdu. |
 | `crateSpacing` | `5` | Espacement (m) entre les crates spawnés dans un jeu. |
 
-## Transport de véhicules complets
+## Transport de véhicules complets { #whole-vehicle-transport }
 
 Au-delà des crates, CTLD peut transporter des **véhicules terrestres complets** à l'intérieur des
 aéronefs capables (C-130, Il-76, CH-47, UH-1H…). Ce qu'un appareil donné peut transporter est défini
@@ -106,7 +106,7 @@ Par exemple, le UH-1H par défaut peut soulever l'un de `M1045 HMMWV TOW`, `M104
 Tout aéronef **non** marqué `canTransportWholeVehicle` doit déplacer les véhicules sous forme de
 crates : un pilote pack le véhicule en crates, les transporte, et les unpack à destination.
 
-### Réglages de packing de véhicules
+### Réglages de packing de véhicules { #vehicle-packing-settings }
 
 | Paramètre | Défaut | Description |
 |---|---|---|
@@ -118,7 +118,7 @@ L'opération inverse — [packer](../pilot/vehicles.md) un véhicule en crates �
 « véhicules packables » séparée : tout véhicule dont le type DCS correspond au `unit` d'un
 descripteur `spawnableCrates` est packable.
 
-## Systèmes AA
+## Systèmes AA { #aa-systems }
 
 Les systèmes AA sont des **kits multi-crates** : un mission maker déclare le système une fois dans
 `CTLDCrateAssemblyManager.TEMPLATES`, et CTLD injecte automatiquement les crates de pièces
@@ -148,7 +148,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
 }
 ```
 
-### Champs de pièce
+### Champs de pièce { #part-fields }
 
 | Champ | Signification |
 |---|---|
@@ -164,7 +164,7 @@ CTLDCrateAssemblyManager.TEMPLATES = {
 `count` est le nombre de **types de pièces uniques** qui doivent être présents pour que le système
 soit considéré comme complet.
 
-### Templates AA intégrés
+### Templates AA intégrés { #built-in-aa-templates }
 
 | Système | Side | `count` | Section | Pièces en crate (à apporter) | Pièces `NoCrate` (auto à l'assemblage) |
 |---|---|---|---|---|---|
@@ -177,7 +177,7 @@ soit considéré comme complet.
 
 Chaque template injecte aussi un **crate de réparation** dans sa section.
 
-### Réglages AA
+### Réglages AA { #aa-settings }
 
 | Paramètre | Défaut | Description |
 |---|---|---|
@@ -186,7 +186,7 @@ Chaque template injecte aussi un **crate de réparation** dans sa section.
 | `AASystemCrateStacking` | `false` | Autorise des jeux de crates supplémentaires à ajouter des launchers à un système existant. |
 | `aaLaunchers` | `3` | Launchers ajoutés par système quand une pièce n'a pas d'`amount` explicite. |
 
-## Unités JTAC
+## Unités JTAC { #jtac-units }
 
 Un JTAC n'est qu'un descripteur de crate marqué **`isJTAC = true`** — il n'y a pas de liste de type
 JTAC séparée. N'importe quelle unité (véhicule ou drone) peut être un JTAC :
@@ -209,7 +209,7 @@ qu'au moins un descripteur JTAC existe pour cette coalition. Par défaut, le liv
 Hummer (BLUE) et un SKP-11 (RED) dans `Support`, plus un MQ-9 Reaper (BLUE) et un RQ-1A Predator
 (RED) dans `Drone`.
 
-### Réglages JTAC
+### Réglages JTAC { #jtac-settings }
 
 | Paramètre | Défaut | Description |
 |---|---|---|

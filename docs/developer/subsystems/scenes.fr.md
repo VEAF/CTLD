@@ -14,7 +14,7 @@ chargement via `CTLDSceneManager.getInstance():registerSceneModel(model)`.
 `CTLDSceneManager:_registerBuiltins()` est intentionnellement vide — il n'y a pas de liste de
 modèles codée en dur.
 
-## Modèle de données interne
+## Modèle de données interne { #internal-data-model }
 
 ```
 CtldScene (une instance par déploiement actif)
@@ -47,7 +47,7 @@ ultérieure est positionnée relativement à cet instantané, si bien que la sc�
 cohérente même si l'unité bouge ou quitte les lieux. La `func` d'une étape peut écraser `_refX` /
 `_refZ` / `_refAlt` sur `ctx.scene` avant l'exécution des étapes de spawn suivantes.
 
-## Exécution des étapes
+## Exécution des étapes { #step-execution }
 
 La machine à étapes est pilotée par `timer.scheduleFunction`. `CtldScene:_execute()` planifie la
 première étape après `steps[1].delayAfterPreviousStep` secondes ; `_runNextStep()` exécute alors
@@ -86,7 +86,7 @@ poursuit. Lorsque la dernière étape se termine, `_onComplete(scene)` se décle
 `pcall`). Un modèle peut définir `model.onComplete` ; un callback fourni par l'appelant à
 `playScene` le remplace.
 
-### Points d'entrée
+### Points d'entrée { #entry-points }
 
 | Méthode | Usage |
 | --- | --- |
@@ -95,7 +95,7 @@ poursuit. Lorsque la dernière étape se termine, `_onComplete(scene)` se décle
 
 Les deux enregistrent la nouvelle `CtldScene` dans `_active` avant l'exécution.
 
-## Flux de pack de FARP
+## Flux de pack de FARP { #farp-pack-flow }
 
 Le pack démonte une scène de FARP déployée pour la remettre en crates tout en préservant l'état de
 son entrepôt (warehouse). Le flux est réparti entre le gestionnaire de scènes et
@@ -131,7 +131,7 @@ Les identifiants concernés (`onRepack`, `findNearbyRepackableScenes`, `packScen
 `warehouseSnapshot`) conservent leur orthographe dans le code ; le libellé F10 est
 `ctld.tr("Pack %1", …)`.
 
-## Ajouter une nouvelle scène (checklist dev)
+## Ajouter une nouvelle scène (checklist dev) { #adding-a-new-scene-dev-checklist }
 
 1. Créer `src/scenes/CTLD_myScene.lua` : une table de modèle locale avec `name` et `steps`, se
    terminant par `CTLDSceneManager.getInstance():registerSceneModel(myScene)`.
@@ -163,7 +163,7 @@ Les identifiants concernés (`onRepack`, `findNearbyRepackableScenes`, `packScen
 `src/scenes/CTLD_countrysideFarpScene.lua` est l'implémentation de référence (Invisible FARP +
 approvisionnement d'entrepôt + `onRepack`) ; `src/scenes/CTLD_fobScene.lua` illustre la variante FOB.
 
-## Scènes plugin (indépendantes de la position de chargement)
+## Scènes plugin (indépendantes de la position de chargement) { #plugin-scenes-load-position-independent }
 
 Le source d'une scène est **indépendant de sa position de chargement** : le même fichier fonctionne
 qu'il soit mergé dans `CTLD.lua` (intégré) ou chargé depuis un déclencheur au démarrage de la mission
@@ -182,7 +182,7 @@ Contrat d'une scène plugin : charger **au démarrage de la mission uniquement**
 joueurs), déclarer `requiresCtld`, et déclarer les types mod dans `modTypes`. La scène de référence
 `_template` dans CTLD_plugins exerce tous les points d'extension (y compris un sous-menu radio).
 
-## Validation des assets (design-time)
+## Validation des assets (design-time) { #asset-validation-design-time }
 
 Les types DCS des scènes sont validés au **dev/CI**, pas au runtime (ADR 0007). Le hard-gate busted
 `tests/ci/unit/scene_asset_gate_spec.lua` collecte les types spawnés par chaque scène (STATIC

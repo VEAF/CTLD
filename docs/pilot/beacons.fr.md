@@ -11,7 +11,7 @@ Chaque beacon fonctionne sur batterie. Une fois celle-ci à plat, le beacon s'é
 lui-même et disparaît, ce qui vous évite d'avoir à surveiller de vieux beacons qui
 encombreraient l'espace aérien.
 
-## Déployer un beacon
+## Déployer un beacon { #deploying-a-beacon }
 
 **Utilité :** Marque votre position actuelle avec un beacon de navigation que toute la
 coalition peut accorder et sur lequel elle peut se rallier.
@@ -31,7 +31,7 @@ ne fasse pas spawn à l'intérieur de vous ; en vol, il est largué à votre pos
 
 **Activation :** F10 → CTLD → Radio Beacons → Drop Beacon
 
-## Retirer un beacon
+## Retirer un beacon { #removing-a-beacon }
 
 **Utilité :** Retire un beacon dont vous n'avez plus besoin.
 
@@ -42,7 +42,7 @@ portée, vous obtenez *"No Radio Beacons within 500m."*
 
 **Activation :** F10 → CTLD → Radio Beacons → Remove Closest Beacon
 
-## Lister les beacons
+## Lister les beacons { #listing-beacons }
 
 **Utilité :** Affiche tous les beacons actifs de votre coalition, avec leur nom et leurs
 fréquences, de sorte que vous puissiez relire un canal sans avoir à rechercher le message de
@@ -50,7 +50,7 @@ largage d'origine.
 
 **Activation :** F10 → CTLD → Radio Beacons → List Beacons
 
-## Les fréquences
+## Les fréquences { #the-frequencies }
 
 Chaque beacon émet simultanément sur trois canaux :
 
@@ -71,7 +71,7 @@ choisir depuis le cockpit.
     Maker](../mission-maker/index.md). L'aiguille ADF peut toujours réagir au beacon même
     lorsqu'aucune tonalité n'est entendue.
 
-## Autonomie de la batterie
+## Autonomie de la batterie { #battery-life }
 
 Un beacon largué dure le temps de sa batterie — **30 minutes** par défaut. Lorsque la
 batterie s'épuise (ou que les unités du beacon sont détruites), CTLD arrête automatiquement
@@ -79,7 +79,7 @@ les émissions et le retire ; ses fréquences sont libérées pour être réutil
 maker peut modifier la durée de la batterie — voir le [guide Mission
 Maker](../mission-maker/index.md).
 
-## Le calque de carte des beacons
+## Le calque de carte des beacons { #the-beacon-map-layer }
 
 Lorsque la mission a activé le beacon map layer, les beacons actifs sont dessinés sur la
 **carte F10** sous forme d'icônes de cercle coloré, chacune étiquetée avec le nom du beacon

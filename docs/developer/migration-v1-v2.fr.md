@@ -7,7 +7,7 @@ wrapper léger qui transmet l'appel au manager v2 correspondant et journalise un
 dépréciation. Cette page explique le principe des wrappers, donne la correspondance complète v1 → v2,
 et montre comment porter le seul construct qui n'est *pas* wrappé : le callback fourre-tout.
 
-## Principe des wrappers
+## Principe des wrappers { #wrapper-principle }
 
 Les 22 fonctions globales v1 (`ctld.spawnGroupAtTrigger`, `ctld.JTACAutoLase`, …) résident dans
 `src/legacy/legacy_api.lua`. Chaque wrapper fait deux choses :
@@ -32,7 +32,7 @@ Le fichier legacy est chargé en dernier (après tous les managers, juste avant
 `CTLD_userConfig.lua`) afin que chaque manager cible soit défini au moment où un wrapper peut être
 appelé.
 
-## Table de migration
+## Table de migration { #migration-table }
 
 Remplacez chaque appel v1 `ctld.*` par la forme v2 sur la droite. L'ordre et les noms des arguments
 ci-dessous correspondent aux signatures réelles des wrappers dans `src/legacy/legacy_api.lua` —
@@ -97,7 +97,7 @@ Deux opérations de zone n'ont pas de prédécesseur v1 et ne sont accessibles q
 | `ctld.JTACStart(group, code, smoke, lock, colour, radio)` | `CTLDJTACManager.getInstance():startLase(group, code, smoke, lock, colour, radio)` |
 | `ctld.JTACAutoLaseStop(group)` | `CTLDJTACManager.getInstance():stopAutoLase(group)` |
 
-## Remplacer `ctld.addCallback`
+## Remplacer `ctld.addCallback` { #replacing-ctldaddcallback }
 
 `ctld.addCallback` est le seul construct v1 qui n'est **pas** wrappé. La v1 enregistrait un unique
 handler fourre-tout qui recevait chaque événement et le démultiplexait sur un identifiant numérique :
@@ -126,7 +126,7 @@ Cela supprime la chaîne `if/elseif`, évite d'exécuter des handlers sans rappo
 fonctionnalités indépendantes de s'abonner au même événement sans interférer. Voir
 [Événements](events.md) pour le catalogue complet des événements et la forme de leurs payloads.
 
-## Exemple complet de migration
+## Exemple complet de migration { #complete-migration-example }
 
 Un **DO SCRIPT** v1 représentatif et son équivalent v2.
 
@@ -156,7 +156,7 @@ ed:subscribe("OnTroopsDeployed", function(evt)
 end)
 ```
 
-## Pack de véhicule (nouveau en v2)
+## Pack de véhicule (nouveau en v2) { #pack-vehicle-new-in-v2 }
 
 La v1 n'avait aucun chemin fonctionnel de pack de véhicule. La v2 l'ajoute sur `CTLDVehicleSpawner`,
 piloté depuis le menu F10 mais aussi appelable directement :
@@ -176,7 +176,7 @@ sorte que les props de décor (guards, workers, décoration statique) ne polluen
 Le sous-menu F10 **Pack Vehicle** est peuplé automatiquement lorsqu'un transport se pose à moins de
 `ctld.gs("maximumDistancePackableUnitsSearch")` d'un véhicule packable.
 
-## Scènes déplacées en plugins (2.0.0)
+## Scènes déplacées en plugins (2.0.0) { #scenes-moved-to-plugins-200 }
 
 La scène **Metal FARP** n'est plus embarquée dans `CTLD.lua`. C'est désormais un plugin optionnel du
 dépôt [`VEAF/CTLD_plugins`](https://github.com/VEAF/CTLD_plugins) (elle dépend du mod

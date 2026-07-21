@@ -8,7 +8,7 @@ Les tests d'intégration en DCS live — charger votre build dans la mission de 
 scénarios — sont couverts dans [Tests d'intégration](integration-testing.md). Cette page se
 limite à la chaîne de build et aux tests basés sur busted qui s'exécutent entièrement sans DCS.
 
-## Chaîne de build
+## Chaîne de build { #build-pipeline }
 
 CTLD est distribué sous forme d'un fichier unique, `CTLD.lua`, à la racine du dépôt. Il est
 **généré** en fusionnant les modules en Lua pur situés sous `src/` dans l'ordre de dépendance — ne
@@ -37,7 +37,7 @@ module dans la liste.
 **Build en CI :** le job `build` exécute le même `merge_CTLD.ps1` sur `windows-latest`, vérifie que
 la sortie existe et n'est pas vide, et téléverse `CTLD.lua` en tant qu'artefact de build.
 
-## Configuration moteur (`ctld-tools`)
+## Configuration moteur (`ctld-tools`) { #engine-configuration-ctld-tools }
 
 Les valeurs par défaut du moteur sont des **données**, pas du code : elles vivent dans
 `src/CTLD_config.yaml` (source de vérité unique, sectionnée `mm_facing` / `advanced`). Au moment du
@@ -56,7 +56,7 @@ suivant les conventions Python de VMCT. Le job CI `python-quality` applique un *
 régénérer depuis le YAML reproduit les settings d'origine, wrappers `ctld.tr` inclus (une référence
 figée, détectée avec un traducteur distinctif).
 
-## Exécuter les tests (busted, sans DCS)
+## Exécuter les tests (busted, sans DCS) { #running-tests-busted-no-dcs }
 
 La suite automatisée s'exécute avec [busted](https://lunarmodules.github.io/busted/). Chaque appel
 à l'API DCS est stubbé, aucune installation de DCS n'est donc requise.
@@ -98,7 +98,7 @@ Lorsque vous ajoutez un module, répercutez la modification dans **les deux**
 `tools/build/listToMerge.txt` et `tests/ci/helpers/loader.lua`, puis ajoutez des specs sous
 `tests/ci/unit/` ou `tests/ci/functional/` (test-first — écrivez la spec qui échoue avant le code).
 
-## Ratchet de couverture
+## Ratchet de couverture { #coverage-ratchet }
 
 Le job CI `busted` s'exécute avec la couverture (`busted --coverage tests/ci/`), puis `luacov`
 produit `luacov.report.out`. Le job parse le pourcentage `Total` et le compare à un plancher stocké
@@ -109,7 +109,7 @@ légèrement en dessous de la première couverture mesurée (61,56 %). Lorsque v
 couverture globale, relevez `COVERAGE_FLOOR` dans `.github/workflows/ci.yml` pour verrouiller le
 gain ; le job échoue si la couverture passe sous le plancher.
 
-## Intégration continue
+## Intégration continue { #continuous-integration }
 
 La CI (`.github/workflows/ci.yml`) s'exécute à chaque push et pull request vers `develop` / `master`,
 et peut être déclenchée manuellement. Quatre jobs indépendants :
@@ -127,7 +127,7 @@ celui-ci.
 `luacheck --config .luacheckrc src/` est disponible comme étape d'analyse statique en local ; la
 barrière syntaxique appliquée par la CI est `luac5.1 -p` dans le job `lua-lint`.
 
-## Configuration de la journalisation et du debug
+## Configuration de la journalisation et du debug { #logging-debug-configuration }
 
 CTLD écrit un log d'exécution dans `CTLD.log`. La journalisation dans un fichier est **conditionnée
 au paramètre `debug`** — elle est désactivée par défaut et n'ouvre le fichier que lorsque `debug`

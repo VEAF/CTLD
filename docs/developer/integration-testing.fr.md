@@ -9,13 +9,13 @@ Chaque scénario L3–L5 porte aussi un header `-- @tier:` (`auto` / `auto-check
 s'il nécessite ou non un agent IA ou un humain dans la boucle. La majorité du L3 (`noPlayer/`)
 est `auto` ou `auto-check` et peut être **pilotée sans intervention humaine** par
 `tools/integration-runner/run_scenarios.py`, plutôt qu'en injectant chaque script à la main —
-voir [Niveaux d'automatisation](#niveaux-dautomatisation) ci-dessous.
+voir [Niveaux d'automatisation](#automation-tiers) ci-dessous.
 
 Pour la configuration de debug et la mise en place de CTLD.log, voir [Build et tests](building-and-testing.md).
 
 ---
 
-## Charger votre build dans la mission de test (martyr)
+## Charger votre build dans la mission de test (martyr) { #loading-your-build-into-the-test-mission-martyr }
 
 L3–L6 s'exécutent contre la mission de test partagée `missions/Test_CTLDNEXT_01.miz` (la
 « martyr »). Elle charge `CTLD.lua` depuis une variable d'environnement propre à chaque développeur,
@@ -60,7 +60,7 @@ end
 
 ---
 
-## Correspondance dossier / niveau
+## Correspondance dossier / niveau { #folder-to-level-mapping }
 
 | Dossier | Niveau | Contexte d'exécution |
 | --- | --- | --- |
@@ -73,7 +73,7 @@ end
 
 ---
 
-## Niveaux d'automatisation
+## Niveaux d'automatisation { #automation-tiers }
 
 Indépendamment du niveau L (le dossier où vit un scénario), chaque scénario porte un header
 `-- @tier:` indiquant s'il nécessite un agent IA/humain :
@@ -94,7 +94,7 @@ optionnel) ; la grande majorité pilotent des hélicoptères IA ou s'auto-vérif
 `auto-check`/`auto-slow`. Voir la skill `integration-testing` pour la taxonomie complète et le
 tier par défaut de chaque template.
 
-### Comment lancer chaque tier — commande + ce qu'on attend de toi
+### Comment lancer chaque tier — commande + ce qu'on attend de toi { #how-to-run-each-tier-command-whats-expected-of-you }
 
 Deux runners Python sans dépendance pilotent les scénarios via l'API REST de `dcs-serve` et lisent
 le verdict (aucune installation ; tous deux lisent `dcs-client.yaml`). Prérequis commun :
@@ -120,7 +120,7 @@ Notes :
 - Voir `tools/integration-runner/README.md` pour la référence complète des options et les détails
   tier/`RUNNING`.
 
-#### Contamination d'état entre scénarios
+#### Contamination d'état entre scénarios { #cross-scenario-state-contamination }
 
 Les scénarios partagent les singletons runtime de CTLD (`PlayerManager`, `MenuManager`, registre
 JTAC). Certains laissent des résidus (joueurs fantômes, menu joueur effacé, JTAC orphelins) qui
@@ -132,7 +132,7 @@ profond, recharger la mission manuellement (Shift+R).
 
 ---
 
-## Vue d'ensemble de l'architecture
+## Vue d'ensemble de l'architecture { #architecture-overview }
 
 ```text
 RELEASE
@@ -156,7 +156,7 @@ RELEASE
 
 ---
 
-## Ordre de publication
+## Ordre de publication { #release-order }
 
 ```text
 Modify src/
@@ -182,7 +182,7 @@ git tag vX.Y  ->  CI Release job builds and publishes CTLD.lua
 
 ---
 
-## L1 — CI busted unit (automatique)
+## L1 — CI busted unit (automatique) { #l1-ci-busted-unit-automatic }
 
 **Qui :** GitHub Actions.
 **Quand :** à chaque push sur `master` ou `feature_*`, à chaque PR.
@@ -194,7 +194,7 @@ Tous les appels à l'API DCS sont remplacés par des stubs dans `tests/ci/helper
 
 ---
 
-## L2 — CI busted functional (automatique)
+## L2 — CI busted functional (automatique) { #l2-ci-busted-functional-automatic }
 
 **Qui :** GitHub Actions.
 **Quand :** mêmes déclencheurs que L1.
@@ -216,7 +216,7 @@ Tous les appels à l'API DCS sont remplacés par des stubs dans `tests/ci/helper
 
 ---
 
-## L3 — DCS noPlayer (développeur, avant le push)
+## L3 — DCS noPlayer (développeur, avant le push) { #l3-dcs-noplayer-developer-before-push }
 
 **Qui :** le développeur.
 **Quand :** avant chaque push qui modifie `src/`.
@@ -225,10 +225,10 @@ Tous les appels à l'API DCS sont remplacés par des stubs dans `tests/ci/helper
 
 > La majorité du L3 est de tier `auto`/`auto-check` et peut tourner sans intervention humaine via
 > `tools/integration-runner/run_scenarios.py --headless` (voir
-> [Niveaux d'automatisation](#niveaux-dautomatisation)) plutôt qu'en injectant les fichiers
+> [Niveaux d'automatisation](#automation-tiers)) plutôt qu'en injectant les fichiers
 > ci-dessous à la main.
 
-### L3a — Tests ciblés (U-xxx / F-xxx)
+### L3a — Tests ciblés (U-xxx / F-xxx) { #l3a-targeted-tests-u-xxx-f-xxx }
 
 Injecter les fichiers couvrant le module modifié :
 
@@ -244,7 +244,7 @@ Injecter les fichiers couvrant le module modifié :
 | `CTLD_config.lua` / i18n | F-101 to F-105 |
 | `CTLD_menu.lua` | U-045 to U-053, U-057 to U-066 |
 
-### L3b — Scénarios d'intégration
+### L3b — Scénarios d'intégration { #l3b-integration-scenarios }
 
 Lancer les scénarios correspondant à la fonctionnalité modifiée :
 
@@ -260,7 +260,7 @@ Lancer les scénarios correspondant à la fonctionnalité modifiée :
 
 ---
 
-## L4 — DCS pilotPassive (développeur + slot joueur, avant le push)
+## L4 — DCS pilotPassive (développeur + slot joueur, avant le push) { #l4-dcs-pilotpassive-developer-player-slot-before-push }
 
 **Qui :** le développeur dans un slot de transport BLUE (UH-1H ou équivalent).
 **Quand :** avant le push, pour les changements de fonctionnalités visibles par le joueur.
@@ -282,7 +282,7 @@ Scénarios clés :
 
 ---
 
-## L5 — DCS pilotActive (développeur + actions F10 du joueur, avant le push)
+## L5 — DCS pilotActive (développeur + actions F10 du joueur, avant le push) { #l5-dcs-pilotactive-developer-player-f10-actions-before-push }
 
 **Qui :** le développeur dans un slot de transport BLUE — doit exécuter des actions du menu F10 à la demande.
 **Quand :** avant le push, uniquement quand la structure ou la visibilité du menu F10 change.
@@ -294,7 +294,7 @@ Scénarios clés :
 
 ---
 
-## L6 — Séquences manuelles (développeur, nouvelles fonctionnalités uniquement)
+## L6 — Séquences manuelles (développeur, nouvelles fonctionnalités uniquement) { #l6-manual-sequences-developer-new-features-only }
 
 Checklists pas à pas dans `tests/manual_test_sequences.md`. Aucun script — pure observation.
 
@@ -307,7 +307,7 @@ Checklists pas à pas dans `tests/manual_test_sequences.md`. Aucun script — pu
 
 ---
 
-## Récapitulatif — effort par version
+## Récapitulatif — effort par version { #summary-effort-per-release }
 
 | Niveau | Qui | Quand | Effort approx. |
 | --- | --- | --- | --- |
@@ -321,7 +321,7 @@ Checklists pas à pas dans `tests/manual_test_sequences.md`. Aucun script — pu
 
 ---
 
-## Checklist de pré-publication
+## Checklist de pré-publication { #pre-release-checklist }
 
 Avant de tagger `vX.Y` :
 

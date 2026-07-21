@@ -13,7 +13,7 @@ changements de domaine entre eux et aux scripts de mission externes. Les événe
 `CTLDDCSEventBridge`, sont traités par le manager concerné, puis seulement ré-émis comme
 événements métier lorsque c'est utile.
 
-## L'API `EventDispatcher`
+## L'API `EventDispatcher` { #the-eventdispatcher-api }
 
 `EventDispatcher` est un singleton déclaré dans `src/CTLD_core.lua`. On l'obtient avec
 `getInstance()` ; il n'a pas de point d'entrée `:new()`.
@@ -83,7 +83,7 @@ Deux garanties comptent pour les auteurs :
 
 Publier un événement sans abonné est une opération sans effet (retour anticipé peu coûteux).
 
-### Convention de payload
+### Convention de payload { #payload-convention }
 
 Par convention, chaque événement CTLD porte un champ `timestamp` positionné à
 `timer.getAbsTime()`. Au-delà, les champs sont propres à chaque événement — voir le catalogue
@@ -91,7 +91,7 @@ ci-dessous. Les managers publient via de fines fonctions utilitaires privées
 (`CTLDCrateManager:_publish`, `CTLDJTACManager:_publishEvent`) qui transmettent à
 `EventDispatcher:publish` ; les abonnés ne voient aucune différence.
 
-### Migration depuis le callback v1
+### Migration depuis le callback v1 { #migrating-from-the-v1-callback }
 
 La v1 utilisait un unique `ctld.addCallback` fourre-tout avec une chaîne de tests
 `if event.id == …`. La v2 le remplace par des abonnements ciblés — voir
@@ -104,7 +104,7 @@ EventDispatcher.getInstance():subscribe("OnCrateSpawned", function(evt)
 end)
 ```
 
-## Catalogue des événements
+## Catalogue des événements { #event-catalogue }
 
 Les événements sont regroupés par domaine de publication. Chaque payload porte aussi
 `timestamp` (omis des tableaux sauf s'il s'agit du seul champ). « Published by » nomme le manager
@@ -114,7 +114,7 @@ Presque tous les noms d'événements suivent la convention `On<Something>`. Les 
 les événements RECON FARP (`ReconFarpDetected`, `ReconFarpLost`), qui n'ont pas de préfixe `On` —
 abonnez-vous à eux par leurs noms exacts.
 
-### Événements beacon (5)
+### Événements beacon (5) { #beacon-events-5 }
 
 #### `OnBeaconDropped`
 Un radio beacon est déployé (par un joueur ou depuis une zone).
@@ -182,7 +182,7 @@ Un joueur bascule la couche beacon de la carte F10.
 
 **Published by** : `CTLDBeaconManager:toggleLayer()`
 
-### Événements crate (10)
+### Événements crate (10) { #crate-events-10 }
 
 #### `OnCrateSpawned`
 Une crate quelconque apparaît sur la carte.
@@ -323,7 +323,7 @@ Une crate pré-placée par le mission-maker est enregistrée (y compris à l'act
 
 **Published by** : `CTLDCrateManager:registerMMCrate()`
 
-### Événements vehicle (9)
+### Événements vehicle (9) { #vehicle-events-9 }
 
 #### `OnVehicleSpawnedForTransport`
 Un véhicule est spawné à l'état `WAITING`, prêt pour le transport (Request Equipment).
@@ -434,7 +434,7 @@ le vehicle spawner et le crate manager publient tous deux `OnGroundUnitSpawned`.
 - `OnGroundUnitSpawned` : `CTLDVehicleSpawner:_spawnGroundUnit()`, `CTLDCrateManager:_spawnUnpacked()`
 - `OnGroundUnitRemoved` : `CTLDVehicleSpawner:loadVehicle()`, `:onDead()`, `:packVehicle()`
 
-### Événements troop (2)
+### Événements troop (2) { #troop-events-2 }
 
 #### `OnTroopsDeployed`
 Des troops sont déployées par parachute.
@@ -463,7 +463,7 @@ Des troops parachutées atterrissent (asynchrone, après le timer de descente).
 
 **Published by** : `CTLDTroopManager:parachuteTroops()` (callback d'atterrissage)
 
-### Événements JTAC (8)
+### Événements JTAC (8) { #jtac-events-8 }
 
 #### `OnJTACSpawned`
 Un JTAC est spawné — véhicule, drone, ou soldat d'infanterie au sein d'un troop group.
@@ -597,7 +597,7 @@ Un JTAC est détruit au combat.
 > Packer un véhicule JTAC n'est **pas** une mort — `OnJTACDead` ne se déclenche pas lorsqu'un
 > véhicule JTAC est ré-embarqué.
 
-### Événements RECON (8)
+### Événements RECON (8) { #recon-events-8 }
 
 #### `ReconFarpDetected`
 Un joueur en mode RECON détecte un FARP ou un FOB ennemi. (Pas de préfixe `On` — nom historique.)
@@ -707,7 +707,7 @@ Un joueur active ou désactive l'auto-refresh RECON.
 
 **Published by** : `CTLDReconManager:enableAutoRefresh()`, `:disableAutoRefresh()`
 
-### Événements FOB (2)
+### Événements FOB (2) { #fob-events-2 }
 
 #### `OnFOBDeployed`
 Un FOB est entièrement assemblé et déployé.
@@ -746,7 +746,7 @@ L'intégrité d'un FOB tombe sous le seuil de destruction.
 
 **Published by** : `CTLDFOBManager:_destroyFOB()` (depuis le handler `S_EVENT_DEAD` `onDead()`)
 
-### Événements AA system (3)
+### Événements AA system (3) { #aa-system-events-3 }
 
 #### `OnAASystemDeployed`
 Un système AA est entièrement assemblé.
@@ -778,7 +778,7 @@ Un système AA complet est réparé et re-spawné. Mêmes champs que `OnAASystem
 
 **Published by** : `CTLDCrateAssemblyManager:_repair()`
 
-### Événements zone (2)
+### Événements zone (2) { #zone-events-2 }
 
 #### `OnZoneSmokeRefreshed`
 Émis à chaque cycle du timer de smoke-refresh.
@@ -802,7 +802,7 @@ Des units de zone dynamique sont ajoutées ou retirées.
 
 **Published by** : `CTLDZoneManager:_publishLogisticZoneUpdated()`
 
-### Résumé du catalogue
+### Résumé du catalogue { #catalogue-summary }
 
 | Domaine | Nombre |
 | --- | --- |
@@ -821,7 +821,7 @@ Une dizaine d'événements environ ont des abonnés internes (rafraîchissement 
 coordination entre managers) ; les autres sont publiés purement pour la consommation par le
 mission-maker et n'ont aucun listener interne tant que vous ne vous y abonnez pas.
 
-## Le pont d'événements DCS (à titre de contraste)
+## Le pont d'événements DCS (à titre de contraste) { #the-dcs-event-bridge-for-contrast }
 
 Les événements moteur DCS ne transitent **pas** par `EventDispatcher`. Un unique singleton
 `CTLDDCSEventBridge` enregistre un seul `world.addEventHandler` et route chaque `S_EVENT_*` vers

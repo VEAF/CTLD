@@ -16,7 +16,7 @@ mission maker, ou [dépackés](crates.md) depuis des crates que vous avez livré
 action F10 qui fait apparaître un véhicule sorti de nulle part dans une zone logistique ;
 **Request Equipment** vous remet toujours des crates, jamais un véhicule fini.
 
-## Charger un véhicule (menu)
+## Charger un véhicule (menu) { #load-a-vehicle-menu }
 
 **Utilité :** Ramasse un véhicule terrestre proche en entier, afin que vous puissiez le transporter
 par les airs sans avoir à le packer en crates au préalable.
@@ -35,7 +35,7 @@ vehicles"**. Le nombre de véhicules que vous pouvez emporter à la fois est pla
 (nécessite d'être posé ; le sous-menu est grisé en vol et affiche **"No vehicles nearby"** quand
 aucun n'est à portée).
 
-## Charger un véhicule (dynamic cargo)
+## Charger un véhicule (dynamic cargo) { #load-a-vehicle-dynamic-cargo }
 
 **Utilité :** Permet à un C-130 ou un Il-76 d'avaler un véhicule par la rampe de chargement à la
 manière dont DCS gère son propre dynamic cargo — sans aucun clic de menu.
@@ -50,7 +50,7 @@ réapparaît au sol lorsqu'il quitte la soute.
 C-130 / Il-76 (capables de dynamic cargo) utilisent ce chemin ; les autres transports capables
 chargent via le menu ci-dessus.
 
-## Décharger un véhicule
+## Décharger un véhicule { #unload-a-vehicle }
 
 **Utilité :** Repose au sol, là où vous êtes, un véhicule que vous transportez.
 
@@ -64,7 +64,7 @@ sous-menu est entièrement masqué quand rien n'est chargé). Pour larguer un v�
 place, voir [Parachute](parachute.md) — **Parachute Vehicle** apparaît dans le même menu quand vous
 êtes en vol avec un véhicule chargé.
 
-## Packer un véhicule en crates
+## Packer un véhicule en crates { #pack-a-vehicle-into-crates }
 
 **Utilité :** Retransforme un véhicule terrestre en crates afin que n'importe quel transport — y
 compris les avions incapables de porter des véhicules entiers — puisse le déplacer. C'est l'inverse
@@ -80,7 +80,7 @@ apparaissent autour de vous : dans le secteur **avant** (±45°) pour un hélico
 **Activation :** F10 → CTLD → **Crate Commands** → **Pack Equipt** → *[nom du véhicule]* (apparaît au
 sol quand un véhicule packable est à proximité). Voir aussi [Pack](pack.md).
 
-## Pour les mission makers
+## Pour les mission makers { #for-mission-makers }
 
 Quels avions peuvent porter des véhicules entiers, quels types de véhicules chacun peut soulever,
 combien à la fois, et leurs poids sont tous définis dans la configuration des capacités des

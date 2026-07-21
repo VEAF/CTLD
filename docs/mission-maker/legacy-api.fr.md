@@ -5,7 +5,7 @@ utilitaires continuent de fonctionner sous v2. CTLD fournit de fins wrappers de 
 qui reproduisent les fonctions globales `ctld.*` de v1 et transmettent chaque appel au manager
 v2 correspondant.
 
-## La promesse de compatibilité
+## La promesse de compatibilité { #the-compatibility-promise }
 
 - **22 fonctions v1 sont wrappées.** Chacune délègue en interne à un manager v2, de sorte que
   vos appels existants se comportent comme en v1.
@@ -22,7 +22,7 @@ dont un mission maker disposant d'un script v1 a besoin.
 > Consultez le guide [Migration v1 → v2](../developer/migration-v1-v2.md) pour le parcours de
 > migration complet, fonction par fonction.
 
-## Troops et transport
+## Troops et transport { #troops-and-transport }
 
 | Fonction v1 | Délègue à |
 |---|---|
@@ -39,7 +39,7 @@ dont un mission maker disposant d'un script v1 a besoin.
 ctld.spawnGroupAtTrigger(coalition.side.BLUE, 6, "LZ_NORTH", 1000)
 ```
 
-## Zones de pickup, de waypoint et d'extract
+## Zones de pickup, de waypoint et d'extract { #pickup-waypoint-and-extract-zones }
 
 | Fonction v1 | Délègue à |
 |---|---|

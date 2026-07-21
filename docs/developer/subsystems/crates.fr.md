@@ -11,7 +11,7 @@ signatures des méthodes publiques du manager, voir la [référence de l'API](..
 pour les événements qu'il publie, voir [Events](../events.md) ; pour les scènes et véhicules
 qu'il alimente, voir [Scenes](scenes.md) et [Vehicles](vehicles.md).
 
-## L'entité `CTLDCrate`
+## L'entité `CTLDCrate` { #the-ctldcrate-entity }
 
 `CTLDCrate = class()` modélise un static de cargo et son cycle de vie. Une crate est créée avec
 `CTLDCrate:new(data)` (jamais via les internes du `CTLDCrateManager` directement) et porte son
@@ -51,7 +51,7 @@ Chaque crate enregistre son origine dans `crate.spawnMethod`, l'une des valeurs 
 | `mission_maker` | Pré-placée par le mission maker (détectée via INIT-B) |
 | `menu_ctld` | Spawnée via une action de menu CTLD |
 
-## Pré-traitement de la configuration : `_processSpawnableCrates`
+## Pré-traitement de la configuration : `_processSpawnableCrates` { #configuration-pre-processing-_processspawnablecrates }
 
 `CTLDCrateManager.getInstance()` appelle `_processSpawnableCrates()` une seule fois au premier
 accès. Elle lit la configuration brute `ctld.gs("spawnableCrates")` et la transforme en deux
@@ -87,7 +87,7 @@ scènes enregistrées plus tard sont injectées de façon incrémentale par
 en avançant jusqu'au prochain slot libre dans la même plage `1001.xx` et en journalisant un
 `WARN`. Les scènes désactivées par l'audit des mods sont purgées par `_purgeDisabledScenes`.
 
-## Du menu au sol : `spawnCrate`
+## Du menu au sol : `spawnCrate` { #from-menu-to-ground-spawncrate }
 
 Une requête de spawn passe par `spawnCrate(descriptor, position, coalitionId, spawnedBy,
 spawnMethod, countryId, modelKey)`. Elle délègue la création du static à `_spawnStatic`, qui :
@@ -109,7 +109,7 @@ chevauchement en évitant les bounding boxes des autres aéronefs à cargo dynam
 lorsque `slingLoad` est positionné, `"dynamic"` pour les transports capables de native-cargo,
 sinon `"load"`.
 
-## Transitions de cycle de vie sur le manager
+## Transitions de cycle de vie sur le manager { #lifecycle-transitions-on-the-manager }
 
 Le manager reflète les transitions de l'entité et détient la publication des événements :
 
@@ -125,7 +125,7 @@ Le load et le unload appellent tous deux `ctld.utils.updateTransportWeight` pour
 transport reflète son cargo. Comme le static DCS est détruit au load, `unloadCrate` le recrée via
 `_respawnStatic`, qui génère un nouveau nom unique et ré-indexe `self.crates` sous celui-ci.
 
-## Le pipeline de unpack : `_spawnUnpacked`
+## Le pipeline de unpack : `_spawnUnpacked` { #the-unpack-pipeline-_spawnunpacked }
 
 Chaque issue de unpack — véhicule au sol, JTAC aérien ou static — est déployée via un unique
 pipeline en trois étapes dans `_spawnUnpacked(desc, pos, coa, cId, playerName)` :
@@ -164,7 +164,7 @@ est fourni, les sous-menus load et pack du spawner de véhicules sont rafraîchi
   jamais réapprovisionné lorsqu'un JTAC est tué. Les JTAC de mission-maker et les soldats JTAC
   d'infanterie ne le consomment pas.
 
-## Champs de descripteur pilotant le pipeline
+## Champs de descripteur pilotant le pipeline { #descriptor-fields-driving-the-pipeline }
 
 | Champ | Effet sur le pipeline |
 | --- | --- |
@@ -174,7 +174,7 @@ est fourni, les sous-menus load et pack du spawner de véhicules sont rafraîchi
 | `cratesRequired` (number) | Conditionne le unpack — le compte doit être atteint avant que le pipeline ne s'exécute |
 | `showSets` (boolean, défaut `true`) | Lorsque `false`, supprime l'entrée `singleTypeSet` « All crates » auto-générée même si `enableAllCrates` est activé |
 
-### Règles de détection JTAC (ne pas inverser)
+### Règles de détection JTAC (ne pas inverser) { #jtac-detection-rules-do-not-invert }
 
 | Contexte | Règle |
 | --- | --- |
@@ -189,7 +189,7 @@ est fourni, les sous-menus load et pack du spawner de véhicules sont rafraîchi
 > jamais à une liste de noms de type. `JTAC_unitTypeNames` a été supprimé : le catalogue de crates
 > est la source de vérité unique tant pour le menu de crates que pour le menu Request Equipment.
 
-## Intégration au menu F10
+## Intégration au menu F10 { #f10-menu-integration }
 
 `buildMenuSection(playerObj, menu)` construit le sous-menu **Request Equipment** (`order = 25`,
 entre les commandes Troop et Vehicle) et le sous-menu **Crate Commands** (`order = 40`),

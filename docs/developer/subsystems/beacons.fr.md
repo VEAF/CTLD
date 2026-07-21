@@ -12,7 +12,7 @@ activable/désactivable par joueur.
 Il n'existe **aucun « type de beacon » distinct** (pas de chemin TACAN ou de beacon IR séparé dans
 le code actuel) : chaque beacon est le même montage à trois groupes `TACAN_beacon` décrit ci-dessous.
 
-## Les deux classes
+## Les deux classes { #the-two-classes }
 
 `CTLD_beacon.lua` définit une entité et un manager, suivant l'idiome de classe décrit dans
 [Architecture](../architecture.md) :
@@ -28,7 +28,7 @@ CTLDBeaconManager.getInstance()      -- factory, builds freq pools on first acce
 (uniquement si `ctld.gs("enabledRadioBeaconDrop")` est vrai) et enregistre sa section de menu F10
 auprès de `CTLDPlayerManager` sous la clé `"beacons"` à `order = 60`.
 
-### Champs de `CTLDBeacon`
+### Champs de `CTLDBeacon` { #ctldbeacon-fields }
 
 Une instance de beacon porte les trois noms de groupes, les trois fréquences assignées (en Hz) et
 son état de batterie/cycle de vie :
@@ -49,7 +49,7 @@ Méthodes utilitaires : `isBatteryAlive()`, `countAliveUnits()` (0–3), `batter
 (`math.huge` lorsqu'infinie), `freqText()` (`"245.00 kHz - 350.50 / 45.20 MHz"`) et
 `mgrsCoords()`.
 
-## Transmission radio
+## Transmission radio { #radio-transmission }
 
 Chacun des trois groupes est une unité DCS `TACAN_beacon` unique spawnée via `ctld.utils.dynAdd`.
 `_startTransmissions()` fixe la ROE de chaque groupe à `WEAPON_HOLD` et appelle
@@ -65,7 +65,7 @@ Les transmissions démarrent **1 seconde après le spawn** via `timer.scheduleFu
 les unités d'un groupe fraîchement ajouté non initialisées pendant environ une seconde, donc appeler
 `radioTransmission` immédiatement diffuserait depuis une position périmée ou nulle.
 
-## Pools de fréquences
+## Pools de fréquences { #frequency-pools }
 
 Trois paires de pools libre/utilisé sont construites une fois dans `_buildFreqPools()` :
 
@@ -85,7 +85,7 @@ moins**, il recycle l'intégralité du pool utilisé vers le pool libre avant de
 `_freeFrequencies(beacon)` rend les trois fréquences à leurs pools libres lorsqu'un beacon est
 retiré ou détruit.
 
-## Cycle de vie
+## Cycle de vie { #lifecycle }
 
 ```
 dropped   → 3 TACAN_beacon groups spawned, transmissions start after 1s
@@ -109,7 +109,7 @@ plus proche dans un rayon de `BEACON_REMOVAL_RADIUS` (500 m) ; si aucun n'est à
 **Listage.** `listBeacons(transport)` affiche les beacons actifs de la coalition (nom + `freqText()`)
 au groupe demandeur.
 
-### Batterie et rafraîchissement
+### Batterie et rafraîchissement { #battery-and-refresh }
 
 L'autonomie de la batterie est en **minutes**, lue depuis `ctld.gs("deployedBeaconBattery")`
 (défaut `30`). Au largage, le `batteryEndTime` d'un beacon normal est fixé à
@@ -131,7 +131,7 @@ plus l'instance qui l'a planifiée, la fonction planifiée renvoie `nil` et s'ar
 boucle zombie après une réinitialisation. L'id du planificateur est enregistré sous
 `"beacon_refresh"` via `ctld.scheduler.register`.
 
-## Calque de dessin sur la carte
+## Calque de dessin sur la carte { #map-draw-layer }
 
 Le calque de dessin est un **toggle par joueur** conditionné par `ctld.gs("beaconLayerEnabled")`.
 `toggleLayer(player, transport)` bascule `_layerState[player].enabled` ; lorsqu'il est activé, il
@@ -145,7 +145,7 @@ Chaque icône de beacon est composée de trois primitives dessinées par
 - un cercle plein intérieur à mi-rayon,
 - une étiquette de texte (`beaconName` + coordonnées MGRS, taille `beaconTextSize`, défaut `12`).
 
-### Allocation des Mark ID
+### Allocation des Mark ID { #mark-id-allocation }
 
 Les Mark ID proviennent du **compteur monotone applicatif global**, pas d'un schéma local au
 beacon :
@@ -165,7 +165,7 @@ Lorsque `ctld.gs("beaconAutoRefreshLayer")` est vrai, `_addBeaconToLayers()` pou
 fraîchement largué dans chaque calque actuellement activé, et `_removeBeaconFromLayers()` retire ses
 marques lorsqu'il est retiré ou détruit.
 
-## Événements
+## Événements { #events }
 
 Le manager de beacons publie sur le bus d'événements interne (voir [Événements](../events.md)) :
 
@@ -177,7 +177,7 @@ Le manager de beacons publie sur le bus d'événements interne (voir [Événemen
 | `OnBeaconRefreshed` | Un tick de rafraîchissement a touché au moins un beacon (les ticks sans effet sont silencieux) |
 | `OnBeaconLayerToggled` | Un joueur bascule le calque de carte |
 
-## Menu F10
+## Menu F10 { #f10-menu }
 
 `buildMenuSection(playerObj, menu)` construit le sous-menu **Radio Beacons** (order 60) sous la racine
 CTLD. Il retourne immédiatement sauf si `playerObj.isTransport`, et toute la section est conditionnée
@@ -188,7 +188,7 @@ Commandes :
 - **Remove Closest Beacon** → `removeClosestBeacon(transport, nil)`
 - **List Beacons** → `listBeacons(transport)`
 
-## API de requête
+## API de requête { #query-api }
 
 | Méthode | Renvoie |
 | --- | --- |

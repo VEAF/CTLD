@@ -6,7 +6,7 @@ qualité, ainsi que les skills d'écriture utilisés pour conduire le travail. C
 opératoire des contributeurs — le « comment nous travaillons », en complément du « comment
 c'est construit » du reste de cette section.
 
-## Processus de backlog
+## Processus de backlog { #backlog-process }
 
 CTLD **n'utilise pas** les GitHub Issues comme tracker. Il utilise un **backlog markdown local**
 sous `.backlog/`, versionné avec le code. Cela maintient la planification dans le même flux de
@@ -24,12 +24,12 @@ revue que le changement lui-même.
 - **Archivage** — les lots clos depuis plus de trois jours sont compactés dans
   `.backlog/archive/<LOT-ID>.md`, en préservant le tableau des tickets.
 
-### Convention d'identifiant de lot
+### Convention d'identifiant de lot { #lot-id-convention }
 
 Préfixes sémantiques : `FEAT-*`, `FIX-*`, `DOC-*`, `TOOLING-*`, `UX-*`, `RELEASE`. Par exemple
 `FEAT-JTAC-DRONE-ORBIT`, `FIX-MENU-REFRESH`, `TOOLING-INTEGRATION-TEST-RUNNER`.
 
-### Vocabulaire des statuts
+### Vocabulaire des statuts { #status-vocabulary }
 
 Une ligne `Status:` en tête de chaque fichier PRD / ticket fait foi pour son état de cycle de
 vie ; `.backlog/README.md` la reflète dans l'index.
@@ -53,10 +53,10 @@ dans `dev/agents/triage-labels.md`.
   backlog les découpe individuellement.
 - Les commits suivent les **Conventional Commits** en anglais.
 - `develop` est la branche d'intégration ; `master` est réservée aux merges de jalons stables et
-  n'est câblée à aucune automatisation de release. Voir [Processus de release](#processus-de-release)
+  n'est câblée à aucune automatisation de release. Voir [Processus de release](#release-process)
   ci-dessous.
 
-## Développement piloté par les tests
+## Développement piloté par les tests { #test-driven-development }
 
 Toute logique nouvelle ou modifiée est livrée **test-first** : écrire une spec
 [busted](building-and-testing.md) qui échoue, la faire passer, puis refactorer. La porte de
@@ -66,7 +66,7 @@ couverture ne peut pas régresser.
 Voir [Construction et tests](building-and-testing.md) pour les commandes concrètes, le cliquet de
 couverture, la journalisation et la configuration de débogage.
 
-## Construction et portes de qualité
+## Construction et portes de qualité { #build-quality-gates }
 
 - **Livrable** — seul `CTLD.lua` doit être du **Lua 5.1** pur (DCS tourne en Lua 5.1 ; pas de
   syntaxe 5.2+). Il est *généré* par `tools/build/merge_CTLD.ps1` et ne doit jamais être édité à
@@ -80,7 +80,7 @@ couverture, la journalisation et la configuration de débogage.
 - **Docs** — quand un comportement ou une interface change, les pages `docs/` concernées changent
   dans la même PR.
 
-## Processus de release
+## Processus de release { #release-process }
 
 Les releases sont **pilotées par tag**, pas par branche — aucun push sur `develop` ou `master` ne
 publie quoi que ce soit. Le skill Claude Code interactif **`release`** (invoqué avec `/release`)
@@ -103,7 +103,7 @@ Deux canaux, choisis par la chaîne de version :
   `published-latest` est avancé jusqu'à elle — un pointeur de téléchargement permanent vers la
   « dernière stable ».
 
-## Skills d'écriture
+## Skills d'écriture { #authoring-skills }
 
 Le programme de ré-outillage est mené avec trois skills d'écriture agnostiques du tracker (ils
 écrivent dans le `.backlog/` local, pas dans GitHub) :
@@ -118,7 +118,7 @@ Séquence typique pour un nouveau lot : `grill-with-docs` (converger sur la conc
 (rédiger le PRD) → `to-issues` (découper les tickets) → implémenter sur une branche `feature/*`
 (TDD) → PR vers `develop`.
 
-## Séquence de bout en bout par défaut
+## Séquence de bout en bout par défaut { #default-end-to-end-sequence }
 
 1. Synchroniser `develop` (`git pull --ff-only`).
 2. Créer le lot dans `.backlog/` (PRD + tickets).

@@ -15,7 +15,7 @@ géométrie.
 fabrique `getInstance()` qui exécute `init()` au premier accès. Les deux classes d'entité sont
 de simples types `class()` instanciés via `:new(data)`.
 
-## Types de zone
+## Types de zone { #zone-types }
 
 | Type | Préfixe / source | Entité | Rôle |
 | --- | --- | --- | --- |
@@ -33,7 +33,7 @@ zone de trigger existante de l'éditeur de mission (`dcsZoneName`), résolue via
 chargées en dernier afin qu'une définition moderne `TRZ_`/`LGZ_` l'emporte toujours : **les
 entrées existantes ne sont jamais écrasées**.
 
-## Convention de nommage TRZ
+## Convention de nommage TRZ { #trz-naming-convention }
 
 Une troop zone encode tout son comportement dans le nom de la zone de trigger — un schéma
 positionnel strict où **les cinq champs sont tous requis** :
@@ -53,7 +53,7 @@ TRZ_<name>_<A|R|B|N>_<stock>_<flag>_<target>
 
 Mots réservés qui ne peuvent pas être utilisés comme `name` : `nil`, `A`, `R`, `B`, `N`.
 
-### Sémantique des champs
+### Sémantique des champs { #field-semantics }
 
 Le parser convertit les valeurs des champs affichés à l'écran vers un stockage interne
 volontairement différent, de sorte que `nil` puisse signifier « capacité absente » :
@@ -82,7 +82,7 @@ Pour la coalition, `A→0`, `R→coalition.side.RED` (1), `B→coalition.side.BL
 comme « accepte toutes les coalitions », et le multijoueur DCS n'a pas de joueurs NEUTRAL, donc
 les deux se comportent de manière identique.
 
-### Rôles de zone
+### Rôles de zone { #zone-roles }
 
 Une TRZ peut jouer n'importe quelle combinaison de :
 
@@ -92,7 +92,7 @@ Une TRZ peut jouer n'importe quelle combinaison de :
 - **Mixte** (les deux) : prend en charge l'embarquement et l'extract d'objectif.
 - **Inerte** (`stock=0`, `flag=nil`) : parsée mais sans fonction — un marqueur nommé.
 
-### Exemples
+### Exemples { #examples }
 
 | Nom de zone | Rôle | Embarquement | Objectif |
 | --- | --- | --- | --- |
@@ -114,7 +114,7 @@ TRZ  _  fob  _  N   _  30     _  defend  _  50
  └───────────────────────────────────────────── préfixe TRZ
 ```
 
-### Validation du parser
+### Validation du parser { #parser-validation }
 
 `CTLDZoneManager:_parseTRZ(name)` retourne une table parsée en cas de succès, ou `nil` plus une
 chaîne d'erreur en cas d'échec :
@@ -134,7 +134,7 @@ chaîne d'erreur en cas d'échec :
 `WPZ_` et `LGZ_` utilisent la forme plus simple `<PREFIX>_<name>_[R|B|N]` (coalition
 optionnelle, défaut `0`) ; `_parseWPZ` partage `_parseSimpleZone` et `_parseLGZ` est autonome.
 
-## Algorithme de découverte
+## Algorithme de découverte { #discovery-algorithm }
 
 `CTLDZoneManager:init()` enregistre `S_EVENT_DEAD` sur le bridge d'événements DCS, puis exécute
 les phases suivantes **dans cet ordre** :
@@ -160,7 +160,7 @@ phase de découverte se protège par `if not self._troopZones[name]` / `_logisti
 donc l'ordre de priorité ci-dessus est ce qui fait que les définitions modernes l'emportent sur
 les legacy.
 
-### Détails du fallback legacy
+### Détails du fallback legacy { #legacy-fallback-details }
 
 - Les entrées `troopZones` prennent en charge à la fois les zones de trigger DCS et les **noms
   d'unités de navire** — si `trigger.misc.getZone` échoue, le loader se rabat sur
@@ -179,7 +179,7 @@ Construite à partir d'une table `data`. Requis : `dcsName`, `zoneName`, `coalit
 rôle `isWaypoint` / `isDropoff` / `isAIPickup` / `isAIDropoff`, et les champs IA `aiDropMode`,
 `aiCargoType`, `troopTemplates`, `vehicleTypes`, `_aiTroopStock`, `_aiVehicleStock`.
 
-### Prédicats de rôle
+### Prédicats de rôle { #role-predicates }
 
 | Méthode | Vrai quand |
 | --- | --- |
@@ -190,14 +190,14 @@ rôle `isWaypoint` / `isDropoff` / `isAIPickup` / `isAIDropoff`, et les champs I
 | `zone:hasAIPickup()` | `isAIPickup == true` (rôle P d'AIZ) |
 | `zone:hasAIDropoff()` | `isAIDropoff == true` (rôle D d'AIZ) |
 
-### Géométrie
+### Géométrie { #geometry }
 
 `zone:isInZone(point)` teste les zones polygonales (`verticies` avec ≥3 sommets) via un
 ray-cast de Jordan sur le static privé `CTLDTroopZone._raycast`, sinon se rabat sur un test de
 rayon circulaire. À noter que `verticies[i].x/.y` sont des coordonnées de fichier de mission où
 le `Y` de mission égale le `Z` monde. `zone:getCenter()` retourne le `center` stocké.
 
-### Gestion du stock
+### Gestion du stock { #stock-management }
 
 ```lua
 zone:consumeStock(n)   -- décrémente pickCurrentStock de n ; true en cas de succès, illimité toujours true
@@ -208,7 +208,7 @@ Les deux appellent `_syncStockFlag()`, qui écrit `pickCurrentStock` dans `stock
 `trigger.action.setUserFlag` lorsque ce flag est défini. Un stock illimité (`pickMaxStock == 0`)
 signifie que `consumeStock` réussit toujours et que `restoreStock` est un no-op.
 
-### Stock IA par template / par type (Feature T)
+### Stock IA par template / par type (Feature T) { #ai-per-template-per-type-stock-feature-t }
 
 Les zones AIZ peuvent porter un stock granulaire au lieu d'un simple compteur. `_aiTroopStock`
 et `_aiVehicleStock` sont des tables de la forme
@@ -231,7 +231,7 @@ par ordre de priorité `CTLDSceneManager` (scene) > `CTLDCrateAssemblyManager` (
 natif, retournant `nil` lorsque `isAll` est positionné (l'appelant utilise alors le chemin
 legacy de scan physique).
 
-### Objectif
+### Objectif { #objective }
 
 ```lua
 zone:incrementObjective(soldierCount)  -- → incremented(bool), valueBefore, valueAfter
@@ -259,7 +259,7 @@ Optionnels : `linkedUnit` (la zone suit alors cette unité/static DCS), `active`
 | `zone:isInZone(point)` | Test de rayon circulaire uniquement — les logistic zones sont toujours circulaires |
 | `zone:activate()` / `zone:deactivate()` | Bascule `active` |
 
-## Scheduler de smoke
+## Scheduler de smoke { #smoke-scheduler }
 
 `_scheduleSmoke()` se réarme toutes les `smokeRefreshInterval` secondes (défaut 300). Lorsque
 `disableAllSmoke` est positionné, il se re-planifie sans rien faire. Sinon, il fume chaque troop
@@ -267,7 +267,7 @@ zone active dont `smoke >= 0` et chaque logistic zone active qui a une couleur d
 `logisticZoneSmokeColor[coalition]`, puis publie `OnZoneSmokeRefreshed` avec un instantané des
 deux ensembles de zones (positions, stock, progression d'objectif, couleurs).
 
-## Événements
+## Événements { #events }
 
 Publiés via `EventDispatcher` (voir [Architecture](../architecture.md)) :
 
@@ -280,7 +280,7 @@ Le manager enregistre `onDead` pour `S_EVENT_DEAD` via `CTLDDCSEventBridge` : lo
 liée d'une logistic zone dynamique meurt, la zone est retirée et un `OnLogisticZoneUpdated` est
 publié avec le retrait.
 
-## API de requête — troop zones
+## API de requête — troop zones { #query-api-troop-zones }
 
 ```lua
 zm:getTroopZone(zoneName)                     -- → CTLDTroopZone | nil
@@ -300,7 +300,7 @@ monde), ou les deux camps sont égaux. `getNearestWaypointZone` sous-tend la Fea
 (`gotoNearestWPZ`), et les getters de pickup/dropoff IA sous-tendent la boucle de transport IA
 (`_checkAIStatus`).
 
-## API de requête — logistic zones
+## API de requête — logistic zones { #query-api-logistic-zones }
 
 ```lua
 zm:getLogisticZone(name)                             -- → CTLDLogisticZone | nil
@@ -314,7 +314,7 @@ zm:getLogisticZonesAtPoint(point, coalition, key)    -- TOUTES les zones contena
 `serviceKey` optionnel (par ex. `"cratesPickup"`) ne conserve que les zones où
 `zone.services[key]` n'est pas `false`.
 
-## Enregistrement à l'exécution et API rétrocompatible
+## Enregistrement à l'exécution et API rétrocompatible { #runtime-registration-and-legacy-compatible-api }
 
 ```lua
 zm:registerFOBAsLogistic(fobName, point, radius, coalitionId)  -- ajoute un FOB construit comme LGZ
@@ -336,7 +336,7 @@ Les logistic zones désactivées sont ignorées par chaque getter jusqu'à réac
 permet à une mission de simuler un point de ravitaillement capturé ou temporairement perdu sans
 le détruire.
 
-## Priorité de déchargement : extract avant RTB
+## Priorité de déchargement : extract avant RTB { #unload-priority-extract-before-rtb }
 
 Lorsqu'un joueur décharge des troops, la zone contenante est évaluée dans cet ordre (géré par le
 sous-système troop, pas par le zone manager lui-même) :
@@ -348,7 +348,7 @@ sous-système troop, pas par le zone manager lui-même) :
 Cet ordre garantit qu'une zone mixte déclenche son objectif lorsqu'elle est utilisée comme point
 d'extract plutôt que de simplement renvoyer les troops au stock.
 
-## Comportement du menu F10
+## Comportement du menu F10 { #f10-menu-behaviour }
 
 Le menu de commande des troops est reconstruit sur `S_EVENT_LAND` / `S_EVENT_TAKEOFF` à partir
 de la position courante du joueur et de l'état de sa cargaison :
@@ -358,7 +358,7 @@ de la position courante du joueur et de l'état de sa cargaison :
 - Au sol avec des troops à bord : une option « Unload / Extract » apparaît.
 - Au sol hors de toute TRZ : aucune option de chargement.
 
-## Validation des noms de zone
+## Validation des noms de zone { #zone-name-validation }
 
 `_validateZoneNames()` s'exécute en premier dans `init()` et produit un unique rapport groupé
 (`trigger.action.outText` + log DCS + `env.warning`). Il couvre :

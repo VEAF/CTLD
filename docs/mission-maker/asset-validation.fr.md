@@ -5,7 +5,7 @@ sonde cachés (ça gaspillait des ressources et émettait des events de naissanc
 votre logique de mission pouvait voir). À la place, une faute de frappe ou un mod manquant se révèle
 au **développement** via un script compagnon optionnel.
 
-## Le compagnon asset-check
+## Le compagnon asset-check { #the-asset-check-companion }
 
 `CTLD_asset_check.lua` est un outil dev-time optionnel (téléchargez-le depuis les assets de release).
 Chargé après CTLD, il examine tout ce que votre mission configure — `spawnableCrates`, parts de
@@ -16,7 +16,7 @@ systèmes AA, `loadableGroups`, objets de scènes — et affiche un message :
 
 C'est une simple lecture : **aucun objet n'est spawné, aucun event n'est émis.**
 
-### Utilisation
+### Utilisation { #how-to-use-it }
 
 1. Téléchargez `CTLD_asset_check.lua` depuis la [release CTLD](https://github.com/VEAF/CTLD/releases).
 2. Dans l'éditeur de mission, ajoutez un déclencheur `DO SCRIPT FILE` au **démarrage de la mission**,
@@ -25,7 +25,7 @@ C'est une simple lecture : **aucun objet n'est spawné, aucun event n'est émis.
    signalée.
 4. **Retirez le déclencheur du compagnon pour la production** — c'est une aide au développement.
 
-### Déclarer les types mod
+### Déclarer les types mod { #declaring-mod-types }
 
 Si votre config utilise légitimement le type DCS d'un mod, indiquez-le à CTLD pour que le compagnon
 ne le signale pas — listez le(s) nom(s) exact(s) dans le setting `modTypes` :

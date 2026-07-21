@@ -10,7 +10,7 @@ régler son comportement. Les actions en cockpit — le unpack de la crate pour 
 et l'utilisation du menu **Clear Mine Field** pour en retirer un — sont des opérations pilote,
 décrites dans le [guide Pilote](../pilot/index.md).
 
-## Mise à disposition
+## Mise à disposition { #making-it-available }
 
 Le minefield est une scene auto-enregistrée : dès que `CTLD.lua` est chargé, elle apparaît
 automatiquement comme **Mine Field Crate** dans le menu F10 **Request Equipment**, pour les
@@ -21,7 +21,7 @@ les crates sont listées et demandées de manière générale.
 Les pilotes demandent alors la crate, la transportent et l'unpack au sol ; le champ est posé
 devant l'aéronef, dans l'axe de son cap. Voir le [guide Pilote](../pilot/index.md).
 
-### Disposition par défaut
+### Disposition par défaut { #default-layout }
 
 La crate pose toujours le même champ fixe : une grille en quinconce calculée à partir de
 5 mines par rangée complète × 15 rangées, commençant 20 m devant l'unité, avec 6 m entre les
@@ -51,7 +51,7 @@ _cfg.settings["showMinefieldOnF10Map"] = true
 _cfg.settings["demineRadius"]          = 150
 ```
 
-## Avancé : poser un minefield depuis un script
+## Avancé : poser un minefield depuis un script { #advanced-laying-a-minefield-from-a-script }
 
 Si vous voulez placer des minefields depuis votre propre logique de mission (plutôt qu'en
 faisant unpack une crate par un pilote), récupérez le modèle de la scene et appelez l'une de
@@ -65,7 +65,7 @@ Récupérez le modèle une fois :
 local mineField = CTLDSceneManager.getInstance():getModel("mineField")
 ```
 
-### `setLandMineAuto` — par surface et nombre
+### `setLandMineAuto` — par surface et nombre { #setlandmineauto-by-area-and-count }
 
 Fournissez les dimensions cibles et un nombre de mines souhaité ; CTLD calcule
 automatiquement la meilleure disposition colonnes/rangées.
@@ -82,7 +82,7 @@ local ok, result = mineField.setLandMineAuto(
 -- Use #result for the exact number of mines spawned.
 ```
 
-### `setLandMine` — grille explicite
+### `setLandMine` — grille explicite { #setlandmine-explicit-grid }
 
 Pour un contrôle total sur le nombre de colonnes, le nombre de rangées et les deux distances :
 
@@ -98,7 +98,7 @@ local ok, result = mineField.setLandMine(
 -- Quinconce total: 8 odd rows x 5 + 7 even rows x 4 = 68 mines
 ```
 
-### Cas limites de disposition
+### Cas limites de disposition { #layout-edge-cases }
 
 | Condition | Comportement |
 | --- | --- |

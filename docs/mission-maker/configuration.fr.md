@@ -8,9 +8,9 @@ valeur par défaut.
 
 Cette page couvre les **réglages globaux** et les **capacités par appareil**
 (`capabilitiesByType`). Les listes de zones, les définitions de crate, les scènes FOB, le
-minefield et les traductions ont chacun leur propre page — voir [Où le reste se configure](#ou-le-reste-se-configure).
+minefield et les traductions ont chacun leur propre page — voir [Où le reste se configure](#where-the-rest-is-configured).
 
-## Comment fonctionne la configuration
+## Comment fonctionne la configuration { #how-configuration-works }
 
 Au démarrage, `CTLDConfig` remplit chaque paramètre avec sa valeur par défaut. Votre
 `CTLD_userConfig.lua` applique ensuite vos surcharges par-dessus. Tout au long de la mission en
@@ -20,7 +20,7 @@ cours, chaque paramètre est lu via un unique accesseur :
 ctld.gs("parameterName")   -- the only authorised read form
 ```
 
-### Ordre de chargement dans le Mission Editor
+### Ordre de chargement dans le Mission Editor { #load-order-in-the-mission-editor }
 
 `CTLD.lua` démarre automatiquement avec les valeurs par défaut — aucun fichier de config
 n'est requis. Si vous souhaitez personnaliser, ajoutez `CTLD_userConfig.lua` comme **premier**
@@ -36,7 +36,7 @@ au démarrage et initialise CTLD automatiquement. (Si vous devez exécuter une c
 supplémentaire entre le chargement et le démarrage, positionnez `ctld.dontInitialize = true`
 avant le chargement de `CTLD.lua` et appelez `ctld.initialize()` vous-même.)
 
-### Deux façons de surcharger
+### Deux façons de surcharger { #two-ways-to-override }
 
 Les **scalaires** (booléens, nombres, chaînes) vont dans le bloc `ctld.yamlConfigDatas`, une
 ligne `ctld.parameterName: value` par valeur :
@@ -94,9 +94,9 @@ défaut courantes dans `CTLD.log`, et consultez `CTLD_userConfig.lua` pour le mo
     `ctld-tools.exe` est attaché à chaque Release GitHub (pas besoin de Python). L'édition manuelle
     du modèle Lua reste possible pour les utilisateurs avancés.
 
-## Réglages globaux
+## Réglages globaux { #global-settings }
 
-### Système
+### Système { #system }
 
 | Paramètre | Défaut | Description |
 |---|---|---|
@@ -137,7 +137,7 @@ défaut courantes dans `CTLD.log`, et consultez `CTLD_userConfig.lua` pour le mo
 | `allowRandomAiTeamPickups` | `false` | Autorise les transports IA à choisir aléatoirement un template de troop aux zones de pickup. Si `false`, l'IA prend toujours le premier template disponible pour sa coalition |
 | `nbLimitSpawnedTroops` | `{0, 0}` | Plafond cumulé de troops par coalition `{RED, BLUE}` — `0` = illimité (table Lua) |
 
-### Simulation du poids de l'infanterie
+### Simulation du poids de l'infanterie { #infantry-weight-simulation }
 
 CTLD estime le poids de chaque groupe de troops pour vérifier s'il tient dans un transport (voir
 `capabilitiesByType[type].maxTroopsOnboard` et les poids de véhicules). Chaque soldat pèse un
@@ -172,13 +172,13 @@ aléatoire de 90–120 % de `SOLDIER_WEIGHT`, plus l'équipement et le matériel
     provient du modèle de scène FOB (`cratesRequired`, défaut 3), collectées dans un rayon de
     750 m. Voir [Scenes & FOB](scenes-fob.md).
 
-### Véhicules & packing
+### Véhicules & packing { #vehicles-packing }
 
 | Paramètre | Défaut | Description |
 |---|---|---|
 | `enablePackingVehicles` | `true` | Autorise le pack des véhicules de nouveau en crate |
 | `groundVehicleWeights` | `{...}` | Poids (kg) par type DCS de véhicule, comparé au `maxVehicleWeight` de chaque appareil pour le transport de véhicule entier (table Lua) |
-| `capabilitiesByType` | `{...}` | Table unifiée des capacités par appareil — voir [Capacités par appareil](#capacites-par-appareil) ci-dessous |
+| `capabilitiesByType` | `{...}` | Table unifiée des capacités par appareil — voir [Capacités par appareil](#per-aircraft-capabilities) ci-dessous |
 
 ### Beacons
 
@@ -189,7 +189,7 @@ aléatoire de 90–120 % de `SOLDIER_WEIGHT`, plus l'équipement et le matériel
 | `radioSound` | `"beacon.ogg"` | Fichier son du beacon — **doit** être ajouté au `.miz` de la mission, sinon les beacon ne fonctionneront pas |
 | `radioSoundFC3` | `"beaconsilent.ogg"` | Fichier de beacon silencieux pour les appareils FC3 |
 
-### Systèmes AA
+### Systèmes AA { #aa-systems }
 
 | Paramètre | Défaut | Description |
 |---|---|---|
@@ -222,7 +222,7 @@ aléatoire de 90–120 % de `SOLDIER_WEIGHT`, plus l'équipement et le matériel
 | `JTAC_droneRadius` | `1000` | Rayon d'orbite de repli (m) pour les JTAC drones quand la crate n'a pas de `specificParams` |
 | `JTAC_droneAltitude` | `4000` | Altitude d'orbite de repli AGL (m) pour les JTAC drones quand la crate n'a pas de `specificParams` |
 
-#### Groupes JTAC pré-placés (auto-détection)
+#### Groupes JTAC pré-placés (auto-détection) { #pre-placed-jtac-groups-auto-detection }
 
 CTLD détecte au démarrage les groupes JTAC placés dans le Mission Editor. Un groupe est reconnu
 comme JTAC lorsque son **nom de groupe contient `jtac`** (insensible à la casse) — par exemple
@@ -255,7 +255,7 @@ comme JTAC lorsque son **nom de groupe contient `jtac`** (insensible à la casse
 
 Voir [Minefield](minefield.md) pour le déploiement.
 
-## Capacités par appareil
+## Capacités par appareil { #per-aircraft-capabilities }
 
 `capabilitiesByType` est l'unique table qui définit chaque capacité par appareil. **Seuls les
 appareils listés ici reçoivent les menus F10 de CTLD.** Chaque clé est le **nom de type DCS
@@ -321,7 +321,7 @@ table `capabilitiesByType` entière remplace celle intégrée, donc incluez chaq
 voulez rendre CTLD-capable — ou modifiez un seul champ pour conserver les défauts, p. ex.
 `cfg.settings["capabilitiesByType"]["Mi-8MT"].maxTroopsOnboard = 20`.
 
-## Contrôle d'accès
+## Contrôle d'accès { #access-control }
 
 Deux paramètres décident quelles unités joueur reçoivent les menus F10 de CTLD.
 
@@ -354,7 +354,7 @@ cfg.settings["transportPilotNames"] = {
     `addPlayerAircraftByType`. Ajoutez-y les noms d'unité IA pour activer le comportement
     d'auto-pickup / drop-off.
 
-## Où le reste se configure
+## Où le reste se configure { #where-the-rest-is-configured }
 
 La configuration qui n'est pas globale vit sur des pages dédiées :
 

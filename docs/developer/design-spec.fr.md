@@ -11,7 +11,7 @@ Lorsqu'une décision ci-dessous est formellement consignée sous forme d'Archite
 le numéro d'ADR est cité afin que le raisonnement durable et ses alternatives puissent être retracés
 dans `dev/adr/`.
 
-## D'où vient CTLD v2
+## D'où vient CTLD v2 { #where-ctld-v2-came-from }
 
 Le CTLD original (Combat Troop and Logistics Drop) est un unique fichier Lua procédural d'environ
 12 000 lignes. Il fonctionne, et il constitue la **référence fonctionnelle** de la réécriture — le
@@ -23,7 +23,7 @@ façon isolée, et difficile à étendre sans risquer des régressions ailleurs.
 modulaire et testable qui conserve ce comportement tout en donnant à chaque domaine fonctionnel sa
 propre frontière.
 
-## Objectifs de conception
+## Objectifs de conception { #design-goals }
 
 | Objectif | Ce que cela signifie | Comment il est atteint |
 | --- | --- | --- |
@@ -37,9 +37,9 @@ propre frontière.
 Ces objectifs contraignent l'exécution : tout doit tourner à l'intérieur du DCS Scripting Engine en
 **Lua 5.1**, en utilisant uniquement l'API de scripting officielle du simulateur.
 
-## Décisions de conception fondamentales
+## Décisions de conception fondamentales { #core-design-decisions }
 
-### Source modulaire, livrable unique (ADR 0001)
+### Source modulaire, livrable unique (ADR 0001) { #modular-source-single-deliverable-adr-0001 }
 
 CTLD est livré comme un seul fichier parce que c'est ce qu'un mission maker charge. Développer dans un
 seul fichier est précisément le problème que la réécriture entend résoudre. La conception sépare les
@@ -54,7 +54,7 @@ en dernier afin qu'elle puisse tout surcharger. `CTLD.lua` est un artefact gén�
 édité à la main. Voir [Architecture](architecture.md) pour l'organisation et
 [Building & testing](building-and-testing.md) pour le pipeline.
 
-### Objets Manager + Entity (ADR 0002)
+### Objets Manager + Entity (ADR 0002) { #manager-entity-objects-adr-0002 }
 
 Chaque domaine est modélisé comme une paire : une classe **Entity** décrivant une chose unique
 (`CTLDCrate`, `CTLDTroopGroup`, `CTLDVehicle`, `CTLDBeacon`, `CTLDJTAC`, `CTLDPlayer`,
@@ -68,7 +68,7 @@ lui-même est un micro-framework minimal à héritage simple (`X = class()`) ; l
 singleton sont décrits dans [Architecture](architecture.md). La gestion des
 coalition est unifiée entre les managers plutôt que réinventée par domaine.
 
-### Une couche utilitaire maison plutôt que MIST (ADR 0003)
+### Une couche utilitaire maison plutôt que MIST (ADR 0003) { #an-in-house-utility-layer-instead-of-mist-adr-0003 }
 
 Le script v1 s'appuyait sur MIST pour le spawn, la géométrie et les helpers. La v2 abandonne cette
 dépendance au profit d'une petite couche utilitaire maison (`ctld.utils.*`, adossée à
@@ -78,7 +78,7 @@ F10), et les posséder évite de livrer et de suivre en version une grande bibli
 l'intérieur du livrable unique. Des appels tels que l'ancien `mist.dynAddStatic()` dans la scène du
 champ de mines sont remplacés par `CTLDUtils.dynAddStatic()`.
 
-### Une couche de compatibilité legacy (ADR 0004)
+### Une couche de compatibilité legacy (ADR 0004) { #a-legacy-compatibility-layer-adr-0004 }
 
 Les missions v1 existantes appellent l'ancienne API procédurale. Pour laisser ces missions tourner sur
 la v2 sans être réécrites, de fins shims délégants vivent dans `src/legacy/legacy_api.lua` et
@@ -86,14 +86,14 @@ transfèrent aux nouveaux managers. Ils sont dépréciés par conception — une
 surface supportée. Le chemin de migration et un exemple travaillé sont dans
 [Migration v1 → v2](migration-v1-v2.md).
 
-### Un seul verbe de packing : « pack » (ADR 0005)
+### Un seul verbe de packing : « pack » (ADR 0005) { #one-packing-verb-pack-adr-0005 }
 
 La v1 utilisait deux verbes différents pour la même opération vehicle-to-crate, ce qui prêtait à
 confusion tant pour les utilisateurs que pour le code. La v2 unifie autour d'un seul verbe, **pack**,
 de manière cohérente à travers les clés de config, les libellés du menu F10, les noms de méthodes et les
 commentaires. C'est une convention à l'échelle du projet, non le simple renommage d'une fonction.
 
-## Dépendances en couches
+## Dépendances en couches { #layered-dependencies }
 
 Les managers forment un empilement de couches de dépendances plutôt qu'un maillage : les fondations
 sans dépendances (config, i18n, le registre d'objets) tout en bas, les domain managers au milieu, et
@@ -106,7 +106,7 @@ L'ordonnancement concret et la séquence d'init par phases sont documentés dans
 [Architecture](architecture.md) ; cette page n'énonce que le principe qui
 la sous-tend.
 
-## Le moteur de scènes
+## Le moteur de scènes { #the-scene-engine }
 
 Les constructions physiques — FARPs, FOBs, champs de mines, systèmes AA multi-crate — constituent la
 partie de CTLD la plus susceptible de grandir. La conception isole cette croissance derrière un
@@ -135,7 +135,7 @@ Les templates de systèmes AA sont portés **inline** dans `src/CTLD_aasystem.lu
 fichiers de scène séparés. Le workflow de rédaction de scènes est couvert dans
 [Scene engine](subsystems/scenes.md).
 
-## Zones : séparation des préoccupations
+## Zones : séparation des préoccupations { #zones-separation-of-concerns }
 
 La v1 avait un concept de zone générique unique assurant plusieurs tâches sans lien entre elles. La v2
 le scinde selon ses responsabilités réelles :
@@ -158,7 +158,7 @@ Deux décisions déterminent cette forme :
 Les préfixes de zone hérités sont toujours reconnus pour les missions non migrées mais sont dépréciés.
 Le schéma de nommage complet, les champs et les validations vivent dans la documentation mission-maker.
 
-## Refonte du transport de véhicules (EVO-09)
+## Refonte du transport de véhicules (EVO-09) { #vehicle-transport-redesign-evo-09 }
 
 Le changement de conception comportemental le plus significatif est la manière dont les véhicules se
 déplacent. La v1 offrait un chargement *virtuel* de véhicule depuis une pickup zone — un contournement
@@ -190,7 +190,7 @@ Workflow B — pack / unpack  (vehicle too heavy or bulky for direct load)
 sans aucune intervention de CTLD. Scinder un véhicule en N crates est délibéré — cela permet à
 plusieurs aircraft de coopérer, chacun portant une partie de la charge.
 
-## Menus dynamiques construits selon le contexte
+## Menus dynamiques construits selon le contexte { #dynamic-context-built-menus }
 
 Chaque classe fonctionnelle construit son propre bloc de menu F10 via une méthode `buildMenu(player)`
 plutôt qu'un constructeur de menu central assemblant l'ensemble. Le player manager crée le menu racine
@@ -205,7 +205,7 @@ reconstruit au moment du clic à partir des crate réellement proches de l'aircr
 de pagination des menus et l'arbre F10 complet sont détaillés dans
 [F10 menu system](subsystems/menu.md).
 
-## Accès à la config et à l'i18n
+## Accès à la config et à l'i18n { #config-and-i18n-access }
 
 Deux conventions maintiennent l'accès transversal uniforme et en lecture seule :
 
@@ -219,7 +219,7 @@ managers n'appellent jamais `config:getSetting()` directement et ne mutent jamai
 chaîne visible par l'utilisateur passe par `ctld.tr(...)` afin que les quatre langues livrées restent
 alignées. Le modèle d'internationalisation est décrit dans [Internationalisation](i18n.md).
 
-## Pour aller plus loin
+## Pour aller plus loin { #further-reading }
 
 - [Architecture](architecture.md) — organisation, idiome manager/singleton, séquence d'init, bibliothèques internes
 - [Subsystems](subsystems/index.md) — scènes, crate, zones, menus et le reste du détail des domaines
