@@ -28,17 +28,21 @@ by sweeping `ctld.<x> = <literal>` module-level assignments in `src/`).
 
 ## Solution
 
-Make `i18n_lang` a first-class setting:
+Make `i18n_lang` settable from the user-config **without breaking the legacy global**:
 
-1. Add `i18n_lang: en` to the engine defaults (`src/CTLD_config.yaml`, mm_facing).
-2. `ctld.tr` resolves the active language via `ctld.gs("i18n_lang")` (config wins),
-   falling back to the module global, then `"en"`. The `CTLD_i18n.lua` global becomes a
-   pre-config default only.
-3. Declare its allowed values in `src/CTLD_config_schema.yaml`
-   (`i18n_lang: { choices: [en, fr, es, ko] }`) so the TUI offers a value list.
+1. `ctld.tr` resolves the active language via `ctld.gs("i18n_lang")` (user-config wins),
+   falling back to the module global `ctld.i18n_lang`, then `"en"`.
+2. Declare it in `src/CTLD_config_schema.yaml` with `default: en` + `choices` (+ a
+   description) so the TUI picker surfaces it. It is **deliberately NOT added to the
+   engine defaults catalogue**: that would make `gs("i18n_lang")` always return `"en"`
+   and shadow the legacy `ctld.i18n_lang = "fr"` method (it broke the F-103 i18n specs).
+   Keeping it schema-only means `gs` is `nil` unless the user-config sets it — so the
+   legacy global still works and the user-config wins when present.
+3. `Reference` surfaces schema settings that carry a `default` into `scalar_settings`
+   (so the picker and validation know `i18n_lang`).
 
-Then it appears **automatically** in the ctld-tools picker (it's in the catalogue), and
-setting it from the user-config actually changes the language at runtime.
+The picker then lists `i18n_lang` (default `en`, value list), and a user-config value
+changes the language at runtime.
 
 ## Out of scope
 

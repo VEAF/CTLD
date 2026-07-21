@@ -10,12 +10,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed — interface language is now a real setting (CTLD-TOOLS-TUI-POLISH)
 
-- `i18n_lang` (the CTLD interface language, en/fr/es/ko) is now a first-class setting:
-  added to the engine defaults, and `ctld.tr` resolves the active language via
-  `ctld.gs("i18n_lang")` (config wins), falling back to the module global then `"en"`.
-  Previously it was a bare global read only by `tr`, so setting it from the user-config
-  silently did nothing. It is now settable from the user-config and appears in the
-  ctld-tools TUI with a value list (schema `choices: [en, fr, es, ko]`).
+- `i18n_lang` (the CTLD interface language, en/fr/es/ko) can now be set from the
+  user-config. `ctld.tr` resolves the active language via `ctld.gs("i18n_lang")`
+  (user-config wins), falling back to the module global `ctld.i18n_lang` (the legacy
+  "edit CTLD_i18n.lua" method still works), then `"en"`. Previously it was a bare global
+  read only by `tr`, so setting it from the user-config silently did nothing. It is
+  surfaced in the ctld-tools TUI with a value list via the schema (`default: en`,
+  `choices: [en, fr, es, ko]`) — deliberately **not** added to the engine defaults, so
+  the legacy global keeps working.
 - **Setting descriptions in the TUI**: `CTLD_config_schema.yaml` now carries a bilingual
   `description` per setting (seeded from the mission-maker config docs, 73 settings). The
   "Set setting" picker shows each setting's description in the current language and lets

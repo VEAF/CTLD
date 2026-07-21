@@ -64,6 +64,11 @@ class Reference:
         else:
             self._scalar_settings = {k: v for k, v in settings.items() if isinstance(v, (bool, int, float, str))}
         self._setting_schema: dict = settings.get("settingSchema") or {}
+        # Schema settings carrying a `default` live outside the engine catalogue (e.g.
+        # i18n_lang, a bare ctld global) — surface them so the picker/validation know them.
+        for name, entry in self._setting_schema.items():
+            if isinstance(entry, dict) and "default" in entry and name not in self._scalar_settings:
+                self._scalar_settings[name] = entry["default"]
 
     @classmethod
     def from_src(cls, src_dir: str | Path) -> Reference:

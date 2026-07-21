@@ -2911,7 +2911,6 @@ ctld.__configDefaults = {
         ["M1045 HMMWV TOW"] = 5000
     },
     hoverTime = 10,
-    i18n_lang = "en",
     loadCrateFromMenu = true,
     loadableGroups = {
         {

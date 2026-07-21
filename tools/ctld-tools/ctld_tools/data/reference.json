@@ -154,7 +154,6 @@
     "fobTroopPickupRadius": 150,
     "groundAglThreshold": 5.0,
     "hoverTime": 10,
-    "i18n_lang": "en",
     "loadCrateFromMenu": true,
     "location_DMS": false,
     "maxDistanceFromCrate": 5.5,
@@ -530,6 +529,7 @@
         "es",
         "ko"
       ],
+      "default": "en",
       "description": {
         "en": "CTLD interface language: en, fr, es or ko",
         "fr": "Langue de l'interface CTLD : en, fr, es ou ko"

@@ -15,6 +15,10 @@ JTAC_lock:
     fr: 'Filtre de cible : "vehicle" | "troop" | "all"'
 
 i18n_lang:
+  # Not in the engine defaults catalogue (it is a bare `ctld.i18n_lang` global read by
+  # CTLD_i18n); `default` here surfaces it in the TUI picker. The user-config value, when
+  # set, lands in settings and wins via ctld.gs("i18n_lang").
+  default: en
   choices: [en, fr, es, ko]
   description:
     en: 'CTLD interface language: en, fr, es or ko'
