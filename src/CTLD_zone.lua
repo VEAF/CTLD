@@ -1612,17 +1612,14 @@ function CTLDZoneManager:_validateZoneNames()
     -- Store error set for _loadAIZonesFromConfig
     self._aiZoneErrors = aiZoneErrors
 
-    -- ── Emit single grouped report ────────────────────────────
-    local all = {}
-    for _, e in ipairs(errors) do all[#all + 1] = e end
-    for _, w in ipairs(warns)  do all[#all + 1] = w end
+    -- ── Feed startup report ───────────────────────────────────
+    for _, e in ipairs(errors) do ctld.startupReport.add("ERROR",  "ZoneManager", e) end
+    for _, w in ipairs(warns)  do ctld.startupReport.add("NOTICE", "ZoneManager", w) end
 
-    if #all > 0 then
-        local report = ctld.tr("[CTLD] Zone validation — %1 error(s), %2 warning(s):", #errors, #warns)
-                    .. "\n" .. table.concat(all, "\n")
-        trigger.action.outText(report, 30)
-        ctld.utils.log("WARN", report)
-        env.warning(report)
+    if #errors > 0 or #warns > 0 then
+        local summary = ctld.tr("[CTLD] Zone validation — %1 error(s), %2 warning(s):", #errors, #warns)
+        ctld.utils.log("WARN", summary)
+        env.warning(summary)
     else
         ctld.utils.log("INFO", ctld.tr("CTLDZoneManager: zone config valid"))
     end

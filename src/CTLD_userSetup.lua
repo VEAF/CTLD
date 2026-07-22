@@ -53,9 +53,7 @@ function ctld.addCrate(section, entry)
         local msg = string.format(
             "CTLD userConfig: duplicate crate weight %s — entry rejected", tostring(entry.weight))
         ctld.logWarning("ctld.addCrate: %s", msg)
-        if trigger and trigger.action and trigger.action.outText then
-            trigger.action.outText(msg, 30)
-        end
+        ctld.startupReport.add("ERROR", "UserConfig", msg)
         return false
     end
     crates[section] = crates[section] or {}
@@ -203,7 +201,9 @@ function ctld.runUserSetup()
         if type(cb) == "function" then
             local ok, err = pcall(cb, cfg)
             if not ok then
-                ctld.logWarning("ctld.userSetup callback #%d failed: %s", i, tostring(err))
+                local msg = string.format("ctld.userSetup callback #%d failed: %s", i, tostring(err))
+                ctld.logWarning(msg)
+                ctld.startupReport.add("ERROR", "UserSetup", msg)
             end
         else
             ctld.logWarning("ctld.userSetup entry #%d is not a function — skipped", i)

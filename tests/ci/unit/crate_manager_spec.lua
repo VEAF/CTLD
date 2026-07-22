@@ -539,3 +539,46 @@ describe("CTLDCrateManager spawnCrate", function()
     end)
 
 end)
+
+-- ─────────────────────────────────────────────────────────────
+describe("CTLDCrateManager _processSpawnableCrates startup report (STARTUP-REPORT-UNIFIED)", function()
+
+    before_each(function()
+        ctld.startupReport._entries = {}
+        CTLDConfig._instance = nil
+        CTLDCrateManager._instance = nil
+    end)
+
+    after_each(function()
+        ctld.startupReport._entries = {}
+        CTLDCrateManager._instance = nil
+    end)
+
+    it("invalid mixedSet reference adds ERROR to startupReport, no direct outText", function()
+        -- Inject a spawnableCrates config with a mixedSet referencing a non-existent weight
+        local cfg = CTLDConfig.get()
+        cfg:load()
+        cfg.settings["spawnableCrates"]["TestSection"] = {
+            { weight = 1000.01, desc = "Base Crate", unit = "M92_Ammo_Pallet" },
+            { mixedSet = { 1000.01, 9999.99 }, desc = "Bad Mixed" },  -- 9999.99 does not exist
+        }
+
+        local outTextCalled = false
+        local origOT = trigger.action.outText
+        trigger.action.outText = function() outTextCalled = true end
+
+        CTLDCrateManager.getInstance():_processSpawnableCrates(cfg.settings["spawnableCrates"])
+
+        trigger.action.outText = origOT
+
+        -- startupReport should have received an ERROR
+        local found = false
+        for _, e in ipairs(ctld.startupReport._entries) do
+            if e.severity == "ERROR" and e.source == "CrateManager" then found = true end
+        end
+        assert.is_true(found)
+        -- No direct outText from the manager
+        assert.is_false(outTextCalled)
+    end)
+
+end)

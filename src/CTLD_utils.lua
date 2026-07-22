@@ -2262,3 +2262,67 @@ function ctld.scheduler.cancelAll()
     end
     ctld.utils.log("INFO", "ctld.scheduler.cancelAll: %d loop(s) cancelled", n)
 end
+
+-- =====================================================================
+-- ctld.startupReport — init/config diagnostic collector
+--
+-- All managers feed this during ctld.initialize(). A single flush()
+-- at end of init consolidates everything into DCS.log + one outText.
+--
+-- Family 1 (init/config):  ctld.startupReport.add()  — MM-facing.
+-- Family 2 (runtime/dev):  ctld.utils.log()          — CTLD.log only.
+-- Never mix the two families (ADR 0010).
+-- =====================================================================
+ctld.startupReport = {
+    _entries = {},
+}
+
+--- Record a config/init diagnostic entry.
+---@param severity string "ERROR" or "NOTICE"
+---@param source   string Human-readable manager name (e.g. "CrateManager")
+---@param message  string Already-translated string (caller uses ctld.tr() at call site)
+function ctld.startupReport.add(severity, source, message)
+    local entries = ctld.startupReport._entries
+    entries[#entries + 1] = { severity = severity, source = source, message = message }
+end
+
+--- Flush all collected entries to DCS.log and (when issues exist) to screen.
+--- Always writes the CTLD_STARTUP_REPORT banner. Resets the collector afterwards.
+function ctld.startupReport.flush()
+    local entries = ctld.startupReport._entries
+    ctld.startupReport._entries = {}
+
+    -- Build log block (always written)
+    local lines = { "=== CTLD_STARTUP_REPORT ===" }
+    local hasError  = false
+    local hasNotice = false
+    local noticeLines = {}
+
+    for _, e in ipairs(entries) do
+        lines[#lines + 1] = string.format("[%s] %s: %s", e.severity, e.source, e.message)
+        if e.severity == "ERROR" then
+            hasError = true
+        elseif e.severity == "NOTICE" then
+            hasNotice = true
+            noticeLines[#noticeLines + 1] = e.message
+        end
+    end
+
+    if #entries == 0 then
+        lines[#lines + 1] = "[OK] No issues detected."
+    end
+
+    env.info(table.concat(lines, "\n"))
+
+    -- Screen outText
+    if hasError then
+        local screen = ""
+        if hasNotice then
+            screen = table.concat(noticeLines, "\n") .. "\n\n"
+        end
+        screen = screen .. ctld.tr("[CTLD] Config errors detected — search CTLD_STARTUP_REPORT in DCS.log")
+        trigger.action.outText(screen, 30)
+    elseif hasNotice then
+        trigger.action.outText(table.concat(noticeLines, "\n"), 30)
+    end
+end

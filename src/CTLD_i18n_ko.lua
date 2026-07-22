@@ -322,3 +322,5 @@ ctld.i18n["ko"]["  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in lo
 ctld.i18n["ko"]["  AIZ WARN: '%1' (P) overlaps '%2' (D) same coalition — risk of instant pickup+dropoff loop"]    = "  AIZ 경고: '%1' (P)이(가) '%2' (D)와 동일 연합에서 겹침 — 즉시 pickup+dropoff 루프 위험"
 ctld.i18n["ko"]["[CTLD] Zone validation — %1 error(s), %2 warning(s):"]                    = "[CTLD] 구역 유효성 검사 — 오류 %1개, 경고 %2개:"
 ctld.i18n["ko"]["CTLDZoneManager: zone config valid"]                                       = "CTLDZoneManager: 구역 구성이 유효합니다"
+ctld.i18n["ko"]["INIT-E: extractableGroup '%1' not found in mission — skipped"]            = ""
+ctld.i18n["ko"]["[CTLD] Config errors detected — search CTLD_STARTUP_REPORT in DCS.log"]  = ""

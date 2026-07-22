@@ -208,3 +208,38 @@ describe("CTLD_userSetup helpers", function()
         end)
     end)
 end)
+
+-- ─────────────────────────────────────────────────────────────
+describe("ctld.addCrate startup report (STARTUP-REPORT-UNIFIED)", function()
+
+    before_each(function()
+        CTLDConfig._instance = nil
+        ctld.yamlConfigDatas = nil
+        ctld.startupReport._entries = {}
+        CTLDConfig.get():load()
+    end)
+
+    after_each(function()
+        ctld.startupReport._entries = {}
+    end)
+
+    it("duplicate weight adds ERROR to startupReport (no bare outText)", function()
+        ctld.addCrate("Support", { weight = 8888.01, desc = "First",  unit = "Ural-375" })
+
+        local outTextCalled = false
+        local origOT = trigger.action.outText
+        trigger.action.outText = function() outTextCalled = true end
+
+        ctld.addCrate("Combat", { weight = 8888.01, desc = "Dup", unit = "Ural-375" })
+
+        trigger.action.outText = origOT
+
+        local found = false
+        for _, e in ipairs(ctld.startupReport._entries) do
+            if e.severity == "ERROR" and e.source == "UserConfig" then found = true end
+        end
+        assert.is_true(found)
+        assert.is_false(outTextCalled)
+    end)
+
+end)
