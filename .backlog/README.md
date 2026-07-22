@@ -14,7 +14,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `FIX-I18N-HARDCODED` | open | Wrapper dans `ctld.tr()` les chaînes player-facing hardcodées : noms de couches RECON (7) + messages outText AA system (6). Audit codebase complet effectué — seules ces deux zones sont concernées. | `fix/i18n-hardcoded` |
+| `FIX-I18N-HARDCODED` | pending merge (PR #61) | Wrapper dans `ctld.tr()` les chaînes player-facing hardcodées : noms de couches RECON (7) + messages outText AA system (6). Audit codebase complet effectué — seules ces deux zones sont concernées. | `fix/i18n-hardcoded` |
 | `BUILD-DICT-AI-TRANSLATE` | ✅ merged (PR #60) | Traduire automatiquement les stubs i18n vides via l'API Claude Haiku (local, si `ANTHROPIC_API_KEY` dispo) + câbler `ctld.i18n_auditAll()` dans `ctld.startupReport` pour signaler les clés vides au runtime. | `feature/build-dict-ai-translate` |
 | `DOC-NAV-I18N` | ✅ merged (PR #53, #54) | Translate the mkdocs site navigation to French (`nav_translations` under the FR locale) and harmonise every FR page H1 to the `French (dcs-term)` convention with **English anchors** forced via `attr_list` (`# Caisses (crates) { #crates }`), keeping permalinks stable across EN/FR. Drops the obsolete "CTLD Next" name from the integration-testing H1 (EN + FR). Docs only, no `src/`. | `feature/doc-nav-i18n` |
 | `FEAT-MOVING-ZONE` | ✅ merged (PR #49) | Resolve CTLD zone positions lazily via `trigger.misc.getZone()` so zones attached to a DCS Moving Zone follow their anchor unit. Covers all zone types (LGZ_, TRZ_, AIZ_, WPZ_), polygon support, anchor-death guard via `isAlive()`, `getCenter()` unified across all zone types. | `feature/feat-moving-zone` |
