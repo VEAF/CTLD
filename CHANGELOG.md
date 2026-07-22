@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — i18n dict auto-sync in build + pre-push hook (BUILD-DICT-AUTOSYNC)
+
+- **`merge_CTLD.ps1`**: calls `generate_i18n_dicts.ps1 -Apply` automatically after gen-config,
+  before the merge loop. Missing keys are added as empty stubs; build continues regardless.
+- **`.githooks/pre-push`**: cross-platform bash hook (detects `pwsh` then `powershell`,
+  skips gracefully if neither available). Blocks push on MISSING keys; warns on STALE keys.
+- **`CLAUDE.md`**: documents `git config core.hooksPath .githooks` for hook activation.
+
 ### Fixed — startup report INFO level (STARTUP-REPORT-INFO-LEVEL)
 
 - **`ctld.startupReport`** : ajout du niveau `INFO` — log-only, aucun `outText` écran.

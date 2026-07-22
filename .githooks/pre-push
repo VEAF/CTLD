@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# .githooks/pre-push — CTLD i18n dictionary pre-push check
+#
+# Runs generate_i18n_dicts.ps1 in dry-run mode before every push.
+# Blocks on MISSING keys (rebuild with merge_CTLD.ps1 to add stubs).
+# Warns but allows on STALE keys (manual cleanup — not a push blocker).
+# Skips silently if PowerShell (pwsh or powershell) is not available.
+#
+# Activate once after clone:
+#   git config core.hooksPath .githooks
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+DICT_SCRIPT="$REPO_ROOT/tools/build/generate_i18n_dicts.ps1"
+
+# Locate PowerShell (Core first, then Windows PS5)
+PS_CMD=""
+if command -v pwsh &>/dev/null; then
+    PS_CMD="pwsh"
+elif command -v powershell &>/dev/null; then
+    PS_CMD="powershell"
+else
+    echo "[i18n-check] PowerShell not found — skipping dict check (install pwsh to enable)"
+    exit 0
+fi
+
+echo "[i18n-check] Running i18n dict dry-run..."
+OUTPUT=$("$PS_CMD" -ExecutionPolicy Bypass -File "$DICT_SCRIPT" 2>&1) || true
+
+if echo "$OUTPUT" | grep -q "MISSING"; then
+    echo ""
+    echo "$OUTPUT"
+    echo ""
+    echo "[i18n-check] BLOCKED: missing i18n keys detected."
+    echo "             Run: tools/build/merge_CTLD.ps1  (or generate_i18n_dicts.ps1 -Apply)"
+    echo "             Fill in the new translation stubs, then commit and re-push."
+    exit 1
+fi
+
+if echo "$OUTPUT" | grep -q "STALE"; then
+    echo ""
+    echo "$OUTPUT"
+    echo ""
+    echo "[i18n-check] WARNING: stale i18n keys detected (unused — clean up manually)."
+    echo "             Push allowed. Remove '-- STALE:' entries from src/CTLD_i18n_*.lua when ready."
+fi
+
+exit 0
