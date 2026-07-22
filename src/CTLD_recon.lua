@@ -247,6 +247,12 @@ end
 -- More specific attributes must come before broader ones to avoid misclassification:
 --   "Air Defence" ⊂ "Vehicles"  → air_defense before ground_vehicles
 --   "Helicopters" ⊂ "Planes"    → helicopters before aircraft
+-- i18n: layer name keys registered here so generate_i18n_dicts.ps1 can track them.
+-- ctld.tr(layer.name) is dynamic (variable key) and invisible to the dict scanner.
+local _recon_i18n_keys = {  -- luacheck: ignore
+    ctld.tr("Infantry"), ctld.tr("Air Defense (AA)"), ctld.tr("Ground Vehicles"),
+    ctld.tr("Helicopters"), ctld.tr("Aircraft"), ctld.tr("Ships"), ctld.tr("FARP / FOB"),
+}
 CTLDReconManager._defaultLayers = {
     {
         layerId      = "infantry",
@@ -809,7 +815,7 @@ function CTLDReconManager:toggleLayer(player, playerUnit, layerId)
     local state   = layer.enabled and "ON" or "OFF"
 
     trigger.action.outTextForGroup(ctld.utils.getGroupId(playerUnit),
-        ctld.tr("Recon layer '%1': %2", layer.name, state), 10)
+        ctld.tr("Recon layer '%1': %2", ctld.tr(layer.name), state), 10)
 
     -- Immediate re-scan if scan is active (applies new layer state).
     -- scan() handles its own menu rebuild so we skip the extra call below.
@@ -1014,7 +1020,7 @@ function CTLDReconManager:_addReconCommands(menu, unitName)
     for _, layer in ipairs(layers) do
         local action = layer.enabled and ctld.tr("[deactivate]") or ctld.tr("[activate]")
         if not isActive then action = action .. " (X)" end
-        local label = string.format("%s %s", layer.name, action)
+        local label = string.format("%s %s", ctld.tr(layer.name), action)
         menu:addCommand({ root, reconSub }, label,
             function(arg)
                 local unit = Unit.getByName(arg.unitName)

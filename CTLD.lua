@@ -860,7 +860,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.9"
+ctld.i18n["en"].translation_version = "1.11"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -1150,6 +1150,14 @@ ctld.i18n["en"]["List Beacons"] = "List Beacons"
 
 --- F10 RECON menus
 ctld.i18n["en"]["RECON"] = "RECON"
+--- RECON layer names (used as i18n keys via ctld.tr(layer.name))
+-- STALE: ctld.i18n["en"]["Infantry"]         = "Infantry"
+-- STALE: ctld.i18n["en"]["Air Defense (AA)"] = "Air Defense (AA)"
+-- STALE: ctld.i18n["en"]["Ground Vehicles"]  = "Ground Vehicles"
+-- STALE: ctld.i18n["en"]["Helicopters"]      = "Helicopters"
+-- STALE: ctld.i18n["en"]["Aircraft"]         = "Aircraft"
+-- STALE: ctld.i18n["en"]["Ships"]            = "Ships"
+-- STALE: ctld.i18n["en"]["FARP / FOB"]       = "FARP / FOB"
 ctld.i18n["en"]["RECON [Start]"] = "RECON [Start]"
 ctld.i18n["en"]["RECON [Stop]"] = "RECON [Stop]"
 -- STALE: ctld.i18n["en"]["Scan Area"] = "Scan Area"
@@ -1384,6 +1392,12 @@ ctld.i18n["en"]["You must land inside the pickup zone to load troops."] = "You m
 ctld.i18n["en"]["You must land to extract troops."] = "You must land to extract troops."
 ctld.i18n["en"]["Zone not found."] = "Zone not found."
 
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
+ctld.i18n["en"]["%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4"] = "%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4"
+ctld.i18n["en"]["AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3"] = "AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3"
+ctld.i18n["en"]["Cannot deploy %1: AA system limit reached (%2/%3)"] = "Cannot deploy %1: AA system limit reached (%2/%3)"
+ctld.i18n["en"]["Cannot repair %1. No damaged %1 within %2m"] = "Cannot repair %1. No damaged %1 within %2m"
+
 -- End : CTLD_i18n_en.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_fr.lua
@@ -1398,7 +1412,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.9"
+ctld.i18n["fr"].translation_version = "1.11"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -1690,6 +1704,14 @@ ctld.i18n["fr"]["List Beacons"] = "Lister balises"
 -- STALE: ctld.i18n["fr"]["activate"] = "activer"
 -- STALE: ctld.i18n["fr"]["deactivate"] = "désactiver"
 ctld.i18n["fr"]["RECON"] = "RECONNAISSANCE"
+--- RECON layer names
+-- STALE: ctld.i18n["fr"]["Infantry"]         = "Infanterie"
+-- STALE: ctld.i18n["fr"]["Air Defense (AA)"] = "Défense aérienne (AA)"
+-- STALE: ctld.i18n["fr"]["Ground Vehicles"]  = "Véhicules terrestres"
+-- STALE: ctld.i18n["fr"]["Helicopters"]      = "Hélicoptères"
+-- STALE: ctld.i18n["fr"]["Aircraft"]         = "Aéronefs"
+-- STALE: ctld.i18n["fr"]["Ships"]            = "Navires"
+-- STALE: ctld.i18n["fr"]["FARP / FOB"]       = "FARP / FOB"
 ctld.i18n["fr"]["RECON [Start]"] = "RECON [Démarrer]"
 ctld.i18n["fr"]["RECON [Stop]"] = "RECON [Arrêter]"
 -- STALE: ctld.i18n["fr"]["Scan Area"] = "Scanner la zone"
@@ -1960,6 +1982,14 @@ ctld.i18n["fr"].__keep_en = {
 }
 ctld.i18n["fr"]["Zone not found."]                                       = "Zone introuvable."
 
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
+ctld.i18n["fr"]["%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4"] = "%1 a déployé avec succès un %2 complet sur le terrain.\n\nLimite système AA actif : %3\nActif : %4"
+ctld.i18n["fr"]["%1 successfully rearmed a full %2 in the field"]                                           = "%1 a réarmé avec succès un %2 complet sur le terrain"
+ctld.i18n["fr"]["%1 successfully repaired a full %2 in the field."]                                         = "%1 a réparé avec succès un %2 complet sur le terrain."
+ctld.i18n["fr"]["AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3"]                         = "L'IA a déployé un %1 complet.\n\nLimite système AA actif : %2\nActif : %3"
+ctld.i18n["fr"]["Cannot deploy %1: AA system limit reached (%2/%3)"]                                        = "Impossible de déployer %1 : limite du système AA atteinte (%2/%3)"
+ctld.i18n["fr"]["Cannot repair %1. No damaged %1 within %2m"]                                               = "Impossible de réparer %1. Aucun %1 endommagé à moins de %2 m"
+
 -- End : CTLD_i18n_fr.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_es.lua
@@ -1975,7 +2005,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.9"
+ctld.i18n["es"].translation_version = "1.11"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -2507,6 +2537,21 @@ ctld.i18n["es"].__keep_en = {
     ["CTLD"]         = true,
 }
 
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
+ctld.i18n["es"]["%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4"] = ""
+ctld.i18n["es"]["AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3"] = ""
+ctld.i18n["es"]["Cannot deploy %1: AA system limit reached (%2/%3)"] = ""
+ctld.i18n["es"]["Cannot repair %1. No damaged %1 within %2m"] = ""
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
+ctld.i18n["es"]["Air Defense (AA)"] = ""
+ctld.i18n["es"]["Aircraft"] = ""
+ctld.i18n["es"]["FARP / FOB"] = ""
+ctld.i18n["es"]["Ground Vehicles"] = ""
+ctld.i18n["es"]["Helicopters"] = ""
+ctld.i18n["es"]["Infantry"] = ""
+ctld.i18n["es"]["Ships"] = ""
+
 -- End : CTLD_i18n_es.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_ko.lua
@@ -2522,7 +2567,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.9"
+ctld.i18n["ko"].translation_version = "1.11"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -2920,6 +2965,23 @@ ctld.i18n["ko"].__keep_en = {
     ["MLRS"]          = true,
     ["SKP-11 - JTAC"] = true,
 }
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
+ctld.i18n["ko"]["%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4"] = ""
+ctld.i18n["ko"]["%1 successfully rearmed a full %2 in the field"] = ""
+ctld.i18n["ko"]["%1 successfully repaired a full %2 in the field."] = ""
+ctld.i18n["ko"]["AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3"] = ""
+ctld.i18n["ko"]["Cannot deploy %1: AA system limit reached (%2/%3)"] = ""
+ctld.i18n["ko"]["Cannot repair %1. No damaged %1 within %2m"] = ""
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
+ctld.i18n["ko"]["Air Defense (AA)"] = ""
+ctld.i18n["ko"]["Aircraft"] = ""
+ctld.i18n["ko"]["FARP / FOB"] = ""
+ctld.i18n["ko"]["Ground Vehicles"] = ""
+ctld.i18n["ko"]["Helicopters"] = ""
+ctld.i18n["ko"]["Infantry"] = ""
+ctld.i18n["ko"]["Ships"] = ""
 
 -- End : CTLD_i18n_ko.lua
 -- ====================================================================================================
@@ -17567,7 +17629,7 @@ function CTLDCrateAssemblyManager:spawnSystemAt(templateName, point, coa, countr
             active, allowed)
         trigger.action.outTextForCoalition(
             coa,
-            string.format("Cannot deploy %s: AA system limit reached (%d/%d)",
+            ctld.tr("Cannot deploy %1: AA system limit reached (%2/%3)",
                 templateName, active, allowed),
             10)
         return false
@@ -17632,7 +17694,7 @@ function CTLDCrateAssemblyManager:spawnSystemAt(templateName, point, coa, countr
 
     trigger.action.outTextForCoalition(
         coa,
-        string.format("AI deployed a full %s.\n\nAA Active System limit: %d\nActive: %d",
+        ctld.tr("AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3",
             template.name, allowed, active + 1),
         10)
 
@@ -17802,7 +17864,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
 
     trigger.action.outTextForCoalition(
         coalitionId,
-        string.format("%s successfully deployed a full %s in the field.\n\nAA Active System limit: %d\nActive: %d",
+        ctld.tr("%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4",
             heli:getName(), template.name, allowed, active + 1),
         10)
 
@@ -17874,7 +17936,7 @@ function CTLDCrateAssemblyManager:_rearm(heli, crate, allCrates, template)
 
     trigger.action.outTextForCoalition(
         heli:getCoalition(),
-        string.format("%s successfully rearmed a full %s in the field",
+        ctld.tr("%1 successfully rearmed a full %2 in the field",
             heli:getName(),
             template.name),
         20)
@@ -17896,8 +17958,8 @@ function CTLDCrateAssemblyManager:_repair(heli, crate, template)
     if not nearest or nearest.dist > _REARM_DIST then
         trigger.action.outTextForGroup(
             ctld.utils.getGroupId(heli),
-            string.format("Cannot repair %s. No damaged %s within %dm",
-                template.name, template.name, _REARM_DIST),
+            ctld.tr("Cannot repair %1. No damaged %1 within %2m",
+                template.name, _REARM_DIST),
             10)
         return
     end
@@ -17939,7 +18001,7 @@ function CTLDCrateAssemblyManager:_repair(heli, crate, template)
 
     trigger.action.outTextForCoalition(
         heli:getCoalition(),
-        string.format("%s successfully repaired a full %s in the field.",
+        ctld.tr("%1 successfully repaired a full %2 in the field.",
             heli:getName(),
             template.name),
         10)
@@ -19223,6 +19285,12 @@ end
 -- More specific attributes must come before broader ones to avoid misclassification:
 --   "Air Defence" ⊂ "Vehicles"  → air_defense before ground_vehicles
 --   "Helicopters" ⊂ "Planes"    → helicopters before aircraft
+-- i18n: layer name keys registered here so generate_i18n_dicts.ps1 can track them.
+-- ctld.tr(layer.name) is dynamic (variable key) and invisible to the dict scanner.
+local _recon_i18n_keys = {  -- luacheck: ignore
+    ctld.tr("Infantry"), ctld.tr("Air Defense (AA)"), ctld.tr("Ground Vehicles"),
+    ctld.tr("Helicopters"), ctld.tr("Aircraft"), ctld.tr("Ships"), ctld.tr("FARP / FOB"),
+}
 CTLDReconManager._defaultLayers = {
     {
         layerId      = "infantry",
@@ -19785,7 +19853,7 @@ function CTLDReconManager:toggleLayer(player, playerUnit, layerId)
     local state   = layer.enabled and "ON" or "OFF"
 
     trigger.action.outTextForGroup(ctld.utils.getGroupId(playerUnit),
-        ctld.tr("Recon layer '%1': %2", layer.name, state), 10)
+        ctld.tr("Recon layer '%1': %2", ctld.tr(layer.name), state), 10)
 
     -- Immediate re-scan if scan is active (applies new layer state).
     -- scan() handles its own menu rebuild so we skip the extra call below.
@@ -19990,7 +20058,7 @@ function CTLDReconManager:_addReconCommands(menu, unitName)
     for _, layer in ipairs(layers) do
         local action = layer.enabled and ctld.tr("[deactivate]") or ctld.tr("[activate]")
         if not isActive then action = action .. " (X)" end
-        local label = string.format("%s %s", layer.name, action)
+        local label = string.format("%s %s", ctld.tr(layer.name), action)
         menu:addCommand({ root, reconSub }, label,
             function(arg)
                 local unit = Unit.getByName(arg.unitName)

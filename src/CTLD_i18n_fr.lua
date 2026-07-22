@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.9"
+ctld.i18n["fr"].translation_version = "1.11"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -301,6 +301,14 @@ ctld.i18n["fr"]["List Beacons"] = "Lister balises"
 -- STALE: ctld.i18n["fr"]["activate"] = "activer"
 -- STALE: ctld.i18n["fr"]["deactivate"] = "désactiver"
 ctld.i18n["fr"]["RECON"] = "RECONNAISSANCE"
+--- RECON layer names
+-- STALE: ctld.i18n["fr"]["Infantry"]         = "Infanterie"
+-- STALE: ctld.i18n["fr"]["Air Defense (AA)"] = "Défense aérienne (AA)"
+-- STALE: ctld.i18n["fr"]["Ground Vehicles"]  = "Véhicules terrestres"
+-- STALE: ctld.i18n["fr"]["Helicopters"]      = "Hélicoptères"
+-- STALE: ctld.i18n["fr"]["Aircraft"]         = "Aéronefs"
+-- STALE: ctld.i18n["fr"]["Ships"]            = "Navires"
+-- STALE: ctld.i18n["fr"]["FARP / FOB"]       = "FARP / FOB"
 ctld.i18n["fr"]["RECON [Start]"] = "RECON [Démarrer]"
 ctld.i18n["fr"]["RECON [Stop]"] = "RECON [Arrêter]"
 -- STALE: ctld.i18n["fr"]["Scan Area"] = "Scanner la zone"
@@ -570,3 +578,11 @@ ctld.i18n["fr"].__keep_en = {
     ["T155 Firtina"]                   = true,
 }
 ctld.i18n["fr"]["Zone not found."]                                       = "Zone introuvable."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
+ctld.i18n["fr"]["%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4"] = "%1 a déployé avec succès un %2 complet sur le terrain.\n\nLimite système AA actif : %3\nActif : %4"
+ctld.i18n["fr"]["%1 successfully rearmed a full %2 in the field"]                                           = "%1 a réarmé avec succès un %2 complet sur le terrain"
+ctld.i18n["fr"]["%1 successfully repaired a full %2 in the field."]                                         = "%1 a réparé avec succès un %2 complet sur le terrain."
+ctld.i18n["fr"]["AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3"]                         = "L'IA a déployé un %1 complet.\n\nLimite système AA actif : %2\nActif : %3"
+ctld.i18n["fr"]["Cannot deploy %1: AA system limit reached (%2/%3)"]                                        = "Impossible de déployer %1 : limite du système AA atteinte (%2/%3)"
+ctld.i18n["fr"]["Cannot repair %1. No damaged %1 within %2m"]                                               = "Impossible de réparer %1. Aucun %1 endommagé à moins de %2 m"
