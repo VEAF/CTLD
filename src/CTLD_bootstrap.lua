@@ -42,6 +42,7 @@ function ctld.initialize()
     -- already in a slot (no retroactive S_EVENT_PLAYER_ENTER_UNIT).
     CTLDPlayerManager.getInstance():_scanExistingPlayers()
 
+    ctld.startupReport.flush()
     ctld.utils.log("INFO", "CTLD initialized.")
 end
 

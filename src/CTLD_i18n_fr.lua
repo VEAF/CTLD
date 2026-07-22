@@ -471,3 +471,5 @@ ctld.i18n["fr"]["  AIZ[%1] WARN '%2': all vehicleTypes entries are unknown in lo
 ctld.i18n["fr"]["  AIZ WARN: '%1' (P) overlaps '%2' (D) same coalition — risk of instant pickup+dropoff loop"]    = "  AIZ AVERT : '%1' (P) chevauche '%2' (D) même coalition — risque de boucle pickup+dropoff instantanée"
 ctld.i18n["fr"]["[CTLD] Zone validation — %1 error(s), %2 warning(s):"]                    = "[CTLD] Validation des zones — %1 erreur(s), %2 avertissement(s) :"
 ctld.i18n["fr"]["CTLDZoneManager: zone config valid"]                                       = "CTLDZoneManager : configuration des zones valide"
+ctld.i18n["fr"]["INIT-E: extractableGroup '%1' not found in mission — skipped"]            = "INIT-E : extractableGroup « %1 » introuvable dans la mission — ignoré"
+ctld.i18n["fr"]["[CTLD] Config errors detected — search CTLD_STARTUP_REPORT in DCS.log"]  = "[CTLD] Erreurs de configuration détectées — rechercher CTLD_STARTUP_REPORT dans DCS.log"

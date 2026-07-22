@@ -701,3 +701,47 @@ describe("CTLDZoneManager dynamic zone methods", function()
     end)
 
 end)
+
+-- ─────────────────────────────────────────────────────────────
+describe("CTLDZoneManager _validateZoneNames startup report (STARTUP-REPORT-UNIFIED)", function()
+
+    local savedMission
+
+    before_each(function()
+        ctld.startupReport._entries = {}
+        CTLDZoneManager._instance = nil
+        savedMission = env.mission
+        -- Inject a mission stub with a malformed TRZ zone name
+        env.mission = {
+            triggers = {
+                zones = {
+                    { name = "TRZ_" },  -- invalid: missing fields → parse error
+                }
+            }
+        }
+    end)
+
+    after_each(function()
+        ctld.startupReport._entries = {}
+        CTLDZoneManager._instance = nil
+        env.mission = savedMission
+    end)
+
+    it("malformed TRZ zone adds ERROR to startupReport, no direct outText", function()
+        local outTextCalled = false
+        local origOT = trigger.action.outText
+        trigger.action.outText = function() outTextCalled = true end
+
+        CTLDZoneManager.getInstance()
+
+        trigger.action.outText = origOT
+
+        local found = false
+        for _, e in ipairs(ctld.startupReport._entries) do
+            if e.severity == "ERROR" and e.source == "ZoneManager" then found = true end
+        end
+        assert.is_true(found)
+        assert.is_false(outTextCalled)
+    end)
+
+end)

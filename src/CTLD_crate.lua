@@ -510,12 +510,9 @@ function CTLDCrateManager:_processSpawnableCrates()
         end
     end
 
-    -- Display MM startup warnings if any validation errors found
-    if #warnings > 0 then
-        local msg = "CTLD — spawnableCrates config errors:\n" .. table.concat(warnings, "\n")
-        timer.scheduleFunction(function()
-            trigger.action.outText(msg, 30)
-        end, {}, timer.getTime() + 5)
+    -- Feed startup report with any validation errors found
+    for _, msg in ipairs(warnings) do
+        ctld.startupReport.add("ERROR", "CrateManager", msg)
     end
 end
 

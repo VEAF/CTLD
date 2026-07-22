@@ -8,6 +8,24 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — unified startup report (STARTUP-REPORT-UNIFIED)
+
+- **`ctld.startupReport`** collector in `CTLD_utils`: `add(severity, source, message)` feeds
+  init/config diagnostics from any manager; `flush()` called once at end of `ctld.initialize()`
+  consolidates everything.
+- **`DCS.log` banner**: `=== CTLD_STARTUP_REPORT ===` always written at startup — searchable,
+  even on a clean config (`[OK] No issues detected.`).
+- **Single `outText`** on screen when issues exist: NOTICE entries shown in full (player-facing
+  too); ERROR entries produce a single alarm banner directing the MM to search
+  `CTLD_STARTUP_REPORT` in `DCS.log`. Clean config = total silence.
+- **Migration**: `CTLDCrateManager` (invalid mixedSet), `CTLDZoneManager` (zone validation),
+  `ctld.addCrate` (duplicate weight), `ctld.runUserSetup` (callback failures),
+  `CTLDCoreManager` INIT-E (missing extractableGroup) all routed through the collector.
+  The 5-second `timer.scheduleFunction` delay on crate errors is eliminated.
+- **ADR 0010**: two-family separation — Family 1 (init/config) via `ctld.startupReport`,
+  Family 2 (runtime/dev) via `ctld.utils.log`. No bare `outText` in `src/` init code.
+- **i18n**: alarm banner and INIT-E notice translated EN + FR (ES/KO stubs).
+
 ### Fixed — interface language is now a real setting (CTLD-TOOLS-TUI-POLISH)
 
 - `i18n_lang` (the CTLD interface language, en/fr/es/ko) can now be set from the
