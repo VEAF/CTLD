@@ -64,12 +64,4 @@ passer par la config `logisticUnits`. La zone logistique suit le véhicule en mo
 
 ---
 
-## STARTUP-REPORT-UNIFIED — Rapport de démarrage unifié
-
-Contexte : les warnings/erreurs de config CTLD au démarrage sont produits par plusieurs domaines
-indépendants (zones, crates, userSetup…), chacun avec son propre `trigger.action.outText`. Un MM
-voit plusieurs popups successifs sans vue d'ensemble.
-
-Solution : un rapport agrégé unique en fin d'init, produit par un collecteur centralisé alimenté
-par chaque manager pendant sa phase d'init. Un seul `outText` résumant erreurs + warnings.
-**Priorité haute — à traiter immédiatement après `FEAT-USERCONFIG-API`.**
+<!-- STARTUP-REPORT-UNIFIED — formalisé en lot `.backlog/STARTUP-REPORT-UNIFIED/` (grill-with-docs, 2026-07-21). -->
