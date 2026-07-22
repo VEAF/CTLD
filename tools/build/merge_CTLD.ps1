@@ -34,6 +34,20 @@ catch {
 }
 Pop-Location
 
+# Synchronise the i18n dictionary files with ctld.tr() keys found in src/.
+# Runs in -Apply mode: appends missing keys as empty stubs, prefixes stale keys.
+# The build continues even when stubs are added — fill translations in a follow-up commit.
+$dictScript = Join-Path $scriptDir "generate_i18n_dicts.ps1"
+Write-Host "Syncing i18n dictionaries (generate_i18n_dicts.ps1 -Apply)..."
+try {
+    & $dictScript -Apply
+    if ($LASTEXITCODE -ne 0) { throw "generate_i18n_dicts returned $LASTEXITCODE" }
+}
+catch {
+    Write-Host "[ERROR] i18n dict sync failed: $_"
+    exit 1
+}
+
 # UTF-8 without BOM encoder (works on PS 5 and PS 7)
 $utf8NoBOM = [System.Text.UTF8Encoding]::new($false)
 

@@ -27,7 +27,9 @@
 - **luacheck** `--config .luacheckrc src/` must be clean (rely on CI if not installed locally).
 - **Build**: `powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1` → `CTLD.lua`
   in UTF-8 without BOM. `CTLD.lua` is **generated — never hand-edit**; rebuild after any
-  `src/` change.
+  `src/` change. The build also auto-syncs i18n dicts (`generate_i18n_dicts.ps1 -Apply`).
+- **Git hooks**: after clone, run `git config core.hooksPath .githooks` to activate the
+  `pre-push` hook (blocks push when i18n keys are missing from the dictionaries).
 - **TDD**: write a failing busted test first, make it pass, refactor. New/changed logic ships with
   tests. Coverage gate is a ratchet — it only ever goes up.
 
