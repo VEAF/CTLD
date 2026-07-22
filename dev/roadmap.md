@@ -66,15 +66,4 @@ passer par la config `logisticUnits`. La zone logistique suit le véhicule en mo
 
 <!-- STARTUP-REPORT-UNIFIED — formalisé en lot `.backlog/STARTUP-REPORT-UNIFIED/` (grill-with-docs, 2026-07-21). -->
 
-## FIX-I18N-DICT-SYNC — Bug dans generate_i18n_dicts.ps1 : mauvais chemin repoRoot
-
-Contexte : `tools/build/generate_i18n_dicts.ps1` calcule `$repoRoot` avec un seul `Split-Path -Parent`
-depuis `$scriptDir` (= `tools/build/`), ce qui donne `tools/` au lieu de la racine du repo. Il cherche
-donc les fichiers dans `tools/src/` — introuvables — et conclut « 0 clés, OK » sans rien mettre à jour.
-Résultat : les dictionnaires FR/ES/KO ne sont jamais synchronisés avec les nouvelles clés `ctld.tr()`
-ajoutées dans `src/`. Comparer avec `merge_CTLD.ps1` qui utilise `Join-Path $scriptDir "..\.."`
-(deux niveaux).
-
-Fix : corriger le calcul de `$repoRoot` dans `generate_i18n_dicts.ps1` (une ligne), vérifier
-en dry-run puis appliquer, compléter les traductions FR manquantes pour les labels de menu
-(`"Troop Commands"`, `"Request Equipment"`, etc.) et intégrer l'appel au build (`merge_CTLD.ps1`).
+<!-- FIX-I18N-DICT-SYNC — formalisé en lot `.backlog/FIX-I18N-DICT-SYNC/` (grill-with-docs, 2026-07-22). Livré PR #57. -->
