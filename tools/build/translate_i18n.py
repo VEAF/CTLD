@@ -25,7 +25,9 @@ LANG_NAMES = {"fr": "French", "es": "Spanish", "ko": "Korean"}
 # ---------------------------------------------------------------------------
 # Parse a CTLD_i18n_XX.lua dict file into {key: value} (excludes translation_version)
 # ---------------------------------------------------------------------------
-_ENTRY_RE = re.compile(r'ctld\.i18n\["[^"]+"\]\["([^"]+)"\]\s*=\s*"((?:[^"\\]|\\.)*)"\s*')
+_ENTRY_RE   = re.compile(r'ctld\.i18n\["[^"]+"\]\["([^"]+)"\]\s*=\s*"((?:[^"\\]|\\.)*)"\s*')
+# Matches keys inside a __keep_en = { ["key"] = true, ... } block
+_KEEP_EN_RE = re.compile(r'\["([^"]+)"\]\s*=\s*true')
 
 def _parse_dict(path: Path) -> dict[str, str]:
     text = path.read_text(encoding="utf-8")
@@ -110,9 +112,25 @@ def main() -> int:
             print(f"[translate-i18n] WARNING: {lang_path.name} not found — skipping {lang}.", flush=True)
             continue
 
+        lang_text = lang_path.read_text(encoding="utf-8")
         lang_dict = _parse_dict(lang_path)
-        # A stub = key present in lang dict but value equals the EN value
-        stubs = {k: v for k, v in en_dict.items() if lang_dict.get(k) == v}
+
+        # Keys marked intentionally EN in __keep_en block — exclude from stub detection
+        keep_en: set[str] = set()
+        in_block = False
+        for line in lang_text.splitlines():
+            if "__keep_en" in line and "=" in line and "{" in line:
+                in_block = True
+            if in_block:
+                m = _KEEP_EN_RE.search(line)
+                if m:
+                    keep_en.add(m.group(1))
+                if "}" in line and "__keep_en" not in line:
+                    in_block = False
+
+        # A stub = key present in lang dict with value == EN value, not in __keep_en
+        stubs = {k: v for k, v in en_dict.items()
+                 if lang_dict.get(k) == v and k not in keep_en}
 
         if not stubs:
             print(f"[translate-i18n] {lang}: no stubs — skipped.", flush=True)

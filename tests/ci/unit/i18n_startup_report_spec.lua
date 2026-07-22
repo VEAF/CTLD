@@ -60,8 +60,9 @@ describe("i18n audit → startupReport wiring", function()
 
     -- ── Non-EN with untranslated stubs → INFO entry ───────────
     it("active lang 'fr' with untranslated stubs → one INFO entry", function()
-        -- Inject a synthetic stub: same value as EN (the stub pattern)
-        local enKey  = "CTLD"   -- always exists in EN
+        -- Inject a synthetic stub: same value as EN (the stub pattern).
+        -- Use a key that exists in EN, is translated in FR, and is NOT in __keep_en.
+        local enKey  = "Standard Group"
         local enVal  = ctld.i18n["en"][enKey]
         local origFr = ctld.i18n["fr"][enKey]
         ctld.i18n["fr"][enKey] = enVal  -- simulate an untranslated stub
