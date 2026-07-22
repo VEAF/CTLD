@@ -25175,6 +25175,20 @@ function ctld.initialize()
     -- already in a slot (no retroactive S_EVENT_PLAYER_ENTER_UNIT).
     CTLDPlayerManager.getInstance():_scanExistingPlayers()
 
+    -- i18n completeness audit: report untranslated stubs for the active language (log-only)
+    local _ok, _fromSetting = pcall(function() return ctld.gs and ctld.gs("i18n_lang") end)
+    local _i18nLang = (_ok and _fromSetting) or ctld.i18n_lang or "en"
+    if _i18nLang ~= "en" then
+        local _i18nResult = ctld.i18n_audit(_i18nLang)
+        if _i18nResult then
+            local _n = #_i18nResult.untranslated
+            if _n > 0 then
+                ctld.startupReport.add("INFO", "i18n",
+                    string.format("%d untranslated key(s) in '%s' — rebuild to translate", _n, _i18nLang))
+            end
+        end
+    end
+
     ctld.startupReport.flush()
     ctld.utils.log("INFO", "CTLD initialized.")
 end

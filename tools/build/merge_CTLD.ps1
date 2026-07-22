@@ -48,6 +48,26 @@ catch {
     exit 1
 }
 
+# Auto-translate empty i18n stubs via Claude API (local only, requires ANTHROPIC_API_KEY).
+# Non-blocking: any error prints a WARNING and the build continues.
+if ($env:ANTHROPIC_API_KEY) {
+    $translateScript = Join-Path $scriptDir "translate_i18n.py"
+    $pythonCmd = if (Get-Command python -ErrorAction SilentlyContinue) { "python" } `
+                 elseif (Get-Command python3 -ErrorAction SilentlyContinue) { "python3" } `
+                 else { $null }
+    if (-not $pythonCmd) {
+        Write-Host "[WARNING] ANTHROPIC_API_KEY is set but Python not found -- skipping i18n auto-translate."
+    } elseif (-not (Test-Path $translateScript)) {
+        Write-Host "[WARNING] translate_i18n.py not found at $translateScript -- skipping i18n auto-translate."
+    } else {
+        Write-Host "Translating i18n stubs (translate_i18n.py)..."
+        & $pythonCmd $translateScript
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "[WARNING] translate_i18n.py exited with code $LASTEXITCODE -- stubs remain empty."
+        }
+    }
+}
+
 # UTF-8 without BOM encoder (works on PS 5 and PS 7)
 $utf8NoBOM = [System.Text.UTF8Encoding]::new($false)
 
