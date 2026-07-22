@@ -8,6 +8,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — i18n dictionary sync (FIX-I18N-DICT-SYNC)
+
+- **`generate_i18n_dicts.ps1`**: fixed `$repoRoot` path (was one level too shallow — `tools/`
+  instead of repo root — causing the script to scan `tools/src/` and silently report "0 keys").
+  Now matches the `merge_CTLD.ps1` pattern: `Resolve-Path (Join-Path $scriptDir "..\..")`.
+- **72 missing keys synced** to all four dictionaries (EN/FR/ES/KO). EN values filled from the
+  key itself; ES/KO remain empty stubs per policy.
+- **62 FR translations** filled in for all newly-synced keys, including all primary menu labels
+  (`Troop Commands` → `Commandes de troupes`, `Crate Commands` → `Commandes de caisses`,
+  `Vehicle Commands` → `Commandes de véhicules`, `Request Equipment` → `Demander de l'équipement`,
+  `Smoke` → `Fumée`, etc.) and all pilot-facing messages. Dictionary versions bumped 1.8 → 1.9.
+
 ### Added — unified startup report (STARTUP-REPORT-UNIFIED)
 
 - **`ctld.startupReport`** collector in `CTLD_utils`: `add(severity, source, message)` feeds

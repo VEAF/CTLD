@@ -33,7 +33,7 @@ param(
 )
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot  = Split-Path -Parent $scriptDir
+$repoRoot  = Resolve-Path (Join-Path $scriptDir "..\..")
 
 if ($SourceDir -eq "") { $SourceDir = Join-Path $repoRoot "src" }
 if ($DictDir   -eq "") { $DictDir   = $SourceDir }
