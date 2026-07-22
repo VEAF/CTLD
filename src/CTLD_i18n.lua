@@ -133,12 +133,13 @@ function ctld.i18n_audit(language)
         missing       = {},
         untranslated  = {},
     }
+    local keepEn = tocheck.__keep_en or {}
     for key, enVal in pairs(english) do
         if key ~= "translation_version" then
             local langVal = tocheck[key]
             if langVal == nil then
                 result.missing[#result.missing + 1] = key
-            elseif langVal == enVal then
+            elseif langVal == enVal and not keepEn[key] then
                 result.untranslated[#result.untranslated + 1] = key
             end
         end

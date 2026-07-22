@@ -398,3 +398,13 @@ ctld.i18n["ko"]["Vehicle Commands"] = ""
 ctld.i18n["ko"]["You must land inside the pickup zone to load troops."] = ""
 ctld.i18n["ko"]["You must land to extract troops."] = ""
 ctld.i18n["ko"]["Zone not found."] = ""
+
+-- Keys intentionally kept in English: DCS equipment designations, military acronyms, proper nouns.
+ctld.i18n["ko"].__keep_en = {
+    ["BRDM-2"]        = true,
+    ["BTR-D"]         = true,
+    ["CTLD"]          = true,
+    ["LPWS C-RAM"]    = true,
+    ["MLRS"]          = true,
+    ["SKP-11 - JTAC"] = true,
+}

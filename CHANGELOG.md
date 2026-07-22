@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — i18n auto-translate + startup-report wiring (BUILD-DICT-AI-TRANSLATE)
+
+- **`translate_i18n.py`** (`tools/build/`): fills empty i18n stubs via the Claude Haiku API
+  (one batch call per language: FR, ES, KO). Runs automatically during `merge_CTLD.ps1` when
+  `ANTHROPIC_API_KEY` is set locally; skipped silently in CI. Non-blocking: any API or Python
+  error prints a WARNING and the build continues. Requires `pip install anthropic` once.
+- **`ctld.initialize()`**: audits the active language dictionary after boot; adds an `INFO`
+  entry to `ctld.startupReport` when untranslated stubs remain, so mission makers can see
+  the count in `DCS.log`. No screen output (INFO severity).
+
 ### Added — i18n dict auto-sync in build + pre-push hook (BUILD-DICT-AUTOSYNC)
 
 - **`merge_CTLD.ps1`**: calls `generate_i18n_dicts.ps1 -Apply` automatically after gen-config,

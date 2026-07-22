@@ -535,3 +535,9 @@ ctld.i18n["es"]["Vehicle Commands"] = ""
 ctld.i18n["es"]["You must land inside the pickup zone to load troops."] = ""
 ctld.i18n["es"]["You must land to extract troops."] = ""
 ctld.i18n["es"]["Zone not found."] = ""
+
+-- Keys intentionally kept in English: DCS equipment designations, military acronyms, proper nouns.
+ctld.i18n["es"].__keep_en = {
+    ["%1\nFOB @ %2"] = true,
+    ["CTLD"]         = true,
+}

@@ -748,12 +748,13 @@ function ctld.i18n_audit(language)
         missing       = {},
         untranslated  = {},
     }
+    local keepEn = tocheck.__keep_en or {}
     for key, enVal in pairs(english) do
         if key ~= "translation_version" then
             local langVal = tocheck[key]
             if langVal == nil then
                 result.missing[#result.missing + 1] = key
-            elseif langVal == enVal then
+            elseif langVal == enVal and not keepEn[key] then
                 result.untranslated[#result.untranslated + 1] = key
             end
         end
@@ -1402,17 +1403,17 @@ ctld.i18n["fr"].translation_version = "1.9"
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
 ctld.i18n["fr"]["Anti Air"] = "Défense aérienne"
-ctld.i18n["fr"]["Anti Tank"] = "Anti Tank"
+ctld.i18n["fr"]["Anti Tank"] = "Anti-char"
 ctld.i18n["fr"]["Mortar Squad"] = "Groupe mortier"
 ctld.i18n["fr"]["JTAC Group"] = "Groupe JTAC"
 ctld.i18n["fr"]["Single JTAC"] = "JTAC seul"
 ctld.i18n["fr"]["2x - Standard Groups"] = "2x - Groupes standards"
 ctld.i18n["fr"]["2x - Anti Air"] = "2x - Défenses aériennes"
-ctld.i18n["fr"]["2x - Anti Tank"] = "2x - Anti Tank"
+ctld.i18n["fr"]["2x - Anti Tank"] = "2x - Anti-char"
 ctld.i18n["fr"]["2x - Standard Groups + 2x Mortar"] = "2x - Groupes standards + 2x Groupes mortiers"
 ctld.i18n["fr"]["3x - Standard Groups"] = "3x - Groupes standards"
 ctld.i18n["fr"]["3x - Anti Air"] = "3x - Défenses aériennes"
-ctld.i18n["fr"]["3x - Anti Tank"] = "3x - Anti Tank"
+ctld.i18n["fr"]["3x - Anti Tank"] = "3x - Anti-char"
 ctld.i18n["fr"]["3x - Mortar Squad"] = "3x - Groupes mortiers"
 ctld.i18n["fr"]["5x - Mortar Squad"] = "5x - Groupes mortiers"
 -- STALE: ctld.i18n["fr"]["Mortar Squad Red"] = "Groupe mortier rouge"
@@ -1921,6 +1922,42 @@ ctld.i18n["fr"]["Troops returned to base."]                              = "Trou
 ctld.i18n["fr"]["Vehicle Commands"]                                      = "Commandes de véhicules"
 ctld.i18n["fr"]["You must land inside the pickup zone to load troops."]  = "Vous devez atterrir dans la zone de ramassage pour charger des troupes."
 ctld.i18n["fr"]["You must land to extract troops."]                      = "Vous devez atterrir pour extraire des troupes."
+
+-- Keys intentionally kept in English: DCS equipment designations, military acronyms, proper nouns.
+-- Excluded from i18n_audit() untranslated count and from auto-translate.
+ctld.i18n["fr"].__keep_en = {
+    ["%1 [%2] %3."]                    = true,
+    ["%1\nFOB @ %2"]                   = true,
+    ["2K22 Tunguska"]                  = true,
+    ["9K33 Osa"]                       = true,
+    ["9K331 Tor"]                      = true,
+    ["9K35M Strela-10"]                = true,
+    ["9P31 Strela-1"]                  = true,
+    ["Actions"]                        = true,
+    ["BRDM-2"]                         = true,
+    ["BTR-D"]                          = true,
+    ["CTLD"]                           = true,
+    ["Gepard AAA"]                     = true,
+    ["Hummer - JTAC"]                  = true,
+    ["Humvee - MG"]                    = true,
+    ["Humvee - TOW"]                   = true,
+    ["JTAC"]                           = true,
+    ["LPWS C-RAM"]                     = true,
+    ["M1097 Avenger"]                  = true,
+    ["M48 Chaparral"]                  = true,
+    ["MLRS"]                           = true,
+    ["RQ-1A Predator - JTAC"]          = true,
+    ["Roland ADS"]                     = true,
+    ["S-300 Grumble Big Bird SR"]      = true,
+    ["S-300 Grumble C2"]               = true,
+    ["S-300 Grumble Clam Shell SR"]    = true,
+    ["S-300 Grumble Flap Lid-A TR"]    = true,
+    ["S-300 Grumble TEL C"]            = true,
+    ["SKP-11 - JTAC"]                  = true,
+    ["SPH 2S19 Msta"]                  = true,
+    ["SpGH DANA"]                      = true,
+    ["T155 Firtina"]                   = true,
+}
 ctld.i18n["fr"]["Zone not found."]                                       = "Zone introuvable."
 
 -- End : CTLD_i18n_fr.lua
@@ -2464,6 +2501,12 @@ ctld.i18n["es"]["You must land inside the pickup zone to load troops."] = ""
 ctld.i18n["es"]["You must land to extract troops."] = ""
 ctld.i18n["es"]["Zone not found."] = ""
 
+-- Keys intentionally kept in English: DCS equipment designations, military acronyms, proper nouns.
+ctld.i18n["es"].__keep_en = {
+    ["%1\nFOB @ %2"] = true,
+    ["CTLD"]         = true,
+}
+
 -- End : CTLD_i18n_es.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_ko.lua
@@ -2867,6 +2910,16 @@ ctld.i18n["ko"]["Vehicle Commands"] = ""
 ctld.i18n["ko"]["You must land inside the pickup zone to load troops."] = ""
 ctld.i18n["ko"]["You must land to extract troops."] = ""
 ctld.i18n["ko"]["Zone not found."] = ""
+
+-- Keys intentionally kept in English: DCS equipment designations, military acronyms, proper nouns.
+ctld.i18n["ko"].__keep_en = {
+    ["BRDM-2"]        = true,
+    ["BTR-D"]         = true,
+    ["CTLD"]          = true,
+    ["LPWS C-RAM"]    = true,
+    ["MLRS"]          = true,
+    ["SKP-11 - JTAC"] = true,
+}
 
 -- End : CTLD_i18n_ko.lua
 -- ====================================================================================================
@@ -25174,6 +25227,20 @@ function ctld.initialize()
     -- Now that all sections are registered, build menus for any player
     -- already in a slot (no retroactive S_EVENT_PLAYER_ENTER_UNIT).
     CTLDPlayerManager.getInstance():_scanExistingPlayers()
+
+    -- i18n completeness audit: report untranslated stubs for the active language (log-only)
+    local _ok, _fromSetting = pcall(function() return ctld.gs and ctld.gs("i18n_lang") end)
+    local _i18nLang = (_ok and _fromSetting) or ctld.i18n_lang or "en"
+    if _i18nLang ~= "en" then
+        local _i18nResult = ctld.i18n_audit(_i18nLang)
+        if _i18nResult then
+            local _n = #_i18nResult.untranslated
+            if _n > 0 then
+                ctld.startupReport.add("INFO", "i18n",
+                    string.format("%d untranslated key(s) in '%s' — rebuild to translate", _n, _i18nLang))
+            end
+        end
+    end
 
     ctld.startupReport.flush()
     ctld.utils.log("INFO", "CTLD initialized.")
