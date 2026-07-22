@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — hardcoded i18n strings in RECON menus and AA system (FIX-I18N-HARDCODED)
+
+- **`CTLD_recon.lua`**: RECON submenu layer names (Infantry, Air Defense (AA), Ground Vehicles,
+  Helicopters, Aircraft, Ships, FARP / FOB) now pass through `ctld.tr()` — previously always
+  displayed in English regardless of the active language.
+- **`CTLD_aasystem.lua`**: 6 player-facing `outText` messages replaced with `ctld.tr()` calls
+  (deploy limit, AI/player deploy confirmation, rearm, repair limit, repair confirmation).
+- **`CTLD_i18n_en.lua`**: 7 RECON layer name keys added to the EN dictionary.
+- **`CTLD_i18n_fr.lua`**: FR translations for all 7 layer names and all 6 AA system messages.
+
 ### Added — i18n auto-translate + startup-report wiring (BUILD-DICT-AI-TRANSLATE)
 
 - **`translate_i18n.py`** (`tools/build/`): fills empty i18n stubs via the Claude Haiku API

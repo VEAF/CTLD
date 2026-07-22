@@ -15,7 +15,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.9"
+ctld.i18n["en"].translation_version = "1.11"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -305,6 +305,14 @@ ctld.i18n["en"]["List Beacons"] = "List Beacons"
 
 --- F10 RECON menus
 ctld.i18n["en"]["RECON"] = "RECON"
+--- RECON layer names (used as i18n keys via ctld.tr(layer.name))
+-- STALE: ctld.i18n["en"]["Infantry"]         = "Infantry"
+-- STALE: ctld.i18n["en"]["Air Defense (AA)"] = "Air Defense (AA)"
+-- STALE: ctld.i18n["en"]["Ground Vehicles"]  = "Ground Vehicles"
+-- STALE: ctld.i18n["en"]["Helicopters"]      = "Helicopters"
+-- STALE: ctld.i18n["en"]["Aircraft"]         = "Aircraft"
+-- STALE: ctld.i18n["en"]["Ships"]            = "Ships"
+-- STALE: ctld.i18n["en"]["FARP / FOB"]       = "FARP / FOB"
 ctld.i18n["en"]["RECON [Start]"] = "RECON [Start]"
 ctld.i18n["en"]["RECON [Stop]"] = "RECON [Stop]"
 -- STALE: ctld.i18n["en"]["Scan Area"] = "Scan Area"
@@ -538,3 +546,9 @@ ctld.i18n["en"]["Vehicle Commands"] = "Vehicle Commands"
 ctld.i18n["en"]["You must land inside the pickup zone to load troops."] = "You must land inside the pickup zone to load troops."
 ctld.i18n["en"]["You must land to extract troops."] = "You must land to extract troops."
 ctld.i18n["en"]["Zone not found."] = "Zone not found."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
+ctld.i18n["en"]["%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4"] = "%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4"
+ctld.i18n["en"]["AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3"] = "AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3"
+ctld.i18n["en"]["Cannot deploy %1: AA system limit reached (%2/%3)"] = "Cannot deploy %1: AA system limit reached (%2/%3)"
+ctld.i18n["en"]["Cannot repair %1. No damaged %1 within %2m"] = "Cannot repair %1. No damaged %1 within %2m"

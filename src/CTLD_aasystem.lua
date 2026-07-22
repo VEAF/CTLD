@@ -259,7 +259,7 @@ function CTLDCrateAssemblyManager:spawnSystemAt(templateName, point, coa, countr
             active, allowed)
         trigger.action.outTextForCoalition(
             coa,
-            string.format("Cannot deploy %s: AA system limit reached (%d/%d)",
+            ctld.tr("Cannot deploy %1: AA system limit reached (%2/%3)",
                 templateName, active, allowed),
             10)
         return false
@@ -324,7 +324,7 @@ function CTLDCrateAssemblyManager:spawnSystemAt(templateName, point, coa, countr
 
     trigger.action.outTextForCoalition(
         coa,
-        string.format("AI deployed a full %s.\n\nAA Active System limit: %d\nActive: %d",
+        ctld.tr("AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3",
             template.name, allowed, active + 1),
         10)
 
@@ -494,7 +494,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
 
     trigger.action.outTextForCoalition(
         coalitionId,
-        string.format("%s successfully deployed a full %s in the field.\n\nAA Active System limit: %d\nActive: %d",
+        ctld.tr("%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4",
             heli:getName(), template.name, allowed, active + 1),
         10)
 
@@ -566,7 +566,7 @@ function CTLDCrateAssemblyManager:_rearm(heli, crate, allCrates, template)
 
     trigger.action.outTextForCoalition(
         heli:getCoalition(),
-        string.format("%s successfully rearmed a full %s in the field",
+        ctld.tr("%1 successfully rearmed a full %2 in the field",
             heli:getName(),
             template.name),
         20)
@@ -588,8 +588,8 @@ function CTLDCrateAssemblyManager:_repair(heli, crate, template)
     if not nearest or nearest.dist > _REARM_DIST then
         trigger.action.outTextForGroup(
             ctld.utils.getGroupId(heli),
-            string.format("Cannot repair %s. No damaged %s within %dm",
-                template.name, template.name, _REARM_DIST),
+            ctld.tr("Cannot repair %1. No damaged %1 within %2m",
+                template.name, _REARM_DIST),
             10)
         return
     end
@@ -631,7 +631,7 @@ function CTLDCrateAssemblyManager:_repair(heli, crate, template)
 
     trigger.action.outTextForCoalition(
         heli:getCoalition(),
-        string.format("%s successfully repaired a full %s in the field.",
+        ctld.tr("%1 successfully repaired a full %2 in the field.",
             heli:getName(),
             template.name),
         10)

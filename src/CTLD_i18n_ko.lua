@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.9"
+ctld.i18n["ko"].translation_version = "1.11"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -408,3 +408,20 @@ ctld.i18n["ko"].__keep_en = {
     ["MLRS"]          = true,
     ["SKP-11 - JTAC"] = true,
 }
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
+ctld.i18n["ko"]["%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4"] = ""
+ctld.i18n["ko"]["%1 successfully rearmed a full %2 in the field"] = ""
+ctld.i18n["ko"]["%1 successfully repaired a full %2 in the field."] = ""
+ctld.i18n["ko"]["AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3"] = ""
+ctld.i18n["ko"]["Cannot deploy %1: AA system limit reached (%2/%3)"] = ""
+ctld.i18n["ko"]["Cannot repair %1. No damaged %1 within %2m"] = ""
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
+ctld.i18n["ko"]["Air Defense (AA)"] = ""
+ctld.i18n["ko"]["Aircraft"] = ""
+ctld.i18n["ko"]["FARP / FOB"] = ""
+ctld.i18n["ko"]["Ground Vehicles"] = ""
+ctld.i18n["ko"]["Helicopters"] = ""
+ctld.i18n["ko"]["Infantry"] = ""
+ctld.i18n["ko"]["Ships"] = ""

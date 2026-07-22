@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.9"
+ctld.i18n["es"].translation_version = "1.11"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -541,3 +541,18 @@ ctld.i18n["es"].__keep_en = {
     ["%1\nFOB @ %2"] = true,
     ["CTLD"]         = true,
 }
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
+ctld.i18n["es"]["%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4"] = ""
+ctld.i18n["es"]["AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3"] = ""
+ctld.i18n["es"]["Cannot deploy %1: AA system limit reached (%2/%3)"] = ""
+ctld.i18n["es"]["Cannot repair %1. No damaged %1 within %2m"] = ""
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
+ctld.i18n["es"]["Air Defense (AA)"] = ""
+ctld.i18n["es"]["Aircraft"] = ""
+ctld.i18n["es"]["FARP / FOB"] = ""
+ctld.i18n["es"]["Ground Vehicles"] = ""
+ctld.i18n["es"]["Helicopters"] = ""
+ctld.i18n["es"]["Infantry"] = ""
+ctld.i18n["es"]["Ships"] = ""
