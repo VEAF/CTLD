@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — startup report INFO level (STARTUP-REPORT-INFO-LEVEL)
+
+- **`ctld.startupReport`** : ajout du niveau `INFO` — log-only, aucun `outText` écran.
+  `[OK]` n'est écrit que si le collecteur est totalement vide (toutes sévérités confondues).
+- **INIT-E** (`CTLDCoreManager._initExtractableGroups`) : sévérité `NOTICE` → `INFO`.
+  Les 25 noms fictifs `extract1`–`extract25` de la config par défaut ne génèrent plus
+  aucun message à l'écran ; les entrées restent visibles dans `DCS.log` sous
+  `CTLD_STARTUP_REPORT` pour un MM qui consulte le log.
+- **ADR 0010** amendé : table des sévérités étendue à trois niveaux (ERROR / NOTICE / INFO).
+
 ### Fixed — i18n dictionary sync (FIX-I18N-DICT-SYNC)
 
 - **`generate_i18n_dicts.ps1`**: fixed `$repoRoot` path (was one level too shallow — `tools/`
