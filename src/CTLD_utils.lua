@@ -2278,9 +2278,14 @@ ctld.startupReport = {
 }
 
 --- Record a config/init diagnostic entry.
----@param severity string "ERROR" or "NOTICE"
+---@param severity string "ERROR", "NOTICE", or "INFO"
 ---@param source   string Human-readable manager name (e.g. "CrateManager")
 ---@param message  string Already-translated string (caller uses ctld.tr() at call site)
+--
+-- Severity semantics:
+--   ERROR  — config incoherence; entry skipped or feature degraded. Triggers alarm outText.
+--   NOTICE — non-blocking reminder (mod requirement, player-facing hint). Shown in full on screen.
+--   INFO   — diagnostic info; written to DCS.log only, no screen output.
 function ctld.startupReport.add(severity, source, message)
     local entries = ctld.startupReport._entries
     entries[#entries + 1] = { severity = severity, source = source, message = message }
@@ -2288,6 +2293,7 @@ end
 
 --- Flush all collected entries to DCS.log and (when issues exist) to screen.
 --- Always writes the CTLD_STARTUP_REPORT banner. Resets the collector afterwards.
+--- [OK] is written only when the collector is completely empty (all severities).
 function ctld.startupReport.flush()
     local entries = ctld.startupReport._entries
     ctld.startupReport._entries = {}
@@ -2306,6 +2312,7 @@ function ctld.startupReport.flush()
             hasNotice = true
             noticeLines[#noticeLines + 1] = e.message
         end
+        -- INFO entries are written to the log block above but do not affect screen output
     end
 
     if #entries == 0 then
@@ -2314,7 +2321,7 @@ function ctld.startupReport.flush()
 
     env.info(table.concat(lines, "\n"))
 
-    -- Screen outText
+    -- Screen outText (INFO entries never contribute here)
     if hasError then
         local screen = ""
         if hasNotice then

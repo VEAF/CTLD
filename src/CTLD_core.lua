@@ -525,7 +525,7 @@ function CTLDCoreManager:_initExtractableGroups()
         local group = Group.getByName(groupName)
         if group == nil or not group:isExist() then
             ctld.utils.log("WARN", "CTLDCoreManager: INIT-E — extractableGroup '%s' not found, skipped", groupName)
-            ctld.startupReport.add("NOTICE", "CoreManager",
+            ctld.startupReport.add("INFO", "CoreManager",
                 ctld.tr("INIT-E: extractableGroup '%1' not found in mission — skipped", groupName))
         else
             local coa = group:getCoalition()

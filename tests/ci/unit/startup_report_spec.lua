@@ -110,6 +110,46 @@ describe("ctld.startupReport", function()
         assert.equals(1, #outTextCalls)
     end)
 
+    -- ── INFO severity ─────────────────────────────────────────
+    it("flush() with INFO only: entry in log, no outText, no [OK]", function()
+        ctld.startupReport.add("INFO", "TestManager", "Diagnostic note")
+        ctld.startupReport.flush()
+
+        assert.equals(0, #outTextCalls)
+        local block = startupBlock()
+        assert.is_not_nil(block)
+        assert.is_true(block:find("INFO", 1, true) ~= nil)
+        assert.is_true(block:find("Diagnostic note", 1, true) ~= nil)
+        -- [OK] must NOT appear when entries are present
+        assert.is_nil(block:find("[OK]", 1, true))
+    end)
+
+    it("flush() with INFO + NOTICE: outText for NOTICE only, INFO in log", function()
+        ctld.startupReport.add("INFO",   "TestManager", "Info note")
+        ctld.startupReport.add("NOTICE", "TestManager", "Install mod X")
+        ctld.startupReport.flush()
+
+        assert.equals(1, #outTextCalls)
+        assert.is_true(outTextCalls[1]:find("Install mod X", 1, true) ~= nil)
+        local block = startupBlock()
+        assert.is_not_nil(block)
+        assert.is_true(block:find("Info note",    1, true) ~= nil)
+        assert.is_true(block:find("Install mod X", 1, true) ~= nil)
+    end)
+
+    it("flush() with INFO + ERROR: alarm banner on screen, INFO in log", function()
+        ctld.startupReport.add("INFO",  "TestManager", "Info note")
+        ctld.startupReport.add("ERROR", "TestManager", "Bad config value")
+        ctld.startupReport.flush()
+
+        assert.equals(1, #outTextCalls)
+        assert.is_true(outTextCalls[1]:find("CTLD_STARTUP_REPORT", 1, true) ~= nil)
+        local block = startupBlock()
+        assert.is_not_nil(block)
+        assert.is_true(block:find("Info note", 1, true) ~= nil)
+        assert.is_true(block:find("ERROR",     1, true) ~= nil)
+    end)
+
     -- ── double flush with no new entries ─────────────────────
     it("second flush() with no new entries after first → [OK], no outText", function()
         ctld.startupReport.add("NOTICE", "TestManager", "A notice")

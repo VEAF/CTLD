@@ -1,7 +1,7 @@
 # ADR 0010 — Startup Report and Two-Family Output Separation
 
 **Date:** 2026-07-22
-**Status:** Accepted
+**Status:** Accepted — amended 2026-07-22 (STARTUP-REPORT-INFO-LEVEL)
 **Lot:** STARTUP-REPORT-UNIFIED
 
 ## Context
@@ -25,10 +25,20 @@ at the very end of `ctld.initialize()` consolidates everything:
 - Always writes a `=== CTLD_STARTUP_REPORT ===` block to `DCS.log` (searchable, predictable).
 - Emits **at most one** `trigger.action.outText` per init, only when issues exist.
 - Severity semantics:
+
+  | Severity | DCS.log | Screen (`outText`) |
+  |----------|---------|-------------------|
+  | `ERROR`  | ✅      | ✅ alarm banner directing MM to `DCS.log` |
+  | `NOTICE` | ✅      | ✅ full text (player-facing too) |
+  | `INFO`   | ✅      | ❌ log-only, no screen output |
+
   - `ERROR` — a config incoherence caused an entry to be skipped or a feature to degrade.
-    Requires MM action. → alarm banner on screen directing to `DCS.log`.
+    Requires MM action.
   - `NOTICE` — a non-blocking informational reminder (mod requirement, optional hint).
     Shown in full on screen (useful to players too).
+  - `INFO` — diagnostic information (e.g. a configured name not found at init that may be
+    intentional). Written to `DCS.log` for a curious MM but never shown on screen.
+    `[OK]` is written only when the collector is completely empty (no entries of any severity).
 
 ### Family 2 — Runtime/dev traces (developer-facing)
 
