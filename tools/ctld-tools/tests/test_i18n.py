@@ -41,3 +41,12 @@ def test_set_language_normalises():
     set_language("FR-fr")
     assert current_language() == "fr"
     set_language("en")
+
+
+def test_locales_have_identical_keys():
+    """EN is authoritative; FR must define exactly the same key set (no missing/extra)."""
+    from ctld_tools.i18n import _load_catalog
+
+    en = set(_load_catalog("en"))
+    fr = set(_load_catalog("fr"))
+    assert en == fr, {"en_only": sorted(en - fr), "fr_only": sorted(fr - en)}

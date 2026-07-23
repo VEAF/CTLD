@@ -51,7 +51,9 @@ class CtldToolsApp(App):
 
     CSS = """
     #body { height: 1fr; }
-    #config { width: 2fr; border: solid $primary; }
+    #config-pane { width: 2fr; }
+    #tree-subtitle { color: $text-muted; padding: 0 1; }
+    #config { height: 1fr; border: solid $primary; }
     #side { width: 1fr; }
     #findings { height: 1fr; border: solid $secondary; }
     #actions { height: auto; layout: grid; grid-size: 6 1; grid-gutter: 0 1; }
@@ -92,7 +94,9 @@ class CtldToolsApp(App):
     def compose(self) -> ComposeResult:
         yield Header()
         with Horizontal(id="body"):
-            yield Tree(t("tui.tree.root"), id="config")
+            with Vertical(id="config-pane"):
+                yield Label(t("tui.tree.subtitle"), id="tree-subtitle")
+                yield Tree(t("tui.tree.root"), id="config")
             with Vertical(id="side"):
                 yield Label(t("tui.validation"))
                 yield RichLog(id="findings", markup=True, highlight=False)
