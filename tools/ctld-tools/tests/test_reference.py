@@ -127,3 +127,22 @@ def test_default_zones_wp(embedded_ref):
 def test_default_zones_ai(embedded_ref):
     zones = embedded_ref.default_zones("AIZones")
     assert isinstance(zones, list)
+
+
+def test_default_list_transport_pilots(embedded_ref):
+    names = embedded_ref.default_list("transportPilotNames")
+    assert len(names) == 108
+    assert "helicargo1" in names
+    assert "MEDEVAC #1" in names
+
+
+def test_default_list_extract_groups(embedded_ref):
+    names = embedded_ref.default_list("extractableGroups")
+    assert len(names) == 25
+    assert "extract1" in names
+
+
+def test_vehicle_weights_returns_dict(embedded_ref):
+    vw = embedded_ref.vehicle_weights()
+    assert "BRDM-2" in vw
+    assert vw["BRDM-2"] == 7000

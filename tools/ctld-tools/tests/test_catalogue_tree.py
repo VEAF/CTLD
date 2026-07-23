@@ -265,3 +265,39 @@ def test_zones_added_entry_has_added_tag(app):
 
 def test_zones_wp_entries_present(app):
     assert app._tree.exists("zone_default:wpZones:wpzone1")
+
+
+# --- mission list tests ---
+
+
+def test_mission_lists_section_exists(app):
+    assert app._tree.exists("mission_lists")
+
+
+def test_transport_pilots_sub_node_exists(app):
+    assert app._tree.exists("mlist:transportPilotNames")
+
+
+def test_transport_pilots_default_entries_present(app):
+    assert app._tree.exists("mlist_default:transportPilotNames:helicargo1")
+
+
+# --- vehicle weight tests ---
+
+
+def test_vehicle_weights_section_exists(app):
+    assert app._tree.exists("vehicle_weights")
+
+
+def test_vehicle_weight_default_entry_present(app):
+    assert app._tree.exists("vw:BRDM-2")
+
+
+def test_vehicle_weight_modified_tag(app):
+    from ctld_tools.tui.app import CtldToolsApp
+    a = CtldToolsApp(_test_mode=True)
+    a.model.set_vehicle_weight("BRDM-2", 9000)
+    a._rebuild_tree()
+    tags = a._tree.item("vw:BRDM-2", "tags")
+    assert "modified" in tags
+    a.root.destroy()

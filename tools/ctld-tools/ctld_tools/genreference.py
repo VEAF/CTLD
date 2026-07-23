@@ -32,6 +32,10 @@ def build_reference_bundle(src_dir: str | Path) -> dict:
         "spawnableCrates": settings.get("spawnableCrates") or {},
         "troopZones": settings.get("troopZones") or [],
         "wpZones": settings.get("wpZones") or [],
+        "transportPilotNames": settings.get("transportPilotNames") or [],
+        "extractableGroups": settings.get("extractableGroups") or [],
+        "logisticUnits": settings.get("logisticUnits") or [],
+        "groundVehicleWeights": settings.get("groundVehicleWeights") or {},
     }
 
 

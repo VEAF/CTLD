@@ -228,3 +228,11 @@ class Reference:
     def aircraft_types(self) -> list[str]:
         """Sorted list of aircraft type names in the default catalogue."""
         return sorted((self.settings.get("capabilitiesByType") or {}).keys())
+
+    def default_list(self, setting: str) -> list[str]:
+        """Default string list entries for transportPilotNames, extractableGroups, logisticUnits."""
+        return list(self.settings.get(setting) or [])
+
+    def vehicle_weights(self) -> dict:
+        """Default vehicle name -> weight mapping."""
+        return dict(self.settings.get("groundVehicleWeights") or {})

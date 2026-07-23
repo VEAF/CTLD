@@ -17,7 +17,15 @@ import sv_ttk
 from ctld_tools.editmodel import EditModel
 from ctld_tools.i18n import current_language, t
 from ctld_tools.reference import Reference, dict_to_zone, zone_to_dict
-from ctld_tools.tui.forms import AircraftForm, CrateForm, ScalarForm, TroopForm, ZoneForm
+from ctld_tools.tui.forms import (
+    AircraftForm,
+    CrateForm,
+    ScalarForm,
+    StringEntryForm,
+    TroopForm,
+    VehicleWeightForm,
+    ZoneForm,
+)
 from ctld_tools.validate import ERROR
 
 
@@ -35,7 +43,7 @@ class CtldToolsApp:
         ref = Reference.from_src(src) if src else Reference.from_embedded()
         self.model = EditModel.load(self._yaml_path, ref=ref) if self._yaml_path.exists() else EditModel(ref=ref)
         self._current_key: str | None = None
-        self._current_form: ScalarForm | CrateForm | TroopForm | AircraftForm | ZoneForm | None = None
+        self._current_form: ScalarForm | CrateForm | TroopForm | AircraftForm | ZoneForm | StringEntryForm | VehicleWeightForm | None = None
         self._current_context: dict | None = None
 
         self.root = tk.Tk()
@@ -139,6 +147,12 @@ class CtldToolsApp:
 
         # --- Zones section ---
         self._rebuild_zones_section()
+
+        # --- Mission Lists section ---
+        self._rebuild_mission_lists_section()
+
+        # --- Vehicle Weights section ---
+        self._rebuild_vehicle_weights_section()
 
         # Restore selection
         if prev_iid and self._tree.exists(prev_iid):
@@ -254,6 +268,47 @@ class CtldToolsApp:
                 iid = f"zone_add:{zone_type}:{idx}"
                 self._tree.insert(sub_iid, "end", iid=iid, text=f"{name}  +", tags=("added",))
 
+    def _rebuild_mission_lists_section(self) -> None:
+        lists_node = self._tree.insert("", "end", iid="mission_lists", text=t("tui.section.mission_lists"), open=False)
+        list_defs = [
+            ("transportPilotNames", "tui.section.transport_pilots"),
+            ("extractableGroups", "tui.section.extract_groups"),
+            ("logisticUnits", "tui.section.logistic_units"),
+        ]
+        for setting, label_key in list_defs:
+            sub_iid = f"mlist:{setting}"
+            self._tree.insert(lists_node, "end", iid=sub_iid, text=t(label_key), open=False)
+            defaults = self.model.ref.default_list(setting)
+            added = self.model.config.get("arrays", {}).get(setting, [])
+            for name in defaults:
+                iid = f"mlist_default:{setting}:{name}"
+                self._tree.insert(sub_iid, "end", iid=iid, text=name, tags=("default",))
+            for idx, name in enumerate(added):
+                iid = f"mlist_add:{setting}:{idx}"
+                self._tree.insert(sub_iid, "end", iid=iid, text=f"{name}  +", tags=("added",))
+
+    def _rebuild_vehicle_weights_section(self) -> None:
+        vw_node = self._tree.insert("", "end", iid="vehicle_weights", text=t("tui.section.vehicle_weights"), open=False)
+        defaults = self.model.ref.vehicle_weights()
+        vw_config = self.model.config.get("vehicleWeights") or {}
+        sets = vw_config.get("set") or {}
+        removes = vw_config.get("remove") or []
+
+        for unit_name in sorted(defaults):
+            iid = f"vw:{unit_name}"
+            if unit_name in removes:
+                state, label = "deleted", unit_name
+            elif unit_name in sets:
+                state, label = "modified", f"{unit_name}  *"
+            else:
+                state, label = "default", unit_name
+            self._tree.insert(vw_node, "end", iid=iid, text=label, tags=(state,))
+
+        for unit_name in sorted(sets):
+            if unit_name not in defaults:
+                iid = f"vw:{unit_name}"
+                self._tree.insert(vw_node, "end", iid=iid, text=f"{unit_name}  +", tags=("added",))
+
     def _on_tree_select(self, event=None) -> None:  # noqa: ARG002
         sel = self._tree.selection()
         if not sel:
@@ -293,9 +348,196 @@ class CtldToolsApp:
         elif iid.startswith("zone_type:"):
             zone_type = iid[len("zone_type:"):]
             self._show_zone_add_button(zone_type)
+        elif iid.startswith("mlist_default:"):
+            parts = iid.split(":", 2)
+            self._show_mlist_default_view(parts[2] if len(parts) > 2 else "")
+        elif iid.startswith("mlist_add:"):
+            _, setting, idx_str = iid.split(":", 2)
+            self._open_mlist_add_form(setting, int(idx_str))
+        elif iid.startswith("mlist:"):
+            setting = iid[len("mlist:"):]
+            self._show_mlist_add_button(setting)
+        elif iid.startswith("vw:"):
+            unit_name = iid[len("vw:"):]
+            self._open_vehicle_weight_form(unit_name)
+        elif iid == "vehicle_weights":
+            self._show_vw_add_button()
         else:
             self._clear_form()
             self._show_form_hint()
+
+    # --- mission list forms ------------------------------------------------------
+
+    def _show_mlist_default_view(self, name: str) -> None:
+        self._clear_form()
+        self._current_context = {"type": "mlist_default", "name": name}
+        ttk.Label(self._form_frame, text=name, font=("", 11, "bold")).pack(
+            anchor="w", padx=12, pady=(12, 4)
+        )
+        ttk.Label(self._form_frame, text=t("tui.mlist.default_note"), foreground="gray").pack(anchor="w", padx=12)
+
+    def _open_mlist_add_form(self, setting: str, idx: int) -> None:
+        self._clear_form()
+        added = self.model.config.get("arrays", {}).get(setting, [])
+        if idx >= len(added):
+            return
+        value = added[idx]
+        self._current_context = {"type": "mlist_add", "setting": setting, "idx": idx}
+        label_map = {
+            "transportPilotNames": "tui.section.transport_pilots",
+            "extractableGroups": "tui.section.extract_groups",
+            "logisticUnits": "tui.section.logistic_units",
+        }
+        label = t(label_map.get(setting, "tui.section.mission_lists"))
+        form = StringEntryForm(
+            self._form_frame,
+            label=label,
+            value=str(value),
+            state="added",
+            on_apply=lambda v: self._on_mlist_add_apply(setting, idx, v),
+            on_delete=lambda: self._on_mlist_add_delete(setting, idx),
+            on_cancel=self._on_form_cancel,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _show_mlist_add_button(self, setting: str) -> None:
+        self._clear_form()
+        self._current_context = {"type": "mlist_node", "setting": setting}
+        label_map = {
+            "transportPilotNames": "tui.section.transport_pilots",
+            "extractableGroups": "tui.section.extract_groups",
+            "logisticUnits": "tui.section.logistic_units",
+        }
+        label = t(label_map.get(setting, "tui.section.mission_lists"))
+        ttk.Label(self._form_frame, text=label, font=("", 11, "bold")).pack(anchor="w", padx=12, pady=(12, 4))
+        ttk.Button(
+            self._form_frame,
+            text=t("tui.mlist.add_btn"),
+            command=lambda: self._open_new_mlist_form(setting),
+        ).pack(anchor="w", padx=12, pady=4)
+
+    def _open_new_mlist_form(self, setting: str) -> None:
+        self._clear_form()
+        self._current_context = {"type": "mlist_new", "setting": setting}
+        label_map = {
+            "transportPilotNames": "tui.section.transport_pilots",
+            "extractableGroups": "tui.section.extract_groups",
+            "logisticUnits": "tui.section.logistic_units",
+        }
+        label = t(label_map.get(setting, "tui.section.mission_lists"))
+        form = StringEntryForm(
+            self._form_frame,
+            label=label,
+            value="",
+            state="added",
+            on_apply=lambda v: self._on_mlist_new_apply(setting, v),
+            on_delete=lambda: None,
+            on_cancel=self._on_form_cancel,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _on_mlist_new_apply(self, setting: str, value: str) -> None:
+        if value:
+            self.model.append_array(setting, value)
+            self._rebuild_tree()
+            self._refresh_status()
+
+    def _on_mlist_add_apply(self, setting: str, idx: int, value: str) -> None:
+        self.model.update_entry(("arrays", setting, idx), value)
+        self._rebuild_tree()
+        self._refresh_status()
+
+    def _on_mlist_add_delete(self, setting: str, idx: int) -> None:
+        self.model.delete_entry(("arrays", setting, idx))
+        self._rebuild_tree()
+        self._refresh_status()
+        self._clear_form()
+        self._show_form_hint()
+
+    # --- vehicle weight forms ----------------------------------------------------
+
+    def _open_vehicle_weight_form(self, unit_name: str) -> None:
+        self._clear_form()
+        defaults = self.model.ref.vehicle_weights()
+        vw_config = self.model.config.get("vehicleWeights") or {}
+        sets = vw_config.get("set") or {}
+        removes = vw_config.get("remove") or []
+
+        if unit_name in removes:
+            state = "deleted"
+            weight = defaults.get(unit_name)
+        elif unit_name in sets:
+            state = "modified" if unit_name in defaults else "added"
+            weight = sets[unit_name]
+        else:
+            state = "default"
+            weight = defaults.get(unit_name)
+
+        self._current_context = {"type": "vw", "unit_name": unit_name}
+        form = VehicleWeightForm(
+            self._form_frame,
+            unit_name=unit_name,
+            weight=weight,
+            state=state,
+            on_apply=self._on_vw_apply,
+            on_delete=self._on_vw_delete,
+            on_restore=self._on_vw_restore,
+            on_cancel=self._on_form_cancel,
+            is_new=False,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _show_vw_add_button(self) -> None:
+        self._clear_form()
+        self._current_context = {"type": "vw_node"}
+        ttk.Label(self._form_frame, text=t("tui.section.vehicle_weights"), font=("", 11, "bold")).pack(
+            anchor="w", padx=12, pady=(12, 4)
+        )
+        ttk.Button(self._form_frame, text=t("tui.vehicle.add_btn"), command=self._open_new_vw_form).pack(
+            anchor="w", padx=12, pady=4
+        )
+
+    def _open_new_vw_form(self) -> None:
+        self._clear_form()
+        self._current_context = {"type": "vw_new"}
+        form = VehicleWeightForm(
+            self._form_frame,
+            unit_name="",
+            weight=None,
+            state="default",
+            on_apply=self._on_vw_apply,
+            on_delete=lambda _: None,
+            on_restore=lambda _: None,
+            on_cancel=self._on_form_cancel,
+            is_new=True,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _on_vw_apply(self, unit_name: str, weight) -> None:
+        self.model.set_vehicle_weight(unit_name, weight)
+        self._rebuild_tree()
+        self._refresh_status()
+
+    def _on_vw_delete(self, unit_name: str) -> None:
+        self.model.remove_vehicle_weight(unit_name)
+        self._rebuild_tree()
+        self._refresh_status()
+        self._clear_form()
+        self._show_form_hint()
+
+    def _on_vw_restore(self, unit_name: str) -> None:
+        removes = self.model.config.get("vehicleWeights", {}).get("remove", [])
+        idx = next((i for i, r in enumerate(removes) if r == unit_name), None)
+        if idx is not None:
+            self.model.delete_entry(("vehicleWeights", "remove", idx))
+        self._rebuild_tree()
+        self._refresh_status()
+        self._clear_form()
+        self._show_form_hint()
 
     # --- zone forms --------------------------------------------------------------
 
@@ -809,6 +1051,8 @@ class CtldToolsApp:
                 self._open_aircraft_form(ctx["type_name"])
             elif ctx and ctx.get("type") == "zone_add":
                 self._open_zone_add_form(ctx["zone_type"], ctx["idx"])
+            elif ctx and ctx.get("type") == "vw":
+                self._open_vehicle_weight_form(ctx["unit_name"])
 
     def _redo(self, event=None) -> None:  # noqa: ARG002
         if self.model.redo():
@@ -826,6 +1070,8 @@ class CtldToolsApp:
                 self._open_aircraft_form(ctx["type_name"])
             elif ctx and ctx.get("type") == "zone_add":
                 self._open_zone_add_form(ctx["zone_type"], ctx["idx"])
+            elif ctx and ctx.get("type") == "vw":
+                self._open_vehicle_weight_form(ctx["unit_name"])
 
     # --- status ------------------------------------------------------------------
 

@@ -620,3 +620,131 @@ class TroopForm(ttk.Frame):
 
     def _restore(self) -> None:
         self._on_restore(self._original_name)
+
+
+class StringEntryForm(ttk.Frame):
+    """Simple form for a single string entry in a list (pilot name, extract group, etc.)."""
+
+    def __init__(
+        self,
+        parent,
+        *,
+        label: str,
+        value: str = "",
+        state: str = "default",
+        on_apply: Callable,
+        on_delete: Callable,
+        on_cancel: Callable,
+    ) -> None:
+        super().__init__(parent, padding=12)
+        self._on_apply = on_apply
+        self._on_delete = on_delete
+        self._on_cancel = on_cancel
+        self._state = state
+
+        ttk.Label(self, text=label, font=("", 11, "bold")).pack(anchor="w", pady=(0, 8))
+        self._var = tk.StringVar(value=value)
+        ttk.Entry(self, textvariable=self._var, width=40).pack(anchor="w")
+
+        self._error_var = tk.StringVar()
+        ttk.Label(self, textvariable=self._error_var, foreground="red").pack(anchor="w", pady=(4, 0))
+
+        btn_frame = ttk.Frame(self)
+        btn_frame.pack(anchor="w", pady=(10, 0))
+        if state == "added":
+            ttk.Button(btn_frame, text=t("tui.btn.apply"), command=self._apply).pack(side=tk.LEFT, padx=(0, 4))
+            ttk.Button(btn_frame, text=t("tui.btn.delete"), command=self._delete).pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Button(btn_frame, text=t("tui.btn.cancel"), command=self._on_cancel).pack(side=tk.LEFT)
+
+    def set_error(self, msg: str) -> None:
+        self._error_var.set(msg)
+
+    def _apply(self) -> None:
+        self._error_var.set("")
+        self._on_apply(self._var.get().strip())
+
+    def _delete(self) -> None:
+        self._on_delete()
+
+
+class VehicleWeightForm(ttk.Frame):
+    """Editor panel for one groundVehicleWeights entry."""
+
+    def __init__(
+        self,
+        parent,
+        *,
+        unit_name: str,
+        weight,
+        state: str,
+        on_apply: Callable,
+        on_delete: Callable,
+        on_restore: Callable,
+        on_cancel: Callable,
+        is_new: bool = False,
+    ) -> None:
+        super().__init__(parent, padding=12)
+        self._unit_name = unit_name
+        self._state = state
+        self._is_new = is_new
+        self._on_apply = on_apply
+        self._on_delete = on_delete
+        self._on_restore = on_restore
+        self._on_cancel = on_cancel
+
+        ttk.Label(self, text=unit_name or t("tui.vehicle.new"), font=("", 11, "bold")).pack(anchor="w", pady=(0, 8))
+
+        if is_new:
+            ttk.Label(self, text="unit").pack(anchor="w")
+            from ctld_tools.datamine import known_dcs_types
+            from ctld_tools.tui.widgets import FilterablePicker
+            self._unit_picker = FilterablePicker(self, sorted(known_dcs_types()), height=4)
+            self._unit_picker.pack(fill=tk.X, pady=(0, 8))
+            if unit_name:
+                self._unit_picker.set(unit_name)
+        else:
+            self._unit_picker = None  # type: ignore[assignment]
+
+        row = ttk.Frame(self)
+        row.pack(anchor="w", fill=tk.X, pady=(0, 4))
+        ttk.Label(row, text="weight_kg", width=12).pack(side=tk.LEFT)
+        self._weight_var = tk.StringVar(value=str(weight) if weight is not None else "")
+        ttk.Entry(row, textvariable=self._weight_var, width=12).pack(side=tk.LEFT)
+
+        self._error_var = tk.StringVar()
+        ttk.Label(self, textvariable=self._error_var, foreground="red").pack(anchor="w", pady=(4, 0))
+
+        btn_frame = ttk.Frame(self)
+        btn_frame.pack(anchor="w", pady=(10, 0))
+        ttk.Button(btn_frame, text=t("tui.btn.apply"), command=self._apply).pack(side=tk.LEFT, padx=(0, 4))
+        if state == "deleted":
+            ttk.Button(btn_frame, text=t("tui.btn.restore"), command=self._restore).pack(side=tk.LEFT, padx=(0, 4))
+        elif not is_new:
+            ttk.Button(btn_frame, text=t("tui.btn.delete"), command=self._delete).pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Button(btn_frame, text=t("tui.btn.cancel"), command=self._on_cancel).pack(side=tk.LEFT)
+
+    def set_error(self, msg: str) -> None:
+        self._error_var.set(msg)
+
+    def _collect_unit(self) -> str:
+        if self._is_new and self._unit_picker is not None:
+            return self._unit_picker.get().strip()
+        return self._unit_name
+
+    def _apply(self) -> None:
+        self._error_var.set("")
+        unit = self._collect_unit()
+        if not unit:
+            self._error_var.set("Unit name required")
+            return
+        weight = coerce(self._weight_var.get())
+        if weight is None:
+            self._error_var.set("Weight required")
+            return
+        self._on_apply(unit, weight)
+
+    def _delete(self) -> None:
+        self._on_delete(self._unit_name)
+
+    def _restore(self) -> None:
+        self._on_restore(self._unit_name)

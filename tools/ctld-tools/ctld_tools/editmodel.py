@@ -131,6 +131,25 @@ class EditModel:
             removes.append(type_name)
         self.revalidate()
 
+    def _vehicle_weights(self) -> dict:
+        return self.config.setdefault("vehicleWeights", {})
+
+    def set_vehicle_weight(self, unit_name: str, weight) -> None:
+        self._checkpoint()
+        self._vehicle_weights().setdefault("set", {})[unit_name] = weight
+        removes = self._vehicle_weights().get("remove", [])
+        if unit_name in removes:
+            removes.remove(unit_name)
+        self.revalidate()
+
+    def remove_vehicle_weight(self, unit_name: str) -> None:
+        self._checkpoint()
+        self._vehicle_weights().get("set", {}).pop(unit_name, None)
+        removes = self._vehicle_weights().setdefault("remove", [])
+        if unit_name not in removes:
+            removes.append(unit_name)
+        self.revalidate()
+
     def set_setting(self, key: str, value) -> None:
         self._checkpoint()
         self.config.setdefault("settings", {})[key] = value

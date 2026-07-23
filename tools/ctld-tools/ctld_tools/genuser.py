@@ -81,6 +81,12 @@ def _operations(cfg: dict, ref: Reference) -> list[str]:
         lines.append(f'    cfg.settings["capabilitiesByType"][{_lua_str(type_name)}] = nil')
     for type_name, attribs in (capabilities.get("set") or {}).items():
         lines.append(f'    cfg.settings["capabilitiesByType"][{_lua_str(type_name)}] = {_render_value(attribs, 1)}')
+
+    vw = cfg.get("vehicleWeights") or {}
+    for unit_name in vw.get("remove") or []:
+        lines.append(f'    cfg.settings["groundVehicleWeights"][{_lua_str(unit_name)}] = nil')
+    for unit_name, weight in (vw.get("set") or {}).items():
+        lines.append(f'    cfg.settings["groundVehicleWeights"][{_lua_str(unit_name)}] = {_render_value(weight, 1)}')
     return lines
 
 
