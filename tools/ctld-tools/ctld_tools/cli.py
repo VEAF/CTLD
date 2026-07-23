@@ -183,7 +183,8 @@ def main() -> None:
             set_language(arg.split("=", 1)[1])
             break
     # Double-click from Explorer (no command, fresh console) → launch the TUI.
-    is_tty = bool(sys.stdout) and sys.stdout.isatty()
+    # sys.stdout is None when built with --noconsole (windowed exe, no attached console).
+    is_tty = (sys.stdout is None) or (bool(sys.stdout) and sys.stdout.isatty())
     target = _bridge_target(argv, is_tty)
     if target is not None:
         sys.argv = sys.argv[:1] + target
