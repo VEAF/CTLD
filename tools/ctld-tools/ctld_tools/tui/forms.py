@@ -276,3 +276,88 @@ class CrateForm(ttk.Frame):
 
     def _restore(self) -> None:
         self._on_restore(self._original_desc)
+
+
+_TROOP_COUNT_FIELDS = ("inf", "mg", "at", "aa", "mortar", "jtac")
+
+
+class TroopForm(ttk.Frame):
+    """Editor panel for one troop group entry."""
+
+    def __init__(
+        self,
+        parent,
+        *,
+        entry: dict,
+        state: str,
+        on_apply: Callable,
+        on_delete: Callable,
+        on_restore: Callable,
+        on_cancel: Callable,
+    ) -> None:
+        super().__init__(parent, padding=12)
+        self._state = state
+        self._original_name = entry.get("name", "")
+        self._on_apply = on_apply
+        self._on_delete = on_delete
+        self._on_restore = on_restore
+        self._on_cancel = on_cancel
+
+        title = self._original_name or t("tui.troop.new")
+        ttk.Label(self, text=title, font=("", 11, "bold")).pack(anchor="w", pady=(0, 8))
+
+        # name field
+        self._name_var = tk.StringVar(value=self._original_name)
+        self._add_field("name", self._name_var)
+
+        # Count fields
+        self._count_vars: dict[str, tk.StringVar] = {}
+        for field in _TROOP_COUNT_FIELDS:
+            val = entry.get(field)
+            var = tk.StringVar(value=str(val) if val is not None else "")
+            self._add_field(field, var)
+            self._count_vars[field] = var
+
+        # Inline error
+        self._error_var = tk.StringVar()
+        ttk.Label(self, textvariable=self._error_var, foreground="red").pack(anchor="w", pady=(4, 0))
+
+        # Buttons
+        btn_frame = ttk.Frame(self)
+        btn_frame.pack(anchor="w", pady=(10, 0))
+        ttk.Button(btn_frame, text=t("tui.btn.apply"), command=self._apply).pack(side=tk.LEFT, padx=(0, 4))
+        if state == "deleted":
+            ttk.Button(btn_frame, text=t("tui.btn.restore"), command=self._restore).pack(side=tk.LEFT, padx=(0, 4))
+        else:
+            ttk.Button(btn_frame, text=t("tui.btn.delete"), command=self._delete).pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Button(btn_frame, text=t("tui.btn.cancel"), command=self._on_cancel).pack(side=tk.LEFT)
+
+    def _add_field(self, label: str, var: tk.StringVar) -> None:
+        row = ttk.Frame(self)
+        row.pack(anchor="w", fill=tk.X, pady=(0, 4))
+        ttk.Label(row, text=label, width=10).pack(side=tk.LEFT)
+        ttk.Entry(row, textvariable=var, width=20).pack(side=tk.LEFT)
+
+    def set_error(self, msg: str) -> None:
+        self._error_var.set(msg)
+
+    def _collect(self) -> dict:
+        entry: dict = {}
+        name = self._name_var.get().strip()
+        if name:
+            entry["name"] = name
+        for field, var in self._count_vars.items():
+            v = coerce(var.get())
+            if v is not None:
+                entry[field] = v
+        return entry
+
+    def _apply(self) -> None:
+        self._error_var.set("")
+        self._on_apply(self._collect(), self._original_name)
+
+    def _delete(self) -> None:
+        self._on_delete(self._original_name)
+
+    def _restore(self) -> None:
+        self._on_restore(self._original_name)

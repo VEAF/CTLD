@@ -17,7 +17,7 @@ import sv_ttk
 from ctld_tools.editmodel import EditModel
 from ctld_tools.i18n import current_language, t
 from ctld_tools.reference import Reference
-from ctld_tools.tui.forms import CrateForm, ScalarForm
+from ctld_tools.tui.forms import CrateForm, ScalarForm, TroopForm
 from ctld_tools.validate import ERROR
 
 
@@ -35,7 +35,7 @@ class CtldToolsApp:
         ref = Reference.from_src(src) if src else Reference.from_embedded()
         self.model = EditModel.load(self._yaml_path, ref=ref) if self._yaml_path.exists() else EditModel(ref=ref)
         self._current_key: str | None = None
-        self._current_form: ScalarForm | CrateForm | None = None
+        self._current_form: ScalarForm | CrateForm | TroopForm | None = None
         self._current_context: dict | None = None
 
         self.root = tk.Tk()
@@ -131,6 +131,9 @@ class CtldToolsApp:
         # --- Crates section ---
         self._rebuild_crates_section()
 
+        # --- Troops section ---
+        self._rebuild_troops_section()
+
         # Restore selection
         if prev_iid and self._tree.exists(prev_iid):
             self._tree.selection_set(prev_iid)
@@ -175,6 +178,29 @@ class CtldToolsApp:
             add_iid = f"crate_add:{idx}"
             self._tree.insert(fam_iid, "end", iid=add_iid, text=f"{add_name}  +", tags=("added",))
 
+    def _rebuild_troops_section(self) -> None:
+        groups = self.model.ref.loadable_groups()
+        adds = self.model.config.get("troops", {}).get("add", [])
+        removes = self.model.config.get("troops", {}).get("remove", [])
+        patches = self.model.config.get("troops", {}).get("patch", [])
+
+        troops_node = self._tree.insert("", "end", iid="troops", text=t("tui.section.troops"), open=False)
+
+        for group in groups:
+            name = group.get("name", "?")
+            iid = f"troop:{name}"
+            if name in removes:
+                state, label = "deleted", name
+            elif any(p.get("name") == name for p in patches):
+                state, label = "modified", f"{name}  *"
+            else:
+                state, label = "default", name
+            self._tree.insert(troops_node, "end", iid=iid, text=label, tags=(state,))
+
+        for idx, add_entry in enumerate(adds):
+            add_name = add_entry.get("name", "?")
+            self._tree.insert(troops_node, "end", iid=f"troop_add:{idx}", text=f"{add_name}  +", tags=("added",))
+
     def _on_tree_select(self, event=None) -> None:  # noqa: ARG002
         sel = self._tree.selection()
         if not sel:
@@ -192,6 +218,14 @@ class CtldToolsApp:
         elif iid.startswith("crate_family:"):
             family = iid[len("crate_family:") :]
             self._show_family_actions(family)
+        elif iid.startswith("troop_add:"):
+            idx = int(iid[len("troop_add:") :])
+            self._open_troop_add_form(idx)
+        elif iid.startswith("troop:"):
+            name = iid[len("troop:") :]
+            self._open_troop_form(name)
+        elif iid == "troops":
+            self._show_troop_add_button()
         else:
             self._clear_form()
             self._show_form_hint()
@@ -389,6 +423,125 @@ class CtldToolsApp:
         self._clear_form()
         self._show_form_hint()
 
+    # --- troop forms -------------------------------------------------------------
+
+    def _open_troop_form(self, name: str) -> None:
+        self._clear_form()
+        groups = self.model.ref.loadable_groups()
+        group = next((g for g in groups if g.get("name") == name), None)
+        if group is None:
+            return
+        # Merge with patches
+        effective = dict(group)
+        patches = self.model.config.get("troops", {}).get("patch", [])
+        for patch in patches:
+            if patch.get("name") == name:
+                effective.update({k: v for k, v in patch.items() if k != "name"})
+        removes = self.model.config.get("troops", {}).get("remove", [])
+        state = (
+            "deleted" if name in removes else ("modified" if any(p.get("name") == name for p in patches) else "default")
+        )
+        self._current_context = {"type": "troop", "name": name}
+        form = TroopForm(
+            self._form_frame,
+            entry=effective,
+            state=state,
+            on_apply=self._on_troop_apply,
+            on_delete=self._on_troop_delete,
+            on_restore=self._on_troop_restore,
+            on_cancel=self._on_form_cancel,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _open_troop_add_form(self, idx: int) -> None:
+        self._clear_form()
+        adds = self.model.config.get("troops", {}).get("add", [])
+        if idx >= len(adds):
+            return
+        entry = dict(adds[idx])
+        self._current_context = {"type": "troop_add", "idx": idx}
+        form = TroopForm(
+            self._form_frame,
+            entry=entry,
+            state="added",
+            on_apply=lambda e, _orig: self._on_troop_add_apply(idx, e),
+            on_delete=lambda _n: self._on_troop_add_delete(idx),
+            on_restore=lambda _n: None,
+            on_cancel=self._on_form_cancel,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _show_troop_add_button(self) -> None:
+        self._clear_form()
+        self._current_context = {"type": "troops_node"}
+        ttk.Label(self._form_frame, text=t("tui.section.troops"), font=("", 11, "bold")).pack(
+            anchor="w", padx=12, pady=(12, 4)
+        )
+        ttk.Button(self._form_frame, text=t("tui.troop.add_btn"), command=self._open_new_troop_form).pack(
+            anchor="w", padx=12, pady=4
+        )
+
+    def _open_new_troop_form(self) -> None:
+        self._clear_form()
+        self._current_context = {"type": "troop_new"}
+        form = TroopForm(
+            self._form_frame,
+            entry={},
+            state="default",
+            on_apply=self._on_troop_apply,
+            on_delete=lambda _n: None,
+            on_restore=lambda _n: None,
+            on_cancel=self._on_form_cancel,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _on_troop_apply(self, entry: dict, original_name: str) -> None:
+        if original_name:
+            patches = self.model.config.get("troops", {}).get("patch", [])
+            existing_idx = next((i for i, p in enumerate(patches) if p.get("name") == original_name), None)
+            patch_entry = {"name": original_name}
+            patch_entry.update({k: v for k, v in entry.items() if k != "name"})
+            if existing_idx is not None:
+                self.model.update_entry(("troops", "patch", existing_idx), patch_entry)
+            else:
+                self.model.patch_troop(patch_entry)
+        else:
+            self.model.add_troop(entry)
+        self._rebuild_tree()
+        self._refresh_status()
+
+    def _on_troop_add_apply(self, idx: int, entry: dict) -> None:
+        self.model.update_entry(("troops", "add", idx), entry)
+        self._rebuild_tree()
+        self._refresh_status()
+
+    def _on_troop_delete(self, name: str) -> None:
+        self.model.remove_troop(name)
+        self._rebuild_tree()
+        self._refresh_status()
+        self._clear_form()
+        self._show_form_hint()
+
+    def _on_troop_add_delete(self, idx: int) -> None:
+        self.model.delete_entry(("troops", "add", idx))
+        self._rebuild_tree()
+        self._refresh_status()
+        self._clear_form()
+        self._show_form_hint()
+
+    def _on_troop_restore(self, name: str) -> None:
+        removes = self.model.config.get("troops", {}).get("remove", [])
+        idx = next((i for i, r in enumerate(removes) if r == name), None)
+        if idx is not None:
+            self.model.delete_entry(("troops", "remove", idx))
+        self._rebuild_tree()
+        self._refresh_status()
+        self._clear_form()
+        self._show_form_hint()
+
     # --- undo / redo -------------------------------------------------------------
 
     def _undo(self, event=None) -> None:  # noqa: ARG002
@@ -401,6 +554,8 @@ class CtldToolsApp:
                 self._open_scalar_form(key)
             elif ctx and ctx.get("type") == "crate":
                 self._open_crate_form(ctx["family"], ctx["weight"])
+            elif ctx and ctx.get("type") == "troop":
+                self._open_troop_form(ctx["name"])
 
     def _redo(self, event=None) -> None:  # noqa: ARG002
         if self.model.redo():
@@ -412,6 +567,8 @@ class CtldToolsApp:
                 self._open_scalar_form(key)
             elif ctx and ctx.get("type") == "crate":
                 self._open_crate_form(ctx["family"], ctx["weight"])
+            elif ctx and ctx.get("type") == "troop":
+                self._open_troop_form(ctx["name"])
 
     # --- status ------------------------------------------------------------------
 

@@ -131,3 +131,46 @@ def test_restored_crate_returns_to_default(app):
     app.model.delete_entry(("crates", "remove", idx))
     app._rebuild_tree()
     assert "default" in app._tree.item("crate:Artillery:1002.01", "tags")
+
+
+# --- Troop Groups ---
+
+
+def test_troops_section_exists(app):
+    assert app._tree.exists("troops")
+
+
+def test_troop_entries_exist(app):
+    children = app._tree.get_children("troops")
+    assert len(children) > 0
+
+
+def test_default_troop_has_default_tag(app):
+    children = app._tree.get_children("troops")
+    assert "default" in app._tree.item(children[0], "tags")
+
+
+def test_deleted_troop_has_deleted_tag(app):
+    app.model.remove_troop("Standard Group")
+    app._rebuild_tree()
+    assert "deleted" in app._tree.item("troop:Standard Group", "tags")
+
+
+def test_added_troop_has_added_tag(app):
+    app.model.add_troop({"name": "Test Squad", "inf": 4})
+    app._rebuild_tree()
+    assert app._tree.exists("troop_add:0")
+    assert "added" in app._tree.item("troop_add:0", "tags")
+
+
+def test_modified_troop_has_modified_tag(app):
+    app.model.patch_troop({"name": "Standard Group", "inf": 8})
+    app._rebuild_tree()
+    assert "modified" in app._tree.item("troop:Standard Group", "tags")
+
+
+def test_modified_troop_label_has_asterisk(app):
+    app.model.patch_troop({"name": "Standard Group", "inf": 8})
+    app._rebuild_tree()
+    label = app._tree.item("troop:Standard Group", "text")
+    assert "*" in label
