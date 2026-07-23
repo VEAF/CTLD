@@ -159,9 +159,30 @@ class CtldToolsApp:
 
     def _tree_tooltip_text(self, iid: str) -> str | None:
         """Return a description string for a tree node iid, or None if unavailable."""
+        from ctld_tools.i18n import t as _t
         if iid.startswith("scalar:"):
             key = iid[len("scalar:"):]
             return self.model.ref.setting_description(key, current_language())
+        _SECTION_KEYS = {
+            "params": "tui.section.parameters.description",
+            "crates": "tui.section.crates.description",
+            "troops": "tui.section.troops.description",
+            "aircraft": "tui.section.aircraft.description",
+            "zones": "tui.section.zones.description",
+            "zones_troop": "tui.section.troop_zones.description",
+            "zones_wp": "tui.section.wp_zones.description",
+            "zones_ai": "tui.section.ai_zones.description",
+            "mission_lists": "tui.section.mission_lists.description",
+            "vehicle_weights": "tui.section.vehicle_weights.description",
+        }
+        if iid in _SECTION_KEYS:
+            return _t(_SECTION_KEYS[iid])
+        if iid.startswith("params_family:"):
+            family_key = iid[len("params_family:"):]
+            desc_key = f"tui.family.{family_key}.description"
+            text = _t(desc_key)
+            # t() returns the key itself when not found — treat that as "no description"
+            return text if text != desc_key else None
         return None
 
     # --- tree --------------------------------------------------------------------
@@ -689,6 +710,7 @@ class CtldToolsApp:
             on_apply=lambda zt, n: None,
             on_delete=lambda zt: None,
             on_cancel=self._on_form_cancel,
+            ref=self.model.ref,
         )
         form.pack(fill=tk.BOTH, expand=True)
         self._current_form = form
@@ -710,6 +732,7 @@ class CtldToolsApp:
             on_apply=lambda zt, n: self._on_zone_add_apply(zt, idx, n),
             on_delete=lambda zt: self._on_zone_add_delete(zt, idx),
             on_cancel=self._on_form_cancel,
+            ref=self.model.ref,
         )
         form.pack(fill=tk.BOTH, expand=True)
         self._current_form = form
@@ -743,6 +766,7 @@ class CtldToolsApp:
             on_apply=self._on_zone_new_apply,
             on_delete=lambda zt: None,
             on_cancel=self._on_form_cancel,
+            ref=self.model.ref,
         )
         form.pack(fill=tk.BOTH, expand=True)
         self._current_form = form
@@ -847,6 +871,7 @@ class CtldToolsApp:
             on_delete=self._on_crate_delete,
             on_restore=self._on_crate_restore,
             on_cancel=self._on_form_cancel,
+            ref=self.model.ref,
         )
         form.pack(fill=tk.BOTH, expand=True)
         self._current_form = form
@@ -873,6 +898,7 @@ class CtldToolsApp:
             on_delete=lambda d, w: self._on_crate_add_delete(idx),
             on_restore=lambda d: None,
             on_cancel=self._on_form_cancel,
+            ref=self.model.ref,
         )
         form.pack(fill=tk.BOTH, expand=True)
         self._current_form = form
@@ -901,6 +927,7 @@ class CtldToolsApp:
             on_delete=lambda d, w: None,
             on_restore=lambda d: None,
             on_cancel=self._on_form_cancel,
+            ref=self.model.ref,
         )
         form.pack(fill=tk.BOTH, expand=True)
         self._current_form = form
@@ -988,6 +1015,7 @@ class CtldToolsApp:
             on_delete=self._on_troop_delete,
             on_restore=self._on_troop_restore,
             on_cancel=self._on_form_cancel,
+            ref=self.model.ref,
         )
         form.pack(fill=tk.BOTH, expand=True)
         self._current_form = form
@@ -1007,6 +1035,7 @@ class CtldToolsApp:
             on_delete=lambda _n: self._on_troop_add_delete(idx),
             on_restore=lambda _n: None,
             on_cancel=self._on_form_cancel,
+            ref=self.model.ref,
         )
         form.pack(fill=tk.BOTH, expand=True)
         self._current_form = form
@@ -1032,6 +1061,7 @@ class CtldToolsApp:
             on_delete=lambda _n: None,
             on_restore=lambda _n: None,
             on_cancel=self._on_form_cancel,
+            ref=self.model.ref,
         )
         form.pack(fill=tk.BOTH, expand=True)
         self._current_form = form
@@ -1108,6 +1138,7 @@ class CtldToolsApp:
             on_delete=self._on_aircraft_delete,
             on_restore=self._on_aircraft_restore,
             on_cancel=self._on_form_cancel,
+            ref=self.model.ref,
             is_new=False,
         )
         form.pack(fill=tk.BOTH, expand=True)
@@ -1135,6 +1166,7 @@ class CtldToolsApp:
             on_delete=lambda _t: None,
             on_restore=lambda _t: None,
             on_cancel=self._on_form_cancel,
+            ref=self.model.ref,
             is_new=True,
         )
         form.pack(fill=tk.BOTH, expand=True)

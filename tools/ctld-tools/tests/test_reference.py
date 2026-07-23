@@ -165,3 +165,31 @@ def test_field_description_unknown_returns_none(embedded_ref):
 def test_field_description_troop_inf_en(embedded_ref):
     desc = embedded_ref.field_description("loadableGroups", "inf", "en")
     assert desc and "infantry" in desc.lower()
+
+
+def test_field_description_zone_troop_en(ref):
+    desc = ref.field_description("troopZones", "troopLimit", "en")
+    assert desc and "unlimited" in desc.lower()
+
+
+def test_field_description_aircraft_crates_enabled_en(ref):
+    desc = ref.field_description("capabilitiesByType", "cratesEnabled", "en")
+    assert desc and "crat" in desc.lower()
+
+
+def test_field_description_aircraft_crates_enabled_fr(ref):
+    desc = ref.field_description("capabilitiesByType", "cratesEnabled", "fr")
+    assert desc and "crat" in desc.lower()
+
+
+def test_field_description_vehicle_weight_en(ref):
+    desc = ref.field_description("groundVehicleWeights", "weight_kg", "en")
+    assert desc and "weight" in desc.lower()
+
+
+def test_field_description_returns_none_for_unknown_table(ref):
+    assert ref.field_description("nonExistentTable", "foo", "en") is None
+
+
+def test_field_description_returns_none_for_unknown_field(ref):
+    assert ref.field_description("spawnableCrates", "nonExistentField", "en") is None

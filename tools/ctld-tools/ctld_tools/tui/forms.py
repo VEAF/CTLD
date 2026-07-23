@@ -121,6 +121,7 @@ class CrateForm(ttk.Frame):
         on_delete: Callable,
         on_restore: Callable,
         on_cancel: Callable,
+        ref=None,
     ) -> None:
         super().__init__(parent, padding=12)
         self._family = family
@@ -130,6 +131,12 @@ class CrateForm(ttk.Frame):
         self._on_delete = on_delete
         self._on_restore = on_restore
         self._on_cancel = on_cancel
+        self._ref = ref
+
+        from ctld_tools.i18n import current_language
+
+        def _fd(field):
+            return ref.field_description("spawnableCrates", field, current_language()) if ref else None
 
         # Scrollable interior
         canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0)
@@ -147,7 +154,7 @@ class CrateForm(ttk.Frame):
 
         # desc field
         self._desc_var = tk.StringVar(value=self._original_desc)
-        self._add_field(interior, "desc", self._desc_var)
+        self._add_field(interior, "desc", self._desc_var, description=_fd("desc"))
 
         # unit (DCS type picker)
         ttk.Label(interior, text="unit").pack(anchor="w")
@@ -162,19 +169,23 @@ class CrateForm(ttk.Frame):
         # weight_kg (stored as "weight" in reference, "weight_kg" in editmodel)
         weight_val = entry.get("weight_kg") or entry.get("weight", "")
         self._weight_var = tk.StringVar(value=str(weight_val) if weight_val != "" else "")
-        self._add_field(interior, "weight_kg", self._weight_var)
+        self._add_field(interior, "weight_kg", self._weight_var, description=_fd("weight_kg"))
 
         # cratesRequired
         cr_val = entry.get("cratesRequired")
         self._crates_req_var = tk.StringVar(value=str(cr_val) if cr_val is not None else "")
-        self._add_field(interior, "cratesRequired", self._crates_req_var)
+        self._add_field(interior, "cratesRequired", self._crates_req_var, description=_fd("cratesRequired"))
 
         # side
         side_val = entry.get("side")
         self._side_var = tk.StringVar(value=str(side_val) if side_val is not None else "")
         side_frame = ttk.Frame(interior)
         side_frame.pack(anchor="w", fill=tk.X, pady=(0, 6))
-        ttk.Label(side_frame, text="side").pack(side=tk.LEFT)
+        _side_lbl = ttk.Label(side_frame, text="side")
+        _side_lbl.pack(side=tk.LEFT)
+        if _fd("side"):
+            from ctld_tools.tui.widgets import Tooltip
+            Tooltip(_side_lbl, _fd("side"))
         ttk.Combobox(side_frame, textvariable=self._side_var, values=["1", "2", ""], width=8).pack(side=tk.LEFT, padx=4)
 
         # isJTAC (bool)
@@ -182,14 +193,18 @@ class CrateForm(ttk.Frame):
         self._jtac_var = tk.StringVar(value=str(jtac_val).lower() if jtac_val is not None else "")
         jtac_frame = ttk.Frame(interior)
         jtac_frame.pack(anchor="w", fill=tk.X, pady=(0, 6))
-        ttk.Label(jtac_frame, text="isJTAC").pack(side=tk.LEFT)
+        _jtac_lbl = ttk.Label(jtac_frame, text="isJTAC")
+        _jtac_lbl.pack(side=tk.LEFT)
+        if _fd("isJTAC"):
+            from ctld_tools.tui.widgets import Tooltip
+            Tooltip(_jtac_lbl, _fd("isJTAC"))
         ttk.Combobox(
             jtac_frame, textvariable=self._jtac_var, values=["true", "false", ""], state="readonly", width=8
         ).pack(side=tk.LEFT, padx=4)
 
         # spawnAs
         self._spawn_var = tk.StringVar(value=entry.get("spawnAs", ""))
-        self._add_field(interior, "spawnAs", self._spawn_var)
+        self._add_field(interior, "spawnAs", self._spawn_var, description=_fd("spawnAs"))
 
         # specificParams (inline group — shown when family is Drone or entry has them)
         has_specific = bool(entry.get("specificParams")) or family == "Drone"
@@ -201,7 +216,7 @@ class CrateForm(ttk.Frame):
             for sp_key in _SPECIFIC_PARAMS_KEYS:
                 sp_val = sp.get(sp_key)
                 var = tk.StringVar(value=str(sp_val) if sp_val is not None else "")
-                self._add_field(interior, f"  {sp_key}", var)
+                self._add_field(interior, f"  {sp_key}", var, description=_fd(f"specificParams.{sp_key}"))
                 self._specific_vars[sp_key] = var
 
         # Inline error label
@@ -221,10 +236,14 @@ class CrateForm(ttk.Frame):
             self._delete_btn.pack(side=tk.LEFT, padx=(0, 4))
         ttk.Button(btn_frame, text=t("tui.btn.cancel"), command=self._on_cancel).pack(side=tk.LEFT)
 
-    def _add_field(self, parent, label: str, var: tk.StringVar) -> None:
+    def _add_field(self, parent, label: str, var: tk.StringVar, description: str | None = None) -> None:
         row = ttk.Frame(parent)
         row.pack(anchor="w", fill=tk.X, pady=(0, 4))
-        ttk.Label(row, text=label, width=16).pack(side=tk.LEFT)
+        lbl = ttk.Label(row, text=label, width=16)
+        lbl.pack(side=tk.LEFT)
+        if description:
+            from ctld_tools.tui.widgets import Tooltip
+            Tooltip(lbl, description)
         ttk.Entry(row, textvariable=var, width=28).pack(side=tk.LEFT)
 
     def set_error(self, msg: str) -> None:
@@ -302,6 +321,7 @@ class AircraftForm(ttk.Frame):
         on_delete: Callable,
         on_restore: Callable,
         on_cancel: Callable,
+        ref=None,
         is_new: bool = False,
     ) -> None:
         super().__init__(parent, padding=12)
@@ -311,7 +331,12 @@ class AircraftForm(ttk.Frame):
         self._on_delete = on_delete
         self._on_restore = on_restore
         self._on_cancel = on_cancel
+        self._ref = ref
         self._is_new = is_new
+
+        def _fd(field):
+            from ctld_tools.i18n import current_language
+            return ref.field_description("capabilitiesByType", field, current_language()) if ref else None
 
         # Scrollable interior
         canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0)
@@ -345,7 +370,12 @@ class AircraftForm(ttk.Frame):
             self._bool_vars[field] = var
             row = ttk.Frame(interior)
             row.pack(anchor="w", fill=tk.X, pady=(0, 4))
-            ttk.Label(row, text=field, width=26).pack(side=tk.LEFT)
+            lbl = ttk.Label(row, text=field, width=26)
+            lbl.pack(side=tk.LEFT)
+            desc = _fd(field)
+            if desc:
+                from ctld_tools.tui.widgets import Tooltip
+                Tooltip(lbl, desc)
             ttk.Combobox(row, textvariable=var, values=["true", "false", ""], state="readonly", width=10).pack(side=tk.LEFT)
 
         ttk.Separator(interior, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=6)
@@ -358,7 +388,12 @@ class AircraftForm(ttk.Frame):
             self._num_vars[field] = var
             row = ttk.Frame(interior)
             row.pack(anchor="w", fill=tk.X, pady=(0, 4))
-            ttk.Label(row, text=field, width=26).pack(side=tk.LEFT)
+            lbl = ttk.Label(row, text=field, width=26)
+            lbl.pack(side=tk.LEFT)
+            desc = _fd(field)
+            if desc:
+                from ctld_tools.tui.widgets import Tooltip
+                Tooltip(lbl, desc)
             ttk.Entry(row, textvariable=var, width=12).pack(side=tk.LEFT)
 
         ttk.Separator(interior, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=6)
@@ -367,7 +402,12 @@ class AircraftForm(ttk.Frame):
         self._list_vars: dict[str, list[tk.StringVar]] = {}
         self._list_frames: dict[str, ttk.Frame] = {}
         for field in _AIRCRAFT_LIST_FIELDS:
-            ttk.Label(interior, text=field, font=("", 9, "bold")).pack(anchor="w")
+            lbl = ttk.Label(interior, text=field, font=("", 9, "bold"))
+            lbl.pack(anchor="w")
+            desc = _fd(field)
+            if desc:
+                from ctld_tools.tui.widgets import Tooltip
+                Tooltip(lbl, desc)
             items_frame = ttk.Frame(interior)
             items_frame.pack(anchor="w", fill=tk.X, pady=(0, 4))
             self._list_frames[field] = items_frame
@@ -472,6 +512,7 @@ class ZoneForm(ttk.Frame):
         on_apply: Callable,
         on_delete: Callable,
         on_cancel: Callable,
+        ref=None,
     ) -> None:
         super().__init__(parent, padding=12)
         self._zone_type = zone_type
@@ -492,7 +533,14 @@ class ZoneForm(ttk.Frame):
             self._vars[fname] = var
             row = ttk.Frame(self)
             row.pack(anchor="w", fill=tk.X, pady=(0, 4))
-            ttk.Label(row, text=fname, width=14).pack(side=tk.LEFT)
+            lbl = ttk.Label(row, text=fname, width=14)
+            lbl.pack(side=tk.LEFT)
+            if ref is not None:
+                from ctld_tools.i18n import current_language
+                from ctld_tools.tui.widgets import Tooltip
+                desc = ref.field_description(zone_type, fname, current_language())
+                if desc:
+                    Tooltip(lbl, desc)
             choices = f.get("choices")
             if choices:
                 ttk.Combobox(row, textvariable=var, values=choices, state="readonly", width=14).pack(side=tk.LEFT)
@@ -553,6 +601,7 @@ class TroopForm(ttk.Frame):
         on_delete: Callable,
         on_restore: Callable,
         on_cancel: Callable,
+        ref=None,
     ) -> None:
         super().__init__(parent, padding=12)
         self._state = state
@@ -561,20 +610,25 @@ class TroopForm(ttk.Frame):
         self._on_delete = on_delete
         self._on_restore = on_restore
         self._on_cancel = on_cancel
+        self._ref = ref
+
+        def _fd(field):
+            from ctld_tools.i18n import current_language
+            return ref.field_description("loadableGroups", field, current_language()) if ref else None
 
         title = self._original_name or t("tui.troop.new")
         ttk.Label(self, text=title, font=("", 11, "bold")).pack(anchor="w", pady=(0, 8))
 
         # name field
         self._name_var = tk.StringVar(value=self._original_name)
-        self._add_field("name", self._name_var)
+        self._add_field("name", self._name_var, description=_fd("name"))
 
         # Count fields
         self._count_vars: dict[str, tk.StringVar] = {}
         for field in _TROOP_COUNT_FIELDS:
             val = entry.get(field)
             var = tk.StringVar(value=str(val) if val is not None else "")
-            self._add_field(field, var)
+            self._add_field(field, var, description=_fd(field))
             self._count_vars[field] = var
 
         # Inline error
@@ -591,10 +645,14 @@ class TroopForm(ttk.Frame):
             ttk.Button(btn_frame, text=t("tui.btn.delete"), command=self._delete).pack(side=tk.LEFT, padx=(0, 4))
         ttk.Button(btn_frame, text=t("tui.btn.cancel"), command=self._on_cancel).pack(side=tk.LEFT)
 
-    def _add_field(self, label: str, var: tk.StringVar) -> None:
+    def _add_field(self, label: str, var: tk.StringVar, description: str | None = None) -> None:
         row = ttk.Frame(self)
         row.pack(anchor="w", fill=tk.X, pady=(0, 4))
-        ttk.Label(row, text=label, width=10).pack(side=tk.LEFT)
+        lbl = ttk.Label(row, text=label, width=10)
+        lbl.pack(side=tk.LEFT)
+        if description:
+            from ctld_tools.tui.widgets import Tooltip
+            Tooltip(lbl, description)
         ttk.Entry(row, textvariable=var, width=20).pack(side=tk.LEFT)
 
     def set_error(self, msg: str) -> None:
