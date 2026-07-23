@@ -47,7 +47,7 @@ authored **per lot, when the lot is started** (not in batch).
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `UX-CTLD-TOOLS-V2` | ⬜ ready | Redesign ctld-tools UI: navigable full-catalogue tree + form editor; Textual → tkinter/sv-ttk; capabilitiesByType + named zone fields in scope. Business layer unchanged. | `feature/ux-ctld-tools-v2` |
+| `UX-CTLD-TOOLS-V2` | pending merge (PR #62) | Redesign ctld-tools UI: navigable full-catalogue tree + form editor; Textual → tkinter/sv-ttk; capabilitiesByType + named zone fields in scope. Business layer unchanged. | `feature/ux-ctld-tools-v2` |
 
 Future candidates → [`dev/roadmap.md`](../dev/roadmap.md).
 
