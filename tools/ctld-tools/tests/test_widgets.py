@@ -37,6 +37,33 @@ async def test_clearing_filter_restores_all():
         assert pilot.app.query_one(OptionList).option_count == len(OPTIONS)
 
 
+class _HostDisabled(App):
+    def compose(self) -> ComposeResult:
+        yield FilterablePicker(OPTIONS, disabled={"Ural-375"}, disabled_suffix=" (used)")
+
+
+async def test_disabled_option_is_marked_and_unselectable():
+    async with _HostDisabled().run_test() as pilot:
+        option_list = pilot.app.query_one(OptionList)
+        by_id = {
+            option_list.get_option_at_index(i).id: option_list.get_option_at_index(i)
+            for i in range(option_list.option_count)
+        }
+        used = by_id["Ural-375"]
+        assert used.disabled is True
+        assert str(used.prompt) == "Ural-375 (used)"
+        assert by_id["M-818"].disabled is False
+
+
+async def test_disabled_option_survives_filtering():
+    async with _HostDisabled().run_test() as pilot:
+        pilot.app.query_one(Input).value = "ural"
+        await pilot.pause()
+        option_list = pilot.app.query_one(OptionList)
+        assert option_list.option_count == 1
+        assert option_list.get_option_at_index(0).disabled is True
+
+
 async def test_selecting_option_posts_picked():
     picked: list[str] = []
 

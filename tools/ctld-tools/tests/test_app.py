@@ -7,13 +7,21 @@ element ids and model state, not translated labels.
 """
 
 import pytest
-from textual.widgets import Button, Input, OptionList, Select, Tree
+from textual.widgets import Button, Input, Label, OptionList, Select, Tree
 
 from ctld_tools.editmodel import EditModel
 from ctld_tools.reference import Reference
 from ctld_tools.tui.app import CtldToolsApp
-from ctld_tools.tui.forms import AddCrateForm, ConfirmModal, FileBrowserModal, _MizDirectoryTree
+from ctld_tools.tui.forms import AddCrateForm, AddTroopForm, ConfirmModal, FileBrowserModal, _MizDirectoryTree
 from ctld_tools.tui.widgets import FilterablePicker
+
+
+def _pick(picker: FilterablePicker, value: str) -> None:
+    """Select the option whose id == value in a FilterablePicker's OptionList."""
+    option_list = picker.query_one(OptionList)
+    idx = next(i for i in range(option_list.option_count) if option_list.get_option_at_index(i).id == value)
+    option_list.highlighted = idx
+    option_list.action_select()
 
 
 @pytest.fixture(autouse=True)
@@ -23,10 +31,12 @@ def _isolated_cwd(tmp_path, monkeypatch):
 
 
 def _leaf_with(tree: Tree, address: tuple):
-    for section in tree.root.children:
-        for leaf in section.children:
-            if leaf.data == address:
-                return leaf
+    stack = list(tree.root.children)
+    while stack:
+        node = stack.pop()
+        if node.data == address:
+            return node
+        stack.extend(node.children)
     return None
 
 
@@ -210,6 +220,157 @@ async def test_settings_picker_searchable_by_description():
             option_list = picker.query_one(OptionList)
             ids = [option_list.get_option_at_index(i).id for i in range(option_list.option_count)]
             assert "i18n_lang" in ids  # matched via its description
+
+
+async def test_patch_troop_via_ui_writes_only_changed_fields():
+    """Modify → pick target → full pre-filled form → only the changed field is written."""
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        await pilot.click("#patch")
+        await pilot.pause()
+        await pilot.click("#type-troop")
+        await pilot.pause()
+        _pick(app.query_one("#picker", FilterablePicker), "2x - Anti Air")
+        await pilot.pause()
+        assert isinstance(app.screen, AddTroopForm)
+        assert app.query_one("#name", Input).value == "2x - Anti Air"
+        assert app.query_one("#aa", Input).value == "6"  # pre-filled from the default
+        assert app.query_one("#inf", Input).value == "4"
+        app.query_one("#aa", Input).value = "8"  # the only change
+        await pilot.click("#submit")
+        await pilot.pause()
+
+    assert app.model.config["troops"]["patch"] == [{"name": "2x - Anti Air", "aa": 8}]
+
+
+async def test_patch_form_shows_ctld_default_hint():
+    from ctld_tools.i18n import language
+
+    with language("en"):
+        app = CtldToolsApp()
+        async with app.run_test(size=(120, 50)) as pilot:
+            await pilot.click("#patch")
+            await pilot.pause()
+            await pilot.click("#type-troop")
+            await pilot.pause()
+            _pick(app.query_one("#picker", FilterablePicker), "Anti Air")  # default aa 3
+            await pilot.pause()
+            labels = [str(w.renderable) for w in app.query(Label)]
+            assert any("CTLD default:" in text and "3" in text for text in labels)
+
+
+async def test_edit_patch_line_reverting_to_default_drops_it():
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        app.model.patch_troop({"name": "2x - Anti Air", "aa": 8})
+        app._refresh()
+        await pilot.pause()
+        tree = app.query_one("#config", Tree)
+        tree.move_cursor(_leaf_with(tree, ("troops", "patch", 0)))
+        await pilot.pause()
+        app.action_edit_entry()
+        await pilot.pause()
+        assert isinstance(app.screen, AddTroopForm)
+        assert app.query_one("#aa", Input).value == "8"  # current = default ⊕ patch
+        app.query_one("#aa", Input).value = "6"  # back to the CTLD default
+        await pilot.click("#submit")
+        await pilot.pause()
+
+    assert app.model.config["troops"]["patch"] == []  # nothing differs → line dropped
+
+
+async def test_tree_groups_entries_by_op_nature():
+    """Crate/troop leaves live under a word-headed sub-group, not directly on the section."""
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        app.model.add_troop({"name": "Recon", "inf": 3})
+        app._refresh()
+        await pilot.pause()
+        leaf = _leaf_with(app.query_one("#config", Tree), ("troops", "add", 0))
+        assert leaf is not None
+        group = leaf.parent  # the "Added" sub-group
+        assert group.data is None and len(group.children) == 1
+        assert group.parent.data is None  # the Troop section
+
+
+async def test_selection_buttons_enable_only_on_a_leaf():
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        edit = app.query_one("#edit", Button)
+        delete = app.query_one("#delete-btn", Button)
+        assert edit.disabled and delete.disabled  # nothing selected at start
+        app.model.add_troop({"name": "Recon", "inf": 3})
+        app._refresh()
+        await pilot.pause()
+        tree = app.query_one("#config", Tree)
+        tree.move_cursor(_leaf_with(tree, ("troops", "add", 0)))
+        await pilot.pause()
+        assert not edit.disabled and not delete.disabled  # a leaf is selected
+
+
+async def test_edit_button_opens_editor_for_selected_line():
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        app.model.add_troop({"name": "Recon", "inf": 3})
+        app._refresh()
+        await pilot.pause()
+        tree = app.query_one("#config", Tree)
+        tree.move_cursor(_leaf_with(tree, ("troops", "add", 0)))
+        await pilot.pause()
+        await pilot.click("#edit")
+        await pilot.pause()
+        assert isinstance(app.screen, AddTroopForm)
+
+
+async def test_remove_op_auto_selects_new_line():
+    """After a catalogue op, the cursor lands on the line it created."""
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        await pilot.click("#remove")
+        await pilot.pause()
+        await pilot.click("#type-troop")
+        await pilot.pause()
+        target = app.model.ref.troop_names()[0]
+        _pick(app.query_one("#picker", FilterablePicker), target)
+        await pilot.pause()
+        cursor = app.query_one("#config", Tree).cursor_node
+        assert cursor is not None and cursor.data == ("troops", "remove", 0)
+
+
+async def test_patch_op_auto_selects_new_line():
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        await pilot.click("#patch")
+        await pilot.pause()
+        await pilot.click("#type-troop")
+        await pilot.pause()
+        _pick(app.query_one("#picker", FilterablePicker), "2x - Anti Air")
+        await pilot.pause()
+        app.query_one("#aa", Input).value = "8"
+        await pilot.click("#submit")
+        await pilot.pause()
+        cursor = app.query_one("#config", Tree).cursor_node
+        assert cursor is not None and cursor.data == ("troops", "patch", 0)
+
+
+async def test_remove_picker_greys_already_consumed_names():
+    """A troop already in the remove diff is non-selectable in the remove picker."""
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 40)) as pilot:
+        target = app.model.ref.troop_names()[0]
+        app.model.remove_troop(target)
+        app._refresh()
+        await pilot.pause()
+        await pilot.click("#remove")
+        await pilot.pause()
+        await pilot.click("#type-troop")
+        await pilot.pause()
+        option_list = app.query_one("#picker", FilterablePicker).query_one(OptionList)
+        by_id = {
+            option_list.get_option_at_index(i).id: option_list.get_option_at_index(i)
+            for i in range(option_list.option_count)
+        }
+        assert by_id[target].disabled is True
 
 
 async def test_generate_disabled_while_errors():

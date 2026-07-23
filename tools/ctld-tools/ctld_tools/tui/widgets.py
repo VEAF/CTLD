@@ -31,10 +31,20 @@ class FilterablePicker(Vertical):
             self.value = value
             super().__init__()
 
-    def __init__(self, options, placeholder: str = "Type to filter…", id: str | None = None) -> None:
+    def __init__(
+        self,
+        options,
+        placeholder: str = "Type to filter…",
+        id: str | None = None,
+        disabled=None,
+        disabled_suffix: str = "",
+    ) -> None:
         super().__init__(id=id)
         self._items = [self._item(option) for option in options]  # (value, label, search)
         self._placeholder = placeholder
+        #: values already consumed elsewhere — rendered non-selectable (error prevention).
+        self._disabled = set(disabled or [])
+        self._disabled_suffix = disabled_suffix
 
     @staticmethod
     def _item(option) -> tuple[str, str, str]:
@@ -43,15 +53,20 @@ class FilterablePicker(Vertical):
         value, label, search = option
         return str(value), str(label), str(search)
 
+    def _option(self, value: str, label: str) -> Option:
+        if value in self._disabled:
+            return Option(f"{label}{self._disabled_suffix}", id=value, disabled=True)
+        return Option(label, id=value)
+
     def compose(self) -> ComposeResult:
         yield Input(placeholder=self._placeholder)
-        yield OptionList(*[Option(label, id=value) for value, label, _ in self._items])
+        yield OptionList(*[self._option(value, label) for value, label, _ in self._items])
 
     def _render_options(self, query: str) -> None:
         option_list = self.query_one(OptionList)
         option_list.clear_options()
         option_list.add_options(
-            [Option(label, id=value) for value, label, search in self._items if matches(search, query)]
+            [self._option(value, label) for value, label, search in self._items if matches(search, query)]
         )
 
     def on_input_changed(self, event: Input.Changed) -> None:

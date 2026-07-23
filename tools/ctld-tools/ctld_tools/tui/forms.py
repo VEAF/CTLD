@@ -22,6 +22,23 @@ def _blank(value) -> str:
     return "" if value is None else str(value)
 
 
+def _field_label(base: str, default=None) -> str:
+    """A persistent field label; appends the CTLD default as a hint when known.
+
+    Needed in modify mode: a pre-filled Input hides its placeholder, so the field
+    would otherwise be an anonymous value. The default hint answers "what was it?".
+    """
+    if default is None:
+        return base
+    return f"{base}  ({t('tui.label.default_hint')} {default})"
+
+
+def _labelled_input(field_id: str, base: str, value, default=None, disabled: bool = False):
+    """Yield a persistent Label + its Input (the shared field layout for the Add/edit forms)."""
+    yield Label(_field_label(base, default))
+    yield Input(value=_blank(value), placeholder=base, id=field_id, disabled=disabled)
+
+
 def coerce(text: str):
     """Best-effort scalar from a form input: bool, int, float, str, or None if blank."""
     stripped = text.strip()
@@ -93,17 +110,28 @@ class ConfirmModal(_FormScreen):
 
 
 class PickerModal(_FormScreen):
-    """Pick one value from a (large) list — remove crate, remove troop."""
+    """Pick one value from a (large) list — remove crate, remove troop.
 
-    def __init__(self, title: str, options) -> None:
+    `disabled` names (already consumed in the diff) render non-selectable, so a
+    duplicate op is unreachable (error prevention).
+    """
+
+    def __init__(self, title: str, options, disabled=None) -> None:
         super().__init__()
         self._title = title
         self._options = list(options)
+        self._disabled = set(disabled or [])
 
     def compose(self) -> ComposeResult:
         with Vertical(classes="form"):
             yield Label(self._title, classes="form-title")
-            yield FilterablePicker(self._options, placeholder=t("tui.ph.filter"), id="picker")
+            yield FilterablePicker(
+                self._options,
+                placeholder=t("tui.ph.filter"),
+                id="picker",
+                disabled=self._disabled,
+                disabled_suffix=t("tui.picker.used_suffix"),
+            )
             yield Button(t("tui.btn.cancel"), id="cancel")
 
     def on_filterable_picker_picked(self, event: FilterablePicker.Picked) -> None:
@@ -114,26 +142,34 @@ class PickerModal(_FormScreen):
 
 
 class AddCrateForm(_FormScreen):
-    """Add or edit a crate: labelled inputs + a filterable DCS-type picker for `unit`."""
+    """Add or edit a crate: labelled inputs + a filterable DCS-type picker for `unit`.
 
-    def __init__(self, unit_types, initial: dict | None = None) -> None:
+    In modify mode, pass `defaults` (the CTLD default entry) to show a per-field hint
+    and `lock_name=True` so the target name (the patch key) can't be changed.
+    """
+
+    def __init__(
+        self, unit_types, initial: dict | None = None, defaults: dict | None = None, lock_name: bool = False
+    ) -> None:
         super().__init__()
         self._unit_types = list(unit_types)
         self._initial = dict(initial or {})
+        self._defaults = dict(defaults or {})
+        self._lock_name = lock_name
         self._unit: str | None = self._initial.get("unit")
 
     def compose(self) -> ComposeResult:
-        init = self._initial
+        init, d = self._initial, self._defaults
         with Vertical(classes="form"):
             yield Label(t("tui.form.add_crate"), classes="form-title")
-            yield Input(value=str(init.get("section", "Support")), placeholder=t("tui.ph.section"), id="section")
-            yield Input(value=_blank(init.get("name")), placeholder=t("tui.ph.name"), id="name")
-            yield Input(
-                value=_blank(init.get("weight_kg", init.get("weight"))), placeholder=t("tui.ph.weight"), id="weight"
+            yield from _labelled_input("section", t("tui.ph.section"), init.get("section", "Support"), d.get("section"))
+            yield from _labelled_input("name", t("tui.ph.name"), init.get("name"), disabled=self._lock_name)
+            yield from _labelled_input(
+                "weight", t("tui.ph.weight"), init.get("weight_kg", init.get("weight")), d.get("weight_kg")
             )
-            yield Input(value=_blank(init.get("side")), placeholder=t("tui.ph.side"), id="side")
-            yield Input(
-                value=_blank(init.get("cratesRequired")), placeholder=t("tui.ph.crates_required"), id="crates_required"
+            yield from _labelled_input("side", t("tui.ph.side"), init.get("side"), d.get("side"))
+            yield from _labelled_input(
+                "crates_required", t("tui.ph.crates_required"), init.get("cratesRequired"), d.get("cratesRequired")
             )
             unit_label = t("tui.label.unit", unit=self._unit) if self._unit else t("tui.label.unit_none")
             yield Label(unit_label, id="unit-label")
@@ -172,61 +208,28 @@ class AddCrateForm(_FormScreen):
         self.dismiss(entry)
 
 
-class PatchByNameForm(_FormScreen):
-    """Patch one field of a crate or troop group, targeted by name from a picker."""
-
-    def __init__(self, title: str, names, initial: dict | None = None) -> None:
-        super().__init__()
-        self._title = title
-        self._names = list(names)
-        init = dict(initial or {})
-        self._name: str | None = init.get("name")
-        self._init_field = next((k for k in init if k != "name"), "")
-        self._init_value = init.get(self._init_field) if self._init_field else None
-
-    def compose(self) -> ComposeResult:
-        target_label = t("tui.label.target", name=self._name) if self._name else t("tui.label.target_none")
-        with Vertical(classes="form"):
-            yield Label(self._title, classes="form-title")
-            yield Label(target_label, id="target-label")
-            yield FilterablePicker(self._names, placeholder=t("tui.ph.filter"), id="target-picker")
-            yield Input(value=self._init_field, placeholder=t("tui.ph.field"), id="field")
-            yield Input(value=_blank(self._init_value), placeholder=t("tui.ph.value"), id="value")
-            with Horizontal(classes="form-buttons"):
-                yield Button(t("tui.btn.confirm"), id="submit", variant="primary")
-                yield Button(t("tui.btn.cancel"), id="cancel")
-
-    def on_filterable_picker_picked(self, event: FilterablePicker.Picked) -> None:
-        self._name = event.value
-        self.query_one("#target-label", Label).update(t("tui.label.target", name=event.value))
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == "cancel" or not self._name:
-            self.dismiss(None)
-            return
-        field = self.query_one("#field", Input).value.strip()
-        if not field:
-            self.dismiss(None)
-            return
-        self.dismiss({"name": self._name, field: coerce(self.query_one("#value", Input).value)})
-
-
 class AddTroopForm(_FormScreen):
-    """Add or edit a troop group: a name plus optional per-type counts."""
+    """Add or edit a troop group: a name plus optional per-type counts.
+
+    In modify mode, pass `defaults` (the CTLD default entry) for per-field hints and
+    `lock_name=True` so the target name (the patch key) can't be changed.
+    """
 
     COUNT_FIELDS = ("inf", "mg", "at", "aa", "mortar", "jtac")
 
-    def __init__(self, initial: dict | None = None) -> None:
+    def __init__(self, initial: dict | None = None, defaults: dict | None = None, lock_name: bool = False) -> None:
         super().__init__()
         self._initial = dict(initial or {})
+        self._defaults = dict(defaults or {})
+        self._lock_name = lock_name
 
     def compose(self) -> ComposeResult:
-        init = self._initial
+        init, d = self._initial, self._defaults
         with Vertical(classes="form"):
             yield Label(t("tui.form.add_troop"), classes="form-title")
-            yield Input(value=_blank(init.get("name")), placeholder=t("tui.ph.name"), id="name")
+            yield from _labelled_input("name", t("tui.ph.name"), init.get("name"), disabled=self._lock_name)
             for field in self.COUNT_FIELDS:
-                yield Input(value=_blank(init.get(field)), placeholder=t("tui.ph.count", field=field), id=field)
+                yield from _labelled_input(field, t("tui.ph.count", field=field), init.get(field), d.get(field))
             with Horizontal(classes="form-buttons"):
                 yield Button(t("tui.btn.confirm"), id="submit", variant="primary")
                 yield Button(t("tui.btn.cancel"), id="cancel")

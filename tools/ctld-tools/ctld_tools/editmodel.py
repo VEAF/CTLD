@@ -82,35 +82,78 @@ class EditModel:
     def _troops(self, key: str) -> list:
         return self.config.setdefault("troops", {}).setdefault(key, [])
 
+    #: keys that only address the patch target, not a field to change (per family).
+    _PATCH_SELECTORS = {"crates": ("name", "weight"), "troops": ("name",)}
+
+    @staticmethod
+    def _has_patch_field(entry: dict, family: str) -> bool:
+        """True when the patch entry changes at least one real field (not just its target)."""
+        selectors = EditModel._PATCH_SELECTORS[family]
+        return any(k not in selectors for k in entry)
+
+    def consumed_names(self, kind: str, bucket: str) -> set:
+        """Names already targeted in a remove/patch bucket (for picker prevention)."""
+        entries = self.config.get(kind, {}).get(bucket) or []
+        return {e.get("name") if isinstance(e, dict) else e for e in entries}
+
+    @staticmethod
+    def _target_present(bucket: list, name) -> bool:
+        """True when `name` is already targeted in a remove/patch bucket."""
+        for item in bucket:
+            existing = item.get("name") if isinstance(item, dict) else item
+            if existing == name:
+                return True
+        return False
+
     def add_crate(self, entry: dict) -> None:
         self._checkpoint()
         self._crates("add").append(dict(entry))
         self.revalidate()
 
-    def remove_crate(self, target) -> None:
+    def remove_crate(self, target) -> bool:
+        """Declare a remove-op; reject (no-op) a target already in the remove bucket."""
+        if self._target_present(self._crates("remove"), target):
+            return False
         self._checkpoint()
         self._crates("remove").append(target)
         self.revalidate()
+        return True
 
-    def patch_crate(self, entry: dict) -> None:
+    def patch_crate(self, entry: dict) -> bool:
+        """Declare a patch-op; reject an empty patch or a target already patched."""
+        if not self._has_patch_field(entry, "crates"):
+            return False
+        if self._target_present(self._crates("patch"), entry.get("name")):
+            return False
         self._checkpoint()
         self._crates("patch").append(dict(entry))
         self.revalidate()
+        return True
 
     def add_troop(self, entry: dict) -> None:
         self._checkpoint()
         self._troops("add").append(dict(entry))
         self.revalidate()
 
-    def remove_troop(self, name) -> None:
+    def remove_troop(self, name) -> bool:
+        """Declare a remove-op; reject (no-op) a target already in the remove bucket."""
+        if self._target_present(self._troops("remove"), name):
+            return False
         self._checkpoint()
         self._troops("remove").append(name)
         self.revalidate()
+        return True
 
-    def patch_troop(self, entry: dict) -> None:
+    def patch_troop(self, entry: dict) -> bool:
+        """Declare a patch-op; reject an empty patch or a target already patched."""
+        if not self._has_patch_field(entry, "troops"):
+            return False
+        if self._target_present(self._troops("patch"), entry.get("name")):
+            return False
         self._checkpoint()
         self._troops("patch").append(dict(entry))
         self.revalidate()
+        return True
 
     def set_setting(self, key: str, value) -> None:
         self._checkpoint()

@@ -82,6 +82,81 @@ def test_patch_troop(ref):
     assert m.can_generate
 
 
+# --- dedup & empty-op guards (ticket TUI-EDIT-MODE-UX/03) -------------------------
+
+
+def test_remove_troop_rejects_duplicate(ref):
+    m = model(ref)
+    assert m.remove_troop("5x - Mortar Squad") is True
+    assert m.remove_troop("5x - Mortar Squad") is False  # already in the diff
+    assert m.config["troops"]["remove"] == ["5x - Mortar Squad"]
+
+
+def test_remove_crate_rejects_duplicate(ref):
+    m = model(ref)
+    assert m.remove_crate("Heavy Tank - Abrams") is True
+    assert m.remove_crate("Heavy Tank - Abrams") is False
+    assert m.config["crates"]["remove"] == ["Heavy Tank - Abrams"]
+
+
+def test_patch_troop_rejects_duplicate(ref):
+    m = model(ref)
+    assert m.patch_troop({"name": "Standard Group", "inf": 9}) is True
+    # a second patch on the same target is blocked (David's call: block, no reroute)
+    assert m.patch_troop({"name": "Standard Group", "inf": 3}) is False
+    assert m.config["troops"]["patch"] == [{"name": "Standard Group", "inf": 9}]
+
+
+def test_patch_crate_rejects_duplicate(ref):
+    m = model(ref)
+    assert m.patch_crate({"name": "Humvee - TOW", "cratesRequired": 3}) is True
+    assert m.patch_crate({"name": "Humvee - TOW", "cratesRequired": 5}) is False
+    assert m.config["crates"]["patch"] == [{"name": "Humvee - TOW", "cratesRequired": 3}]
+
+
+def test_patch_troop_rejects_empty(ref):
+    m = model(ref)
+    assert m.patch_troop({"name": "Standard Group"}) is False  # no field to change
+    assert m.config.get("troops", {}).get("patch", []) == []
+
+
+def test_patch_crate_rejects_empty(ref):
+    m = model(ref)
+    # only the target selectors, no actual patch field → nothing to change
+    assert m.patch_crate({"name": "Humvee - TOW", "weight": 500}) is False
+    assert m.config.get("crates", {}).get("patch", []) == []
+
+
+def test_rejected_op_is_not_checkpointed(ref):
+    m = model(ref)
+    m.remove_troop("5x - Mortar Squad")  # one valid op
+    assert m.remove_troop("5x - Mortar Squad") is False  # rejected → no checkpoint
+    assert m.dirty is True  # sanity: the valid op did dirty the model
+    assert m.undo() is True  # a single undo clears everything
+    assert m.config["troops"]["remove"] == []
+    assert not m.can_undo  # the rejected op left no extra undo state
+
+
+def test_consumed_names_exposes_targeted_names(ref):
+    m = model(ref)
+    m.remove_troop("5x - Mortar Squad")
+    m.patch_troop({"name": "Standard Group", "inf": 9})
+    m.remove_crate("Heavy Tank - Abrams")
+    assert m.consumed_names("troops", "remove") == {"5x - Mortar Squad"}
+    assert m.consumed_names("troops", "patch") == {"Standard Group"}
+    assert m.consumed_names("crates", "remove") == {"Heavy Tank - Abrams"}
+    assert m.consumed_names("crates", "patch") == set()
+
+
+def test_fullgas_repeated_remove_repro(ref):
+    """FullGas: pressing Retirer on the same troop kept appending lines."""
+    m = model(ref)
+    assert m.remove_troop("2x - Anti Air") is True
+    assert m.remove_troop("2x - Anti Air") is False
+    assert m.remove_troop("2x - Anti Air") is False
+    assert m.config["troops"]["remove"] == ["2x - Anti Air"]
+
+
 # --- undo / redo -----------------------------------------------------------------
 
 

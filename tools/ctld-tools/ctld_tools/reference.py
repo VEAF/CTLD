@@ -58,6 +58,18 @@ class Reference:
                 if desc:
                     self._crate_by_name.setdefault(desc, []).append((weight, section))
         self._troop_names = {g.get("name") for g in (settings.get("loadableGroups") or []) if g.get("name")}
+        # Full default entries by name, for pre-filling the modify form (first wins on dup).
+        self._troop_by_name: dict[str, dict] = {}
+        for group in settings.get("loadableGroups") or []:
+            name = group.get("name")
+            if name and name not in self._troop_by_name:
+                self._troop_by_name[name] = dict(group)
+        self._crate_entry_by_name: dict[str, dict] = {}
+        for section, entries in (settings.get("spawnableCrates") or {}).items():
+            for entry in entries:
+                desc = entry.get("desc")
+                if desc and desc not in self._crate_entry_by_name:
+                    self._crate_entry_by_name[desc] = {"section": section, **entry}
         explicit = settings.get("scalarSettings")
         if explicit is not None:
             self._scalar_settings: dict = dict(explicit)
@@ -96,6 +108,28 @@ class Reference:
     def troop_names(self) -> list[str]:
         """Catalogue troop-group names, sorted — for the remove troop picker."""
         return sorted(name for name in self._troop_names if name)
+
+    def troop_default(self, name) -> dict:
+        """The full default troop-group entry for `name` (form-shaped), or {}."""
+        return dict(self._troop_by_name.get(name, {}))
+
+    def crate_default(self, name) -> dict:
+        """The full default crate entry for `name`, mapped to Add-form keys, or {}.
+
+        `desc`→`name`, `weight`→`weight_kg`; drops keys with no value.
+        """
+        entry = self._crate_entry_by_name.get(name)
+        if not entry:
+            return {}
+        mapped = {
+            "section": entry.get("section"),
+            "name": entry.get("desc"),
+            "unit": entry.get("unit"),
+            "weight_kg": entry.get("weight"),
+            "side": entry.get("side"),
+            "cratesRequired": entry.get("cratesRequired"),
+        }
+        return {k: v for k, v in mapped.items() if v is not None}
 
     def scalar_settings(self) -> dict:
         """Scalar setting names → default value — for the Set setting picker/help."""
