@@ -99,7 +99,7 @@ jobs:
           pip install poetry
           # --without dev drops lupa (build-time only); --with build adds pyinstaller.
           poetry install --without dev,legacy --with build
-          poetry run pyinstaller --onefile --name ctld-tools \
+          poetry run pyinstaller --onefile --noconsole --name ctld-tools \
             --collect-all sv_ttk \
             --exclude-module lupa \
             --exclude-module textual \
