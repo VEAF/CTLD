@@ -77,6 +77,7 @@
   "tui.notify.injected": "Injecté dans {path}",
   "tui.notify.fix_errors": "Corrigez d'abord les erreurs de validation.",
   "tui.notify.op_rejected": "Ignoré : cette entrée est déjà dans le diff, ou rien n'a été modifié.",
+  "tui.notify.op_added": "Ajouté au diff : {what}",
   "tui.picker.used_suffix": " — déjà dans le diff",
   "tui.prompt.inject": "Injecter dans le .miz (chemin)",
   "tui.confirm.quit_unsaved": "Quitter maintenant ? Dernière sauvegarde : {since}",

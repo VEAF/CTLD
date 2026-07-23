@@ -200,23 +200,82 @@ class CtldToolsApp(App):
             opener()
 
     def _apply(self, method_name: str, transform=lambda r: (r,)):
-        """Return a screen callback that applies a non-None result via model.<method>.
-
-        Dedup-capable ops (remove/patch) return False when rejected (duplicate or empty);
-        surface that as a notice instead of silently mutating (the safety net behind the
-        picker greying).
-        """
+        """Return a screen callback that applies a non-None result via model.<method>."""
 
         def callback(result) -> None:
             if result is None or result is False:
                 return
             outcome = getattr(self.model, method_name)(*transform(result))
-            if outcome is False:
-                self.notify(t("tui.notify.op_rejected"), severity="warning")
-                return
-            self._refresh()
+            self._finish_op(method_name, result, outcome)
 
         return callback
+
+    #: op method → the (section, sub) bucket its line lives in, for locating that line.
+    _OP_BUCKET = {
+        "add_crate": ("crates", "add"),
+        "remove_crate": ("crates", "remove"),
+        "patch_crate": ("crates", "patch"),
+        "add_troop": ("troops", "add"),
+        "remove_troop": ("troops", "remove"),
+        "patch_troop": ("troops", "patch"),
+    }
+
+    def _op_address(self, method_name: str, result) -> tuple | None:
+        """The tree address of the line an op targeted (the new one, or an existing dup)."""
+        cfg = self.model.config
+        if method_name == "set_setting":
+            key = result["key"]
+            return ("settings", key) if key in cfg.get("settings", {}) else None
+        if method_name == "append_array":
+            items = cfg.get("arrays", {}).get(result["setting"]) or []
+            return ("arrays", result["setting"], len(items) - 1) if items else None
+        bucket = self._OP_BUCKET.get(method_name)
+        if not bucket:
+            return None
+        section, sub = bucket
+        entries = cfg.get(section, {}).get(sub) or []
+        if sub == "add":
+            return (section, sub, len(entries) - 1) if entries else None
+        if sub == "remove":
+            for i, item in enumerate(entries):
+                if item == result:
+                    return (section, sub, i)
+        else:  # patch — locate by target name
+            name = result.get("name")
+            for i, item in enumerate(entries):
+                if isinstance(item, dict) and item.get("name") == name:
+                    return (section, sub, i)
+        return None
+
+    def _find_leaf(self, address: tuple | None):
+        if address is None:
+            return None
+        tree = self.query_one("#config", Tree)
+        stack = list(tree.root.children)
+        while stack:
+            node = stack.pop()
+            if node.data == address:
+                return node
+            stack.extend(node.children)
+        return None
+
+    def _finish_op(self, method_name: str, result, outcome) -> None:
+        """Notify the outcome and move the cursor to the created (or existing) line."""
+        if outcome is not False:
+            self._refresh()
+        address = self._op_address(method_name, result)
+        if outcome is False:
+            self.notify(t("tui.notify.op_rejected"), severity="warning")
+        # The tree's line cache is rebuilt on the next refresh; move the cursor after it.
+        self.call_after_refresh(self._select_line, address, outcome is not False)
+
+    def _select_line(self, address: tuple | None, announce: bool) -> None:
+        leaf = self._find_leaf(address)
+        if leaf is None:
+            return
+        self.query_one("#config", Tree).move_cursor(leaf)
+        if announce:
+            self.notify(t("tui.notify.op_added", what=str(leaf.label)))
 
     # add
     def _form_add_crate(self) -> None:
@@ -280,10 +339,8 @@ class CtldToolsApp(App):
             def on_submit(entry) -> None:
                 if not entry:
                     return
-                if getattr(self.model, method)(_patch_diff(entry, default)) is False:
-                    self.notify(t("tui.notify.op_rejected"), severity="warning")
-                    return
-                self._refresh()
+                patch = _patch_diff(entry, default)
+                self._finish_op(method, patch, getattr(self.model, method)(patch))
 
             self._open_modify_form(kind, initial=default, default=default, on_submit=on_submit)
 

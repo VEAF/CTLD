@@ -277,6 +277,37 @@ async def test_edit_patch_line_reverting_to_default_drops_it():
     assert app.model.config["troops"]["patch"] == []  # nothing differs → line dropped
 
 
+async def test_remove_op_auto_selects_new_line():
+    """After a catalogue op, the cursor lands on the line it created."""
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        await pilot.click("#remove")
+        await pilot.pause()
+        await pilot.click("#type-troop")
+        await pilot.pause()
+        target = app.model.ref.troop_names()[0]
+        _pick(app.query_one("#picker", FilterablePicker), target)
+        await pilot.pause()
+        cursor = app.query_one("#config", Tree).cursor_node
+        assert cursor is not None and cursor.data == ("troops", "remove", 0)
+
+
+async def test_patch_op_auto_selects_new_line():
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        await pilot.click("#patch")
+        await pilot.pause()
+        await pilot.click("#type-troop")
+        await pilot.pause()
+        _pick(app.query_one("#picker", FilterablePicker), "2x - Anti Air")
+        await pilot.pause()
+        app.query_one("#aa", Input).value = "8"
+        await pilot.click("#submit")
+        await pilot.pause()
+        cursor = app.query_one("#config", Tree).cursor_node
+        assert cursor is not None and cursor.data == ("troops", "patch", 0)
+
+
 async def test_remove_picker_greys_already_consumed_names():
     """A troop already in the remove diff is non-selectable in the remove picker."""
     app = CtldToolsApp()
