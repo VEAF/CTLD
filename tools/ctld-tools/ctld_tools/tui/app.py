@@ -178,7 +178,7 @@ class CtldToolsApp:
         params = self._tree.insert("", "end", iid="params", text=t("tui.section.parameters"), open=True)
 
         _FAMILY_ORDER = [
-            "general", "crates", "troops", "boarding", "jtac",
+            "general", "crates", "troops", "boarding", "parachute", "jtac",
             "smoke", "beacon", "fob", "recon", "mines", "aa", "soldier_weights",
         ]
 
