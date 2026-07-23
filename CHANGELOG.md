@@ -8,6 +8,24 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — ctld-tools v2 GUI complete (UX-CTLD-TOOLS-V2)
+
+Full rewrite of the ctld-tools authoring UI: Textual TUI replaced by a
+tkinter + sv-ttk native window. Object-first catalogue tree (no Add/Patch/Remove
+modals). All 8 tickets delivered; 271 tests pass.
+
+- **Tickets 01-08**: tkinter foundation, scalars, crates, troops, aircraft
+  (`capabilitiesByType`), zones (troopZones/wpZones/AIZones), mission lists
+  (transportPilotNames/extractableGroups/logisticUnits) + vehicle weights
+  (`groundVehicleWeights`), schema full coverage + `field_description()` accessor.
+- **`pyproject.toml`**: `textual` → `sv-ttk ≥2.6`; moved `textual` to optional `legacy` group.
+- **`reference.json`** bundle: extended with capabilitiesByType, zone defaults, pilot names,
+  extract groups, logistic units, vehicle weights, and schema tableFields descriptions.
+- **`CTLD_config_schema.yaml`**: `tableFields` section added — EN+FR descriptions for all
+  attributes of all 7 configurable tables (86 coverage assertions in CI).
+- **`.github/workflows/python-quality.yml`**: `python3-tk xvfb` + `xvfb-run pytest` for
+  headless tkinter testing on ubuntu-latest.
+
 ### Added — tkinter GUI foundation for ctld-tools v2 (UX-CTLD-TOOLS-V2 ticket 01)
 
 - **`ctld_tools/tui/app.py`**: replaced Textual `CtldToolsApp` with a tkinter skeleton
