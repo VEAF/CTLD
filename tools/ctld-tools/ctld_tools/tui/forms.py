@@ -458,6 +458,85 @@ class AircraftForm(ttk.Frame):
         self._on_restore(self._type_name)
 
 
+class ZoneForm(ttk.Frame):
+    """Editor panel for one zone entry (troopZone, wpZone, or AIZone)."""
+
+    def __init__(
+        self,
+        parent,
+        *,
+        zone_type: str,
+        fields: list[dict],
+        entry: dict,
+        state: str,
+        on_apply: Callable,
+        on_delete: Callable,
+        on_cancel: Callable,
+    ) -> None:
+        super().__init__(parent, padding=12)
+        self._zone_type = zone_type
+        self._fields = fields
+        self._state = state
+        self._on_apply = on_apply
+        self._on_delete = on_delete
+        self._on_cancel = on_cancel
+
+        zone_name = entry.get("zoneName", "")
+        ttk.Label(self, text=zone_name or t("tui.zone.new"), font=("", 11, "bold")).pack(anchor="w", pady=(0, 8))
+
+        self._vars: dict[str, tk.StringVar] = {}
+        for f in fields:
+            fname = f["name"]
+            val = entry.get(fname)
+            var = tk.StringVar(value=str(val) if val is not None else "")
+            self._vars[fname] = var
+            row = ttk.Frame(self)
+            row.pack(anchor="w", fill=tk.X, pady=(0, 4))
+            ttk.Label(row, text=fname, width=14).pack(side=tk.LEFT)
+            choices = f.get("choices")
+            if choices:
+                ttk.Combobox(row, textvariable=var, values=choices, state="readonly", width=14).pack(side=tk.LEFT)
+            else:
+                ttk.Entry(row, textvariable=var, width=16).pack(side=tk.LEFT)
+
+        self._error_var = tk.StringVar()
+        ttk.Label(self, textvariable=self._error_var, foreground="red").pack(anchor="w", pady=(4, 0))
+
+        btn_frame = ttk.Frame(self)
+        btn_frame.pack(anchor="w", pady=(10, 0))
+        if state != "default":  # only user-added zones are editable
+            ttk.Button(btn_frame, text=t("tui.btn.apply"), command=self._apply).pack(side=tk.LEFT, padx=(0, 4))
+            ttk.Button(btn_frame, text=t("tui.btn.delete"), command=self._delete).pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Button(btn_frame, text=t("tui.btn.cancel"), command=self._on_cancel).pack(side=tk.LEFT)
+
+    def set_error(self, msg: str) -> None:
+        self._error_var.set(msg)
+
+    def _collect(self) -> dict:
+        result: dict = {}
+        for f in self._fields:
+            fname = f["name"]
+            raw = self._vars[fname].get().strip()
+            if raw:
+                ftype = f.get("type", "str")
+                if ftype == "int":
+                    try:
+                        result[fname] = int(raw)
+                    except ValueError:
+                        result[fname] = raw
+                else:
+                    result[fname] = raw
+        return result
+
+    def _apply(self) -> None:
+        self._error_var.set("")
+        named = self._collect()
+        self._on_apply(self._zone_type, named)
+
+    def _delete(self) -> None:
+        self._on_delete(self._zone_type)
+
+
 _TROOP_COUNT_FIELDS = ("inf", "mg", "at", "aa", "mortar", "jtac")
 
 

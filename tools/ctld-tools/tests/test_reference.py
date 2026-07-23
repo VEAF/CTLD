@@ -103,3 +103,27 @@ def test_aircraft_capabilities_returns_dict(embedded_ref):
     assert "UH-1H" in caps
     assert isinstance(caps["UH-1H"], dict)
     assert caps["UH-1H"]["cratesEnabled"] is True
+
+
+def test_zone_fields_troop_returns_list(embedded_ref):
+    fields = embedded_ref.zone_fields("troopZones")
+    assert len(fields) >= 5
+    names = [f["name"] for f in fields]
+    assert "zoneName" in names
+    assert "colour" in names
+
+
+def test_default_zones_troop(embedded_ref):
+    zones = embedded_ref.default_zones("troopZones")
+    assert len(zones) == 21
+    assert zones[0][0] == "pickzone1"
+
+
+def test_default_zones_wp(embedded_ref):
+    zones = embedded_ref.default_zones("wpZones")
+    assert len(zones) == 10
+
+
+def test_default_zones_ai(embedded_ref):
+    zones = embedded_ref.default_zones("AIZones")
+    assert isinstance(zones, list)

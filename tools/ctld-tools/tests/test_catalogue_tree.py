@@ -229,3 +229,39 @@ def test_restore_aircraft_removes_from_removes(app):
     app.model.delete_entry(("capabilities", "remove", idx))
     app._rebuild_tree()
     assert "default" in app._tree.item("aircraft:UH-1H", "tags")
+
+
+# --- zone tests ---
+
+
+def test_zones_section_exists(app):
+    assert app._tree.exists("zones")
+
+
+def test_zones_troop_sub_node_exists(app):
+    assert app._tree.exists("zone_type:troopZones")
+
+
+def test_zones_default_entries_present(app):
+    # default troopZones should appear as zone_default: iids
+    assert app._tree.exists("zone_default:troopZones:pickzone1")
+
+
+def test_zones_default_entry_has_default_tag(app):
+    tags = app._tree.item("zone_default:troopZones:pickzone1", "tags")
+    assert "default" in tags
+
+
+def test_zones_added_entry_has_added_tag(app):
+    from ctld_tools.tui.app import CtldToolsApp
+    a = CtldToolsApp(_test_mode=True)
+    a.model.append_array("troopZones", ["myzone", "blue", -1, "yes", 0])
+    a._rebuild_tree()
+    assert a._tree.exists("zone_add:troopZones:0")
+    tags = a._tree.item("zone_add:troopZones:0", "tags")
+    assert "added" in tags
+    a.root.destroy()
+
+
+def test_zones_wp_entries_present(app):
+    assert app._tree.exists("zone_default:wpZones:wpzone1")

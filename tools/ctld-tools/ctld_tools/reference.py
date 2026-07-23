@@ -41,6 +41,59 @@ def load_setting_schema(src_dir: str | Path) -> dict:
         return yaml.load(fh) or {}
 
 
+_ZONE_FIELD_SCHEMAS: dict[str, list[dict]] = {
+    "troopZones": [
+        {"name": "zoneName",   "pos": 0, "type": "str"},
+        {"name": "colour",     "pos": 1, "type": "str",
+         "choices": ["blue", "red", "green", "orange", "none"]},
+        {"name": "troopLimit", "pos": 2, "type": "int"},
+        {"name": "canPickup",  "pos": 3, "type": "str", "choices": ["yes", "no"]},
+        {"name": "groupSize",  "pos": 4, "type": "int"},
+        {"name": "iconId",     "pos": 5, "type": "int", "optional": True},
+    ],
+    "wpZones": [
+        {"name": "zoneName",  "pos": 0, "type": "str"},
+        {"name": "colour",    "pos": 1, "type": "str",
+         "choices": ["blue", "red", "green", "orange", "none"]},
+        {"name": "canPickup", "pos": 2, "type": "str", "choices": ["yes", "no"]},
+        {"name": "side",      "pos": 3, "type": "int"},
+    ],
+    "AIZones": [
+        {"name": "zoneName", "pos": 0, "type": "str"},
+        {"name": "mode",     "pos": 1, "type": "str"},
+        {"name": "side",     "pos": 2, "type": "int"},
+    ],
+}
+
+
+def zone_to_dict(fields: list[dict], positional: list) -> dict:
+    """Convert a positional zone array to a named dict using the field schema."""
+    result: dict = {}
+    for f in fields:
+        pos = f["pos"]
+        if pos < len(positional):
+            result[f["name"]] = positional[pos]
+    return result
+
+
+def dict_to_zone(fields: list[dict], named: dict) -> list:
+    """Convert a named dict back to a positional zone array using the field schema."""
+    required_fields = [f for f in fields if not f.get("optional")]
+    optional_fields = [f for f in fields if f.get("optional")]
+    max_pos = max((f["pos"] for f in required_fields), default=-1)
+    # Extend for optional fields if they have values
+    for f in optional_fields:
+        if f["name"] in named and named[f["name"]] is not None:
+            max_pos = max(max_pos, f["pos"])
+    result: list = [None] * (max_pos + 1)
+    for f in fields:
+        pos = f["pos"]
+        if pos <= max_pos:
+            val = named.get(f["name"])
+            result[pos] = val
+    return result
+
+
 class Reference:
     """Index of the default catalogue: crate names→weights, troop names, arrays."""
 
@@ -151,6 +204,14 @@ class Reference:
     def is_mm_facing(self, name: str) -> bool:
         """True when the setting has a schema description (Standard section in the UI)."""
         return "description" in (self._setting_schema.get(name) or {})
+
+    def zone_fields(self, zone_type: str) -> list[dict]:
+        """Named field schemas for positional zone arrays (troopZones, wpZones, AIZones)."""
+        return list(_ZONE_FIELD_SCHEMAS.get(zone_type) or [])
+
+    def default_zones(self, zone_type: str) -> list[list]:
+        """Default zone entries (positional arrays) from the catalogue."""
+        return list(self.settings.get(zone_type) or [])
 
     def spawnable_crates(self) -> dict[str, list[dict]]:
         """Family → list of crate entry dicts from the default catalogue."""

@@ -24,11 +24,14 @@ def build_reference_bundle(src_dir: str | Path) -> dict:
     settings = load_default_settings(src_dir, inject_aa=True)
     scalar_settings = {k: v for k, v in settings.items() if isinstance(v, (bool, int, float, str))}
     return {
+        "AIZones": settings.get("AIZones") or [],
         "capabilitiesByType": settings.get("capabilitiesByType") or {},
-        "spawnableCrates": settings.get("spawnableCrates") or {},
         "loadableGroups": settings.get("loadableGroups") or [],
         "scalarSettings": scalar_settings,
         "settingSchema": load_setting_schema(src_dir),
+        "spawnableCrates": settings.get("spawnableCrates") or {},
+        "troopZones": settings.get("troopZones") or [],
+        "wpZones": settings.get("wpZones") or [],
     }
 
 

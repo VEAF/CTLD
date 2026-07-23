@@ -16,8 +16,8 @@ import sv_ttk
 
 from ctld_tools.editmodel import EditModel
 from ctld_tools.i18n import current_language, t
-from ctld_tools.reference import Reference
-from ctld_tools.tui.forms import AircraftForm, CrateForm, ScalarForm, TroopForm
+from ctld_tools.reference import Reference, dict_to_zone, zone_to_dict
+from ctld_tools.tui.forms import AircraftForm, CrateForm, ScalarForm, TroopForm, ZoneForm
 from ctld_tools.validate import ERROR
 
 
@@ -35,7 +35,7 @@ class CtldToolsApp:
         ref = Reference.from_src(src) if src else Reference.from_embedded()
         self.model = EditModel.load(self._yaml_path, ref=ref) if self._yaml_path.exists() else EditModel(ref=ref)
         self._current_key: str | None = None
-        self._current_form: ScalarForm | CrateForm | TroopForm | AircraftForm | None = None
+        self._current_form: ScalarForm | CrateForm | TroopForm | AircraftForm | ZoneForm | None = None
         self._current_context: dict | None = None
 
         self.root = tk.Tk()
@@ -137,6 +137,9 @@ class CtldToolsApp:
         # --- Aircraft section ---
         self._rebuild_aircraft_section()
 
+        # --- Zones section ---
+        self._rebuild_zones_section()
+
         # Restore selection
         if prev_iid and self._tree.exists(prev_iid):
             self._tree.selection_set(prev_iid)
@@ -228,6 +231,29 @@ class CtldToolsApp:
                 iid = f"aircraft:{type_name}"
                 self._tree.insert(aircraft_node, "end", iid=iid, text=f"{type_name}  +", tags=("added",))
 
+    def _rebuild_zones_section(self) -> None:
+        zones_node = self._tree.insert("", "end", iid="zones", text=t("tui.section.zones"), open=False)
+        zone_defs = [
+            ("troopZones", "tui.section.troop_zones"),
+            ("wpZones", "tui.section.wp_zones"),
+            ("AIZones", "tui.section.ai_zones"),
+        ]
+        for zone_type, label_key in zone_defs:
+            sub_iid = f"zone_type:{zone_type}"
+            self._tree.insert(zones_node, "end", iid=sub_iid, text=t(label_key), open=False)
+            defaults = self.model.ref.default_zones(zone_type)
+            added = self.model.config.get("arrays", {}).get(zone_type, [])
+            # Default entries (read-only)
+            for pos_entry in defaults:
+                name = pos_entry[0] if pos_entry else "?"
+                iid = f"zone_default:{zone_type}:{name}"
+                self._tree.insert(sub_iid, "end", iid=iid, text=name, tags=("default",))
+            # User-added entries
+            for idx, pos_entry in enumerate(added):
+                name = pos_entry[0] if pos_entry else "?"
+                iid = f"zone_add:{zone_type}:{idx}"
+                self._tree.insert(sub_iid, "end", iid=iid, text=f"{name}  +", tags=("added",))
+
     def _on_tree_select(self, event=None) -> None:  # noqa: ARG002
         sel = self._tree.selection()
         if not sel:
@@ -258,9 +284,118 @@ class CtldToolsApp:
             self._open_aircraft_form(type_name)
         elif iid == "aircraft":
             self._show_aircraft_add_button()
+        elif iid.startswith("zone_default:"):
+            _, zone_type, name = iid.split(":", 2)
+            self._open_zone_default_view(zone_type, name)
+        elif iid.startswith("zone_add:"):
+            _, zone_type, idx_str = iid.split(":", 2)
+            self._open_zone_add_form(zone_type, int(idx_str))
+        elif iid.startswith("zone_type:"):
+            zone_type = iid[len("zone_type:"):]
+            self._show_zone_add_button(zone_type)
         else:
             self._clear_form()
             self._show_form_hint()
+
+    # --- zone forms --------------------------------------------------------------
+
+    def _open_zone_default_view(self, zone_type: str, name: str) -> None:
+        """Show read-only view for a default zone entry."""
+        self._clear_form()
+        defaults = self.model.ref.default_zones(zone_type)
+        fields = self.model.ref.zone_fields(zone_type)
+        pos_entry = next((e for e in defaults if e and e[0] == name), None)
+        if pos_entry is None:
+            return
+        named = zone_to_dict(fields, pos_entry)
+        self._current_context = {"type": "zone_default", "zone_type": zone_type, "name": name}
+        form = ZoneForm(
+            self._form_frame,
+            zone_type=zone_type,
+            fields=fields,
+            entry=named,
+            state="default",
+            on_apply=lambda zt, n: None,
+            on_delete=lambda zt: None,
+            on_cancel=self._on_form_cancel,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _open_zone_add_form(self, zone_type: str, idx: int) -> None:
+        self._clear_form()
+        added = self.model.config.get("arrays", {}).get(zone_type, [])
+        if idx >= len(added):
+            return
+        fields = self.model.ref.zone_fields(zone_type)
+        named = zone_to_dict(fields, added[idx])
+        self._current_context = {"type": "zone_add", "zone_type": zone_type, "idx": idx}
+        form = ZoneForm(
+            self._form_frame,
+            zone_type=zone_type,
+            fields=fields,
+            entry=named,
+            state="added",
+            on_apply=lambda zt, n: self._on_zone_add_apply(zt, idx, n),
+            on_delete=lambda zt: self._on_zone_add_delete(zt, idx),
+            on_cancel=self._on_form_cancel,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _show_zone_add_button(self, zone_type: str) -> None:
+        self._clear_form()
+        self._current_context = {"type": "zone_type", "zone_type": zone_type}
+        label_map = {
+            "troopZones": "tui.section.troop_zones",
+            "wpZones": "tui.section.wp_zones",
+            "AIZones": "tui.section.ai_zones",
+        }
+        label = t(label_map.get(zone_type, "tui.section.zones"))
+        ttk.Label(self._form_frame, text=label, font=("", 11, "bold")).pack(anchor="w", padx=12, pady=(12, 4))
+        ttk.Button(
+            self._form_frame,
+            text=t("tui.zone.add_btn"),
+            command=lambda: self._open_new_zone_form(zone_type),
+        ).pack(anchor="w", padx=12, pady=4)
+
+    def _open_new_zone_form(self, zone_type: str) -> None:
+        self._clear_form()
+        self._current_context = {"type": "zone_new", "zone_type": zone_type}
+        fields = self.model.ref.zone_fields(zone_type)
+        form = ZoneForm(
+            self._form_frame,
+            zone_type=zone_type,
+            fields=fields,
+            entry={},
+            state="added",
+            on_apply=self._on_zone_new_apply,
+            on_delete=lambda zt: None,
+            on_cancel=self._on_form_cancel,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _on_zone_new_apply(self, zone_type: str, named: dict) -> None:
+        fields = self.model.ref.zone_fields(zone_type)
+        positional = dict_to_zone(fields, named)
+        self.model.append_array(zone_type, positional)
+        self._rebuild_tree()
+        self._refresh_status()
+
+    def _on_zone_add_apply(self, zone_type: str, idx: int, named: dict) -> None:
+        fields = self.model.ref.zone_fields(zone_type)
+        positional = dict_to_zone(fields, named)
+        self.model.update_entry(("arrays", zone_type, idx), positional)
+        self._rebuild_tree()
+        self._refresh_status()
+
+    def _on_zone_add_delete(self, zone_type: str, idx: int) -> None:
+        self.model.delete_entry(("arrays", zone_type, idx))
+        self._rebuild_tree()
+        self._refresh_status()
+        self._clear_form()
+        self._show_form_hint()
 
     def _open_scalar_form(self, key: str) -> None:
         self._clear_form()
@@ -672,6 +807,8 @@ class CtldToolsApp:
                 self._open_troop_form(ctx["name"])
             elif ctx and ctx.get("type") == "aircraft":
                 self._open_aircraft_form(ctx["type_name"])
+            elif ctx and ctx.get("type") == "zone_add":
+                self._open_zone_add_form(ctx["zone_type"], ctx["idx"])
 
     def _redo(self, event=None) -> None:  # noqa: ARG002
         if self.model.redo():
@@ -687,6 +824,8 @@ class CtldToolsApp:
                 self._open_troop_form(ctx["name"])
             elif ctx and ctx.get("type") == "aircraft":
                 self._open_aircraft_form(ctx["type_name"])
+            elif ctx and ctx.get("type") == "zone_add":
+                self._open_zone_add_form(ctx["zone_type"], ctx["idx"])
 
     # --- status ------------------------------------------------------------------
 
