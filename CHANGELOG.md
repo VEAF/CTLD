@@ -39,6 +39,10 @@ modals). All 8 tickets delivered; 271 tests pass.
   extract groups, logistic units, vehicle weights, and schema tableFields descriptions.
 - **`CTLD_config_schema.yaml`**: `tableFields` section added — EN+FR descriptions for all
   attributes of all 7 configurable tables (86 coverage assertions in CI).
+- **Contextual tooltips (ticket 08)**: hover any field label in the Crates / Troops /
+  Aircraft / Zone editor forms to see its bilingual description; hover any section or
+  parameter-family node in the tree for a one-line summary. 26 new `tui.section.*` and
+  `tui.family.*` i18n description keys added (EN + FR).
 - **`.github/workflows/python-quality.yml`**: `python3-tk xvfb` + `xvfb-run pytest` for
   headless tkinter testing on ubuntu-latest.
 
