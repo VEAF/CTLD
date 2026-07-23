@@ -872,6 +872,210 @@
         "fr": "Utilise la physique sling-load de DCS au lieu du système virtuel de hover"
       }
     },
+    "tableFields": {
+      "AIZones": {
+        "mode": {
+          "en": "AI zone mode: supply, pickup, unload, etc.",
+          "fr": "Mode de la zone IA : supply, pickup, unload, etc."
+        },
+        "side": {
+          "en": "Coalition that uses this AI zone: 0 = both, 1 = RED, 2 = BLUE",
+          "fr": "Coalition qui utilise cette zone IA : 0 = les deux, 1 = RED, 2 = BLUE"
+        },
+        "zoneName": {
+          "en": "DCS trigger zone name for the AI zone (must exist in the mission editor)",
+          "fr": "Nom de la zone de déclenchement DCS pour la zone IA (doit exister dans l'éditeur de mission)"
+        }
+      },
+      "capabilitiesByType": {
+        "canParachuteDrop": {
+          "en": "Allow parachute troop drops from this aircraft",
+          "fr": "Autorise le saut en parachute de troops depuis cet appareil"
+        },
+        "canSlingload": {
+          "en": "Allow DCS sling-load for this aircraft",
+          "fr": "Autorise le sling-load DCS pour cet appareil"
+        },
+        "canTransportWholeVehicle": {
+          "en": "Allow loading and transporting whole vehicles (requires loadableVehiclesBLUE/RED)",
+          "fr": "Autorise le chargement et le transport de véhicules entiers (nécessite loadableVehiclesBLUE/RED)"
+        },
+        "convertNativeLoadToCTLD": {
+          "en": "Convert a native DCS cargo load to a CTLD crate on board",
+          "fr": "Convertit un cargo natif DCS en crate CTLD à bord"
+        },
+        "cratesEnabled": {
+          "en": "Allow this aircraft to carry and drop crates",
+          "fr": "Autorise cet appareil à transporter et larguer des crates"
+        },
+        "loadableVehiclesBLUE": {
+          "en": "List of BLUE coalition vehicle types this aircraft can carry whole",
+          "fr": "Liste des types de véhicules de la coalition BLUE que cet appareil peut transporter entiers"
+        },
+        "loadableVehiclesRED": {
+          "en": "List of RED coalition vehicle types this aircraft can carry whole",
+          "fr": "Liste des types de véhicules de la coalition RED que cet appareil peut transporter entiers"
+        },
+        "maxCratesOnboard": {
+          "en": "Maximum number of crates this aircraft can carry simultaneously",
+          "fr": "Nombre maximum de crates que cet appareil peut transporter simultanément"
+        },
+        "maxTroopsOnboard": {
+          "en": "Maximum number of troops this aircraft can carry simultaneously",
+          "fr": "Nombre maximum de troops que cet appareil peut transporter simultanément"
+        },
+        "maxVehicleWeight": {
+          "en": "Maximum vehicle weight (kg) this aircraft can carry",
+          "fr": "Poids maximum du véhicule (kg) que cet appareil peut transporter"
+        },
+        "maxWholeVehiclesOnboard": {
+          "en": "Maximum number of whole vehicles this aircraft can carry",
+          "fr": "Nombre maximum de véhicules entiers que cet appareil peut transporter"
+        },
+        "troopsEnabled": {
+          "en": "Allow this aircraft to carry and deploy troops",
+          "fr": "Autorise cet appareil à transporter et déployer des troops"
+        },
+        "useNativeDcsCargoSystem": {
+          "en": "Use the DCS native cargo weight system instead of the CTLD virtual system",
+          "fr": "Utilise le système de poids cargo natif DCS au lieu du système virtuel CTLD"
+        }
+      },
+      "groundVehicleWeights": {
+        "unit": {
+          "en": "DCS unit type name (must match the DCS catalogue exactly)",
+          "fr": "Nom du type d'unité DCS (doit correspondre exactement au catalogue DCS)"
+        },
+        "weight_kg": {
+          "en": "Vehicle weight in kg — used for whole-vehicle transport weight checks",
+          "fr": "Poids du véhicule en kg — utilisé pour les vérifications de poids de transport de véhicule entier"
+        }
+      },
+      "loadableGroups": {
+        "aa": {
+          "en": "Number of anti-air soldiers (MANPAD)",
+          "fr": "Nombre de soldats anti-aérien (MANPAD)"
+        },
+        "at": {
+          "en": "Number of anti-tank soldiers (RPG)",
+          "fr": "Nombre de soldats anti-char (RPG)"
+        },
+        "inf": {
+          "en": "Number of infantry soldiers",
+          "fr": "Nombre de soldats d'infanterie"
+        },
+        "jtac": {
+          "en": "Number of JTAC soldiers",
+          "fr": "Nombre de soldats JTAC"
+        },
+        "mg": {
+          "en": "Number of machine-gunners",
+          "fr": "Nombre de mitrailleurs"
+        },
+        "mortar": {
+          "en": "Number of mortar crew members",
+          "fr": "Nombre de membres d'équipe de mortier"
+        },
+        "name": {
+          "en": "Display name shown in the F10 boarding menu",
+          "fr": "Nom affiché dans le menu d'embarquement F10"
+        }
+      },
+      "spawnableCrates": {
+        "cratesRequired": {
+          "en": "Number of crates needed to unpack this item (default 1)",
+          "fr": "Nombre de crates nécessaires pour déballer cet objet (défaut 1)"
+        },
+        "desc": {
+          "en": "Display name shown in the F10 menu",
+          "fr": "Nom affiché dans le menu F10"
+        },
+        "isJTAC": {
+          "en": "Mark this spawn as a JTAC unit",
+          "fr": "Marque ce spawn comme unité JTAC"
+        },
+        "side": {
+          "en": "Coalition restriction: 1 = RED, 2 = BLUE, omit = both",
+          "fr": "Restriction de coalition : 1 = RED, 2 = BLUE, omettre = les deux"
+        },
+        "spawnAs": {
+          "en": "Force spawn category: AIRPLANE, HELICOPTER, GROUND_UNIT, etc.",
+          "fr": "Force la catégorie de spawn : AIRPLANE, HELICOPTER, GROUND_UNIT, etc."
+        },
+        "specificParams": {
+          "en": "Drone JTAC orbit parameters (altitude, radii, speed) — only for Drone family",
+          "fr": "Paramètres d'orbite du JTAC drone (altitude, rayons, vitesse) — uniquement famille Drone"
+        },
+        "specificParams.alti": {
+          "en": "Orbit altitude AGL (m)",
+          "fr": "Altitude d'orbite AGL (m)"
+        },
+        "specificParams.orbitRadiusNoLase": {
+          "en": "Orbit radius when not lasing (m)",
+          "fr": "Rayon d'orbite sans lasing (m)"
+        },
+        "specificParams.orbitRadiusOnLase": {
+          "en": "Orbit radius when lasing (m)",
+          "fr": "Rayon d'orbite en lasing (m)"
+        },
+        "specificParams.speed": {
+          "en": "Orbit airspeed (km/h)",
+          "fr": "Vitesse d'orbite (km/h)"
+        },
+        "unit": {
+          "en": "DCS unit type name (must match the DCS catalogue exactly)",
+          "fr": "Nom du type d'unité DCS (doit correspondre exactement au catalogue DCS)"
+        },
+        "weight_kg": {
+          "en": "Unique crate mass in kg — also the runtime key; must be unique across all crates",
+          "fr": "Masse unique de la crate en kg — aussi la clé runtime ; doit être unique parmi toutes les crates"
+        }
+      },
+      "troopZones": {
+        "canPickup": {
+          "en": "Allow picking up troops from this zone: yes / no",
+          "fr": "Autorise le pickup de troops depuis cette zone : yes / no"
+        },
+        "colour": {
+          "en": "Smoke colour at pickup: blue, red, green, orange, none",
+          "fr": "Couleur de smoke au pickup : blue, red, green, orange, none"
+        },
+        "groupSize": {
+          "en": "Override default group size for this zone (0 = use global default)",
+          "fr": "Surcharge la taille de groupe par défaut pour cette zone (0 = utilise le défaut global)"
+        },
+        "iconId": {
+          "en": "Optional F10 map icon ID override for this zone",
+          "fr": "Identifiant d'icône F10 optionnel de remplacement pour cette zone"
+        },
+        "troopLimit": {
+          "en": "Max troops deployable from this zone (-1 = unlimited)",
+          "fr": "Nombre max de troops déployables depuis cette zone (-1 = illimité)"
+        },
+        "zoneName": {
+          "en": "DCS trigger zone name (must exist in the mission editor)",
+          "fr": "Nom de la zone de déclenchement DCS (doit exister dans l'éditeur de mission)"
+        }
+      },
+      "wpZones": {
+        "canPickup": {
+          "en": "Allow troops to board at this waypoint zone: yes / no",
+          "fr": "Autorise l'embarquement de troops dans cette zone de waypoint : yes / no"
+        },
+        "colour": {
+          "en": "Smoke colour at waypoint: blue, red, green, orange, none",
+          "fr": "Couleur de smoke au waypoint : blue, red, green, orange, none"
+        },
+        "side": {
+          "en": "Coalition that can use this zone: 0 = both, 1 = RED, 2 = BLUE",
+          "fr": "Coalition autorisée à utiliser cette zone : 0 = les deux, 1 = RED, 2 = BLUE"
+        },
+        "zoneName": {
+          "en": "DCS trigger zone name (must exist in the mission editor)",
+          "fr": "Nom de la zone de déclenchement DCS (doit exister dans l'éditeur de mission)"
+        }
+      }
+    },
     "troopPickupAtFOB": {
       "description": {
         "en": "Allow troop pickup at built FOBs",

@@ -146,3 +146,22 @@ def test_vehicle_weights_returns_dict(embedded_ref):
     vw = embedded_ref.vehicle_weights()
     assert "BRDM-2" in vw
     assert vw["BRDM-2"] == 7000
+
+
+def test_field_description_crate_unit_en(embedded_ref):
+    desc = embedded_ref.field_description("spawnableCrates", "unit", "en")
+    assert desc and "DCS" in desc
+
+
+def test_field_description_crate_unit_fr(embedded_ref):
+    desc = embedded_ref.field_description("spawnableCrates", "unit", "fr")
+    assert desc and len(desc) > 5
+
+
+def test_field_description_unknown_returns_none(embedded_ref):
+    assert embedded_ref.field_description("nonexistent_table", "field", "en") is None
+
+
+def test_field_description_troop_inf_en(embedded_ref):
+    desc = embedded_ref.field_description("loadableGroups", "inf", "en")
+    assert desc and "infantry" in desc.lower()

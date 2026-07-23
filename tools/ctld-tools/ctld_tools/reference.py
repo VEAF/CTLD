@@ -169,6 +169,14 @@ class Reference:
             return None
         return desc.get(lang) or desc.get("en")
 
+    def field_description(self, table: str, field: str, lang: str = "en") -> str | None:
+        """EN or FR description for a named field in a table (from schema tableFields), or None."""
+        table_fields = (self._setting_schema.get("tableFields") or {}).get(table) or {}
+        desc = table_fields.get(field)
+        if not isinstance(desc, dict):
+            return None
+        return desc.get(lang) or desc.get("en")
+
     def closest_setting(self, name) -> str | None:
         return _closest(str(name), self._scalar_settings.keys())
 
