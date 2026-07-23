@@ -31,10 +31,12 @@ def _isolated_cwd(tmp_path, monkeypatch):
 
 
 def _leaf_with(tree: Tree, address: tuple):
-    for section in tree.root.children:
-        for leaf in section.children:
-            if leaf.data == address:
-                return leaf
+    stack = list(tree.root.children)
+    while stack:
+        node = stack.pop()
+        if node.data == address:
+            return node
+        stack.extend(node.children)
     return None
 
 
@@ -275,6 +277,49 @@ async def test_edit_patch_line_reverting_to_default_drops_it():
         await pilot.pause()
 
     assert app.model.config["troops"]["patch"] == []  # nothing differs → line dropped
+
+
+async def test_tree_groups_entries_by_op_nature():
+    """Crate/troop leaves live under a word-headed sub-group, not directly on the section."""
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        app.model.add_troop({"name": "Recon", "inf": 3})
+        app._refresh()
+        await pilot.pause()
+        leaf = _leaf_with(app.query_one("#config", Tree), ("troops", "add", 0))
+        assert leaf is not None
+        group = leaf.parent  # the "Added" sub-group
+        assert group.data is None and len(group.children) == 1
+        assert group.parent.data is None  # the Troop section
+
+
+async def test_selection_buttons_enable_only_on_a_leaf():
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        edit = app.query_one("#edit", Button)
+        delete = app.query_one("#delete-btn", Button)
+        assert edit.disabled and delete.disabled  # nothing selected at start
+        app.model.add_troop({"name": "Recon", "inf": 3})
+        app._refresh()
+        await pilot.pause()
+        tree = app.query_one("#config", Tree)
+        tree.move_cursor(_leaf_with(tree, ("troops", "add", 0)))
+        await pilot.pause()
+        assert not edit.disabled and not delete.disabled  # a leaf is selected
+
+
+async def test_edit_button_opens_editor_for_selected_line():
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        app.model.add_troop({"name": "Recon", "inf": 3})
+        app._refresh()
+        await pilot.pause()
+        tree = app.query_one("#config", Tree)
+        tree.move_cursor(_leaf_with(tree, ("troops", "add", 0)))
+        await pilot.pause()
+        await pilot.click("#edit")
+        await pilot.pause()
+        assert isinstance(app.screen, AddTroopForm)
 
 
 async def test_remove_op_auto_selects_new_line():

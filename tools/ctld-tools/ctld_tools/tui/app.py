@@ -16,6 +16,7 @@ from pathlib import Path
 
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
+from textual.css.query import NoMatches
 from textual.widgets import Button, Footer, Header, Label, RichLog, Tree
 
 from ctld_tools.datamine import known_dcs_types
@@ -56,8 +57,11 @@ class CtldToolsApp(App):
     #config { height: 1fr; border: solid $primary; }
     #side { width: 1fr; }
     #findings { height: 1fr; border: solid $secondary; }
-    #actions { height: auto; layout: grid; grid-size: 6 1; grid-gutter: 0 1; }
-    #actions Button { width: 1fr; }
+    #actions { height: auto; layout: horizontal; }
+    .action-group { width: 1fr; height: auto; padding: 0 1; }
+    .group-title { color: $text-muted; text-style: bold; }
+    .group-buttons { height: auto; width: 1fr; }
+    .group-buttons Button { width: 1fr; min-width: 4; }
     .form { width: 70%; height: auto; padding: 1 2; background: $surface; border: thick $primary; }
     .form-title { text-style: bold; }
     .form-buttons { height: auto; }
@@ -101,17 +105,29 @@ class CtldToolsApp(App):
                 yield Label(t("tui.validation"))
                 yield RichLog(id="findings", markup=True, highlight=False)
         with Container(id="actions"):
-            yield Button(t("tui.btn.add"), id="add", variant="primary")
-            yield Button(t("tui.btn.remove"), id="remove")
-            yield Button(t("tui.btn.patch"), id="patch")
-            yield Button(t("tui.btn.save"), id="save")
-            yield Button(t("tui.btn.generate"), id="generate", variant="success")
-            yield Button(t("tui.btn.inject"), id="inject")
+            with Vertical(classes="action-group"):
+                yield Label(t("tui.group.catalogue"), classes="group-title")
+                with Horizontal(classes="group-buttons"):
+                    yield Button(t("tui.btn.add"), id="add", variant="primary")
+                    yield Button(t("tui.btn.remove"), id="remove")
+                    yield Button(t("tui.btn.patch"), id="patch")
+            with Vertical(classes="action-group"):
+                yield Label(t("tui.group.selection"), classes="group-title")
+                with Horizontal(classes="group-buttons"):
+                    yield Button(t("tui.btn.edit"), id="edit")
+                    yield Button(t("tui.btn.delete"), id="delete-btn")
+            with Vertical(classes="action-group"):
+                yield Label(t("tui.group.file"), classes="group-title")
+                with Horizontal(classes="group-buttons"):
+                    yield Button(t("tui.btn.save"), id="save")
+                    yield Button(t("tui.btn.generate"), id="generate", variant="success")
+                    yield Button(t("tui.btn.inject"), id="inject")
         yield Footer()
 
     def on_mount(self) -> None:
         self.query_one("#config", Tree).show_root = False
         self._refresh()
+        self._sync_selection_buttons()
 
     # --- rendering ---------------------------------------------------------------
 
@@ -119,6 +135,16 @@ class CtldToolsApp(App):
         self._rebuild_tree()
         self._rebuild_findings()
         self.query_one("#generate", Button).disabled = not self.model.can_generate
+        self._sync_selection_buttons()
+
+    @staticmethod
+    def _add_bucket(parent, title: str, entries, section: str, sub: str, label) -> None:
+        """Add a non-empty add/remove/patch bucket as a titled sub-group of leaves."""
+        if not entries:
+            return
+        group = parent.add(title, expand=True)
+        for i, entry in enumerate(entries):
+            group.add_leaf(label(entry), data=(section, sub, i))
 
     def _rebuild_tree(self) -> None:
         tree = self.query_one("#config", Tree)
@@ -130,29 +156,58 @@ class CtldToolsApp(App):
         for key in sorted(settings):
             node.add_leaf(f"{key} = {settings[key]}", data=("settings", key))
 
+        # Crates / troops carry three op natures; group them under word headers so the
+        # diff reads plainly (no bare +/-/~ glyphs).
         crates = cfg.get("crates") or {}
         node = tree.root.add(t("tui.type.crate"), expand=True)
-        for i, entry in enumerate(crates.get("add") or []):
-            node.add_leaf(f"+ {entry.get('name', '?')} ({entry.get('unit', '?')})", data=("crates", "add", i))
-        for i, target in enumerate(crates.get("remove") or []):
-            node.add_leaf(f"- {target}", data=("crates", "remove", i))
-        for i, entry in enumerate(crates.get("patch") or []):
-            node.add_leaf(f"~ {entry.get('name', entry.get('weight', '?'))}", data=("crates", "patch", i))
+        self._add_bucket(
+            node,
+            t("tui.group.added"),
+            crates.get("add"),
+            "crates",
+            "add",
+            lambda e: f"{e.get('name', '?')} ({e.get('unit', '?')})",
+        )
+        self._add_bucket(node, t("tui.group.removed"), crates.get("remove"), "crates", "remove", str)
+        self._add_bucket(
+            node,
+            t("tui.group.modified"),
+            crates.get("patch"),
+            "crates",
+            "patch",
+            lambda e: str(e.get("name", e.get("weight", "?"))),
+        )
 
         troops = cfg.get("troops") or {}
         node = tree.root.add(t("tui.type.troop"), expand=True)
-        for i, entry in enumerate(troops.get("add") or []):
-            node.add_leaf(f"+ {entry.get('name', '?')}", data=("troops", "add", i))
-        for i, target in enumerate(troops.get("remove") or []):
-            node.add_leaf(f"- {target}", data=("troops", "remove", i))
-        for i, entry in enumerate(troops.get("patch") or []):
-            node.add_leaf(f"~ {entry.get('name', '?')}", data=("troops", "patch", i))
+        self._add_bucket(
+            node, t("tui.group.added"), troops.get("add"), "troops", "add", lambda e: str(e.get("name", "?"))
+        )
+        self._add_bucket(node, t("tui.group.removed"), troops.get("remove"), "troops", "remove", str)
+        self._add_bucket(
+            node, t("tui.group.modified"), troops.get("patch"), "troops", "patch", lambda e: str(e.get("name", "?"))
+        )
 
         arrays = cfg.get("arrays") or {}
         node = tree.root.add(t("tui.type.array"), expand=True)
         for setting, items in arrays.items():
             for i, item in enumerate(items):
                 node.add_leaf(f"{setting} += {item}", data=("arrays", setting, i))
+
+    def on_tree_node_highlighted(self, event) -> None:
+        self._sync_selection_buttons()
+
+    def _sync_selection_buttons(self) -> None:
+        """Enable the 'selected line' actions only when a real entry (leaf) is selected."""
+        try:  # NodeHighlighted can fire during teardown, when the widgets are gone
+            tree = self.query_one("#config", Tree)
+            edit = self.query_one("#edit", Button)
+            delete = self.query_one("#delete-btn", Button)
+        except NoMatches:
+            return
+        editable = tree.cursor_node is not None and tree.cursor_node.data is not None
+        edit.disabled = not editable
+        delete.disabled = not editable
 
     def _rebuild_findings(self) -> None:
         log = self.query_one("#findings", RichLog)
@@ -171,6 +226,8 @@ class CtldToolsApp(App):
             "add": lambda: self._choose_type("add"),
             "remove": lambda: self._choose_type("remove"),
             "patch": lambda: self._choose_type("patch"),
+            "edit": self.action_edit_entry,
+            "delete-btn": self.action_delete_entry,
             "save": self._save,
             "generate": self._generate,
             "inject": self._inject,
