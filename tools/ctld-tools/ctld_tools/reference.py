@@ -213,6 +213,14 @@ class Reference:
         """True when the setting has a schema description (Standard section in the UI)."""
         return "description" in (self._setting_schema.get(name) or {})
 
+    def setting_group(self, name: str) -> str | None:
+        """Functional family key for this setting (e.g. 'jtac', 'recon'), or None."""
+        return (self._setting_schema.get(name) or {}).get("group")
+
+    def is_standard(self, name: str) -> bool:
+        """True when the setting is marked standard: true in the schema."""
+        return bool((self._setting_schema.get(name) or {}).get("standard", False))
+
     def zone_fields(self, zone_type: str) -> list[dict]:
         """Named field schemas for positional zone arrays (troopZones, wpZones, AIZones)."""
         return list(_ZONE_FIELD_SCHEMAS.get(zone_type) or [])

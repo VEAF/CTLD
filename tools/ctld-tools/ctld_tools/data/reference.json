@@ -432,85 +432,108 @@
       "description": {
         "en": "Allow multiple crate sets to add extra launchers (N×crates → N×launchers)",
         "fr": "Autorise plusieurs jeux de crate à ajouter des launchers supplémentaires (N×crates → N×launchers)"
-      }
+      },
+      "group": "aa"
     },
     "AASystemLimitBLUE": {
       "description": {
         "en": "Max active AA systems for BLUE",
         "fr": "Nombre max de systèmes AA actifs pour BLUE"
-      }
+      },
+      "group": "aa",
+      "standard": true
     },
     "AASystemLimitRED": {
       "description": {
         "en": "Max active AA systems for RED",
         "fr": "Nombre max de systèmes AA actifs pour RED"
-      }
+      },
+      "group": "aa",
+      "standard": true
     },
     "CIV_WEIGHT": {
       "description": {
         "en": "Light personal items for the civilian role (kg)",
         "fr": "Effets personnels légers pour le rôle civil (kg)"
-      }
+      },
+      "group": "soldier_weights",
+      "standard": true
     },
     "JTAC_LIMIT_BLUE": {
       "description": {
         "en": "Max JTAC objects BLUE may spawn (fixed quota — not refilled when a JTAC is killed)",
         "fr": "Nombre max d'objets JTAC que BLUE peut spawn (quota fixe — non réapprovisionné lorsqu'un JTAC est tué)"
-      }
+      },
+      "group": "jtac",
+      "standard": true
     },
     "JTAC_LIMIT_RED": {
       "description": {
         "en": "Max JTAC objects RED may spawn (same)",
         "fr": "Nombre max d'objets JTAC que RED peut spawn (idem)"
-      }
+      },
+      "group": "jtac",
+      "standard": true
     },
     "JTAC_WEIGHT": {
       "description": {
         "en": "JTAC laser + radio + binoculars (kg)",
         "fr": "Laser + radio + jumelles du JTAC (kg)"
-      }
+      },
+      "group": "jtac"
     },
     "JTAC_allow9Line": {
       "description": {
         "en": "Allow 9-line requests",
         "fr": "Autorise les requêtes 9-line"
-      }
+      },
+      "group": "jtac",
+      "standard": true
     },
     "JTAC_allowSmokeRequest": {
       "description": {
         "en": "Allow smoke-on-target requests",
         "fr": "Autorise les requêtes de smoke-on-target"
-      }
+      },
+      "group": "jtac",
+      "standard": true
     },
     "JTAC_allowStandbyMode": {
       "description": {
         "en": "Allow toggling lasing on/off",
         "fr": "Autorise l'activation/désactivation du lasing"
-      }
+      },
+      "group": "jtac",
+      "standard": true
     },
     "JTAC_droneAltitude": {
       "description": {
         "en": "Fallback orbit altitude AGL (m) for drone JTACs when the crate has no specificParams",
         "fr": "Altitude d'orbite de repli AGL (m) pour les JTAC drones quand la crate n'a pas de specificParams"
-      }
+      },
+      "group": "jtac"
     },
     "JTAC_droneRadius": {
       "description": {
         "en": "Fallback orbit radius (m) for drone JTACs when the crate has no specificParams",
         "fr": "Rayon d'orbite de repli (m) pour les JTAC drones quand la crate n'a pas de specificParams"
-      }
+      },
+      "group": "jtac"
     },
     "JTAC_dropEnabled": {
       "description": {
         "en": "Allow JTAC crate spawn from F10",
         "fr": "Autorise le spawn de crate JTAC depuis F10"
-      }
+      },
+      "group": "jtac",
+      "standard": true
     },
     "JTAC_laseSpotCorrections": {
       "description": {
         "en": "Lead moving targets, accounting for wind and target speed",
         "fr": "Anticipe les cibles mobiles, en tenant compte du vent et de la vitesse de la cible"
-      }
+      },
+      "group": "jtac"
     },
     "JTAC_lock": {
       "choices": [
@@ -521,241 +544,310 @@
       "description": {
         "en": "Target filter: \"vehicle\" | \"troop\" | \"all\"",
         "fr": "Filtre de cible : \"vehicle\" | \"troop\" | \"all\""
-      }
+      },
+      "group": "jtac",
+      "standard": true
     },
     "JTAC_maxDistance": {
       "description": {
         "en": "JTAC line-of-sight range (metres)",
         "fr": "Portée en ligne de vue du JTAC (mètres)"
-      }
+      },
+      "group": "jtac",
+      "standard": true
     },
     "JTAC_smokeColour_BLUE": {
       "description": {
         "en": "BLUE JTAC smoke colour — 0=Green 1=Red 2=White 3=Orange 4=Blue",
         "fr": "Couleur de smoke du JTAC BLUE — 0=Green 1=Red 2=White 3=Orange 4=Blue"
-      }
+      },
+      "group": "jtac",
+      "standard": true
     },
     "JTAC_smokeColour_RED": {
       "description": {
         "en": "RED JTAC smoke colour — 0=Green 1=Red 2=White 3=Orange 4=Blue",
         "fr": "Couleur de smoke du JTAC RED — 0=Green 1=Red 2=White 3=Orange 4=Blue"
-      }
+      },
+      "group": "jtac",
+      "standard": true
     },
     "JTAC_smokeMarginOfError": {
       "description": {
         "en": "Max random placement error radius (m) for smoke",
         "fr": "Rayon max d'erreur de placement aléatoire (m) pour la smoke"
-      }
+      },
+      "group": "jtac"
     },
     "JTAC_smokeOffset_x": {
       "description": {
         "en": "Fixed East/West offset (m) added before the random error",
         "fr": "Offset Est/Ouest fixe (m) ajouté avant l'erreur aléatoire"
-      }
+      },
+      "group": "jtac"
     },
     "JTAC_smokeOffset_y": {
       "description": {
         "en": "Fixed vertical offset (m) — keeps smoke visible above terrain",
         "fr": "Offset vertical fixe (m) — garde la smoke visible au-dessus du terrain"
-      }
+      },
+      "group": "jtac"
     },
     "JTAC_smokeOffset_z": {
       "description": {
         "en": "Fixed North/South offset (m) added before the random error",
         "fr": "Offset Nord/Sud fixe (m) ajouté avant l'erreur aléatoire"
-      }
+      },
+      "group": "jtac"
     },
     "JTAC_smokeOn_BLUE": {
       "description": {
         "en": "Enable smoke marking for BLUE JTACs",
         "fr": "Active le marquage smoke pour les JTAC BLUE"
-      }
+      },
+      "group": "jtac",
+      "standard": true
     },
     "JTAC_smokeOn_RED": {
       "description": {
         "en": "Enable smoke marking for RED JTACs",
         "fr": "Active le marquage smoke pour les JTAC RED"
-      }
+      },
+      "group": "jtac",
+      "standard": true
     },
     "KIT_WEIGHT": {
       "description": {
         "en": "Helmet + backpack per soldier (kg)",
         "fr": "Casque + sac à dos par soldat (kg)"
-      }
+      },
+      "group": "soldier_weights",
+      "standard": true
     },
     "MANPAD_WEIGHT": {
       "description": {
         "en": "AA soldier MANPAD tube (kg)",
         "fr": "Tube MANPAD du soldat AA (kg)"
-      }
+      },
+      "group": "soldier_weights",
+      "standard": true
     },
     "MG_WEIGHT": {
       "description": {
         "en": "Machine-gunner weapon + 200-round belt (kg)",
         "fr": "Arme du mitrailleur + bande de 200 cartouches (kg)"
-      }
+      },
+      "group": "soldier_weights",
+      "standard": true
     },
     "MORTAR_WEIGHT": {
       "description": {
         "en": "Mortar crew tube + shells (kg)",
         "fr": "Tube + obus de l'équipe de mortier (kg)"
-      }
+      },
+      "group": "soldier_weights",
+      "standard": true
     },
     "RIFLE_WEIGHT": {
       "description": {
         "en": "Standard rifleman kit (kg)",
         "fr": "Équipement standard de fusilier (kg)"
-      }
+      },
+      "group": "soldier_weights",
+      "standard": true
     },
     "RPG_WEIGHT": {
       "description": {
         "en": "AT soldier RPG + rocket (kg)",
         "fr": "RPG + roquette du soldat AT (kg)"
-      }
+      },
+      "group": "soldier_weights",
+      "standard": true
     },
     "SOLDIER_WEIGHT": {
       "description": {
         "en": "Base body weight per soldier (kg)",
         "fr": "Poids corporel de base par soldat (kg)"
-      }
+      },
+      "group": "soldier_weights",
+      "standard": true
     },
     "aaLaunchers": {
       "description": {
         "en": "Default number of launchers per AA system when the template does not specify",
         "fr": "Nombre par défaut de launchers par système AA quand le template n'en précise pas"
-      }
+      },
+      "group": "aa",
+      "standard": true
     },
     "addPlayerAircraftByType": {
       "description": {
         "en": "How CTLD selects player units that receive menus",
         "fr": "Comment CTLD sélectionne les unités joueur qui reçoivent les menus"
-      }
+      },
+      "group": "general"
     },
     "allowRandomAiTeamPickups": {
       "description": {
         "en": "Allow AI transports to randomly pick a troop template at pickup zones. When false, the AI always picks the first available template for its coalition",
         "fr": "Autorise les transports IA à choisir aléatoirement un template de troop aux zones de pickup. Si false, l'IA prend toujours le premier template disponible pour sa coalition"
-      }
+      },
+      "group": "troops",
+      "standard": true
     },
     "ctldLogPath": {
       "description": {
         "en": "Override the log file path; empty = default DCS Saved Games folder",
         "fr": "Surcharge le chemin du fichier de log ; vide = dossier Saved Games DCS par défaut"
-      }
+      },
+      "group": "general"
     },
     "debug": {
       "description": {
         "en": "Verbose logging to CTLD.log (requires a non-sanitized DCS install)",
         "fr": "Journalisation verbeuse vers CTLD.log (nécessite une installation DCS non sanitized)"
-      }
+      },
+      "group": "general"
     },
     "debugScreenLog": {
       "description": {
         "en": "Also echo log messages to the DCS screen via outText",
         "fr": "Répète aussi les messages de log à l'écran DCS via outText"
-      }
+      },
+      "group": "general"
     },
     "demineRadius": {
       "description": {
         "en": "Max distance (m) from the player to the minefield centre for the \"Clear Mine Field\" entry to appear",
         "fr": "Distance max (m) du joueur au centre du minefield pour que l'entrée « Clear Mine Field » apparaisse"
-      }
+      },
+      "group": "mines",
+      "standard": true
     },
     "deployedBeaconBattery": {
       "description": {
         "en": "Beacon battery life (minutes)",
         "fr": "Durée de vie de la batterie du beacon (minutes)"
-      }
+      },
+      "group": "beacon",
+      "standard": true
     },
     "disableAllSmoke": {
       "description": {
         "en": "Globally disable all smoke at pickup and drop-off zones",
         "fr": "Désactive globalement toute la smoke aux zones de pickup et de drop-off"
-      }
+      },
+      "group": "smoke",
+      "standard": true
     },
     "enableAllCrates": {
       "description": {
         "en": "Show the \"All crates\" shortcut entries in the Request Equipment menus. Set false to keep only individual crate entries",
         "fr": "Affiche les entrées raccourci « All crates » dans les menus Request Equipment. Mettre à false pour ne conserver que les entrées de crate individuelles"
-      }
+      },
+      "group": "crates",
+      "standard": true
     },
     "enableCrates": {
       "description": {
         "en": "Master switch for crate spawning and unpacking",
         "fr": "Interrupteur maître pour le spawn et le déballage des crate"
-      }
+      },
+      "group": "crates",
+      "standard": true
     },
     "enableFARPRepack": {
       "description": {
         "en": "Allow players to pack a deployed FARP scene back into crates for redeployment",
         "fr": "Autorise les joueurs à pack une scène FARP déployée de nouveau en crate pour redéploiement"
-      }
+      },
+      "group": "fob",
+      "standard": true
     },
     "enableFastRopeInsertion": {
       "description": {
         "en": "Allow fast-rope deployment",
         "fr": "Autorise le déploiement en fast-rope"
-      }
+      },
+      "group": "boarding",
+      "standard": true
     },
     "enableHoverSlingload": {
       "description": {
         "en": "Allow crate loading by hovering above it. If false, crates load only via the F10 menu (loadCrateFromMenu)",
         "fr": "Autorise le chargement de crate en hover au-dessus. Si false, les crate ne se chargent que via le menu F10 (loadCrateFromMenu)"
-      }
+      },
+      "group": "crates",
+      "standard": true
     },
     "enablePackingVehicles": {
       "description": {
         "en": "Allow vehicles to be packed back into crates",
         "fr": "Autorise le pack des véhicules de nouveau en crate"
-      }
+      },
+      "group": "crates",
+      "standard": true
     },
     "enableSmokeDrop": {
       "description": {
         "en": "Enable the \"Drop Smoke\" F10 entry",
         "fr": "Active l'entrée F10 « Drop Smoke »"
-      }
+      },
+      "group": "smoke",
+      "standard": true
     },
     "enabledFOBBuilding": {
       "description": {
         "en": "Allow FOB construction from crates",
         "fr": "Autorise la construction de FOB depuis des crate"
-      }
+      },
+      "group": "fob",
+      "standard": true
     },
     "enabledRadioBeaconDrop": {
       "description": {
         "en": "Allow beacon deployment",
         "fr": "Autorise le déploiement de beacon"
-      }
+      },
+      "group": "beacon",
+      "standard": true
     },
     "fastRopeMaximumHeight": {
       "description": {
         "en": "Max height (m) for fast-rope insertion (≈ 60 ft)",
         "fr": "Hauteur max (m) pour l'insertion fast-rope (≈ 60 ft)"
-      }
+      },
+      "group": "boarding",
+      "standard": true
     },
     "fobDestructionThreshold": {
       "description": {
         "en": "Fraction of scene objects destroyed before a FOB is considered lost (0.0–1.0)",
         "fr": "Fraction d'objets de scène détruits avant qu'un FOB soit considéré perdu (0.0–1.0)"
-      }
+      },
+      "group": "fob"
     },
     "fobLogisticZoneRadius": {
       "description": {
         "en": "Radius (m) of the logistic zone created around a deployed FOB",
         "fr": "Rayon (m) de la zone logistique créée autour d'un FOB déployé"
-      }
+      },
+      "group": "fob"
     },
     "fobMinDistanceFromZones": {
       "description": {
         "en": "Minimum distance (m) from any logistic zone at which a FOB may be deployed",
         "fr": "Distance minimale (m) de toute zone logistique à laquelle un FOB peut être déployé"
-      }
+      },
+      "group": "fob"
     },
     "fobTroopPickupRadius": {
       "description": {
         "en": "Radius (m) within which troops may board at a FOB",
         "fr": "Rayon (m) dans lequel les troops peuvent embarquer à un FOB"
-      }
+      },
+      "group": "fob",
+      "standard": true
     },
     "i18n_lang": {
       "choices": [
@@ -768,109 +860,139 @@
       "description": {
         "en": "CTLD interface language: en, fr, es or ko",
         "fr": "Langue de l'interface CTLD : en, fr, es ou ko"
-      }
+      },
+      "group": "general",
+      "standard": true
     },
     "loadCrateFromMenu": {
       "description": {
         "en": "Allow crate loading via the F10 menu (useful for fixed-wing that cannot hover)",
         "fr": "Autorise le chargement de crate via le menu F10 (utile pour les fixed-wing incapables de hover)"
-      }
+      },
+      "group": "crates",
+      "standard": true
     },
     "location_DMS": {
       "description": {
         "en": "Show coordinates as Degrees-Minutes-Seconds instead of Degrees-Decimal-Minutes",
         "fr": "Affiche les coordonnées en Degrés-Minutes-Secondes au lieu de Degrés-Minutes-Décimales"
-      }
+      },
+      "group": "general",
+      "standard": true
     },
     "maxExtractDistance": {
       "description": {
         "en": "Max distance from the vehicle to troops for extraction",
         "fr": "Distance max entre le véhicule et les troops pour l'extraction"
-      }
+      },
+      "group": "troops",
+      "standard": true
     },
     "maximumDistanceLogistic": {
       "description": {
         "en": "Max distance from a logistics zone to load or spawn a crate",
         "fr": "Distance max depuis une zone logistique pour charger ou spawn une crate"
-      }
+      },
+      "group": "fob"
     },
     "maximumDistancePackableUnitsSearch": {
       "description": {
         "en": "Max distance to search for packable vehicles",
         "fr": "Distance max pour chercher des véhicules pack-ables"
-      }
+      },
+      "group": "crates"
     },
     "maximumSearchDistance": {
       "description": {
         "en": "Max distance for deployed AI troops to search for enemies",
         "fr": "Distance max pour que les troops IA déployées cherchent des ennemis"
-      }
+      },
+      "group": "troops"
     },
     "numberOfTroops": {
       "description": {
         "en": "Default / max troop group size per transport (overridden per aircraft by maxTroopsOnboard)",
         "fr": "Taille de groupe de troops par défaut / max par transport (surchargée par appareil via maxTroopsOnboard)"
-      }
+      },
+      "group": "troops",
+      "standard": true
     },
     "radioSound": {
       "description": {
         "en": "Beacon sound file — must be added to the mission .miz, or beacons will not work",
         "fr": "Fichier son du beacon — doit être ajouté au .miz de la mission, sinon les beacon ne fonctionneront pas"
-      }
+      },
+      "group": "general",
+      "standard": true
     },
     "radioSoundFC3": {
       "description": {
         "en": "Silent beacon file for FC3 aircraft",
         "fr": "Fichier de beacon silencieux pour les appareils FC3"
-      }
+      },
+      "group": "general",
+      "standard": true
     },
     "reconEnabled": {
       "description": {
         "en": "Master switch — must be true for scan commands to work",
         "fr": "Interrupteur maître — doit être true pour que les commandes de scan fonctionnent"
-      }
+      },
+      "group": "recon",
+      "standard": true
     },
     "reconF10Menu": {
       "description": {
         "en": "Enable the RECON F10 submenu",
         "fr": "Active le sous-menu F10 RECON"
-      }
+      },
+      "group": "recon",
+      "standard": true
     },
     "reconIconScale": {
       "description": {
         "en": "Icon size multiplier (1.0 = default, 2.0 = double)",
         "fr": "Multiplicateur de taille d'icône (1.0 = défaut, 2.0 = double)"
-      }
+      },
+      "group": "recon"
     },
     "reconMinAltitude": {
       "description": {
         "en": "Minimum AGL altitude (m) required to perform a scan",
         "fr": "Altitude AGL minimale (m) requise pour effectuer un scan"
-      }
+      },
+      "group": "recon"
     },
     "reconRefreshInterval": {
       "description": {
         "en": "Auto-refresh interval (seconds)",
         "fr": "Intervalle de rafraîchissement automatique (secondes)"
-      }
+      },
+      "group": "recon"
     },
     "reconSearchRadius": {
       "description": {
         "en": "Line-of-sight scan radius (metres)",
         "fr": "Rayon de scan en ligne de vue (mètres)"
-      }
+      },
+      "group": "recon",
+      "standard": true
     },
     "showMinefieldOnF10Map": {
       "description": {
         "en": "Draw a bounding quad on the F10 map when a minefield is deployed",
         "fr": "Dessine un quadrilatère englobant sur la carte F10 lorsqu'un minefield est déployé"
-      }
+      },
+      "group": "mines",
+      "standard": true
     },
     "slingLoad": {
       "description": {
         "en": "Use DCS sling-load physics instead of the virtual hover system",
         "fr": "Utilise la physique sling-load de DCS au lieu du système virtuel de hover"
-      }
+      },
+      "group": "crates",
+      "standard": true
     },
     "tableFields": {
       "AIZones": {
@@ -1080,7 +1202,9 @@
       "description": {
         "en": "Allow troop pickup at built FOBs",
         "fr": "Autorise le pickup de troops aux FOB construits"
-      }
+      },
+      "group": "troops",
+      "standard": true
     }
   },
   "spawnableCrates": {

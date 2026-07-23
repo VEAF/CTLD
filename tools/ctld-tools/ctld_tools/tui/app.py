@@ -176,16 +176,57 @@ class CtldToolsApp:
         scalars = self.model.ref.scalar_settings()
 
         params = self._tree.insert("", "end", iid="params", text=t("tui.section.parameters"), open=True)
-        std_node = self._tree.insert(params, "end", iid="params_standard", text=t("tui.section.standard"), open=False)
-        adv_node = self._tree.insert(params, "end", iid="params_advanced", text=t("tui.section.advanced"), open=False)
 
+        _FAMILY_ORDER = [
+            "general", "crates", "troops", "boarding", "jtac",
+            "smoke", "beacon", "fob", "recon", "mines", "aa", "soldier_weights",
+        ]
+
+        # Bucket scalars by family, preserving sorted order within each bucket
+        from collections import defaultdict
+        family_std: dict[str | None, list[str]] = defaultdict(list)
+        family_adv: dict[str | None, list[str]] = defaultdict(list)
         for key in sorted(scalars):
-            parent = std_node if self.model.ref.is_mm_facing(key) else adv_node
-            is_modified = key in overrides
-            effective = overrides[key] if is_modified else scalars[key]
-            label = f"{key} = {effective}{'  *' if is_modified else ''}"
-            tag = "modified" if is_modified else "default"
-            self._tree.insert(parent, "end", iid=f"scalar:{key}", text=label, tags=(tag,))
+            grp = self.model.ref.setting_group(key)
+            if self.model.ref.is_standard(key):
+                family_std[grp].append(key)
+            else:
+                family_adv[grp].append(key)
+
+        # All groups that have at least one setting
+        all_groups: list[str | None] = []
+        for g in _FAMILY_ORDER:
+            if family_std[g] or family_adv[g]:
+                all_groups.append(g)
+        # Ungrouped settings go last under a catch-all node
+        if family_std[None] or family_adv[None]:
+            all_groups.append(None)
+
+        for grp in all_groups:
+            grp_key = grp or "other"
+            grp_iid = f"params_family:{grp_key}"
+            grp_label = t(f"tui.family.{grp_key}")
+            grp_node = self._tree.insert(params, "end", iid=grp_iid, text=grp_label, open=False)
+
+            if family_std[grp]:
+                std_node = self._tree.insert(grp_node, "end", iid=f"params_std:{grp_key}",
+                                             text=t("tui.section.standard"), open=False)
+                for key in family_std[grp]:
+                    is_modified = key in overrides
+                    effective = overrides[key] if is_modified else scalars[key]
+                    label = f"{key} = {effective}{'  *' if is_modified else ''}"
+                    tag = "modified" if is_modified else "default"
+                    self._tree.insert(std_node, "end", iid=f"scalar:{key}", text=label, tags=(tag,))
+
+            if family_adv[grp]:
+                adv_node = self._tree.insert(grp_node, "end", iid=f"params_adv:{grp_key}",
+                                             text=t("tui.section.advanced"), open=False)
+                for key in family_adv[grp]:
+                    is_modified = key in overrides
+                    effective = overrides[key] if is_modified else scalars[key]
+                    label = f"{key} = {effective}{'  *' if is_modified else ''}"
+                    tag = "modified" if is_modified else "default"
+                    self._tree.insert(adv_node, "end", iid=f"scalar:{key}", text=label, tags=(tag,))
 
         # --- Crates section ---
         self._rebuild_crates_section()

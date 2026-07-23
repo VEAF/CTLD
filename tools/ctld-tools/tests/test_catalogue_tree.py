@@ -25,12 +25,20 @@ def test_parameters_section_exists(app):
     assert app._tree.exists("params")
 
 
-def test_standard_subsection_exists(app):
-    assert app._tree.exists("params_standard")
+def test_family_nodes_exist(app):
+    # At least the JTAC and Troops family nodes should exist
+    assert app._tree.exists("params_family:jtac")
+    assert app._tree.exists("params_family:troops")
 
 
-def test_advanced_subsection_exists(app):
-    assert app._tree.exists("params_advanced")
+def test_family_standard_subnode_exists(app):
+    # Families with standard settings have a Standard sub-node
+    assert app._tree.exists("params_std:jtac")
+
+
+def test_family_advanced_subnode_exists(app):
+    # Families with advanced settings have an Advanced sub-node
+    assert app._tree.exists("params_adv:jtac")
 
 
 def test_unmodified_scalar_has_default_tag(app):
@@ -50,14 +58,19 @@ def test_modified_scalar_label_has_asterisk(app):
     assert "*" in label
 
 
-def test_standard_scalars_have_descriptions(app):
-    # Every item under params_standard has a description in the schema (is_mm_facing)
+def test_standard_scalars_are_marked_standard(app):
+    # Every item under any params_std:* node is marked standard: true in the schema
     ref = app.model.ref
-    std_children = app._tree.get_children("params_standard")
-    assert len(std_children) > 0
-    for iid in std_children:
-        key = iid.removeprefix("scalar:")
-        assert ref.is_mm_facing(key), f"{key} in Standard but not mm_facing"
+    tree = app._tree
+    total = 0
+    for iid in tree.get_children("params"):
+        for sub in tree.get_children(iid):
+            if sub.startswith("params_std:"):
+                for scalar_iid in tree.get_children(sub):
+                    key = scalar_iid.removeprefix("scalar:")
+                    assert ref.is_standard(key), f"{key} under Standard but is_standard() is False"
+                    total += 1
+    assert total > 0, "No standard scalars found in tree"
 
 
 def test_undo_restores_default_tag(app):
