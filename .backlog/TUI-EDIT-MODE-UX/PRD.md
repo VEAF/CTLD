@@ -1,6 +1,6 @@
 # Lot TUI-EDIT-MODE-UX — disambiguate the ctld-tools TUI edit model
 
-Status: 📝 planned
+Status: 🚧 implemented — awaiting visual review + PR
 Branch: feature/tui-edit-mode-ux → PR → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`). Follows the
 `CTLD-TOOLS-*` line (TUI shipped in PR #52, polished in PR #55).

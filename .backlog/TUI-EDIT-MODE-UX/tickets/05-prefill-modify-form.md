@@ -1,6 +1,6 @@
 # 05 — Pre-filled modify form (core feature request)
 
-Status: 📝 todo
+Status: ✅ done
 Type: reference + tui + tests
 
 FullGas's central ask: modifying should not require knowing the field names.

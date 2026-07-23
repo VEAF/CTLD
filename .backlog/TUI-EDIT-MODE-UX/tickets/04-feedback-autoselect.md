@@ -1,6 +1,6 @@
 # 04 — Feedback loop after a catalogue op
 
-Status: 📝 todo
+Status: ✅ done
 Type: tui
 
 Close the loop so the MM sees *what* happened and *where*.

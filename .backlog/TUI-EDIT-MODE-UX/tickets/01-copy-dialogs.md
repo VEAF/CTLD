@@ -1,6 +1,6 @@
 # 01 — Copy & dialogs: name the object, signal the dialog
 
-Status: 📝 todo
+Status: ✅ done
 Type: tui + i18n
 
 Cheapest, highest-leverage lever: make the words carry the model.

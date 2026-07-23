@@ -1,6 +1,6 @@
 # 03 — Guards & dedup (core bug fix)
 
-Status: 📝 todo
+Status: ✅ done
 Type: editmodel + tui + tests
 
 Root-cause fix for FullGas's 2nd/3rd-line repro. Two layers: prevention upstream,

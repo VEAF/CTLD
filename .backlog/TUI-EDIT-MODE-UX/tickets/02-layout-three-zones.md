@@ -1,6 +1,6 @@
 # 02 — Layout: make the two axes visible
 
-Status: 📝 todo
+Status: ✅ done
 Type: tui
 
 Materialise the "catalogue op" axis vs the "my line" axis in the layout.
