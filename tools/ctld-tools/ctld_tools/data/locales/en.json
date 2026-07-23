@@ -1,7 +1,6 @@
 {
   "app.description": "CTLD configuration authoring & generation.",
   "help.lang": "Language for output (en, fr). Defaults to the OS locale.",
-
   "validate.crate.missing_name": "missing 'name'",
   "validate.crate.missing_unit": "missing 'unit'",
   "validate.crate.unknown_unit": "unknown DCS unit type '{unit}'",
@@ -17,11 +16,9 @@
   "validate.array.not_appendable": "'{setting}' is not an appendable array setting",
   "validate.setting.unknown": "unknown setting '{name}' — it will have no effect in game",
   "validate.setting.unknown_hint": "unknown setting '{name}' — did you mean '{suggestion}'?",
-
   "tui.tree.root": "user-config",
   "tui.validation": "Validation",
   "tui.validation.ok": "OK — no issues",
-
   "tui.btn.add": "Add",
   "tui.btn.remove": "Remove",
   "tui.btn.patch": "Patch",
@@ -30,16 +27,13 @@
   "tui.btn.inject": "Inject",
   "tui.btn.confirm": "OK",
   "tui.btn.cancel": "Cancel",
-
   "tui.type.crate": "Crate",
   "tui.type.troop": "Troop group",
   "tui.type.setting": "Setting",
   "tui.type.array": "Array setting",
-
   "tui.choose.add": "What do you want to add?",
   "tui.choose.remove": "What do you want to remove?",
   "tui.choose.patch": "What do you want to patch?",
-
   "tui.form.add_crate": "Add crate",
   "tui.form.add_troop": "Add troop group",
   "tui.form.set_setting": "Set setting",
@@ -48,7 +42,6 @@
   "tui.form.remove_troop": "Remove troop group",
   "tui.form.patch_crate": "Patch crate",
   "tui.form.patch_troop": "Patch troop group",
-
   "tui.ph.filter": "Type to filter…",
   "tui.ph.section": "section (F10 sub-menu)",
   "tui.ph.name": "name (menu label)",
@@ -56,31 +49,25 @@
   "tui.ph.side": "side (1=RED, 2=BLUE, blank=both)",
   "tui.ph.crates_required": "cratesRequired (blank=default)",
   "tui.ph.unit_filter": "filter DCS types…",
-  "tui.ph.field": "field to change (e.g. cratesRequired / inf)",
   "tui.ph.value": "new value",
   "tui.ph.key": "key (e.g. numberOfTroops)",
   "tui.ph.setting_filter": "filter settings…",
   "tui.ph.count": "{field} (count, blank=none)",
-
+  "tui.label.default_hint": "CTLD default:",
   "tui.label.unit_none": "unit: (none)",
   "tui.label.unit": "unit: {unit}",
-  "tui.label.target_none": "target: (none)",
-  "tui.label.target": "target: {name}",
   "tui.label.setting_none": "setting: (none)",
   "tui.label.setting": "setting: {setting}",
   "tui.label.setting_default": "setting: {name}  (default: {default})",
   "tui.default_marker": "default",
-
   "tui.confirm.yes": "Delete",
   "tui.confirm.no": "Cancel",
   "tui.confirm.delete": "Delete this entry?  {what}",
-
   "tui.bind.edit": "Edit entry",
   "tui.bind.undo": "Undo",
   "tui.bind.redo": "Redo",
   "tui.bind.delete": "Delete entry",
   "tui.bind.quit": "Quit",
-
   "tui.notify.nothing_selected": "Select an entry in the tree first.",
   "tui.notify.nothing_undo": "Nothing to undo.",
   "tui.notify.nothing_redo": "Nothing to redo.",
@@ -90,9 +77,7 @@
   "tui.notify.fix_errors": "Fix the validation errors first.",
   "tui.notify.op_rejected": "Ignored: that entry is already in the diff, or nothing was changed.",
   "tui.picker.used_suffix": " — already in the diff",
-
   "tui.prompt.inject": "Inject into .miz (path)",
-
   "tui.confirm.quit_unsaved": "Quit now? Last save: {since}",
   "tui.quit.never": "not saved yet",
   "tui.quit.ago_sec": "{n} s ago",

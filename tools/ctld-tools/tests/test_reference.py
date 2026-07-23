@@ -32,6 +32,25 @@ def test_resolves_crate_by_weight(ref):
     assert err is None and weight == 1000.05
 
 
+def test_troop_default_returns_full_entry(ref):
+    d = ref.troop_default("2x - Anti Air")
+    assert d.get("name") == "2x - Anti Air"
+    assert d.get("aa") == 6
+    assert d.get("inf") == 4
+
+
+def test_crate_default_is_form_shaped(ref):
+    d = ref.crate_default("Heavy Tank - Abrams")
+    assert d.get("name") == "Heavy Tank - Abrams"  # desc → name
+    assert d.get("weight_kg") == 1000.05  # weight → weight_kg
+    assert d.get("section") and d.get("unit")  # section + unit present
+
+
+def test_defaults_empty_for_unknown(ref):
+    assert ref.troop_default("No Such Group") == {}
+    assert ref.crate_default("No Such Crate") == {}
+
+
 def test_unknown_crate_name_gives_suggestion(ref):
     weight, err = ref.resolve_crate("Heavy Tank Abrams")  # missing dash
     assert weight is None

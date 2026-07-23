@@ -7,13 +7,21 @@ element ids and model state, not translated labels.
 """
 
 import pytest
-from textual.widgets import Button, Input, OptionList, Select, Tree
+from textual.widgets import Button, Input, Label, OptionList, Select, Tree
 
 from ctld_tools.editmodel import EditModel
 from ctld_tools.reference import Reference
 from ctld_tools.tui.app import CtldToolsApp
-from ctld_tools.tui.forms import AddCrateForm, ConfirmModal, FileBrowserModal, _MizDirectoryTree
+from ctld_tools.tui.forms import AddCrateForm, AddTroopForm, ConfirmModal, FileBrowserModal, _MizDirectoryTree
 from ctld_tools.tui.widgets import FilterablePicker
+
+
+def _pick(picker: FilterablePicker, value: str) -> None:
+    """Select the option whose id == value in a FilterablePicker's OptionList."""
+    option_list = picker.query_one(OptionList)
+    idx = next(i for i in range(option_list.option_count) if option_list.get_option_at_index(i).id == value)
+    option_list.highlighted = idx
+    option_list.action_select()
 
 
 @pytest.fixture(autouse=True)
@@ -210,6 +218,63 @@ async def test_settings_picker_searchable_by_description():
             option_list = picker.query_one(OptionList)
             ids = [option_list.get_option_at_index(i).id for i in range(option_list.option_count)]
             assert "i18n_lang" in ids  # matched via its description
+
+
+async def test_patch_troop_via_ui_writes_only_changed_fields():
+    """Modify → pick target → full pre-filled form → only the changed field is written."""
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        await pilot.click("#patch")
+        await pilot.pause()
+        await pilot.click("#type-troop")
+        await pilot.pause()
+        _pick(app.query_one("#picker", FilterablePicker), "2x - Anti Air")
+        await pilot.pause()
+        assert isinstance(app.screen, AddTroopForm)
+        assert app.query_one("#name", Input).value == "2x - Anti Air"
+        assert app.query_one("#aa", Input).value == "6"  # pre-filled from the default
+        assert app.query_one("#inf", Input).value == "4"
+        app.query_one("#aa", Input).value = "8"  # the only change
+        await pilot.click("#submit")
+        await pilot.pause()
+
+    assert app.model.config["troops"]["patch"] == [{"name": "2x - Anti Air", "aa": 8}]
+
+
+async def test_patch_form_shows_ctld_default_hint():
+    from ctld_tools.i18n import language
+
+    with language("en"):
+        app = CtldToolsApp()
+        async with app.run_test(size=(120, 50)) as pilot:
+            await pilot.click("#patch")
+            await pilot.pause()
+            await pilot.click("#type-troop")
+            await pilot.pause()
+            _pick(app.query_one("#picker", FilterablePicker), "Anti Air")  # default aa 3
+            await pilot.pause()
+            labels = [str(w.renderable) for w in app.query(Label)]
+            assert any("CTLD default:" in text and "3" in text for text in labels)
+
+
+async def test_edit_patch_line_reverting_to_default_drops_it():
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 50)) as pilot:
+        app.model.patch_troop({"name": "2x - Anti Air", "aa": 8})
+        app._refresh()
+        await pilot.pause()
+        tree = app.query_one("#config", Tree)
+        tree.move_cursor(_leaf_with(tree, ("troops", "patch", 0)))
+        await pilot.pause()
+        app.action_edit_entry()
+        await pilot.pause()
+        assert isinstance(app.screen, AddTroopForm)
+        assert app.query_one("#aa", Input).value == "8"  # current = default ⊕ patch
+        app.query_one("#aa", Input).value = "6"  # back to the CTLD default
+        await pilot.click("#submit")
+        await pilot.pause()
+
+    assert app.model.config["troops"]["patch"] == []  # nothing differs → line dropped
 
 
 async def test_remove_picker_greys_already_consumed_names():

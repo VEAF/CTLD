@@ -28,12 +28,20 @@ from ctld_tools.tui.forms import (
     AppendArrayForm,
     ConfirmModal,
     FileBrowserModal,
-    PatchByNameForm,
     PickerModal,
     SetSettingForm,
     TypeChooser,
 )
 from ctld_tools.validate import ERROR
+
+
+def _patch_diff(entry: dict, default: dict) -> dict:
+    """A minimal patch: the target name plus only the fields that differ from the default."""
+    patch = {"name": entry.get("name")}
+    for key, value in entry.items():
+        if key != "name" and default.get(key) != value:
+            patch[key] = value
+    return patch
 
 
 class CtldToolsApp(App):
@@ -245,26 +253,45 @@ class CtldToolsApp(App):
             self._apply("remove_troop"),
         )
 
-    # patch
+    # patch — pick the catalogue target, then edit the full form pre-filled with its
+    # current values (CTLD default as a per-field hint); only changed fields are written.
     def _form_patch_crate(self) -> None:
-        self.push_screen(
-            PatchByNameForm(
-                t("tui.form.patch_crate"),
-                self.model.ref.crate_names(),
-                disabled=self.model.consumed_names("crates", "patch"),
-            ),
-            self._apply("patch_crate"),
-        )
+        self._patch_via_form("crate")
 
     def _form_patch_troop(self) -> None:
-        self.push_screen(
-            PatchByNameForm(
-                t("tui.form.patch_troop"),
-                self.model.ref.troop_names(),
-                disabled=self.model.consumed_names("troops", "patch"),
-            ),
-            self._apply("patch_troop"),
-        )
+        self._patch_via_form("troop")
+
+    def _patch_via_form(self, kind: str) -> None:
+        troop = kind == "troop"
+        names = self.model.ref.troop_names() if troop else self.model.ref.crate_names()
+        used = self.model.consumed_names("troops" if troop else "crates", "patch")
+        title = t("tui.form.patch_troop" if troop else "tui.form.patch_crate")
+
+        def on_pick(name: str | None) -> None:
+            if not name:
+                return
+            default = self.model.ref.troop_default(name) if troop else self.model.ref.crate_default(name)
+            method = "patch_troop" if troop else "patch_crate"
+
+            def on_submit(entry) -> None:
+                if not entry:
+                    return
+                if getattr(self.model, method)(_patch_diff(entry, default)) is False:
+                    self.notify(t("tui.notify.op_rejected"), severity="warning")
+                    return
+                self._refresh()
+
+            self._open_modify_form(kind, initial=default, default=default, on_submit=on_submit)
+
+        self.push_screen(PickerModal(title, names, disabled=used), on_pick)
+
+    def _open_modify_form(self, kind: str, initial: dict, default: dict, on_submit) -> None:
+        """Open the full Add form pre-filled with `initial`, name locked (it is the target)."""
+        if kind == "troop":
+            form = AddTroopForm(initial=initial, defaults=default, lock_name=True)
+        else:
+            form = AddCrateForm(sorted(known_dcs_types()), initial=initial, defaults=default, lock_name=True)
+        self.push_screen(form, on_submit)
 
     # --- delete / undo / redo ----------------------------------------------------
 
@@ -299,18 +326,38 @@ class CtldToolsApp(App):
                 self.model.update_entry(address, result)
             self._refresh()
 
+        def apply_patch(result) -> None:
+            # Editing an existing patch line: re-diff against the default and either
+            # rewrite the (minimal) patch, or drop the line entirely if nothing differs.
+            if not result:
+                return
+            name = entry.get("name")
+            default = self.model.ref.troop_default(name) if kind == "troops" else self.model.ref.crate_default(name)
+            patch = _patch_diff(result, default)
+            if len(patch) <= 1:  # only the target name → nothing to change
+                self.model.delete_entry(address)
+            else:
+                self.model.update_entry(address, patch)
+            self._refresh()
+
+        def open_patch_edit() -> None:
+            name = entry.get("name")
+            default = self.model.ref.troop_default(name) if kind == "troops" else self.model.ref.crate_default(name)
+            initial = {**default, **entry}  # current effective values (default ⊕ patch)
+            self._open_modify_form("troop" if kind == "troops" else "crate", initial, default, apply_patch)
+
         crate_names = self.model.ref.crate_names
         troop_names = self.model.ref.troop_names
         if kind == "crates" and sub == "add":
             self.push_screen(AddCrateForm(sorted(known_dcs_types()), initial=entry), apply)
         elif kind == "crates" and sub == "patch":
-            self.push_screen(PatchByNameForm(t("tui.form.patch_crate"), crate_names(), initial=entry), apply)
+            open_patch_edit()
         elif kind == "crates" and sub == "remove":
             self.push_screen(PickerModal(t("tui.form.remove_crate"), crate_names()), apply)
         elif kind == "troops" and sub == "add":
             self.push_screen(AddTroopForm(initial=entry), apply)
         elif kind == "troops" and sub == "patch":
-            self.push_screen(PatchByNameForm(t("tui.form.patch_troop"), troop_names(), initial=entry), apply)
+            open_patch_edit()
         elif kind == "troops" and sub == "remove":
             self.push_screen(PickerModal(t("tui.form.remove_troop"), troop_names()), apply)
         elif kind == "settings":
