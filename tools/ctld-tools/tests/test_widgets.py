@@ -1,53 +1,54 @@
-"""The FilterablePicker widget filters live and posts the picked value."""
+"""Tests for the Tooltip helper widget."""
 
-from textual.app import App, ComposeResult
-from textual.widgets import Input, OptionList
+import tkinter as tk
 
-from ctld_tools.tui.widgets import FilterablePicker
+import pytest
 
-OPTIONS = ["Heavy Tank - Abrams", "Ural-375", "M-818", "HAWK Launcher"]
-
-
-class _Host(App):
-    def compose(self) -> ComposeResult:
-        yield FilterablePicker(OPTIONS)
+from ctld_tools.tui.widgets import Tooltip
 
 
-async def test_shows_all_options_initially():
-    async with _Host().run_test() as pilot:
-        assert pilot.app.query_one(OptionList).option_count == len(OPTIONS)
+@pytest.fixture
+def root():
+    r = tk.Tk()
+    r.withdraw()
+    yield r
+    r.destroy()
 
 
-async def test_filters_live_as_user_types():
-    async with _Host().run_test() as pilot:
-        pilot.app.query_one(Input).value = "abr"
-        await pilot.pause()
-        option_list = pilot.app.query_one(OptionList)
-        assert option_list.option_count == 1
-        assert str(option_list.get_option_at_index(0).prompt) == "Heavy Tank - Abrams"
+def test_tooltip_show_creates_toplevel(root):
+    label = tk.Label(root, text="Field")
+    tip = Tooltip(label, "A description.")
+    tip._show()
+    assert tip._tip is not None
+    assert isinstance(tip._tip, tk.Toplevel)
 
 
-async def test_clearing_filter_restores_all():
-    async with _Host().run_test() as pilot:
-        input_widget = pilot.app.query_one(Input)
-        input_widget.value = "abr"
-        await pilot.pause()
-        input_widget.value = ""
-        await pilot.pause()
-        assert pilot.app.query_one(OptionList).option_count == len(OPTIONS)
+def test_tooltip_hide_destroys_toplevel(root):
+    label = tk.Label(root, text="Field")
+    tip = Tooltip(label, "A description.")
+    tip._show()
+    tip._hide()
+    assert tip._tip is None
 
 
-async def test_selecting_option_posts_picked():
-    picked: list[str] = []
+def test_tooltip_show_noop_when_already_visible(root):
+    label = tk.Label(root, text="Field")
+    tip = Tooltip(label, "A description.")
+    tip._show()
+    first = tip._tip
+    tip._show()  # second call — must not replace the existing toplevel
+    assert tip._tip is first
 
-    class _Listener(_Host):
-        def on_filterable_picker_picked(self, event: FilterablePicker.Picked) -> None:
-            picked.append(event.value)
 
-    async with _Listener().run_test() as pilot:
-        option_list = pilot.app.query_one(OptionList)
-        option_list.highlighted = 1  # Ural-375
-        await pilot.pause()
-        option_list.action_select()
-        await pilot.pause()
-        assert picked == ["Ural-375"]
+def test_tooltip_empty_text_does_not_show(root):
+    label = tk.Label(root, text="Field")
+    tip = Tooltip(label, "")
+    tip._show()
+    assert tip._tip is None
+
+
+def test_tooltip_hide_noop_when_not_visible(root):
+    label = tk.Label(root, text="Field")
+    tip = Tooltip(label, "A description.")
+    tip._hide()  # no Toplevel created yet — must not raise
+    assert tip._tip is None

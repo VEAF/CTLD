@@ -1,5 +1,9 @@
 {
   "app.description": "Création et génération de la configuration CTLD.",
+  "app.title": "ctld-tools — Configuration CTLD",
+
+  "tui.status.errors": "⚠ {n} erreur(s) — à corriger avant de générer",
+  "tui.status.warnings": "{n} avertissement(s)",
   "help.lang": "Langue de sortie (en, fr). Par défaut, la langue du système.",
 
   "validate.crate.missing_name": "« name » manquant",

@@ -32,8 +32,11 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
 
+      - name: Install system dependencies (tkinter + xvfb for headless GUI tests)
+        run: sudo apt-get install -y python3-tk xvfb
+
       - name: Install dependencies
-        run: poetry install --without build
+        run: poetry install --without build,legacy
 
       - name: Lint (ruff check)
         run: poetry run ruff check ctld_tools tests
@@ -46,5 +49,6 @@ jobs:
 
       # Tests include the parity guard (yaml -> lua -> settings == frozen reference)
       # and the drift check (committed CTLD_config_defaults.lua == fresh gen-config).
+      # xvfb-run provides a virtual display required by tkinter on ubuntu-latest.
       - name: Tests (pytest + coverage)
-        run: poetry run pytest
+        run: xvfb-run poetry run pytest

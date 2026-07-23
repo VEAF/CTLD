@@ -1,64 +1,53 @@
-"""Reusable textual widgets for the TUI.
+"""Reusable tkinter widgets for the GUI.
 
-`FilterablePicker` is the filter-as-you-type picker used everywhere a list is too long
-to scroll — the crate `unit` (DCS types), the remove/patch crate picker, the troop
-pickers, and the settings picker. An Input drives an OptionList; picking an option posts
-a `Picked` message (carrying the option's *value*) to the parent.
-
-Options may be plain strings, or `(value, label, search)` triples so the displayed label
-(e.g. "name — description") differs from the returned value and from the searchable text.
+`Tooltip` is a lightweight hover-tooltip helper: bind it to any widget and it shows a
+`tk.Toplevel` label near the cursor when the mouse enters, and destroys it on leave.
+All user-visible strings should still go through the i18n layer before being passed in.
 """
 
 from __future__ import annotations
 
-from textual.app import ComposeResult
-from textual.containers import Vertical
-from textual.message import Message
-from textual.widgets import Input, OptionList
-from textual.widgets.option_list import Option
-
-from ctld_tools.tui.filter import matches
+import tkinter as tk
 
 
-class FilterablePicker(Vertical):
-    """An Input + OptionList that narrows live and posts the picked value."""
+class Tooltip:
+    """Show a floating label near a widget when the cursor enters it.
 
-    class Picked(Message):
-        """Posted when the user selects an option."""
+    Usage::
 
-        def __init__(self, picker: FilterablePicker, value: str) -> None:
-            self.picker = picker
-            self.value = value
-            super().__init__()
+        label = ttk.Label(parent, text="Field name")
+        Tooltip(label, "Description shown on hover.")
+    """
 
-    def __init__(self, options, placeholder: str = "Type to filter…", id: str | None = None) -> None:
-        super().__init__(id=id)
-        self._items = [self._item(option) for option in options]  # (value, label, search)
-        self._placeholder = placeholder
+    def __init__(self, widget: tk.Widget, text: str) -> None:
+        self._widget = widget
+        self._text = text
+        self._tip: tk.Toplevel | None = None
+        widget.bind("<Enter>", self._show)
+        widget.bind("<Leave>", self._hide)
 
-    @staticmethod
-    def _item(option) -> tuple[str, str, str]:
-        if isinstance(option, str):
-            return option, option, option
-        value, label, search = option
-        return str(value), str(label), str(search)
-
-    def compose(self) -> ComposeResult:
-        yield Input(placeholder=self._placeholder)
-        yield OptionList(*[Option(label, id=value) for value, label, _ in self._items])
-
-    def _render_options(self, query: str) -> None:
-        option_list = self.query_one(OptionList)
-        option_list.clear_options()
-        option_list.add_options(
-            [Option(label, id=value) for value, label, search in self._items if matches(search, query)]
+    def _show(self, event=None) -> None:  # noqa: ARG002
+        if self._tip or not self._text:
+            return
+        x = self._widget.winfo_rootx() + 20
+        y = self._widget.winfo_rooty() + self._widget.winfo_height() + 4
+        self._tip = tk.Toplevel(self._widget)
+        self._tip.wm_overrideredirect(True)
+        self._tip.wm_geometry(f"+{x}+{y}")
+        label = tk.Label(
+            self._tip,
+            text=self._text,
+            background="#ffffc0",
+            relief=tk.SOLID,
+            borderwidth=1,
+            wraplength=300,
+            justify=tk.LEFT,
+            padx=4,
+            pady=2,
         )
+        label.pack()
 
-    def on_input_changed(self, event: Input.Changed) -> None:
-        event.stop()
-        self._render_options(event.value)
-
-    def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
-        event.stop()
-        value = event.option.id if event.option.id is not None else str(event.option.prompt)
-        self.post_message(self.Picked(self, value))
+    def _hide(self, event=None) -> None:  # noqa: ARG002
+        if self._tip:
+            self._tip.destroy()
+            self._tip = None

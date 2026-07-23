@@ -8,6 +8,23 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — tkinter GUI foundation for ctld-tools v2 (UX-CTLD-TOOLS-V2 ticket 01)
+
+- **`ctld_tools/tui/app.py`**: replaced Textual `CtldToolsApp` with a tkinter skeleton
+  (`PanedWindow` catalogue tree + editor form area + footer with Save / Generate / Inject
+  buttons and a live validation status label). `_test_mode=True` hides the window for
+  synchronous testing without a visible display.
+- **`ctld_tools/tui/widgets.py`**: replaced `FilterablePicker` (Textual) with `Tooltip`
+  helper — binds `<Enter>`/`<Leave>` to show/destroy a `tk.Toplevel` label near the cursor.
+- **`ctld_tools/tui/forms.py`**: removed all Textual modal form classes; retains only
+  `coerce()` (pure Python scalar parser, shared across editor forms in later tickets).
+- **`pyproject.toml`**: replaced `textual` runtime dep with `sv-ttk ≥2.6`; moved `textual`
+  to optional `legacy` group; removed `pytest-asyncio` and Textual-specific pytest config.
+- **`.github/workflows/python-quality.yml`**: added `python3-tk xvfb` apt install step
+  and wrapped `pytest` with `xvfb-run` for headless tkinter testing on ubuntu-latest.
+- **i18n**: added `app.title`, `tui.status.errors`, `tui.status.warnings` keys to
+  `en.json` and `fr.json`.
+
 ### Fixed — hardcoded i18n strings in RECON menus and AA system (FIX-I18N-HARDCODED)
 
 - **`CTLD_recon.lua`**: RECON submenu layer names (Infantry, Air Defense (AA), Ground Vehicles,
