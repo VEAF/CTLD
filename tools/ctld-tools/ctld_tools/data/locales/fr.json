@@ -22,11 +22,19 @@
   "validate.setting.unknown": "réglage inconnu « {name} » — il n'aura aucun effet en jeu",
   "validate.setting.unknown_hint": "réglage inconnu « {name} » — vouliez-vous dire « {suggestion} » ?",
 
+  "tui.section.parameters": "Paramètres",
+  "tui.section.standard": "Standard",
+  "tui.section.advanced": "Avancé",
+  "tui.form.select_hint": "Sélectionnez un élément dans le catalogue pour l'éditer.",
+
   "tui.tree.root": "user-config",
   "tui.validation": "Validation",
   "tui.validation.ok": "OK — aucun problème",
 
   "tui.btn.add": "Ajouter",
+  "tui.btn.apply": "Appliquer",
+  "tui.btn.delete": "Supprimer",
+  "tui.btn.restore": "Restaurer",
   "tui.btn.remove": "Retirer",
   "tui.btn.patch": "Modifier",
   "tui.btn.save": "Enregistrer",

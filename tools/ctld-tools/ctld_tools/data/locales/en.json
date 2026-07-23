@@ -22,11 +22,19 @@
   "validate.setting.unknown": "unknown setting '{name}' — it will have no effect in game",
   "validate.setting.unknown_hint": "unknown setting '{name}' — did you mean '{suggestion}'?",
 
+  "tui.section.parameters": "Parameters",
+  "tui.section.standard": "Standard",
+  "tui.section.advanced": "Advanced",
+  "tui.form.select_hint": "Select an item in the catalogue to edit it.",
+
   "tui.tree.root": "user-config",
   "tui.validation": "Validation",
   "tui.validation.ok": "OK — no issues",
 
   "tui.btn.add": "Add",
+  "tui.btn.apply": "Apply",
+  "tui.btn.delete": "Delete",
+  "tui.btn.restore": "Restore",
   "tui.btn.remove": "Remove",
   "tui.btn.patch": "Patch",
   "tui.btn.save": "Save",

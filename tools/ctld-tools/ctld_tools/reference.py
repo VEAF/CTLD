@@ -147,3 +147,7 @@ class Reference:
 
     def is_array_setting(self, name) -> bool:
         return name in ARRAY_SETTINGS
+
+    def is_mm_facing(self, name: str) -> bool:
+        """True when the setting has a schema description (Standard section in the UI)."""
+        return "description" in (self._setting_schema.get(name) or {})
