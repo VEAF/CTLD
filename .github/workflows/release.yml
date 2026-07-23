@@ -75,9 +75,9 @@ jobs:
 
   # ─────────────────────────────────────────────────────────────
   # Build the Mission Maker tool ctld-tools.exe (PyInstaller) and attach it to the
-  # release. The exe bundles textual (the TUI), the embedded reference bundle and the
-  # DCS type set — but NOT lupa: the reference is committed data resolved without it,
-  # so we install without the dev group (lupa lives there) and exclude the module.
+  # release. The exe bundles sv-ttk (the tkinter GUI v2), the embedded reference bundle
+  # and the DCS type set — but NOT lupa: the reference is committed data resolved without
+  # it, so we install without the dev group (lupa lives there) and exclude the module.
   # Separate job: if packaging fails, the CTLD.lua release (job above) is already
   # published — only the exe is missing.
   # ─────────────────────────────────────────────────────────────
@@ -98,10 +98,11 @@ jobs:
         run: |
           pip install poetry
           # --without dev drops lupa (build-time only); --with build adds pyinstaller.
-          poetry install --without dev --with build
+          poetry install --without dev,legacy --with build
           poetry run pyinstaller --onefile --name ctld-tools \
-            --collect-all textual \
+            --collect-all sv_ttk \
             --exclude-module lupa \
+            --exclude-module textual \
             --add-data "ctld_tools/data/dcs_types.json;ctld_tools/data" \
             --add-data "ctld_tools/data/reference.json;ctld_tools/data" \
             --add-data "ctld_tools/data/locales;ctld_tools/data/locales" \
