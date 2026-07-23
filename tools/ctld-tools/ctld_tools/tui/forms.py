@@ -278,6 +278,186 @@ class CrateForm(ttk.Frame):
         self._on_restore(self._original_desc)
 
 
+_AIRCRAFT_BOOL_FIELDS = (
+    "cratesEnabled", "troopsEnabled", "canSlingload", "canParachuteDrop",
+    "useNativeDcsCargoSystem", "canTransportWholeVehicle", "convertNativeLoadToCTLD",
+)
+_AIRCRAFT_NUM_FIELDS = (
+    "maxCratesOnboard", "maxTroopsOnboard", "maxWholeVehiclesOnboard", "maxVehicleWeight",
+)
+_AIRCRAFT_LIST_FIELDS = ("loadableVehiclesBLUE", "loadableVehiclesRED")
+
+
+class AircraftForm(ttk.Frame):
+    """Editor panel for one capabilitiesByType entry."""
+
+    def __init__(
+        self,
+        parent,
+        *,
+        type_name: str,
+        entry: dict,
+        state: str,
+        on_apply: Callable,
+        on_delete: Callable,
+        on_restore: Callable,
+        on_cancel: Callable,
+        is_new: bool = False,
+    ) -> None:
+        super().__init__(parent, padding=12)
+        self._type_name = type_name
+        self._state = state
+        self._on_apply = on_apply
+        self._on_delete = on_delete
+        self._on_restore = on_restore
+        self._on_cancel = on_cancel
+        self._is_new = is_new
+
+        # Scrollable interior
+        canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0)
+        vscroll = ttk.Scrollbar(self, orient=tk.VERTICAL, command=canvas.yview)
+        canvas.configure(yscrollcommand=vscroll.set)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        vscroll.pack(side=tk.RIGHT, fill=tk.Y)
+        interior = ttk.Frame(canvas)
+        canvas.create_window((0, 0), window=interior, anchor="nw")
+        interior.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+        # Title: type name (or DCS picker for new)
+        if is_new:
+            ttk.Label(interior, text=t("tui.aircraft.new"), font=("", 11, "bold")).pack(anchor="w", pady=(0, 4))
+            ttk.Label(interior, text="type").pack(anchor="w")
+            from ctld_tools.datamine import known_dcs_types
+            from ctld_tools.tui.widgets import FilterablePicker
+            self._type_picker = FilterablePicker(interior, sorted(known_dcs_types()), height=4)
+            self._type_picker.pack(fill=tk.X, pady=(0, 8))
+            if type_name:
+                self._type_picker.set(type_name)
+        else:
+            ttk.Label(interior, text=type_name, font=("", 11, "bold")).pack(anchor="w", pady=(0, 8))
+            self._type_picker = None  # type: ignore[assignment]
+
+        # Bool fields
+        self._bool_vars: dict[str, tk.StringVar] = {}
+        for field in _AIRCRAFT_BOOL_FIELDS:
+            val = entry.get(field)
+            var = tk.StringVar(value=str(val).lower() if isinstance(val, bool) else ("" if val is None else str(val)))
+            self._bool_vars[field] = var
+            row = ttk.Frame(interior)
+            row.pack(anchor="w", fill=tk.X, pady=(0, 4))
+            ttk.Label(row, text=field, width=26).pack(side=tk.LEFT)
+            ttk.Combobox(row, textvariable=var, values=["true", "false", ""], state="readonly", width=10).pack(side=tk.LEFT)
+
+        ttk.Separator(interior, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=6)
+
+        # Numeric fields
+        self._num_vars: dict[str, tk.StringVar] = {}
+        for field in _AIRCRAFT_NUM_FIELDS:
+            val = entry.get(field)
+            var = tk.StringVar(value=str(val) if val is not None else "")
+            self._num_vars[field] = var
+            row = ttk.Frame(interior)
+            row.pack(anchor="w", fill=tk.X, pady=(0, 4))
+            ttk.Label(row, text=field, width=26).pack(side=tk.LEFT)
+            ttk.Entry(row, textvariable=var, width=12).pack(side=tk.LEFT)
+
+        ttk.Separator(interior, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=6)
+
+        # List fields (loadableVehiclesBLUE / loadableVehiclesRED)
+        self._list_vars: dict[str, list[tk.StringVar]] = {}
+        self._list_frames: dict[str, ttk.Frame] = {}
+        for field in _AIRCRAFT_LIST_FIELDS:
+            ttk.Label(interior, text=field, font=("", 9, "bold")).pack(anchor="w")
+            items_frame = ttk.Frame(interior)
+            items_frame.pack(anchor="w", fill=tk.X, pady=(0, 4))
+            self._list_frames[field] = items_frame
+            self._list_vars[field] = []
+            for item in entry.get(field) or []:
+                self._add_list_item(field, str(item))
+            # Add row
+            add_row = ttk.Frame(interior)
+            add_row.pack(anchor="w", fill=tk.X, pady=(0, 8))
+            add_var = tk.StringVar()
+            add_entry = ttk.Entry(add_row, textvariable=add_var, width=20)
+            add_entry.pack(side=tk.LEFT)
+            ttk.Button(add_row, text="+", width=3,
+                       command=lambda f=field, v=add_var: self._on_list_add(f, v)).pack(side=tk.LEFT, padx=2)  # type: ignore[misc]
+
+        # Error label
+        self._error_var = tk.StringVar()
+        ttk.Label(interior, textvariable=self._error_var, foreground="red", wraplength=350).pack(anchor="w", pady=(4, 0))
+
+        # Buttons
+        btn_frame = ttk.Frame(interior)
+        btn_frame.pack(anchor="w", pady=(10, 0))
+        ttk.Button(btn_frame, text=t("tui.btn.apply"), command=self._apply).pack(side=tk.LEFT, padx=(0, 4))
+        if state == "deleted":
+            ttk.Button(btn_frame, text=t("tui.btn.restore"), command=self._restore).pack(side=tk.LEFT, padx=(0, 4))
+        elif not is_new:
+            ttk.Button(btn_frame, text=t("tui.btn.delete"), command=self._delete).pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Button(btn_frame, text=t("tui.btn.cancel"), command=self._on_cancel).pack(side=tk.LEFT)
+
+    def _add_list_item(self, field: str, value: str) -> None:
+        var = tk.StringVar(value=value)
+        self._list_vars[field].append(var)
+        frame = self._list_frames[field]
+        row = ttk.Frame(frame)
+        row.pack(anchor="w", fill=tk.X, pady=(0, 2))
+        ttk.Entry(row, textvariable=var, width=22).pack(side=tk.LEFT)
+        ttk.Button(row, text="x", width=2,
+                   command=lambda r=row, v=var, f=field: self._on_list_remove(f, v, r)).pack(side=tk.LEFT, padx=2)  # type: ignore[misc]
+
+    def _on_list_add(self, field: str, entry_var: tk.StringVar) -> None:
+        val = entry_var.get().strip()
+        if val:
+            self._add_list_item(field, val)
+            entry_var.set("")
+
+    def _on_list_remove(self, field: str, var: tk.StringVar, row: ttk.Frame) -> None:
+        if var in self._list_vars[field]:
+            self._list_vars[field].remove(var)
+        row.destroy()
+
+    def set_error(self, msg: str) -> None:
+        self._error_var.set(msg)
+
+    def _collect_type_name(self) -> str:
+        if self._is_new and self._type_picker is not None:
+            return self._type_picker.get().strip()
+        return self._type_name
+
+    def _collect(self) -> dict:
+        entry: dict = {}
+        for field, var in self._bool_vars.items():
+            raw = var.get().strip().lower()
+            if raw in ("true", "false"):
+                entry[field] = raw == "true"
+        for field, var in self._num_vars.items():
+            v = coerce(var.get())
+            if v is not None:
+                entry[field] = v
+        for field, vars_list in self._list_vars.items():
+            items = [v.get().strip() for v in vars_list if v.get().strip()]
+            if items:
+                entry[field] = items
+        return entry
+
+    def _apply(self) -> None:
+        self._error_var.set("")
+        type_name = self._collect_type_name()
+        if not type_name:
+            self._error_var.set("Type name required")
+            return
+        entry = self._collect()
+        self._on_apply(type_name, entry)
+
+    def _delete(self) -> None:
+        self._on_delete(self._type_name)
+
+    def _restore(self) -> None:
+        self._on_restore(self._type_name)
+
+
 _TROOP_COUNT_FIELDS = ("inf", "mg", "at", "aa", "mortar", "jtac")
 
 

@@ -84,3 +84,22 @@ def test_from_embedded_resolves_identically_to_from_src(ref):
     assert embedded.is_array_setting("troopZones")
     assert embedded.scalar_settings() == ref.scalar_settings()
     assert embedded.enum_choices("JTAC_lock") == ref.enum_choices("JTAC_lock")
+
+
+@pytest.fixture(scope="module")
+def embedded_ref() -> Reference:
+    return Reference.from_embedded()
+
+
+def test_aircraft_types_returns_sorted_list(embedded_ref):
+    types = embedded_ref.aircraft_types()
+    assert isinstance(types, list)
+    assert "UH-1H" in types
+    assert types == sorted(types)
+
+
+def test_aircraft_capabilities_returns_dict(embedded_ref):
+    caps = embedded_ref.aircraft_capabilities()
+    assert "UH-1H" in caps
+    assert isinstance(caps["UH-1H"], dict)
+    assert caps["UH-1H"]["cratesEnabled"] is True

@@ -1,4 +1,164 @@
 {
+  "capabilitiesByType": {
+    "76MD": {
+      "canParachuteDrop": false,
+      "canSlingload": false,
+      "canTransportWholeVehicle": true,
+      "convertNativeLoadToCTLD": false,
+      "cratesEnabled": true,
+      "loadableVehiclesBLUE": [
+        "M1045 HMMWV TOW",
+        "M1043 HMMWV Armament",
+        "Hummer"
+      ],
+      "loadableVehiclesRED": [
+        "BRDM-2",
+        "BTR_D"
+      ],
+      "maxCratesOnboard": 20,
+      "maxTroopsOnboard": 80,
+      "maxVehicleWeight": 20000,
+      "maxWholeVehiclesOnboard": 2,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": false
+    },
+    "C-130J-30": {
+      "canParachuteDrop": true,
+      "canSlingload": false,
+      "canTransportWholeVehicle": true,
+      "convertNativeLoadToCTLD": false,
+      "cratesEnabled": true,
+      "loadableVehiclesBLUE": [
+        "M1045 HMMWV TOW",
+        "M1043 HMMWV Armament",
+        "Hummer"
+      ],
+      "loadableVehiclesRED": [
+        "BRDM-2",
+        "BTR_D"
+      ],
+      "maxCratesOnboard": 22,
+      "maxTroopsOnboard": 80,
+      "maxVehicleWeight": 20000,
+      "maxWholeVehiclesOnboard": 2,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": true
+    },
+    "CH-47Fbl1": {
+      "canParachuteDrop": true,
+      "canSlingload": true,
+      "canTransportWholeVehicle": false,
+      "convertNativeLoadToCTLD": true,
+      "cratesEnabled": true,
+      "loadableVehiclesBLUE": [
+        "M1045 HMMWV TOW",
+        "M1043 HMMWV Armament",
+        "Hummer"
+      ],
+      "loadableVehiclesRED": [
+        "BRDM-2",
+        "BTR_D"
+      ],
+      "maxCratesOnboard": 8,
+      "maxTroopsOnboard": 40,
+      "maxVehicleWeight": 11000,
+      "maxWholeVehiclesOnboard": 1,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": true
+    },
+    "Hercules": {
+      "canParachuteDrop": false,
+      "canSlingload": false,
+      "canTransportWholeVehicle": true,
+      "convertNativeLoadToCTLD": false,
+      "cratesEnabled": true,
+      "loadableVehiclesBLUE": [
+        "M1045 HMMWV TOW",
+        "M1043 HMMWV Armament",
+        "Hummer"
+      ],
+      "loadableVehiclesRED": [
+        "BRDM-2",
+        "BTR_D"
+      ],
+      "maxCratesOnboard": 1,
+      "maxTroopsOnboard": 30,
+      "maxVehicleWeight": 20000,
+      "maxWholeVehiclesOnboard": 2,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": false
+    },
+    "Mi-24P": {
+      "canParachuteDrop": false,
+      "canSlingload": false,
+      "canTransportWholeVehicle": false,
+      "convertNativeLoadToCTLD": false,
+      "cratesEnabled": true,
+      "maxCratesOnboard": 1,
+      "maxTroopsOnboard": 10,
+      "maxWholeVehiclesOnboard": 0,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": true
+    },
+    "Mi-8MT": {
+      "canParachuteDrop": false,
+      "canSlingload": true,
+      "canTransportWholeVehicle": true,
+      "convertNativeLoadToCTLD": false,
+      "cratesEnabled": true,
+      "maxCratesOnboard": 2,
+      "maxTroopsOnboard": 16,
+      "maxWholeVehiclesOnboard": 0,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": true
+    },
+    "SK-60": {
+      "canParachuteDrop": false,
+      "canSlingload": false,
+      "canTransportWholeVehicle": false,
+      "convertNativeLoadToCTLD": false,
+      "cratesEnabled": true,
+      "maxCratesOnboard": 1,
+      "maxTroopsOnboard": 4,
+      "maxWholeVehiclesOnboard": 0,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": false
+    },
+    "UH-1H": {
+      "canParachuteDrop": true,
+      "canSlingload": true,
+      "canTransportWholeVehicle": true,
+      "convertNativeLoadToCTLD": true,
+      "cratesEnabled": true,
+      "loadableVehiclesBLUE": [
+        "M1045 HMMWV TOW",
+        "M1043 HMMWV Armament",
+        "Hummer"
+      ],
+      "loadableVehiclesRED": [
+        "BRDM-2",
+        "BTR_D"
+      ],
+      "maxCratesOnboard": 1,
+      "maxTroopsOnboard": 8,
+      "maxVehicleWeight": 1360,
+      "maxWholeVehiclesOnboard": 1,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": true
+    },
+    "UH-60L": {
+      "canParachuteDrop": false,
+      "canSlingload": true,
+      "canTransportWholeVehicle": false,
+      "convertNativeLoadToCTLD": false,
+      "cratesEnabled": true,
+      "maxCratesOnboard": 1,
+      "maxTroopsOnboard": 12,
+      "maxWholeVehiclesOnboard": 0,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": false
+    }
+  },
   "loadableGroups": [
     {
       "at": 2,

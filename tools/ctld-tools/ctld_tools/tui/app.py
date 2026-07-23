@@ -17,7 +17,7 @@ import sv_ttk
 from ctld_tools.editmodel import EditModel
 from ctld_tools.i18n import current_language, t
 from ctld_tools.reference import Reference
-from ctld_tools.tui.forms import CrateForm, ScalarForm, TroopForm
+from ctld_tools.tui.forms import AircraftForm, CrateForm, ScalarForm, TroopForm
 from ctld_tools.validate import ERROR
 
 
@@ -35,7 +35,7 @@ class CtldToolsApp:
         ref = Reference.from_src(src) if src else Reference.from_embedded()
         self.model = EditModel.load(self._yaml_path, ref=ref) if self._yaml_path.exists() else EditModel(ref=ref)
         self._current_key: str | None = None
-        self._current_form: ScalarForm | CrateForm | TroopForm | None = None
+        self._current_form: ScalarForm | CrateForm | TroopForm | AircraftForm | None = None
         self._current_context: dict | None = None
 
         self.root = tk.Tk()
@@ -134,6 +134,9 @@ class CtldToolsApp:
         # --- Troops section ---
         self._rebuild_troops_section()
 
+        # --- Aircraft section ---
+        self._rebuild_aircraft_section()
+
         # Restore selection
         if prev_iid and self._tree.exists(prev_iid):
             self._tree.selection_set(prev_iid)
@@ -201,6 +204,30 @@ class CtldToolsApp:
             add_name = add_entry.get("name", "?")
             self._tree.insert(troops_node, "end", iid=f"troop_add:{idx}", text=f"{add_name}  +", tags=("added",))
 
+    def _rebuild_aircraft_section(self) -> None:
+        catalogue = self.model.ref.aircraft_capabilities()
+        caps_config = self.model.config.get("capabilities") or {}
+        sets = caps_config.get("set") or {}
+        removes = caps_config.get("remove") or []
+
+        aircraft_node = self._tree.insert("", "end", iid="aircraft", text=t("tui.section.aircraft"), open=False)
+
+        for type_name in sorted(catalogue):
+            iid = f"aircraft:{type_name}"
+            if type_name in removes:
+                state, label = "deleted", type_name
+            elif type_name in sets:
+                state, label = "modified", f"{type_name}  *"
+            else:
+                state, label = "default", type_name
+            self._tree.insert(aircraft_node, "end", iid=iid, text=label, tags=(state,))
+
+        # User-added aircraft
+        for type_name in sorted(sets):
+            if type_name not in catalogue:
+                iid = f"aircraft:{type_name}"
+                self._tree.insert(aircraft_node, "end", iid=iid, text=f"{type_name}  +", tags=("added",))
+
     def _on_tree_select(self, event=None) -> None:  # noqa: ARG002
         sel = self._tree.selection()
         if not sel:
@@ -226,6 +253,11 @@ class CtldToolsApp:
             self._open_troop_form(name)
         elif iid == "troops":
             self._show_troop_add_button()
+        elif iid.startswith("aircraft:"):
+            type_name = iid[len("aircraft:"):]
+            self._open_aircraft_form(type_name)
+        elif iid == "aircraft":
+            self._show_aircraft_add_button()
         else:
             self._clear_form()
             self._show_form_hint()
@@ -542,6 +574,88 @@ class CtldToolsApp:
         self._clear_form()
         self._show_form_hint()
 
+    # --- aircraft forms ----------------------------------------------------------
+
+    def _open_aircraft_form(self, type_name: str) -> None:
+        self._clear_form()
+        catalogue = self.model.ref.aircraft_capabilities()
+        caps_config = self.model.config.get("capabilities") or {}
+        sets = caps_config.get("set") or {}
+        removes = caps_config.get("remove") or []
+
+        if type_name in catalogue:
+            base = dict(catalogue[type_name])
+            if type_name in sets:
+                base.update(sets[type_name])
+            state = "deleted" if type_name in removes else ("modified" if type_name in sets else "default")
+        else:
+            base = dict(sets.get(type_name, {}))
+            state = "added"
+
+        self._current_context = {"type": "aircraft", "type_name": type_name}
+        form = AircraftForm(
+            self._form_frame,
+            type_name=type_name,
+            entry=base,
+            state=state,
+            on_apply=self._on_aircraft_apply,
+            on_delete=self._on_aircraft_delete,
+            on_restore=self._on_aircraft_restore,
+            on_cancel=self._on_form_cancel,
+            is_new=False,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _show_aircraft_add_button(self) -> None:
+        self._clear_form()
+        self._current_context = {"type": "aircraft_node"}
+        ttk.Label(self._form_frame, text=t("tui.section.aircraft"), font=("", 11, "bold")).pack(
+            anchor="w", padx=12, pady=(12, 4)
+        )
+        ttk.Button(self._form_frame, text=t("tui.aircraft.add_btn"), command=self._open_new_aircraft_form).pack(
+            anchor="w", padx=12, pady=4
+        )
+
+    def _open_new_aircraft_form(self) -> None:
+        self._clear_form()
+        self._current_context = {"type": "aircraft_new"}
+        form = AircraftForm(
+            self._form_frame,
+            type_name="",
+            entry={},
+            state="default",
+            on_apply=self._on_aircraft_apply,
+            on_delete=lambda _t: None,
+            on_restore=lambda _t: None,
+            on_cancel=self._on_form_cancel,
+            is_new=True,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _on_aircraft_apply(self, type_name: str, attribs: dict) -> None:
+        self.model.set_aircraft(type_name, attribs)
+        self._rebuild_tree()
+        self._refresh_status()
+
+    def _on_aircraft_delete(self, type_name: str) -> None:
+        self.model.remove_aircraft(type_name)
+        self._rebuild_tree()
+        self._refresh_status()
+        self._clear_form()
+        self._show_form_hint()
+
+    def _on_aircraft_restore(self, type_name: str) -> None:
+        removes = self.model.config.get("capabilities", {}).get("remove", [])
+        idx = next((i for i, r in enumerate(removes) if r == type_name), None)
+        if idx is not None:
+            self.model.delete_entry(("capabilities", "remove", idx))
+        self._rebuild_tree()
+        self._refresh_status()
+        self._clear_form()
+        self._show_form_hint()
+
     # --- undo / redo -------------------------------------------------------------
 
     def _undo(self, event=None) -> None:  # noqa: ARG002
@@ -556,6 +670,8 @@ class CtldToolsApp:
                 self._open_crate_form(ctx["family"], ctx["weight"])
             elif ctx and ctx.get("type") == "troop":
                 self._open_troop_form(ctx["name"])
+            elif ctx and ctx.get("type") == "aircraft":
+                self._open_aircraft_form(ctx["type_name"])
 
     def _redo(self, event=None) -> None:  # noqa: ARG002
         if self.model.redo():
@@ -569,6 +685,8 @@ class CtldToolsApp:
                 self._open_crate_form(ctx["family"], ctx["weight"])
             elif ctx and ctx.get("type") == "troop":
                 self._open_troop_form(ctx["name"])
+            elif ctx and ctx.get("type") == "aircraft":
+                self._open_aircraft_form(ctx["type_name"])
 
     # --- status ------------------------------------------------------------------
 

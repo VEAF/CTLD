@@ -174,3 +174,58 @@ def test_modified_troop_label_has_asterisk(app):
     app._rebuild_tree()
     label = app._tree.item("troop:Standard Group", "text")
     assert "*" in label
+
+
+# --- Aircraft ---
+
+
+def test_aircraft_section_exists(app):
+    assert app._tree.exists("aircraft")
+
+
+def test_aircraft_types_appear_in_tree(app):
+    catalogue = app.model.ref.aircraft_capabilities()
+    for type_name in catalogue:
+        iid = f"aircraft:{type_name}"
+        assert app._tree.exists(iid), f"aircraft:{type_name} missing from tree"
+
+
+def test_default_aircraft_has_default_tag(app):
+    assert "default" in app._tree.item("aircraft:UH-1H", "tags")
+
+
+def test_modified_aircraft_has_modified_tag(app):
+    app.model.set_aircraft("UH-1H", {"maxTroopsOnboard": 99})
+    app._rebuild_tree()
+    assert "modified" in app._tree.item("aircraft:UH-1H", "tags")
+
+
+def test_modified_aircraft_label_has_asterisk(app):
+    app.model.set_aircraft("UH-1H", {"maxTroopsOnboard": 99})
+    app._rebuild_tree()
+    label = app._tree.item("aircraft:UH-1H", "text")
+    assert "*" in label
+
+
+def test_deleted_aircraft_has_deleted_tag(app):
+    app.model.remove_aircraft("UH-1H")
+    app._rebuild_tree()
+    assert "deleted" in app._tree.item("aircraft:UH-1H", "tags")
+
+
+def test_added_aircraft_has_added_tag(app):
+    app.model.set_aircraft("CustomBird", {"cratesEnabled": True})
+    app._rebuild_tree()
+    assert app._tree.exists("aircraft:CustomBird")
+    assert "added" in app._tree.item("aircraft:CustomBird", "tags")
+
+
+def test_restore_aircraft_removes_from_removes(app):
+    app.model.remove_aircraft("UH-1H")
+    app._rebuild_tree()
+    assert "deleted" in app._tree.item("aircraft:UH-1H", "tags")
+    removes = app.model.config["capabilities"]["remove"]
+    idx = removes.index("UH-1H")
+    app.model.delete_entry(("capabilities", "remove", idx))
+    app._rebuild_tree()
+    assert "default" in app._tree.item("aircraft:UH-1H", "tags")

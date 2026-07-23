@@ -112,6 +112,25 @@ class EditModel:
         self._troops("patch").append(dict(entry))
         self.revalidate()
 
+    def _capabilities(self) -> dict:
+        return self.config.setdefault("capabilities", {})
+
+    def set_aircraft(self, type_name: str, attribs: dict) -> None:
+        self._checkpoint()
+        self._capabilities().setdefault("set", {})[type_name] = dict(attribs)
+        removes = self._capabilities().get("remove", [])
+        if type_name in removes:
+            removes.remove(type_name)
+        self.revalidate()
+
+    def remove_aircraft(self, type_name: str) -> None:
+        self._checkpoint()
+        self._capabilities().get("set", {}).pop(type_name, None)
+        removes = self._capabilities().setdefault("remove", [])
+        if type_name not in removes:
+            removes.append(type_name)
+        self.revalidate()
+
     def set_setting(self, key: str, value) -> None:
         self._checkpoint()
         self.config.setdefault("settings", {})[key] = value

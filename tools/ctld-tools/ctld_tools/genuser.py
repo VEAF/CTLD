@@ -75,6 +75,12 @@ def _operations(cfg: dict, ref: Reference) -> list[str]:
     for setting, items in (cfg.get("arrays") or {}).items():
         for item in items:
             lines.append(f"    ctld.addTo({_lua_str(setting)}, {_render_value(item, 1)})")
+
+    capabilities = cfg.get("capabilities") or {}
+    for type_name in capabilities.get("remove") or []:
+        lines.append(f'    cfg.settings["capabilitiesByType"][{_lua_str(type_name)}] = nil')
+    for type_name, attribs in (capabilities.get("set") or {}).items():
+        lines.append(f'    cfg.settings["capabilitiesByType"][{_lua_str(type_name)}] = {_render_value(attribs, 1)}')
     return lines
 
 

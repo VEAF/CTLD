@@ -159,3 +159,11 @@ class Reference:
     def loadable_groups(self) -> list[dict]:
         """List of troop group entry dicts from the default catalogue."""
         return list(self.settings.get("loadableGroups") or [])
+
+    def aircraft_capabilities(self) -> dict[str, dict]:
+        """type_name -> capabilities dict from the default catalogue."""
+        return dict(self.settings.get("capabilitiesByType") or {})
+
+    def aircraft_types(self) -> list[str]:
+        """Sorted list of aircraft type names in the default catalogue."""
+        return sorted((self.settings.get("capabilitiesByType") or {}).keys())
