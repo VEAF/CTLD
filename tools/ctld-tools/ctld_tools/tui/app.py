@@ -45,6 +45,8 @@ class CtldToolsApp:
         self._current_key: str | None = None
         self._current_form: ScalarForm | CrateForm | TroopForm | AircraftForm | ZoneForm | StringEntryForm | VehicleWeightForm | None = None
         self._current_context: dict | None = None
+        self._tree_tip: tk.Toplevel | None = None
+        self._tree_tip_iid: str | None = None
 
         self.root = tk.Tk()
         self.root.title(t("app.title"))
@@ -75,6 +77,8 @@ class CtldToolsApp:
         self._tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         tree_scroll.pack(side=tk.RIGHT, fill=tk.Y)
         self._tree.bind("<<TreeviewSelect>>", self._on_tree_select)
+        self._tree.bind("<Motion>", self._on_tree_motion)
+        self._tree.bind("<Leave>", self._on_tree_leave)
         self._paned.add(tree_frame, weight=1)
 
         # Right: editor form area
@@ -114,9 +118,56 @@ class CtldToolsApp:
         self._current_form = None
         self._current_context = None
 
+    # --- tree tooltips -----------------------------------------------------------
+
+    def _on_tree_motion(self, event) -> None:
+        iid = self._tree.identify_row(event.y)
+        if iid == self._tree_tip_iid:
+            return
+        self._hide_tree_tip()
+        self._tree_tip_iid = iid
+        if not iid:
+            return
+        text = self._tree_tooltip_text(iid)
+        if not text:
+            return
+        x = self._tree.winfo_rootx() + event.x + 16
+        y = self._tree.winfo_rooty() + event.y + 16
+        self._tree_tip = tk.Toplevel(self._tree)
+        self._tree_tip.wm_overrideredirect(True)
+        self._tree_tip.wm_geometry(f"+{x}+{y}")
+        tk.Label(
+            self._tree_tip,
+            text=text,
+            background="#ffffc0",
+            relief=tk.SOLID,
+            borderwidth=1,
+            wraplength=300,
+            justify=tk.LEFT,
+            padx=4,
+            pady=2,
+        ).pack()
+
+    def _on_tree_leave(self, event=None) -> None:  # noqa: ARG002
+        self._hide_tree_tip()
+
+    def _hide_tree_tip(self) -> None:
+        if self._tree_tip:
+            self._tree_tip.destroy()
+            self._tree_tip = None
+        self._tree_tip_iid = None
+
+    def _tree_tooltip_text(self, iid: str) -> str | None:
+        """Return a description string for a tree node iid, or None if unavailable."""
+        if iid.startswith("scalar:"):
+            key = iid[len("scalar:"):]
+            return self.model.ref.setting_description(key, current_language())
+        return None
+
     # --- tree --------------------------------------------------------------------
 
     def _rebuild_tree(self) -> None:
+        self._hide_tree_tip()
         selected = self._tree.selection()
         prev_iid = selected[0] if selected else None
 
