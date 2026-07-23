@@ -1,28 +1,81 @@
 # ctld-tools
 
-CTLD configuration authoring & generation. Isolated **poetry** sub-project,
-following the VMCT (VEAF-Mission-Creation-Tools) Python conventions: typer CLI,
-ruamel.yaml, lupa/luadata for Lua, textual for the TUI, pytest + ruff + mypy.
+CTLD configuration authoring & generation tool for Mission Makers.
+Distributed as a standalone **`ctld-tools.exe`** (no Python install required).
 
-## Commands
+---
 
-Engine config / reference (build side, use **lupa**):
+## Quick start — Mission Maker
 
-- `ctld-tools extract`  — one-shot: read `src/CTLD_config.lua` defaults and write `ctld-config.yaml`.
-- `ctld-tools gen-config` — render the Lua defaults module from `ctld-config.yaml` (build step).
-- `ctld-tools gen-reference --src src --out ctld_tools/data/reference.json` — freeze the embedded
-  reference bundle from `src/` (build step; the committed bundle is golden-tested for parity).
+### Desktop shortcut (recommended)
 
-Mission Maker side (use the **embedded reference** by default; add `--src src` as a dev override):
+Create a shortcut to `ctld-tools.exe` and set the **Target** field to:
 
-- `ctld-tools tui [--yaml user-config.yaml]` — launch the interactive editor (textual). The MM path.
-- `ctld-tools validate --yaml user-config.yaml` — check a user-config against the reference catalogue
-  + DCS type set; reports errors with suggestions (exit non-zero on error).
-- `ctld-tools gen-user --yaml user-config.yaml --out CTLD_userConfig.lua` — compile the
-  add/remove/patch operations into `ctld.userSetup` helper calls (names resolved to weights).
-- `ctld-tools gen-user --scaffold --out user-config.yaml` — write a commented starter.
-- `ctld-tools inject --miz mission.miz --userconfig CTLD_userConfig.lua [--out out.miz]` — insert the
-  generated Lua into a `.miz` as a first MISSION START trigger (idempotent).
+```text
+C:\path\to\ctld-tools.exe tui --lang fr
+```
+
+Replace `fr` with your preferred language (`en`, `fr`, `es`, `ko`).
+The `--lang` flag sets the language of the ctld-tools interface itself.
+
+> **Note:** `--lang` controls the ctld-tools UI language.
+> The `i18n_lang` setting inside the editor controls the language of the **CTLD in-game menus**
+> shown to pilots in DCS — these are two independent settings.
+
+### Command line
+
+```bash
+# Launch the GUI editor (French interface)
+ctld-tools.exe tui --lang fr
+
+# Launch with an existing config file
+ctld-tools.exe tui --lang fr --yaml "C:\Missions\MyMission\user-config.yaml"
+
+# Validate a config without opening the GUI
+ctld-tools.exe validate --yaml user-config.yaml
+
+# Generate the Lua output directly (no GUI)
+ctld-tools.exe gen-user --yaml user-config.yaml --out CTLD_userConfig.lua
+
+# Inject the generated Lua into a .miz
+ctld-tools.exe inject --miz mission.miz --userconfig CTLD_userConfig.lua
+```
+
+### Language options
+
+| Flag        | Effect                                                    |
+| ----------- | --------------------------------------------------------- |
+| `--lang en` | English interface (default if OS locale is not detected)  |
+| `--lang fr` | French interface                                          |
+| `--lang es` | Spanish interface                                         |
+| `--lang ko` | Korean interface                                          |
+
+The language can also be set via the `CTLD_LANG` environment variable.
+If omitted, ctld-tools detects the OS locale and falls back to English.
+
+---
+
+## All commands
+
+### Mission Maker commands
+
+| Command | Description |
+| --- | --- |
+| `tui` | Launch the interactive GUI editor |
+| `validate` | Check a `user-config.yaml` against the reference catalogue |
+| `gen-user` | Compile `user-config.yaml` → `CTLD_userConfig.lua` |
+| `gen-user --scaffold` | Write a commented starter `user-config.yaml` |
+| `inject` | Insert `CTLD_userConfig.lua` into a `.miz` as a MISSION START trigger |
+
+### Build / developer commands (require lupa)
+
+| Command | Description |
+| --- | --- |
+| `extract` | Read `src/CTLD_config.lua` defaults and write `ctld-config.yaml` |
+| `gen-config` | Render the Lua defaults module from `ctld-config.yaml` |
+| `gen-reference` | Freeze the embedded reference bundle from `src/` |
+
+---
 
 ## Develop
 
@@ -35,15 +88,23 @@ poetry run mypy ctld_tools
 poetry run pytest
 ```
 
-`extract` uses **lupa** to run `CTLD_config.lua` in-process (build-time only; not shipped in the
-MM `.exe`). The `ctld.tr` translator is stubbed to identity so i18n keys are preserved.
+### Stack
 
-The TUI and validation messages are **i18n (EN + FR)**: a tiny stdlib layer (`ctld_tools/i18n.py`,
-flat JSON catalogs in `ctld_tools/data/locales/`) following the VMCT approach. Language follows the
-OS locale; override with `--lang en|fr` or the `CTLD_LANG` environment variable. `en.json` is
-authoritative (missing keys fall back to EN, then to the key itself).
+- GUI: **tkinter + sv-ttk** (Sun Valley theme, native Windows look)
+- CLI: **typer**
+- Config: **ruamel.yaml**
+- Lua bridge (build-time only): **lupa** — not shipped in the `.exe`
+- i18n: flat JSON catalogs in `ctld_tools/data/locales/`; `en.json` is authoritative
 
-**Settings schema** — `src/CTLD_config_schema.yaml` holds authoring metadata for scalar settings
-(not consumed by the build). It is additive: add an entry only when a setting needs guidance, e.g.
-`JTAC_lock: { choices: [all, vehicle, troop] }` makes the TUI offer a value picker. `gen-reference`
-folds it into the embedded bundle. Reserved for a future `description:` key (per-setting help).
+### Reference bundle
+
+`ctld_tools/data/reference.json` is the embedded catalogue (crates, troops, aircraft
+capabilities, zone defaults, scalar settings). It is generated by `gen-reference` from
+`src/` and committed; a golden test enforces parity with the live source.
+
+### Settings schema
+
+`src/CTLD_config_schema.yaml` holds authoring metadata consumed by ctld-tools (not by
+the build). Per-setting entries carry `group:`, `standard:`, `choices:`, and `description:`
+fields that drive the family tree, Standard/Advanced split, value pickers, and tooltips
+in the editor. `gen-reference` folds the schema into the embedded bundle.
