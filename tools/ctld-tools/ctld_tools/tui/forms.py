@@ -93,17 +93,28 @@ class ConfirmModal(_FormScreen):
 
 
 class PickerModal(_FormScreen):
-    """Pick one value from a (large) list — remove crate, remove troop."""
+    """Pick one value from a (large) list — remove crate, remove troop.
 
-    def __init__(self, title: str, options) -> None:
+    `disabled` names (already consumed in the diff) render non-selectable, so a
+    duplicate op is unreachable (error prevention).
+    """
+
+    def __init__(self, title: str, options, disabled=None) -> None:
         super().__init__()
         self._title = title
         self._options = list(options)
+        self._disabled = set(disabled or [])
 
     def compose(self) -> ComposeResult:
         with Vertical(classes="form"):
             yield Label(self._title, classes="form-title")
-            yield FilterablePicker(self._options, placeholder=t("tui.ph.filter"), id="picker")
+            yield FilterablePicker(
+                self._options,
+                placeholder=t("tui.ph.filter"),
+                id="picker",
+                disabled=self._disabled,
+                disabled_suffix=t("tui.picker.used_suffix"),
+            )
             yield Button(t("tui.btn.cancel"), id="cancel")
 
     def on_filterable_picker_picked(self, event: FilterablePicker.Picked) -> None:
@@ -175,10 +186,11 @@ class AddCrateForm(_FormScreen):
 class PatchByNameForm(_FormScreen):
     """Patch one field of a crate or troop group, targeted by name from a picker."""
 
-    def __init__(self, title: str, names, initial: dict | None = None) -> None:
+    def __init__(self, title: str, names, initial: dict | None = None, disabled=None) -> None:
         super().__init__()
         self._title = title
         self._names = list(names)
+        self._disabled = set(disabled or [])
         init = dict(initial or {})
         self._name: str | None = init.get("name")
         self._init_field = next((k for k in init if k != "name"), "")
@@ -189,7 +201,13 @@ class PatchByNameForm(_FormScreen):
         with Vertical(classes="form"):
             yield Label(self._title, classes="form-title")
             yield Label(target_label, id="target-label")
-            yield FilterablePicker(self._names, placeholder=t("tui.ph.filter"), id="target-picker")
+            yield FilterablePicker(
+                self._names,
+                placeholder=t("tui.ph.filter"),
+                id="target-picker",
+                disabled=self._disabled,
+                disabled_suffix=t("tui.picker.used_suffix"),
+            )
             yield Input(value=self._init_field, placeholder=t("tui.ph.field"), id="field")
             yield Input(value=_blank(self._init_value), placeholder=t("tui.ph.value"), id="value")
             with Horizontal(classes="form-buttons"):

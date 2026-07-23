@@ -88,6 +88,8 @@
   "tui.notify.generated": "Generated {path}",
   "tui.notify.injected": "Injected into {path}",
   "tui.notify.fix_errors": "Fix the validation errors first.",
+  "tui.notify.op_rejected": "Ignored: that entry is already in the diff, or nothing was changed.",
+  "tui.picker.used_suffix": " — already in the diff",
 
   "tui.prompt.inject": "Inject into .miz (path)",
 

@@ -188,12 +188,21 @@ class CtldToolsApp(App):
             opener()
 
     def _apply(self, method_name: str, transform=lambda r: (r,)):
-        """Return a screen callback that applies a non-None result via model.<method>."""
+        """Return a screen callback that applies a non-None result via model.<method>.
+
+        Dedup-capable ops (remove/patch) return False when rejected (duplicate or empty);
+        surface that as a notice instead of silently mutating (the safety net behind the
+        picker greying).
+        """
 
         def callback(result) -> None:
-            if result is not None and result is not False:
-                getattr(self.model, method_name)(*transform(result))
-                self._refresh()
+            if result is None or result is False:
+                return
+            outcome = getattr(self.model, method_name)(*transform(result))
+            if outcome is False:
+                self.notify(t("tui.notify.op_rejected"), severity="warning")
+                return
+            self._refresh()
 
         return callback
 
@@ -218,23 +227,43 @@ class CtldToolsApp(App):
     # remove
     def _form_remove_crate(self) -> None:
         self.push_screen(
-            PickerModal(t("tui.form.remove_crate"), self.model.ref.crate_names()), self._apply("remove_crate")
+            PickerModal(
+                t("tui.form.remove_crate"),
+                self.model.ref.crate_names(),
+                disabled=self.model.consumed_names("crates", "remove"),
+            ),
+            self._apply("remove_crate"),
         )
 
     def _form_remove_troop(self) -> None:
         self.push_screen(
-            PickerModal(t("tui.form.remove_troop"), self.model.ref.troop_names()), self._apply("remove_troop")
+            PickerModal(
+                t("tui.form.remove_troop"),
+                self.model.ref.troop_names(),
+                disabled=self.model.consumed_names("troops", "remove"),
+            ),
+            self._apply("remove_troop"),
         )
 
     # patch
     def _form_patch_crate(self) -> None:
         self.push_screen(
-            PatchByNameForm(t("tui.form.patch_crate"), self.model.ref.crate_names()), self._apply("patch_crate")
+            PatchByNameForm(
+                t("tui.form.patch_crate"),
+                self.model.ref.crate_names(),
+                disabled=self.model.consumed_names("crates", "patch"),
+            ),
+            self._apply("patch_crate"),
         )
 
     def _form_patch_troop(self) -> None:
         self.push_screen(
-            PatchByNameForm(t("tui.form.patch_troop"), self.model.ref.troop_names()), self._apply("patch_troop")
+            PatchByNameForm(
+                t("tui.form.patch_troop"),
+                self.model.ref.troop_names(),
+                disabled=self.model.consumed_names("troops", "patch"),
+            ),
+            self._apply("patch_troop"),
         )
 
     # --- delete / undo / redo ----------------------------------------------------

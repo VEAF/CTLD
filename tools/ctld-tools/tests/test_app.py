@@ -212,6 +212,26 @@ async def test_settings_picker_searchable_by_description():
             assert "i18n_lang" in ids  # matched via its description
 
 
+async def test_remove_picker_greys_already_consumed_names():
+    """A troop already in the remove diff is non-selectable in the remove picker."""
+    app = CtldToolsApp()
+    async with app.run_test(size=(120, 40)) as pilot:
+        target = app.model.ref.troop_names()[0]
+        app.model.remove_troop(target)
+        app._refresh()
+        await pilot.pause()
+        await pilot.click("#remove")
+        await pilot.pause()
+        await pilot.click("#type-troop")
+        await pilot.pause()
+        option_list = app.query_one("#picker", FilterablePicker).query_one(OptionList)
+        by_id = {
+            option_list.get_option_at_index(i).id: option_list.get_option_at_index(i)
+            for i in range(option_list.option_count)
+        }
+        assert by_id[target].disabled is True
+
+
 async def test_generate_disabled_while_errors():
     app = CtldToolsApp()
     async with app.run_test(size=(120, 40)) as pilot:
