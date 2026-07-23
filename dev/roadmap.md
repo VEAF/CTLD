@@ -67,3 +67,19 @@ passer par la config `logisticUnits`. La zone logistique suit le véhicule en mo
 <!-- STARTUP-REPORT-UNIFIED — formalisé en lot `.backlog/STARTUP-REPORT-UNIFIED/` (grill-with-docs, 2026-07-21). -->
 
 <!-- FIX-I18N-DICT-SYNC — formalisé en lot `.backlog/FIX-I18N-DICT-SYNC/` (grill-with-docs, 2026-07-22). Livré PR #57. -->
+
+## ctld-tools — Harmoniser la convention de nommage des paramètres CTLD
+
+Contexte (émergé de la discussion UX-CTLD-TOOLS-V2, 2026-07-23) : les noms de settings CTLD
+sont incohérents — certains ont un préfixe fonctionnel (`JTAC_lock`, `recon*`, `fob*`), d'autres
+non (`enableCrates`, `slingLoad`, `numberOfTroops`). L'affectation aux familles dans ctld-tools
+est donc forcément un mapping statique déclaratif (`group:` dans le schéma YAML).
+
+Objectif : chaque paramètre CTLD doit débuter par un préfixe représentant son périmètre
+fonctionnel (`JTAC_`, `RECON_`, `FOB_`, `BEACON_`, `SMOKE_`, `CRATE_`, `TROOP_`, `AA_`,
+`PARACHUTE_`…). Une fois uniformisés, l'affectation aux familles de ctld-tools pourrait être
+dérivée automatiquement du préfixe.
+
+Attention : renommer des settings CTLD est un **breaking change** pour les missions existantes
+(`CTLD_userConfig.lua` générés ou écrits à la main). Nécessite un plan de migration (aliases,
+période de transition, changelog clair).
