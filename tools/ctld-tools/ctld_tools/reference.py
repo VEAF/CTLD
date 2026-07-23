@@ -151,3 +151,7 @@ class Reference:
     def is_mm_facing(self, name: str) -> bool:
         """True when the setting has a schema description (Standard section in the UI)."""
         return "description" in (self._setting_schema.get(name) or {})
+
+    def spawnable_crates(self) -> dict[str, list[dict]]:
+        """Family → list of crate entry dicts from the default catalogue."""
+        return {k: list(v) for k, v in (self.settings.get("spawnableCrates") or {}).items()}

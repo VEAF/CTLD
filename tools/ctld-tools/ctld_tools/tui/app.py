@@ -8,6 +8,7 @@ Generate / Inject + live validation status. Ctrl+Z/Y undo/redo.
 from __future__ import annotations
 
 import tkinter as tk
+import tkinter.font as tkfont
 from pathlib import Path
 from tkinter import ttk
 
@@ -16,7 +17,7 @@ import sv_ttk
 from ctld_tools.editmodel import EditModel
 from ctld_tools.i18n import current_language, t
 from ctld_tools.reference import Reference
-from ctld_tools.tui.forms import ScalarForm
+from ctld_tools.tui.forms import CrateForm, ScalarForm
 from ctld_tools.validate import ERROR
 
 
@@ -34,7 +35,8 @@ class CtldToolsApp:
         ref = Reference.from_src(src) if src else Reference.from_embedded()
         self.model = EditModel.load(self._yaml_path, ref=ref) if self._yaml_path.exists() else EditModel(ref=ref)
         self._current_key: str | None = None
-        self._current_form: ScalarForm | None = None
+        self._current_form: ScalarForm | CrateForm | None = None
+        self._current_context: dict | None = None
 
         self.root = tk.Tk()
         self.root.title(t("app.title"))
@@ -56,6 +58,10 @@ class CtldToolsApp:
         self._tree = ttk.Treeview(tree_frame, show="tree", selectmode="browse", name="catalogue")
         self._tree.tag_configure("modified", font=("", 0, "bold"))
         self._tree.tag_configure("default", font=("", 0, ""))
+        self._tree.tag_configure("added", foreground="#2a9d2a")
+        base_font = tkfont.nametofont("TkDefaultFont")
+        strike_font = tkfont.Font(font=base_font, overstrike=True)
+        self._tree.tag_configure("deleted", font=strike_font, foreground="gray")
         tree_scroll = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=self._tree.yview)
         self._tree.configure(yscrollcommand=tree_scroll.set)
         self._tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -98,6 +104,7 @@ class CtldToolsApp:
             child.destroy()
         self._current_key = None
         self._current_form = None
+        self._current_context = None
 
     # --- tree --------------------------------------------------------------------
 
@@ -121,10 +128,52 @@ class CtldToolsApp:
             tag = "modified" if is_modified else "default"
             self._tree.insert(parent, "end", iid=f"scalar:{key}", text=label, tags=(tag,))
 
+        # --- Crates section ---
+        self._rebuild_crates_section()
+
         # Restore selection
         if prev_iid and self._tree.exists(prev_iid):
             self._tree.selection_set(prev_iid)
             self._tree.see(prev_iid)
+
+    def _rebuild_crates_section(self) -> None:
+        catalogue = self.model.ref.spawnable_crates()
+        adds = self.model.config.get("crates", {}).get("add", [])
+        removes = self.model.config.get("crates", {}).get("remove", [])
+        patches = self.model.config.get("crates", {}).get("patch", [])
+
+        crates_node = self._tree.insert("", "end", iid="crates", text=t("tui.section.crates"), open=False)
+
+        for family, entries in catalogue.items():
+            fam_iid = f"crate_family:{family}"
+            self._tree.insert(crates_node, "end", iid=fam_iid, text=family, open=False)
+            for entry in entries:
+                desc = entry.get("desc", "?")
+                weight = entry.get("weight")
+                if weight is None:
+                    # mixedSet entries have no weight — skip (not individually editable)
+                    continue
+                iid = f"crate:{family}:{weight}"
+                if desc in removes or weight in removes:
+                    state = "deleted"
+                    label = desc
+                elif any(p.get("name") == desc for p in patches):
+                    state = "modified"
+                    label = f"{desc}  *"
+                else:
+                    state = "default"
+                    label = desc
+                self._tree.insert(fam_iid, "end", iid=iid, text=label, tags=(state,))
+
+        # Added crates under their section family
+        for idx, add_entry in enumerate(adds):
+            section = add_entry.get("section", "Support")
+            fam_iid = f"crate_family:{section}"
+            if not self._tree.exists(fam_iid):
+                self._tree.insert(crates_node, "end", iid=fam_iid, text=section, open=False)
+            add_name = add_entry.get("name") or add_entry.get("desc") or "?"
+            add_iid = f"crate_add:{idx}"
+            self._tree.insert(fam_iid, "end", iid=add_iid, text=f"{add_name}  +", tags=("added",))
 
     def _on_tree_select(self, event=None) -> None:  # noqa: ARG002
         sel = self._tree.selection()
@@ -133,6 +182,16 @@ class CtldToolsApp:
         iid = sel[0]
         if iid.startswith("scalar:"):
             self._open_scalar_form(iid[len("scalar:") :])
+        elif iid.startswith("crate:"):
+            # "crate:{family}:{weight}"
+            _, family, weight_str = iid.split(":", 2)
+            self._open_crate_form(family, float(weight_str))
+        elif iid.startswith("crate_add:"):
+            idx = int(iid[len("crate_add:") :])
+            self._open_crate_add_form(idx)
+        elif iid.startswith("crate_family:"):
+            family = iid[len("crate_family:") :]
+            self._show_family_actions(family)
         else:
             self._clear_form()
             self._show_form_hint()
@@ -182,23 +241,177 @@ class CtldToolsApp:
         self._show_form_hint()
         self._tree.selection_remove(*self._tree.selection())
 
+    # --- crate forms -------------------------------------------------------------
+
+    def _open_crate_form(self, family: str, weight: float) -> None:
+        """Open CrateForm for an existing catalogue crate."""
+        self._clear_form()
+        catalogue = self.model.ref.spawnable_crates()
+        entry = next((e for e in catalogue.get(family, []) if e.get("weight") == weight), None)
+        if entry is None:
+            return
+        # Merge with patches
+        effective = dict(entry)
+        desc = entry.get("desc", "")
+        patches = self.model.config.get("crates", {}).get("patch", [])
+        for patch in patches:
+            if patch.get("name") == desc:
+                effective.update({k: v for k, v in patch.items() if k not in ("name",)})
+        # Determine state
+        removes = self.model.config.get("crates", {}).get("remove", [])
+        if desc in removes or weight in removes:
+            state = "deleted"
+        elif any(p.get("name") == desc for p in patches):
+            state = "modified"
+        else:
+            state = "default"
+        self._current_context = {"type": "crate", "family": family, "weight": weight}
+        form = CrateForm(
+            self._form_frame,
+            family=family,
+            entry=effective,
+            state=state,
+            on_apply=self._on_crate_apply,
+            on_delete=self._on_crate_delete,
+            on_restore=self._on_crate_restore,
+            on_cancel=self._on_form_cancel,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _open_crate_add_form(self, idx: int) -> None:
+        """Open CrateForm for an already-added (user-created) crate."""
+        self._clear_form()
+        adds = self.model.config.get("crates", {}).get("add", [])
+        if idx >= len(adds):
+            return
+        add_entry = adds[idx]
+        # Normalize: add_crate uses "name" but CrateForm uses "desc" too
+        entry = dict(add_entry)
+        if "name" in entry and "desc" not in entry:
+            entry["desc"] = entry["name"]
+        family = entry.get("section", "Support")
+        self._current_context = {"type": "crate_add", "idx": idx}
+        form = CrateForm(
+            self._form_frame,
+            family=family,
+            entry=entry,
+            state="added",
+            on_apply=self._on_crate_add_apply,
+            on_delete=lambda d, w: self._on_crate_add_delete(idx),
+            on_restore=lambda d: None,
+            on_cancel=self._on_form_cancel,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _show_family_actions(self, family: str) -> None:
+        """Show an 'Add crate' button when clicking a family node."""
+        self._clear_form()
+        self._current_context = {"type": "crate_family", "family": family}
+        ttk.Label(self._form_frame, text=f"{family}", font=("", 11, "bold")).pack(anchor="w", padx=12, pady=(12, 4))
+        ttk.Button(
+            self._form_frame,
+            text=t("tui.crate.add_btn", family=family),
+            command=lambda: self._open_new_crate_form(family),
+        ).pack(anchor="w", padx=12, pady=4)
+
+    def _open_new_crate_form(self, family: str) -> None:
+        """Open a blank CrateForm to add a new crate to a family."""
+        self._clear_form()
+        self._current_context = {"type": "crate_new", "family": family}
+        form = CrateForm(
+            self._form_frame,
+            family=family,
+            entry={},
+            state="default",
+            on_apply=self._on_crate_apply,
+            on_delete=lambda d, w: None,
+            on_restore=lambda d: None,
+            on_cancel=self._on_form_cancel,
+        )
+        form.pack(fill=tk.BOTH, expand=True)
+        self._current_form = form
+
+    def _on_crate_apply(self, family: str, entry: dict, original_desc: str) -> None:
+        if original_desc:
+            # Editing an existing catalogue crate → patch
+            patches = self.model.config.get("crates", {}).get("patch", [])
+            existing_idx = next((i for i, p in enumerate(patches) if p.get("name") == original_desc), None)
+            patch_entry = {"name": original_desc}
+            patch_entry.update({k: v for k, v in entry.items() if k not in ("name", "desc", "section")})
+            if existing_idx is not None:
+                self.model.update_entry(("crates", "patch", existing_idx), patch_entry)
+            else:
+                self.model.patch_crate(patch_entry)
+        else:
+            # New crate
+            add_entry = {k: v for k, v in entry.items() if k != "desc"}
+            if "desc" in entry and "name" not in add_entry:
+                add_entry["name"] = entry["desc"]
+            self.model.add_crate(add_entry)
+        self._rebuild_tree()
+        self._refresh_status()
+
+    def _on_crate_add_apply(self, family: str, entry: dict, original_desc: str) -> None:  # noqa: ARG002
+        """Apply changes to an already-added (user-created) crate."""
+        ctx = self._current_context
+        if ctx and ctx.get("type") == "crate_add":
+            idx = ctx["idx"]
+            add_entry = {k: v for k, v in entry.items() if k != "desc"}
+            if "desc" in entry and "name" not in add_entry:
+                add_entry["name"] = entry["desc"]
+            self.model.update_entry(("crates", "add", idx), add_entry)
+            self._rebuild_tree()
+            self._refresh_status()
+
+    def _on_crate_delete(self, desc: str, weight) -> None:  # noqa: ARG002
+        self.model.remove_crate(desc)
+        self._rebuild_tree()
+        self._refresh_status()
+        self._clear_form()
+        self._show_form_hint()
+
+    def _on_crate_add_delete(self, idx: int) -> None:
+        self.model.delete_entry(("crates", "add", idx))
+        self._rebuild_tree()
+        self._refresh_status()
+        self._clear_form()
+        self._show_form_hint()
+
+    def _on_crate_restore(self, desc: str) -> None:
+        removes = self.model.config.get("crates", {}).get("remove", [])
+        idx = next((i for i, r in enumerate(removes) if r == desc), None)
+        if idx is not None:
+            self.model.delete_entry(("crates", "remove", idx))
+        self._rebuild_tree()
+        self._refresh_status()
+        self._clear_form()
+        self._show_form_hint()
+
     # --- undo / redo -------------------------------------------------------------
 
     def _undo(self, event=None) -> None:  # noqa: ARG002
         if self.model.undo():
-            prev_key = self._current_key
+            ctx = self._current_context
+            key = self._current_key
             self._rebuild_tree()
             self._refresh_status()
-            if prev_key:
-                self._open_scalar_form(prev_key)
+            if key:
+                self._open_scalar_form(key)
+            elif ctx and ctx.get("type") == "crate":
+                self._open_crate_form(ctx["family"], ctx["weight"])
 
     def _redo(self, event=None) -> None:  # noqa: ARG002
         if self.model.redo():
-            prev_key = self._current_key
+            ctx = self._current_context
+            key = self._current_key
             self._rebuild_tree()
             self._refresh_status()
-            if prev_key:
-                self._open_scalar_form(prev_key)
+            if key:
+                self._open_scalar_form(key)
+            elif ctx and ctx.get("type") == "crate":
+                self._open_crate_form(ctx["family"], ctx["weight"])
 
     # --- status ------------------------------------------------------------------
 

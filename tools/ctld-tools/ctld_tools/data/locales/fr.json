@@ -25,6 +25,9 @@
   "tui.section.parameters": "Paramètres",
   "tui.section.standard": "Standard",
   "tui.section.advanced": "Avancé",
+  "tui.section.crates": "Caisses",
+  "tui.crate.new": "Nouvelle crate",
+  "tui.crate.add_btn": "Ajouter une crate à {family}",
   "tui.form.select_hint": "Sélectionnez un élément dans le catalogue pour l'éditer.",
 
   "tui.tree.root": "user-config",

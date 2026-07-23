@@ -8,6 +8,59 @@ All user-visible strings should still go through the i18n layer before being pas
 from __future__ import annotations
 
 import tkinter as tk
+from tkinter import ttk
+
+
+class FilterablePicker(ttk.Frame):
+    """Text entry + live-filtered listbox for picking from a large option set (DCS types)."""
+
+    def __init__(self, parent, options: list[str], *, height: int = 6, **kwargs) -> None:
+        super().__init__(parent, **kwargs)
+        self._all_options = list(options)
+        self._var = tk.StringVar()
+        self._entry = ttk.Entry(self, textvariable=self._var)
+        self._entry.pack(fill=tk.X)
+        self._entry.bind("<KeyRelease>", self._on_key)
+        lb_frame = ttk.Frame(self)
+        lb_frame.pack(fill=tk.BOTH, expand=True)
+        self._listbox = tk.Listbox(lb_frame, height=height, exportselection=False)
+        scroll = ttk.Scrollbar(lb_frame, orient=tk.VERTICAL, command=self._listbox.yview)
+        self._listbox.configure(yscrollcommand=scroll.set)
+        self._listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self._listbox.bind("<<ListboxSelect>>", self._on_select)
+        self._populate(self._all_options)
+
+    def _on_key(self, event=None) -> None:  # noqa: ARG002
+        from ctld_tools.tui.filter import matches
+
+        query = self._var.get()
+        self._populate([o for o in self._all_options if matches(o, query)])
+
+    def _populate(self, options: list[str]) -> None:
+        self._listbox.delete(0, tk.END)
+        for opt in options:
+            self._listbox.insert(tk.END, opt)
+
+    def _on_select(self, event=None) -> None:  # noqa: ARG002
+        sel = self._listbox.curselection()
+        if sel:
+            self._var.set(self._listbox.get(sel[0]))
+
+    def get(self) -> str:
+        return self._var.get()
+
+    def set(self, value: str) -> None:
+        self._var.set(value)
+        from ctld_tools.tui.filter import matches
+
+        filtered = [o for o in self._all_options if matches(o, value)] if value else self._all_options
+        self._populate(filtered)
+        for i, opt in enumerate(filtered):
+            if opt == value:
+                self._listbox.selection_set(i)
+                self._listbox.see(i)
+                break
 
 
 class Tooltip:

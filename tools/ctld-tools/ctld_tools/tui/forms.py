@@ -8,9 +8,12 @@ widget used to edit individual scalar settings.
 from __future__ import annotations
 
 import tkinter as tk
+from collections.abc import Callable
 from tkinter import ttk
 
 from ctld_tools.i18n import t
+
+_SPECIFIC_PARAMS_KEYS = ("alti", "orbitRadiusNoLase", "orbitRadiusOnLase", "speed")
 
 
 def coerce(text: str):
@@ -102,3 +105,174 @@ class ScalarForm(ttk.Frame):
 
     def _cancel(self) -> None:
         self._on_cancel()
+
+
+class CrateForm(ttk.Frame):
+    """Editor panel for one crate entry (supports add / modify / delete / restore)."""
+
+    def __init__(
+        self,
+        parent,
+        *,
+        family: str,
+        entry: dict,
+        state: str,
+        on_apply: Callable,
+        on_delete: Callable,
+        on_restore: Callable,
+        on_cancel: Callable,
+    ) -> None:
+        super().__init__(parent, padding=12)
+        self._family = family
+        self._state = state
+        self._original_desc = entry.get("desc") or entry.get("name", "")
+        self._on_apply = on_apply
+        self._on_delete = on_delete
+        self._on_restore = on_restore
+        self._on_cancel = on_cancel
+
+        # Scrollable interior
+        canvas = tk.Canvas(self, borderwidth=0, highlightthickness=0)
+        vscroll = ttk.Scrollbar(self, orient=tk.VERTICAL, command=canvas.yview)
+        canvas.configure(yscrollcommand=vscroll.set)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        vscroll.pack(side=tk.RIGHT, fill=tk.Y)
+        interior = ttk.Frame(canvas)
+        canvas.create_window((0, 0), window=interior, anchor="nw")
+        interior.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+        # Title
+        title = entry.get("desc") or entry.get("name") or t("tui.crate.new")
+        ttk.Label(interior, text=f"{family} / {title}", font=("", 11, "bold")).pack(anchor="w", pady=(0, 8))
+
+        # desc field
+        self._desc_var = tk.StringVar(value=self._original_desc)
+        self._add_field(interior, "desc", self._desc_var)
+
+        # unit (DCS type picker)
+        ttk.Label(interior, text="unit").pack(anchor="w")
+        from ctld_tools.datamine import known_dcs_types
+        from ctld_tools.tui.widgets import FilterablePicker
+
+        self._unit_picker = FilterablePicker(interior, sorted(known_dcs_types()), height=5)
+        self._unit_picker.pack(fill=tk.X, pady=(0, 6))
+        if entry.get("unit"):
+            self._unit_picker.set(entry["unit"])
+
+        # weight_kg (stored as "weight" in reference, "weight_kg" in editmodel)
+        weight_val = entry.get("weight_kg") or entry.get("weight", "")
+        self._weight_var = tk.StringVar(value=str(weight_val) if weight_val != "" else "")
+        self._add_field(interior, "weight_kg", self._weight_var)
+
+        # cratesRequired
+        cr_val = entry.get("cratesRequired")
+        self._crates_req_var = tk.StringVar(value=str(cr_val) if cr_val is not None else "")
+        self._add_field(interior, "cratesRequired", self._crates_req_var)
+
+        # side
+        side_val = entry.get("side")
+        self._side_var = tk.StringVar(value=str(side_val) if side_val is not None else "")
+        side_frame = ttk.Frame(interior)
+        side_frame.pack(anchor="w", fill=tk.X, pady=(0, 6))
+        ttk.Label(side_frame, text="side").pack(side=tk.LEFT)
+        ttk.Combobox(side_frame, textvariable=self._side_var, values=["1", "2", ""], width=8).pack(side=tk.LEFT, padx=4)
+
+        # isJTAC (bool)
+        jtac_val = entry.get("isJTAC")
+        self._jtac_var = tk.StringVar(value=str(jtac_val).lower() if jtac_val is not None else "")
+        jtac_frame = ttk.Frame(interior)
+        jtac_frame.pack(anchor="w", fill=tk.X, pady=(0, 6))
+        ttk.Label(jtac_frame, text="isJTAC").pack(side=tk.LEFT)
+        ttk.Combobox(
+            jtac_frame, textvariable=self._jtac_var, values=["true", "false", ""], state="readonly", width=8
+        ).pack(side=tk.LEFT, padx=4)
+
+        # spawnAs
+        self._spawn_var = tk.StringVar(value=entry.get("spawnAs", ""))
+        self._add_field(interior, "spawnAs", self._spawn_var)
+
+        # specificParams (inline group — shown when family is Drone or entry has them)
+        has_specific = bool(entry.get("specificParams")) or family == "Drone"
+        self._specific_vars: dict[str, tk.StringVar] = {}
+        if has_specific:
+            ttk.Separator(interior, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=6)
+            ttk.Label(interior, text="specificParams", font=("", 9, "bold")).pack(anchor="w")
+            sp = entry.get("specificParams") or {}
+            for sp_key in _SPECIFIC_PARAMS_KEYS:
+                sp_val = sp.get(sp_key)
+                var = tk.StringVar(value=str(sp_val) if sp_val is not None else "")
+                self._add_field(interior, f"  {sp_key}", var)
+                self._specific_vars[sp_key] = var
+
+        # Inline error label
+        self._error_var = tk.StringVar()
+        ttk.Label(interior, textvariable=self._error_var, foreground="red", wraplength=350).pack(
+            anchor="w", pady=(4, 0)
+        )
+
+        # Buttons
+        btn_frame = ttk.Frame(interior)
+        btn_frame.pack(anchor="w", pady=(10, 0))
+        ttk.Button(btn_frame, text=t("tui.btn.apply"), command=self._apply).pack(side=tk.LEFT, padx=(0, 4))
+        if state == "deleted":
+            ttk.Button(btn_frame, text=t("tui.btn.restore"), command=self._restore).pack(side=tk.LEFT, padx=(0, 4))
+        else:
+            self._delete_btn = ttk.Button(btn_frame, text=t("tui.btn.delete"), command=self._delete)
+            self._delete_btn.pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Button(btn_frame, text=t("tui.btn.cancel"), command=self._on_cancel).pack(side=tk.LEFT)
+
+    def _add_field(self, parent, label: str, var: tk.StringVar) -> None:
+        row = ttk.Frame(parent)
+        row.pack(anchor="w", fill=tk.X, pady=(0, 4))
+        ttk.Label(row, text=label, width=16).pack(side=tk.LEFT)
+        ttk.Entry(row, textvariable=var, width=28).pack(side=tk.LEFT)
+
+    def set_error(self, msg: str) -> None:
+        self._error_var.set(msg)
+
+    def _collect(self) -> dict:
+        """Collect current form values into an entry dict."""
+        entry: dict = {}
+        desc = self._desc_var.get().strip()
+        if desc:
+            entry["name"] = desc
+            entry["desc"] = desc
+        unit = self._unit_picker.get().strip()
+        if unit:
+            entry["unit"] = unit
+        weight = coerce(self._weight_var.get())
+        if weight is not None:
+            entry["weight_kg"] = weight
+        cr = coerce(self._crates_req_var.get())
+        if cr is not None:
+            entry["cratesRequired"] = cr
+        side = coerce(self._side_var.get())
+        if side is not None:
+            entry["side"] = side
+        jtac_raw = self._jtac_var.get().strip().lower()
+        if jtac_raw in ("true", "false"):
+            entry["isJTAC"] = jtac_raw == "true"
+        spawn = self._spawn_var.get().strip()
+        if spawn:
+            entry["spawnAs"] = spawn
+        if self._specific_vars:
+            sp: dict = {}
+            for k, var in self._specific_vars.items():
+                v = coerce(var.get())
+                if v is not None:
+                    sp[k] = v
+            if sp:
+                entry["specificParams"] = sp
+        entry["section"] = self._family
+        return entry
+
+    def _apply(self) -> None:
+        self._error_var.set("")
+        entry = self._collect()
+        self._on_apply(self._family, entry, self._original_desc)
+
+    def _delete(self) -> None:
+        self._on_delete(self._original_desc, None)
+
+    def _restore(self) -> None:
+        self._on_restore(self._original_desc)
