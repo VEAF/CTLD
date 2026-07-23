@@ -405,6 +405,7 @@ class CtldToolsApp(App):
 
     def _open_modify_form(self, kind: str, initial: dict, default: dict, on_submit) -> None:
         """Open the full Add form pre-filled with `initial`, name locked (it is the target)."""
+        form: AddTroopForm | AddCrateForm
         if kind == "troop":
             form = AddTroopForm(initial=initial, defaults=default, lock_name=True)
         else:
