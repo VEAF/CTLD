@@ -196,6 +196,40 @@ def test_generate_writes_lua_when_clean(ref, tmp_path):
 # --- load / save round-trip ------------------------------------------------------
 
 
+# --- remove_from_list / restore_list_entry (ticket 10) ---------------------------
+
+
+def test_remove_from_list_adds_arrayRemovals_entry(ref):
+    m = model(ref)
+    m.remove_from_list("transportPilotNames", "helicargo1")
+    assert m.config["arrayRemovals"]["transportPilotNames"] == ["helicargo1"]
+
+
+def test_restore_list_entry_removes_arrayRemovals_entry(ref):
+    m = model(ref)
+    m.remove_from_list("transportPilotNames", "helicargo1")
+    m.restore_list_entry("transportPilotNames", "helicargo1")
+    assert "arrayRemovals" not in m.config
+
+
+def test_remove_from_list_undo_clears_removal(ref):
+    m = model(ref)
+    m.remove_from_list("transportPilotNames", "helicargo1")
+    m.undo()
+    assert "arrayRemovals" not in m.config
+
+
+def test_restore_list_entry_undo_brings_removal_back(ref):
+    m = model(ref)
+    m.remove_from_list("transportPilotNames", "helicargo1")
+    m.restore_list_entry("transportPilotNames", "helicargo1")
+    m.undo()
+    assert m.config["arrayRemovals"]["transportPilotNames"] == ["helicargo1"]
+
+
+# --- load / save round-trip ------------------------------------------------------
+
+
 def test_load_then_save_round_trips_operations(ref, tmp_path):
     src_yaml = tmp_path / "user-config.yaml"
     src_yaml.write_text(

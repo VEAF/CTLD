@@ -8,6 +8,22 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Name/Role Lists remove support (UX-CTLD-TOOLS-V2 ticket 10)
+
+- **`src/CTLD_userSetup.lua`**: new `ctld.removeFrom(settingName, value)` helper —
+  removes the first matching entry from an array-type setting
+  (`transportPilotNames`, `extractableGroups`, `logisticUnits`, …).
+- **`user-config.yaml` format**: new top-level key `arrayRemovals` holds per-setting
+  lists of names to suppress from the default catalogue. Backwards-compatible: the
+  existing `arrays` key (appends) is unchanged.
+- **`ctld-tools` GUI**: default Name/Role List entries now show a Delete button; deleted
+  entries appear struck-through + greyed with a Restore button, matching the crate/troop
+  visual model.
+- **`genuser.py`**: emits `ctld.removeFrom()` calls for all `arrayRemovals` entries
+  before the existing `ctld.addTo()` calls.
+- **`editmodel.py`**: `remove_from_list(setting, name)` and `restore_list_entry(setting, name)`,
+  both undo/redo-able.
+
 ### Added — ctld-tools v2 GUI complete (UX-CTLD-TOOLS-V2)
 
 Full rewrite of the ctld-tools authoring UI: Textual TUI replaced by a

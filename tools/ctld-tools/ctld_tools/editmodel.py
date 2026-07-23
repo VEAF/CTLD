@@ -160,6 +160,22 @@ class EditModel:
         self.config.setdefault("arrays", {}).setdefault(setting, []).append(item)
         self.revalidate()
 
+    def remove_from_list(self, setting: str, name: str) -> None:
+        self._checkpoint()
+        self.config.setdefault("arrayRemovals", {}).setdefault(setting, []).append(name)
+        self.revalidate()
+
+    def restore_list_entry(self, setting: str, name: str) -> None:
+        self._checkpoint()
+        removals = self.config.get("arrayRemovals", {}).get(setting, [])
+        if name in removals:
+            removals.remove(name)
+            if not removals:
+                del self.config["arrayRemovals"][setting]
+            if not self.config.get("arrayRemovals"):
+                self.config.pop("arrayRemovals", None)
+        self.revalidate()
+
     def delete_entry(self, address: tuple) -> None:
         """Delete one entry from the document, addressed as it appears in the tree.
 

@@ -72,6 +72,10 @@ def _operations(cfg: dict, ref: Reference) -> list[str]:
         patch = {k: v for k, v in entry.items() if k != "name"}
         lines.append(f"    ctld.patchTroopGroup({_lua_str(name)}, {_render_value(patch, 1)})")
 
+    for setting, names in (cfg.get("arrayRemovals") or {}).items():
+        for name in names:
+            lines.append(f"    ctld.removeFrom({_lua_str(setting)}, {_render_value(name, 1)})")
+
     for setting, items in (cfg.get("arrays") or {}).items():
         for item in items:
             lines.append(f"    ctld.addTo({_lua_str(setting)}, {_render_value(item, 1)})")

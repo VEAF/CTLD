@@ -171,6 +171,27 @@ function ctld.addTo(settingName, entry)
     return true
 end
 
+--- Remove the first occurrence of a value from an array-type setting
+-- (transportPilotNames, extractableGroups, logisticUnits, …).
+---@param settingName string
+---@param value any
+---@return boolean removed
+function ctld.removeFrom(settingName, value)
+    local arr = _settings()[settingName]
+    if type(arr) ~= "table" then
+        ctld.logWarning("ctld.removeFrom: setting '%s' is not an array — nothing removed", tostring(settingName))
+        return false
+    end
+    for i, v in ipairs(arr) do
+        if v == value then
+            table.remove(arr, i)
+            return true
+        end
+    end
+    ctld.logWarning("ctld.removeFrom: value '%s' not found in '%s'", tostring(value), tostring(settingName))
+    return false
+end
+
 --- Serialise a config setting to CTLD.log in copy-pasteable Lua form, so the MM
 -- can inspect the real defaults at runtime. Intended to be called from a ME
 -- DO SCRIPT trigger a few seconds after mission start.

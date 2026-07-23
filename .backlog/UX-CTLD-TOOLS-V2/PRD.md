@@ -174,12 +174,20 @@ its tooltip explains why.
     previously saved modifications already reflected in the tree (bold/green/strikethrough),
     so that I can continue editing where I left off.
 
-35. As an MM, I want to manage `transportPilotNames`, `extractableGroups` and
-    `logisticUnits` as simple add/remove string lists within their tree sections,
-    so that I can assign pilot slots and group names without editing YAML directly.
+35. As an MM, I want to add entries to `transportPilotNames`, `extractableGroups` and
+    `logisticUnits` from within the tree, so that I can extend the default lists without
+    editing YAML directly.
 
 36. As an MM, I want to manage `groundVehicleWeights` entries (vehicle type → weight)
     with add/modify/remove, so that slingload weight limits reflect my modded vehicles.
+
+37. As an MM, I want to remove a default entry from `transportPilotNames`,
+    `extractableGroups` or `logisticUnits` (e.g. remove a pilot role that does not
+    exist in my mission), so that CTLD does not try to manage units that are absent.
+
+38. As an MM, I want removed default list entries to appear struck-through and greyed
+    in the tree (same visual as deleted crates), so that I can see what I have suppressed
+    and restore it if needed.
 
 ## Implementation Decisions
 
@@ -336,6 +344,38 @@ A `ttk.Frame` pinned below the main paned window, never scrolled away:
 `Inject` opens a `tkinter.filedialog.askopenfilename` filtered to `*.miz`, then calls
 the existing `miz.inject_userconfig`.
 
+### Name / Role Lists — remove support (ticket 10)
+
+The `transportPilotNames`, `extractableGroups` and `logisticUnits` lists currently only
+support **append** via `ctld.addTo()`. Ticket 10 adds remove support end-to-end.
+
+**Config format** — a new top-level key `arrayRemovals` stores names to suppress.
+Backwards-compatible: the existing `arrays` key (appends) is unchanged.
+
+```yaml
+arrays:
+  transportPilotNames:
+    - "helicargo_custom_1"      # appended as before
+
+arrayRemovals:
+  transportPilotNames:
+    - "helicargo01"             # suppressed from the default list
+```
+
+**CTLD runtime** — a new `ctld.removeFrom(settingName, value)` helper is added to
+`src/CTLD_userSetup.lua`. It removes the matching entry from the named array setting.
+This is the only `src/` change in the lot.
+
+**EditModel** — gains `remove_from_list(setting, name)` (appends to `arrayRemovals`)
+and `restore_list_entry(setting, name)` (removes from `arrayRemovals`).
+
+**genuser.py** — iterates `arrayRemovals` and emits `ctld.removeFrom()` calls before
+`ctld.addTo()` calls.
+
+**Tree** — default list entries show a `Delete` button in their view. Deleted entries
+appear struck-through + greyed (state `deleted`). Clicking a deleted entry shows
+`Restore` instead. User-added entries retain their existing `Delete` behaviour.
+
 ### CLI
 
 The `tui` command in `cli.py` now calls the tkinter app's `run()`. All other commands
@@ -379,26 +419,26 @@ provides the closest existing seam for headless GUI integration.
 
 ## Out of Scope
 
-- Any change to `EditModel`, `Reference`, `validate`, `genuser`, `miz`, `cli` (business
-  layer is frozen for this lot).
 - Adding new languages or translating dictionaries.
 - Generating documentation tables from the schema (see `dev/roadmap.md`).
 - Deprecating the companion `CTLD_asset_check.lua` (see `dev/roadmap.md`).
 - `modTypes` validation against `user-config` declared types (see `dev/roadmap.md`).
-- Any change to `src/` Lua or the build pipeline.
+- Any `src/` Lua change beyond the single `ctld.removeFrom()` helper added in ticket 10.
 
 ## Tickets
 
-| # | Title | Blocked by |
-| -- | ----- | ---------- |
-| 01 | Foundation: tkinter shell + sv-ttk + tooltip helper | — |
-| 02 | Scalars editor: full end-to-end | 01 |
-| 03 | Crates editor (spawnableCrates) | 02 |
-| 04 | Troop groups editor (loadableGroups) | 02 |
-| 05 | Aircraft editor (capabilitiesByType) | 02 |
-| 06 | Zone editors with named fields | 02 |
-| 07 | Mission lists + vehicle weights | 02 |
-| 08 | Schema full coverage + test_schema_coverage | 03–07 |
+| # | Title | Blocked by | Status |
+| -- | ----- | ---------- | ------ |
+| 01 | Foundation: tkinter shell + sv-ttk + tooltip helper | — | merged |
+| 02 | Scalars editor: full end-to-end | 01 | merged |
+| 03 | Crates editor (spawnableCrates) | 02 | merged |
+| 04 | Troop groups editor (loadableGroups) | 02 | merged |
+| 05 | Aircraft editor (capabilitiesByType) | 02 | merged |
+| 06 | Zone editors with named fields | 02 | merged |
+| 07 | Mission lists + vehicle weights | 02 | merged |
+| 08 | Schema full coverage + test_schema_coverage | 03–07 | merged |
+| 09 | Functional parameter families in the settings tree | 08 | merged |
+| 10 | Name/Role Lists — remove default entries | 07 | ready |
 
 Tickets 03–07 are parallelisable after 02.
 

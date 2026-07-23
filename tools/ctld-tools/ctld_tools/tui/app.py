@@ -371,10 +371,14 @@ class CtldToolsApp:
             sub_iid = f"mlist:{setting}"
             self._tree.insert(lists_node, "end", iid=sub_iid, text=t(label_key), open=False)
             defaults = self.model.ref.default_list(setting)
+            removed = self.model.config.get("arrayRemovals", {}).get(setting, [])
             added = self.model.config.get("arrays", {}).get(setting, [])
             for name in defaults:
                 iid = f"mlist_default:{setting}:{name}"
-                self._tree.insert(sub_iid, "end", iid=iid, text=name, tags=("default",))
+                if name in removed:
+                    self._tree.insert(sub_iid, "end", iid=iid, text=name, tags=("deleted",))
+                else:
+                    self._tree.insert(sub_iid, "end", iid=iid, text=name, tags=("default",))
             for idx, name in enumerate(added):
                 iid = f"mlist_add:{setting}:{idx}"
                 self._tree.insert(sub_iid, "end", iid=iid, text=f"{name}  +", tags=("added",))
@@ -442,7 +446,10 @@ class CtldToolsApp:
             self._show_zone_add_button(zone_type)
         elif iid.startswith("mlist_default:"):
             parts = iid.split(":", 2)
-            self._show_mlist_default_view(parts[2] if len(parts) > 2 else "")
+            self._show_mlist_default_view(
+                parts[2] if len(parts) > 2 else "",
+                parts[1] if len(parts) > 1 else None,
+            )
         elif iid.startswith("mlist_add:"):
             _, setting, idx_str = iid.split(":", 2)
             self._open_mlist_add_form(setting, int(idx_str))
@@ -460,13 +467,43 @@ class CtldToolsApp:
 
     # --- mission list forms ------------------------------------------------------
 
-    def _show_mlist_default_view(self, name: str) -> None:
+    def _show_mlist_default_view(self, name: str, setting: str | None = None) -> None:
         self._clear_form()
-        self._current_context = {"type": "mlist_default", "name": name}
+        removed = setting and name in self.model.config.get("arrayRemovals", {}).get(setting, [])
+        self._current_context = {"type": "mlist_default", "name": name, "setting": setting}
         ttk.Label(self._form_frame, text=name, font=("", 11, "bold")).pack(
             anchor="w", padx=12, pady=(12, 4)
         )
-        ttk.Label(self._form_frame, text=t("tui.mlist.default_note"), foreground="gray").pack(anchor="w", padx=12)
+        if setting:
+            btn_frame = ttk.Frame(self._form_frame)
+            btn_frame.pack(anchor="w", padx=12, pady=4)
+            if removed:
+                ttk.Button(
+                    btn_frame,
+                    text=t("tui.btn.restore"),
+                    command=lambda: self._on_mlist_default_restore(setting, name),
+                ).pack(side=tk.LEFT, padx=(0, 4))
+            else:
+                ttk.Button(
+                    btn_frame,
+                    text=t("tui.btn.delete"),
+                    command=lambda: self._on_mlist_default_delete(setting, name),
+                ).pack(side=tk.LEFT, padx=(0, 4))
+            ttk.Button(btn_frame, text=t("tui.btn.cancel"), command=self._on_form_cancel).pack(side=tk.LEFT)
+        else:
+            ttk.Label(self._form_frame, text=t("tui.mlist.default_note"), foreground="gray").pack(anchor="w", padx=12)
+
+    def _on_mlist_default_delete(self, setting: str, name: str) -> None:
+        self.model.remove_from_list(setting, name)
+        self._rebuild_tree()
+        self._refresh_status()
+        self._show_mlist_default_view(name, setting)
+
+    def _on_mlist_default_restore(self, setting: str, name: str) -> None:
+        self.model.restore_list_entry(setting, name)
+        self._rebuild_tree()
+        self._refresh_status()
+        self._show_mlist_default_view(name, setting)
 
     def _open_mlist_add_form(self, setting: str, idx: int) -> None:
         self._clear_form()

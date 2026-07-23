@@ -111,3 +111,35 @@ def test_patch_troop_end_to_end(ref, tmp_path):
     settings = _run_user_config(ref, {"troops": {"patch": [{"name": "Standard Group", "inf": 42}]}}, tmp_path)
     group = next(g for g in settings["loadableGroups"] if g.get("name") == "Standard Group")
     assert group["inf"] == 42
+
+
+# --- arrayRemovals → ctld.removeFrom() (ticket 10) -------------------------------
+
+
+def test_array_removals_emit_remove_from(ref):
+    cfg = {"arrayRemovals": {"transportPilotNames": ["helicargo1", "helicargo2"]}}
+    lua = render_user_config(cfg, ref)
+    assert 'ctld.removeFrom("transportPilotNames", "helicargo1")' in lua
+    assert 'ctld.removeFrom("transportPilotNames", "helicargo2")' in lua
+
+
+def test_array_removals_before_additions(ref):
+    """removeFrom calls must appear before addTo calls in generated output."""
+    cfg = {
+        "arrayRemovals": {"transportPilotNames": ["helicargo1"]},
+        "arrays": {"transportPilotNames": ["heli_new"]},
+    }
+    lua = render_user_config(cfg, ref)
+    remove_pos = lua.index('ctld.removeFrom("transportPilotNames"')
+    add_pos = lua.index('ctld.addTo("transportPilotNames"')
+    assert remove_pos < add_pos
+
+
+def test_array_removals_end_to_end(ref, tmp_path):
+    """ctld.removeFrom compiled call actually removes the entry at runtime."""
+    settings = _run_user_config(
+        ref,
+        {"arrayRemovals": {"transportPilotNames": ["helicargo1"]}},
+        tmp_path,
+    )
+    assert "helicargo1" not in settings["transportPilotNames"]

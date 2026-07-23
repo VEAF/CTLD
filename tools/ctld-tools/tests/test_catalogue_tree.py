@@ -295,6 +295,31 @@ def test_transport_pilots_default_entries_present(app):
     assert app._tree.exists("mlist_default:transportPilotNames:helicargo1")
 
 
+def test_mlist_default_deleted_tag_after_remove(app):
+    from ctld_tools.tui.app import CtldToolsApp
+
+    a = CtldToolsApp(_test_mode=True)
+    a.model.remove_from_list("transportPilotNames", "helicargo1")
+    a._rebuild_tree()
+    iid = "mlist_default:transportPilotNames:helicargo1"
+    assert a._tree.exists(iid)
+    assert "deleted" in a._tree.item(iid, "tags")
+    a.root.destroy()
+
+
+def test_mlist_default_restored_has_no_deleted_tag(app):
+    from ctld_tools.tui.app import CtldToolsApp
+
+    a = CtldToolsApp(_test_mode=True)
+    a.model.remove_from_list("transportPilotNames", "helicargo1")
+    a.model.restore_list_entry("transportPilotNames", "helicargo1")
+    a._rebuild_tree()
+    iid = "mlist_default:transportPilotNames:helicargo1"
+    assert a._tree.exists(iid)
+    assert "deleted" not in a._tree.item(iid, "tags")
+    a.root.destroy()
+
+
 # --- vehicle weight tests ---
 
 
