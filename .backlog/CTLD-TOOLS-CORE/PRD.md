@@ -19,9 +19,10 @@ can put a web layer on top without any business logic being written twice.
 **Demolition**
 - Remove the ops model: `editmodel.py`, the ops compilation in `gen-user`, ops-oriented tests.
 - Remove the Textual TUI (`ctld_tools/tui/*`) and do **not** port FullGas's tkinter UI.
-- Retire `reference.json` + `gen-reference`: the core reads the single default catalogue YAML
-  (AA already baked in by lot 1). Retire `gen-config` (YAML→Lua-table); config embed is now a
-  trivial YAML-string wrap done by the build.
+- Retire `reference.json` + `gen-reference`, `gen-config` (YAML→Lua-table; the build now embeds the
+  YAML string), `extract` (Lua→YAML, one-shot, historical), and `Reference.from_src`: the core reads
+  the single default catalogue YAML (AA already baked in by lot 1). **Drop `lupa` from `pyproject`
+  entirely** — nothing reads Lua any more.
 
 **Core library (pure functions, no interface)**
 - Load / edit / save a **complete** catalogue YAML (Parameters + Data), schema-driven from
@@ -38,8 +39,8 @@ wrappers over it. If business logic would be written in lot 3, it belongs here.
 
 ## Definition of Done
 
-- Ops/TUI/tkinter/`reference.json`/`gen-config` code paths removed; package imports clean; ruff +
-  mypy green; `python-quality` CI green.
+- Ops/TUI/tkinter/`reference.json`/`gen-config`/`gen-reference`/`extract`/`from_src`/`lupa` code
+  paths and dependency removed; package imports clean; ruff + mypy green; `python-quality` CI green.
 - Core API: load/edit/save complete YAML, `validate` (schema + datamine + mixedSet), version-gap
   diff — all unit-tested without any UI.
 - Build integration updated (config embed via YAML-string wrap; no generated Lua-table artifact).

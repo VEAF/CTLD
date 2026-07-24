@@ -16,10 +16,11 @@ and the UI opens — no terminal, no command, no install (the ergonomics missing
 ## Solution (this lot = presentation only, over lot 2's library)
 
 **Web app**
-- Backend: FastAPI-style, **thin endpoints wrapping lot 2's core** (load/edit/save/validate/version
+- Backend: **FastAPI**, **thin endpoints wrapping lot 2's core** (load/edit/save/validate/version
   diff). No business logic here. Far lighter than Walker: single user, ephemeral, **no DB, no auth,
-  no migrations**. Exact JS stack chosen at design time.
-- Frontend: schema-driven editors (salvage FullGas's editor logic), navigation by the **12
+  no migrations**.
+- Frontend: **Svelte + Vite + TypeScript** — schema-driven editors (salvage FullGas's editor logic),
+  navigation by the **12
   functional families**, top-level split into two screens — **Parameters** (how CTLD behaves) vs
   **Data** (what CTLD operates on).
 - **Version-gap popup**: on opening a stale `configUser`, warn that CTLD's version changed and
@@ -42,8 +43,11 @@ and the UI opens — no terminal, no command, no install (the ergonomics missing
   the version-gap popup all working end to end against the lot 2 core.
 - **No editing gaps**: every schema-declared parameter and data family is editable — explicitly
   including `capabilitiesByType` (aircraft types, datamine-backed type picking) and
-  `transportPilotNames` (editable name list). A **schema-coverage test** fails the build if any
-  schema key has no editor (evolution of FullGas's `test_schema_coverage.py`, as a blocking gate).
+  `transportPilotNames` (editable name list). A **blocking** schema-coverage test (evolution of
+  FullGas's `test_schema_coverage.py`) fails the build if any schema key renders no editor. A
+  **generic fallback editor** (typed raw field) guarantees every key renders something, so the gate
+  is painless; bespoke editors added progressively. Deliberately hidden keys go on an **explicit,
+  reviewed allowlist**, never a silent skip.
 - CLI-from-terminal still works (validate / gen / embed with args); CI/build unaffected.
 - Frontend built + bundled + exe attached to Releases (isolated job), verified.
 - `docs/mission-maker/ctld-tools.{md,fr.md}` rewritten for the web app; `ctld-tools` glossary entry

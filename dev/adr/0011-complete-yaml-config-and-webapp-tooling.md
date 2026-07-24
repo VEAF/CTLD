@@ -71,9 +71,11 @@ replace both the TUI and the tkinter GUI with a **local web app**.
 
 ### Tooling — a local web app, single console exe
 
-7. **ctld-tools becomes a local web app** (FastAPI-style backend + a JS frontend; exact stack chosen
-   at design time — the needs are far lighter than Walker: single user, ephemeral, **no DB, no auth,
-   no migrations**). It edits the complete catalogue in full — adopting FullGas's schema-driven
+7. **ctld-tools becomes a local web app** — a **FastAPI** backend + a **Svelte + Vite + TypeScript**
+   frontend. The needs are far lighter than Walker: single user, ephemeral, **no DB, no auth, no
+   migrations**. Svelte was chosen over React on merit (smaller bundle to embed in the exe, less
+   ceremony to maintain) rather than familiarity. It edits the complete catalogue in full — adopting
+   FullGas's schema-driven
    editors and his **12 functional families** as the navigation, **plus** a higher-level split into
    two screens: **Parameters** (how CTLD behaves) vs **Data** (what CTLD operates on).
 
@@ -117,13 +119,18 @@ replace both the TUI and the tkinter GUI with a **local web app**.
   genuinely the complete config.
 - **Build**: no Lua-table generation for the defaults — the build **embeds the YAML string** into a
   Lua module. `gen-config` (YAML→Lua-table) is retired; `reference.json` / `gen-reference` collapse
-  into "the tool reads the one default YAML". `lupa`'s remaining fate (the one-shot `extract`
-  migration only?) is a design-time detail; it never ships in the MM exe.
+  into "the tool reads the one default YAML". **`lupa` is removed entirely** (dependency dropped from
+  `pyproject`) along with the `extract` / `gen-config` / `gen-reference` commands and
+  `Reference.from_src`: nothing reads Lua any more (the runtime never did, the build embeds a string,
+  the tool reads YAML). Its last use is the **one-shot AA bake-in** in lot 1; after that lupa goes.
 - **Tool**: the ops editor (`editmodel.py`, ops logic in `gen-user`), the Textual TUI and the tkinter
   GUI are removed. New: web backend + frontend, version-gap detection, native file dialog, complete
   catalogue editing, mixedSet-consistency validation. **No editing gaps**: every schema-declared
   parameter and data family is editable — including `capabilitiesByType` (datamine-backed aircraft
-  types) and `transportPilotNames` — enforced by a blocking schema-coverage test.
+  types) and `transportPilotNames` — enforced by a **blocking** schema-coverage test. A **generic
+  fallback editor** (typed raw field) guarantees every key renders *something*, so the gate is
+  painless; bespoke editors are added progressively. A key deliberately hidden from the MM goes on an
+  **explicit, reviewed allowlist** — never a silent skip.
 - **Docs**: `docs/mission-maker/ctld-tools.{md,fr.md}` and the `user-config` / `ctld-tools` glossary
   in `CONTEXT.md` are rewritten (glossary done in this decision's move).
 - **Delivery**: three sequenced lots — (1) `FEAT-CONFIG-YAML-COMPLETE` (runtime), (2) `CTLD-TOOLS-CORE`

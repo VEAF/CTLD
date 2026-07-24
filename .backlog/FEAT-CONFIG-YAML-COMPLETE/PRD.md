@@ -22,7 +22,8 @@ AA crates are materialised at runtime by a generative loop. ADR 0011 replaces th
    `_ASSEMBLY_DIST`/`_REARM_DIST`); no → it is engine-internal, stays in code (e.g. `objectRegistry`
    `shape_name`/`namePrefix` — DCS engine identifiers, not settings). Externalisation is
    **behaviour-preserving** (same defaults). This defines the definitive catalogue that lots 2 & 3
-   edit. Conservative by default (surgical ethos — do not inflate the config surface).
+   edit. Conservative by default (surgical ethos — do not inflate the config surface). Ends on a
+   **scope-validation checkpoint** (the classified inventory reviewed) before externalisation lands.
 1. **Complete-config loading.** At init, resolve `configUser or configDefault` and parse the winner
    into the settings table. **No merge.** A missing element = intentional removal.
 2. **YAML-at-runtime.** Both documents are YAML strings; `configDefault` is the engine YAML embedded
@@ -32,7 +33,11 @@ AA crates are materialised at runtime by a generative loop. ADR 0011 replaces th
    parity test** (emit the default YAML → parse in Lua → compare to the reference table).
 4. **Bake AA into the YAML.** Expand `CTLDCrateAssemblyManager.injectAACrates` once into ordinary
    crate entries written into the default YAML; **delete** the runtime injection loop + `TEMPLATES`
-   materialisation path. (mixedSet consistency is enforced by the tool's `validate` in lot 2.)
+   materialisation path. (mixedSet consistency is enforced by the tool's `validate` in lot 2.) This
+   one-shot expansion is the **last use of `lupa`** in the codebase (run it once, commit the YAML).
+   The build stops calling `gen-config` and instead **embeds the YAML string** into a Lua module.
+   (The now-dead `gen-config`/`gen-reference`/`extract` commands + the `lupa` dependency itself are
+   deleted in lot 2, the tool-package cleanup.)
 5. **Version tag** on the default YAML (and schema). Stored so a `configUser` can record the version
    it was authored against (consumed by the tool in lot 2).
 6. **Retire** `src/CTLD_userSetup.lua` and the `ctld.userSetup` API. Clean break (pre-2.0.0). The
