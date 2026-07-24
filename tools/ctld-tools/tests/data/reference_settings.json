@@ -65,6 +65,8 @@
  "RPG_WEIGHT": 7.6,
  "SOLDIER_WEIGHT": 80,
  "aaLaunchers": 3,
+ "aaAssemblyDistance": 500,
+ "aaRearmDistance": 300,
  "addPlayerAircraftByType": true,
  "aiZones": {},
  "allowRandomAiTeamPickups": false,
@@ -79,6 +81,7 @@
  "beaconIconRadius": 25,
  "beaconLayerEnabled": false,
  "beaconRefreshInterval": 60,
+ "beaconRemovalRadius": 500,
  "beaconTextSize": 12,
  "capabilitiesByType": {
   "76MD": {

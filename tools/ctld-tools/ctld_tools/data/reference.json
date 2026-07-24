@@ -119,7 +119,9 @@
     "RIFLE_WEIGHT": 5,
     "RPG_WEIGHT": 7.6,
     "SOLDIER_WEIGHT": 80,
+    "aaAssemblyDistance": 500,
     "aaLaunchers": 3,
+    "aaRearmDistance": 300,
     "addPlayerAircraftByType": true,
     "allowRandomAiTeamPickups": false,
     "autoUnpackRadiusParachute": 1000,
@@ -127,6 +129,7 @@
     "beaconIconRadius": 25,
     "beaconLayerEnabled": false,
     "beaconRefreshInterval": 60,
+    "beaconRemovalRadius": 500,
     "beaconTextSize": 12,
     "crateSpacing": 5,
     "ctldLogPath": "",
@@ -384,10 +387,22 @@
         "fr": "Poids corporel de base par soldat (kg)"
       }
     },
+    "aaAssemblyDistance": {
+      "description": {
+        "en": "Max distance (m) between crates and the reference point to assemble an AA system",
+        "fr": "Distance max (m) entre les caisses et le point de référence pour assembler un système AA"
+      }
+    },
     "aaLaunchers": {
       "description": {
         "en": "Default number of launchers per AA system when the template does not specify",
         "fr": "Nombre par défaut de launchers par système AA quand le template n'en précise pas"
+      }
+    },
+    "aaRearmDistance": {
+      "description": {
+        "en": "Max distance (m) from a launcher crate to an existing AA system to rearm/repair it",
+        "fr": "Distance max (m) entre une caisse de lanceur et un système AA existant pour le réarmer/réparer"
       }
     },
     "addPlayerAircraftByType": {
@@ -400,6 +415,12 @@
       "description": {
         "en": "Allow AI transports to randomly pick a troop template at pickup zones. When false, the AI always picks the first available template for its coalition",
         "fr": "Autorise les transports IA à choisir aléatoirement un template de troop aux zones de pickup. Si false, l'IA prend toujours le premier template disponible pour sa coalition"
+      }
+    },
+    "beaconRemovalRadius": {
+      "description": {
+        "en": "Search radius (m) for the \"Remove Closest Beacon\" action",
+        "fr": "Rayon de recherche (m) pour l'action « Retirer la balise la plus proche »"
       }
     },
     "ctldLogPath": {
