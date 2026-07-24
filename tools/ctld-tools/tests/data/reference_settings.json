@@ -82,6 +82,15 @@
  "beaconLayerEnabled": false,
  "beaconRefreshInterval": 60,
  "beaconRemovalRadius": 500,
+ "loadCrateSearchRadius": 50,
+ "unpackSearchRadius": 300,
+ "fobCrateCollectionRadius": 750,
+ "slingCutDestroyHeight": 40,
+ "jtacLaserCodeMin": 1111,
+ "jtacLaserCodeMax": 1688,
+ "defaultVehicleWeight": 2500,
+ "fieldExtractTroopWeight": 130,
+ "defaultZoneRadius": 500,
  "beaconTextSize": 12,
  "capabilitiesByType": {
   "76MD": {

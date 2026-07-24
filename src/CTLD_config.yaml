@@ -218,6 +218,7 @@ mm_facing:
   - extract24
   - extract25
   fastRopeMaximumHeight: 18.28
+  fobCrateCollectionRadius: 750
   fobDestructionThreshold: 0.5
   fobLogisticZoneRadius: 150
   fobMinDistanceFromZones: 500
@@ -229,6 +230,7 @@ mm_facing:
     M1045 HMMWV TOW: 5000
     M1043 HMMWV Armament: 2500
   loadCrateFromMenu: true
+  loadCrateSearchRadius: 50
   loadableGroups:
   - name: Standard Group
     at: 2
@@ -308,7 +310,9 @@ mm_facing:
   reconRefreshInterval: 10
   reconSearchRadius: 5000
   showMinefieldOnF10Map: true
+  slingCutDestroyHeight: 40
   slingLoad: false
+  unpackSearchRadius: 300
   spawnableCrates:
     Combat Vehicles:
     - unit: M1043 HMMWV Armament
@@ -745,6 +749,8 @@ advanced:
   CIV_WEIGHT: 2
   JTAC_WEIGHT: 15
   JTAC_droneAltitude: 4000
+  jtacLaserCodeMax: 1688
+  jtacLaserCodeMin: 1111
   JTAC_droneRadius: 1000
   JTAC_laseIntervalSeconds: 15
   JTAC_laseSpotCorrections: true
@@ -782,6 +788,9 @@ advanced:
   debug: false
   debugScreenLog: false
   debugScreenLogDuration: 10
+  defaultVehicleWeight: 2500
+  defaultZoneRadius: 500
+  fieldExtractTroopWeight: 130
   demineRadius: 150
   deployedBeaconBattery: 30
   enableAutoOrbitingFlyingJtacOnTarget: true

@@ -1002,7 +1002,7 @@ function CTLDTroopManager:embarkFromField(unit)
 
     -- Weight: proportional to surviving logical units using original avg weight (BUG-07)
     local avgWeight = (stored.weight and stored.total and stored.total > 0)
-                      and (stored.weight / stored.total) or 130
+                      and (stored.weight / stored.total) or ctld.gs("fieldExtractTroopWeight")
     local weight    = math.floor(avgWeight * logicalCount)
 
     -- Capacity check: always use _canEmbark (cumulative); multi-group flag controls UI only.

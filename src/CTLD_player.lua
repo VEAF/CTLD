@@ -548,7 +548,7 @@ function CTLDPlayerManager:buildMenu(playerObj)
                 local vWeights = ctld.gs("groundVehicleWeights") or {}
                 for _, vt in ipairs(vehOrder) do
                     local count = vehCount[vt]
-                    local w     = (vWeights[vt] or 2500) * count
+                    local w     = (vWeights[vt] or ctld.gs("defaultVehicleWeight")) * count
                     total = total + w
                     table.insert(lines, ctld.tr("%1: %2 vehicle(s) onboard", vt, count))
                 end

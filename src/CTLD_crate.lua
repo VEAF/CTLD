@@ -570,7 +570,7 @@ function CTLDCrateManager:refreshLoadCrateSection(playerObj)
     end
 
     -- Group nearby crates (50 m) by descriptor type
-    local nearby = self:getCratesInRange(transport:getPoint(), 50)
+    local nearby = self:getCratesInRange(transport:getPoint(), ctld.gs("loadCrateSearchRadius"))
     local byType = {}   -- [desc] = { count, descriptor }
     for _, crate in ipairs(nearby) do
         local desc = crate.descriptor and crate.descriptor.desc or "Unknown"
@@ -607,7 +607,7 @@ function CTLDCrateManager:refreshLoadCrateSection(playerObj)
                             ctld.tr("Maximum number of crates are on board!", onboard, capacity), 10)
                         return
                     end
-                    local candidates = mgr:getCratesInRange(t:getPoint(), 50)
+                    local candidates = mgr:getCratesInRange(t:getPoint(), ctld.gs("loadCrateSearchRadius"))
                     local best, bestDist = nil, math.huge
                     for _, c in ipairs(candidates) do
                         if c.descriptor and c.descriptor.desc == arg.crateDesc then
@@ -672,7 +672,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, _noRefresh)
         return
     end
 
-    local nearby = self:getCratesInRange(transport:getPoint(), 300)
+    local nearby = self:getCratesInRange(transport:getPoint(), ctld.gs("unpackSearchRadius"))
 
     -- Group ground crates by descriptor.unit.
     -- Scene crates (unit matches a registered CTLDSceneManager model) are counted separately.
@@ -717,7 +717,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, _noRefresh)
                         return
                     end
                     local mgr   = CTLDCrateManager.getInstance()
-                    local nearC = mgr:getCratesInRange(t:getPoint(), 300)
+                    local nearC = mgr:getCratesInRange(t:getPoint(), ctld.gs("unpackSearchRadius"))
                     -- Collect crates for unpack
                     local toUnpack = {}
                     for _, c in ipairs(nearC) do
@@ -823,7 +823,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, _noRefresh)
                         return
                     end
                     local mgr      = CTLDCrateManager.getInstance()
-                    local nearC     = mgr:getCratesInRange(t:getPoint(), 300)
+                    local nearC     = mgr:getCratesInRange(t:getPoint(), ctld.gs("unpackSearchRadius"))
                     local toConsume = {}
                     for _, c in ipairs(nearC) do
                         if c:isOnGround() and c.canBeUnpacked
@@ -1500,7 +1500,7 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
 
     crate.inTransitOnSlingload = false
 
-    if agl > 40.0 then
+    if agl > ctld.gs("slingCutDestroyHeight") then
         -- Too high: crate destroyed on impact
         local lostPos = crate.position
         crate:destroy()
@@ -2933,7 +2933,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             if not (t and t:isExist()) then return end
             local gid  = ctld.utils.getGroupId(t)
             local mgr  = CTLDCrateManager.getInstance()
-            local nearby = mgr:getCratesInRange(t:getPoint(), 300)
+            local nearby = mgr:getCratesInRange(t:getPoint(), ctld.gs("unpackSearchRadius"))
 
             -- Group by descriptor.unit (or desc for crates with no vehicle)
             local byUnit    = {}   -- [key] = { desc, count, required }

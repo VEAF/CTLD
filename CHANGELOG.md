@@ -10,11 +10,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Changed — engine config knobs externalised to YAML (FEAT-CONFIG-YAML-COMPLETE)
 
-- Lot 1 (slice 1): three hardcoded constants are now mission-configurable settings, read via
-  `ctld.gs(...)` and defined in `CTLD_config.yaml` — **behaviour-preserving** (identical defaults):
-  `aaRearmDistance` (300 m, was `CTLD_aasystem` `_REARM_DIST`), `aaAssemblyDistance` (500 m, was
-  `_ASSEMBLY_DIST`), `beaconRemovalRadius` (500 m, was `CTLD_beacon` `BEACON_REMOVAL_RADIUS`).
-  Part of the complete-YAML config pivot (ADR 0011).
+- Lot 1 (ticket 01): twelve hardcoded constants are now mission-configurable settings, read via
+  `ctld.gs(...)` and defined in `CTLD_config.yaml` (+ schema descriptions) — **behaviour-preserving**
+  (identical defaults). Part of the complete-YAML config pivot (ADR 0011):
+  - MM-facing: `aaRearmDistance` (300), `aaAssemblyDistance` (500), `beaconRemovalRadius` (500),
+    `loadCrateSearchRadius` (50), `unpackSearchRadius` (300), `fobCrateCollectionRadius` (750),
+    `slingCutDestroyHeight` (40).
+  - Advanced: `jtacLaserCodeMin` (1111), `jtacLaserCodeMax` (1688), `defaultVehicleWeight` (2500),
+    `fieldExtractTroopWeight` (130), `defaultZoneRadius` (500).
+  - The FOB "not enough crates" message is now parameterised with the actual radius (EN/FR/ES/KO).
 
 ### Fixed — hardcoded i18n strings in RECON menus and AA system (FIX-I18N-HARDCODED)
 

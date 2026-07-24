@@ -898,7 +898,7 @@ ctld.i18n["en"]["KAMAZ Ammo Truck"] = "KAMAZ Ammo Truck"
 ctld.i18n["en"]["EWR Radar"] = "EWR Radar"
 -- FOB Crate, FARP Alpha Crate, Countryside FARP Crate: declared in their respective scene files.
 ctld.i18n["en"]["You must be on the ground to deploy a FOB."] = "You must be on the ground to deploy a FOB."
-ctld.i18n["en"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB needs %1 crate(s) within 750 m - only %2 found."
+ctld.i18n["en"]["FOB needs %1 crate(s) within %2 m - only %3 found."] = "FOB needs %1 crate(s) within %2 m - only %3 found."
 ctld.i18n["en"]["You can't deploy a FOB here! Take it to where it's needed."] = "You can't deploy a FOB here! Take it to where it's needed."
 ctld.i18n["en"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB deployment blocked: move at least %1 m away from existing logistic zone."
 ctld.i18n["en"]["%1 started building a FOB (%2 crate(s)). Construction in progress."] = "%1 started building a FOB (%2 crate(s)). Construction in progress."
@@ -1450,7 +1450,7 @@ ctld.i18n["fr"]["KAMAZ Ammo Truck"] = "KAMAZ Camion de munitions"
 ctld.i18n["fr"]["EWR Radar"] = "Radar de détection TEL"
 -- FOB Crate, FARP Alpha Crate, Countryside FARP Crate: declared in their respective scene files.
 ctld.i18n["fr"]["You must be on the ground to deploy a FOB."] = "Vous devez etre au sol pour deployer un FOB."
-ctld.i18n["fr"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB : %1 caisse(s) requise(s) dans 750 m - seulement %2 trouvee(s)."
+ctld.i18n["fr"]["FOB needs %1 crate(s) within %2 m - only %3 found."] = "FOB : %1 caisse(s) requise(s) dans %2 m - seulement %3 trouvee(s)."
 ctld.i18n["fr"]["You can't deploy a FOB here! Take it to where it's needed."] = "Vous ne pouvez pas deployer un FOB ici ! Transportez-le la ou il est necessaire."
 ctld.i18n["fr"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "Deploiement FOB bloque : eloignez-vous d'au moins %1 m d'une zone logistique."
 ctld.i18n["fr"]["%1 started building a FOB (%2 crate(s)). Construction in progress."] = "%1 commence la construction d'un FOB (%2 caisse(s)). Construction en cours."
@@ -2043,7 +2043,7 @@ ctld.i18n["es"]["KAMAZ Ammo Truck"] = "Camión KAMAZ de municiones"
 ctld.i18n["es"]["EWR Radar"] = "Radar Alerta Temprana"
 -- FOB Crate, FARP Alpha Crate, Countryside FARP Crate: declared in their respective scene files.
 ctld.i18n["es"]["You must be on the ground to deploy a FOB."] = "Debes estar en el suelo para desplegar un FOB."
-ctld.i18n["es"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "El FOB necesita %1 caja(s) en 750 m - solo se encontraron %2."
+ctld.i18n["es"]["FOB needs %1 crate(s) within %2 m - only %3 found."] = "El FOB necesita %1 caja(s) en %2 m - solo se encontraron %3."
 ctld.i18n["es"]["You can't deploy a FOB here! Take it to where it's needed."] = "No puedes desplegar un FOB aqui! Llevalo donde sea necesario."
 ctld.i18n["es"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "Despliegue de FOB bloqueado: alejate al menos %1 m de una zona logistica."
 ctld.i18n["es"]["%1 started building a FOB (%2 crate(s)). Construction in progress."] = "%1 comenzo a construir un FOB (%2 caja(s)). Construccion en curso."
@@ -2605,7 +2605,7 @@ ctld.i18n["ko"]["KAMAZ Ammo Truck"] = "KAMAZ 탄약 차량"
 ctld.i18n["ko"]["EWR Radar"] = "조기경보 레이더"
 -- FOB Crate, FARP Alpha Crate, Countryside FARP Crate: declared in their respective scene files.
 ctld.i18n["ko"]["You must be on the ground to deploy a FOB."] = "FOB를 배치하려면 착륙해야 합니다."
-ctld.i18n["ko"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB에는 750m 이내에 %1개의 화물이 필요합니다 - %2개만 발견되었습니다."
+ctld.i18n["ko"]["FOB needs %1 crate(s) within %2 m - only %3 found."] = "FOB에는 %2m 이내에 %1개의 화물이 필요합니다 - %3개만 발견되었습니다."
 ctld.i18n["ko"]["You can't deploy a FOB here! Take it to where it's needed."] = "여기에 FOB를 배치할 수 없습니다! 필요한 곳으로 이동하세요."
 ctld.i18n["ko"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB 배치 차단: 기존 군수 구역에서 최소 %1m 이상 이동하세요."
 ctld.i18n["ko"]["%1 started building a FOB (%2 crate(s)). Construction in progress."] = "%1이(가) FOB 건설을 시작했습니다 (%2개 화물). 건설 진행 중."
@@ -3239,6 +3239,8 @@ ctld.__configDefaults = {
     debug = false,
     debugScreenLog = false,
     debugScreenLogDuration = 10,
+    defaultVehicleWeight = 2500,
+    defaultZoneRadius = 500,
     demineRadius = 150,
     deployedBeaconBattery = 30,
     disableAllSmoke = false,
@@ -3281,6 +3283,8 @@ ctld.__configDefaults = {
         "extract25"
     },
     fastRopeMaximumHeight = 18.28,
+    fieldExtractTroopWeight = 130,
+    fobCrateCollectionRadius = 750,
     fobDestructionThreshold = 0.5,
     fobLogisticZoneRadius = 150,
     fobMinDistanceFromZones = 500,
@@ -3294,7 +3298,10 @@ ctld.__configDefaults = {
         ["M1045 HMMWV TOW"] = 5000
     },
     hoverTime = 10,
+    jtacLaserCodeMax = 1688,
+    jtacLaserCodeMin = 1111,
     loadCrateFromMenu = true,
+    loadCrateSearchRadius = 50,
     loadableGroups = {
         {
             at = 2,
@@ -3425,6 +3432,7 @@ ctld.__configDefaults = {
     reconRefreshInterval = 10,
     reconSearchRadius = 5000,
     showMinefieldOnF10Map = true,
+    slingCutDestroyHeight = 40,
     slingLoad = false,
     smokeAutoResume = false,
     smokeAutoResumeInterval = 270,
@@ -3953,6 +3961,7 @@ ctld.__configDefaults = {
             1001
         }
     },
+    unpackSearchRadius = 300,
     wpZones = {
         {
             "wpzone1",
@@ -8741,7 +8750,7 @@ function CTLDZoneManager:_discoverTRZ()
                     zoneName        = parsed.zoneName,
                     coalition       = parsed.coalition,
                     center          = _buildCenter(zd),
-                    radius          = zd.radius or 500,
+                    radius          = zd.radius or ctld.gs("defaultZoneRadius"),
                     verticies       = (not isAnchoredPolygon) and zd.verticies or nil,
                     vertexOffsets   = isAnchoredPolygon and zd.verticies or nil,
                     pickMaxStock    = parsed.pickMaxStock,
@@ -8900,7 +8909,7 @@ function CTLDZoneManager:_discoverWPZ()
                     zoneName   = parsed.zoneName,
                     coalition  = parsed.coalition,
                     center     = _buildCenter(zd),
-                    radius     = zd.radius or 500,
+                    radius     = zd.radius or ctld.gs("defaultZoneRadius"),
                     verticies  = zd.verticies or nil,
                     isWaypoint = true,
                     active     = true,
@@ -10725,7 +10734,7 @@ function CTLDTroopManager:embarkFromField(unit)
 
     -- Weight: proportional to surviving logical units using original avg weight (BUG-07)
     local avgWeight = (stored.weight and stored.total and stored.total > 0)
-                      and (stored.weight / stored.total) or 130
+                      and (stored.weight / stored.total) or ctld.gs("fieldExtractTroopWeight")
     local weight    = math.floor(avgWeight * logicalCount)
 
     -- Capacity check: always use _canEmbark (cumulative); multi-group flag controls UI only.
@@ -12588,7 +12597,7 @@ function CTLDCrateManager:refreshLoadCrateSection(playerObj)
     end
 
     -- Group nearby crates (50 m) by descriptor type
-    local nearby = self:getCratesInRange(transport:getPoint(), 50)
+    local nearby = self:getCratesInRange(transport:getPoint(), ctld.gs("loadCrateSearchRadius"))
     local byType = {}   -- [desc] = { count, descriptor }
     for _, crate in ipairs(nearby) do
         local desc = crate.descriptor and crate.descriptor.desc or "Unknown"
@@ -12625,7 +12634,7 @@ function CTLDCrateManager:refreshLoadCrateSection(playerObj)
                             ctld.tr("Maximum number of crates are on board!", onboard, capacity), 10)
                         return
                     end
-                    local candidates = mgr:getCratesInRange(t:getPoint(), 50)
+                    local candidates = mgr:getCratesInRange(t:getPoint(), ctld.gs("loadCrateSearchRadius"))
                     local best, bestDist = nil, math.huge
                     for _, c in ipairs(candidates) do
                         if c.descriptor and c.descriptor.desc == arg.crateDesc then
@@ -12690,7 +12699,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, _noRefresh)
         return
     end
 
-    local nearby = self:getCratesInRange(transport:getPoint(), 300)
+    local nearby = self:getCratesInRange(transport:getPoint(), ctld.gs("unpackSearchRadius"))
 
     -- Group ground crates by descriptor.unit.
     -- Scene crates (unit matches a registered CTLDSceneManager model) are counted separately.
@@ -12735,7 +12744,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, _noRefresh)
                         return
                     end
                     local mgr   = CTLDCrateManager.getInstance()
-                    local nearC = mgr:getCratesInRange(t:getPoint(), 300)
+                    local nearC = mgr:getCratesInRange(t:getPoint(), ctld.gs("unpackSearchRadius"))
                     -- Collect crates for unpack
                     local toUnpack = {}
                     for _, c in ipairs(nearC) do
@@ -12841,7 +12850,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, _noRefresh)
                         return
                     end
                     local mgr      = CTLDCrateManager.getInstance()
-                    local nearC     = mgr:getCratesInRange(t:getPoint(), 300)
+                    local nearC     = mgr:getCratesInRange(t:getPoint(), ctld.gs("unpackSearchRadius"))
                     local toConsume = {}
                     for _, c in ipairs(nearC) do
                         if c:isOnGround() and c.canBeUnpacked
@@ -13518,7 +13527,7 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
 
     crate.inTransitOnSlingload = false
 
-    if agl > 40.0 then
+    if agl > ctld.gs("slingCutDestroyHeight") then
         -- Too high: crate destroyed on impact
         local lostPos = crate.position
         crate:destroy()
@@ -14951,7 +14960,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             if not (t and t:isExist()) then return end
             local gid  = ctld.utils.getGroupId(t)
             local mgr  = CTLDCrateManager.getInstance()
-            local nearby = mgr:getCratesInRange(t:getPoint(), 300)
+            local nearby = mgr:getCratesInRange(t:getPoint(), ctld.gs("unpackSearchRadius"))
 
             -- Group by descriptor.unit (or desc for crates with no vehicle)
             local byUnit    = {}   -- [key] = { desc, count, required }
@@ -16616,7 +16625,7 @@ function CTLDVehicleSpawner:getLoadedVehicleWeight(transportUnitName)
         if veh:getState() == CTLDVehicle.STATE.LOADED
             and veh.loadTransportName == transportUnitName
             and veh.loadMethod == "menu_ctld" then
-            total = total + (weights[veh.vehicleType] or 2500)
+            total = total + (weights[veh.vehicleType] or ctld.gs("defaultVehicleWeight"))
         end
     end
     return total
@@ -17049,11 +17058,12 @@ function CTLDFOBManager:unpackFOBCrates(transport, player, sceneName)
     local sn       = sceneName or "FOB"
     local model    = CTLDSceneManager.getInstance():getModel(sn)
     local required = (model and model.crate and model.crate.cratesRequired) or 3
-    local collected  = _collectFOBCrates(pos, coalitionId, 750, sn)
+    local radius     = ctld.gs("fobCrateCollectionRadius")
+    local collected  = _collectFOBCrates(pos, coalitionId, radius, sn)
     if collected.total < required then
         trigger.action.outTextForGroup(gid,
-            ctld.tr("FOB needs %1 crate(s) within 750 m - only %2 found.",
-                required, collected.total), 15)
+            ctld.tr("FOB needs %1 crate(s) within %2 m - only %3 found.",
+                required, radius, collected.total), 15)
         return
     end
 
@@ -20286,8 +20296,8 @@ end
 
 
 -- ============================================================
-local LASER_CODE_MIN = 1111  -- Lowest valid laser code (NATO range)
-local LASER_CODE_MAX = 1688  -- Highest valid laser code (NATO range)
+-- Laser code bounds are now MM-configurable:
+-- ctld.gs("jtacLaserCodeMin") / ctld.gs("jtacLaserCodeMax").
 
 -- CTLDJTACDetector  (static helpers — no instance)
 -- ============================================================
@@ -20303,7 +20313,7 @@ CTLDJTACDetector = {}
 -- @return table { name, freq (string MHz), mod } or nil
 function CTLDJTACDetector.calculateFMRadio(groupName, laserCode)
     local code = tonumber(laserCode)
-    if not code or code < LASER_CODE_MIN or code > LASER_CODE_MAX then return nil end
+    if not code or code < ctld.gs("jtacLaserCodeMin") or code > ctld.gs("jtacLaserCodeMax") then return nil end
     local laserB  = math.floor((code - 1000) / 100)
     local laserCD = code - 1000 - laserB * 100
     local freq    = tostring(30 + laserB + laserCD * 0.05)
@@ -21498,7 +21508,7 @@ end
 --- Fill the laser pool with all valid codes (1111–1688). Called at init and cleanup.
 function CTLDJTACManager:_initLaserPool()
     self._laserPool = {}
-    for code = LASER_CODE_MIN, LASER_CODE_MAX do
+    for code = ctld.gs("jtacLaserCodeMin"), ctld.gs("jtacLaserCodeMax") do
         self._laserPool[#self._laserPool + 1] = code
     end
 end
@@ -22349,7 +22359,7 @@ function CTLDPlayerManager:buildMenu(playerObj)
                 local vWeights = ctld.gs("groundVehicleWeights") or {}
                 for _, vt in ipairs(vehOrder) do
                     local count = vehCount[vt]
-                    local w     = (vWeights[vt] or 2500) * count
+                    local w     = (vWeights[vt] or ctld.gs("defaultVehicleWeight")) * count
                     total = total + w
                     table.insert(lines, ctld.tr("%1: %2 vehicle(s) onboard", vt, count))
                 end

@@ -136,6 +136,8 @@
     "debug": false,
     "debugScreenLog": false,
     "debugScreenLogDuration": 10,
+    "defaultVehicleWeight": 2500,
+    "defaultZoneRadius": 500,
     "demineRadius": 150,
     "deployedBeaconBattery": 30,
     "disableAllSmoke": false,
@@ -151,13 +153,18 @@
     "enabledFOBBuilding": true,
     "enabledRadioBeaconDrop": true,
     "fastRopeMaximumHeight": 18.28,
+    "fieldExtractTroopWeight": 130,
+    "fobCrateCollectionRadius": 750,
     "fobDestructionThreshold": 0.5,
     "fobLogisticZoneRadius": 150,
     "fobMinDistanceFromZones": 500,
     "fobTroopPickupRadius": 150,
     "groundAglThreshold": 5.0,
     "hoverTime": 10,
+    "jtacLaserCodeMax": 1688,
+    "jtacLaserCodeMin": 1111,
     "loadCrateFromMenu": true,
+    "loadCrateSearchRadius": 50,
     "location_DMS": false,
     "maxDistanceFromCrate": 5.5,
     "maxDropHeight": 7.5,
@@ -188,12 +195,14 @@
     "reconRefreshInterval": 10,
     "reconSearchRadius": 5000,
     "showMinefieldOnF10Map": true,
+    "slingCutDestroyHeight": 40,
     "slingLoad": false,
     "smokeAutoResume": false,
     "smokeAutoResumeInterval": 270,
     "smokeRefreshInterval": 300,
     "spawnDistanceInCircle": 10,
-    "troopPickupAtFOB": true
+    "troopPickupAtFOB": true,
+    "unpackSearchRadius": 300
   },
   "settingSchema": {
     "AASystemCrateStacking": {
@@ -441,6 +450,18 @@
         "fr": "Répète aussi les messages de log à l'écran DCS via outText"
       }
     },
+    "defaultVehicleWeight": {
+      "description": {
+        "en": "Weight (kg) assumed for a loaded vehicle type absent from groundVehicleWeights",
+        "fr": "Poids (kg) supposé pour un type de véhicule chargé absent de groundVehicleWeights"
+      }
+    },
+    "defaultZoneRadius": {
+      "description": {
+        "en": "Default radius (m) when a discovered TRZ/WPZ/AIZ trigger zone lacks one",
+        "fr": "Rayon par défaut (m) quand une zone trigger TRZ/WPZ/AIZ découverte n'en a pas"
+      }
+    },
     "demineRadius": {
       "description": {
         "en": "Max distance (m) from the player to the minefield centre for the \"Clear Mine Field\" entry to appear",
@@ -519,6 +540,18 @@
         "fr": "Hauteur max (m) pour l'insertion fast-rope (≈ 60 ft)"
       }
     },
+    "fieldExtractTroopWeight": {
+      "description": {
+        "en": "Assumed per-troop weight (kg) when extracting a field group with no stored data",
+        "fr": "Poids par troupe supposé (kg) lors de l'extraction d'un groupe de terrain sans données stockées"
+      }
+    },
+    "fobCrateCollectionRadius": {
+      "description": {
+        "en": "Radius (m) within which FOB crates must be gathered to deploy a FOB",
+        "fr": "Rayon (m) dans lequel les caisses de FOB doivent être rassemblées pour déployer un FOB"
+      }
+    },
     "fobDestructionThreshold": {
       "description": {
         "en": "Fraction of scene objects destroyed before a FOB is considered lost (0.0–1.0)",
@@ -556,10 +589,28 @@
         "fr": "Langue de l'interface CTLD : en, fr, es ou ko"
       }
     },
+    "jtacLaserCodeMax": {
+      "description": {
+        "en": "Highest assignable JTAC laser code (NATO range)",
+        "fr": "Code laser JTAC assignable le plus haut (plage OTAN)"
+      }
+    },
+    "jtacLaserCodeMin": {
+      "description": {
+        "en": "Lowest assignable JTAC laser code (NATO range)",
+        "fr": "Code laser JTAC assignable le plus bas (plage OTAN)"
+      }
+    },
     "loadCrateFromMenu": {
       "description": {
         "en": "Allow crate loading via the F10 menu (useful for fixed-wing that cannot hover)",
         "fr": "Autorise le chargement de crate via le menu F10 (utile pour les fixed-wing incapables de hover)"
+      }
+    },
+    "loadCrateSearchRadius": {
+      "description": {
+        "en": "Radius (m) within which crates are grouped/loadable from the Load Crate menu",
+        "fr": "Rayon (m) dans lequel les caisses sont regroupées/chargeables depuis le menu Charger une caisse"
       }
     },
     "location_DMS": {
@@ -652,6 +703,12 @@
         "fr": "Dessine un quadrilatère englobant sur la carte F10 lorsqu'un minefield est déployé"
       }
     },
+    "slingCutDestroyHeight": {
+      "description": {
+        "en": "AGL height (m) above which cutting a slingload destroys the crate on impact",
+        "fr": "Hauteur AGL (m) au-dessus de laquelle couper une élingue détruit la caisse à l'impact"
+      }
+    },
     "slingLoad": {
       "description": {
         "en": "Use DCS sling-load physics instead of the virtual hover system",
@@ -662,6 +719,12 @@
       "description": {
         "en": "Allow troop pickup at built FOBs",
         "fr": "Autorise le pickup de troops aux FOB construits"
+      }
+    },
+    "unpackSearchRadius": {
+      "description": {
+        "en": "Radius (m) within which crates are gathered to unpack or list nearby crates",
+        "fr": "Rayon (m) dans lequel les caisses sont rassemblées pour le dépaquetage ou la liste des caisses proches"
       }
     }
   },

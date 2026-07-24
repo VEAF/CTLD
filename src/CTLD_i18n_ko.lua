@@ -48,7 +48,7 @@ ctld.i18n["ko"]["KAMAZ Ammo Truck"] = "KAMAZ 탄약 차량"
 ctld.i18n["ko"]["EWR Radar"] = "조기경보 레이더"
 -- FOB Crate, FARP Alpha Crate, Countryside FARP Crate: declared in their respective scene files.
 ctld.i18n["ko"]["You must be on the ground to deploy a FOB."] = "FOB를 배치하려면 착륙해야 합니다."
-ctld.i18n["ko"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB에는 750m 이내에 %1개의 화물이 필요합니다 - %2개만 발견되었습니다."
+ctld.i18n["ko"]["FOB needs %1 crate(s) within %2 m - only %3 found."] = "FOB에는 %2m 이내에 %1개의 화물이 필요합니다 - %3개만 발견되었습니다."
 ctld.i18n["ko"]["You can't deploy a FOB here! Take it to where it's needed."] = "여기에 FOB를 배치할 수 없습니다! 필요한 곳으로 이동하세요."
 ctld.i18n["ko"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB 배치 차단: 기존 군수 구역에서 최소 %1m 이상 이동하세요."
 ctld.i18n["ko"]["%1 started building a FOB (%2 crate(s)). Construction in progress."] = "%1이(가) FOB 건설을 시작했습니다 (%2개 화물). 건설 진행 중."
