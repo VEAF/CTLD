@@ -32,21 +32,38 @@ redefined terms are added here in the same move as the decision that introduces 
 
 ## Configuration & authoring
 
-- **ctld-tools** — a standalone tool (a Python package; distributed to MMs as a self-contained
-  `ctld-tools.exe`) that validates and generates CTLD configuration from YAML. It embeds the
-  default-config reference and the datamined DCS type set to validate entries offline. The `.exe` is
-  a release artefact for MMs; the build/CI invoke the Python package directly. Exact filenames are
-  pinned per PRD. See ADR 0009.
+- **ctld-tools** — a standalone tool (a Python package) that edits, validates and injects the
+  complete CTLD configuration YAML. Distributed to MMs as a **single console `.exe`** that is both
+  the CLI (build/CI use it headlessly) and a **local web app**: a bare double-click boots a local
+  server and opens the browser (no terminal, no command). It embeds the default-config reference and
+  the datamined DCS type set to validate offline. The build/CI invoke the Python package directly.
+  See ADR 0011 (supersedes the ADR 0009 ops/diff + TUI tooling model).
 - **Config reference (`ctld-config`)** — the engine's default configuration, held as **YAML as the
-  single source of truth** (sectioned MM-facing vs advanced). The build regenerates the Lua consumed
-  by `CTLDConfig:load()`; the hand-edited Lua defaults block is retired.
-- **User config (`user-config`)** — the MM's YAML: a list of **operations** (`add` / `delete` /
-  `edit`) over the default catalogue, validated against the config reference and compiled by
-  ctld-tools into `ctld.userSetup` helper calls (the runtime API from ADR 0008).
-  _Avoid_: describing it as a full declarative catalogue — it is a diff, not a replacement.
+  single source of truth** (sectioned MM-facing vs advanced), carrying a **version tag**. The build
+  **embeds this YAML verbatim** into the deliverable as the `configDefault` string; the runtime
+  parses it at load. No hand-edited Lua defaults block and no build-generated Lua defaults table.
+- **User config (`user-config`)** — a **complete configuration snapshot** authored by the MM as
+  YAML (version-tagged), not a diff: it fully replaces the default catalogue at load
+  (`configUser or configDefault`). A **missing element means intentional removal**. Authored via
+  ctld-tools and shipped as a YAML string in a mission-start trigger (run before CTLD).
+  _Avoid_: describing it as a diff / list of operations — that was the retired ADR 0008/0009 model.
+- **Parameters vs Data** — the two-part partition of the catalogue surfaced by ctld-tools as two
+  screens. **Parameters** condition *how* CTLD behaves (distances, timers, toggles, feature flags —
+  scalar/behavioural settings). **Data** are *what* CTLD operates on: the catalogue objects (crates,
+  troop groups, aircraft capabilities, zones, AA systems). Within each, entries are grouped into
+  functional families for navigation.
+- **Config version tag** — a version stamped on the `ctld-config` YAML and its schema. ctld-tools
+  compares the version a `user-config` was authored against to the current catalogue; on mismatch it
+  warns the MM and surfaces the diffs to review before re-injecting (re-migration is tool-driven; the
+  runtime never merges — it is a straight `or` replacement).
 
 ## Gameplay domain
 
+- **Transport pilot recognition** — how CTLD decides a unit gets the CTLD F10 menu. Governed by the
+  `addPlayerAircraftByType` flag: **by type** (default, flag `true`) — a player is a transport iff
+  their aircraft type has a `capabilitiesByType` entry; **by name** (flag `false`) — only unit names
+  listed in `transportPilotNames` get the menu. Independently of the flag, `transportPilotNames`
+  **always** designates the AI-controlled transport units (auto pickup/dropoff via AIZ zones).
 - **Troop** — an infantry group loaded/unloaded by a transport; state machine
   (loaded → deployed → field-loaded → extracted).
 - **Crate** — a supply crate that can be spawned, slung, dropped by parachute, and **packed** /
