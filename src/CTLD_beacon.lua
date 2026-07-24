@@ -103,7 +103,7 @@ end
 
 
 -- ============================================================
-local BEACON_REMOVAL_RADIUS = 500  -- Max distance (m) to search for the closest beacon to remove
+-- Beacon removal search radius is now MM-configurable: ctld.gs("beaconRemovalRadius").
 
 -- CTLDBeaconManager  (singleton)
 -- ============================================================
@@ -424,7 +424,7 @@ end
 function CTLDBeaconManager:removeClosestBeacon(transport, player)
     local pos        = transport:getPoint()
     local coalitionId= transport:getCoalition()
-    local maxDist    = BEACON_REMOVAL_RADIUS
+    local maxDist    = ctld.gs("beaconRemovalRadius")
 
     local closest, closestDist = nil, math.huge
     for _, beacon in pairs(self._beacons) do

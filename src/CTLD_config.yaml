@@ -35,6 +35,8 @@ mm_facing:
   JTAC_lock: all
   JTAC_maxDistance: 10000
   JTAC_targetDeconfliction: true
+  aaAssemblyDistance: 500
+  aaRearmDistance: 300
   addPlayerAircraftByType: true
   aiZones: {}
   allowRandomAiTeamPickups: false
@@ -773,6 +775,7 @@ advanced:
   beaconIconRadius: 25
   beaconLayerEnabled: false
   beaconRefreshInterval: 60
+  beaconRemovalRadius: 500
   beaconTextSize: 12
   crateSpacing: 5
   ctldLogPath: ''

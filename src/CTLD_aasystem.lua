@@ -144,8 +144,8 @@ end
 -- ============================================================
 
 local _SPAWN_RADIUS  = 50   -- metres, circle radius for unit placement around reference
-local _REARM_DIST    = 300  -- metres, max dist to existing system for rearm
-local _ASSEMBLY_DIST = 500  -- metres, max crate-to-reference dist for assembly
+-- _REARM_DIST / _ASSEMBLY_DIST are now MM-configurable: ctld.gs("aaRearmDistance") /
+-- ctld.gs("aaAssemblyDistance") (externalised to CTLD_config.yaml).
 
 --- Compute the reference spawn origin: 100 m at 12 o'clock from the transport.
 -- Mirrors _computeCentroid in CTLD_fob.lua.
@@ -357,7 +357,7 @@ function CTLDCrateAssemblyManager:tryUnpackOrRepair(heli, crate, allCrates, radi
     if isRepair then
         self:_repair(heli, crate, template)
     else
-        self:_assemble(heli, crate, allCrates, template, radius or _ASSEMBLY_DIST)
+        self:_assemble(heli, crate, allCrates, template, radius or ctld.gs("aaAssemblyDistance"))
     end
     return true
 end
@@ -515,7 +515,7 @@ end
 -- @return boolean  true if rearm was performed
 function CTLDCrateAssemblyManager:_rearm(heli, crate, allCrates, template)
     local nearest = self:_findNearest(heli, template)
-    if not nearest or nearest.dist > _REARM_DIST then return false end
+    if not nearest or nearest.dist > ctld.gs("aaRearmDistance") then return false end
 
     local grp   = nearest.group
     local units = grp:getUnits() or {}
@@ -585,11 +585,11 @@ end
 -- @param template  table
 function CTLDCrateAssemblyManager:_repair(heli, crate, template)
     local nearest = self:_findNearest(heli, template)
-    if not nearest or nearest.dist > _REARM_DIST then
+    if not nearest or nearest.dist > ctld.gs("aaRearmDistance") then
         trigger.action.outTextForGroup(
             ctld.utils.getGroupId(heli),
             ctld.tr("Cannot repair %1. No damaged %1 within %2m",
-                template.name, _REARM_DIST),
+                template.name, ctld.gs("aaRearmDistance")),
             10)
         return
     end

@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — engine config knobs externalised to YAML (FEAT-CONFIG-YAML-COMPLETE)
+
+- Lot 1 (slice 1): three hardcoded constants are now mission-configurable settings, read via
+  `ctld.gs(...)` and defined in `CTLD_config.yaml` — **behaviour-preserving** (identical defaults):
+  `aaRearmDistance` (300 m, was `CTLD_aasystem` `_REARM_DIST`), `aaAssemblyDistance` (500 m, was
+  `_ASSEMBLY_DIST`), `beaconRemovalRadius` (500 m, was `CTLD_beacon` `BEACON_REMOVAL_RADIUS`).
+  Part of the complete-YAML config pivot (ADR 0011).
+
 ### Fixed — hardcoded i18n strings in RECON menus and AA system (FIX-I18N-HARDCODED)
 
 - **`CTLD_recon.lua`**: RECON submenu layer names (Infantry, Air Defense (AA), Ground Vehicles,

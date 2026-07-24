@@ -307,3 +307,16 @@ troopPickupAtFOB:
   description:
     en: Allow troop pickup at built FOBs
     fr: Autorise le pickup de troops aux FOB construits
+
+aaRearmDistance:
+  description:
+    en: Max distance (m) from a launcher crate to an existing AA system to rearm/repair it
+    fr: Distance max (m) entre une caisse de lanceur et un système AA existant pour le réarmer/réparer
+aaAssemblyDistance:
+  description:
+    en: Max distance (m) between crates and the reference point to assemble an AA system
+    fr: Distance max (m) entre les caisses et le point de référence pour assembler un système AA
+beaconRemovalRadius:
+  description:
+    en: Search radius (m) for the "Remove Closest Beacon" action
+    fr: Rayon de recherche (m) pour l'action « Retirer la balise la plus proche »
