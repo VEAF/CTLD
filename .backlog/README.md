@@ -56,7 +56,7 @@ GUI on double-click). Groundwork now retired: `FEAT-USERCONFIG-API`, `CTLD-TOOLS
 
 | Lot | Status | Description | Branch |
 |-----|--------|-------------|--------|
-| `FEAT-CONFIG-YAML-COMPLETE` | 📋 planned | Lot 1/3 — runtime: complete `configUser or configDefault` YAML loading (no merge; missing = removed), harden `parseYAML` for the full catalogue + round-trip parity test, bake AA crates into the YAML (drop the runtime injection loop), version tag, remove `ctld.userSetup`/`CTLD_userSetup.lua`. | `feature/config-yaml-complete` |
+| `FEAT-CONFIG-YAML-COMPLETE` | 🚧 in progress | Lot 1/3 — runtime: complete `configUser or configDefault` YAML loading (no merge; missing = removed), harden `parseYAML` for the full catalogue + round-trip parity test, bake AA crates into the YAML (drop the runtime injection loop), version tag, remove `ctld.userSetup`/`CTLD_userSetup.lua`. | `feature/config-yaml-complete` |
 | `CTLD-TOOLS-CORE` | 📋 planned | Lot 2/3 — UI-agnostic tool core: demolish ops model/TUI/tkinter/`reference.json`/`gen-config`; complete-catalogue load/edit/save + `validate` (schema + datamine + mixedSet) + version-gap diff; keep `miz`-inject + `datamine`; CLI trimmed to build/CI needs. Ships a **library**, no new UI. | `feature/ctld-tools-core` |
 | `CTLD-TOOLS-WEBAPP` | 📋 planned | Lot 3/3 — local web app over the lot-2 core: schema-driven editors, 12 families + Parameters/Data split, native file dialog, version-gap popup; single **console** PyInstaller exe that serves + opens the browser on double-click (VMCT `_is_double_clicked`), frontend built at CI. | `feature/ctld-tools-webapp` |
 
