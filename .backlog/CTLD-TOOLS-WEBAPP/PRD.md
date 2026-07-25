@@ -1,6 +1,6 @@
 # Lot CTLD-TOOLS-WEBAPP — local web app + single console exe
 
-Status: 🚧 in progress
+Status: ✅ merged (PR #67)
 Branch: `feature/ctld-tools-webapp` → PR → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`).
 ADR: [0011](../../dev/adr/0011-complete-yaml-config-and-webapp-tooling.md).
