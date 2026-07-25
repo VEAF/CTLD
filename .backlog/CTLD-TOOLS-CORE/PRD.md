@@ -1,6 +1,6 @@
 # Lot CTLD-TOOLS-CORE — UI-agnostic tool core + ops/TUI demolition
 
-Status: 🚧 in progress
+Status: ✅ merged (PR #66)
 Branch: `feature/ctld-tools-core` → PR → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`).
 ADR: [0011](../../dev/adr/0011-complete-yaml-config-and-webapp-tooling.md).
