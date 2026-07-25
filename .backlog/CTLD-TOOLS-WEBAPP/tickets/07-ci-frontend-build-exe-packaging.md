@@ -1,7 +1,12 @@
 # 07 — CI frontend build + exe packaging
 
-Status: 📋 todo
+Status: ✅ done
 Type: build + CI
+
+> FastAPI serves the built static at `/` (mount added last so `/api` wins); resources resolve from
+> `sys._MEIPASS` when frozen. Verified locally in single-server mode (index.html + assets + API from
+> one uvicorn). The PyInstaller exe build runs at CI (`release.yml` build-exe); the double-click /
+> boot smoke is the maintainer's manual test.
 
 The MM never needs Node: the frontend is **built at CI** and bundled as static assets served by
 FastAPI; the console exe is built and attached to Releases (ADR 0011 point 8).

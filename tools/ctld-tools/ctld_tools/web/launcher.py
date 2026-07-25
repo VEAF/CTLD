@@ -82,6 +82,8 @@ def serve(host: str = "127.0.0.1", port: int | None = None, open_browser: bool =
 
     import uvicorn
 
+    from ctld_tools.web.app import app as fastapi_app
+
     if port is None:
         with socket.socket() as probe:
             probe.bind((host, 0))
@@ -93,4 +95,5 @@ def serve(host: str = "127.0.0.1", port: int | None = None, open_browser: bool =
         print(f"CTLD tools serving at {url} (Ctrl+C to stop).")
     if open_browser:
         webbrowser.open(url)
-    uvicorn.run("ctld_tools.web.app:app", host=host, port=port, log_level="warning")
+    # Pass the app object (not an import string) so uvicorn does not re-import in the frozen exe.
+    uvicorn.run(fastapi_app, host=host, port=port, log_level="warning")

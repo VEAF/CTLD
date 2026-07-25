@@ -10,6 +10,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
 
+- Lot 3 (ticket 07): **CI frontend build + exe packaging** — `release.yml` now builds the Svelte
+  frontend with Node and packages a single **console** `ctld-tools.exe` (PyInstaller) that bundles
+  the built assets, the default config YAML + schema, and the DCS type set — so a Mission Maker
+  double-clicks it with no repo, no Node, no network. FastAPI **serves the bundled frontend at `/`**
+  (the ticket-01 mount, populated here); resources resolve from the PyInstaller bundle
+  (`sys._MEIPASS`) when frozen. `uvicorn` gets the app object (not an import string) for the frozen
+  exe. Verified locally in single-server mode (FastAPI serving static + API); the exe build itself
+  runs at CI.
 - Lot 3 (ticket 06): **version-gap re-migration popup** — on opening a config whose `configVersion`
   differs from the current CTLD default, a modal surfaces the diffs (new / removed / differs-from-
   default) before re-injecting — never a silent merge (ADR 0011 point 5). Drives the lot-2

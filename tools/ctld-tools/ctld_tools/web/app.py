@@ -6,9 +6,11 @@ current default. No business logic: each route delegates to the lot-2 library.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ctld_tools.validate import has_errors, validate
@@ -235,3 +237,10 @@ def get_version_gap() -> dict[str, Any]:
         "removed": gap.removed,
         "changed": [{"key": c.key, "old": _plain(c.old), "new": _plain(c.new)} for c in gap.changed],
     }
+
+
+# The built frontend (Vite → ctld_tools/web/static, bundled into the exe). Mounted last so
+# every /api route wins; absent in a bare dev checkout (run the Vite dev server instead).
+_STATIC = Path(__file__).parent / "static"
+if _STATIC.is_dir():
+    app.mount("/", StaticFiles(directory=str(_STATIC), html=True), name="static")

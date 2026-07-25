@@ -52,6 +52,17 @@ def test_schema_endpoint_exposes_table_fields():
     assert crates["desc"] and crates["weight_kg"]  # field descriptions present
 
 
+def test_resources_frozen_path(monkeypatch, tmp_path):
+    import sys
+
+    from ctld_tools.web import resources
+
+    monkeypatch.delenv("CTLD_TOOLS_SRC", raising=False)
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "_MEIPASS", str(tmp_path), raising=False)
+    assert resources.src_dir() == tmp_path / "ctld_data"
+
+
 def test_dcs_types_endpoint():
     body = client.get("/api/dcs-types").json()
     assert isinstance(body["types"], list) and body["types"]  # datamine set is non-empty

@@ -7,6 +7,7 @@ them and point here via the `CTLD_TOOLS_SRC` environment override.
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 _ENV = "CTLD_TOOLS_SRC"
@@ -17,6 +18,8 @@ def src_dir() -> Path:
     override = os.environ.get(_ENV)
     if override:
         return Path(override)
+    if getattr(sys, "frozen", False):  # PyInstaller exe: bundled under _MEIPASS/ctld_data
+        return Path(getattr(sys, "_MEIPASS", ".")) / "ctld_data"
     # dev layout: tools/ctld-tools/ctld_tools/web/resources.py → repo root is parents[4].
     return Path(__file__).resolve().parents[4] / "src"
 
