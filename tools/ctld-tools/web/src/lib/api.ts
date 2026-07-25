@@ -16,6 +16,19 @@ export interface SchemaKey {
 export interface SchemaInfo {
   families: string[]
   keys: Record<string, SchemaKey>
+  tableFields: Record<string, Record<string, string | null>>
+}
+
+export interface Finding {
+  severity: string
+  where: string
+  key: string
+  message: string
+}
+
+export interface ValidateResult {
+  hasErrors: boolean
+  findings: Finding[]
 }
 
 async function json<T>(res: Response): Promise<T> {
@@ -44,6 +57,7 @@ const put = (url: string, body: unknown) =>
 export const getSchema = () => fetch('/api/schema').then((r) => json<SchemaInfo>(r))
 export const putSetting = (key: string, value: unknown) =>
   put('/api/catalog/setting', { key, value }).then((r) => json<{ key: string; value: unknown }>(r))
+export const getValidate = () => fetch('/api/validate').then((r) => json<ValidateResult>(r))
 export const getCatalog = () => fetch('/api/catalog').then((r) => json<Snapshot>(r))
 export const loadDefault = () => post('/api/catalog/load-default').then((r) => json<Snapshot>(r))
 export const loadPath = (path: string) => post('/api/catalog/load', { path }).then((r) => json<Snapshot>(r))

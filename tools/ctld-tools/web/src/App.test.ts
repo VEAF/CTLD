@@ -8,6 +8,7 @@ const SCHEMA = {
     numberOfTroops: { group: 'troops', standard: true, choices: null, description: null },
     aaRearmDistance: { group: 'aa', standard: false, choices: null, description: null },
   },
+  tableFields: { spawnableCrates: { desc: 'Display name', unit: 'DCS type', weight_kg: 'mass' } },
 }
 
 const SNAP = {
@@ -33,6 +34,7 @@ beforeEach(() => {
     if (url.endsWith('/api/catalog/setting') && init?.method === 'PUT') {
       return Promise.resolve(jsonResponse(JSON.parse(String(init.body)))) // echo {key, value}
     }
+    if (url.endsWith('/api/validate')) return Promise.resolve(jsonResponse({ hasErrors: false, findings: [] }))
     return Promise.reject(new Error(`unexpected fetch: ${url}`))
   }) as unknown as typeof fetch
 })

@@ -80,7 +80,11 @@ def get_schema() -> dict[str, Any]:
         }
         for k in schema.keys()
     }
-    return {"families": schema.families(), "keys": keys}
+    tables = {
+        table: {field: (meta or {}).get("en") for field, meta in fields.items()}
+        for table, fields in schema.table_fields().items()
+    }
+    return {"families": schema.families(), "keys": keys, "tableFields": tables}
 
 
 @app.post("/api/catalog/load")

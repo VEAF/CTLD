@@ -1,7 +1,11 @@
 # 04b — crates editor (spawnableCrates)
 
-Status: 📋 todo
+Status: ✅ done
 Type: tool (frontend) + test
+
+> Core fields + add/remove + live validate + tooltips + mixedSet display shipped, verified live.
+> `specificParams` (drone-JTAC orbit) inline editing and reorder are deferred as polish — noted in
+> 04e's coverage pass. Datamine unit picker is 04d (unit is a text field here).
 
 Edit `spawnableCrates` (family → list of crate entries) in the Data screen.
 

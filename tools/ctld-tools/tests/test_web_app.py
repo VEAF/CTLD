@@ -43,6 +43,13 @@ def test_schema_endpoint_exposes_families_and_keys():
     body = client.get("/api/schema").json()
     assert isinstance(body["families"], list)
     assert isinstance(body["keys"], dict) and body["keys"]  # schema is non-empty
+    assert "tableFields" not in body["keys"]  # the reserved section is not a setting
+
+
+def test_schema_endpoint_exposes_table_fields():
+    body = client.get("/api/schema").json()
+    crates = body["tableFields"]["spawnableCrates"]
+    assert crates["desc"] and crates["weight_kg"]  # field descriptions present
 
 
 def test_load_text_then_get_catalog():

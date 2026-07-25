@@ -17,6 +17,7 @@ const schema: SchemaInfo = {
     aaRearmDistance: { group: 'aa', standard: false, choices: null, description: null },
     // hoverTime has no schema entry → falls into OTHER_FAMILY
   },
+  tableFields: {},
 }
 
 const snap: Snapshot = {
@@ -82,6 +83,7 @@ describe('standardSplit', () => {
         a: { group: 'x', standard: true, choices: null, description: null },
         b: { group: 'x', standard: false, choices: null, description: null },
       },
+      tableFields: {},
     }
     expect(standardSplit(['a', 'b', 'c'], schema2)).toEqual({ standard: ['a'], advanced: ['b', 'c'] })
   })

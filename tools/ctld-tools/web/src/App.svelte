@@ -1,6 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { getSchema, loadDefault, loadPath, putSetting, save, type SchemaInfo, type Snapshot } from './lib/api'
+  import {
+    getSchema,
+    getValidate,
+    loadDefault,
+    loadPath,
+    putSetting,
+    save,
+    type Finding,
+    type SchemaInfo,
+    type Snapshot,
+  } from './lib/api'
+  import CratesEditor from './lib/CratesEditor.svelte'
   import { familyLabel } from './lib/families'
   import {
     classify,
@@ -18,6 +29,7 @@
   let screen = $state<'parameters' | 'data'>('parameters')
   let activeFamily = $state<string | null>(null)
   let pathInput = $state('')
+  let findings = $state<Finding[]>([])
 
   const screens = $derived<Screens | null>(snapshot && schema ? classify(snapshot, schema) : null)
   const familyList = $derived<string[]>(
@@ -45,6 +57,26 @@
       snapshot = await load()
       error = null
       activeFamily = familyList[0] ?? null
+      await doValidate()
+    } catch (e) {
+      error = String(e)
+    }
+  }
+
+  async function doValidate() {
+    try {
+      findings = (await getValidate()).findings
+    } catch {
+      findings = []
+    }
+  }
+
+  async function saveCrates(value: Record<string, Record<string, unknown>[]>) {
+    try {
+      await putSetting('spawnableCrates', value)
+      if (snapshot) snapshot = { ...snapshot, values: { ...snapshot.values, spawnableCrates: value } }
+      error = null
+      await doValidate()
     } catch (e) {
       error = String(e)
     }
@@ -161,6 +193,20 @@
           <h3>Advanced</h3>
           {#each split.advanced as key (key)}{@render settingRow(key)}{/each}
         {/if}
+      {:else if activeFamily === 'spawnableCrates'}
+        <h2>Spawnable crates</h2>
+        {#if findings.length}
+          <ul class="findings">
+            {#each findings as f (f.where + f.key)}
+              <li class={f.severity}>{f.where}: {f.message}</li>
+            {/each}
+          </ul>
+        {/if}
+        <CratesEditor
+          crates={snapshot.values.spawnableCrates as Record<string, Record<string, unknown>[]>}
+          fields={schema?.tableFields?.spawnableCrates ?? {}}
+          onchange={saveCrates}
+        />
       {:else if activeFamily}
         <h2>{activeFamily}</h2>
         <table>
@@ -168,7 +214,7 @@
             <tr><th>{activeFamily}</th><td>{dataSummary(activeFamily)}</td></tr>
           </tbody>
         </table>
-        <p class="hint">Structured-data editors arrive in tickets 04b–04e.</p>
+        <p class="hint">Structured-data editors arrive in tickets 04c–04e.</p>
       {/if}
     </main>
   </div>
@@ -329,5 +375,20 @@
     color: #8a93a2;
     font-size: 0.8rem;
     margin-top: 1rem;
+  }
+  .findings {
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0.5rem 0.75rem;
+    background: #fbf5f5;
+    border: 1px solid #e9d4d4;
+    border-radius: 6px;
+    font-size: 0.8rem;
+  }
+  .findings li.error {
+    color: #a12020;
+  }
+  .findings li.warning {
+    color: #8a6d1a;
   }
 </style>

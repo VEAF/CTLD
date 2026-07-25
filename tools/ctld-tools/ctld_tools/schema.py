@@ -53,7 +53,13 @@ class Schema:
 
     def families(self) -> list[str]:
         """The distinct functional families declared across the schema, sorted."""
-        return sorted({g for k in self._e if (g := self.group(k))})
+        return sorted({g for k in self._e if k != "tableFields" and (g := self.group(k))})
+
+    def table_fields(self) -> dict[str, Any]:
+        """Per-field authoring metadata for structured tables (crates, troops, zones, …)."""
+        tf = self._e.get("tableFields")
+        return tf if isinstance(tf, dict) else {}
 
     def keys(self) -> list[str]:
-        return list(self._e)
+        """Every setting key (excluding the reserved `tableFields` section)."""
+        return [k for k in self._e if k != "tableFields"]

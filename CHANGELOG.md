@@ -10,6 +10,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
 
+- Lot 3 (ticket 04b): **crates editor** — the Data screen edits `spawnableCrates` (section → crate
+  list): per-entry `desc` / `unit` / `weight` / `cratesRequired` / `side`, add/remove, with
+  `tableFields` tooltips and **live validation** (unknown units, weight collisions, mixedSet dangling
+  weights) surfaced as findings. The backend `/api/schema` now exposes `tableFields`; new
+  `/api/validate` wiring in the UI. mixedSet entries are shown with their weights.
 - Lot 3 (ticket 04a): **scalar editors + 12 families** — the Parameters screen is now editable.
   Schema-driven per-type editors (bool / enum / number / string) with a **generic fallback** so
   every key renders an editor (unit-tested totality gate); edits PUT through the backend into the
