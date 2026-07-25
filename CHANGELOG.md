@@ -19,6 +19,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   - Advanced: `jtacLaserCodeMin` (1111), `jtacLaserCodeMax` (1688), `defaultVehicleWeight` (2500),
     `fieldExtractTroopWeight` (130), `defaultZoneRadius` (500).
   - The FOB "not enough crates" message is now parameterised with the actual radius (EN/FR/ES/KO).
+- Lot 1 (ticket 02): `CTLDConfig.parseYAML` rewritten to parse the full nested catalogue — block
+  sequences at the key's indent, sequences of maps, sequences of sequences (`- - x`), inline empty
+  `{}`/`[]`, and quoted scalars — so the whole config can arrive as a YAML string at runtime. Guarded
+  by a round-trip parity test (parse `CTLD_config.yaml`, merge sections, assert equality with the
+  generated engine defaults). The unused `|` literal-block path was dropped. Behaviour-preserving.
 
 ### Fixed — hardcoded i18n strings in RECON menus and AA system (FIX-I18N-HARDCODED)
 

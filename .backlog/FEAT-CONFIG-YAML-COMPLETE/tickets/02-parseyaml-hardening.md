@@ -1,6 +1,6 @@
 # 02 — parseYAML hardening + round-trip parity test
 
-Status: 📋 todo
+Status: ✅ done
 Type: src + test
 
 `CTLDConfig.parseYAML` must robustly parse the **full nested catalogue**, not just scalars, because

@@ -215,87 +215,131 @@ function CTLDConfig.to_type(v)
     return v:gsub("^['\"]", ""):gsub("['\"]$", "")
 end
 
--- Main Parser: Converts a YAML-formatted string into a Lua Table
+-- Utility: Converts a scalar YAML token to a Lua value.
+-- Inline empty collections ("{}" / "[]") become empty tables; everything else
+-- goes through to_type (bool / number / quote-stripped string).
+-- @param v: The trimmed scalar token
+function CTLDConfig.scalar(v)
+    if v == "{}" or v == "[]" then return {} end
+    return CTLDConfig.to_type(v)
+end
+
+-- Main Parser: Converts a block-style YAML string into a Lua table.
+-- Supports the constructs the CTLD config catalogue relies on: nested maps,
+-- block sequences (indented at their key's column), sequences of maps,
+-- sequences of sequences (`- - x`), inline empty `{}`/`[]`, and quoted scalars.
+-- Lua 5.1, dependency-free. Keys and structure are preserved verbatim (the
+-- mm_facing / advanced section split is merged by the caller, not here).
 function CTLDConfig.parseYAML(data)
     local result = {}
-    local stack = { result }
-    local indentStack = { -1 }
+    -- Frame = {indent=<column of this container's direct children>, node=<table>, isSeq=<bool>}
+    local stack = { { indent = 0, node = result, isSeq = false } }
+    -- pending = a map key whose child container is not yet materialised; the next
+    -- line decides map vs seq: {frame=<map frame>, key=<str>, col=<key column>}
+    local pending = nil
 
-    local literalMode = false
-    local literalKey, literalIndent = "", 0
-    local literalLines = {}
+    local function top() return stack[#stack] end
 
-    for line in data:gmatch("[^\r\n]+") do
-        local indent = line:match("^%s*"):len()
-        local content = CTLDConfig.trim(line)
+    local function openPending(isSeq, childIndent)
+        local node = {}
+        pending.frame.node[pending.key] = node
+        stack[#stack + 1] = { indent = childIndent, node = node, isSeq = isSeq }
+        pending = nil
+    end
 
-        -- 1. EXIT MULTILINE MODE
-        if literalMode and #content > 0 and indent <= literalIndent then
-            stack[#stack][literalKey] = table.concat(literalLines, "\n")
-            literalMode = false
-            literalLines = {}
-        end
+    for rawline in data:gmatch("[^\r\n]+") do
+        local indent = #(rawline:match("^ *"))
+        local content = rawline:sub(indent + 1):gsub("%s+$", "")
 
-        -- 2. PROCESSING
-        if literalMode then
-            literalLines[#literalLines + 1] = line:sub(literalIndent + 3) or ""
-        elseif content ~= "" and not content:match("^#") then
-            -- STACK REALIGNMENT
-            while #indentStack > 1 and indent <= indentStack[#indentStack] do
-                table.remove(stack)
-                table.remove(indentStack)
-            end
-
-            -- Check for list item with key attached (- polar:)
-            local listDashKey, listDashValue = content:match("^%- ([^:]+):%s*(.*)")
-            local key, value
-
-            if listDashKey then
-                -- NEW LIST ITEM OBJECT
-                local newEntry = {}
-                local parent = stack[#stack]
-                parent[#parent + 1] = newEntry
-
-                -- We push the entry into the stack
-                table.insert(stack, newEntry)
-                table.insert(indentStack, indent)
-
-                key, value = listDashKey, listDashValue
-                -- Important: update indent to match the key position after the dash
-                indent = line:find(listDashKey) - 1
-            else
-                -- Standard key:value
-                key, value = content:match("([^:]+):%s*(.*)")
-            end
-
-            if key then
-                key, value = CTLDConfig.trim(key), CTLDConfig.trim(value)
-                if value == "|" then
-                    literalMode, literalKey, literalIndent = true, key, indent
-                    literalLines = {}
-                elseif value == "" then
-                    -- Nested object
-                    local newSubTable = {}
-                    stack[#stack][key] = newSubTable
-                    -- Move into the sub-table
-                    table.insert(stack, newSubTable)
-                    table.insert(indentStack, indent)
+        if content ~= "" and content:sub(1, 1) ~= "#" then
+            -- Peel leading "- " dashes; each one is a sequence level.
+            local dashCols = {}
+            local col = indent
+            while content == "-" or content:sub(1, 2) == "- " do
+                dashCols[#dashCols + 1] = col
+                if content == "-" then
+                    content, col = "", col + 1
                 else
-                    -- Simple assignment
-                    stack[#stack][key] = CTLDConfig.to_type(value)
+                    content, col = content:sub(3), col + 2
                 end
-            elseif content:match("^%-") then
-                -- Simple list item (- SAM-6)
-                local item = CTLDConfig.trim(content:sub(2))
-                local parent = stack[#stack]
-                if type(parent) == "table" then
-                    parent[#parent + 1] = CTLDConfig.to_type(item)
+            end
+
+            -- STEP A — resolve a pending map key using this line's geometry.
+            if pending then
+                if #dashCols > 0 and dashCols[1] >= pending.col then
+                    openPending(true, dashCols[1])                 -- block sequence
+                elseif col > pending.col then
+                    openPending(false, col)                        -- nested map
+                else
+                    pending = nil                                  -- childless key: stays {}
+                end
+            end
+
+            -- STEP B — pop frames deeper than where this line anchors. A dash seeks
+            -- a sequence at its column; a mapping key seeks a map at its column and
+            -- must also pop a sibling sequence sharing that indent.
+            if #dashCols > 0 then
+                local anchor = dashCols[1]
+                while #stack > 1 and top().indent > anchor do
+                    stack[#stack] = nil
+                end
+            else
+                local anchor = col
+                while #stack > 1 and (top().indent > anchor
+                    or (top().indent == anchor and top().isSeq)) do
+                    stack[#stack] = nil
+                end
+            end
+
+            -- STEP C — ensure a sequence frame exists for each dash level.
+            for di = 1, #dashCols do
+                local dcol = dashCols[di]
+                if not (top().isSeq and top().indent == dcol) then
+                    local seqNode = {}
+                    local parent = top()
+                    if parent.isSeq then
+                        parent.node[#parent.node + 1] = seqNode
+                    end
+                    stack[#stack + 1] = { indent = dcol, node = seqNode, isSeq = true }
+                end
+            end
+
+            -- STEP D — handle the remainder at column `col`.
+            if content ~= "" then
+                local k, v = content:match("^([^:]+):%s*(.*)$")
+                if k ~= nil and content:find(":") then
+                    k = k:gsub("%s+$", "")
+                    if #dashCols > 0 then
+                        -- "- key: ..." → a new map item inside the current sequence
+                        local mapNode = {}
+                        local s = top()
+                        s.node[#s.node + 1] = mapNode
+                        stack[#stack + 1] = { indent = col, node = mapNode, isSeq = false }
+                        if v == "" then
+                            pending = { frame = top(), key = k, col = col }
+                        else
+                            mapNode[k] = CTLDConfig.scalar(v)
+                        end
+                    else
+                        local s = top()
+                        if v == "" then
+                            s.node[k] = {}
+                            pending = { frame = s, key = k, col = indent }
+                        else
+                            s.node[k] = CTLDConfig.scalar(v)
+                        end
+                    end
+                else
+                    -- pure scalar → sequence item
+                    local s = top()
+                    if s.isSeq then
+                        s.node[#s.node + 1] = CTLDConfig.scalar(content)
+                    end
                 end
             end
         end
     end
 
-    if literalMode then stack[#stack][literalKey] = table.concat(literalLines, "\n") end
     return result
 end
 
