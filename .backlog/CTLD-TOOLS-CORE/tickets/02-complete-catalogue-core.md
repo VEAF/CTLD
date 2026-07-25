@@ -1,6 +1,6 @@
 # 02 — Complete-catalogue core: load / edit / save
 
-Status: 📋 todo
+Status: ✅ done
 Type: tool (Python) + test
 
 A UI-agnostic core that reads, edits and writes the **complete** catalogue YAML (Parameters +

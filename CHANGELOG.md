@@ -10,6 +10,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 core (CTLD-TOOLS-CORE)
 
+- Lot 2 (ticket 02): the UI-agnostic **catalogue core** — `ctld_tools/catalog.py` (`Catalog`: load /
+  get / set / add / remove / save the complete config YAML in full, round-trip via ruamel, over the
+  `mm_facing`/`advanced` sections + top-level keys) and `ctld_tools/schema.py` (`Schema`: typed access
+  to the authoring metadata — `group` / `standard` / `choices` / `description`). The expanded schema
+  from the FullGas branch (`group` families + `standard` + bilingual descriptions) is recovered into
+  `CTLD_config_schema.yaml`, merged with the lot-1 externalised knobs + `configVersion` (13 entries,
+  `group` assigned by heuristic — reviewed with the UI in lot 3). 97/121 scalar settings covered; the
+  rest fall back to a generic editor (lot 3). No Lua / no UI.
 - Lot 2 (ticket 01): demolish the ops/diff + interactive surfaces retired by ADR 0011 — remove the
   Textual TUI (`ctld_tools/tui/*`), the ops editor (`editmodel.py`), the dead `gen-user`/`scaffold`
   generators, the `gen-user`/`tui` CLI commands, and their tests; drop the `textual` and
