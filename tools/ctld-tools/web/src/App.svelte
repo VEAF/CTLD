@@ -4,6 +4,7 @@
     getDcsTypes,
     getSchema,
     getValidate,
+    getVersionGap,
     injectMiz,
     loadDefault,
     loadPath,
@@ -13,6 +14,7 @@
     type Finding,
     type SchemaInfo,
     type Snapshot,
+    type VersionGap,
   } from './lib/api'
   import AircraftEditor from './lib/AircraftEditor.svelte'
   import CratesEditor from './lib/CratesEditor.svelte'
@@ -20,6 +22,7 @@
   import KeyValueEditor from './lib/KeyValueEditor.svelte'
   import RecordListEditor from './lib/RecordListEditor.svelte'
   import StringListEditor from './lib/StringListEditor.svelte'
+  import VersionGapPopup from './lib/VersionGapPopup.svelte'
   import ZonesEditor from './lib/ZonesEditor.svelte'
   import { familyLabel } from './lib/families'
   import { TROOP_FIELDS, withTips } from './lib/tables'
@@ -44,6 +47,7 @@
   let status = $state<string | null>(null)
   let findings = $state<Finding[]>([])
   let dcsTypes = $state<string[]>([])
+  let gap = $state<VersionGap | null>(null)
 
   const screens = $derived<Screens | null>(snapshot && schema ? classify(snapshot, schema) : null)
   const familyList = $derived<string[]>(
@@ -73,6 +77,8 @@
       error = null
       activeFamily = familyList[0] ?? null
       await doValidate()
+      const g = await getVersionGap()
+      gap = g.isEmpty ? null : g
     } catch (e) {
       error = String(e)
     }
@@ -195,6 +201,10 @@
   <p class="error" role="alert">{error}</p>
 {:else if status}
   <p class="status">{status}</p>
+{/if}
+
+{#if gap}
+  <VersionGapPopup {gap} onclose={() => (gap = null)} />
 {/if}
 
 {#if !snapshot}

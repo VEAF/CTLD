@@ -41,6 +41,10 @@ beforeEach(() => {
       return Promise.resolve(jsonResponse(JSON.parse(String(init.body)))) // echo {key, value}
     }
     if (url.endsWith('/api/validate')) return Promise.resolve(jsonResponse({ hasErrors: false, findings: [] }))
+    if (url.endsWith('/api/version-gap'))
+      return Promise.resolve(
+        jsonResponse({ fromVersion: '2.0.0', toVersion: '2.0.0', isEmpty: true, added: [], removed: [], changed: [] }),
+      )
     return Promise.reject(new Error(`unexpected fetch: ${url}`))
   }) as unknown as typeof fetch
 })

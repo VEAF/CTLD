@@ -4,6 +4,7 @@ import type { ZoneField } from './api'
 import JsonEditor from './JsonEditor.svelte'
 import KeyValueEditor from './KeyValueEditor.svelte'
 import StringListEditor from './StringListEditor.svelte'
+import VersionGapPopup from './VersionGapPopup.svelte'
 import ZonesEditor from './ZonesEditor.svelte'
 
 const last = (m: ReturnType<typeof vi.fn>) => m.mock.calls.at(-1)![0]
@@ -34,6 +35,27 @@ test('JsonEditor parses valid JSON and reports invalid', async () => {
   await fireEvent.input(ta, { target: { value: '{bad' } })
   await fireEvent.change(ta)
   expect(screen.getByRole('alert')).toBeInTheDocument()
+})
+
+test('VersionGapPopup lists the three diff buckets and closes', async () => {
+  const onclose = vi.fn()
+  render(VersionGapPopup, {
+    gap: {
+      fromVersion: '2.0.0',
+      toVersion: '2.1.0',
+      isEmpty: false,
+      added: ['newSetting'],
+      removed: ['oldSetting'],
+      changed: [{ key: 'hoverTime', old: 10, new: 15 }],
+    },
+    onclose,
+  })
+  expect(screen.getByRole('dialog')).toBeInTheDocument()
+  expect(screen.getByText('newSetting')).toBeInTheDocument()
+  expect(screen.getByText('oldSetting')).toBeInTheDocument()
+  expect(screen.getByText(/hoverTime/)).toBeInTheDocument()
+  await fireEvent.click(screen.getByRole('button', { name: /Review/ }))
+  expect(onclose).toHaveBeenCalled()
 })
 
 test('ZonesEditor round-trips positional arrays through named fields', async () => {

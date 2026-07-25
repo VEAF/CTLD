@@ -10,6 +10,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
 
+- Lot 3 (ticket 06): **version-gap re-migration popup** — on opening a config whose `configVersion`
+  differs from the current CTLD default, a modal surfaces the diffs (new / removed / differs-from-
+  default) before re-injecting — never a silent merge (ADR 0011 point 5). Drives the lot-2
+  `version_gap` API (`/api/version-gap`).
 - Lot 3 (ticket 05): **`.miz` inject + native file dialogs** — Open… / Save… / Inject to .miz… now
   drive **native OS dialogs** via the local backend (`/api/dialog/{open,save,miz}`, tkinter). Inject
   exports the current catalogue as `ctld.configUser` (lot-2 `embed`) and injects it into the chosen

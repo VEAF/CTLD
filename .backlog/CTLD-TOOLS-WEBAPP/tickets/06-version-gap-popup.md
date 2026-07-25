@@ -1,6 +1,6 @@
 # 06 — version-gap re-migration popup
 
-Status: 📋 todo
+Status: ✅ done
 Type: tool (frontend) + test
 
 On opening a stale `configUser`, warn the MM that CTLD's version changed and present the diffs to

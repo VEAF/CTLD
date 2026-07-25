@@ -40,6 +40,15 @@ export interface ValidateResult {
   findings: Finding[]
 }
 
+export interface VersionGap {
+  fromVersion: string | null
+  toVersion: string | null
+  isEmpty: boolean
+  added: string[]
+  removed: string[]
+  changed: { key: string; old: unknown; new: unknown }[]
+}
+
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) {
     let detail = res.statusText
@@ -71,6 +80,7 @@ export const getDcsTypes = () => fetch('/api/dcs-types').then((r) => json<{ type
 export const openDialog = (kind: 'open' | 'save' | 'miz') =>
   fetch(`/api/dialog/${kind}`).then((r) => json<{ path: string | null }>(r))
 export const injectMiz = (miz: string) => post('/api/inject', { miz }).then((r) => json<{ injected: string }>(r))
+export const getVersionGap = () => fetch('/api/version-gap').then((r) => json<VersionGap>(r))
 export const getCatalog = () => fetch('/api/catalog').then((r) => json<Snapshot>(r))
 export const loadDefault = () => post('/api/catalog/load-default').then((r) => json<Snapshot>(r))
 export const loadPath = (path: string) => post('/api/catalog/load', { path }).then((r) => json<Snapshot>(r))
