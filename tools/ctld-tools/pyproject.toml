@@ -16,6 +16,7 @@ rich = ">=13.0,<15"
 # Local web app (CTLD-TOOLS-WEBAPP): FastAPI backend + uvicorn server, shipped in the exe.
 fastapi = ">=0.110,<1"
 uvicorn = ">=0.29,<1"
+psutil = ">=5.9"  # parent-process-tree walk for double-click detection (VMCT pattern)
 
 [tool.poetry.scripts]
 ctld-tools = "ctld_tools.cli:main"

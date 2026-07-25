@@ -10,6 +10,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
 
+- Lot 3 (ticket 02): **double-click launcher** — `ctld_tools/web/launcher.py`. A bare invocation /
+  double-click (no command) boots the web app (`uvicorn` on `127.0.0.1` + opens the browser; the
+  console is the "close to quit" window); an explicit `embed`/`validate`/`gen` still runs headless.
+  Double-click is detected by walking the parent process tree (explorer.exe vs a shell, VMCT pattern,
+  `psutil`). New `serve` CLI command. No `--noconsole`.
 - Lot 3 (ticket 01): **FastAPI backend skeleton** — a new `ctld_tools/web/` package with thin
   endpoints wrapping the lot-2 core (load / read / edit / save / `validate` / `version-gap` / schema),
   a single-user in-memory session, and no business logic (ADR 0011 point 7). Added `fastapi` +

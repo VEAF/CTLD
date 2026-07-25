@@ -4,8 +4,9 @@ ctld-tools embed     --yaml src/CTLD_config.yaml --out src/CTLD_config_default_y
 ctld-tools gen       --yaml src/CTLD_config.yaml --out tests/ci/data/config_defaults.json
 ctld-tools validate  --yaml a-complete-config.yaml [--schema src/CTLD_config_schema.yaml]
 
-No CLI UX investment: the Mission-Maker surface is the lot-3 web app, a thin wrapper over
-this package's library (catalog / schema / validate / versiongap / embed / miz).
+A bare invocation / double-click (no command) boots the local web app instead — the
+Mission-Maker surface, a thin wrapper over this package's library (catalog / schema /
+validate / versiongap / embed / miz).
 """
 
 from __future__ import annotations
@@ -78,6 +79,17 @@ def validate_cmd(
         raise typer.Exit(1)
 
 
+@app.command("serve")
+def serve_cmd(
+    port: int = typer.Option(None, "--port", help="port to serve on (default: an ephemeral free port)"),
+    no_browser: bool = typer.Option(False, "--no-browser", help="do not open the browser"),
+) -> None:
+    """Start the local web app (also the default on a bare invocation / double-click)."""
+    from ctld_tools.web.launcher import serve
+
+    serve(port=port, open_browser=not no_browser)
+
+
 def main() -> None:
     # Typer builds the (already-translated) help= strings before the callback runs, so
     # parse --lang manually and early — that way even `--help` prints in the right language.
@@ -89,6 +101,12 @@ def main() -> None:
         if arg.startswith("--lang="):
             set_language(arg.split("=", 1)[1])
             break
+    # No command (bare invocation / double-click) → boot the web app; else run the CLI.
+    from ctld_tools.web.launcher import resolve_action, serve
+
+    if resolve_action(argv) == "serve":
+        serve()
+        return
     app()
 
 

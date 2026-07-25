@@ -1,7 +1,10 @@
 # 02 — exe launcher: double-click → serve
 
-Status: 📋 todo
+Status: ✅ done
 Type: tool (Python) + test
+
+> Note: PyInstaller packaging of the exe itself is ticket 07; this ticket is the
+> launcher logic (double-click detection + `serve`) wired into the CLI.
 
 The single console exe is **CLI and GUI launcher** (ADR 0011 point 8), mirroring VMCT's
 `veaf-tools.exe`. A bare invocation / double-click boots the web app; an explicit command runs the
