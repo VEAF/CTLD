@@ -12,7 +12,9 @@
     type Snapshot,
   } from './lib/api'
   import CratesEditor from './lib/CratesEditor.svelte'
+  import RecordListEditor from './lib/RecordListEditor.svelte'
   import { familyLabel } from './lib/families'
+  import { TROOP_FIELDS, withTips } from './lib/tables'
   import {
     classify,
     coerce,
@@ -71,10 +73,10 @@
     }
   }
 
-  async function saveCrates(value: Record<string, Record<string, unknown>[]>) {
+  async function saveData(key: string, value: unknown) {
     try {
-      await putSetting('spawnableCrates', value)
-      if (snapshot) snapshot = { ...snapshot, values: { ...snapshot.values, spawnableCrates: value } }
+      await putSetting(key, value)
+      if (snapshot) snapshot = { ...snapshot, values: { ...snapshot.values, [key]: value } }
       error = null
       await doValidate()
     } catch (e) {
@@ -205,7 +207,20 @@
         <CratesEditor
           crates={snapshot.values.spawnableCrates as Record<string, Record<string, unknown>[]>}
           fields={schema?.tableFields?.spawnableCrates ?? {}}
-          onchange={saveCrates}
+          onchange={(v) => saveData('spawnableCrates', v)}
+        />
+      {:else if activeFamily === 'loadableGroups'}
+        <h2>Troop groups</h2>
+        {#if findings.length}
+          <ul class="findings">
+            {#each findings as f (f.where + f.key)}<li class={f.severity}>{f.where}: {f.message}</li>{/each}
+          </ul>
+        {/if}
+        <RecordListEditor
+          records={snapshot.values.loadableGroups as Record<string, unknown>[]}
+          fields={withTips(TROOP_FIELDS, schema?.tableFields?.loadableGroups)}
+          blank={() => ({ name: '' })}
+          onchange={(v) => saveData('loadableGroups', v)}
         />
       {:else if activeFamily}
         <h2>{activeFamily}</h2>
@@ -214,7 +229,7 @@
             <tr><th>{activeFamily}</th><td>{dataSummary(activeFamily)}</td></tr>
           </tbody>
         </table>
-        <p class="hint">Structured-data editors arrive in tickets 04c–04e.</p>
+        <p class="hint">Structured-data editors arrive in tickets 04d–04e.</p>
       {/if}
     </main>
   </div>

@@ -10,6 +10,9 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
 
+- Lot 3 (ticket 04c): **troop-groups editor** — the Data screen edits `loadableGroups` via a generic
+  `RecordListEditor` (name + `inf`/`mg`/`at`/`aa`/`mortar` counts + `jtac`), add/remove, typed
+  editors, `tableFields` tooltips, live validation.
 - Lot 3 (ticket 04b): **crates editor** — the Data screen edits `spawnableCrates` (section → crate
   list): per-entry `desc` / `unit` / `weight` / `cratesRequired` / `side`, add/remove, with
   `tableFields` tooltips and **live validation** (unknown units, weight collisions, mixedSet dangling

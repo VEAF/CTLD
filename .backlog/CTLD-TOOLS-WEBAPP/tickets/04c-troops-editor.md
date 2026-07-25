@@ -1,6 +1,6 @@
 # 04c — troop-groups editor (loadableGroups)
 
-Status: 📋 todo
+Status: ✅ done
 Type: tool (frontend) + test
 
 Edit `loadableGroups` (list of troop-group entries) in the Data screen.
