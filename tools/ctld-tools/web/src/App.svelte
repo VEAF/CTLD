@@ -14,9 +14,16 @@
   } from './lib/api'
   import AircraftEditor from './lib/AircraftEditor.svelte'
   import CratesEditor from './lib/CratesEditor.svelte'
+  import JsonEditor from './lib/JsonEditor.svelte'
+  import KeyValueEditor from './lib/KeyValueEditor.svelte'
   import RecordListEditor from './lib/RecordListEditor.svelte'
+  import StringListEditor from './lib/StringListEditor.svelte'
+  import ZonesEditor from './lib/ZonesEditor.svelte'
   import { familyLabel } from './lib/families'
   import { TROOP_FIELDS, withTips } from './lib/tables'
+
+  const ZONE_TYPES = ['troopZones', 'wpZones', 'AIZones']
+  const STRING_LISTS = ['transportPilotNames', 'extractableGroups', 'logisticUnits']
   import {
     classify,
     coerce,
@@ -113,15 +120,6 @@
     }
   }
 
-  function dataSummary(key: string): string {
-    const v = snapshot?.values[key]
-    if (Array.isArray(v)) return `${v.length} item${v.length === 1 ? '' : 's'}`
-    if (v !== null && typeof v === 'object') {
-      const n = Object.keys(v as object).length
-      return `${n} entr${n === 1 ? 'y' : 'ies'}`
-    }
-    return String(v ?? '')
-  }
 </script>
 
 {#snippet settingRow(key: string)}
@@ -147,6 +145,14 @@
     </div>
     {#if meta?.description}<p class="help">{meta.description}</p>{/if}
   </div>
+{/snippet}
+
+{#snippet findingsBlock()}
+  {#if findings.length}
+    <ul class="findings">
+      {#each findings as f (f.where + f.key)}<li class={f.severity}>{f.where}: {f.message}</li>{/each}
+    </ul>
+  {/if}
 {/snippet}
 
 <header>
@@ -199,54 +205,50 @@
           <h3>Advanced</h3>
           {#each split.advanced as key (key)}{@render settingRow(key)}{/each}
         {/if}
-      {:else if activeFamily === 'spawnableCrates'}
-        <h2>Spawnable crates</h2>
-        {#if findings.length}
-          <ul class="findings">
-            {#each findings as f (f.where + f.key)}
-              <li class={f.severity}>{f.where}: {f.message}</li>
-            {/each}
-          </ul>
-        {/if}
-        <CratesEditor
-          crates={snapshot.values.spawnableCrates as Record<string, Record<string, unknown>[]>}
-          fields={schema?.tableFields?.spawnableCrates ?? {}}
-          onchange={(v) => saveData('spawnableCrates', v)}
-        />
-      {:else if activeFamily === 'loadableGroups'}
-        <h2>Troop groups</h2>
-        {#if findings.length}
-          <ul class="findings">
-            {#each findings as f (f.where + f.key)}<li class={f.severity}>{f.where}: {f.message}</li>{/each}
-          </ul>
-        {/if}
-        <RecordListEditor
-          records={snapshot.values.loadableGroups as Record<string, unknown>[]}
-          fields={withTips(TROOP_FIELDS, schema?.tableFields?.loadableGroups)}
-          blank={() => ({ name: '' })}
-          onchange={(v) => saveData('loadableGroups', v)}
-        />
-      {:else if activeFamily === 'capabilitiesByType'}
-        <h2>Aircraft capabilities</h2>
-        {#if findings.length}
-          <ul class="findings">
-            {#each findings as f (f.where + f.key)}<li class={f.severity}>{f.where}: {f.message}</li>{/each}
-          </ul>
-        {/if}
-        <AircraftEditor
-          capabilities={snapshot.values.capabilitiesByType as Record<string, Record<string, unknown>>}
-          fields={schema?.tableFields?.capabilitiesByType ?? {}}
-          types={dcsTypes}
-          onchange={(v) => saveData('capabilitiesByType', v)}
-        />
       {:else if activeFamily}
         <h2>{activeFamily}</h2>
-        <table>
-          <tbody>
-            <tr><th>{activeFamily}</th><td>{dataSummary(activeFamily)}</td></tr>
-          </tbody>
-        </table>
-        <p class="hint">Structured-data editors arrive in tickets 04d–04e.</p>
+        {@render findingsBlock()}
+        {#key activeFamily}
+          {#if activeFamily === 'spawnableCrates'}
+            <CratesEditor
+              crates={snapshot.values.spawnableCrates as Record<string, Record<string, unknown>[]>}
+              fields={schema?.tableFields?.spawnableCrates ?? {}}
+              onchange={(v) => saveData('spawnableCrates', v)}
+            />
+          {:else if activeFamily === 'loadableGroups'}
+            <RecordListEditor
+              records={snapshot.values.loadableGroups as Record<string, unknown>[]}
+              fields={withTips(TROOP_FIELDS, schema?.tableFields?.loadableGroups)}
+              blank={() => ({ name: '' })}
+              onchange={(v) => saveData('loadableGroups', v)}
+            />
+          {:else if activeFamily === 'capabilitiesByType'}
+            <AircraftEditor
+              capabilities={snapshot.values.capabilitiesByType as Record<string, Record<string, unknown>>}
+              fields={schema?.tableFields?.capabilitiesByType ?? {}}
+              types={dcsTypes}
+              onchange={(v) => saveData('capabilitiesByType', v)}
+            />
+          {:else if ZONE_TYPES.includes(activeFamily)}
+            <ZonesEditor
+              zones={snapshot.values[activeFamily] as unknown[][]}
+              fields={schema?.zoneFields?.[activeFamily] ?? []}
+              onchange={(v) => saveData(activeFamily!, v)}
+            />
+          {:else if STRING_LISTS.includes(activeFamily)}
+            <StringListEditor
+              items={snapshot.values[activeFamily] as string[]}
+              onchange={(v) => saveData(activeFamily!, v)}
+            />
+          {:else if activeFamily === 'groundVehicleWeights'}
+            <KeyValueEditor
+              map={snapshot.values.groundVehicleWeights as Record<string, number>}
+              onchange={(v) => saveData('groundVehicleWeights', v)}
+            />
+          {:else}
+            <JsonEditor value={snapshot.values[activeFamily]} onchange={(v) => saveData(activeFamily!, v)} />
+          {/if}
+        {/key}
       {/if}
     </main>
   </div>
@@ -389,19 +391,6 @@
     margin: 0 0 0.25rem;
     font-size: 0.75rem;
     color: #8a93a2;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  th {
-    text-align: left;
-    padding: 0.35rem 0.5rem;
-    border-bottom: 1px solid #eef1f6;
-  }
-  td {
-    padding: 0.35rem 0.5rem;
-    border-bottom: 1px solid #eef1f6;
   }
   .hint {
     color: #8a93a2;

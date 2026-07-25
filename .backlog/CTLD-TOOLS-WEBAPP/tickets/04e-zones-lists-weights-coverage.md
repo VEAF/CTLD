@@ -1,6 +1,6 @@
 # 04e — zones + mission lists + vehicle weights + full coverage gate
 
-Status: 📋 todo
+Status: ✅ done
 Type: tool (frontend + Python) + test
 
 The remaining Data families, then close the **no-editing-gaps** gate.

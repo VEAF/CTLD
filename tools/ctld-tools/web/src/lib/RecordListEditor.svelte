@@ -1,14 +1,9 @@
 <script lang="ts">
-  // Generic editor for a list of records (e.g. loadableGroups). Owns a local copy and
-  // emits the whole list on every change. Fields + their editor types are passed in.
-  import type { EditorType } from './model'
+  // Generic editor for a list of records (e.g. loadableGroups, zones). Owns a local copy
+  // and emits the whole list on every change. Fields + their editor types are passed in.
+  import type { Field } from './tables'
 
   type Rec = Record<string, unknown>
-  interface Field {
-    name: string
-    type: EditorType
-    tip?: string | null
-  }
 
   let {
     records,
@@ -57,7 +52,11 @@
       <tr>
         {#each fields as f (f.name)}
           <td>
-            {#if f.type === 'boolean'}
+            {#if f.choices}
+              <select value={String(rec[f.name] ?? '')} onchange={(e) => setField(i, f, e.currentTarget.value)}>
+                {#each f.choices as c (c)}<option value={c}>{c}</option>{/each}
+              </select>
+            {:else if f.type === 'boolean'}
               <input type="checkbox" checked={rec[f.name] === true} onchange={(e) => setField(i, f, e.currentTarget.checked)} />
             {:else if f.type === 'number'}
               <input type="number" step="0.01" value={rec[f.name] as number} onchange={(e) => setField(i, f, e.currentTarget.value)} />
@@ -90,7 +89,8 @@
     border-bottom: 1px solid #f0f2f7;
   }
   .records input[type='text'],
-  .records input[type='number'] {
+  .records input[type='number'],
+  .records select {
     width: 100%;
     min-width: 4rem;
     padding: 0.25rem 0.35rem;

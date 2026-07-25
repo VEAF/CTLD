@@ -84,7 +84,9 @@ def get_schema() -> dict[str, Any]:
         table: {field: (meta or {}).get("en") for field, meta in fields.items()}
         for table, fields in schema.table_fields().items()
     }
-    return {"families": schema.families(), "keys": keys, "tableFields": tables}
+    from ctld_tools.web.zones import ZONE_FIELD_SCHEMAS
+
+    return {"families": schema.families(), "keys": keys, "tableFields": tables, "zoneFields": ZONE_FIELD_SCHEMAS}
 
 
 @app.get("/api/dcs-types")

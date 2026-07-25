@@ -2,7 +2,7 @@
 //   Parameters — scalar settings (how CTLD behaves), grouped by schema family.
 //   Data       — structured entries (what CTLD operates on): crates, troops, zones, …
 
-import type { SchemaInfo, SchemaKey, Snapshot } from './api'
+import type { SchemaInfo, SchemaKey, Snapshot, ZoneField } from './api'
 
 export const OTHER_FAMILY = 'other'
 
@@ -55,6 +55,27 @@ export function coerce(raw: string | boolean, type: EditorType): unknown {
     return Number.isNaN(n) ? raw : n
   }
   return raw
+}
+
+// ── zones (positional arrays ↔ named records) ─────────────────────
+export function zoneToNamed(arr: unknown[], fields: ZoneField[]): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const f of fields) out[f.name] = arr[f.pos]
+  return out
+}
+
+// Rebuild the positional array. Non-optional fields are always emitted (in pos order, gaps
+// filled with a type default); trailing optional fields only when they hold a value.
+export function namedToZone(named: Record<string, unknown>, fields: ZoneField[]): unknown[] {
+  const sorted = [...fields].sort((a, b) => a.pos - b.pos)
+  const out: unknown[] = []
+  for (const f of sorted) {
+    const v = named[f.name]
+    const has = v !== undefined && v !== null && v !== ''
+    if (f.optional && !has) continue
+    out[f.pos] = has ? (f.type === 'int' ? Number(v) : v) : f.type === 'int' ? 0 : ''
+  }
+  return out
 }
 
 // Split a family's setting keys into Standard vs Advanced (schema `standard:` flag).

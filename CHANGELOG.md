@@ -10,6 +10,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
 
+- Lot 3 (ticket 04e): **zones + mission lists + vehicle weights + no-editing-gaps gate** — the Data
+  screen is now fully editable. `troopZones`/`wpZones`/`AIZones` edit as **named fields** (positional
+  arrays converted via the ported `_ZONE_FIELD_SCHEMAS`, exposed at `/api/schema` `zoneFields`);
+  `transportPilotNames`/`extractableGroups`/`logisticUnits` as string lists; `groundVehicleWeights`
+  as a name→weight map; and **any remaining structure via a generic JSON fallback** so no key is
+  uneditable. A **blocking coverage gate** (`tests/test_schema_coverage.py`, evolved from FullGas's)
+  fails the build if a structured field lacks an EN/FR description or a zone-editor field is
+  undocumented.
 - Lot 3 (ticket 04d): **aircraft capabilities editor** — the Data screen edits `capabilitiesByType`
   (type → capabilities): boolean flags, numeric maxima, and the `loadableVehiclesBLUE`/`RED` string
   lists; add a type via a **datamine-backed picker** (new `/api/dcs-types` endpoint, 1143 types),

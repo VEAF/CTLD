@@ -9,6 +9,7 @@ const SCHEMA = {
     aaRearmDistance: { group: 'aa', standard: false, choices: null, description: null },
   },
   tableFields: { spawnableCrates: { desc: 'Display name', unit: 'DCS type', weight_kg: 'mass' } },
+  zoneFields: {},
 }
 
 const SNAP = {

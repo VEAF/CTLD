@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import type { SchemaInfo, SchemaKey, Snapshot } from './api'
+import type { SchemaInfo, SchemaKey, Snapshot, ZoneField } from './api'
 import {
   classify,
   coerce,
   editorType,
+  namedToZone,
   OTHER_FAMILY,
   parameterFamilies,
   standardSplit,
+  zoneToNamed,
   type EditorType,
 } from './model'
 
@@ -18,6 +20,7 @@ const schema: SchemaInfo = {
     // hoverTime has no schema entry → falls into OTHER_FAMILY
   },
   tableFields: {},
+  zoneFields: {},
 }
 
 const snap: Snapshot = {
@@ -75,6 +78,39 @@ describe('coerce', () => {
   })
 })
 
+describe('zone conversion', () => {
+  const fields: ZoneField[] = [
+    { name: 'zoneName', pos: 0, type: 'str' },
+    { name: 'colour', pos: 1, type: 'str', choices: ['blue', 'red'] },
+    { name: 'troopLimit', pos: 2, type: 'int' },
+    { name: 'iconId', pos: 3, type: 'int', optional: true },
+  ]
+
+  it('maps positional → named by position', () => {
+    expect(zoneToNamed(['pickzone1', 'blue', -1], fields)).toEqual({
+      zoneName: 'pickzone1',
+      colour: 'blue',
+      troopLimit: -1,
+      iconId: undefined,
+    })
+  })
+
+  it('rebuilds positional, dropping an absent trailing optional', () => {
+    const named = { zoneName: 'z', colour: 'red', troopLimit: 5 }
+    expect(namedToZone(named, fields)).toEqual(['z', 'red', 5])
+  })
+
+  it('includes the optional when present and coerces ints', () => {
+    const named = { zoneName: 'z', colour: 'red', troopLimit: '5', iconId: '7' }
+    expect(namedToZone(named, fields)).toEqual(['z', 'red', 5, 7])
+  })
+
+  it('round-trips', () => {
+    const arr = ['pickzone1', 'blue', 10]
+    expect(namedToZone(zoneToNamed(arr, fields), fields)).toEqual(arr)
+  })
+})
+
 describe('standardSplit', () => {
   it('splits a family by the schema standard flag', () => {
     const schema2: SchemaInfo = {
@@ -84,6 +120,7 @@ describe('standardSplit', () => {
         b: { group: 'x', standard: false, choices: null, description: null },
       },
       tableFields: {},
+      zoneFields: {},
     }
     expect(standardSplit(['a', 'b', 'c'], schema2)).toEqual({ standard: ['a'], advanced: ['b', 'c'] })
   })

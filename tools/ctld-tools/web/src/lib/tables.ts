@@ -7,6 +7,7 @@ export interface Field {
   name: string
   type: EditorType
   tip?: string | null
+  choices?: string[]
 }
 
 export const TROOP_FIELDS: Omit<Field, 'tip'>[] = [

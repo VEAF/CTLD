@@ -13,10 +13,19 @@ export interface SchemaKey {
   description: string | null
 }
 
+export interface ZoneField {
+  name: string
+  pos: number
+  type: string
+  choices?: string[]
+  optional?: boolean
+}
+
 export interface SchemaInfo {
   families: string[]
   keys: Record<string, SchemaKey>
   tableFields: Record<string, Record<string, string | null>>
+  zoneFields: Record<string, ZoneField[]>
 }
 
 export interface Finding {
