@@ -280,19 +280,16 @@ describe("parseYAML round-trip parity", function()
         return content
     end
 
-    -- Load a PRISTINE copy of the generated defaults in an isolated environment.
-    -- The global ctld.__configDefaults cannot be used as the reference here: the
-    -- shared instance is mutated by CTLDConfig:load() (which injects the runtime AA
-    -- crates into spawnableCrates by reference). Re-loading the generated file in a
-    -- private env yields the untouched YAML-derived table. (AA crates move into the
-    -- YAML itself in ticket 05, at which point they appear on both sides.)
+    -- The reference engine defaults: the JSON oracle emitted by the core (ctld-tools
+    -- gen) and committed at tests/ci/data/config_defaults.json. This is an INDEPENDENT
+    -- path from the Lua parseYAML under test — Python/ruamel flattens the same YAML —
+    -- so the two agreeing proves the Lua parser round-trips. (CTLD-TOOLS-CORE ticket 05
+    -- replaced the Python-emitted Lua defaults table with this language-neutral JSON.)
+    local dkjson = require("dkjson")
     local function pristineDefaults()
-        local env = setmetatable({ ctld = { tr = function(k, d) return d or k end } },
-                                 { __index = _G })
-        local chunk = assert(loadfile(repoRoot() .. "src/CTLD_config_defaults.lua"))
-        setfenv(chunk, env)
-        chunk()
-        return env.ctld.__configDefaults
+        local decoded, _, err = dkjson.decode(readFile(repoRoot() .. "tests/ci/data/config_defaults.json"))
+        assert(decoded, err)
+        return decoded
     end
 
     -- Merge the mm_facing / advanced readability sections plus any top-level keys

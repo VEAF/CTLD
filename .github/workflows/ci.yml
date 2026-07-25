@@ -64,12 +64,11 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
-      - name: Install ctld-tools (the build regenerates CTLD_config_defaults.lua via gen-config)
+      - name: Install ctld-tools (the build embeds the config YAML via `ctld-tools embed`)
         working-directory: tools/ctld-tools
         shell: bash
         run: |
           pip install poetry
-          # gen-config needs lupa, a build-time dep in the dev group; keep dev, drop build.
           poetry install --without build
       - name: Build CTLD.lua
         run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1
@@ -109,21 +108,14 @@ jobs:
       COVERAGE_FLOOR: '59'
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-      - name: Generate engine defaults (the busted loader dofile's CTLD_config_defaults.lua)
-        working-directory: tools/ctld-tools
-        run: |
-          pip install poetry
-          # gen-config needs lupa, a build-time dep in the dev group; keep dev, drop build.
-          poetry install --without build
-          poetry run ctld-tools gen-config --yaml ../../src/CTLD_config.yaml --out ../../src/CTLD_config_defaults.lua
-      - name: Install Lua + LuaRocks + busted + luacov
+      # No Python here: the round-trip parity oracle (tests/ci/data/config_defaults.json)
+      # is committed and read via dkjson; its drift vs the YAML is guarded in python-quality.
+      - name: Install Lua + LuaRocks + busted + luacov + dkjson
         run: |
           sudo apt-get install -y lua5.1 liblua5.1-dev luarocks
           sudo luarocks install busted
           sudo luarocks install luacov
+          sudo luarocks install dkjson
       - name: Run busted with coverage
         run: busted --coverage tests/ci/
       - name: Enforce coverage ratchet

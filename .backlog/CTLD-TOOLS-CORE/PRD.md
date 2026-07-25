@@ -1,6 +1,6 @@
 # Lot CTLD-TOOLS-CORE — UI-agnostic tool core + ops/TUI demolition
 
-Status: 📋 planned
+Status: ✅ merged (PR #66)
 Branch: `feature/ctld-tools-core` → PR → develop
 Program: re-tooling CTLD on the VMCT model (see `.backlog/README.md`).
 ADR: [0011](../../dev/adr/0011-complete-yaml-config-and-webapp-tooling.md).
@@ -53,6 +53,9 @@ wrappers over it. If business logic would be written in lot 3, it belongs here.
 
 ## Tickets
 
-Authored when the lot starts. Expected spine: (a) demolition (ops/TUI/reference.json/gen-config);
-(b) complete-catalogue load/edit/save core; (c) `validate` incl. mixedSet; (d) version-gap diff;
-(e) build embed rewire + CLI trim.
+- **01** — demolish the ops/TUI surface (editmodel/genuser/scaffold/tui + cli commands).
+- **02** — complete-catalogue core: load/edit/save (schema-driven; port FullGas schema+metadata).
+- **03** — `validate`: schema + datamine + mixedSet consistency.
+- **04** — version-gap detection (diff configUser version vs current catalogue).
+- **05** — retire `gen-config`/`lupa` + rewire build/CI (round-trip oracle via core-emitted JSON;
+  i18n dict sync scans the YAML). The hard one.

@@ -8,6 +8,42 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — ctld-tools v2 core (CTLD-TOOLS-CORE)
+
+- Lot 2 (ticket 05): **retire the last Lua-facing Python + drop `lupa`**. Removed `genconfig`,
+  `genreference`, `extract`, `reference` (+ `reference.json`), `luaconfig`, and their tests. The CLI
+  is trimmed to `embed` / `validate` / `gen`: `embed` wraps a config YAML verbatim into a `ctld.<var>`
+  Lua string module (`ctld_tools/embed.py`, one implementation reused by the build for `configDefault`
+  and by the lot-3 MM export for `configUser`); `gen` emits the flat engine defaults as a JSON parity
+  oracle (`ctld_tools/oracle.py`). **Build/CI rewired:** `merge_CTLD.ps1` embeds via `ctld-tools embed`
+  (no more `gen-config` / `CTLD_config_defaults.lua`); the busted round-trip parity now compares
+  `parseYAML` to the committed `tests/ci/data/config_defaults.json` (read via `dkjson`) instead of a
+  generated Lua table; `generate_i18n_dicts.ps1` scans the YAML `desc`/`name` label values (which the
+  vanished `config_defaults.lua` used to surface). `CTLD.lua` output is unchanged.
+- Lot 2 (ticket 04): **version-gap detection** — `ctld_tools/versiongap.py` (`version_gap()`): a pure
+  function that diffs an authored catalogue against the current default over the `Catalog` flat
+  namespace and returns structured data (`added` / `removed` / `changed` defaults + from/to
+  `configVersion`) for the lot-3 re-migration popup (ADR 0011 point 5). Equal versions → empty gap;
+  `configVersion` itself is excluded from the diff. No runtime behaviour, no UI.
+- Lot 2 (ticket 03): `validate` rewritten for the complete-catalogue model (no more ops/diff) —
+  it checks a whole `Catalog`: known DCS unit types (datamine), globally-unique crate weights, AA
+  **mixedSet consistency** (every "All crates" weight resolves to a crate in its section), and schema
+  `choices` enums. New i18n keys (`validate.mixedset.dangling_weight`, `validate.setting.bad_choice`);
+  the `validate` CLI command now takes a full config YAML (+ optional `--schema`).
+- Lot 2 (ticket 02): the UI-agnostic **catalogue core** — `ctld_tools/catalog.py` (`Catalog`: load /
+  get / set / add / remove / save the complete config YAML in full, round-trip via ruamel, over the
+  `mm_facing`/`advanced` sections + top-level keys) and `ctld_tools/schema.py` (`Schema`: typed access
+  to the authoring metadata — `group` / `standard` / `choices` / `description`). The expanded schema
+  from the FullGas branch (`group` families + `standard` + bilingual descriptions) is recovered into
+  `CTLD_config_schema.yaml`, merged with the lot-1 externalised knobs + `configVersion` (13 entries,
+  `group` assigned by heuristic — reviewed with the UI in lot 3). 97/121 scalar settings covered; the
+  rest fall back to a generic editor (lot 3). No Lua / no UI.
+- Lot 2 (ticket 01): demolish the ops/diff + interactive surfaces retired by ADR 0011 — remove the
+  Textual TUI (`ctld_tools/tui/*`), the ops editor (`editmodel.py`), the dead `gen-user`/`scaffold`
+  generators, the `gen-user`/`tui` CLI commands, and their tests; drop the `textual` and
+  `pytest-asyncio` dependencies. (`gen-config`/`lupa` stay until ticket 05.) Tool docs are rewritten
+  with the web app (lot 3). Not a deliverable change — `CTLD.lua` untouched.
+
 ### Changed — engine config knobs externalised to YAML (FEAT-CONFIG-YAML-COMPLETE)
 
 - Lot 1 (ticket 01): twelve hardcoded constants are now mission-configurable settings, read via

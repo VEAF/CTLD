@@ -1,20 +1,25 @@
-"""Validate a user-config.yaml against the reference catalogue and the DCS type set.
+"""Validate a complete config catalogue (the ADR-0011 model, not a diff).
 
-Produces a list of findings (errors block gen-user; warnings do not), each with a
-clear message and, where possible, a suggested fix. Mission Makers target crates and
-troop groups by name; validation resolves those names and reports the unknowns.
+Checks the whole `Catalog`:
+  - every crate `unit` is a known DCS type (datamine),
+  - crate `weight`s are globally unique (the weight is the crate lookup key),
+  - every AA `mixedSet` weight resolves to a crate in its section (the invariant the
+    runtime injection loop used to guarantee — now static data),
+  - settings with a schema `choices` enum hold an allowed value.
+
+Produces `Finding`s (errors block export; warnings do not), each an i18n key + params.
 """
 
 from __future__ import annotations
 
+from collections.abc import Collection
 from dataclasses import dataclass, field
-from pathlib import Path
+from typing import Any
 
-from ruamel.yaml import YAML
-
+from ctld_tools.catalog import Catalog
 from ctld_tools.datamine import known_dcs_types
 from ctld_tools.i18n import t
-from ctld_tools.reference import Reference
+from ctld_tools.schema import Schema
 
 ERROR = "error"
 WARNING = "warning"
@@ -37,106 +42,68 @@ class Finding:
         return f"[{self.severity}] {self.where}: {self.message}"
 
 
-def load_user_config(path: str | Path) -> dict:
-    yaml = YAML(typ="safe")
-    with Path(path).open("r", encoding="utf-8") as fh:
-        doc = yaml.load(fh)
-    return doc or {}
+def _iter_crates(catalog: Catalog):
+    """Yield (section_name, entry) for every spawnableCrates entry."""
+    sections = catalog.get("spawnableCrates") or {}
+    for section_name, entries in sections.items():
+        for entry in entries or []:
+            yield section_name, entry
 
 
-def _validate_crates(crates: dict, ref: Reference, types, out: list[Finding]) -> None:
-    seen_new_weights: set[float] = set()
-    for entry in crates.get("add") or []:
-        where = f"crates.add[{entry.get('name', '?')}]"
-        if not entry.get("name"):
-            out.append(Finding(ERROR, where, "validate.crate.missing_name"))
+def _validate_crates(catalog: Catalog, types: set[str], out: list[Finding]) -> None:
+    weights: dict[Any, str] = {}  # weight -> section (uniqueness)
+    section_weights: dict[str, set] = {}  # section -> {weights present}
+
+    for section, entry in _iter_crates(catalog):
+        section_weights.setdefault(section, set())
+        weight = entry.get("weight")
         unit = entry.get("unit")
-        if not unit:
-            out.append(Finding(ERROR, where, "validate.crate.missing_unit"))
-        elif unit not in types:
-            out.append(Finding(ERROR, where, "validate.crate.unknown_unit", {"unit": unit}))
-        weight = entry.get("weight_kg", entry.get("weight"))
-        if weight is None:
-            out.append(Finding(ERROR, where, "validate.crate.missing_weight"))
-        elif weight in ref.crate_weights() or weight in seen_new_weights:
-            out.append(Finding(ERROR, where, "validate.crate.weight_collision", {"weight": weight}))
-        else:
-            seen_new_weights.add(weight)
+        where = f"spawnableCrates.{section}[{entry.get('desc', weight)}]"
 
-    for target in crates.get("remove") or []:
-        _, err = ref.resolve_crate(target)
-        if err:
-            out.append(Finding(ERROR, f"crates.remove[{target}]", err.key, err.params))
+        # A weighted crate: known unit + unique weight.
+        if weight is not None:
+            if weight in weights:
+                out.append(Finding(ERROR, where, "validate.crate.weight_collision", {"weight": weight}))
+            weights[weight] = section
+            section_weights[section].add(weight)
+            # Repair crates (_repairFor) and mixedSets have no unit; only real crates do.
+            if unit is not None and unit not in types:
+                out.append(Finding(ERROR, where, "validate.crate.unknown_unit", {"unit": unit}))
 
-    for entry in crates.get("patch") or []:
-        target = entry.get("name", entry.get("weight"))
-        current, err = ref.resolve_crate(target)
-        where = f"crates.patch[{target}]"
-        if err:
-            out.append(Finding(ERROR, where, err.key, err.params))
+    # mixedSet consistency: every referenced weight exists in the same section.
+    for section, entry in _iter_crates(catalog):
+        mixed = entry.get("mixedSet")
+        if not mixed:
             continue
-        # A patch may change the weight (the crate key); the new one must stay unique
-        # (compared against every other crate — the target's own current weight excepted).
-        new_weight = entry.get("weight_kg")
-        if new_weight is not None and new_weight != current:
-            others = (ref.crate_weights() - {current}) | seen_new_weights
-            if new_weight in others:
-                out.append(Finding(ERROR, where, "validate.crate.weight_collision", {"weight": new_weight}))
+        where = f"spawnableCrates.{section}[{entry.get('desc', 'mixedSet')}]"
+        for w in mixed:
+            if w not in section_weights.get(section, set()):
+                out.append(Finding(ERROR, where, "validate.mixedset.dangling_weight", {"weight": w}))
 
 
-def _troop_unknown(name, ref: Reference) -> Finding:
-    near = ref.closest_troop(name)
-    if near:
-        return Finding(ERROR, f"troops[{name}]", "validate.troop.unknown_hint", {"name": name, "suggestion": near})
-    return Finding(ERROR, f"troops[{name}]", "validate.troop.unknown", {"name": name})
-
-
-def _validate_troops(troops: dict, ref: Reference, out: list[Finding]) -> None:
-    for entry in troops.get("add") or []:
-        if not entry.get("name"):
-            out.append(Finding(ERROR, "troops.add", "validate.troop.missing_name"))
-    for name in troops.get("remove") or []:
-        if not ref.troop_exists(name):
-            out.append(_troop_unknown(name, ref))
-    for entry in troops.get("patch") or []:
-        name = entry.get("name")
-        if not name:
-            out.append(Finding(ERROR, "troops.patch", "validate.troop.missing_name"))
-        elif not ref.troop_exists(name):
-            out.append(_troop_unknown(name, ref))
-
-
-def _validate_arrays(arrays: dict, ref: Reference, out: list[Finding]) -> None:
-    for setting in arrays:
-        if not ref.is_array_setting(setting):
-            out.append(Finding(ERROR, f"arrays.{setting}", "validate.array.not_appendable", {"setting": setting}))
-
-
-def _validate_settings(settings: dict, ref: Reference, out: list[Finding]) -> None:
-    # An unknown scalar setting is a warning, not an error: it is silently ignored in
-    # game (a likely typo) but does not break generation, and the catalogue may not be
-    # exhaustive (e.g. plugin settings).
-    for name in settings:
-        if not ref.setting_exists(name):
-            near = ref.closest_setting(name)
-            if near:
-                out.append(
-                    Finding(
-                        WARNING, f"settings.{name}", "validate.setting.unknown_hint", {"name": name, "suggestion": near}
-                    )
+def _validate_choices(catalog: Catalog, schema: Schema, out: list[Finding]) -> None:
+    for key in catalog.keys():
+        choices = schema.choices(key)
+        if not choices:
+            continue
+        value = catalog.get(key)
+        if value is not None and value not in choices:
+            out.append(
+                Finding(
+                    ERROR,
+                    f"settings.{key}",
+                    "validate.setting.bad_choice",
+                    {"name": key, "value": value, "choices": ", ".join(map(str, choices))},
                 )
-            else:
-                out.append(Finding(WARNING, f"settings.{name}", "validate.setting.unknown", {"name": name}))
+            )
 
 
-def validate(user_config: dict, ref: Reference, types=None) -> list[Finding]:
-    """Return findings for a parsed user-config against the reference + DCS types."""
-    types = known_dcs_types() if types is None else types
+def validate(catalog: Catalog, schema: Schema, types: Collection[str] | None = None) -> list[Finding]:
+    """Return findings for a complete catalogue against the DCS types + the schema."""
+    resolved: set[str] = set(known_dcs_types()) if types is None else set(types)
     out: list[Finding] = []
-    _validate_crates(user_config.get("crates") or {}, ref, types, out)
-    _validate_troops(user_config.get("troops") or {}, ref, out)
-    _validate_arrays(user_config.get("arrays") or {}, ref, out)
-    _validate_settings(user_config.get("settings") or {}, ref, out)
+    _validate_crates(catalog, resolved, out)
+    _validate_choices(catalog, schema, out)
     return out
 
 

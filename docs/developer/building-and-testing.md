@@ -39,20 +39,20 @@ output exists and is non-empty, and uploads `CTLD.lua` as a build artifact.
 ## Engine configuration (`ctld-tools`)
 
 The engine defaults are **data**, not code: they live in `src/CTLD_config.yaml` (the single source
-of truth, sectioned `mm_facing` / `advanced`). At build time `merge_CTLD.ps1` regenerates
-`src/CTLD_config_defaults.lua` from the YAML (via `ctld-tools gen-config`); that file defines
-`ctld.__configDefaults`, which `CTLDConfig:load()` copies into its settings. **Edit the YAML** — the
+of truth, sectioned `mm_facing` / `advanced`). At build time `merge_CTLD.ps1` embeds the YAML
+verbatim as a Lua string module — `src/CTLD_config_default_yaml.lua`, defining `ctld.configDefault`
+(via `ctld-tools embed`) — which `CTLDConfig:load()` parses at runtime. **Edit the YAML** — the
 generated Lua is a **build artifact (git-ignored)**, never hand-edited or committed.
 
-To change a default: edit `src/CTLD_config.yaml`, rebuild (`merge_CTLD.ps1` regenerates the Lua
-automatically), commit the YAML. **The build now needs Python**: run `poetry install` in
-`tools/ctld-tools` once (the merge calls `ctld-tools`; it aborts with a clear message if poetry is
-missing).
+To change a default: edit `src/CTLD_config.yaml`, rebuild (`merge_CTLD.ps1` re-embeds automatically),
+commit the YAML. **The build needs Python**: run `poetry install` in `tools/ctld-tools` once (the
+merge calls `ctld-tools`; it aborts with a clear message if poetry is missing).
 
-`tools/ctld-tools/` is an isolated poetry project (typer, ruamel.yaml, lupa, pytest + ruff + mypy),
-following the VMCT Python conventions. The `python-quality` CI job enforces a **parity guard**:
-regenerating from the YAML reproduces the original settings, `ctld.tr` wrappers included (a frozen
-reference caught with a distinctive translator).
+`tools/ctld-tools/` is an isolated poetry project (typer, ruamel.yaml, pytest + ruff + mypy),
+following the VMCT Python conventions. The `python-quality` CI job enforces an **oracle drift
+guard**: the committed round-trip reference `tests/ci/data/config_defaults.json` (emitted by
+`ctld-tools gen`) must equal a fresh emit from the YAML. The busted suite then checks the Lua
+`CTLDConfig.parseYAML` reproduces that oracle — two independent parsers agreeing.
 
 ## Running tests (busted, no DCS)
 

@@ -6,6 +6,8 @@
   "validate.crate.unknown_unit": "type d'unité DCS inconnu « {unit} »",
   "validate.crate.missing_weight": "« weight_kg » manquant (masse de la crate, aussi sa clé unique)",
   "validate.crate.weight_collision": "weight_kg {weight} entre en collision avec une crate existante — doit être unique",
+  "validate.mixedset.dangling_weight": "le mixedSet référence le poids {weight} mais aucune crate de la section ne l'a",
+  "validate.setting.bad_choice": "le réglage « {name} » = {value} n'est pas parmi : {choices}",
   "validate.crate.no_weight": "aucune crate de poids {weight}",
   "validate.crate.unknown": "aucune crate nommée « {name} »",
   "validate.crate.unknown_hint": "aucune crate nommée « {name} » — vouliez-vous dire « {suggestion} » ?",

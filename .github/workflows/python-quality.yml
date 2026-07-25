@@ -6,13 +6,13 @@ on:
     paths:
       - "tools/ctld-tools/**"
       - "src/CTLD_config.yaml"
-      - "src/CTLD_config_defaults.lua"
+      - "tests/ci/data/config_defaults.json"
       - ".github/workflows/python-quality.yml"
   pull_request:
     paths:
       - "tools/ctld-tools/**"
       - "src/CTLD_config.yaml"
-      - "src/CTLD_config_defaults.lua"
+      - "tests/ci/data/config_defaults.json"
       - ".github/workflows/python-quality.yml"
 
 jobs:
@@ -44,7 +44,7 @@ jobs:
       - name: Type check (mypy)
         run: poetry run mypy ctld_tools
 
-      # Tests include the parity guard (yaml -> lua -> settings == frozen reference)
-      # and the drift check (committed CTLD_config_defaults.lua == fresh gen-config).
+      # Tests include the oracle drift guard (committed tests/ci/data/config_defaults.json
+      # == fresh emit from src/CTLD_config.yaml) and the embed/wrap round-trip.
       - name: Tests (pytest + coverage)
         run: poetry run pytest
