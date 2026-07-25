@@ -2084,18 +2084,19 @@ la sortie existe et n'est pas vide, et téléverse <code>CTLD.lua</code> en tant
 <h2 id="engine-configuration-ctld-tools">Configuration moteur (<code>ctld-tools</code>)<a class="headerlink" href="#engine-configuration-ctld-tools" title="Permanent link">&para;</a></h2>
 <p>Les valeurs par défaut du moteur sont des <strong>données</strong>, pas du code : elles vivent dans
 <code>src/CTLD_config.yaml</code> (source de vérité unique, sectionnée <code>mm_facing</code> / <code>advanced</code>). Au moment du
-build, <code>merge_CTLD.ps1</code> régénère <code>src/CTLD_config_defaults.lua</code> depuis le YAML (via
-<code>ctld-tools gen-config</code>) ; ce fichier définit <code>ctld.__configDefaults</code>, que <code>CTLDConfig:load()</code>
-recopie dans ses settings. <strong>Éditez le YAML</strong> — le Lua généré est un <strong>artefact de build (ignoré par
-git)</strong>, jamais édité à la main ni committé.</p>
-<p>Pour changer un défaut : éditez <code>src/CTLD_config.yaml</code>, rebuild (<code>merge_CTLD.ps1</code> régénère le Lua
-automatiquement), committez le YAML. <strong>Le build nécessite désormais Python</strong> : lancez <code>poetry install</code>
-dans <code>tools/ctld-tools</code> une fois (le merge appelle <code>ctld-tools</code> ; il s'arrête avec un message clair si
+build, <code>merge_CTLD.ps1</code> embarque le YAML verbatim dans un module chaîne Lua —
+<code>src/CTLD_config_default_yaml.lua</code>, qui définit <code>ctld.configDefault</code> (via <code>ctld-tools embed</code>) — que
+<code>CTLDConfig:load()</code> parse à l'exécution. <strong>Éditez le YAML</strong> — le Lua généré est un <strong>artefact de build
+(ignoré par git)</strong>, jamais édité à la main ni committé.</p>
+<p>Pour changer un défaut : éditez <code>src/CTLD_config.yaml</code>, rebuild (<code>merge_CTLD.ps1</code> ré-embarque
+automatiquement), committez le YAML. <strong>Le build nécessite Python</strong> : lancez <code>poetry install</code> dans
+<code>tools/ctld-tools</code> une fois (le merge appelle <code>ctld-tools</code> ; il s'arrête avec un message clair si
 poetry est absent).</p>
-<p><code>tools/ctld-tools/</code> est un projet poetry isolé (typer, ruamel.yaml, lupa, pytest + ruff + mypy),
-suivant les conventions Python de VMCT. Le job CI <code>python-quality</code> applique un <strong>garde de parité</strong> :
-régénérer depuis le YAML reproduit les settings d'origine, wrappers <code>ctld.tr</code> inclus (une référence
-figée, détectée avec un traducteur distinctif).</p>
+<p><code>tools/ctld-tools/</code> est un projet poetry isolé (typer, ruamel.yaml, pytest + ruff + mypy), suivant
+les conventions Python de VMCT. Le job CI <code>python-quality</code> applique un <strong>garde de dérive de l'oracle</strong> :
+la référence de round-trip committée <code>tests/ci/data/config_defaults.json</code> (émise par <code>ctld-tools gen</code>)
+doit égaler une génération fraîche depuis le YAML. La suite busted vérifie ensuite que le
+<code>CTLDConfig.parseYAML</code> Lua reproduit cet oracle — deux parsers indépendants qui concordent.</p>
 <h2 id="running-tests-busted-no-dcs">Exécuter les tests (busted, sans DCS)<a class="headerlink" href="#running-tests-busted-no-dcs" title="Permanent link">&para;</a></h2>
 <p>La suite automatisée s'exécute avec <a href="https://lunarmodules.github.io/busted/">busted</a>. Chaque appel
 à l'API DCS est stubbé, aucune installation de DCS n'est donc requise.</p>
