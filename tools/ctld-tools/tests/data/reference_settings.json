@@ -64,7 +64,9 @@
  "RIFLE_WEIGHT": 5,
  "RPG_WEIGHT": 7.6,
  "SOLDIER_WEIGHT": 80,
+ "aaAssemblyDistance": 500,
  "aaLaunchers": 3,
+ "aaRearmDistance": 300,
  "addPlayerAircraftByType": true,
  "aiZones": {},
  "allowRandomAiTeamPickups": false,
@@ -79,6 +81,7 @@
  "beaconIconRadius": 25,
  "beaconLayerEnabled": false,
  "beaconRefreshInterval": 60,
+ "beaconRemovalRadius": 500,
  "beaconTextSize": 12,
  "capabilitiesByType": {
   "76MD": {
@@ -240,11 +243,14 @@
    "useNativeDcsCargoSystem": false
   }
  },
+ "configVersion": "2.0.0",
  "crateSpacing": 5,
  "ctldLogPath": "",
  "debug": false,
  "debugScreenLog": false,
  "debugScreenLogDuration": 10,
+ "defaultVehicleWeight": 2500,
+ "defaultZoneRadius": 500,
  "demineRadius": 150,
  "deployedBeaconBattery": 30,
  "disableAllSmoke": false,
@@ -287,6 +293,8 @@
   "extract25"
  ],
  "fastRopeMaximumHeight": 18.28,
+ "fieldExtractTroopWeight": 130,
+ "fobCrateCollectionRadius": 750,
  "fobDestructionThreshold": 0.5,
  "fobLogisticZoneRadius": 150,
  "fobMinDistanceFromZones": 500,
@@ -300,7 +308,10 @@
   "M1045 HMMWV TOW": 5000
  },
  "hoverTime": 10,
+ "jtacLaserCodeMax": 1688,
+ "jtacLaserCodeMin": 1111,
  "loadCrateFromMenu": true,
+ "loadCrateSearchRadius": 50,
  "loadableGroups": [
   {
    "at": 2,
@@ -431,6 +442,7 @@
  "reconRefreshInterval": 10,
  "reconSearchRadius": 5000,
  "showMinefieldOnF10Map": true,
+ "slingCutDestroyHeight": 40,
  "slingLoad": false,
  "smokeAutoResume": false,
  "smokeAutoResumeInterval": 270,
@@ -553,6 +565,261 @@
     },
     "unit": "RQ-1A Predator",
     "weight": 1006.11
+   }
+  ],
+  "SAM long range": [
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:Patriot Launcher>>",
+    "side": 2,
+    "unit": "Patriot ln",
+    "weight": 1005.01
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:Patriot Radar>>",
+    "side": 2,
+    "unit": "Patriot str",
+    "weight": 1005.02
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:Patriot ECS>>",
+    "side": 2,
+    "unit": "Patriot ECS",
+    "weight": 1005.03
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:Patriot AMG (optional)>>",
+    "side": 2,
+    "unit": "Patriot AMG",
+    "weight": 1005.06
+   },
+   {
+    "desc": "<<TR:Patriot - All crates>>",
+    "mixedSet": [
+     1005.01,
+     1005.02,
+     1005.03
+    ],
+    "side": 2
+   },
+   {
+    "_repairFor": "Patriot AA System",
+    "cratesRequired": 1,
+    "desc": "<<TR:Patriot Repair>>",
+    "side": 2,
+    "weight": 1005.07
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:S-300 Grumble TEL C>>",
+    "side": 1,
+    "unit": "S-300PS 5P85C ln",
+    "weight": 1005.11
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:S-300 Grumble Flap Lid-A TR>>",
+    "side": 1,
+    "unit": "S-300PS 40B6M tr",
+    "weight": 1005.12
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:S-300 Grumble Clam Shell SR>>",
+    "side": 1,
+    "unit": "S-300PS 40B6MD sr",
+    "weight": 1005.13
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:S-300 Grumble Big Bird SR>>",
+    "side": 1,
+    "unit": "S-300PS 64H6E sr",
+    "weight": 1005.14
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:S-300 Grumble C2>>",
+    "side": 1,
+    "unit": "S-300PS 54K6 cp",
+    "weight": 1005.15
+   },
+   {
+    "desc": "<<TR:S-300 - All crates>>",
+    "mixedSet": [
+     1005.11,
+     1005.12,
+     1005.13,
+     1005.14,
+     1005.15
+    ],
+    "side": 1
+   },
+   {
+    "_repairFor": "S-300 AA System",
+    "cratesRequired": 1,
+    "desc": "<<TR:S-300 Repair>>",
+    "side": 1,
+    "weight": 1005.16
+   }
+  ],
+  "SAM mid range": [
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:HAWK Launcher>>",
+    "side": 2,
+    "unit": "Hawk ln",
+    "weight": 1004.01
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:HAWK Search Radar>>",
+    "side": 2,
+    "unit": "Hawk sr",
+    "weight": 1004.02
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:HAWK Track Radar>>",
+    "side": 2,
+    "unit": "Hawk tr",
+    "weight": 1004.03
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:HAWK PCP>>",
+    "side": 2,
+    "unit": "Hawk pcp",
+    "weight": 1004.04
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:HAWK CWAR>>",
+    "side": 2,
+    "unit": "Hawk cwar",
+    "weight": 1004.05
+   },
+   {
+    "desc": "<<TR:HAWK - All crates>>",
+    "mixedSet": [
+     1004.01,
+     1004.02,
+     1004.03
+    ],
+    "side": 2
+   },
+   {
+    "_repairFor": "HAWK AA System",
+    "cratesRequired": 1,
+    "desc": "<<TR:HAWK Repair>>",
+    "side": 2,
+    "weight": 1004.06
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:NASAMS Launcher 120C>>",
+    "side": 2,
+    "unit": "NASAMS_LN_C",
+    "weight": 1004.11
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:NASAMS Search/Track Radar>>",
+    "side": 2,
+    "unit": "NASAMS_Radar_MPQ64F1",
+    "weight": 1004.12
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:NASAMS Command Post>>",
+    "side": 2,
+    "unit": "NASAMS_Command_Post",
+    "weight": 1004.13
+   },
+   {
+    "desc": "<<TR:NASAMS - All crates>>",
+    "mixedSet": [
+     1004.11,
+     1004.12,
+     1004.13
+    ],
+    "side": 2
+   },
+   {
+    "_repairFor": "NASAMS AA System",
+    "cratesRequired": 1,
+    "desc": "<<TR:NASAMS Repair>>",
+    "side": 2,
+    "weight": 1004.14
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:BUK Launcher>>",
+    "side": 1,
+    "unit": "SA-11 Buk LN 9A310M1",
+    "weight": 1004.31
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:BUK Search Radar>>",
+    "side": 1,
+    "unit": "SA-11 Buk SR 9S18M1",
+    "weight": 1004.32
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:BUK CC Radar>>",
+    "side": 1,
+    "unit": "SA-11 Buk CC 9S470M1",
+    "weight": 1004.33
+   },
+   {
+    "desc": "<<TR:BUK - All crates>>",
+    "mixedSet": [
+     1004.31,
+     1004.32,
+     1004.33
+    ],
+    "side": 1
+   },
+   {
+    "_repairFor": "BUK AA System",
+    "cratesRequired": 1,
+    "desc": "<<TR:BUK Repair>>",
+    "side": 1,
+    "weight": 1004.34
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:KUB Launcher>>",
+    "side": 1,
+    "unit": "Kub 2P25 ln",
+    "weight": 1004.21
+   },
+   {
+    "cratesRequired": 1,
+    "desc": "<<TR:KUB Radar>>",
+    "side": 1,
+    "unit": "Kub 1S91 str",
+    "weight": 1004.22
+   },
+   {
+    "desc": "<<TR:KUB - All crates>>",
+    "mixedSet": [
+     1004.21,
+     1004.22
+    ],
+    "side": 1
+   },
+   {
+    "_repairFor": "KUB AA System",
+    "cratesRequired": 1,
+    "desc": "<<TR:KUB Repair>>",
+    "side": 1,
+    "weight": 1004.23
    }
   ],
   "SAM short range": [
@@ -959,6 +1226,7 @@
    1001
   ]
  ],
+ "unpackSearchRadius": 300,
  "wpZones": [
   [
    "wpzone1",

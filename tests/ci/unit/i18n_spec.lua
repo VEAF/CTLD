@@ -304,6 +304,7 @@ describe("CTLDi18n", function()
             -- Restore a clean, defaults-loaded singleton so later specs don't inherit a
             -- nil instance or our test's user-config.
             ctld.yamlConfigDatas = nil
+            ctld.configUser      = nil
             CTLDConfig._instance = nil
             CTLDConfig.get():load()
         end)
@@ -312,8 +313,8 @@ describe("CTLDi18n", function()
             assert.equals("hello", ctld.tr("__TESTKEY__"))
         end)
 
-        it("a user-config value drives the language (settings win)", function()
-            ctld.yamlConfigDatas = "ctld.i18n_lang: fr"
+        it("a configUser value drives the language (settings win)", function()
+            ctld.configUser = "mm_facing:\n  i18n_lang: fr\n"
             CTLDConfig._instance = nil
             CTLDConfig.get():load()
             assert.equals("fr", ctld.gs("i18n_lang"))
@@ -326,7 +327,7 @@ describe("CTLDi18n", function()
         end)
 
         it("falls back to en for an unknown language", function()
-            ctld.yamlConfigDatas = "ctld.i18n_lang: zz"
+            ctld.configUser = "mm_facing:\n  i18n_lang: zz\n"
             CTLDConfig._instance = nil
             CTLDConfig.get():load()
             assert.equals("hello", ctld.tr("__TESTKEY__"))

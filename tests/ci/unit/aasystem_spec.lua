@@ -352,41 +352,35 @@ describe("CTLDCrateAssemblyManager _buildSpawnArrays geometry", function()
 end)
 
 -- ─────────────────────────────────────────────────────────────
--- injectAACrates relocated to ctld.initialize() (FEAT-USERCONFIG-API / ADR 0009):
--- the injection populates the AA sections, and a later addCrate lands after them.
-describe("CTLDCrateAssemblyManager.injectAACrates + userSetup ordering", function()
+-- AA crates are baked into the YAML catalogue (FEAT-CONFIG-YAML-COMPLETE t05):
+-- they are present in spawnableCrates at load, with no runtime injectAACrates step.
+describe("baked AA crate catalogue", function()
 
     local cfg
 
     before_each(function()
         CTLDConfig._instance = nil
-        ctld.yamlConfigDatas = nil
+        ctld.configUser = nil
+        CTLDCrateManager._instance = nil
         cfg = CTLDConfig.get()
         cfg:load()
     end)
 
-    it("populates the AA sections in spawnableCrates", function()
+    after_each(function()
+        -- The reachability case builds the crate manager — restore a clean singleton.
+        CTLDConfig._instance = nil
+        CTLDCrateManager._instance = nil
+        CTLDConfig.get():load()
+    end)
+
+    it("the AA sections are present in spawnableCrates at load", function()
         local crates = cfg.settings["spawnableCrates"]
-        CTLDCrateAssemblyManager.injectAACrates(crates)
         assert.is_not_nil(crates["SAM mid range"])
         assert.is_not_nil(crates["SAM long range"])
         assert.is_true(#crates["SAM mid range"] > 0)
     end)
 
-    it("lets a later addCrate append after the injected AA entries", function()
-        local crates = cfg.settings["spawnableCrates"]
-        CTLDCrateAssemblyManager.injectAACrates(crates)
-        local n = #crates["SAM mid range"]
-        ctld.addCrate("SAM mid range", { weight = 9998.01, desc = "Extra", unit = "Ural-375" })
-        assert.equals(n + 1, #crates["SAM mid range"])
-        assert.equals(9998.01, crates["SAM mid range"][#crates["SAM mid range"]].weight)
-    end)
-
-    -- Non-regression for the relocation: with injection removed from
-    -- _processSpawnableCrates, an early injection (as ctld.initialize() does) must still
-    -- make the AA crates reachable in the crate manager's _weightIndex.
-    it("makes injected AA crates reachable via _processSpawnableCrates", function()
-        CTLDCrateAssemblyManager.injectAACrates(cfg.settings["spawnableCrates"])
+    it("baked AA crates are reachable via the crate manager _weightIndex", function()
         local w = cfg.settings["spawnableCrates"]["SAM mid range"][1].weight
         CTLDCrateManager._instance = nil
         local cm = CTLDCrateManager.getInstance()

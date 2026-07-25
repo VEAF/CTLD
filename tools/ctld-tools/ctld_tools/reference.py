@@ -87,7 +87,7 @@ class Reference:
         """Resolve the catalogue live from src/ (lupa). Dev override; needs the repo."""
         from ctld_tools.luaconfig import load_default_settings
 
-        settings = load_default_settings(src_dir, inject_aa=True)
+        settings = load_default_settings(src_dir)
         settings["settingSchema"] = load_setting_schema(src_dir)
         return cls(settings)
 

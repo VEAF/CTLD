@@ -8,6 +8,50 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — engine config knobs externalised to YAML (FEAT-CONFIG-YAML-COMPLETE)
+
+- Lot 1 (ticket 01): twelve hardcoded constants are now mission-configurable settings, read via
+  `ctld.gs(...)` and defined in `CTLD_config.yaml` (+ schema descriptions) — **behaviour-preserving**
+  (identical defaults). Part of the complete-YAML config pivot (ADR 0011):
+  - MM-facing: `aaRearmDistance` (300), `aaAssemblyDistance` (500), `beaconRemovalRadius` (500),
+    `loadCrateSearchRadius` (50), `unpackSearchRadius` (300), `fobCrateCollectionRadius` (750),
+    `slingCutDestroyHeight` (40).
+  - Advanced: `jtacLaserCodeMin` (1111), `jtacLaserCodeMax` (1688), `defaultVehicleWeight` (2500),
+    `fieldExtractTroopWeight` (130), `defaultZoneRadius` (500).
+  - The FOB "not enough crates" message is now parameterised with the actual radius (EN/FR/ES/KO).
+- Lot 1 (ticket 02): `CTLDConfig.parseYAML` rewritten to parse the full nested catalogue — block
+  sequences at the key's indent, sequences of maps, sequences of sequences (`- - x`), inline empty
+  `{}`/`[]`, and quoted scalars — so the whole config can arrive as a YAML string at runtime. Guarded
+  by a round-trip parity test (parse `CTLD_config.yaml`, merge sections, assert equality with the
+  generated engine defaults). The unused `|` literal-block path was dropped. Behaviour-preserving.
+- Lot 1 (ticket 03): the build (`merge_CTLD.ps1`) now embeds the canonical `CTLD_config.yaml`
+  verbatim as the `ctld.configDefault` Lua string (generated module, merged after the i18n dicts,
+  long-bracket level chosen dynamically). No behaviour change yet — the complete-config loader
+  consumes this string in ticket 04.
+- Lot 1 (ticket 06): the `ctld.userSetup` ops API is removed (clean break, pre-2.0.0) —
+  `CTLD_userSetup.lua` and its helpers (`addCrate`/`removeCrate`/`patchCrate`/`addTroopGroup`/…)
+  are deleted, along with the `ctld.initialize()` callback dispatch. The MM template
+  `CTLD_userConfig.lua` is rewritten to the complete-config model: a single mission-start trigger
+  sets `ctld.configUser` to a full YAML snapshot. The default YAML and schema now carry a top-level
+  `configVersion` tag (`"2.0.0"`), merged into settings alongside the sections, so a `configUser` can
+  record the version it was authored against (the tool consumes it for version-gap detection in a
+  later lot). The v1 Legacy API (ADR 0004) is untouched.
+- Lot 1 (ticket 05): the AA-system deployable crates are now ordinary catalogue entries in
+  `CTLD_config.yaml` (sections `SAM mid range` / `SAM long range`) instead of being generated at
+  runtime. `CTLDCrateAssemblyManager.injectAACrates` and its `ctld.initialize()` call site are removed;
+  the crates were expanded once (golden-compared to the old injection output) and committed to the YAML.
+  `CTLDCrateAssemblyManager.TEMPLATES` (the assembly rules the runtime still needs — parts, count,
+  launcher) moves from `CTLDConfig:load()` to a static declaration in `CTLD_aasystem.lua`. Runtime
+  assembly/spawn behaviour is unchanged.
+- Lot 1 (ticket 04): `CTLDConfig:load()` switches to the complete-config model (ADR 0011) — it parses
+  `ctld.configUser or ctld.configDefault` **whole** into settings, with **no merge** (an element
+  omitted from a `configUser` snapshot is absent at runtime, not defaulted). A malformed `configUser`
+  is a **hard error**. i18n labels (`desc`/`name`) are re-translated at load via `ctld.tr()`, matching
+  the former generated defaults in every language. The legacy `ctld.yamlConfigDatas` scalar-merge path
+  and the backward-compat `ctld.<setting>` globals are removed. `CTLD_config_defaults.lua` is no longer
+  merged into `CTLD.lua` (still generated as the parity-test oracle + i18n scan source; `gen-config`
+  itself is retired in lot 2).
+
 ### Fixed — hardcoded i18n strings in RECON menus and AA system (FIX-I18N-HARDCODED)
 
 - **`CTLD_recon.lua`**: RECON submenu layer names (Infantry, Air Defense (AA), Ground Vehicles,

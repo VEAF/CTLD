@@ -183,8 +183,8 @@ end
 
 
 -- ============================================================
-local LASER_CODE_MIN = 1111  -- Lowest valid laser code (NATO range)
-local LASER_CODE_MAX = 1688  -- Highest valid laser code (NATO range)
+-- Laser code bounds are now MM-configurable:
+-- ctld.gs("jtacLaserCodeMin") / ctld.gs("jtacLaserCodeMax").
 
 -- CTLDJTACDetector  (static helpers — no instance)
 -- ============================================================
@@ -200,7 +200,7 @@ CTLDJTACDetector = {}
 -- @return table { name, freq (string MHz), mod } or nil
 function CTLDJTACDetector.calculateFMRadio(groupName, laserCode)
     local code = tonumber(laserCode)
-    if not code or code < LASER_CODE_MIN or code > LASER_CODE_MAX then return nil end
+    if not code or code < ctld.gs("jtacLaserCodeMin") or code > ctld.gs("jtacLaserCodeMax") then return nil end
     local laserB  = math.floor((code - 1000) / 100)
     local laserCD = code - 1000 - laserB * 100
     local freq    = tostring(30 + laserB + laserCD * 0.05)
@@ -1395,7 +1395,7 @@ end
 --- Fill the laser pool with all valid codes (1111–1688). Called at init and cleanup.
 function CTLDJTACManager:_initLaserPool()
     self._laserPool = {}
-    for code = LASER_CODE_MIN, LASER_CODE_MAX do
+    for code = ctld.gs("jtacLaserCodeMin"), ctld.gs("jtacLaserCodeMax") do
         self._laserPool[#self._laserPool + 1] = code
     end
 end

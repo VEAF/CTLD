@@ -30,10 +30,21 @@ ctld.tr = ctld.tr or function(key, default) return default or key end
 -- Engine defaults are generated from ctld-config.yaml; the generated module
 -- calls ctld.tr at load time, so it loads after the stub and before load().
 dofile(SRC .. "CTLD_config_defaults.lua")
+
+-- Ticket 03: expose the verbatim config YAML as ctld.configDefault. The build embeds it
+-- as a generated Lua module (src/CTLD_config_default_yaml.lua); for busted we read the
+-- source YAML directly, so the CI Lua runner needs no PowerShell. Consumed in ticket 04.
+do
+    local fh = io.open(SRC .. "CTLD_config.yaml", "r")
+    if fh then
+        ctld.configDefault = fh:read("*a")
+        fh:close()
+    end
+end
+
 CTLDConfig.get():load()
 
 dofile(SRC .. "CTLD_utils.lua")
-dofile(SRC .. "CTLD_userSetup.lua")
 dofile(SRC .. "CTLD_i18n.lua")
 dofile(SRC .. "CTLD_i18n_en.lua")
 dofile(SRC .. "CTLD_menu.lua")

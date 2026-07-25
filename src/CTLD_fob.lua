@@ -210,11 +210,12 @@ function CTLDFOBManager:unpackFOBCrates(transport, player, sceneName)
     local sn       = sceneName or "FOB"
     local model    = CTLDSceneManager.getInstance():getModel(sn)
     local required = (model and model.crate and model.crate.cratesRequired) or 3
-    local collected  = _collectFOBCrates(pos, coalitionId, 750, sn)
+    local radius     = ctld.gs("fobCrateCollectionRadius")
+    local collected  = _collectFOBCrates(pos, coalitionId, radius, sn)
     if collected.total < required then
         trigger.action.outTextForGroup(gid,
-            ctld.tr("FOB needs %1 crate(s) within 750 m - only %2 found.",
-                required, collected.total), 15)
+            ctld.tr("FOB needs %1 crate(s) within %2 m - only %3 found.",
+                required, radius, collected.total), 15)
         return
     end
 

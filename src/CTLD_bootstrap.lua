@@ -14,14 +14,6 @@ function ctld.initialize()
     CTLDConfig.get():load()
     ctld.utils.initLog()
 
-    -- Materialise the full configuration before any manager reads it:
-    --   1) inject the AA system crate entries into spawnableCrates,
-    --   2) run the Mission Maker userSetup callbacks (add/remove/patch).
-    -- This is the single place that controls config materialisation order, so managers
-    -- always see the final, complete config table (ADR 0008/0009).
-    CTLDCrateAssemblyManager.injectAACrates(ctld.gs("spawnableCrates"))
-    ctld.runUserSetup()
-
     -- Boot all domain managers first so they can register their menu sections.
     -- Order matters: PlayerManager must be up before any other manager calls
     -- registerMenuSection(), and _scanExistingPlayers() must run last so all

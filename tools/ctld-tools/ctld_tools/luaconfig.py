@@ -23,8 +23,13 @@ dofile("{src}core/class.lua")
 dofile("{src}CTLD_aasystem.lua")
 dofile("{src}CTLD_config.lua")
 ctld.tr = {tr}
--- Defaults now live in the generated module; it calls ctld.tr at load time.
-dofile("{src}CTLD_config_defaults.lua")
+-- Complete-config model (ADR 0011): load() parses ctld.configDefault, the engine
+-- YAML embedded verbatim; it applies ctld.tr to desc/name at load time.
+do
+    local fh = assert(io.open("{src}CTLD_config.yaml", "r"))
+    ctld.configDefault = fh:read("*a")
+    fh:close()
+end
 CTLDConfig.get():load()
 """
 
@@ -46,15 +51,15 @@ def _to_py(value):
     return {_to_py(k): _to_py(value[k]) for k in keys}
 
 
-def load_default_settings(src_dir: str | Path, tr: str = IDENTITY_TR, inject_aa: bool = False) -> dict:
+def load_default_settings(src_dir: str | Path, tr: str = IDENTITY_TR) -> dict:
     """Run CTLD_config.lua and return its default `settings` table as Python data.
 
     `tr` is the Lua body of ctld.tr (defaults to identity, preserving i18n keys).
     Tests can pass a distinctive translator to prove the desc/name wrappers are
     actually emitted by the generator.
 
-    `inject_aa` runs CTLDCrateAssemblyManager.injectAACrates() so `spawnableCrates`
-    includes the AA-system crate sections (needed to resolve/validate AA crate names).
+    The AA-system crates are part of the YAML catalogue since FEAT-CONFIG-YAML-COMPLETE,
+    so `spawnableCrates` already carries them — no runtime injection step is needed.
     """
     import lupa
 
@@ -63,10 +68,6 @@ def load_default_settings(src_dir: str | Path, tr: str = IDENTITY_TR, inject_aa:
         src += "/"
     lua = lupa.LuaRuntime(unpack_returned_tuples=True)
     lua.execute(_BOOTSTRAP.format(src=src, tr=tr))
-    if inject_aa:
-        # injectAACrates logs via ctld.utils.log; stub it (utils isn't loaded here).
-        lua.execute("ctld.utils = ctld.utils or {}; ctld.utils.log = ctld.utils.log or function() end")
-        lua.execute("CTLDCrateAssemblyManager.injectAACrates(CTLDConfig.get().settings.spawnableCrates)")
     settings = lua.eval("CTLDConfig.get().settings")
     result = _to_py(settings)
     if not isinstance(result, dict):

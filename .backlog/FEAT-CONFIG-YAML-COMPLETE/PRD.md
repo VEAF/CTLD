@@ -26,6 +26,14 @@ AA crates are materialised at runtime by a generative loop. ADR 0011 replaces th
    **scope-validation checkpoint** (the classified inventory reviewed) before externalisation lands.
 1. **Complete-config loading.** At init, resolve `configUser or configDefault` and parse the winner
    into the settings table. **No merge.** A missing element = intentional removal.
+   - **Malformed-`configUser` policy (decided, ticket 04): hard error.** If a `configUser` is present
+     but parses to an empty settings map, `load()` raises a Lua error and aborts — no silent fallback
+     to `configDefault`. Rationale: `ctld-tools` validates a snapshot before export, so a broken
+     `configUser` is a real authoring fault the MM must see, not paper over. (`configDefault` is
+     build-generated and always valid, so the no-`configUser` path never hits this.)
+   - **i18n labels.** The parsed YAML holds literal `desc`/`name` values; `load()` re-applies
+     `ctld.tr()` to every `desc`/`name` string at any depth (same rule as gen-config `_I18N_FIELDS`),
+     so runtime labels stay translated in every language.
 2. **YAML-at-runtime.** Both documents are YAML strings; `configDefault` is the engine YAML embedded
    verbatim by the build, `configUser` is the (optional) MM snapshot set by a mission-start trigger.
 3. **Harden `CTLDConfig.parseYAML`** to the full nested catalogue: quoted strings containing `:`,
@@ -38,6 +46,13 @@ AA crates are materialised at runtime by a generative loop. ADR 0011 replaces th
    The build stops calling `gen-config` and instead **embeds the YAML string** into a Lua module.
    (The now-dead `gen-config`/`gen-reference`/`extract` commands + the `lupa` dependency itself are
    deleted in lot 2, the tool-package cleanup.)
+   **Lot 2 cleanup checklist** (dead after this lot — see `⚠️ DEAD CODE` markers in the sources):
+   `gen-config`, `gen-reference`, `extract`, and the **entire gen-user / TUI edit chain** —
+   `ctld_tools/genuser.py` (emits the retired `userSetup`/`yamlConfigDatas` model), `editmodel.py`,
+   `scaffold.py`, the `cli` `gen-user` command, the `tui/` package, and their tests
+   (`test_editmodel`, `test_scaffold`) — all removed and replaced by the web tool that emits
+   `ctld.configUser` YAML. Plus the `lupa` dependency. (Ticket 06 only deletes `test_genuser.py`,
+   the one test that executed the now-removed `userSetup` runtime.)
 5. **Version tag** on the default YAML (and schema). Stored so a `configUser` can record the version
    it was authored against (consumed by the tool in lot 2).
 6. **Retire** `src/CTLD_userSetup.lua` and the `ctld.userSetup` API. Clean break (pre-2.0.0). The

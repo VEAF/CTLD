@@ -1431,7 +1431,7 @@ function CTLDVehicleSpawner:getLoadedVehicleWeight(transportUnitName)
         if veh:getState() == CTLDVehicle.STATE.LOADED
             and veh.loadTransportName == transportUnitName
             and veh.loadMethod == "menu_ctld" then
-            total = total + (weights[veh.vehicleType] or 2500)
+            total = total + (weights[veh.vehicleType] or ctld.gs("defaultVehicleWeight"))
         end
     end
     return total

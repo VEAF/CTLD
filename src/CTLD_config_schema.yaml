@@ -8,6 +8,11 @@
 # Descriptions were seeded from docs/mission-maker/configuration(.fr).md; the schema is
 # now their source of truth (see dev/roadmap.md: generate the doc tables from it).
 
+configVersion:
+  description:
+    en: Schema/catalogue version this config is authored against (used for version-gap detection).
+    fr: Version du schéma/catalogue contre laquelle cette config est écrite (détection d'écart de version).
+
 JTAC_lock:
   choices: [all, vehicle, troop]
   description:
@@ -307,3 +312,52 @@ troopPickupAtFOB:
   description:
     en: Allow troop pickup at built FOBs
     fr: Autorise le pickup de troops aux FOB construits
+
+aaRearmDistance:
+  description:
+    en: Max distance (m) from a launcher crate to an existing AA system to rearm/repair it
+    fr: Distance max (m) entre une caisse de lanceur et un système AA existant pour le réarmer/réparer
+aaAssemblyDistance:
+  description:
+    en: Max distance (m) between crates and the reference point to assemble an AA system
+    fr: Distance max (m) entre les caisses et le point de référence pour assembler un système AA
+beaconRemovalRadius:
+  description:
+    en: Search radius (m) for the "Remove Closest Beacon" action
+    fr: Rayon de recherche (m) pour l'action « Retirer la balise la plus proche »
+loadCrateSearchRadius:
+  description:
+    en: Radius (m) within which crates are grouped/loadable from the Load Crate menu
+    fr: Rayon (m) dans lequel les caisses sont regroupées/chargeables depuis le menu Charger une caisse
+unpackSearchRadius:
+  description:
+    en: Radius (m) within which crates are gathered to unpack or list nearby crates
+    fr: Rayon (m) dans lequel les caisses sont rassemblées pour le dépaquetage ou la liste des caisses proches
+fobCrateCollectionRadius:
+  description:
+    en: Radius (m) within which FOB crates must be gathered to deploy a FOB
+    fr: Rayon (m) dans lequel les caisses de FOB doivent être rassemblées pour déployer un FOB
+slingCutDestroyHeight:
+  description:
+    en: AGL height (m) above which cutting a slingload destroys the crate on impact
+    fr: Hauteur AGL (m) au-dessus de laquelle couper une élingue détruit la caisse à l'impact
+jtacLaserCodeMin:
+  description:
+    en: Lowest assignable JTAC laser code (NATO range)
+    fr: Code laser JTAC assignable le plus bas (plage OTAN)
+jtacLaserCodeMax:
+  description:
+    en: Highest assignable JTAC laser code (NATO range)
+    fr: Code laser JTAC assignable le plus haut (plage OTAN)
+defaultVehicleWeight:
+  description:
+    en: Weight (kg) assumed for a loaded vehicle type absent from groundVehicleWeights
+    fr: Poids (kg) supposé pour un type de véhicule chargé absent de groundVehicleWeights
+fieldExtractTroopWeight:
+  description:
+    en: Assumed per-troop weight (kg) when extracting a field group with no stored data
+    fr: Poids par troupe supposé (kg) lors de l'extraction d'un groupe de terrain sans données stockées
+defaultZoneRadius:
+  description:
+    en: Default radius (m) when a discovered TRZ/WPZ/AIZ trigger zone lacks one
+    fr: Rayon par défaut (m) quand une zone trigger TRZ/WPZ/AIZ découverte n'en a pas

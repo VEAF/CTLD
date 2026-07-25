@@ -21,7 +21,7 @@ def build_reference_bundle(src_dir: str | Path) -> dict:
     from ctld_tools.luaconfig import load_default_settings
     from ctld_tools.reference import load_setting_schema
 
-    settings = load_default_settings(src_dir, inject_aa=True)
+    settings = load_default_settings(src_dir)
     scalar_settings = {k: v for k, v in settings.items() if isinstance(v, (bool, int, float, str))}
     return {
         "spawnableCrates": settings.get("spawnableCrates") or {},

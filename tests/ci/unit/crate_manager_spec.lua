@@ -552,6 +552,11 @@ describe("CTLDCrateManager _processSpawnableCrates startup report (STARTUP-REPOR
     after_each(function()
         ctld.startupReport._entries = {}
         CTLDCrateManager._instance = nil
+        -- This spec mutates settings.spawnableCrates (injects TestSection). Under the
+        -- complete-config loader (no shared __configDefaults table) that mutation would
+        -- otherwise leak into later specs — restore a clean default-loaded singleton.
+        CTLDConfig._instance = nil
+        CTLDConfig.get():load()
     end)
 
     it("invalid mixedSet reference adds ERROR to startupReport, no direct outText", function()

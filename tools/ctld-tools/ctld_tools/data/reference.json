@@ -119,7 +119,9 @@
     "RIFLE_WEIGHT": 5,
     "RPG_WEIGHT": 7.6,
     "SOLDIER_WEIGHT": 80,
+    "aaAssemblyDistance": 500,
     "aaLaunchers": 3,
+    "aaRearmDistance": 300,
     "addPlayerAircraftByType": true,
     "allowRandomAiTeamPickups": false,
     "autoUnpackRadiusParachute": 1000,
@@ -127,12 +129,16 @@
     "beaconIconRadius": 25,
     "beaconLayerEnabled": false,
     "beaconRefreshInterval": 60,
+    "beaconRemovalRadius": 500,
     "beaconTextSize": 12,
+    "configVersion": "2.0.0",
     "crateSpacing": 5,
     "ctldLogPath": "",
     "debug": false,
     "debugScreenLog": false,
     "debugScreenLogDuration": 10,
+    "defaultVehicleWeight": 2500,
+    "defaultZoneRadius": 500,
     "demineRadius": 150,
     "deployedBeaconBattery": 30,
     "disableAllSmoke": false,
@@ -148,13 +154,18 @@
     "enabledFOBBuilding": true,
     "enabledRadioBeaconDrop": true,
     "fastRopeMaximumHeight": 18.28,
+    "fieldExtractTroopWeight": 130,
+    "fobCrateCollectionRadius": 750,
     "fobDestructionThreshold": 0.5,
     "fobLogisticZoneRadius": 150,
     "fobMinDistanceFromZones": 500,
     "fobTroopPickupRadius": 150,
     "groundAglThreshold": 5.0,
     "hoverTime": 10,
+    "jtacLaserCodeMax": 1688,
+    "jtacLaserCodeMin": 1111,
     "loadCrateFromMenu": true,
+    "loadCrateSearchRadius": 50,
     "location_DMS": false,
     "maxDistanceFromCrate": 5.5,
     "maxDropHeight": 7.5,
@@ -185,12 +196,14 @@
     "reconRefreshInterval": 10,
     "reconSearchRadius": 5000,
     "showMinefieldOnF10Map": true,
+    "slingCutDestroyHeight": 40,
     "slingLoad": false,
     "smokeAutoResume": false,
     "smokeAutoResumeInterval": 270,
     "smokeRefreshInterval": 300,
     "spawnDistanceInCircle": 10,
-    "troopPickupAtFOB": true
+    "troopPickupAtFOB": true,
+    "unpackSearchRadius": 300
   },
   "settingSchema": {
     "AASystemCrateStacking": {
@@ -384,10 +397,22 @@
         "fr": "Poids corporel de base par soldat (kg)"
       }
     },
+    "aaAssemblyDistance": {
+      "description": {
+        "en": "Max distance (m) between crates and the reference point to assemble an AA system",
+        "fr": "Distance max (m) entre les caisses et le point de référence pour assembler un système AA"
+      }
+    },
     "aaLaunchers": {
       "description": {
         "en": "Default number of launchers per AA system when the template does not specify",
         "fr": "Nombre par défaut de launchers par système AA quand le template n'en précise pas"
+      }
+    },
+    "aaRearmDistance": {
+      "description": {
+        "en": "Max distance (m) from a launcher crate to an existing AA system to rearm/repair it",
+        "fr": "Distance max (m) entre une caisse de lanceur et un système AA existant pour le réarmer/réparer"
       }
     },
     "addPlayerAircraftByType": {
@@ -400,6 +425,18 @@
       "description": {
         "en": "Allow AI transports to randomly pick a troop template at pickup zones. When false, the AI always picks the first available template for its coalition",
         "fr": "Autorise les transports IA à choisir aléatoirement un template de troop aux zones de pickup. Si false, l'IA prend toujours le premier template disponible pour sa coalition"
+      }
+    },
+    "beaconRemovalRadius": {
+      "description": {
+        "en": "Search radius (m) for the \"Remove Closest Beacon\" action",
+        "fr": "Rayon de recherche (m) pour l'action « Retirer la balise la plus proche »"
+      }
+    },
+    "configVersion": {
+      "description": {
+        "en": "Schema/catalogue version this config is authored against (used for version-gap detection).",
+        "fr": "Version du schéma/catalogue contre laquelle cette config est écrite (détection d'écart de version)."
       }
     },
     "ctldLogPath": {
@@ -418,6 +455,18 @@
       "description": {
         "en": "Also echo log messages to the DCS screen via outText",
         "fr": "Répète aussi les messages de log à l'écran DCS via outText"
+      }
+    },
+    "defaultVehicleWeight": {
+      "description": {
+        "en": "Weight (kg) assumed for a loaded vehicle type absent from groundVehicleWeights",
+        "fr": "Poids (kg) supposé pour un type de véhicule chargé absent de groundVehicleWeights"
+      }
+    },
+    "defaultZoneRadius": {
+      "description": {
+        "en": "Default radius (m) when a discovered TRZ/WPZ/AIZ trigger zone lacks one",
+        "fr": "Rayon par défaut (m) quand une zone trigger TRZ/WPZ/AIZ découverte n'en a pas"
       }
     },
     "demineRadius": {
@@ -498,6 +547,18 @@
         "fr": "Hauteur max (m) pour l'insertion fast-rope (≈ 60 ft)"
       }
     },
+    "fieldExtractTroopWeight": {
+      "description": {
+        "en": "Assumed per-troop weight (kg) when extracting a field group with no stored data",
+        "fr": "Poids par troupe supposé (kg) lors de l'extraction d'un groupe de terrain sans données stockées"
+      }
+    },
+    "fobCrateCollectionRadius": {
+      "description": {
+        "en": "Radius (m) within which FOB crates must be gathered to deploy a FOB",
+        "fr": "Rayon (m) dans lequel les caisses de FOB doivent être rassemblées pour déployer un FOB"
+      }
+    },
     "fobDestructionThreshold": {
       "description": {
         "en": "Fraction of scene objects destroyed before a FOB is considered lost (0.0–1.0)",
@@ -535,10 +596,28 @@
         "fr": "Langue de l'interface CTLD : en, fr, es ou ko"
       }
     },
+    "jtacLaserCodeMax": {
+      "description": {
+        "en": "Highest assignable JTAC laser code (NATO range)",
+        "fr": "Code laser JTAC assignable le plus haut (plage OTAN)"
+      }
+    },
+    "jtacLaserCodeMin": {
+      "description": {
+        "en": "Lowest assignable JTAC laser code (NATO range)",
+        "fr": "Code laser JTAC assignable le plus bas (plage OTAN)"
+      }
+    },
     "loadCrateFromMenu": {
       "description": {
         "en": "Allow crate loading via the F10 menu (useful for fixed-wing that cannot hover)",
         "fr": "Autorise le chargement de crate via le menu F10 (utile pour les fixed-wing incapables de hover)"
+      }
+    },
+    "loadCrateSearchRadius": {
+      "description": {
+        "en": "Radius (m) within which crates are grouped/loadable from the Load Crate menu",
+        "fr": "Rayon (m) dans lequel les caisses sont regroupées/chargeables depuis le menu Charger une caisse"
       }
     },
     "location_DMS": {
@@ -631,6 +710,12 @@
         "fr": "Dessine un quadrilatère englobant sur la carte F10 lorsqu'un minefield est déployé"
       }
     },
+    "slingCutDestroyHeight": {
+      "description": {
+        "en": "AGL height (m) above which cutting a slingload destroys the crate on impact",
+        "fr": "Hauteur AGL (m) au-dessus de laquelle couper une élingue détruit la caisse à l'impact"
+      }
+    },
     "slingLoad": {
       "description": {
         "en": "Use DCS sling-load physics instead of the virtual hover system",
@@ -641,6 +726,12 @@
       "description": {
         "en": "Allow troop pickup at built FOBs",
         "fr": "Autorise le pickup de troops aux FOB construits"
+      }
+    },
+    "unpackSearchRadius": {
+      "description": {
+        "en": "Radius (m) within which crates are gathered to unpack or list nearby crates",
+        "fr": "Rayon (m) dans lequel les caisses sont rassemblées pour le dépaquetage ou la liste des caisses proches"
       }
     }
   },

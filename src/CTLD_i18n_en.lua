@@ -53,7 +53,7 @@ ctld.i18n["en"]["KAMAZ Ammo Truck"] = "KAMAZ Ammo Truck"
 ctld.i18n["en"]["EWR Radar"] = "EWR Radar"
 -- FOB Crate, FARP Alpha Crate, Countryside FARP Crate: declared in their respective scene files.
 ctld.i18n["en"]["You must be on the ground to deploy a FOB."] = "You must be on the ground to deploy a FOB."
-ctld.i18n["en"]["FOB needs %1 crate(s) within 750 m - only %2 found."] = "FOB needs %1 crate(s) within 750 m - only %2 found."
+ctld.i18n["en"]["FOB needs %1 crate(s) within %2 m - only %3 found."] = "FOB needs %1 crate(s) within %2 m - only %3 found."
 ctld.i18n["en"]["You can't deploy a FOB here! Take it to where it's needed."] = "You can't deploy a FOB here! Take it to where it's needed."
 ctld.i18n["en"]["FOB deployment blocked: move at least %1 m away from existing logistic zone."] = "FOB deployment blocked: move at least %1 m away from existing logistic zone."
 ctld.i18n["en"]["%1 started building a FOB (%2 crate(s)). Construction in progress."] = "%1 started building a FOB (%2 crate(s)). Construction in progress."

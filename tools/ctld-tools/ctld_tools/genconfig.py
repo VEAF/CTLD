@@ -97,10 +97,14 @@ def _load_yaml(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as fh:
         doc = yaml.load(fh)
     # ctld-config.yaml is sectioned: merge mm_facing + advanced into a flat map.
-    if isinstance(doc, dict) and set(doc.keys()) <= {"mm_facing", "advanced"}:
+    # Top-level keys outside the sections (e.g. configVersion) are kept as-is.
+    if isinstance(doc, dict) and ("mm_facing" in doc or "advanced" in doc):
         merged: dict = {}
         for section in ("mm_facing", "advanced"):
             merged.update(doc.get(section) or {})
+        for key, value in doc.items():
+            if key not in ("mm_facing", "advanced"):
+                merged[key] = value
         return merged
     return doc
 
