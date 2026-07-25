@@ -1,7 +1,12 @@
 # 03 — Build embeds configDefault YAML string
 
-Status: 📋 todo
+Status: ✅ done
 Type: build + src
+
+> **Scope note (done):** the additive half landed here — the build embeds `ctld.configDefault`
+> and busted round-trips it. **Dropping `gen-config` / `__configDefaults` is deferred to ticket 04**:
+> the runtime `load()` and the busted loader still consume `__configDefaults` until the loader
+> switches to `configDefault` in 04. Removing it here would break every test (no green commit).
 
 The build stops generating a Lua defaults **table** and instead embeds the canonical YAML **string**.
 

@@ -294,18 +294,27 @@ describe("parseYAML round-trip parity", function()
         return env.ctld.__configDefaults
     end
 
-    it("parsed CTLD_config.yaml equals the pristine engine defaults", function()
-        local yaml = readFile(repoRoot() .. "src/CTLD_config.yaml")
-        local parsed = CTLDConfig.parseYAML(yaml)
-
-        -- Merge the readability sections into one flat table (loader's job).
+    -- Merge the mm_facing / advanced readability sections into one flat table (loader's job).
+    local function mergeSections(parsed)
         local flat = {}
         for _, section in ipairs({ "mm_facing", "advanced" }) do
             for k, v in pairs(parsed[section] or {}) do
                 flat[k] = v
             end
         end
+        return flat
+    end
 
+    it("parsed CTLD_config.yaml equals the pristine engine defaults", function()
+        local yaml = readFile(repoRoot() .. "src/CTLD_config.yaml")
+        local flat = mergeSections(CTLDConfig.parseYAML(yaml))
+        assert.same(pristineDefaults(), flat)
+    end)
+
+    -- Ticket 03: the build embeds the verbatim YAML as the ctld.configDefault string.
+    it("ctld.configDefault is a string that round-trips to the pristine defaults", function()
+        assert.equals("string", type(ctld.configDefault))
+        local flat = mergeSections(CTLDConfig.parseYAML(ctld.configDefault))
         assert.same(pristineDefaults(), flat)
     end)
 

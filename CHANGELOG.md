@@ -24,6 +24,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   `{}`/`[]`, and quoted scalars — so the whole config can arrive as a YAML string at runtime. Guarded
   by a round-trip parity test (parse `CTLD_config.yaml`, merge sections, assert equality with the
   generated engine defaults). The unused `|` literal-block path was dropped. Behaviour-preserving.
+- Lot 1 (ticket 03): the build (`merge_CTLD.ps1`) now embeds the canonical `CTLD_config.yaml`
+  verbatim as the `ctld.configDefault` Lua string (generated module, merged after the i18n dicts,
+  long-bracket level chosen dynamically). No behaviour change yet — the complete-config loader
+  consumes this string in ticket 04. (`gen-config` / `__configDefaults` are retired in ticket 04.)
 
 ### Fixed — hardcoded i18n strings in RECON menus and AA system (FIX-I18N-HARDCODED)
 

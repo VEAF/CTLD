@@ -9,6 +9,8 @@ CTLD_i18n_es.lua
 CTLD_i18n_ko.lua
 -- Generated engine defaults (from ctld-config.yaml via ctld-tools); calls ctld.tr, so after i18n.
 CTLD_config_defaults.lua
+-- Verbatim config YAML embedded as ctld.configDefault string (consumed by the loader in ticket 04).
+CTLD_config_default_yaml.lua
 CTLD_utils.lua
 CTLD_menu.lua
 core/CTLD_objectRegistry.lua
