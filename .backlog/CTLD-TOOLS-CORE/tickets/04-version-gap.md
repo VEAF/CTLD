@@ -1,6 +1,6 @@
 # 04 — version-gap detection
 
-Status: 📋 todo
+Status: ✅ done
 Type: tool (Python) + test
 
 Compare a `configUser`'s authored `configVersion` to the current catalogue version and compute the

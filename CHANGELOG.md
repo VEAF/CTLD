@@ -10,6 +10,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 core (CTLD-TOOLS-CORE)
 
+- Lot 2 (ticket 04): **version-gap detection** — `ctld_tools/versiongap.py` (`version_gap()`): a pure
+  function that diffs an authored catalogue against the current default over the `Catalog` flat
+  namespace and returns structured data (`added` / `removed` / `changed` defaults + from/to
+  `configVersion`) for the lot-3 re-migration popup (ADR 0011 point 5). Equal versions → empty gap;
+  `configVersion` itself is excluded from the diff. No runtime behaviour, no UI.
 - Lot 2 (ticket 03): `validate` rewritten for the complete-catalogue model (no more ops/diff) —
   it checks a whole `Catalog`: known DCS unit types (datamine), globally-unique crate weights, AA
   **mixedSet consistency** (every "All crates" weight resolves to a crate in its section), and schema
