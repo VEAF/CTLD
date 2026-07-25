@@ -14,9 +14,9 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   Schema-driven per-type editors (bool / enum / number / string) with a **generic fallback** so
   every key renders an editor (unit-tested totality gate); edits PUT through the backend into the
   lot-2 `Catalog`, schema `description` shown as help. Navigation by the **12 functional families**
-  (FullGas taxonomy) with bilingual labels + a Standard/Advanced split. Also **reconciled the schema
-  `group:` values to the canonical 12** (the lot-2 heuristic `parachute` group is dropped — those 10
-  settings fall to the "Other" family). Structured-data editors follow in tickets 04b–04e.
+  (FullGas taxonomy) with labels + a Standard/Advanced split. Families are FullGas's 12 **plus a
+  Parachute family** (the lot-1 parachute-physics settings) — 13 in all, + an "Other" catch-all.
+  Structured-data editors follow in tickets 04b–04e.
 - Lot 3 (ticket 03): **frontend shell** — a Svelte + Vite + TypeScript app under
   `tools/ctld-tools/web/`: the top-level **Parameters** (how CTLD behaves) vs **Data** (what CTLD
   operates on) split, navigation by the schema **functional families**, and a read-only view of a

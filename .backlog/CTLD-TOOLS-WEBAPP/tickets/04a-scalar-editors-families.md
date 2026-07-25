@@ -3,9 +3,9 @@
 Status: ✅ done
 Type: tool (frontend) + test
 
-> Schema reconciled to the canonical 12 families (dropped the lot-2 heuristic `parachute` group →
-> those 10 settings now sit in "Other"). If a dedicated Parachute family is wanted later, that is a
-> deliberate 13th-family decision. UI labels are English for now (i18n of the app UI is a later concern).
+> Families = FullGas's 12 **+ a Parachute family** (13th, kept for the lot-1 parachute-physics
+> settings, on David's call) + an "Other" catch-all. UI labels are English for now (i18n of the app
+> UI is a later concern).
 
 Make the **Parameters** screen editable: schema-driven scalar editors over the 12 functional
 families (FullGas taxonomy, reconciled into the schema), with a generic fallback so every key
