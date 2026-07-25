@@ -8,6 +8,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
+
+- Lot 3 (ticket 01): **FastAPI backend skeleton** — a new `ctld_tools/web/` package with thin
+  endpoints wrapping the lot-2 core (load / read / edit / save / `validate` / `version-gap` / schema),
+  a single-user in-memory session, and no business logic (ADR 0011 point 7). Added `fastapi` +
+  `uvicorn` deps (`httpx` dev, for the TestClient). No frontend yet.
+
 ### Tooling — ctld-tools v2 core (CTLD-TOOLS-CORE)
 
 - Lot 2 (ticket 05): **retire the last Lua-facing Python + drop `lupa`**. Removed `genconfig`,
