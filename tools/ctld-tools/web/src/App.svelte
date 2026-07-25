@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import {
+    getDcsTypes,
     getSchema,
     getValidate,
     loadDefault,
@@ -11,6 +12,7 @@
     type SchemaInfo,
     type Snapshot,
   } from './lib/api'
+  import AircraftEditor from './lib/AircraftEditor.svelte'
   import CratesEditor from './lib/CratesEditor.svelte'
   import RecordListEditor from './lib/RecordListEditor.svelte'
   import { familyLabel } from './lib/families'
@@ -32,6 +34,7 @@
   let activeFamily = $state<string | null>(null)
   let pathInput = $state('')
   let findings = $state<Finding[]>([])
+  let dcsTypes = $state<string[]>([])
 
   const screens = $derived<Screens | null>(snapshot && schema ? classify(snapshot, schema) : null)
   const familyList = $derived<string[]>(
@@ -49,6 +52,7 @@
   onMount(async () => {
     try {
       schema = await getSchema()
+      dcsTypes = (await getDcsTypes()).types
     } catch (e) {
       error = String(e)
     }
@@ -221,6 +225,19 @@
           fields={withTips(TROOP_FIELDS, schema?.tableFields?.loadableGroups)}
           blank={() => ({ name: '' })}
           onchange={(v) => saveData('loadableGroups', v)}
+        />
+      {:else if activeFamily === 'capabilitiesByType'}
+        <h2>Aircraft capabilities</h2>
+        {#if findings.length}
+          <ul class="findings">
+            {#each findings as f (f.where + f.key)}<li class={f.severity}>{f.where}: {f.message}</li>{/each}
+          </ul>
+        {/if}
+        <AircraftEditor
+          capabilities={snapshot.values.capabilitiesByType as Record<string, Record<string, unknown>>}
+          fields={schema?.tableFields?.capabilitiesByType ?? {}}
+          types={dcsTypes}
+          onchange={(v) => saveData('capabilitiesByType', v)}
         />
       {:else if activeFamily}
         <h2>{activeFamily}</h2>

@@ -58,6 +58,7 @@ export const getSchema = () => fetch('/api/schema').then((r) => json<SchemaInfo>
 export const putSetting = (key: string, value: unknown) =>
   put('/api/catalog/setting', { key, value }).then((r) => json<{ key: string; value: unknown }>(r))
 export const getValidate = () => fetch('/api/validate').then((r) => json<ValidateResult>(r))
+export const getDcsTypes = () => fetch('/api/dcs-types').then((r) => json<{ types: string[] }>(r))
 export const getCatalog = () => fetch('/api/catalog').then((r) => json<Snapshot>(r))
 export const loadDefault = () => post('/api/catalog/load-default').then((r) => json<Snapshot>(r))
 export const loadPath = (path: string) => post('/api/catalog/load', { path }).then((r) => json<Snapshot>(r))

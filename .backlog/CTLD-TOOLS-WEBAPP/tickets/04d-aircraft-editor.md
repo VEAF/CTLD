@@ -1,6 +1,6 @@
 # 04d — aircraft capabilities editor (capabilitiesByType)
 
-Status: 📋 todo
+Status: ✅ done
 Type: tool (frontend) + test
 
 Edit `capabilitiesByType` (aircraft type → capabilities) in the Data screen — explicitly required

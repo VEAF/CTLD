@@ -30,6 +30,7 @@ beforeEach(() => {
   global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
     if (url.endsWith('/api/schema')) return Promise.resolve(jsonResponse(SCHEMA))
+    if (url.endsWith('/api/dcs-types')) return Promise.resolve(jsonResponse({ types: ['Ka-50', 'UH-1H'] }))
     if (url.endsWith('/api/catalog/load-default')) return Promise.resolve(jsonResponse(SNAP))
     if (url.endsWith('/api/catalog/setting') && init?.method === 'PUT') {
       return Promise.resolve(jsonResponse(JSON.parse(String(init.body)))) // echo {key, value}

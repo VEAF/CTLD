@@ -10,6 +10,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
 
+- Lot 3 (ticket 04d): **aircraft capabilities editor** — the Data screen edits `capabilitiesByType`
+  (type → capabilities): boolean flags, numeric maxima, and the `loadableVehiclesBLUE`/`RED` string
+  lists; add a type via a **datamine-backed picker** (new `/api/dcs-types` endpoint, 1143 types),
+  remove a type, `tableFields` tooltips. New reusable `StringListEditor`.
 - Lot 3 (ticket 04c): **troop-groups editor** — the Data screen edits `loadableGroups` via a generic
   `RecordListEditor` (name + `inf`/`mg`/`at`/`aa`/`mortar` counts + `jtac`), add/remove, typed
   editors, `tableFields` tooltips, live validation.

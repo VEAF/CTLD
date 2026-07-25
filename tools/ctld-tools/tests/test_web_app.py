@@ -52,6 +52,12 @@ def test_schema_endpoint_exposes_table_fields():
     assert crates["desc"] and crates["weight_kg"]  # field descriptions present
 
 
+def test_dcs_types_endpoint():
+    body = client.get("/api/dcs-types").json()
+    assert isinstance(body["types"], list) and body["types"]  # datamine set is non-empty
+    assert body["types"] == sorted(body["types"])  # sorted for the picker
+
+
 def test_load_text_then_get_catalog():
     snap = _load().json()
     assert snap["values"]["numberOfTroops"] == 10

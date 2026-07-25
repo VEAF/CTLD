@@ -87,6 +87,14 @@ def get_schema() -> dict[str, Any]:
     return {"families": schema.families(), "keys": keys, "tableFields": tables}
 
 
+@app.get("/api/dcs-types")
+def dcs_types() -> dict[str, list[str]]:
+    """The datamine DCS type-name set — source for the aircraft/unit pickers."""
+    from ctld_tools.datamine import known_dcs_types
+
+    return {"types": sorted(known_dcs_types())}
+
+
 @app.post("/api/catalog/load")
 def load_catalog(req: LoadRequest) -> dict[str, Any]:
     if req.text is not None:
