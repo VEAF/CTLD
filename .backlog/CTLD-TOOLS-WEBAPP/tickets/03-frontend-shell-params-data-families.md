@@ -1,7 +1,12 @@
 # 03 — frontend shell: Parameters/Data split + 12 families
 
-Status: 📋 todo
+Status: ✅ done
 Type: tool (frontend) + test
+
+> Families = the schema `group` values (14: aa/beacon/boarding/crates/fob/general/jtac/mines/
+> parachute/recon/smoke/soldier_weights/troops + an `other` fallback). FullGas's exact "12" is
+> reconciled when the editor logic lands (ticket 04). Toolchain pinned to vite 7 / plugin-svelte 6 /
+> vitest 3 (vite 8 from the scaffold clashed with the test runner).
 
 The **Svelte + Vite + TypeScript** shell (ADR 0011 point 7): the navigation skeleton the editors
 plug into. No bespoke editors yet (ticket 04).

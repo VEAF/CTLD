@@ -10,6 +10,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
 
+- Lot 3 (ticket 03): **frontend shell** — a Svelte + Vite + TypeScript app under
+  `tools/ctld-tools/web/`: the top-level **Parameters** (how CTLD behaves) vs **Data** (what CTLD
+  operates on) split, navigation by the schema **functional families**, and a read-only view of a
+  loaded catalogue (load defaults / open / save wired to the backend). Values are read-only here —
+  editors arrive in ticket 04. Vitest coverage (classification + family-nav rendering).
 - Lot 3 (ticket 02): **double-click launcher** — `ctld_tools/web/launcher.py`. A bare invocation /
   double-click (no command) boots the web app (`uvicorn` on `127.0.0.1` + opens the browser; the
   console is the "close to quit" window); an explicit `embed`/`validate`/`gen` still runs headless.

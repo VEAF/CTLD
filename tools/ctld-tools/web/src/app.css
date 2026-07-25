@@ -1,0 +1,6 @@
+/* Global styles live in App.svelte (:global(body)); this file is intentionally minimal. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
