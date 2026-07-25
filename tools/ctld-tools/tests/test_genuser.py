@@ -6,7 +6,6 @@ from pathlib import Path
 import lupa
 import pytest
 
-from ctld_tools.genconfig import generate_file
 from ctld_tools.genuser import UserConfigError, render_user_config
 from ctld_tools.luaconfig import IDENTITY_TR, _to_py
 from ctld_tools.reference import Reference
@@ -29,8 +28,6 @@ def _run_user_config(ref, cfg: dict, tmp_path: Path) -> dict:
     """Render cfg to userConfig.lua, run it against the real helpers, return settings."""
     user_lua = tmp_path / "CTLD_userConfig.lua"
     user_lua.write_text(render_user_config(cfg, ref), encoding="utf-8")
-    defaults_lua = tmp_path / "gen_defaults.lua"
-    generate_file(YAML, defaults_lua)
 
     lua = lupa.LuaRuntime(unpack_returned_tuples=True)
     src = _p(SRC) + "/"
@@ -42,7 +39,10 @@ def _run_user_config(ref, cfg: dict, tmp_path: Path) -> dict:
         ctld.tr = {IDENTITY_TR}
         ctld.utils = {{ log = function() end }}
         ctld.logWarning = function() end
-        dofile("{_p(defaults_lua)}")
+        do
+            local fh = assert(io.open("{_p(YAML)}", "r"))
+            ctld.configDefault = fh:read("*a"); fh:close()
+        end
         CTLDConfig.get():load()
         dofile("{src}CTLD_userSetup.lua")
         dofile("{_p(user_lua)}")

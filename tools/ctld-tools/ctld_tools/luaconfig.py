@@ -23,8 +23,13 @@ dofile("{src}core/class.lua")
 dofile("{src}CTLD_aasystem.lua")
 dofile("{src}CTLD_config.lua")
 ctld.tr = {tr}
--- Defaults now live in the generated module; it calls ctld.tr at load time.
-dofile("{src}CTLD_config_defaults.lua")
+-- Complete-config model (ADR 0011): load() parses ctld.configDefault, the engine
+-- YAML embedded verbatim; it applies ctld.tr to desc/name at load time.
+do
+    local fh = assert(io.open("{src}CTLD_config.yaml", "r"))
+    ctld.configDefault = fh:read("*a")
+    fh:close()
+end
 CTLDConfig.get():load()
 """
 
