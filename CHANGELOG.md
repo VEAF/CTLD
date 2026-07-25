@@ -8,6 +8,71 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
+
+- Lot 3 (ticket 08): **docs rewrite** — `docs/mission-maker/ctld-tools.{md,fr.md}` rewritten for the
+  web app (double-click the exe → browser; the Parameters/Data screens + families; live validate;
+  `.miz` inject; version-gap popup; the complete-snapshot model). Stale TUI / `gen-user` /
+  `user-config.yaml` diff-model references removed from the mission-maker docs.
+- Lot 3 (ticket 07): **CI frontend build + exe packaging** — `release.yml` now builds the Svelte
+  frontend with Node and packages a single **console** `ctld-tools.exe` (PyInstaller) that bundles
+  the built assets, the default config YAML + schema, and the DCS type set — so a Mission Maker
+  double-clicks it with no repo, no Node, no network. FastAPI **serves the bundled frontend at `/`**
+  (the ticket-01 mount, populated here); resources resolve from the PyInstaller bundle
+  (`sys._MEIPASS`) when frozen. `uvicorn` gets the app object (not an import string) for the frozen
+  exe. Verified locally in single-server mode (FastAPI serving static + API); the exe build itself
+  runs at CI.
+- Lot 3 (ticket 06): **version-gap re-migration popup** — on opening a config whose `configVersion`
+  differs from the current CTLD default, a modal surfaces the diffs (new / removed / differs-from-
+  default) before re-injecting — never a silent merge (ADR 0011 point 5). Drives the lot-2
+  `version_gap` API (`/api/version-gap`).
+- Lot 3 (ticket 05): **`.miz` inject + native file dialogs** — Open… / Save… / Inject to .miz… now
+  drive **native OS dialogs** via the local backend (`/api/dialog/{open,save,miz}`, tkinter). Inject
+  exports the current catalogue as `ctld.configUser` (lot-2 `embed`) and injects it into the chosen
+  `.miz` (lot-2 `miz.inject_userconfig`), **blocked when validation has errors**. Live validation was
+  already wired in 04b.
+- Lot 3 (ticket 04e): **zones + mission lists + vehicle weights + no-editing-gaps gate** — the Data
+  screen is now fully editable. `troopZones`/`wpZones`/`AIZones` edit as **named fields** (positional
+  arrays converted via the ported `_ZONE_FIELD_SCHEMAS`, exposed at `/api/schema` `zoneFields`);
+  `transportPilotNames`/`extractableGroups`/`logisticUnits` as string lists; `groundVehicleWeights`
+  as a name→weight map; and **any remaining structure via a generic JSON fallback** so no key is
+  uneditable. A **blocking coverage gate** (`tests/test_schema_coverage.py`, evolved from FullGas's)
+  fails the build if a structured field lacks an EN/FR description or a zone-editor field is
+  undocumented.
+- Lot 3 (ticket 04d): **aircraft capabilities editor** — the Data screen edits `capabilitiesByType`
+  (type → capabilities): boolean flags, numeric maxima, and the `loadableVehiclesBLUE`/`RED` string
+  lists; add a type via a **datamine-backed picker** (new `/api/dcs-types` endpoint, 1143 types),
+  remove a type, `tableFields` tooltips. New reusable `StringListEditor`.
+- Lot 3 (ticket 04c): **troop-groups editor** — the Data screen edits `loadableGroups` via a generic
+  `RecordListEditor` (name + `inf`/`mg`/`at`/`aa`/`mortar` counts + `jtac`), add/remove, typed
+  editors, `tableFields` tooltips, live validation.
+- Lot 3 (ticket 04b): **crates editor** — the Data screen edits `spawnableCrates` (section → crate
+  list): per-entry `desc` / `unit` / `weight` / `cratesRequired` / `side`, add/remove, with
+  `tableFields` tooltips and **live validation** (unknown units, weight collisions, mixedSet dangling
+  weights) surfaced as findings. The backend `/api/schema` now exposes `tableFields`; new
+  `/api/validate` wiring in the UI. mixedSet entries are shown with their weights.
+- Lot 3 (ticket 04a): **scalar editors + 12 families** — the Parameters screen is now editable.
+  Schema-driven per-type editors (bool / enum / number / string) with a **generic fallback** so
+  every key renders an editor (unit-tested totality gate); edits PUT through the backend into the
+  lot-2 `Catalog`, schema `description` shown as help. Navigation by the **12 functional families**
+  (FullGas taxonomy) with labels + a Standard/Advanced split. Families are FullGas's 12 **plus a
+  Parachute family** (the lot-1 parachute-physics settings) — 13 in all, + an "Other" catch-all.
+  Structured-data editors follow in tickets 04b–04e.
+- Lot 3 (ticket 03): **frontend shell** — a Svelte + Vite + TypeScript app under
+  `tools/ctld-tools/web/`: the top-level **Parameters** (how CTLD behaves) vs **Data** (what CTLD
+  operates on) split, navigation by the schema **functional families**, and a read-only view of a
+  loaded catalogue (load defaults / open / save wired to the backend). Values are read-only here —
+  editors arrive in ticket 04. Vitest coverage (classification + family-nav rendering).
+- Lot 3 (ticket 02): **double-click launcher** — `ctld_tools/web/launcher.py`. A bare invocation /
+  double-click (no command) boots the web app (`uvicorn` on `127.0.0.1` + opens the browser; the
+  console is the "close to quit" window); an explicit `embed`/`validate`/`gen` still runs headless.
+  Double-click is detected by walking the parent process tree (explorer.exe vs a shell, VMCT pattern,
+  `psutil`). New `serve` CLI command. No `--noconsole`.
+- Lot 3 (ticket 01): **FastAPI backend skeleton** — a new `ctld_tools/web/` package with thin
+  endpoints wrapping the lot-2 core (load / read / edit / save / `validate` / `version-gap` / schema),
+  a single-user in-memory session, and no business logic (ADR 0011 point 7). Added `fastapi` +
+  `uvicorn` deps (`httpx` dev, for the TestClient). No frontend yet.
+
 ### Tooling — ctld-tools v2 core (CTLD-TOOLS-CORE)
 
 - Lot 2 (ticket 05): **retire the last Lua-facing Python + drop `lupa`**. Removed `genconfig`,

@@ -78,21 +78,14 @@ sans helper (`capabilitiesByType`, `aiZones`, …) s'éditent directement sur l'
 `ctld.logDefaults("spawnableCrates")` depuis un trigger de mission pour écrire les valeurs par
 défaut courantes dans `CTLD.log`, et consultez `CTLD_userConfig.lua` pour le modèle complet documenté.
 
-!!! tip "Recommandé : écrire en YAML avec `ctld-tools`"
-    Plutôt que d'écrire du Lua à la main, le flux recommandé est d'éditer un petit
-    **`user-config.yaml`** et de laisser `ctld-tools` générer `CTLD_userConfig.lua`. Vous désignez
-    crates et groupes de troupes **par leur nom** (aucun poids à retrouver) ; l'outil les résout,
-    valide votre fichier contre le vrai catalogue et la liste des types DCS, et signale les erreurs
-    avec des suggestions :
-
-    ```
-    ctld-tools gen-user --scaffold --out user-config.yaml   # squelette commenté
-    ctld-tools validate  --yaml user-config.yaml --src src
-    ctld-tools gen-user  --yaml user-config.yaml --src src --out CTLD_userConfig.lua
-    ```
-
-    `ctld-tools.exe` est attaché à chaque Release GitHub (pas besoin de Python). L'édition manuelle
-    du modèle Lua reste possible pour les utilisateurs avancés.
+!!! tip "Recommandé : utiliser l'application `ctld-tools`"
+    Plutôt que d'écrire du Lua à la main, le flux recommandé est l'application **`ctld-tools`** :
+    double-cliquez-la, éditez la configuration complète de CTLD dans votre navigateur via des
+    formulaires, et injectez-la dans votre mission. Elle valide vos changements contre le vrai
+    catalogue et la liste des types DCS et détecte les erreurs avant DCS. `ctld-tools.exe` est attaché
+    à chaque Release GitHub (pas besoin de Python) — voir
+    [Configurer CTLD avec `ctld-tools`](ctld-tools.fr.md). L'édition manuelle du modèle Lua ci-dessous
+    reste possible pour les utilisateurs avancés.
 
 ## Réglages globaux { #global-settings }
 

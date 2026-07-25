@@ -1,0 +1,91 @@
+import { fireEvent, render, screen } from '@testing-library/svelte'
+import { beforeEach, expect, test, vi } from 'vitest'
+import App from './App.svelte'
+
+const SCHEMA = {
+  families: ['aa', 'troops'],
+  keys: {
+    numberOfTroops: { group: 'troops', standard: true, choices: null, description: null },
+    aaRearmDistance: { group: 'aa', standard: false, choices: null, description: null },
+  },
+  tableFields: { spawnableCrates: { desc: 'Display name', unit: 'DCS type', weight_kg: 'mass' } },
+  zoneFields: {},
+}
+
+const SNAP = {
+  path: null,
+  keys: ['numberOfTroops', 'aaRearmDistance', 'spawnableCrates', 'transportPilotNames'],
+  values: {
+    numberOfTroops: 10,
+    aaRearmDistance: 300,
+    spawnableCrates: { Support: [] },
+    transportPilotNames: ['Pilot #1'],
+  },
+}
+
+function jsonResponse(body: unknown) {
+  return new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
+}
+
+beforeEach(() => {
+  global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input)
+    if (url.endsWith('/api/schema')) return Promise.resolve(jsonResponse(SCHEMA))
+    if (url.endsWith('/api/dcs-types')) return Promise.resolve(jsonResponse({ types: ['Ka-50', 'UH-1H'] }))
+    if (url.endsWith('/api/catalog/load-default')) return Promise.resolve(jsonResponse(SNAP))
+    if (url.endsWith('/api/catalog/load')) return Promise.resolve(jsonResponse(SNAP))
+    if (url.endsWith('/api/dialog/open')) return Promise.resolve(jsonResponse({ path: '/cfg.yaml' }))
+    if (url.endsWith('/api/dialog/miz')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
+    if (url.endsWith('/api/inject')) return Promise.resolve(jsonResponse({ injected: '/m.miz' }))
+    if (url.endsWith('/api/catalog/setting') && init?.method === 'PUT') {
+      return Promise.resolve(jsonResponse(JSON.parse(String(init.body)))) // echo {key, value}
+    }
+    if (url.endsWith('/api/validate')) return Promise.resolve(jsonResponse({ hasErrors: false, findings: [] }))
+    if (url.endsWith('/api/version-gap'))
+      return Promise.resolve(
+        jsonResponse({ fromVersion: '2.0.0', toVersion: '2.0.0', isEmpty: true, added: [], removed: [], changed: [] }),
+      )
+    return Promise.reject(new Error(`unexpected fetch: ${url}`))
+  }) as unknown as typeof fetch
+})
+
+test('parameter families all render in the nav after load', async () => {
+  render(App)
+  await fireEvent.click(screen.getByText('Load defaults'))
+  // Every group present among the scalar settings surfaces as a family button (labelled).
+  expect(await screen.findByRole('button', { name: 'AA system' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Troops' })).toBeInTheDocument()
+})
+
+test('data screen lists every structured key', async () => {
+  render(App)
+  await fireEvent.click(screen.getByText('Load defaults'))
+  await fireEvent.click(await screen.findByText(/^Data/))
+  expect(await screen.findByRole('button', { name: 'spawnableCrates' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'transportPilotNames' })).toBeInTheDocument()
+})
+
+test('Open… loads via the native dialog path', async () => {
+  render(App)
+  await fireEvent.click(screen.getByText('Open…'))
+  expect(await screen.findByRole('button', { name: 'AA system' })).toBeInTheDocument()
+})
+
+test('Inject to .miz… reports success', async () => {
+  render(App)
+  await fireEvent.click(screen.getByText('Load defaults'))
+  await fireEvent.click(await screen.findByText('Inject to .miz…'))
+  expect(await screen.findByText(/Injected into \/m\.miz/)).toBeInTheDocument()
+})
+
+test('editing a scalar PUTs the coerced value', async () => {
+  render(App)
+  await fireEvent.click(screen.getByText('Load defaults'))
+  // 'aa' is the first family; aaRearmDistance is a number editor in it.
+  const field = await screen.findByLabelText('aaRearmDistance')
+  await fireEvent.change(field, { target: { value: '350' } })
+  expect(global.fetch).toHaveBeenCalledWith(
+    '/api/catalog/setting',
+    expect.objectContaining({ method: 'PUT', body: JSON.stringify({ key: 'aaRearmDistance', value: 350 }) }),
+  )
+})
