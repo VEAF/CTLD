@@ -27,7 +27,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Lot 1 (ticket 03): the build (`merge_CTLD.ps1`) now embeds the canonical `CTLD_config.yaml`
   verbatim as the `ctld.configDefault` Lua string (generated module, merged after the i18n dicts,
   long-bracket level chosen dynamically). No behaviour change yet — the complete-config loader
-  consumes this string in ticket 04. (`gen-config` / `__configDefaults` are retired in ticket 04.)
+  consumes this string in ticket 04.
+- Lot 1 (ticket 04): `CTLDConfig:load()` switches to the complete-config model (ADR 0011) — it parses
+  `ctld.configUser or ctld.configDefault` **whole** into settings, with **no merge** (an element
+  omitted from a `configUser` snapshot is absent at runtime, not defaulted). A malformed `configUser`
+  is a **hard error**. i18n labels (`desc`/`name`) are re-translated at load via `ctld.tr()`, matching
+  the former generated defaults in every language. The legacy `ctld.yamlConfigDatas` scalar-merge path
+  and the backward-compat `ctld.<setting>` globals are removed. `CTLD_config_defaults.lua` is no longer
+  merged into `CTLD.lua` (still generated as the parity-test oracle + i18n scan source; `gen-config`
+  itself is retired in lot 2).
 
 ### Fixed — hardcoded i18n strings in RECON menus and AA system (FIX-I18N-HARDCODED)
 

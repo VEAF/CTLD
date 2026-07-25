@@ -26,6 +26,14 @@ AA crates are materialised at runtime by a generative loop. ADR 0011 replaces th
    **scope-validation checkpoint** (the classified inventory reviewed) before externalisation lands.
 1. **Complete-config loading.** At init, resolve `configUser or configDefault` and parse the winner
    into the settings table. **No merge.** A missing element = intentional removal.
+   - **Malformed-`configUser` policy (decided, ticket 04): hard error.** If a `configUser` is present
+     but parses to an empty settings map, `load()` raises a Lua error and aborts — no silent fallback
+     to `configDefault`. Rationale: `ctld-tools` validates a snapshot before export, so a broken
+     `configUser` is a real authoring fault the MM must see, not paper over. (`configDefault` is
+     build-generated and always valid, so the no-`configUser` path never hits this.)
+   - **i18n labels.** The parsed YAML holds literal `desc`/`name` values; `load()` re-applies
+     `ctld.tr()` to every `desc`/`name` string at any depth (same rule as gen-config `_I18N_FIELDS`),
+     so runtime labels stay translated in every language.
 2. **YAML-at-runtime.** Both documents are YAML strings; `configDefault` is the engine YAML embedded
    verbatim by the build, `configUser` is the (optional) MM snapshot set by a mission-start trigger.
 3. **Harden `CTLDConfig.parseYAML`** to the full nested catalogue: quoted strings containing `:`,

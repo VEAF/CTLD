@@ -18,49 +18,59 @@ describe("CTLDConfig", function()
     local _origInstance
     local _origYaml
 
+    local _origConfigUser
+
     before_each(function()
-        _origInstance = CTLDConfig._instance
-        _origYaml     = ctld.yamlConfigDatas
+        _origInstance   = CTLDConfig._instance
+        _origYaml       = ctld.yamlConfigDatas
+        _origConfigUser = ctld.configUser
     end)
 
     after_each(function()
         CTLDConfig._instance  = _origInstance
         ctld.yamlConfigDatas  = _origYaml
+        ctld.configUser       = _origConfigUser
     end)
 
-    -- ── F-101 : yaml override ─────────────────────────────────────────
-    describe("F-101 — yamlConfigDatas override", function()
+    -- ── F-101 : configUser complete-config snapshot (ADR 0011) ─────────
+    describe("F-101 — configUser snapshot", function()
 
-        it("load() returns true", function()
+        it("load() returns true with a valid configUser", function()
             CTLDConfig._instance = nil
-            ctld.yamlConfigDatas = "ctld.numberOfTroops: 25\n"
+            ctld.configUser = "mm_facing:\n  numberOfTroops: 25\n"
             local cfg = CTLDConfig.get()
             local ok = cfg:load()
             assert.equals(true, ok)
         end)
 
-        it("overridden setting reflected", function()
+        it("a configUser value is reflected", function()
             CTLDConfig._instance = nil
-            ctld.yamlConfigDatas = "ctld.numberOfTroops: 25\n"
+            ctld.configUser = "mm_facing:\n  numberOfTroops: 25\n"
             local cfg = CTLDConfig.get()
             cfg:load()
             assert.equals(25, cfg:getSetting("numberOfTroops"))
         end)
 
-        it("second overridden setting reflected", function()
+        it("no merge: an element omitted from configUser is absent, not the default", function()
             CTLDConfig._instance = nil
-            ctld.yamlConfigDatas = "ctld.numberOfTroops: 25\nctld.maximumDistanceLogistic: 350\n"
+            ctld.configUser = "mm_facing:\n  numberOfTroops: 25\n"
             local cfg = CTLDConfig.get()
             cfg:load()
-            assert.equals(350, cfg:getSetting("maximumDistanceLogistic"))
+            assert.is_nil(cfg:getSetting("hoverTime"))   -- omitted → absent (no fallback)
         end)
 
-        it("non-overridden setting keeps default (hoverTime=10)", function()
+        it("a malformed configUser is a hard error", function()
             CTLDConfig._instance = nil
-            ctld.yamlConfigDatas = "ctld.numberOfTroops: 25\n"
+            ctld.configUser = "this is not valid config yaml"
+            assert.has_error(function() CTLDConfig.get():load() end)
+        end)
+
+        it("no configUser falls back to the embedded configDefault", function()
+            CTLDConfig._instance = nil
+            ctld.configUser = nil
             local cfg = CTLDConfig.get()
             cfg:load()
-            assert.equals(10, cfg:getSetting("hoverTime"))
+            assert.equals(10, cfg:getSetting("numberOfTroops"))   -- engine default
         end)
 
     end)
@@ -75,7 +85,7 @@ describe("CTLDConfig", function()
 
         it("fresh instance restores default numberOfTroops=10", function()
             CTLDConfig._instance = nil
-            ctld.yamlConfigDatas = nil
+            ctld.configUser = nil
             local fresh = CTLDConfig.get()
             fresh:load()
             assert.equals(10, fresh:getSetting("numberOfTroops"))
@@ -83,7 +93,7 @@ describe("CTLDConfig", function()
 
         it("fresh instance restores maximumDistanceLogistic=200", function()
             CTLDConfig._instance = nil
-            ctld.yamlConfigDatas = nil
+            ctld.configUser = nil
             local fresh = CTLDConfig.get()
             fresh:load()
             assert.equals(200, fresh:getSetting("maximumDistanceLogistic"))
@@ -91,7 +101,7 @@ describe("CTLDConfig", function()
 
         it("isLoaded == true after load()", function()
             CTLDConfig._instance = nil
-            ctld.yamlConfigDatas = nil
+            ctld.configUser = nil
             local fresh = CTLDConfig.get()
             fresh:load()
             assert.equals(true, fresh.isLoaded)

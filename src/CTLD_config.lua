@@ -25,11 +25,34 @@ function CTLDConfig:load()
     self.isLoaded                                       = true
 
     -- ****************************************************************
-    -- DEFAULT CONFIGURATION — generated from ctld-config.yaml by ctld-tools
-    -- into ctld.__configDefaults (see CTLD_config_defaults.lua, merged before
-    -- this file). Edit the YAML, never this block.
+    -- COMPLETE CONFIGURATION (ADR 0011) — resolve the winning YAML snapshot and
+    -- parse it whole. ctld.configUser (a full mission snapshot) wins over
+    -- ctld.configDefault (the engine YAML embedded verbatim by the build). NO merge:
+    -- a missing element is intentionally absent at runtime.
     -- ****************************************************************
-    for k, v in pairs(ctld.__configDefaults or {}) do
+    local usingUser = ctld.configUser ~= nil
+    local parsed = CTLDConfig.parseYAML(ctld.configUser or ctld.configDefault or "")
+
+    -- Merge the readability sections (mm_facing / advanced) into one flat map.
+    local flat = {}
+    for _, section in ipairs({ "mm_facing", "advanced" }) do
+        for k, v in pairs(parsed[section] or {}) do
+            flat[k] = v
+        end
+    end
+
+    -- A configUser that parses to nothing is malformed. ctld-tools validates the
+    -- snapshot before use, so this is a hard error — no silent fallback to defaults.
+    if usingUser and next(flat) == nil then
+        error("CTLDConfig: ctld.configUser is malformed or empty — aborting load. "
+            .. "Validate the snapshot with ctld-tools before use.")
+    end
+
+    -- Localise i18n labels: every desc/name string is an i18n key (mirrors the
+    -- gen-config _I18N_FIELDS wrapping, so runtime labels match in every language).
+    CTLDConfig.localiseI18n(flat)
+
+    for k, v in pairs(flat) do
         self.settings[k] = v
     end
 
@@ -151,32 +174,18 @@ function CTLDConfig:load()
     -- ****************** END OF CONFIGURATION AREA *********************
     -- ******************************************************************
 
-    -- overwrite defaults settings from CTLD_userConfig.lua --------------------------------------------
-    if ctld.yamlConfigDatas then
-        local userConfigTable = CTLDConfig.parseYAML(ctld.yamlConfigDatas) -- get user config coming from CTLD_userConfig.lua execution in ME
+    return true, "CTLDConfig: loaded (" .. (usingUser and "user" or "default") .. " config)."
+end
 
-        local report = "REPORT - CTLD user config loaded :"
-        for k, v in pairs(userConfigTable) do
-            local tableName, fieldName = k:match("([^%.]+)%.(.+)") -- extract key after "ctld."
-            if tableName == "ctld" then                            -- load general settings
-                self.settings[fieldName] =
-                    v                                              -- fix: use variable fieldName, not literal "fieldName"
-                report = report .. "\nctld." .. fieldName .. " = " .. tostring(v)
-            end
-        end
-        return true, report
-    else
-        if self.settings["debug"] then
-            ctld.utils.log("WARN", "CTLDConfig: No YAML config data found in ctld.yamlConfigDatas")
-        end
-    end
-
-    -- Temporary: Loading old ctld settings variables for backward compatibility
-    if ctld ~= nil then
-        for k, v in pairs(CTLDConfig.getAllSettings()) do
-            if self.settings[k] ~= nil then
-                ctld[k] = v -- set old ctld variables
-            end
+-- Localise i18n labels in place: apply ctld.tr() to every string value stored under
+-- a "desc" or "name" key, at any depth. Mirrors ctld-tools gen-config _I18N_FIELDS,
+-- so runtime labels match the former generated defaults in every language.
+function CTLDConfig.localiseI18n(t)
+    for k, v in pairs(t) do
+        if type(v) == "table" then
+            CTLDConfig.localiseI18n(v)
+        elseif (k == "desc" or k == "name") and type(v) == "string" and ctld.tr then
+            t[k] = ctld.tr(v)
         end
     end
 end

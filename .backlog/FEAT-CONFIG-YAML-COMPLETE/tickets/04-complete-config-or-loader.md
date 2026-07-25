@@ -1,7 +1,19 @@
 # 04 — Complete-config `or` loader
 
-Status: 📋 todo
+Status: ✅ done
 Type: src + test
+
+> **Scope notes (done):**
+> - **Malformed policy = hard error** (decided; documented in the PRD). `load()` raises on a present
+>   but empty-parsing `configUser`; no silent fallback (ctld-tools validates before export).
+> - **i18n labels** — the parsed YAML holds literal `desc`/`name`; `load()` re-applies `ctld.tr()`
+>   recursively (mirrors gen-config `_I18N_FIELDS`) so labels stay translated. Without this, parsing
+>   the string would regress non-EN menus.
+> - **`TEMPLATES` kept** (AA source for `injectAACrates`) — its removal is ticket 05, as planned.
+> - **`gen-config` kept** until lot 2 (per PRD): `CTLD_config_defaults.lua` is dropped from the
+>   `CTLD.lua` merge (livrable uses `ctld.configDefault`) but still generated as the round-trip parity
+>   **oracle** and the **static source** the i18n dict sync scans for `desc`/`name` keys (the loader
+>   translates those at runtime via `tr(v)`, invisible to static analysis).
 
 `CTLDConfig:load()` shifts to the complete-config model: resolve the winning YAML and parse it whole.
 

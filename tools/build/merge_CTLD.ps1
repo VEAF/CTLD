@@ -14,13 +14,16 @@ $distDir     = Join-Path $repoRoot  "dist"
 $userCfgSrc  = Join-Path $srcDir    "CTLD_userConfig.lua"
 $userCfgDest = Join-Path $distDir   "CTLD_userConfig.lua"
 
-# Regenerate the engine defaults from the YAML source of truth (gen-au-build).
-# The generated CTLD_config_defaults.lua is a build artifact (git-ignored). ctld-tools
-# is an isolated poetry project — run `poetry install` in tools/ctld-tools once.
+# Regenerate the engine defaults table from the YAML source of truth. Since ADR 0011 the
+# runtime no longer consumes this table (the loader parses ctld.configDefault, embedded
+# below) and it is NOT merged into CTLD.lua. It is kept as (1) the round-trip parity test
+# oracle and (2) the static source the i18n dict sync scans for desc/name keys — the loader
+# translates those at runtime via tr(v), invisible to static analysis. gen-config itself is
+# removed in lot 2. The generated file is a git-ignored build artifact.
 $ctldToolsDir = Join-Path $repoRoot "tools\ctld-tools"
 $configYaml   = Join-Path $srcDir   "CTLD_config.yaml"
 $defaultsLua  = Join-Path $srcDir   "CTLD_config_defaults.lua"
-Write-Host "Generating CTLD_config_defaults.lua from CTLD_config.yaml (ctld-tools)..."
+Write-Host "Generating CTLD_config_defaults.lua (test oracle + i18n source; not merged)..."
 Push-Location $ctldToolsDir
 try {
     & poetry run ctld-tools gen-config --yaml $configYaml --out $defaultsLua

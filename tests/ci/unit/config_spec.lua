@@ -11,6 +11,7 @@ describe("CTLDConfig", function()
     before_each(function()
         CTLDConfig._instance = nil
         ctld.yamlConfigDatas = nil
+        ctld.configUser      = nil
         cfg = CTLDConfig.get()
         cfg:load()
     end)
@@ -316,6 +317,33 @@ describe("parseYAML round-trip parity", function()
         assert.equals("string", type(ctld.configDefault))
         local flat = mergeSections(CTLDConfig.parseYAML(ctld.configDefault))
         assert.same(pristineDefaults(), flat)
+    end)
+
+end)
+
+-- ─────────────────────────────────────────────────────────────
+-- localiseI18n (FEAT-CONFIG-YAML-COMPLETE ticket 04): the loader applies ctld.tr()
+-- to every desc/name string at any depth, mirroring gen-config's _I18N_FIELDS, so
+-- runtime labels are translated (the parsed YAML holds literal keys).
+describe("CTLDConfig.localiseI18n()", function()
+
+    it("applies ctld.tr to desc/name strings at any depth, leaving other fields", function()
+        local origTr = ctld.tr
+        ctld.tr = function(s) return "TR:" .. s end
+        local t = {
+            name = "Group",
+            weight = 100,
+            parts = { { desc = "Launcher", amount = 2 } },
+            nested = { deep = { name = "X" } },
+        }
+        CTLDConfig.localiseI18n(t)
+        ctld.tr = origTr
+
+        assert.equals("TR:Group", t.name)             -- top-level name
+        assert.equals(100, t.weight)                  -- non-i18n scalar untouched
+        assert.equals("TR:Launcher", t.parts[1].desc) -- desc inside a list of maps
+        assert.equals(2, t.parts[1].amount)
+        assert.equals("TR:X", t.nested.deep.name)     -- recursive descent
     end)
 
 end)
