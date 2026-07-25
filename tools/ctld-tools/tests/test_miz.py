@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import lupa
-
 from ctld_tools.miz import MARKER, inject_userconfig, read_mission
 from ctld_tools.vendor import luadata
 
@@ -33,12 +31,14 @@ def test_shifts_and_rewrites_existing_indices(tmp_path):
             assert f"conditions[{key}]" in val
 
 
-def test_generated_mission_is_valid_lua(tmp_path):
+def test_generated_mission_round_trips(tmp_path):
+    # No Lua runtime (lupa dropped in CTLD-TOOLS-CORE t05): the injected mission must
+    # re-parse through the same luadata (de)serialization the .miz read/write relies on.
     out = tmp_path / "out.miz"
     inject_userconfig(MIZ, "ctld.slingLoad = true", out)
     m = read_mission(out)
-    body = "mission = \n" + luadata.serialize(m, indent="\t")
-    lupa.LuaRuntime().execute(body)  # raises on a syntax error
+    reparsed = luadata.unserialize(luadata.serialize(m, indent="\t"), keep_as_dict=["trig", "trigrules"])
+    assert "slingLoad = true" in reparsed["trig"]["actions"][1]
 
 
 def test_idempotent_reinjection(tmp_path):
