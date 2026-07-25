@@ -110,124 +110,6 @@ function CTLDConfig:load()
         self.settings[k] = v
     end
 
-
-    -- ************** AA SYSTEM ASSEMBLY TEMPLATES **********************
-    -- Single source of truth for deployable AA systems: parts, assembly rules, AND menu crates.
-    -- At init, CTLDCrateAssemblyManager.injectAACrates() reads this table and populates the
-    -- spawnableCrates sections automatically — no manual duplication needed.
-    --
-    -- Field reference:
-    --   name           string   display name of the system (used in messages and event data)
-    --   count          number   number of unique part types required for a complete system
-    --   side           number   coalition owning this system (1=RED, 2=BLUE)
-    --   sectionName    string   spawnableCrates section where crate entries will be injected
-    --   allCratesLabel string   i18n key for the auto-generated "All crates" mixedSet entry
-    --                           (optional — omit to suppress the mixedSet)
-    --   parts          array:
-    --     DCSTypename  string   DCS type name of the ground unit spawned at assembly
-    --     desc         string   i18n key — used for crate menu label AND "Missing X" messages
-    --     weight       number   crate weight (kg). Dual role: DCS slingload mass AND unique
-    --                           lookup key. MUST be globally unique across all spawnableCrates.
-    --                           Omit for NoCrate parts that have no standalone crate at all.
-    --     launcher     bool     true = this part triggers rearm detection
-    --     amount       number   units spawned per template (default 1; launchers use aaLaunchers)
-    --     NoCrate      bool     true = part always present at assembly, not counted in mixedSet.
-    --                           Can still carry a weight (spawnable as a standalone crate).
-    --     cratesRequired number number of crates of this type needed to unlock the part (default 1)
-    --   repair         table:
-    --     desc         string   i18n key for repair crate menu label
-    --     weight       number   unique crate weight for the repair crate (side = tmpl.side)
-    --
-    CTLDCrateAssemblyManager.TEMPLATES = {
-        {
-            name           = "HAWK AA System",
-            count          = 5,
-            side           = 2,
-            sectionName    = "SAM mid range",
-            allCratesLabel = "HAWK - All crates",
-            parts = {
-                { DCSTypename = "Hawk ln",   desc = "HAWK Launcher",     launcher = true, weight = 1004.01 },
-                { DCSTypename = "Hawk sr",   desc = "HAWK Search Radar", amount = 2,      weight = 1004.02 },
-                { DCSTypename = "Hawk tr",   desc = "HAWK Track Radar",  amount = 2,      weight = 1004.03 },
-                { DCSTypename = "Hawk pcp",  desc = "HAWK PCP",          NoCrate = true,  weight = 1004.04 },
-                { DCSTypename = "Hawk cwar", desc = "HAWK CWAR",         amount = 2, NoCrate = true, weight = 1004.05 },
-            },
-            repair = { desc = "HAWK Repair", weight = 1004.06 },
-        },
-        {
-            name           = "NASAMS AA System",
-            count          = 3,
-            side           = 2,
-            sectionName    = "SAM mid range",
-            allCratesLabel = "NASAMS - All crates",
-            parts = {
-                { DCSTypename = "NASAMS_LN_C",          desc = "NASAMS Launcher 120C",     launcher = true, weight = 1004.11 },
-                { DCSTypename = "NASAMS_Radar_MPQ64F1", desc = "NASAMS Search/Track Radar",                 weight = 1004.12 },
-                { DCSTypename = "NASAMS_Command_Post",  desc = "NASAMS Command Post",                       weight = 1004.13 },
-            },
-            repair = { desc = "NASAMS Repair", weight = 1004.14 },
-        },
-        {
-            name           = "BUK AA System",
-            count          = 3,
-            side           = 1,
-            sectionName    = "SAM mid range",
-            allCratesLabel = "BUK - All crates",
-            parts = {
-                { DCSTypename = "SA-11 Buk LN 9A310M1", desc = "BUK Launcher",     launcher = true, weight = 1004.31 },
-                { DCSTypename = "SA-11 Buk SR 9S18M1",  desc = "BUK Search Radar",                  weight = 1004.32 },
-                { DCSTypename = "SA-11 Buk CC 9S470M1", desc = "BUK CC Radar",                      weight = 1004.33 },
-            },
-            repair = { desc = "BUK Repair", weight = 1004.34 },
-        },
-        {
-            name           = "KUB AA System",
-            count          = 2,
-            side           = 1,
-            sectionName    = "SAM mid range",
-            allCratesLabel = "KUB - All crates",
-            parts = {
-                { DCSTypename = "Kub 2P25 ln",  desc = "KUB Launcher", launcher = true, weight = 1004.21 },
-                { DCSTypename = "Kub 1S91 str", desc = "KUB Radar",                     weight = 1004.22 },
-            },
-            repair = { desc = "KUB Repair", weight = 1004.23 },
-        },
-        {
-            name           = "Patriot AA System",
-            count          = 4,
-            side           = 2,
-            sectionName    = "SAM long range",
-            allCratesLabel = "Patriot - All crates",
-            parts = {
-                { DCSTypename = "Patriot ln",  desc = "Patriot Launcher",        launcher = true, amount = 8, weight = 1005.01 },
-                { DCSTypename = "Patriot str", desc = "Patriot Radar",           amount = 2,                  weight = 1005.02 },
-                { DCSTypename = "Patriot ECS", desc = "Patriot ECS",                                          weight = 1005.03 },
-                { DCSTypename = "Patriot AMG", desc = "Patriot AMG (optional)",  NoCrate = true,              weight = 1005.06 },
-            },
-            repair = { desc = "Patriot Repair", weight = 1005.07 },
-        },
-        {
-            name           = "S-300 AA System",
-            count          = 6,
-            side           = 1,
-            sectionName    = "SAM long range",
-            allCratesLabel = "S-300 - All crates",
-            parts = {
-                { DCSTypename = "S-300PS 5P85C ln",  desc = "S-300 Grumble TEL C",         launcher = true, amount = 1, weight = 1005.11 },
-                { DCSTypename = "S-300PS 5P85D ln",  desc = "S-300 Grumble TEL D",         NoCrate = true,  amount = 2 },   -- no standalone crate
-                { DCSTypename = "S-300PS 40B6M tr",  desc = "S-300 Grumble Flap Lid-A TR",                             weight = 1005.12 },
-                { DCSTypename = "S-300PS 40B6MD sr", desc = "S-300 Grumble Clam Shell SR",                             weight = 1005.13 },
-                { DCSTypename = "S-300PS 64H6E sr",  desc = "S-300 Grumble Big Bird SR",                               weight = 1005.14 },
-                { DCSTypename = "S-300PS 54K6 cp",   desc = "S-300 Grumble C2",                                        weight = 1005.15 },
-            },
-            repair = { desc = "S-300 Repair", weight = 1005.16 },
-        },
-    }
-
-    -- ******************************************************************
-    -- ****************** END OF CONFIGURATION AREA *********************
-    -- ******************************************************************
-
     return true, "CTLDConfig: loaded (" .. (usingUser and "user" or "default") .. " config)."
 end
 
@@ -3530,6 +3412,185 @@ mm_facing:
         speed: 150
       isJTAC: true
       side: 1
+    SAM mid range:
+    - unit: Hawk ln
+      desc: HAWK Launcher
+      weight: 1004.01
+      cratesRequired: 1
+      side: 2
+    - unit: Hawk sr
+      desc: HAWK Search Radar
+      weight: 1004.02
+      cratesRequired: 1
+      side: 2
+    - unit: Hawk tr
+      desc: HAWK Track Radar
+      weight: 1004.03
+      cratesRequired: 1
+      side: 2
+    - unit: Hawk pcp
+      desc: HAWK PCP
+      weight: 1004.04
+      cratesRequired: 1
+      side: 2
+    - unit: Hawk cwar
+      desc: HAWK CWAR
+      weight: 1004.05
+      cratesRequired: 1
+      side: 2
+    - desc: HAWK - All crates
+      side: 2
+      mixedSet:
+      - 1004.01
+      - 1004.02
+      - 1004.03
+    - desc: HAWK Repair
+      weight: 1004.06
+      cratesRequired: 1
+      side: 2
+      _repairFor: HAWK AA System
+    - unit: NASAMS_LN_C
+      desc: NASAMS Launcher 120C
+      weight: 1004.11
+      cratesRequired: 1
+      side: 2
+    - unit: NASAMS_Radar_MPQ64F1
+      desc: NASAMS Search/Track Radar
+      weight: 1004.12
+      cratesRequired: 1
+      side: 2
+    - unit: NASAMS_Command_Post
+      desc: NASAMS Command Post
+      weight: 1004.13
+      cratesRequired: 1
+      side: 2
+    - desc: NASAMS - All crates
+      side: 2
+      mixedSet:
+      - 1004.11
+      - 1004.12
+      - 1004.13
+    - desc: NASAMS Repair
+      weight: 1004.14
+      cratesRequired: 1
+      side: 2
+      _repairFor: NASAMS AA System
+    - unit: SA-11 Buk LN 9A310M1
+      desc: BUK Launcher
+      weight: 1004.31
+      cratesRequired: 1
+      side: 1
+    - unit: SA-11 Buk SR 9S18M1
+      desc: BUK Search Radar
+      weight: 1004.32
+      cratesRequired: 1
+      side: 1
+    - unit: SA-11 Buk CC 9S470M1
+      desc: BUK CC Radar
+      weight: 1004.33
+      cratesRequired: 1
+      side: 1
+    - desc: BUK - All crates
+      side: 1
+      mixedSet:
+      - 1004.31
+      - 1004.32
+      - 1004.33
+    - desc: BUK Repair
+      weight: 1004.34
+      cratesRequired: 1
+      side: 1
+      _repairFor: BUK AA System
+    - unit: Kub 2P25 ln
+      desc: KUB Launcher
+      weight: 1004.21
+      cratesRequired: 1
+      side: 1
+    - unit: Kub 1S91 str
+      desc: KUB Radar
+      weight: 1004.22
+      cratesRequired: 1
+      side: 1
+    - desc: KUB - All crates
+      side: 1
+      mixedSet:
+      - 1004.21
+      - 1004.22
+    - desc: KUB Repair
+      weight: 1004.23
+      cratesRequired: 1
+      side: 1
+      _repairFor: KUB AA System
+    SAM long range:
+    - unit: Patriot ln
+      desc: Patriot Launcher
+      weight: 1005.01
+      cratesRequired: 1
+      side: 2
+    - unit: Patriot str
+      desc: Patriot Radar
+      weight: 1005.02
+      cratesRequired: 1
+      side: 2
+    - unit: Patriot ECS
+      desc: Patriot ECS
+      weight: 1005.03
+      cratesRequired: 1
+      side: 2
+    - unit: Patriot AMG
+      desc: Patriot AMG (optional)
+      weight: 1005.06
+      cratesRequired: 1
+      side: 2
+    - desc: Patriot - All crates
+      side: 2
+      mixedSet:
+      - 1005.01
+      - 1005.02
+      - 1005.03
+    - desc: Patriot Repair
+      weight: 1005.07
+      cratesRequired: 1
+      side: 2
+      _repairFor: Patriot AA System
+    - unit: S-300PS 5P85C ln
+      desc: S-300 Grumble TEL C
+      weight: 1005.11
+      cratesRequired: 1
+      side: 1
+    - unit: S-300PS 40B6M tr
+      desc: S-300 Grumble Flap Lid-A TR
+      weight: 1005.12
+      cratesRequired: 1
+      side: 1
+    - unit: S-300PS 40B6MD sr
+      desc: S-300 Grumble Clam Shell SR
+      weight: 1005.13
+      cratesRequired: 1
+      side: 1
+    - unit: S-300PS 64H6E sr
+      desc: S-300 Grumble Big Bird SR
+      weight: 1005.14
+      cratesRequired: 1
+      side: 1
+    - unit: S-300PS 54K6 cp
+      desc: S-300 Grumble C2
+      weight: 1005.15
+      cratesRequired: 1
+      side: 1
+    - desc: S-300 - All crates
+      side: 1
+      mixedSet:
+      - 1005.11
+      - 1005.12
+      - 1005.13
+      - 1005.14
+      - 1005.15
+    - desc: S-300 Repair
+      weight: 1005.16
+      cratesRequired: 1
+      side: 1
+      _repairFor: S-300 AA System
   transportPilotNames:
   - helicargo1
   - helicargo2
@@ -12303,8 +12364,8 @@ end
 -- Results stored in self._processedCrates[category] and self._weightIndex[weight].
 function CTLDCrateManager:_processSpawnableCrates()
     local spawnableCrates = ctld.gs("spawnableCrates") or {}
-    -- AA system crate entries are injected once by ctld.initialize() (before the userSetup
-    -- callbacks), so spawnableCrates already contains them here — see ADR 0008/0009.
+    -- AA system crates are part of the YAML catalogue (FEAT-CONFIG-YAML-COMPLETE), so
+    -- spawnableCrates already contains them here — no runtime injection step.
     local showCrateSets   = ctld.gs("enableAllCrates") ~= false
     local allSuffix       = " - " .. ctld.tr("All crates")
 
@@ -17275,10 +17336,114 @@ ctld = ctld or {}
 CTLDCrateAssemblyManager = class()
 CTLDCrateAssemblyManager._instance = nil
 
--- AA system templates are declared in CTLD_config.lua (CTLDConfig:load), after spawnableCrates.
--- This placeholder is overwritten at config load time, before any manager init runs.
--- See CTLDCrateAssemblyManager.injectAACrates() for how templates populate spawnableCrates.
-CTLDCrateAssemblyManager.TEMPLATES = {}
+-- AA system assembly templates — the single source of the assembly RULES the runtime
+-- uses (parts, count, launcher, name). Since FEAT-CONFIG-YAML-COMPLETE the deployable
+-- crates live in CTLD_config.yaml (spawnableCrates "SAM mid range" / "SAM long range");
+-- this table no longer generates them. It is static data (was previously materialised in
+-- CTLDConfig:load). Consumed by getTemplateForUnit / countComplete / getTemplateByName /
+-- spawnSystemAt. The crate-facing fields (desc/weight) are retained for readability and to
+-- keep the weights ↔ parts mapping self-documenting; the runtime matches parts by DCSTypename.
+--
+-- Field reference:
+--   name           string   display name of the system (used in messages and event data)
+--   count          number   number of unique part types required for a complete system
+--   side           number   coalition owning this system (1=RED, 2=BLUE)
+--   sectionName    string   spawnableCrates section the crates were baked into (reference)
+--   allCratesLabel string   i18n key of the auto "All crates" mixedSet (reference)
+--   parts          array:
+--     DCSTypename  string   DCS type name of the ground unit spawned at assembly
+--     desc         string   crate/menu i18n key (reference — the crate lives in the YAML)
+--     weight       number   crate weight (reference — the crate lives in the YAML)
+--     launcher     bool     true = this part triggers rearm detection
+--     amount       number   units spawned per template (default 1; launchers use aaLaunchers)
+--     NoCrate      bool     true = part always present at assembly, not a standalone crate
+--     cratesRequired number crates of this type needed to unlock the part (default 1)
+--   repair         table:   { desc = i18n key, weight = unique crate weight } (reference)
+CTLDCrateAssemblyManager.TEMPLATES = {
+    {
+        name           = "HAWK AA System",
+        count          = 5,
+        side           = 2,
+        sectionName    = "SAM mid range",
+        allCratesLabel = "HAWK - All crates",
+        parts = {
+            { DCSTypename = "Hawk ln",   desc = "HAWK Launcher",     launcher = true, weight = 1004.01 },
+            { DCSTypename = "Hawk sr",   desc = "HAWK Search Radar", amount = 2,      weight = 1004.02 },
+            { DCSTypename = "Hawk tr",   desc = "HAWK Track Radar",  amount = 2,      weight = 1004.03 },
+            { DCSTypename = "Hawk pcp",  desc = "HAWK PCP",          NoCrate = true,  weight = 1004.04 },
+            { DCSTypename = "Hawk cwar", desc = "HAWK CWAR",         amount = 2, NoCrate = true, weight = 1004.05 },
+        },
+        repair = { desc = "HAWK Repair", weight = 1004.06 },
+    },
+    {
+        name           = "NASAMS AA System",
+        count          = 3,
+        side           = 2,
+        sectionName    = "SAM mid range",
+        allCratesLabel = "NASAMS - All crates",
+        parts = {
+            { DCSTypename = "NASAMS_LN_C",          desc = "NASAMS Launcher 120C",     launcher = true, weight = 1004.11 },
+            { DCSTypename = "NASAMS_Radar_MPQ64F1", desc = "NASAMS Search/Track Radar",                 weight = 1004.12 },
+            { DCSTypename = "NASAMS_Command_Post",  desc = "NASAMS Command Post",                       weight = 1004.13 },
+        },
+        repair = { desc = "NASAMS Repair", weight = 1004.14 },
+    },
+    {
+        name           = "BUK AA System",
+        count          = 3,
+        side           = 1,
+        sectionName    = "SAM mid range",
+        allCratesLabel = "BUK - All crates",
+        parts = {
+            { DCSTypename = "SA-11 Buk LN 9A310M1", desc = "BUK Launcher",     launcher = true, weight = 1004.31 },
+            { DCSTypename = "SA-11 Buk SR 9S18M1",  desc = "BUK Search Radar",                  weight = 1004.32 },
+            { DCSTypename = "SA-11 Buk CC 9S470M1", desc = "BUK CC Radar",                      weight = 1004.33 },
+        },
+        repair = { desc = "BUK Repair", weight = 1004.34 },
+    },
+    {
+        name           = "KUB AA System",
+        count          = 2,
+        side           = 1,
+        sectionName    = "SAM mid range",
+        allCratesLabel = "KUB - All crates",
+        parts = {
+            { DCSTypename = "Kub 2P25 ln",  desc = "KUB Launcher", launcher = true, weight = 1004.21 },
+            { DCSTypename = "Kub 1S91 str", desc = "KUB Radar",                     weight = 1004.22 },
+        },
+        repair = { desc = "KUB Repair", weight = 1004.23 },
+    },
+    {
+        name           = "Patriot AA System",
+        count          = 4,
+        side           = 2,
+        sectionName    = "SAM long range",
+        allCratesLabel = "Patriot - All crates",
+        parts = {
+            { DCSTypename = "Patriot ln",  desc = "Patriot Launcher",        launcher = true, amount = 8, weight = 1005.01 },
+            { DCSTypename = "Patriot str", desc = "Patriot Radar",           amount = 2,                  weight = 1005.02 },
+            { DCSTypename = "Patriot ECS", desc = "Patriot ECS",                                          weight = 1005.03 },
+            { DCSTypename = "Patriot AMG", desc = "Patriot AMG (optional)",  NoCrate = true,              weight = 1005.06 },
+        },
+        repair = { desc = "Patriot Repair", weight = 1005.07 },
+    },
+    {
+        name           = "S-300 AA System",
+        count          = 6,
+        side           = 1,
+        sectionName    = "SAM long range",
+        allCratesLabel = "S-300 - All crates",
+        parts = {
+            { DCSTypename = "S-300PS 5P85C ln",  desc = "S-300 Grumble TEL C",         launcher = true, amount = 1, weight = 1005.11 },
+            { DCSTypename = "S-300PS 5P85D ln",  desc = "S-300 Grumble TEL D",         NoCrate = true,  amount = 2 },   -- no standalone crate
+            { DCSTypename = "S-300PS 40B6M tr",  desc = "S-300 Grumble Flap Lid-A TR",                             weight = 1005.12 },
+            { DCSTypename = "S-300PS 40B6MD sr", desc = "S-300 Grumble Clam Shell SR",                             weight = 1005.13 },
+            { DCSTypename = "S-300PS 64H6E sr",  desc = "S-300 Grumble Big Bird SR",                               weight = 1005.14 },
+            { DCSTypename = "S-300PS 54K6 cp",   desc = "S-300 Grumble C2",                                        weight = 1005.15 },
+        },
+        repair = { desc = "S-300 Repair", weight = 1005.16 },
+    },
+}
 
 -- ============================================================
 -- Singleton
@@ -17297,79 +17462,6 @@ function CTLDCrateAssemblyManager:init()
     -- groupName → { details = [{point,unit,name,hdg}], template = template }
     self._completeSystems = {}
     ctld.utils.log("INFO", "CTLDCrateAssemblyManager: init complete")
-end
-
---- Inject all AA system crate entries (parts + repair) into spawnableCrates.
--- Called by CTLDCrateManager._processSpawnableCrates() before its main loop,
--- so the table is in hand and CTLDConfig:load() has already populated TEMPLATES.
---
--- For each template:
---   - Creates the target section (tmpl.sectionName) if it does not exist yet.
---   - Injects one entry per part that carries a weight field (NoCrate parts with weight
---     get a menu entry but are NOT counted in the auto-generated mixedSet).
---   - Auto-generates a mixedSet entry from all non-NoCrate parts (if allCratesLabel set).
---   - Injects the repair crate entry (_repairFor flag marks it as internal, not a DCS typeName).
---
--- DESIGN NOTE (Option A): a section may contain both manually declared entries (from
--- spawnableCrates above) and injected AA entries. This is intentional and documented.
--- Do NOT manually add AA part entries in spawnableCrates — they will appear twice.
---
--- @param spawnableCrates table  live spawnableCrates config table (modified in place)
-function CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)
-    if type(spawnableCrates) ~= "table" then return end
-    for _, tmpl in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
-        local section = tmpl.sectionName
-        if not section then
-            ctld.utils.log("WARN",
-                "CTLDCrateAssemblyManager: template '%s' missing sectionName — skipped", tmpl.name)
-        else
-            if not spawnableCrates[section] then
-                spawnableCrates[section] = {}
-            end
-
-            local mixedWeights = {}
-            for _, part in ipairs(tmpl.parts or {}) do
-                if part.weight then
-                    table.insert(spawnableCrates[section], {
-                        weight         = part.weight,
-                        desc           = ctld.tr(part.desc),
-                        unit           = part.DCSTypename,
-                        side           = tmpl.side,
-                        cratesRequired = part.cratesRequired or 1,
-                    })
-                    -- Only required parts (non-NoCrate) go into the All-crates set
-                    if not part.NoCrate then
-                        table.insert(mixedWeights, part.weight)
-                    end
-                end
-            end
-
-            -- Auto-generate "All crates" mixedSet when multiple required parts exist
-            if tmpl.allCratesLabel and #mixedWeights > 1 then
-                table.insert(spawnableCrates[section], {
-                    mixedSet = mixedWeights,
-                    desc     = ctld.tr(tmpl.allCratesLabel),
-                    side     = tmpl.side,
-                })
-            end
-
-            -- Repair crate — _repairFor is an internal flag, not a DCS typeName
-            if tmpl.repair then
-                local r = tmpl.repair
-                table.insert(spawnableCrates[section], {
-                    weight         = r.weight,
-                    desc           = ctld.tr(r.desc),
-                    side           = tmpl.side,
-                    cratesRequired = 1,
-                    _repairFor     = tmpl.name,
-                })
-            end
-
-            ctld.utils.log("INFO",
-                "CTLDCrateAssemblyManager: injected AA crates for '%s' into section '%s'",
-                tmpl.name, section)
-        end
-    end
 end
 
 -- ============================================================
@@ -25131,12 +25223,9 @@ function ctld.initialize()
     CTLDConfig.get():load()
     ctld.utils.initLog()
 
-    -- Materialise the full configuration before any manager reads it:
-    --   1) inject the AA system crate entries into spawnableCrates,
-    --   2) run the Mission Maker userSetup callbacks (add/remove/patch).
-    -- This is the single place that controls config materialisation order, so managers
-    -- always see the final, complete config table (ADR 0008/0009).
-    CTLDCrateAssemblyManager.injectAACrates(ctld.gs("spawnableCrates"))
+    -- Run the Mission Maker userSetup callbacks (add/remove/patch) before any manager
+    -- reads the config, so managers see the final table. AA system crates now live in
+    -- the YAML catalogue directly (FEAT-CONFIG-YAML-COMPLETE) — no runtime injection.
     ctld.runUserSetup()
 
     -- Boot all domain managers first so they can register their menu sections.

@@ -28,6 +28,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   verbatim as the `ctld.configDefault` Lua string (generated module, merged after the i18n dicts,
   long-bracket level chosen dynamically). No behaviour change yet — the complete-config loader
   consumes this string in ticket 04.
+- Lot 1 (ticket 05): the AA-system deployable crates are now ordinary catalogue entries in
+  `CTLD_config.yaml` (sections `SAM mid range` / `SAM long range`) instead of being generated at
+  runtime. `CTLDCrateAssemblyManager.injectAACrates` and its `ctld.initialize()` call site are removed;
+  the crates were expanded once (golden-compared to the old injection output) and committed to the YAML.
+  `CTLDCrateAssemblyManager.TEMPLATES` (the assembly rules the runtime still needs — parts, count,
+  launcher) moves from `CTLDConfig:load()` to a static declaration in `CTLD_aasystem.lua`. Runtime
+  assembly/spawn behaviour is unchanged.
 - Lot 1 (ticket 04): `CTLDConfig:load()` switches to the complete-config model (ADR 0011) — it parses
   `ctld.configUser or ctld.configDefault` **whole** into settings, with **no merge** (an element
   omitted from a `configUser` snapshot is absent at runtime, not defaulted). A malformed `configUser`

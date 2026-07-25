@@ -426,8 +426,8 @@ end
 -- Results stored in self._processedCrates[category] and self._weightIndex[weight].
 function CTLDCrateManager:_processSpawnableCrates()
     local spawnableCrates = ctld.gs("spawnableCrates") or {}
-    -- AA system crate entries are injected once by ctld.initialize() (before the userSetup
-    -- callbacks), so spawnableCrates already contains them here — see ADR 0008/0009.
+    -- AA system crates are part of the YAML catalogue (FEAT-CONFIG-YAML-COMPLETE), so
+    -- spawnableCrates already contains them here — no runtime injection step.
     local showCrateSets   = ctld.gs("enableAllCrates") ~= false
     local allSuffix       = " - " .. ctld.tr("All crates")
 

@@ -1,7 +1,15 @@
 # 05 — AA bake-in + injection-loop removal (last lupa use)
 
-Status: 📋 todo
+Status: ✅ done
 Type: src + build + test
+
+> **Scope note (done):** AA crates expanded once (via `load_default_settings(inject_aa=True)`) and
+> written to `CTLD_config.yaml` (`SAM mid range` 21 + `SAM long range` 13 entries), **golden-compared**
+> to the old injection output (identical). `injectAACrates` + its `ctld.initialize()` call site removed.
+> **`TEMPLATES` kept** (decision A, validated with David): the runtime assembly still needs the
+> assembly rules (parts/count/launcher/name), which are NOT in the YAML — so `TEMPLATES` moves from
+> `CTLDConfig:load()` to a static declaration in `CTLD_aasystem.lua` rather than being deleted.
+> `mixedSet` block style used (the runtime parser has no non-empty flow-list support).
 
 AA crates become ordinary catalogue entries in the YAML instead of being generated at runtime.
 

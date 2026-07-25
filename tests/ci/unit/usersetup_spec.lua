@@ -48,7 +48,7 @@ describe("CTLD_userSetup helpers", function()
             assert.equals(1, sectionCount("My Custom Section"))
         end)
 
-        it("appends after pre-existing entries (post-injectAACrates order)", function()
+        it("appends after pre-existing entries (baked catalogue order)", function()
             ctld.addCrate("Support", { weight = 9999.03, desc = "Last", unit = "Ural-375" })
             local s = cfg.settings["spawnableCrates"]["Support"]
             assert.equals(9999.03, s[#s].weight)
