@@ -1,7 +1,20 @@
 # 06 — userSetup removal + version tag
 
-Status: 📋 todo
+Status: ✅ done
 Type: src + build
+
+> **Scope notes (done):**
+> - `ctld.userSetup` + `CTLD_userSetup.lua` deleted; listToMerge, the `runUserSetup` dispatch in
+>   bootstrap, the busted loader, and the userSetup specs removed. `CTLD_userConfig.lua` rewritten to
+>   the `ctld.configUser` complete-YAML model. v1 Legacy API untouched.
+> - **Version tag = top-level** (decision B): `configVersion: "2.0.0"` in `CTLD_config.yaml` +
+>   `CTLD_config_schema.yaml`. Both `gen-config` (`_load_yaml`) and `CTLDConfig:load()` now merge the
+>   `mm_facing`/`advanced` sections **plus** top-level keys, so `configVersion` lands in settings.
+> - **genuser kept (decision B):** deleting it would cascade to the whole CLI edit chain (editmodel /
+>   scaffold / cli `gen-user` / TUI). Only `test_genuser.py` (the one test executing the removed
+>   `userSetup` runtime) is deleted. `genuser.py` carries a `⚠️ DEAD CODE` marker and the **lot 2
+>   cleanup checklist** (in the PRD) lists the full gen-user/TUI chain for removal — so it is not
+>   forgotten.
 
 Close the demolition and stamp the version for the tool's re-migration flow.
 

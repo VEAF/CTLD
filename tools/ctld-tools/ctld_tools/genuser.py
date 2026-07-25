@@ -4,6 +4,14 @@ Scalars go into the `ctld.yamlConfigDatas` block (Section 1). Operations
 (crates/troops/arrays) compile 1:1 into `ctld.userSetup` helper calls (Section 2).
 Mission Makers target crates/troops by name; names are resolved to weights here,
 against the reference catalogue, so the emitted runtime calls use the unique key.
+
+⚠️ DEAD CODE since FEAT-CONFIG-YAML-COMPLETE ticket 06 (ADR 0011). It emits the
+retired runtime model — `ctld.yamlConfigDatas` (ignored since t04) and
+`ctld.userSetup` (removed in t06). The generated userConfig no longer runs. This
+module is kept ONLY so the CLI edit chain that imports it (cli `gen-user`,
+`editmodel`, `scaffold`, the TUI) still loads. The ENTIRE gen-user / TUI edit chain
+is removed in lot 2/3, replaced by the web tool that emits `ctld.configUser` YAML.
+See .backlog/FEAT-CONFIG-YAML-COMPLETE/PRD.md (lot 2 cleanup list).
 """
 
 from __future__ import annotations

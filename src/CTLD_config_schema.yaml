@@ -8,6 +8,11 @@
 # Descriptions were seeded from docs/mission-maker/configuration(.fr).md; the schema is
 # now their source of truth (see dev/roadmap.md: generate the doc tables from it).
 
+configVersion:
+  description:
+    en: Schema/catalogue version this config is authored against (used for version-gap detection).
+    fr: Version du schéma/catalogue contre laquelle cette config est écrite (détection d'écart de version).
+
 JTAC_lock:
   choices: [all, vehicle, troop]
   description:

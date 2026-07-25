@@ -28,6 +28,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   verbatim as the `ctld.configDefault` Lua string (generated module, merged after the i18n dicts,
   long-bracket level chosen dynamically). No behaviour change yet — the complete-config loader
   consumes this string in ticket 04.
+- Lot 1 (ticket 06): the `ctld.userSetup` ops API is removed (clean break, pre-2.0.0) —
+  `CTLD_userSetup.lua` and its helpers (`addCrate`/`removeCrate`/`patchCrate`/`addTroopGroup`/…)
+  are deleted, along with the `ctld.initialize()` callback dispatch. The MM template
+  `CTLD_userConfig.lua` is rewritten to the complete-config model: a single mission-start trigger
+  sets `ctld.configUser` to a full YAML snapshot. The default YAML and schema now carry a top-level
+  `configVersion` tag (`"2.0.0"`), merged into settings alongside the sections, so a `configUser` can
+  record the version it was authored against (the tool consumes it for version-gap detection in a
+  later lot). The v1 Legacy API (ADR 0004) is untouched.
 - Lot 1 (ticket 05): the AA-system deployable crates are now ordinary catalogue entries in
   `CTLD_config.yaml` (sections `SAM mid range` / `SAM long range`) instead of being generated at
   runtime. `CTLDCrateAssemblyManager.injectAACrates` and its `ctld.initialize()` call site are removed;

@@ -33,10 +33,16 @@ function CTLDConfig:load()
     local usingUser = ctld.configUser ~= nil
     local parsed = CTLDConfig.parseYAML(ctld.configUser or ctld.configDefault or "")
 
-    -- Merge the readability sections (mm_facing / advanced) into one flat map.
+    -- Merge the readability sections (mm_facing / advanced) into one flat map, plus any
+    -- top-level keys outside the sections (e.g. configVersion).
     local flat = {}
     for _, section in ipairs({ "mm_facing", "advanced" }) do
         for k, v in pairs(parsed[section] or {}) do
+            flat[k] = v
+        end
+    end
+    for k, v in pairs(parsed) do
+        if k ~= "mm_facing" and k ~= "advanced" then
             flat[k] = v
         end
     end

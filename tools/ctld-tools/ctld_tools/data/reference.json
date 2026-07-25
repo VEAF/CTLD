@@ -131,6 +131,7 @@
     "beaconRefreshInterval": 60,
     "beaconRemovalRadius": 500,
     "beaconTextSize": 12,
+    "configVersion": "2.0.0",
     "crateSpacing": 5,
     "ctldLogPath": "",
     "debug": false,
@@ -430,6 +431,12 @@
       "description": {
         "en": "Search radius (m) for the \"Remove Closest Beacon\" action",
         "fr": "Rayon de recherche (m) pour l'action « Retirer la balise la plus proche »"
+      }
+    },
+    "configVersion": {
+      "description": {
+        "en": "Schema/catalogue version this config is authored against (used for version-gap detection).",
+        "fr": "Version du schéma/catalogue contre laquelle cette config est écrite (détection d'écart de version)."
       }
     },
     "ctldLogPath": {

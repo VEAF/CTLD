@@ -45,7 +45,6 @@ end
 CTLDConfig.get():load()
 
 dofile(SRC .. "CTLD_utils.lua")
-dofile(SRC .. "CTLD_userSetup.lua")
 dofile(SRC .. "CTLD_i18n.lua")
 dofile(SRC .. "CTLD_i18n_en.lua")
 dofile(SRC .. "CTLD_menu.lua")

@@ -367,7 +367,7 @@ describe("baked AA crate catalogue", function()
     end)
 
     after_each(function()
-        -- Some cases mutate spawnableCrates (addCrate) — restore a clean singleton.
+        -- The reachability case builds the crate manager — restore a clean singleton.
         CTLDConfig._instance = nil
         CTLDCrateManager._instance = nil
         CTLDConfig.get():load()
@@ -378,14 +378,6 @@ describe("baked AA crate catalogue", function()
         assert.is_not_nil(crates["SAM mid range"])
         assert.is_not_nil(crates["SAM long range"])
         assert.is_true(#crates["SAM mid range"] > 0)
-    end)
-
-    it("a userSetup addCrate appends after the baked AA entries", function()
-        local crates = cfg.settings["spawnableCrates"]
-        local n = #crates["SAM mid range"]
-        ctld.addCrate("SAM mid range", { weight = 9998.01, desc = "Extra", unit = "Ural-375" })
-        assert.equals(n + 1, #crates["SAM mid range"])
-        assert.equals(9998.01, crates["SAM mid range"][#crates["SAM mid range"]].weight)
     end)
 
     it("baked AA crates are reachable via the crate manager _weightIndex", function()

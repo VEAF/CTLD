@@ -46,6 +46,13 @@ AA crates are materialised at runtime by a generative loop. ADR 0011 replaces th
    The build stops calling `gen-config` and instead **embeds the YAML string** into a Lua module.
    (The now-dead `gen-config`/`gen-reference`/`extract` commands + the `lupa` dependency itself are
    deleted in lot 2, the tool-package cleanup.)
+   **Lot 2 cleanup checklist** (dead after this lot — see `⚠️ DEAD CODE` markers in the sources):
+   `gen-config`, `gen-reference`, `extract`, and the **entire gen-user / TUI edit chain** —
+   `ctld_tools/genuser.py` (emits the retired `userSetup`/`yamlConfigDatas` model), `editmodel.py`,
+   `scaffold.py`, the `cli` `gen-user` command, the `tui/` package, and their tests
+   (`test_editmodel`, `test_scaffold`) — all removed and replaced by the web tool that emits
+   `ctld.configUser` YAML. Plus the `lupa` dependency. (Ticket 06 only deletes `test_genuser.py`,
+   the one test that executed the now-removed `userSetup` runtime.)
 5. **Version tag** on the default YAML (and schema). Stored so a `configUser` can record the version
    it was authored against (consumed by the tool in lot 2).
 6. **Retire** `src/CTLD_userSetup.lua` and the `ctld.userSetup` API. Clean break (pre-2.0.0). The

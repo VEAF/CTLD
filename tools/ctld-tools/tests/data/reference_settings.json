@@ -243,6 +243,7 @@
    "useNativeDcsCargoSystem": false
   }
  },
+ "configVersion": "2.0.0",
  "crateSpacing": 5,
  "ctldLogPath": "",
  "debug": false,

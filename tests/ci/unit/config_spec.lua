@@ -295,11 +295,17 @@ describe("parseYAML round-trip parity", function()
         return env.ctld.__configDefaults
     end
 
-    -- Merge the mm_facing / advanced readability sections into one flat table (loader's job).
+    -- Merge the mm_facing / advanced readability sections plus any top-level keys
+    -- (e.g. configVersion) into one flat table (mirrors CTLDConfig:load).
     local function mergeSections(parsed)
         local flat = {}
         for _, section in ipairs({ "mm_facing", "advanced" }) do
             for k, v in pairs(parsed[section] or {}) do
+                flat[k] = v
+            end
+        end
+        for k, v in pairs(parsed) do
+            if k ~= "mm_facing" and k ~= "advanced" then
                 flat[k] = v
             end
         end
@@ -344,59 +350,6 @@ describe("CTLDConfig.localiseI18n()", function()
         assert.equals("TR:Launcher", t.parts[1].desc) -- desc inside a list of maps
         assert.equals(2, t.parts[1].amount)
         assert.equals("TR:X", t.nested.deep.name)     -- recursive descent
-    end)
-
-end)
-
--- ─────────────────────────────────────────────────────────────
--- ctld.userSetup dispatch (FEAT-USERCONFIG-API): callbacks run in order, nil-safe,
--- mutations land in the live config, one failing callback does not abort the rest.
-describe("ctld.userSetup dispatch", function()
-
-    before_each(function()
-        CTLDConfig._instance = nil
-        ctld.yamlConfigDatas = nil
-        ctld.userSetup = nil
-        CTLDConfig.get():load()
-    end)
-
-    after_each(function()
-        ctld.userSetup = nil
-    end)
-
-    it("runs callbacks in registration order", function()
-        local order = {}
-        ctld.userSetup = {
-            function() table.insert(order, "a") end,
-            function() table.insert(order, "b") end,
-        }
-        ctld.runUserSetup()
-        assert.same({ "a", "b" }, order)
-    end)
-
-    it("does not error when ctld.userSetup is nil", function()
-        ctld.userSetup = nil
-        assert.has_no_error(function() ctld.runUserSetup() end)
-    end)
-
-    it("makes callback mutations visible in the live config", function()
-        ctld.userSetup = { function() ctld.addTo("transportPilotNames", "FromCallback") end }
-        ctld.runUserSetup()
-        local names = CTLDConfig.get().settings["transportPilotNames"]
-        assert.equals("FromCallback", names[#names])
-    end)
-
-    it("isolates a failing callback and still runs the others", function()
-        local ran = false
-        local warn = spy.on(ctld, "logWarning")
-        ctld.userSetup = {
-            function() error("boom") end,
-            function() ran = true end,
-        }
-        ctld.runUserSetup()
-        assert.is_true(ran)
-        assert.spy(warn).was_called()
-        ctld.logWarning:revert()
     end)
 
 end)

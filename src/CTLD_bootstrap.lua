@@ -14,11 +14,6 @@ function ctld.initialize()
     CTLDConfig.get():load()
     ctld.utils.initLog()
 
-    -- Run the Mission Maker userSetup callbacks (add/remove/patch) before any manager
-    -- reads the config, so managers see the final table. AA system crates now live in
-    -- the YAML catalogue directly (FEAT-CONFIG-YAML-COMPLETE) — no runtime injection.
-    ctld.runUserSetup()
-
     -- Boot all domain managers first so they can register their menu sections.
     -- Order matters: PlayerManager must be up before any other manager calls
     -- registerMenuSection(), and _scanExistingPlayers() must run last so all
