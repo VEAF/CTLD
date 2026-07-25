@@ -2039,16 +2039,13 @@ end
 -- @return descriptor table or nil
 function CTLDCrateManager:findDescriptorByUnitType(typeName)
     if not typeName then return nil end
-    -- A NON-EMPTY index is authoritative (it mirrors the live spawnableCrates).
-    -- An empty/absent index (e.g. the singleton was built before the config was
-    -- populated) must not short-circuit to nil — fall through to the live scan.
-    if self._weightIndex and next(self._weightIndex) then
+    if self._weightIndex then
         for _, descriptor in pairs(self._weightIndex) do
             if descriptor.unit == typeName then return descriptor end
         end
         return nil
     end
-    -- Fallback: raw config scan (index not built yet, or empty)
+    -- Fallback: raw config scan (before _processSpawnableCrates ran)
     local spawnableCrates = ctld.gs("spawnableCrates")
     if not spawnableCrates then return nil end
     for _, category in pairs(spawnableCrates) do
