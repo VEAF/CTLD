@@ -73,35 +73,6 @@ def validate_cmd(
         raise typer.Exit(1)
 
 
-@app.command("gen-user")
-def gen_user_cmd(
-    out: Path = typer.Option(..., "--out", help="path to the CTLD_userConfig.lua (or scaffold) to write"),
-    yaml_path: Path = typer.Option(None, "--yaml", help="path to the user-config.yaml (omit with --scaffold)"),
-    src: Path = typer.Option(
-        None, "--src", help="dev override: resolve from CTLD src/ instead of the embedded reference"
-    ),
-    scaffold: bool = typer.Option(False, "--scaffold", help="write a commented starter user-config.yaml instead"),
-) -> None:
-    """Compile a user-config.yaml into CTLD_userConfig.lua (or write a scaffold)."""
-    if scaffold:
-        from ctld_tools.scaffold import write_scaffold
-
-        write_scaffold(out)
-        typer.echo(f"gen-user: wrote scaffold {out}")
-        return
-    if yaml_path is None:
-        raise typer.BadParameter("--yaml is required (unless --scaffold)")
-    from ctld_tools.genuser import UserConfigError, generate_user_file
-
-    try:
-        generate_user_file(yaml_path, out, src=src)
-    except UserConfigError as exc:
-        for finding in exc.findings:
-            typer.echo(str(finding))
-        raise typer.Exit(1) from exc
-    typer.echo(f"gen-user: wrote {out}")
-
-
 @app.command("gen-reference")
 def gen_reference_cmd(
     src: Path = typer.Option(..., "--src", help="path to the CTLD src/ directory (the reference source)"),
@@ -112,22 +83,6 @@ def gen_reference_cmd(
 
     write_reference(src, out)
     typer.echo(f"gen-reference: wrote {out}")
-
-
-@app.command("tui")
-def tui_cmd(
-    yaml_path: Path = typer.Option(None, "--yaml", help="open an existing user-config.yaml (optional)"),
-    src: Path = typer.Option(
-        None, "--src", help="dev override: resolve from CTLD src/ instead of the embedded reference"
-    ),
-    lang: str = typer.Option(None, "--lang", help=t("help.lang")),
-) -> None:
-    """Launch the interactive user-config editor (the MM console)."""
-    if lang:
-        set_language(lang)
-    from ctld_tools.tui.app import run
-
-    run(yaml_path=yaml_path, src=src)
 
 
 @app.command("inject")

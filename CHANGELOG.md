@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — ctld-tools v2 core (CTLD-TOOLS-CORE)
+
+- Lot 2 (ticket 01): demolish the ops/diff + interactive surfaces retired by ADR 0011 — remove the
+  Textual TUI (`ctld_tools/tui/*`), the ops editor (`editmodel.py`), the dead `gen-user`/`scaffold`
+  generators, the `gen-user`/`tui` CLI commands, and their tests; drop the `textual` and
+  `pytest-asyncio` dependencies. (`gen-config`/`lupa` stay until ticket 05.) Tool docs are rewritten
+  with the web app (lot 3). Not a deliverable change — `CTLD.lua` untouched.
+
 ### Changed — engine config knobs externalised to YAML (FEAT-CONFIG-YAML-COMPLETE)
 
 - Lot 1 (ticket 01): twelve hardcoded constants are now mission-configurable settings, read via

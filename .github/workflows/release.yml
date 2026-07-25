@@ -100,18 +100,16 @@ jobs:
           # --without dev drops lupa (build-time only); --with build adds pyinstaller.
           poetry install --without dev --with build
           poetry run pyinstaller --onefile --name ctld-tools \
-            --collect-all textual \
             --exclude-module lupa \
             --add-data "ctld_tools/data/dcs_types.json;ctld_tools/data" \
             --add-data "ctld_tools/data/reference.json;ctld_tools/data" \
             --add-data "ctld_tools/data/locales;ctld_tools/data/locales" \
             ctld_tools/__main__.py
-      - name: Smoke-check the exe (lists the tui command, runs without lupa)
+      - name: Smoke-check the exe (CLI runs without lupa)
         working-directory: tools/ctld-tools
         shell: bash
         run: |
-          ./dist/ctld-tools.exe --help | grep -q " tui " || { echo "::error::tui command missing from exe"; exit 1; }
-          ./dist/ctld-tools.exe tui --help | grep -qi "interactive" || { echo "::error::tui --help failed"; exit 1; }
+          ./dist/ctld-tools.exe --help | grep -q " validate " || { echo "::error::validate command missing from exe"; exit 1; }
       - name: Attach ctld-tools.exe to the release
         shell: bash
         env:

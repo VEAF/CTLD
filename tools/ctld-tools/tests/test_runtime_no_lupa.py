@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 _RUNTIME_IMPORTS = (
-    "import ctld_tools.reference, ctld_tools.validate, ctld_tools.genuser; "
+    "import ctld_tools.reference, ctld_tools.validate; "
     "ctld_tools.reference.Reference.from_embedded(); "
     "import sys; "
     "assert 'lupa' not in sys.modules, sorted(m for m in sys.modules if 'lupa' in m)"
