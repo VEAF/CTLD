@@ -75,20 +75,13 @@ The helpers — `ctld.addCrate`, `ctld.removeCrate`, `ctld.patchCrate`, `ctld.ad
 `ctld.logDefaults("spawnableCrates")` from a mission trigger to dump the current defaults to
 `CTLD.log`, and see `CTLD_userConfig.lua` for the fully documented template.
 
-!!! tip "Recommended: author in YAML with `ctld-tools`"
-    Rather than hand-writing Lua, the recommended flow is to edit a small **`user-config.yaml`**
-    and let `ctld-tools` generate `CTLD_userConfig.lua` for you. You refer to crates and troop
-    groups **by name** (no weights to look up); the tool resolves them, validates your file
-    against the real catalogue and the DCS type list, and reports mistakes with suggestions:
-
-    ```
-    ctld-tools gen-user --scaffold --out user-config.yaml   # commented starter
-    ctld-tools validate  --yaml user-config.yaml --src src
-    ctld-tools gen-user  --yaml user-config.yaml --src src --out CTLD_userConfig.lua
-    ```
-
-    `ctld-tools.exe` is attached to each GitHub Release (no Python needed). Hand-editing the Lua
-    template stays supported for power users.
+!!! tip "Recommended: use the `ctld-tools` app"
+    Rather than hand-writing Lua, the recommended flow is the **`ctld-tools`** app: double-click it,
+    edit CTLD's complete configuration in your browser through forms, and inject it into your
+    mission. It validates your changes against the real catalogue and the DCS type list and catches
+    mistakes before DCS. `ctld-tools.exe` is attached to each GitHub Release (no Python needed) — see
+    [Configuring CTLD with `ctld-tools`](ctld-tools.md). Hand-editing the Lua template below stays
+    supported for power users.
 
 ## Global settings
 

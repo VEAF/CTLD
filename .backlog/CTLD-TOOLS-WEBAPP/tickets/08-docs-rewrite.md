@@ -1,6 +1,6 @@
 # 08 — docs rewrite for the web app
 
-Status: 📋 todo
+Status: ✅ done
 Type: docs
 
 Rewrite the Mission-Maker tool docs for the web app and update the glossary.

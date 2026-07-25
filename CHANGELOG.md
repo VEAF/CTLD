@@ -10,6 +10,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
 
+- Lot 3 (ticket 08): **docs rewrite** — `docs/mission-maker/ctld-tools.{md,fr.md}` rewritten for the
+  web app (double-click the exe → browser; the Parameters/Data screens + families; live validate;
+  `.miz` inject; version-gap popup; the complete-snapshot model). Stale TUI / `gen-user` /
+  `user-config.yaml` diff-model references removed from the mission-maker docs.
 - Lot 3 (ticket 07): **CI frontend build + exe packaging** — `release.yml` now builds the Svelte
   frontend with Node and packages a single **console** `ctld-tools.exe` (PyInstaller) that bundles
   the built assets, the default config YAML + schema, and the DCS type set — so a Mission Maker
