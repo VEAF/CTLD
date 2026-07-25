@@ -1,6 +1,6 @@
 # 03 — validate: schema + datamine + mixedSet
 
-Status: 📋 todo
+Status: ✅ done
 Type: tool (Python) + test
 
 Validate a complete catalogue against the schema, the datamine type set, and AA `mixedSet`

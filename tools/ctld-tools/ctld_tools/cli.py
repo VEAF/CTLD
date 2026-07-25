@@ -54,17 +54,17 @@ def gen_config_cmd(
 
 @app.command("validate")
 def validate_cmd(
-    yaml_path: Path = typer.Option(..., "--yaml", help="path to the user-config.yaml"),
-    src: Path = typer.Option(
-        None, "--src", help="dev override: resolve from CTLD src/ instead of the embedded reference"
-    ),
+    yaml_path: Path = typer.Option(..., "--yaml", help="path to a complete config YAML to validate"),
+    schema_path: Path = typer.Option(None, "--schema", help="path to CTLD_config_schema.yaml (enables choices checks)"),
 ) -> None:
-    """Validate a user-config.yaml against the reference catalogue and DCS types."""
-    from ctld_tools.reference import Reference
-    from ctld_tools.validate import has_errors, load_user_config, validate
+    """Validate a complete config catalogue against the DCS types and schema."""
+    from ctld_tools.catalog import Catalog
+    from ctld_tools.schema import Schema
+    from ctld_tools.validate import has_errors, validate
 
-    ref = Reference.from_src(src) if src else Reference.from_embedded()
-    findings = validate(load_user_config(yaml_path), ref)
+    catalog = Catalog.load(yaml_path)
+    schema = Schema.load(schema_path) if schema_path else Schema({})
+    findings = validate(catalog, schema)
     for finding in findings:
         typer.echo(str(finding))
     if not findings:

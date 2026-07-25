@@ -27,8 +27,8 @@ def cat() -> Catalog:
 
 def test_get_across_sections_and_top_level():
     c = cat()
-    assert c.get("numberOfTroops") == 10          # mm_facing
-    assert c.get("hoverTime") == 10               # advanced
+    assert c.get("numberOfTroops") == 10  # mm_facing
+    assert c.get("hoverTime") == 10  # advanced
     assert str(c.get("configVersion")) == "2.0.0"  # top-level
     assert c.get("nope") is None
     assert c.get("nope", 42) == 42
@@ -62,7 +62,7 @@ def test_set_unknown_raises():
 
 def test_add_and_remove_setting():
     c = cat()
-    c.add_setting("brandNew", 7)               # default section = advanced
+    c.add_setting("brandNew", 7)  # default section = advanced
     assert c.get("brandNew") == 7
     c.remove("brandNew")
     assert not c.has("brandNew")
@@ -71,7 +71,7 @@ def test_add_and_remove_setting():
 def test_remove_makes_element_absent():
     c = cat()
     c.remove("hoverTime")
-    assert not c.has("hoverTime")               # missing = intentional removal
+    assert not c.has("hoverTime")  # missing = intentional removal
 
 
 def test_data_section_is_mutable():
@@ -94,7 +94,7 @@ def test_loads_the_real_catalogue():
     c = Catalog.load(SRC_YAML)
     assert c.get("numberOfTroops") == 10
     assert str(c.get("configVersion")) == "2.0.0"
-    assert "SAM mid range" in c.get("spawnableCrates")   # AA baked in (lot 1 t05)
+    assert "SAM mid range" in c.get("spawnableCrates")  # AA baked in (lot 1 t05)
     # full round-trip: dump then reload equals the same settings
     again = Catalog.loads(c.dumps())
     assert again.get("aaRearmDistance") == c.get("aaRearmDistance")

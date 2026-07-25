@@ -10,6 +10,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 core (CTLD-TOOLS-CORE)
 
+- Lot 2 (ticket 03): `validate` rewritten for the complete-catalogue model (no more ops/diff) —
+  it checks a whole `Catalog`: known DCS unit types (datamine), globally-unique crate weights, AA
+  **mixedSet consistency** (every "All crates" weight resolves to a crate in its section), and schema
+  `choices` enums. New i18n keys (`validate.mixedset.dangling_weight`, `validate.setting.bad_choice`);
+  the `validate` CLI command now takes a full config YAML (+ optional `--schema`).
 - Lot 2 (ticket 02): the UI-agnostic **catalogue core** — `ctld_tools/catalog.py` (`Catalog`: load /
   get / set / add / remove / save the complete config YAML in full, round-trip via ruamel, over the
   `mm_facing`/`advanced` sections + top-level keys) and `ctld_tools/schema.py` (`Schema`: typed access

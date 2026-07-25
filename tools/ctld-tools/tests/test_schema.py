@@ -27,7 +27,7 @@ def test_lot1_knobs_were_recovered():
     assert s.group("aaRearmDistance") == "aa"
     assert s.group("jtacLaserCodeMin") == "jtac"
     assert s.group("fobCrateCollectionRadius") == "fob"
-    assert s.has("configVersion")           # recovered, tool-managed (no family)
+    assert s.has("configVersion")  # recovered, tool-managed (no family)
     assert s.group("configVersion") is None
 
 
