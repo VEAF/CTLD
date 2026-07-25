@@ -41,20 +41,21 @@ la sortie existe et n'est pas vide, et téléverse `CTLD.lua` en tant qu'artefac
 
 Les valeurs par défaut du moteur sont des **données**, pas du code : elles vivent dans
 `src/CTLD_config.yaml` (source de vérité unique, sectionnée `mm_facing` / `advanced`). Au moment du
-build, `merge_CTLD.ps1` régénère `src/CTLD_config_defaults.lua` depuis le YAML (via
-`ctld-tools gen-config`) ; ce fichier définit `ctld.__configDefaults`, que `CTLDConfig:load()`
-recopie dans ses settings. **Éditez le YAML** — le Lua généré est un **artefact de build (ignoré par
-git)**, jamais édité à la main ni committé.
+build, `merge_CTLD.ps1` embarque le YAML verbatim dans un module chaîne Lua —
+`src/CTLD_config_default_yaml.lua`, qui définit `ctld.configDefault` (via `ctld-tools embed`) — que
+`CTLDConfig:load()` parse à l'exécution. **Éditez le YAML** — le Lua généré est un **artefact de build
+(ignoré par git)**, jamais édité à la main ni committé.
 
-Pour changer un défaut : éditez `src/CTLD_config.yaml`, rebuild (`merge_CTLD.ps1` régénère le Lua
-automatiquement), committez le YAML. **Le build nécessite désormais Python** : lancez `poetry install`
-dans `tools/ctld-tools` une fois (le merge appelle `ctld-tools` ; il s'arrête avec un message clair si
+Pour changer un défaut : éditez `src/CTLD_config.yaml`, rebuild (`merge_CTLD.ps1` ré-embarque
+automatiquement), committez le YAML. **Le build nécessite Python** : lancez `poetry install` dans
+`tools/ctld-tools` une fois (le merge appelle `ctld-tools` ; il s'arrête avec un message clair si
 poetry est absent).
 
-`tools/ctld-tools/` est un projet poetry isolé (typer, ruamel.yaml, lupa, pytest + ruff + mypy),
-suivant les conventions Python de VMCT. Le job CI `python-quality` applique un **garde de parité** :
-régénérer depuis le YAML reproduit les settings d'origine, wrappers `ctld.tr` inclus (une référence
-figée, détectée avec un traducteur distinctif).
+`tools/ctld-tools/` est un projet poetry isolé (typer, ruamel.yaml, pytest + ruff + mypy), suivant
+les conventions Python de VMCT. Le job CI `python-quality` applique un **garde de dérive de l'oracle** :
+la référence de round-trip committée `tests/ci/data/config_defaults.json` (émise par `ctld-tools gen`)
+doit égaler une génération fraîche depuis le YAML. La suite busted vérifie ensuite que le
+`CTLDConfig.parseYAML` Lua reproduit cet oracle — deux parsers indépendants qui concordent.
 
 ## Exécuter les tests (busted, sans DCS) { #running-tests-busted-no-dcs }
 

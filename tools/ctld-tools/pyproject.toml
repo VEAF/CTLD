@@ -22,10 +22,6 @@ ruff = ">=0.4"
 mypy = ">=1.8"
 pytest = ">=8.0"
 pytest-cov = ">=5.0"
-# lupa runs CTLD_config.lua in-process (gen-reference / gen-config / extract). Build-time
-# only: the MM .exe ships without it and the runtime path never imports it. Removed in
-# lot CTLD-TOOLS-CORE ticket 05 (nothing reads Lua any more).
-lupa = ">=2.0,<3"
 
 [tool.poetry.group.build.dependencies]
 # Only needed to build the MM .exe (lot 3); excluded from the quality gate.

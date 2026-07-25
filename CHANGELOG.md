@@ -10,6 +10,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 core (CTLD-TOOLS-CORE)
 
+- Lot 2 (ticket 05): **retire the last Lua-facing Python + drop `lupa`**. Removed `genconfig`,
+  `genreference`, `extract`, `reference` (+ `reference.json`), `luaconfig`, and their tests. The CLI
+  is trimmed to `embed` / `validate` / `gen`: `embed` wraps a config YAML verbatim into a `ctld.<var>`
+  Lua string module (`ctld_tools/embed.py`, one implementation reused by the build for `configDefault`
+  and by the lot-3 MM export for `configUser`); `gen` emits the flat engine defaults as a JSON parity
+  oracle (`ctld_tools/oracle.py`). **Build/CI rewired:** `merge_CTLD.ps1` embeds via `ctld-tools embed`
+  (no more `gen-config` / `CTLD_config_defaults.lua`); the busted round-trip parity now compares
+  `parseYAML` to the committed `tests/ci/data/config_defaults.json` (read via `dkjson`) instead of a
+  generated Lua table; `generate_i18n_dicts.ps1` scans the YAML `desc`/`name` label values (which the
+  vanished `config_defaults.lua` used to surface). `CTLD.lua` output is unchanged.
 - Lot 2 (ticket 04): **version-gap detection** — `ctld_tools/versiongap.py` (`version_gap()`): a pure
   function that diffs an authored catalogue against the current default over the `Catalog` flat
   namespace and returns structured data (`added` / `removed` / `changed` defaults + from/to

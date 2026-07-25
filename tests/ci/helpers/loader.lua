@@ -26,10 +26,8 @@ dofile(SRC .. "CTLD_aasystem.lua")
 dofile(SRC .. "CTLD_config.lua")
 
 -- Minimal i18n stub so ctld.tr() is available before CTLD_i18n loads
+-- (CTLDConfig:load() translates desc/name via tr at load time).
 ctld.tr = ctld.tr or function(key, default) return default or key end
--- Engine defaults are generated from ctld-config.yaml; the generated module
--- calls ctld.tr at load time, so it loads after the stub and before load().
-dofile(SRC .. "CTLD_config_defaults.lua")
 
 -- Ticket 03: expose the verbatim config YAML as ctld.configDefault. The build embeds it
 -- as a generated Lua module (src/CTLD_config_default_yaml.lua); for busted we read the

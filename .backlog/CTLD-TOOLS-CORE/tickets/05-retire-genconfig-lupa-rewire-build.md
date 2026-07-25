@@ -1,7 +1,14 @@
 # 05 — Retire gen-config/lupa, rewire build + CI (the hard one)
 
-Status: 📋 todo
+Status: ✅ done
 Type: tool (Python) + build + test
+
+> **Decisions (validated with David):** `embed` is the YAML→Lua-string wrap, a single core
+> function (`ctld_tools/embed.py`) reused by the build (`configDefault`) **and** the lot-3 MM
+> export (`configUser`) — the wrap is business logic, so it lives here per the anti-duplication
+> rule, and `merge_CTLD.ps1` calls `ctld-tools embed`. The `inject` CLI command is dropped (no
+> CLI UX investment) but `miz.py` stays as a library for lot 3. The JSON oracle is committed at
+> `tests/ci/data/config_defaults.json`; busted reads it via `dkjson` (added to the busted CI job).
 
 Remove the last Lua-facing Python and drop `lupa`. Resolve the two dependencies `gen-config` still
 served (deliberately kept through lot 1 for exactly these — see lot-1 tickets 04/05 scope notes).

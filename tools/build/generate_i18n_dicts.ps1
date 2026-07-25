@@ -73,7 +73,35 @@ foreach ($file in $sourceFiles) {
     }
 }
 
-Write-Host "Keys found via ctld.tr() in source: $($usedKeys.Count)"
+$trKeyCount = $usedKeys.Count
+Write-Host "Keys found via ctld.tr() in source: $trKeyCount"
+
+# =============================================================================
+# Step 1b: Collect the config catalogue's desc/name label values.
+# These are i18n keys the loader translates at runtime via tr(v) on every
+# desc/name at any depth — invisible to the ctld.tr("...") scan above, and no
+# longer present as a generated Lua module (CTLD-TOOLS-CORE ticket 05: the build
+# embeds the YAML string instead). Scan the YAML source of truth directly.
+# =============================================================================
+$configYaml = Join-Path $SourceDir "CTLD_config.yaml"
+if (Test-Path $configYaml) {
+    foreach ($line in (Get-Content $configYaml -Encoding UTF8)) {
+        $m = [regex]::Match($line, '^\s*(?:-\s+)?(?:desc|name):\s*(.+?)\s*$')
+        if (-not $m.Success) { continue }
+        $val = $m.Groups[1].Value
+        # Strip a surrounding pair of matching YAML quotes if present (values are
+        # simple scalars today; this keeps parity if one ever gets quoted).
+        if ($val.Length -ge 2 -and
+            (($val[0] -eq '"'  -and $val[$val.Length - 1] -eq '"') -or
+             ($val[0] -eq "'"  -and $val[$val.Length - 1] -eq "'"))) {
+            $val = $val.Substring(1, $val.Length - 2)
+        }
+        if ($val -ne "") { [void]$usedKeys.Add($val) }
+    }
+    Write-Host "Keys found via config YAML desc/name: $($usedKeys.Count - $trKeyCount)"
+}
+
+Write-Host "Total keys tracked: $($usedKeys.Count)"
 Write-Host ""
 
 # =============================================================================

@@ -1,7 +1,11 @@
-"""Typer CLI for ctld-tools.
+"""Typer CLI for ctld-tools — trimmed to what the build/CI need.
 
-ctld-tools extract     --config-lua src/CTLD_config.lua --out src/CTLD_config.yaml
-ctld-tools gen-config  --yaml src/CTLD_config.yaml --out src/CTLD_config_defaults.lua
+ctld-tools embed     --yaml src/CTLD_config.yaml --out src/CTLD_config_default_yaml.lua
+ctld-tools gen       --yaml src/CTLD_config.yaml --out tests/ci/data/config_defaults.json
+ctld-tools validate  --yaml a-complete-config.yaml [--schema src/CTLD_config_schema.yaml]
+
+No CLI UX investment: the Mission-Maker surface is the lot-3 web app, a thin wrapper over
+this package's library (catalog / schema / validate / versiongap / embed / miz).
 """
 
 from __future__ import annotations
@@ -28,28 +32,29 @@ def _root(
         set_language(lang)
 
 
-@app.command("extract")
-def extract_cmd(
-    config_lua: Path = typer.Option(..., "--config-lua", help="path to src/CTLD_config.lua"),
-    out: Path = typer.Option(..., "--out", help="path to the ctld-config.yaml to write"),
+@app.command("embed")
+def embed_cmd(
+    yaml_path: Path = typer.Option(..., "--yaml", help="path to the config YAML to embed"),
+    out: Path = typer.Option(..., "--out", help="path to the Lua string module to write"),
+    var: str = typer.Option("configDefault", "--var", help="ctld.<var> to assign (configDefault / configUser)"),
 ) -> None:
-    """One-shot: extract the current CTLD_config.lua defaults to a sectioned YAML."""
-    from ctld_tools.extract import extract_file
+    """Wrap a config YAML verbatim into a ctld.<var> Lua string module (build step)."""
+    from ctld_tools.embed import wrap_file
 
-    extract_file(config_lua, out)
-    typer.echo(f"extract: wrote {out}")
+    wrap_file(yaml_path, out, var)
+    typer.echo(f"embed: wrote {out} (ctld.{var})")
 
 
-@app.command("gen-config")
-def gen_config_cmd(
-    yaml_path: Path = typer.Option(..., "--yaml", help="path to ctld-config.yaml (source of truth)"),
-    out: Path = typer.Option(..., "--out", help="path to the generated Lua defaults module"),
+@app.command("gen")
+def gen_cmd(
+    yaml_path: Path = typer.Option(..., "--yaml", help="path to the config YAML (source of truth)"),
+    out: Path = typer.Option(..., "--out", help="path to the JSON defaults oracle to write"),
 ) -> None:
-    """Render the Lua defaults module from ctld-config.yaml (build step)."""
-    from ctld_tools.genconfig import generate_file
+    """Emit the flat engine defaults as the JSON parity oracle (busted round-trip test)."""
+    from ctld_tools.oracle import write_json
 
-    generate_file(yaml_path, out)
-    typer.echo(f"gen-config: wrote {out}")
+    write_json(yaml_path, out)
+    typer.echo(f"gen: wrote {out}")
 
 
 @app.command("validate")
@@ -73,59 +78,6 @@ def validate_cmd(
         raise typer.Exit(1)
 
 
-@app.command("gen-reference")
-def gen_reference_cmd(
-    src: Path = typer.Option(..., "--src", help="path to the CTLD src/ directory (the reference source)"),
-    out: Path = typer.Option(..., "--out", help="path to the reference bundle JSON to write"),
-) -> None:
-    """Freeze the embedded reference bundle from src/ (build step, lupa)."""
-    from ctld_tools.genreference import write_reference
-
-    write_reference(src, out)
-    typer.echo(f"gen-reference: wrote {out}")
-
-
-@app.command("inject")
-def inject_cmd(
-    miz: Path = typer.Option(..., "--miz", help="the .miz mission to modify"),
-    userconfig: Path = typer.Option(..., "--userconfig", help="the generated CTLD_userConfig.lua"),
-    out: Path = typer.Option(None, "--out", help="output .miz (default: overwrite --miz)"),
-) -> None:
-    """Inject a generated CTLD_userConfig.lua into a .miz as a MISSION START trigger (idempotent)."""
-    from ctld_tools.miz import inject_userconfig
-
-    target = out or miz
-    inject_userconfig(miz, userconfig.read_text(encoding="utf-8"), target)
-    typer.echo(f"inject: wrote {target}")
-
-
-def _bridge_target(args: list[str], is_tty: bool) -> list[str] | None:
-    """Route a command-less invocation into the TUI (VMCT approach).
-
-    When the tool is double-clicked from Explorer it runs with no command in a fresh
-    console (a tty), so an interactive terminal with no command → launch `tui`, carrying
-    any global options already given (e.g. --lang). Returns the rewritten args, or None
-    to let Typer run as-is (a real command, `--help`, or a non-interactive stdout).
-    """
-    if not is_tty:
-        return None
-    if any(a in ("--help", "-h") for a in args):
-        return None
-    # Drop the only value-taking global option (--lang) so its value isn't mistaken
-    # for a command, then: any remaining bare token means an explicit command was given.
-    rest, skip = [], False
-    for arg in args:
-        if skip:
-            skip = False
-        elif arg == "--lang":
-            skip = True
-        elif not arg.startswith("--lang="):
-            rest.append(arg)
-    if any(not token.startswith("-") for token in rest):
-        return None
-    return ["tui", *args]
-
-
 def main() -> None:
     # Typer builds the (already-translated) help= strings before the callback runs, so
     # parse --lang manually and early — that way even `--help` prints in the right language.
@@ -137,11 +89,6 @@ def main() -> None:
         if arg.startswith("--lang="):
             set_language(arg.split("=", 1)[1])
             break
-    # Double-click from Explorer (no command, fresh console) → launch the TUI.
-    is_tty = bool(sys.stdout) and sys.stdout.isatty()
-    target = _bridge_target(argv, is_tty)
-    if target is not None:
-        sys.argv = sys.argv[:1] + target
     app()
 
 
