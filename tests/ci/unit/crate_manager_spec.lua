@@ -443,6 +443,19 @@ describe("CTLDCrateManager findDescriptorByUnitType", function()
         assert.is_nil(cm:findDescriptorByUnitType(nil))
     end)
 
+    -- Regression (FEAT-CONFIG-YAML-COMPLETE t04): with the no-merge loader a partial
+    -- configUser can leave settings without spawnableCrates; a crate manager built at
+    -- that moment gets an empty index. An empty index must fall through to the live
+    -- config scan instead of short-circuiting to nil.
+    it("falls back to the live config when the index is empty", function()
+        local saved = cm._weightIndex
+        cm._weightIndex = {}
+        local d = cm:findDescriptorByUnitType("M1043 HMMWV Armament")
+        cm._weightIndex = saved
+        assert.is_not_nil(d)
+        assert.equals(3, d.cratesRequired)
+    end)
+
 end)
 
 -- ─────────────────────────────────────────────────────────────
