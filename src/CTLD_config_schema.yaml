@@ -408,52 +408,42 @@ AASystemCrateStacking:
 
 # ── Parachute ────────────────────────────────────────────────────────────────
 autoUnpackRadiusParachute:
-  group: parachute
   description:
     en: Radius (m) within which a parachuted crate auto-unpacks on landing
     fr: Rayon (m) dans lequel une crate parachutée se déballe automatiquement à l'atterrissage
 parachuteDescentRateCrates:
-  group: parachute
   description:
     en: Descent rate (m/s) for parachuted crates
     fr: Vitesse de descente (m/s) des crates en parachute
 parachuteDescentRateTroops:
-  group: parachute
   description:
     en: Descent rate (m/s) for parachuted troops
     fr: Vitesse de descente (m/s) des troupes en parachute
 parachuteDescentRateVehicles:
-  group: parachute
   description:
     en: Descent rate (m/s) for parachuted vehicles
     fr: Vitesse de descente (m/s) des véhicules en parachute
 parachuteInertiaFactor:
-  group: parachute
   description:
     en: Horizontal inertia factor applied to the crate velocity at drop (0–1, lower = less drift from aircraft speed)
     fr: Facteur d'inertie horizontale appliqué à la vitesse de la crate au largage (0–1, plus bas = moins de dérive due à la vitesse de l'appareil)
 parachuteLateralDriftMax:
-  group: parachute
   description:
     en: Maximum random lateral drift (m) during descent
     fr: Dérive latérale aléatoire maximale (m) pendant la descente
 parachuteLateralDriftMin:
-  group: parachute
   description:
     en: Minimum random lateral drift (m) during descent
     fr: Dérive latérale aléatoire minimale (m) pendant la descente
 parachuteMinAltitudeCrates:
-  group: parachute
   description:
     en: Minimum AGL altitude (m) at which crate parachute deployment triggers
     fr: Altitude AGL minimale (m) à laquelle le déploiement du parachute de la crate se déclenche
 parachuteMinAltitudeTroops:
-  group: parachute
   description:
     en: Minimum AGL altitude (m) at which troop parachute deployment triggers
     fr: Altitude AGL minimale (m) à laquelle le déploiement du parachute des troupes se déclenche
 parachuteMinAltitudeVehicles:
-  group: parachute
   description:
     en: Minimum AGL altitude (m) at which vehicle parachute deployment triggers
     fr: Altitude AGL minimale (m) à laquelle le déploiement du parachute des véhicules se déclenche

@@ -1,7 +1,16 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { getSchema, loadDefault, loadPath, save, type SchemaInfo, type Snapshot } from './lib/api'
-  import { classify, parameterFamilies, type Screens } from './lib/model'
+  import { getSchema, loadDefault, loadPath, putSetting, save, type SchemaInfo, type Snapshot } from './lib/api'
+  import { familyLabel } from './lib/families'
+  import {
+    classify,
+    coerce,
+    editorType,
+    parameterFamilies,
+    standardSplit,
+    type EditorType,
+    type Screens,
+  } from './lib/model'
 
   let schema = $state<SchemaInfo | null>(null)
   let snapshot = $state<Snapshot | null>(null)
@@ -14,6 +23,14 @@
   const familyList = $derived<string[]>(
     !screens ? [] : screen === 'parameters' ? parameterFamilies(screens) : screens.data,
   )
+  const activeKeys = $derived<string[]>(
+    !screens || !activeFamily
+      ? []
+      : screen === 'parameters'
+        ? (screens.parameters[activeFamily] ?? [])
+        : [activeFamily],
+  )
+  const split = $derived(schema ? standardSplit(activeKeys, schema) : { standard: [], advanced: [] })
 
   onMount(async () => {
     try {
@@ -48,25 +65,51 @@
     activeFamily = familyList[0] ?? null
   }
 
-  const activeKeys = $derived<string[]>(
-    !screens || !activeFamily
-      ? []
-      : screen === 'parameters'
-        ? (screens.parameters[activeFamily] ?? [])
-        : [activeFamily],
-  )
+  async function edit(key: string, raw: string | boolean, type: EditorType) {
+    try {
+      const r = await putSetting(key, coerce(raw, type))
+      if (snapshot) snapshot = { ...snapshot, values: { ...snapshot.values, [key]: r.value } }
+      error = null
+    } catch (e) {
+      error = String(e)
+    }
+  }
 
-  function display(key: string): string {
+  function dataSummary(key: string): string {
     const v = snapshot?.values[key]
-    if (v === null || v === undefined) return ''
     if (Array.isArray(v)) return `${v.length} item${v.length === 1 ? '' : 's'}`
-    if (typeof v === 'object') {
+    if (v !== null && typeof v === 'object') {
       const n = Object.keys(v as object).length
       return `${n} entr${n === 1 ? 'y' : 'ies'}`
     }
-    return String(v)
+    return String(v ?? '')
   }
 </script>
+
+{#snippet settingRow(key: string)}
+  {@const meta = schema?.keys[key]}
+  {@const value = snapshot?.values[key]}
+  {@const type = editorType(meta, value)}
+  <div class="row">
+    <label class="key" for={`f_${key}`}>{key}</label>
+    <div class="editor">
+      {#if type === 'boolean'}
+        <input id={`f_${key}`} type="checkbox" checked={value === true} onchange={(e) => edit(key, e.currentTarget.checked, 'boolean')} />
+      {:else if type === 'enum'}
+        <select id={`f_${key}`} value={String(value)} onchange={(e) => edit(key, e.currentTarget.value, 'enum')}>
+          {#each meta?.choices ?? [] as choice}
+            <option value={String(choice)}>{String(choice)}</option>
+          {/each}
+        </select>
+      {:else if type === 'number'}
+        <input id={`f_${key}`} type="number" value={value as number} onchange={(e) => edit(key, e.currentTarget.value, 'number')} />
+      {:else}
+        <input id={`f_${key}`} type="text" value={String(value ?? '')} onchange={(e) => edit(key, e.currentTarget.value, 'string')} />
+      {/if}
+    </div>
+    {#if meta?.description}<p class="help">{meta.description}</p>{/if}
+  </div>
+{/snippet}
 
 <header>
   <h1>CTLD&nbsp;tools</h1>
@@ -100,7 +143,7 @@
         {#each familyList as family (family)}
           <li>
             <button class:active={family === activeFamily} onclick={() => (activeFamily = family)}>
-              {family}
+              {screen === 'parameters' ? familyLabel(family) : family}
             </button>
           </li>
         {/each}
@@ -108,19 +151,24 @@
     </aside>
 
     <main class="panel">
-      {#if activeFamily}
+      {#if activeFamily && screen === 'parameters'}
+        <h2>{familyLabel(activeFamily)}</h2>
+        {#if split.standard.length}
+          <h3>Standard</h3>
+          {#each split.standard as key (key)}{@render settingRow(key)}{/each}
+        {/if}
+        {#if split.advanced.length}
+          <h3>Advanced</h3>
+          {#each split.advanced as key (key)}{@render settingRow(key)}{/each}
+        {/if}
+      {:else if activeFamily}
         <h2>{activeFamily}</h2>
         <table>
           <tbody>
-            {#each activeKeys as key (key)}
-              <tr>
-                <th>{key}</th>
-                <td>{display(key)}</td>
-              </tr>
-            {/each}
+            <tr><th>{activeFamily}</th><td>{dataSummary(activeFamily)}</td></tr>
           </tbody>
         </table>
-        <p class="hint">Read-only shell — editors arrive in ticket 04.</p>
+        <p class="hint">Structured-data editors arrive in tickets 04b–04e.</p>
       {/if}
     </main>
   </div>
@@ -213,7 +261,6 @@
     width: 100%;
     text-align: left;
     margin-bottom: 0.25rem;
-    text-transform: capitalize;
   }
   .families button.active {
     background: #1c2330;
@@ -229,7 +276,41 @@
   }
   .panel h2 {
     margin-top: 0;
-    text-transform: capitalize;
+  }
+  .panel h3 {
+    margin: 1rem 0 0.5rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #5a6473;
+    border-bottom: 1px solid #eef1f6;
+    padding-bottom: 0.25rem;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 45% 1fr;
+    gap: 0.25rem 1rem;
+    align-items: center;
+    padding: 0.3rem 0;
+  }
+  .row .key {
+    font-weight: 600;
+    font-family: ui-monospace, monospace;
+    font-size: 0.85rem;
+  }
+  .row .editor input[type='text'],
+  .row .editor input[type='number'],
+  .row .editor select {
+    width: 100%;
+    padding: 0.3rem 0.4rem;
+    border: 1px solid #c3ccda;
+    border-radius: 4px;
+  }
+  .row .help {
+    grid-column: 1 / -1;
+    margin: 0 0 0.25rem;
+    font-size: 0.75rem;
+    color: #8a93a2;
   }
   table {
     width: 100%;
@@ -237,17 +318,12 @@
   }
   th {
     text-align: left;
-    font-weight: 600;
     padding: 0.35rem 0.5rem;
-    width: 45%;
     border-bottom: 1px solid #eef1f6;
-    vertical-align: top;
   }
   td {
     padding: 0.35rem 0.5rem;
     border-bottom: 1px solid #eef1f6;
-    color: #333b49;
-    font-variant-numeric: tabular-nums;
   }
   .hint {
     color: #8a93a2;

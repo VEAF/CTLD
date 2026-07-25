@@ -38,7 +38,12 @@ const post = (url: string, body?: unknown) =>
     body: body ? JSON.stringify(body) : undefined,
   })
 
+const put = (url: string, body: unknown) =>
+  fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+
 export const getSchema = () => fetch('/api/schema').then((r) => json<SchemaInfo>(r))
+export const putSetting = (key: string, value: unknown) =>
+  put('/api/catalog/setting', { key, value }).then((r) => json<{ key: string; value: unknown }>(r))
 export const getCatalog = () => fetch('/api/catalog').then((r) => json<Snapshot>(r))
 export const loadDefault = () => post('/api/catalog/load-default').then((r) => json<Snapshot>(r))
 export const loadPath = (path: string) => post('/api/catalog/load', { path }).then((r) => json<Snapshot>(r))
