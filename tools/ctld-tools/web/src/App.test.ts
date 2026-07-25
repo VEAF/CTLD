@@ -33,6 +33,10 @@ beforeEach(() => {
     if (url.endsWith('/api/schema')) return Promise.resolve(jsonResponse(SCHEMA))
     if (url.endsWith('/api/dcs-types')) return Promise.resolve(jsonResponse({ types: ['Ka-50', 'UH-1H'] }))
     if (url.endsWith('/api/catalog/load-default')) return Promise.resolve(jsonResponse(SNAP))
+    if (url.endsWith('/api/catalog/load')) return Promise.resolve(jsonResponse(SNAP))
+    if (url.endsWith('/api/dialog/open')) return Promise.resolve(jsonResponse({ path: '/cfg.yaml' }))
+    if (url.endsWith('/api/dialog/miz')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
+    if (url.endsWith('/api/inject')) return Promise.resolve(jsonResponse({ injected: '/m.miz' }))
     if (url.endsWith('/api/catalog/setting') && init?.method === 'PUT') {
       return Promise.resolve(jsonResponse(JSON.parse(String(init.body)))) // echo {key, value}
     }
@@ -55,6 +59,19 @@ test('data screen lists every structured key', async () => {
   await fireEvent.click(await screen.findByText(/^Data/))
   expect(await screen.findByRole('button', { name: 'spawnableCrates' })).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'transportPilotNames' })).toBeInTheDocument()
+})
+
+test('Open… loads via the native dialog path', async () => {
+  render(App)
+  await fireEvent.click(screen.getByText('Open…'))
+  expect(await screen.findByRole('button', { name: 'AA system' })).toBeInTheDocument()
+})
+
+test('Inject to .miz… reports success', async () => {
+  render(App)
+  await fireEvent.click(screen.getByText('Load defaults'))
+  await fireEvent.click(await screen.findByText('Inject to .miz…'))
+  expect(await screen.findByText(/Injected into \/m\.miz/)).toBeInTheDocument()
 })
 
 test('editing a scalar PUTs the coerced value', async () => {

@@ -129,6 +129,39 @@ def test_validate_clean_and_bad_unit():
     assert any("NotARealUnit" in f["message"] for f in bad["findings"])
 
 
+def test_dialog_returns_picked_path(monkeypatch):
+    from ctld_tools.web import dialogs
+
+    monkeypatch.setattr(dialogs, "open_config", lambda: "C:/some/config.yaml")
+    assert client.get("/api/dialog/open").json() == {"path": "C:/some/config.yaml"}
+
+
+def test_dialog_unknown_kind_is_404():
+    assert client.get("/api/dialog/nope").status_code == 404
+
+
+def test_inject_into_miz(tmp_path):
+    import shutil
+    from pathlib import Path
+
+    from ctld_tools.miz import MARKER, read_mission
+
+    src_miz = Path(__file__).resolve().parents[3] / "missions" / "Test_CTLDNEXT_01.miz"
+    miz = tmp_path / "out.miz"
+    shutil.copy(src_miz, miz)
+    client.post("/api/catalog/load-default")  # clean catalogue, no validation errors
+    assert client.post("/api/inject", json={"miz": str(miz)}).json() == {"injected": str(miz)}
+    mission = read_mission(miz)
+    injected = mission["trig"]["actions"][1]
+    assert "ctld.configUser" in injected
+    assert mission["trigrules"][1]["comment"] == MARKER
+
+
+def test_inject_blocked_by_validation_errors():
+    _load(BAD_UNIT)
+    assert client.post("/api/inject", json={"miz": "unused.miz"}).status_code == 422
+
+
 def test_version_gap_against_default():
     _load()  # SAMPLE is configVersion 1.0.0; default is 2.0.0
     gap = client.get("/api/version-gap").json()

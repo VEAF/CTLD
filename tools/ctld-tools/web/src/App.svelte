@@ -4,8 +4,10 @@
     getDcsTypes,
     getSchema,
     getValidate,
+    injectMiz,
     loadDefault,
     loadPath,
+    openDialog,
     putSetting,
     save,
     type Finding,
@@ -39,7 +41,7 @@
   let error = $state<string | null>(null)
   let screen = $state<'parameters' | 'data'>('parameters')
   let activeFamily = $state<string | null>(null)
-  let pathInput = $state('')
+  let status = $state<string | null>(null)
   let findings = $state<Finding[]>([])
   let dcsTypes = $state<string[]>([])
 
@@ -95,13 +97,37 @@
     }
   }
 
-  async function doSave() {
-    if (!pathInput) return
+  async function doOpen() {
     try {
-      await save(pathInput)
-      error = null
+      const { path } = await openDialog('open')
+      if (path) await run(() => loadPath(path))
     } catch (e) {
       error = String(e)
+    }
+  }
+
+  async function doSave() {
+    try {
+      const { path } = await openDialog('save')
+      if (!path) return
+      await save(path)
+      error = null
+      status = `Saved to ${path}`
+    } catch (e) {
+      error = String(e)
+    }
+  }
+
+  async function doInject() {
+    try {
+      const { path } = await openDialog('miz')
+      if (!path) return
+      const { injected } = await injectMiz(path)
+      error = null
+      status = `Injected into ${injected}`
+    } catch (e) {
+      error = String(e)
+      status = null
     }
   }
 
@@ -159,14 +185,16 @@
   <h1>CTLD&nbsp;tools</h1>
   <div class="actions">
     <button onclick={() => run(loadDefault)}>Load defaults</button>
-    <input placeholder="path to a config .yaml" bind:value={pathInput} />
-    <button onclick={() => run(() => loadPath(pathInput))} disabled={!pathInput}>Open</button>
-    <button onclick={doSave} disabled={!pathInput || !snapshot}>Save</button>
+    <button onclick={doOpen}>Open…</button>
+    <button onclick={doSave} disabled={!snapshot}>Save…</button>
+    <button onclick={doInject} disabled={!snapshot}>Inject to .miz…</button>
   </div>
 </header>
 
 {#if error}
   <p class="error" role="alert">{error}</p>
+{:else if status}
+  <p class="status">{status}</p>
 {/if}
 
 {#if !snapshot}
@@ -279,12 +307,6 @@
     gap: 0.5rem;
     flex: 1;
   }
-  .actions input {
-    flex: 1;
-    padding: 0.35rem 0.5rem;
-    border: 1px solid #3a4560;
-    border-radius: 4px;
-  }
   button {
     padding: 0.35rem 0.7rem;
     border: 1px solid #c3ccda;
@@ -299,6 +321,10 @@
   .error {
     margin: 0.75rem 1.25rem;
     color: #a12020;
+  }
+  .status {
+    margin: 0.75rem 1.25rem;
+    color: #1a6d3a;
   }
   .empty {
     margin: 2rem 1.25rem;

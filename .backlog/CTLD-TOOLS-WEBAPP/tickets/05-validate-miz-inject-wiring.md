@@ -1,7 +1,11 @@
 # 05 — live validate + .miz inject + native file dialog
 
-Status: 📋 todo
+Status: ✅ done
 Type: tool (Python + frontend) + test
+
+> Native dialogs (tkinter) are interactive-only — unit-tested with a monkeypatched picker; the
+> inject flow is TestClient-tested against a real `.miz`. Live dialog verification is skipped (it
+> would pop an OS window on the host).
 
 Wire the editing surface to lot-2 `validate` and `miz` injection, with a native OS file dialog.
 

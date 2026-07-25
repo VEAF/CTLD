@@ -34,6 +34,10 @@ class SaveRequest(BaseModel):
     path: str
 
 
+class InjectRequest(BaseModel):
+    miz: str
+
+
 # ── helpers ────────────────────────────────────────────────────────
 def _plain(v: Any) -> Any:
     """Coerce ruamel round-trip types (dict/list/scalar subclasses) to plain JSON types."""
@@ -187,6 +191,33 @@ def run_validate() -> dict[str, Any]:
         "hasErrors": has_errors(findings),
         "findings": [{"severity": f.severity, "where": f.where, "key": f.key, "message": f.message} for f in findings],
     }
+
+
+@app.get("/api/dialog/{kind}")
+def dialog(kind: str) -> dict[str, str | None]:
+    """Open a native OS file dialog (open / save / miz) and return the chosen path (or null)."""
+    from ctld_tools.web import dialogs
+
+    picker = {"open": dialogs.open_config, "save": dialogs.save_config, "miz": dialogs.pick_miz}.get(kind)
+    if picker is None:
+        raise HTTPException(status_code=404, detail=f"unknown dialog: {kind}")
+    return {"path": picker()}
+
+
+@app.post("/api/inject")
+def inject(req: InjectRequest) -> dict[str, str]:
+    """Export the current catalogue as ctld.configUser and inject it into a .miz (idempotent)."""
+    from ctld_tools.embed import wrap
+    from ctld_tools.miz import inject_userconfig
+
+    try:
+        cat = session.catalog
+    except LookupError as exc:
+        raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
+    if has_errors(validate(cat, session.schema)):
+        raise HTTPException(status_code=422, detail="fix validation errors before injecting")
+    inject_userconfig(req.miz, wrap(cat.dumps(), "configUser"), req.miz)
+    return {"injected": req.miz}
 
 
 @app.get("/api/version-gap")

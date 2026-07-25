@@ -10,6 +10,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
 
+- Lot 3 (ticket 05): **`.miz` inject + native file dialogs** — Open… / Save… / Inject to .miz… now
+  drive **native OS dialogs** via the local backend (`/api/dialog/{open,save,miz}`, tkinter). Inject
+  exports the current catalogue as `ctld.configUser` (lot-2 `embed`) and injects it into the chosen
+  `.miz` (lot-2 `miz.inject_userconfig`), **blocked when validation has errors**. Live validation was
+  already wired in 04b.
 - Lot 3 (ticket 04e): **zones + mission lists + vehicle weights + no-editing-gaps gate** — the Data
   screen is now fully editable. `troopZones`/`wpZones`/`AIZones` edit as **named fields** (positional
   arrays converted via the ported `_ZONE_FIELD_SCHEMAS`, exposed at `/api/schema` `zoneFields`);
