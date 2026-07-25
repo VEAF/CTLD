@@ -2472,17 +2472,13 @@ place — so you patch the real catalogue surgically instead of copy-pasting and
 <code>ctld.logDefaults("spawnableCrates")</code> from a mission trigger to dump the current defaults to
 <code>CTLD.log</code>, and see <code>CTLD_userConfig.lua</code> for the fully documented template.</p>
 <div class="admonition tip">
-<p class="admonition-title">Recommended: author in YAML with <code>ctld-tools</code></p>
-<p>Rather than hand-writing Lua, the recommended flow is to edit a small <strong><code>user-config.yaml</code></strong>
-and let <code>ctld-tools</code> generate <code>CTLD_userConfig.lua</code> for you. You refer to crates and troop
-groups <strong>by name</strong> (no weights to look up); the tool resolves them, validates your file
-against the real catalogue and the DCS type list, and reports mistakes with suggestions:</p>
-<div class="highlight"><pre><span></span><code>ctld-tools gen-user --scaffold --out user-config.yaml   # commented starter
-ctld-tools validate  --yaml user-config.yaml --src src
-ctld-tools gen-user  --yaml user-config.yaml --src src --out CTLD_userConfig.lua
-</code></pre></div>
-<p><code>ctld-tools.exe</code> is attached to each GitHub Release (no Python needed). Hand-editing the Lua
-template stays supported for power users.</p>
+<p class="admonition-title">Recommended: use the <code>ctld-tools</code> app</p>
+<p>Rather than hand-writing Lua, the recommended flow is the <strong><code>ctld-tools</code></strong> app: double-click it,
+edit CTLD's complete configuration in your browser through forms, and inject it into your
+mission. It validates your changes against the real catalogue and the DCS type list and catches
+mistakes before DCS. <code>ctld-tools.exe</code> is attached to each GitHub Release (no Python needed) — see
+<a href="../ctld-tools/">Configuring CTLD with <code>ctld-tools</code></a>. Hand-editing the Lua template below stays
+supported for power users.</p>
 </div>
 <h2 id="global-settings">Global settings<a class="headerlink" href="#global-settings" title="Permanent link">&para;</a></h2>
 <h3 id="system">System<a class="headerlink" href="#system" title="Permanent link">&para;</a></h3>
