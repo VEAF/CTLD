@@ -55,3 +55,29 @@ to the key itself).
 **Settings schema** — `src/CTLD_config_schema.yaml` holds authoring metadata for settings
 (functional `group`, `standard` flag, `choices` enum, bilingual `description`). Optional: a
 setting with no entry is still editable, the UI falls back to a generic editor.
+
+## Web app
+
+`web/` is the Mission-Maker surface (Svelte 5 + Vite), served by FastAPI and bundled into the exe.
+`npm run dev` proxies `/api` to a uvicorn on :8000; `npm run build` emits into
+`ctld_tools/web/static/`.
+
+The UI is organised by **functional family** — one navigation axis, where a family owns both its
+scalar settings and its structured tables (see `web/src/lib/families.ts`). There is no
+Parameters/Data split: that followed the *shape* of a value rather than its subject, and filed
+`enableCrates` and `spawnableCrates` under different screens.
+
+Two pieces of presentation metadata live in the frontend rather than in the schema, deliberately:
+
+- **Labels** (`web/src/lib/labels.ts`) are derived from the key itself (`humanize`), with a short
+  override map. Units are extracted from the schema `description` text, which already documents them
+  (`Max height (m) …`) — never inferred from a key name.
+- **Family fallback** (`familyOf`) derives a family from the key's spelling for the ~44 settings the
+  schema has no `group:` for.
+
+Both are stopgaps. The durable home for this metadata is `src/CTLD_config_schema.yaml` (adding the
+missing `group:`, plus real `label:` / `unit:` fields), which would also let the doc tables be
+generated from it — see `dev/roadmap.md`.
+
+All user-facing strings sit in `web/src/lib/strings.ts` so the FR translation of the UI (the backend
+i18n layer already exists) stays a mechanical substitution.

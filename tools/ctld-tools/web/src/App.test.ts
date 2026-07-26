@@ -1,12 +1,12 @@
-import { fireEvent, render, screen } from '@testing-library/svelte'
+import { fireEvent, render, screen, waitFor } from '@testing-library/svelte'
 import { beforeEach, expect, test, vi } from 'vitest'
 import App from './App.svelte'
 
 const SCHEMA = {
   families: ['aa', 'troops'],
   keys: {
-    numberOfTroops: { group: 'troops', standard: true, choices: null, description: null },
-    aaRearmDistance: { group: 'aa', standard: false, choices: null, description: null },
+    numberOfTroops: { group: 'troops', standard: true, choices: null, description: 'Default troop group size' },
+    aaRearmDistance: { group: 'aa', standard: false, choices: null, description: 'Rearm range (metres)' },
   },
   tableFields: { spawnableCrates: { desc: 'Display name', unit: 'DCS type', weight_kg: 'mass' } },
   zoneFields: {},
@@ -23,24 +23,33 @@ const SNAP = {
   },
 }
 
-function jsonResponse(body: unknown) {
-  return new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
+const DEFAULTS = { values: { numberOfTroops: 10, aaRearmDistance: 300 } }
+
+let findings: unknown[] = []
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 }
 
 beforeEach(() => {
+  findings = []
+  vi.stubGlobal('confirm', vi.fn(() => true))
   global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
     if (url.endsWith('/api/schema')) return Promise.resolve(jsonResponse(SCHEMA))
+    if (url.endsWith('/api/defaults')) return Promise.resolve(jsonResponse(DEFAULTS))
     if (url.endsWith('/api/dcs-types')) return Promise.resolve(jsonResponse({ types: ['Ka-50', 'UH-1H'] }))
     if (url.endsWith('/api/catalog/load-default')) return Promise.resolve(jsonResponse(SNAP))
     if (url.endsWith('/api/catalog/load')) return Promise.resolve(jsonResponse(SNAP))
+    if (url.endsWith('/api/catalog/save')) return Promise.resolve(jsonResponse({ saved: '/out.yaml' }))
     if (url.endsWith('/api/dialog/open')) return Promise.resolve(jsonResponse({ path: '/cfg.yaml' }))
+    if (url.endsWith('/api/dialog/save')) return Promise.resolve(jsonResponse({ path: '/out.yaml' }))
     if (url.endsWith('/api/dialog/miz')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
     if (url.endsWith('/api/inject')) return Promise.resolve(jsonResponse({ injected: '/m.miz' }))
     if (url.endsWith('/api/catalog/setting') && init?.method === 'PUT') {
       return Promise.resolve(jsonResponse(JSON.parse(String(init.body)))) // echo {key, value}
     }
-    if (url.endsWith('/api/validate')) return Promise.resolve(jsonResponse({ hasErrors: false, findings: [] }))
+    if (url.endsWith('/api/validate')) return Promise.resolve(jsonResponse({ hasErrors: false, findings }))
     if (url.endsWith('/api/version-gap'))
       return Promise.resolve(
         jsonResponse({ fromVersion: '2.0.0', toVersion: '2.0.0', isEmpty: true, added: [], removed: [], changed: [] }),
@@ -49,43 +58,129 @@ beforeEach(() => {
   }) as unknown as typeof fetch
 })
 
-test('parameter families all render in the nav after load', async () => {
+test('boots straight onto a populated catalogue, with no user action', async () => {
   render(App)
-  await fireEvent.click(screen.getByText('Load defaults'))
-  // Every group present among the scalar settings surfaces as a family button (labelled).
-  expect(await screen.findByRole('button', { name: 'AA system' })).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'Troops' })).toBeInTheDocument()
+  // The old empty state ("Load the defaults … to begin") asked a question a first-time MM
+  // could not answer; the app now loads the defaults itself.
+  expect(await screen.findByRole('button', { name: /Troops/ })).toBeInTheDocument()
+  expect(screen.getByText('CTLD defaults')).toBeInTheDocument()
 })
 
-test('data screen lists every structured key', async () => {
+test('every family surfaces in the single navigation, tables included', async () => {
   render(App)
-  await fireEvent.click(screen.getByText('Load defaults'))
-  await fireEvent.click(await screen.findByText(/^Data/))
-  expect(await screen.findByRole('button', { name: 'spawnableCrates' })).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'transportPilotNames' })).toBeInTheDocument()
+  expect(await screen.findByRole('button', { name: /Troops/ })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /AA system/ })).toBeInTheDocument()
+  // spawnableCrates is a table, and lives in the Crates family rather than a Data screen.
+  expect(screen.getByRole('button', { name: /Crates/ })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /Aircraft/ })).toBeInTheDocument()
 })
 
-test('Open… loads via the native dialog path', async () => {
+test('the Parameters / Data vocabulary is gone', async () => {
   render(App)
-  await fireEvent.click(screen.getByText('Open…'))
-  expect(await screen.findByRole('button', { name: 'AA system' })).toBeInTheDocument()
+  await screen.findByRole('button', { name: /Troops/ })
+  expect(screen.queryByText(/how CTLD behaves/)).not.toBeInTheDocument()
+  expect(screen.queryByText(/what CTLD operates on/)).not.toBeInTheDocument()
 })
 
-test('Inject to .miz… reports success', async () => {
+test('a setting shows its human label, its raw key and its unit', async () => {
   render(App)
-  await fireEvent.click(screen.getByText('Load defaults'))
-  await fireEvent.click(await screen.findByText('Inject to .miz…'))
-  expect(await screen.findByText(/Injected into \/m\.miz/)).toBeInTheDocument()
+  await fireEvent.click(await screen.findByRole('button', { name: /AA system/ }))
+  // Advanced is collapsed but rendered, so the label is in the DOM either way.
+  expect(await screen.findByText('AA rearm distance')).toBeInTheDocument()
+  expect(screen.getByText('aaRearmDistance')).toBeInTheDocument()
+  expect(screen.getByText('m')).toBeInTheDocument() // from "(metres)" in the description
 })
 
 test('editing a scalar PUTs the coerced value', async () => {
   render(App)
-  await fireEvent.click(screen.getByText('Load defaults'))
-  // 'aa' is the first family; aaRearmDistance is a number editor in it.
-  const field = await screen.findByLabelText('aaRearmDistance')
+  await fireEvent.click(await screen.findByRole('button', { name: /AA system/ }))
+  const field = await screen.findByLabelText('AA rearm distance')
   await fireEvent.change(field, { target: { value: '350' } })
   expect(global.fetch).toHaveBeenCalledWith(
     '/api/catalog/setting',
     expect.objectContaining({ method: 'PUT', body: JSON.stringify({ key: 'aaRearmDistance', value: 350 }) }),
   )
+})
+
+test('a changed setting can be reset to the CTLD default', async () => {
+  render(App)
+  await fireEvent.click(await screen.findByRole('button', { name: /AA system/ }))
+  const field = await screen.findByLabelText('AA rearm distance')
+  await fireEvent.change(field, { target: { value: '350' } })
+
+  const reset = await screen.findByRole('button', { name: /Reset to default: AA rearm distance/ })
+  await fireEvent.click(reset)
+  expect(global.fetch).toHaveBeenCalledWith(
+    '/api/catalog/setting',
+    expect.objectContaining({ method: 'PUT', body: JSON.stringify({ key: 'aaRearmDistance', value: 300 }) }),
+  )
+  // Back at the default → nothing left to reset.
+  await waitFor(() =>
+    expect(screen.queryByRole('button', { name: /Reset to default: AA rearm distance/ })).not.toBeInTheDocument(),
+  )
+})
+
+test('the header tracks whether work is saved', async () => {
+  render(App)
+  await fireEvent.click(await screen.findByRole('button', { name: /Troops/ }))
+  expect(screen.getByText('No changes')).toBeInTheDocument()
+
+  const field = await screen.findByLabelText('Number of troops')
+  await fireEvent.change(field, { target: { value: '12' } })
+  expect(await screen.findByText('Unsaved changes')).toBeInTheDocument()
+
+  await fireEvent.click(screen.getByRole('button', { name: 'Save as…' }))
+  expect(await screen.findByText('Saved')).toBeInTheDocument()
+})
+
+test('a family with no common settings opens its advanced list, not an empty panel', async () => {
+  render(App)
+  // `aa` holds only aaRearmDistance, flagged advanced — the panel must not look empty.
+  await fireEvent.click(await screen.findByRole('button', { name: /AA system/ }))
+  const disclosure = document.querySelector('details.advanced') as HTMLDetailsElement
+  expect(disclosure.open).toBe(true)
+})
+
+test('search finds a setting from a family that is not selected', async () => {
+  render(App)
+  await screen.findByRole('button', { name: /Troops/ }) // Troops family is selected first
+  await fireEvent.input(screen.getByPlaceholderText(/Search all settings/), { target: { value: 'rearm' } })
+  expect(await screen.findByText('AA rearm distance')).toBeInTheDocument()
+  expect(screen.getByText('1 setting found')).toBeInTheDocument()
+  expect(screen.getByText(/in AA system/)).toBeInTheDocument()
+})
+
+test('a validation finding names the setting and jumps to its family', async () => {
+  findings = [{ severity: 'error', where: 'settings', key: 'aaRearmDistance', message: 'must be positive' }]
+  render(App)
+  const finding = await screen.findByRole('button', { name: /AA rearm distance.*must be positive/ })
+  expect(screen.getByText(/1 problem to fix before injecting/)).toBeInTheDocument()
+  await fireEvent.click(finding)
+  // Navigated to the owning family and revealed the setting.
+  expect(await screen.findByLabelText('AA rearm distance')).toBeInTheDocument()
+})
+
+test('injection is blocked while the config has errors', async () => {
+  findings = [{ severity: 'error', where: 'settings', key: 'aaRearmDistance', message: 'must be positive' }]
+  render(App)
+  await screen.findByText(/1 problem to fix before injecting/)
+  expect(screen.getByRole('button', { name: /Inject into mission/ })).toBeDisabled()
+})
+
+test('injecting reports success and what happens next', async () => {
+  render(App)
+  await fireEvent.click(await screen.findByRole('button', { name: /Inject into mission/ }))
+  expect(await screen.findByText(/Injected into \/m\.miz/)).toBeInTheDocument()
+  expect(screen.getByText(/applied when the mission starts/)).toBeInTheDocument()
+})
+
+test('opening a file warns before discarding unsaved changes', async () => {
+  render(App)
+  await fireEvent.click(await screen.findByRole('button', { name: /Troops/ }))
+  const field = await screen.findByLabelText('Number of troops')
+  await fireEvent.change(field, { target: { value: '12' } })
+  await screen.findByText('Unsaved changes')
+
+  await fireEvent.click(screen.getByRole('button', { name: 'Open a config file…' }))
+  expect(confirm).toHaveBeenCalled()
 })

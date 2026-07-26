@@ -1,0 +1,187 @@
+/*
+ * CTLD tools — design tokens.
+ *
+ * Direction: a cockpit instrument panel at night, read off a kneeboard. The tool sits between the
+ * Mission Editor and a flight, so it should feel like avionics, not like a settings dialog.
+ *
+ *  - Ground and neutrals are biased olive/slate rather than pure grey — a chosen neutral.
+ *  - One bold colour: caution amber. It marks the active family, section rules, the primary action
+ *    and anything switched on. Everything else stays quiet so the amber keeps meaning something.
+ *  - Semantic colours (ok / error) are separate from the accent, the way lamps are separate from
+ *    panel lighting.
+ *  - RED / BLUE are the NATO side colours, used wherever a coalition appears.
+ *
+ * Font stacks only — the exe serves offline, so a webfont fetch would silently fall back.
+ */
+
+:root {
+  /* ── ground & structure ── */
+  --ground: #0f1417;
+  --panel: #171f24;
+  --panel-2: #12191d;
+  --raised: #1e2a31;
+  --sunken: #10171b;
+  --hair: #2b3a43;
+  --hair-soft: #212d34;
+
+  /* ── ink ── */
+  --ink: #dbe6ea;
+  --ink-dim: #8ea1ab;
+  --ink-faint: #62757e;
+
+  /* ── accent: caution amber ── */
+  --accent: #e8a13a;
+  --accent-ink: #1a1206;
+  --accent-soft: #3a2f1a;
+
+  /* ── semantic lamps ── */
+  --ok: #5fb86b;
+  --ok-soft: #16281a;
+  --warn: #e8a13a;
+  --warn-soft: #2a2211;
+  --err: #e5533c;
+  --err-soft: #2e1713;
+
+  /* ── coalition ── */
+  --side-blue: #4e9bd1;
+  --side-blue-soft: #12222c;
+  --side-blue-hair: #244152;
+  --side-red: #d2503f;
+  --side-red-soft: #241311;
+  --side-red-hair: #43231e;
+
+  /* ── type ── */
+  --font-display: 'Bahnschrift', 'DIN Alternate', 'Segoe UI Semibold', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Cascadia Code', 'Cascadia Mono', Consolas, ui-monospace, monospace;
+
+  --fs-xs: 0.69rem;
+  --fs-sm: 0.78rem;
+  --fs-base: 0.875rem;
+  --fs-md: 0.95rem;
+  --fs-lg: 1.3rem;
+  --fs-xl: 1.4rem;
+
+  /* ── metrics ── */
+  --radius: 8px;
+  --radius-sm: 5px;
+  --gap: 0.75rem;
+  --pad: 1.25rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(120% 80% at 82% -12%, #16211f 0%, transparent 55%),
+    var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Keyboard focus must stay obvious against a dark ground. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── shared controls ─────────────────────────────────────────────
+   Declared once here so each editor inherits the look instead of restating hex values. */
+
+button {
+  font-family: var(--font-display);
+  font-size: var(--fs-base);
+  letter-spacing: 0.4px;
+  padding: 0.42rem 0.8rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hair);
+  background: var(--raised);
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+button:hover:not(:disabled) {
+  border-color: var(--ink-dim);
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+button.primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+button.ghost {
+  background: transparent;
+}
+button.danger {
+  color: var(--err);
+  border-color: var(--err-soft);
+  background: transparent;
+}
+
+input[type='text'],
+input[type='number'],
+input[type='search'],
+select,
+textarea {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  padding: 0.38rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hair);
+  background: var(--sunken);
+  color: var(--ink);
+}
+input[type='number'] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+input::placeholder {
+  color: var(--ink-faint);
+}
+select {
+  appearance: none;
+  padding-right: 1.85rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%238ea1ab' stroke-width='2'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+}
+input[type='checkbox'] {
+  accent-color: var(--accent);
+  width: 1rem;
+  height: 1rem;
+}
+
+/* A config key, wherever it appears next to its human label. */
+.rawkey {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

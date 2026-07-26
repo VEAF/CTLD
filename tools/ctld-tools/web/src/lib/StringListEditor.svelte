@@ -37,17 +37,17 @@
   {#each model as item, i (i)}
     <div class="item">
       <input value={item} list={listId} {placeholder} onchange={(e) => edit(i, e.currentTarget.value)} />
-      <button class="rm" title="remove" onclick={() => remove(i)}>✕</button>
+      <button class="danger" title={`Remove ${item || 'this entry'}`} aria-label={`Remove ${item || 'this entry'}`} onclick={() => remove(i)}>✕</button>
     </div>
   {/each}
-  <button class="add" onclick={add}>+ add</button>
+  <button class="add" onclick={add}>+ Add</button>
 </div>
 
 <style>
   .list {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.3rem;
   }
   .item {
     display: flex;
@@ -55,16 +55,10 @@
   }
   .item input {
     flex: 1;
-    padding: 0.25rem 0.4rem;
-    border: 1px solid #c3ccda;
-    border-radius: 4px;
-    font-size: 0.85rem;
-  }
-  .rm {
-    color: #a12020;
-    border-color: #e0c3c3;
+    min-width: 10rem;
   }
   .add {
     align-self: flex-start;
+    margin-top: 0.2rem;
   }
 </style>

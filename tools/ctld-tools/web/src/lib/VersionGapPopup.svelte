@@ -1,45 +1,62 @@
 <script lang="ts">
-  // Re-migration popup (ADR 0011 point 5): shown when a loaded configUser's version differs
-  // from the current CTLD default, surfacing the diffs before re-injecting. Never a silent merge.
+  // Re-migration dialog (ADR 0011 point 5): shown when a loaded config's version differs from the
+  // current CTLD default. Nothing is ever merged silently — so the dialog's job is to say that
+  // plainly, then let the MM see what changed without drowning them in three key lists.
   import type { VersionGap } from './api'
+  import { humanize } from './labels'
+  import { UI } from './strings'
 
   let { gap, onclose }: { gap: VersionGap; onclose: () => void } = $props()
 
   function short(v: unknown): string {
-    if (v === null || v === undefined) return '∅'
-    if (typeof v === 'object') return Array.isArray(v) ? `[${v.length}]` : '{…}'
+    if (v === null || v === undefined) return 'none'
+    if (typeof v === 'object') return Array.isArray(v) ? `${v.length} entries` : 'a table'
     return String(v)
   }
 </script>
 
-<div class="overlay" role="dialog" aria-modal="true" aria-label="version gap">
+<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="gap-title">
   <div class="modal">
-    <h2>CTLD version changed</h2>
-    <p>
-      This config was authored for <b>{gap.fromVersion ?? '?'}</b>; the current CTLD default is
-      <b>{gap.toVersion ?? '?'}</b>. Review the differences from the current default before re-injecting.
-    </p>
+    <h2 id="gap-title">{UI.gap.title}</h2>
+    <p class="body">{UI.gap.body(gap.fromVersion ?? '?', gap.toVersion ?? '?')}</p>
 
     {#if gap.added.length}
-      <section>
-        <h3>New in the current default ({gap.added.length})</h3>
-        <ul>{#each gap.added as k (k)}<li>{k}</li>{/each}</ul>
-      </section>
-    {/if}
-    {#if gap.removed.length}
-      <section>
-        <h3>No longer in the default ({gap.removed.length})</h3>
-        <ul>{#each gap.removed as k (k)}<li>{k}</li>{/each}</ul>
-      </section>
-    {/if}
-    {#if gap.changed.length}
-      <section>
-        <h3>Differs from the current default ({gap.changed.length})</h3>
-        <ul>{#each gap.changed as c (c.key)}<li><code>{c.key}</code>: {short(c.old)} → {short(c.new)}</li>{/each}</ul>
-      </section>
+      <details>
+        <summary>{UI.gap.added(gap.added.length)}</summary>
+        <ul>
+          {#each gap.added as k (k)}
+            <li>{humanize(k)} <code class="rawkey">{k}</code></li>
+          {/each}
+        </ul>
+      </details>
     {/if}
 
-    <div class="actions"><button onclick={onclose}>Review &amp; continue</button></div>
+    {#if gap.removed.length}
+      <details>
+        <summary>{UI.gap.removed(gap.removed.length)}</summary>
+        <ul>
+          {#each gap.removed as k (k)}
+            <li>{humanize(k)} <code class="rawkey">{k}</code></li>
+          {/each}
+        </ul>
+      </details>
+    {/if}
+
+    {#if gap.changed.length}
+      <details>
+        <summary>{UI.gap.changed(gap.changed.length)}</summary>
+        <ul>
+          {#each gap.changed as c (c.key)}
+            <li>
+              {humanize(c.key)} <code class="rawkey">{c.key}</code>
+              <span class="diff">{short(c.old)} → {short(c.new)}</span>
+            </li>
+          {/each}
+        </ul>
+      </details>
+    {/if}
+
+    <div class="actions"><button class="primary" onclick={onclose}>{UI.gap.close}</button></div>
   </div>
 </div>
 
@@ -47,49 +64,61 @@
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(28, 35, 48, 0.55);
+    background: rgba(8, 12, 14, 0.72);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10;
+    padding: 1rem;
   }
   .modal {
-    background: #fff;
-    border-radius: 8px;
+    background: var(--panel);
+    border: 1px solid var(--hair);
+    border-top: 2px solid var(--accent);
+    border-radius: var(--radius);
     padding: 1.25rem 1.5rem;
-    max-width: 40rem;
+    max-width: 42rem;
     max-height: 80vh;
     overflow: auto;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   }
-  .modal h2 {
-    margin-top: 0;
+  h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    letter-spacing: 0.4px;
+    margin: 0 0 0.5rem;
   }
-  .modal h3 {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #5a6473;
-    margin: 1rem 0 0.35rem;
+  .body {
+    margin: 0 0 1rem;
+    color: var(--ink-dim);
+    max-width: 62ch;
   }
-  .modal ul {
-    margin: 0;
-    padding-left: 1.2rem;
-    font-size: 0.85rem;
+  details {
+    border-top: 1px solid var(--hair-soft);
+    padding: 0.5rem 0;
   }
-  .modal code {
-    font-family: ui-monospace, monospace;
+  summary {
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    letter-spacing: 0.3px;
+  }
+  ul {
+    margin: 0.5rem 0 0;
+    padding-left: 1.1rem;
+    font-size: var(--fs-sm);
+    color: var(--ink-dim);
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .diff {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--ink-faint);
   }
   .actions {
     margin-top: 1.25rem;
     text-align: right;
-  }
-  .actions button {
-    padding: 0.4rem 1rem;
-    border: 1px solid #1c2330;
-    background: #1c2330;
-    color: #fff;
-    border-radius: 4px;
-    cursor: pointer;
   }
 </style>

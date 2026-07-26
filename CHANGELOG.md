@@ -8,6 +8,48 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — ctld-tools Mission-Maker UX pass (CTLD-TOOLS-MM-UX)
+
+UI/UX rework of the `ctld-tools.exe` web app for a **non-technical Mission Maker**, plus a visual
+identity rooted in the subject (DCS rotary-wing logistics). `tools/` only — no `src/` change, no
+`CTLD.lua` rebuild, no runtime behaviour change.
+
+- **One navigation by functional family** replaces the `Parameters` / `Data` split. That split
+  followed the *shape* of a value rather than its subject, filing `enableCrates` under one screen and
+  `spawnableCrates` under another; a family now owns its settings **and** its tables. Two new
+  families (`Aircraft`, `Zones`), explicit domain ordering, per-family icons.
+- **Settings placed by name when the schema is silent** — a prefix/substring fallback
+  (`familyOf`) shrinks the catch-all `Other` family from ~44 settings to 7. Schema `group:` always
+  wins; the fallback reads the key's spelling only and invents nothing.
+- **Human labels** (`humanize`) instead of raw config keys, with the raw key kept alongside in small
+  type since that is what the docs and forums name. **Units** (m / kg / s) are extracted from the
+  existing schema descriptions — never guessed from a key name. Readable column headings for the
+  crate / troop / aircraft / zone tables.
+- **Boots onto the CTLD defaults** instead of an empty "load something to begin" screen.
+- **Guided workflow** — a Load → Adjust → Inject step strip, `Inject into mission…` promoted to the
+  single primary action, intent-based button wording, an explicit **save-state** indicator
+  (`No changes` / `Unsaved changes` / `Saved`) and an unsaved-changes guard on open / reset.
+- **Reset to default + changed markers**, backed by a new additive `GET /api/defaults`: a changed
+  setting is marked, counted per family and in the header, and restorable in one click.
+- **Search across all settings** (label, key, description, ranked) — including behind the Advanced
+  disclosure, which is now collapsed by default and opens by itself when it holds a change or when a
+  family has no common settings.
+- **Plain-language validation panel**, always visible, naming settings by their human label, with a
+  header status lamp; clicking a finding jumps to the setting. `Inject` is disabled while errors
+  remain. The version-gap dialog is rewritten as counted, expandable summaries that state plainly
+  that nothing was merged.
+- **Cockpit/kneeboard theme** — design tokens in `web/src/lib/theme.css` (dark instrument ground,
+  olive-biased neutrals, caution-amber accent, NATO side colours for RED/BLUE, display/mono type
+  split), shared control styling, real page title and favicon (was Vite's default), responsive down
+  to ~1000px, visible focus, `prefers-reduced-motion` honoured.
+- **CI gains a `frontend` job** (`npm run check` + `npm test` + `npm run build`). The web-app suite
+  existed since `CTLD-TOOLS-WEBAPP` but no workflow ran it — `release.yml` only built the bundle, so
+  a red test could ship. The exe embeds this frontend, so it now gates like the rest.
+- Docs: `docs/mission-maker/ctld-tools.{md,fr.md}` updated to the new UI. Deferred follow-ups
+  recorded on `dev/roadmap.md`: **UI i18n (FR)** — every string is centralised in
+  `web/src/lib/strings.ts` to make it mechanical — and **enriching `CTLD_config_schema.yaml`** with
+  the missing `group:` / `label:` / `unit:` metadata, which is the durable home for it.
+
 ### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
 
 - Lot 3 (ticket 08): **docs rewrite** — `docs/mission-maker/ctld-tools.{md,fr.md}` rewritten for the

@@ -73,6 +73,7 @@ const put = (url: string, body: unknown) =>
   fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 
 export const getSchema = () => fetch('/api/schema').then((r) => json<SchemaInfo>(r))
+export const getDefaults = () => fetch('/api/defaults').then((r) => json<{ values: Record<string, unknown> }>(r))
 export const putSetting = (key: string, value: unknown) =>
   put('/api/catalog/setting', { key, value }).then((r) => json<{ key: string; value: unknown }>(r))
 export const getValidate = () => fetch('/api/validate').then((r) => json<ValidateResult>(r))

@@ -14,7 +14,7 @@ test('StringListEditor edits, adds and removes', async () => {
   render(StringListEditor, { items: ['MEDEVAC #1', 'transport1'], onchange })
   await fireEvent.change(screen.getByDisplayValue('MEDEVAC #1'), { target: { value: 'MEDEVAC #2' } })
   expect(last(onchange)).toEqual(['MEDEVAC #2', 'transport1'])
-  await fireEvent.click(screen.getByText('+ add'))
+  await fireEvent.click(screen.getByText('+ Add'))
   expect(last(onchange)).toHaveLength(3)
 })
 
@@ -37,7 +37,7 @@ test('JsonEditor parses valid JSON and reports invalid', async () => {
   expect(screen.getByRole('alert')).toBeInTheDocument()
 })
 
-test('VersionGapPopup lists the three diff buckets and closes', async () => {
+test('VersionGapPopup summarises the three diff buckets and closes', async () => {
   const onclose = vi.fn()
   render(VersionGapPopup, {
     gap: {
@@ -51,10 +51,14 @@ test('VersionGapPopup lists the three diff buckets and closes', async () => {
     onclose,
   })
   expect(screen.getByRole('dialog')).toBeInTheDocument()
-  expect(screen.getByText('newSetting')).toBeInTheDocument()
-  expect(screen.getByText('oldSetting')).toBeInTheDocument()
-  expect(screen.getByText(/hoverTime/)).toBeInTheDocument()
-  await fireEvent.click(screen.getByRole('button', { name: /Review/ }))
+  // Counted summaries the MM can act on, rather than three raw key lists.
+  expect(screen.getByText('1 setting new in this CTLD version')).toBeInTheDocument()
+  expect(screen.getByText('1 setting no longer used by CTLD')).toBeInTheDocument()
+  expect(screen.getByText('1 default value changed')).toBeInTheDocument()
+  // It must say plainly that nothing was merged behind the user's back.
+  expect(screen.getByText(/Nothing has been merged/)).toBeInTheDocument()
+  expect(screen.getByText('Hover time')).toBeInTheDocument()
+  await fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
   expect(onclose).toHaveBeenCalled()
 })
 

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import {
     getDcsTypes,
+    getDefaults,
     getSchema,
     getValidate,
     getVersionGap,
@@ -21,61 +22,109 @@
   import JsonEditor from './lib/JsonEditor.svelte'
   import KeyValueEditor from './lib/KeyValueEditor.svelte'
   import RecordListEditor from './lib/RecordListEditor.svelte'
+  import SettingRow from './lib/SettingRow.svelte'
   import StringListEditor from './lib/StringListEditor.svelte'
+  import ValidationPanel from './lib/ValidationPanel.svelte'
   import VersionGapPopup from './lib/VersionGapPopup.svelte'
   import ZonesEditor from './lib/ZonesEditor.svelte'
-  import { familyLabel } from './lib/families'
+  import { DATA_FAMILY, familyIcon, familyLabel, familyOf, OTHER_FAMILY } from './lib/families'
+  import { humanize } from './lib/labels'
+  import { classify, coerce, isChanged, settingKeys, type EditorType, type Family } from './lib/model'
+  import { searchSettings } from './lib/search'
+  import { UI } from './lib/strings'
   import { TROOP_FIELDS, withTips } from './lib/tables'
 
   const ZONE_TYPES = ['troopZones', 'wpZones', 'AIZones']
   const STRING_LISTS = ['transportPilotNames', 'extractableGroups', 'logisticUnits']
-  import {
-    classify,
-    coerce,
-    editorType,
-    parameterFamilies,
-    standardSplit,
-    type EditorType,
-    type Screens,
-  } from './lib/model'
 
   let schema = $state<SchemaInfo | null>(null)
   let snapshot = $state<Snapshot | null>(null)
+  let defaults = $state<Record<string, unknown>>({})
   let error = $state<string | null>(null)
-  let screen = $state<'parameters' | 'data'>('parameters')
-  let activeFamily = $state<string | null>(null)
   let status = $state<string | null>(null)
   let findings = $state<Finding[]>([])
   let dcsTypes = $state<string[]>([])
   let gap = $state<VersionGap | null>(null)
 
-  const screens = $derived<Screens | null>(snapshot && schema ? classify(snapshot, schema) : null)
-  const familyList = $derived<string[]>(
-    !screens ? [] : screen === 'parameters' ? parameterFamilies(screens) : screens.data,
+  let activeFamily = $state<string | null>(null)
+  let query = $state('')
+  let revealKey = $state<string | null>(null)
+  // null = follow the automatic rule (open when it hides a change); true/false = the user decided.
+  let advancedManual = $state<boolean | null>(null)
+  let fromDefaults = $state(true)
+  let dirty = $state(false)
+  let justSaved = $state(false)
+  let injected = $state(false)
+
+  const families = $derived<Family[]>(snapshot && schema ? classify(snapshot, schema) : [])
+  const current = $derived<Family | null>(families.find((f) => f.key === activeFamily) ?? families[0] ?? null)
+  const hasErrors = $derived(findings.some((f) => f.severity === 'error'))
+
+  const familyForKey = (key: string) =>
+    DATA_FAMILY[key] ?? familyOf(key, schema?.keys[key]?.group)
+
+  const hits = $derived(
+    !snapshot || !schema ? [] : searchSettings(query, settingKeys(snapshot), schema, familyForKey),
   )
-  const activeKeys = $derived<string[]>(
-    !screens || !activeFamily
-      ? []
-      : screen === 'parameters'
-        ? (screens.parameters[activeFamily] ?? [])
-        : [activeFamily],
+  const searching = $derived(query.trim().length > 0)
+
+  const changedKeys = $derived<Set<string>>(
+    new Set(
+      !snapshot ? [] : snapshot.keys.filter((k) => isChanged(snapshot!.values[k], defaults[k])),
+    ),
   )
-  const split = $derived(schema ? standardSplit(activeKeys, schema) : { standard: [], advanced: [] })
+  const changedInFamily = (f: Family) =>
+    [...f.standard, ...f.advanced, ...f.data].filter((k) => changedKeys.has(k)).length
+
+  // Never let the Advanced disclosure hide a modification, or the setting a finding points at.
+  // It also opens when a family has no common settings at all (Parachute, Zones): a family whose
+  // whole content sits behind a closed disclosure looks broken.
+  const advancedAuto = $derived(
+    !current
+      ? false
+      : current.standard.length === 0 ||
+        current.advanced.some((k) => changedKeys.has(k)) ||
+        (revealKey !== null && current.advanced.includes(revealKey)),
+  )
+  const advancedOpen = $derived(advancedManual ?? advancedAuto)
+
+  const configName = $derived(
+    fromDefaults || !snapshot?.path ? UI.defaultsName : snapshot.path.replace(/^.*[\\/]/, ''),
+  )
+  const configVersion = $derived(String(snapshot?.values?.configVersion ?? '—'))
+  const saveLabel = $derived(dirty ? UI.saveState.dirty : justSaved ? UI.saveState.saved : UI.saveState.clean)
+  const step = $derived(injected ? 3 : snapshot ? 2 : 1)
 
   onMount(async () => {
     try {
       schema = await getSchema()
       dcsTypes = (await getDcsTypes()).types
-    } catch (e) {
-      error = String(e)
+      defaults = (await getDefaults()).values
+      // Boot straight into a usable state: an empty screen asking the user to "load the defaults"
+      // is a question a first-time MM cannot answer.
+      await run(loadDefault, true)
+    } catch {
+      error = UI.bootFailed
     }
   })
 
-  async function run(load: () => Promise<Snapshot>) {
+  $effect(() => {
+    if (!revealKey) return
+    const el = document.getElementById(`f_${revealKey}`)
+    el?.scrollIntoView?.({ block: 'center' })
+  })
+
+  async function run(load: () => Promise<Snapshot>, asDefaults: boolean) {
     try {
       snapshot = await load()
+      fromDefaults = asDefaults
+      dirty = false
+      justSaved = false
+      injected = false
       error = null
-      activeFamily = familyList[0] ?? null
+      // Leave the selection to `current`, which falls back to the first family in domain order.
+      activeFamily = null
+      advancedManual = null
       await doValidate()
       const g = await getVersionGap()
       gap = g.isEmpty ? null : g
@@ -92,21 +141,56 @@
     }
   }
 
-  async function saveData(key: string, value: unknown) {
+  function confirmDiscard(): boolean {
+    return !dirty || confirm(UI.confirmDiscard)
+  }
+
+  async function applySetting(key: string, value: unknown) {
+    const r = await putSetting(key, value)
+    if (snapshot) snapshot = { ...snapshot, values: { ...snapshot.values, [key]: r.value } }
+    dirty = true
+    justSaved = false
+    error = null
+    await doValidate()
+  }
+
+  async function edit(key: string, raw: string | boolean, type: EditorType) {
     try {
-      await putSetting(key, value)
-      if (snapshot) snapshot = { ...snapshot, values: { ...snapshot.values, [key]: value } }
-      error = null
-      await doValidate()
+      await applySetting(key, coerce(raw, type))
     } catch (e) {
       error = String(e)
     }
   }
 
+  async function reset(key: string, fallback: unknown) {
+    try {
+      await applySetting(key, fallback)
+    } catch (e) {
+      error = String(e)
+    }
+  }
+
+  async function saveData(key: string, value: unknown) {
+    try {
+      await applySetting(key, value)
+    } catch (e) {
+      error = String(e)
+    }
+  }
+
+  async function doLoadDefaults() {
+    if (!confirmDiscard()) return
+    status = null
+    await run(loadDefault, true)
+  }
+
   async function doOpen() {
+    if (!confirmDiscard()) return
     try {
       const { path } = await openDialog('open')
-      if (path) await run(() => loadPath(path))
+      if (!path) return
+      status = null
+      await run(() => loadPath(path), false)
     } catch (e) {
       error = String(e)
     }
@@ -118,7 +202,9 @@
       if (!path) return
       await save(path)
       error = null
-      status = `Saved to ${path}`
+      dirty = false
+      justSaved = true
+      status = UI.savedTo(path)
     } catch (e) {
       error = String(e)
     }
@@ -128,324 +214,634 @@
     try {
       const { path } = await openDialog('miz')
       if (!path) return
-      const { injected } = await injectMiz(path)
+      const r = await injectMiz(path)
       error = null
-      status = `Injected into ${injected}`
+      injected = true
+      status = UI.injected(r.injected)
     } catch (e) {
-      error = String(e)
       status = null
+      error = hasErrors ? UI.injectBlocked : String(e)
     }
   }
 
-  function pick(s: 'parameters' | 'data') {
-    screen = s
-    activeFamily = familyList[0] ?? null
+  function pickFamily(key: string) {
+    activeFamily = key
+    advancedManual = null
+    revealKey = null
+    query = ''
   }
 
-  async function edit(key: string, raw: string | boolean, type: EditorType) {
-    try {
-      const r = await putSetting(key, coerce(raw, type))
-      if (snapshot) snapshot = { ...snapshot, values: { ...snapshot.values, [key]: r.value } }
-      error = null
-    } catch (e) {
-      error = String(e)
-    }
+  /** Jump to the setting a validation finding concerns. */
+  function goto(key: string) {
+    if (!key) return
+    query = ''
+    activeFamily = familyForKey(key)
+    advancedManual = null
+    revealKey = key
   }
-
 </script>
 
-{#snippet settingRow(key: string)}
-  {@const meta = schema?.keys[key]}
-  {@const value = snapshot?.values[key]}
-  {@const type = editorType(meta, value)}
-  <div class="row">
-    <label class="key" for={`f_${key}`}>{key}</label>
-    <div class="editor">
-      {#if type === 'boolean'}
-        <input id={`f_${key}`} type="checkbox" checked={value === true} onchange={(e) => edit(key, e.currentTarget.checked, 'boolean')} />
-      {:else if type === 'enum'}
-        <select id={`f_${key}`} value={String(value)} onchange={(e) => edit(key, e.currentTarget.value, 'enum')}>
-          {#each meta?.choices ?? [] as choice}
-            <option value={String(choice)}>{String(choice)}</option>
-          {/each}
-        </select>
-      {:else if type === 'number'}
-        <input id={`f_${key}`} type="number" value={value as number} onchange={(e) => edit(key, e.currentTarget.value, 'number')} />
-      {:else}
-        <input id={`f_${key}`} type="text" value={String(value ?? '')} onchange={(e) => edit(key, e.currentTarget.value, 'string')} />
-      {/if}
+<header class="bar">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 12l8-3M12 12l-8-3M12 12v6.5" />
+      <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" />
+      <path d="M6.5 18.5h9M9.5 18.5v-1.2" />
+      <path d="M3.5 9c3-1.1 6-1 8.5 3M20.5 9c-3-1.1-6-1-8.5 3" />
+    </svg>
+    <div>
+      <h1>{UI.appName}</h1>
+      <p>{UI.appTagline}</p>
     </div>
-    {#if meta?.description}<p class="help">{meta.description}</p>{/if}
   </div>
-{/snippet}
 
-{#snippet findingsBlock()}
-  {#if findings.length}
-    <ul class="findings">
-      {#each findings as f (f.where + f.key)}<li class={f.severity}>{f.where}: {f.message}</li>{/each}
-    </ul>
-  {/if}
-{/snippet}
-
-<header>
-  <h1>CTLD&nbsp;tools</h1>
-  <div class="actions">
-    <button onclick={() => run(loadDefault)}>Load defaults</button>
-    <button onclick={doOpen}>Open…</button>
-    <button onclick={doSave} disabled={!snapshot}>Save…</button>
-    <button onclick={doInject} disabled={!snapshot}>Inject to .miz…</button>
+  <div class="readouts">
+    <div class="readout">
+      <span class="lbl">{UI.configLabel}</span>
+      <span class="val">{configName}</span>
+    </div>
+    <div class="readout">
+      <span class="lbl">{UI.versionLabel}</span>
+      <span class="val">{configVersion}</span>
+    </div>
+    <div class="readout">
+      <span class="lbl">{saveLabel}</span>
+      <span class="val sub">{changedKeys.size ? UI.changedCount(changedKeys.size) : '—'}</span>
+    </div>
+    <div class="lamp" class:bad={hasErrors}>
+      <span class="dot"></span>{hasErrors ? UI.validation.lampError : UI.validation.lampOk}
+    </div>
   </div>
 </header>
 
+<div class="flow">
+  {#each UI.steps as s, i (s.title)}
+    <div class="step" class:active={step === i + 1} class:done={step > i + 1}>
+      <span class="n">{step > i + 1 ? '✓' : i + 1}</span>
+      <span class="txt"><span class="t">{s.title}</span><span class="s">{s.hint}</span></span>
+    </div>
+  {/each}
+  <div class="tools">
+    <button onclick={doLoadDefaults}>{UI.actions.loadDefaults}</button>
+    <button onclick={doOpen}>{UI.actions.open}</button>
+    <button onclick={doSave} disabled={!snapshot}>{UI.actions.save}</button>
+    <button class="primary" onclick={doInject} disabled={!snapshot || hasErrors}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+        <path d="M12 3.5v11M12 14.5l-4-4M12 14.5l4-4M4.5 19.5h15" />
+      </svg>
+      {UI.actions.inject}
+    </button>
+  </div>
+</div>
+
 {#if error}
-  <p class="error" role="alert">{error}</p>
+  <p class="banner error" role="alert">{error}</p>
 {:else if status}
-  <p class="status">{status}</p>
+  <p class="banner status">{status}</p>
 {/if}
 
 {#if gap}
   <VersionGapPopup {gap} onclose={() => (gap = null)} />
 {/if}
 
-{#if !snapshot}
-  <p class="empty">Load the defaults or open a config file to begin.</p>
-{:else}
-  <nav class="tabs">
-    <button class:active={screen === 'parameters'} onclick={() => pick('parameters')}>
-      Parameters <small>how CTLD behaves</small>
-    </button>
-    <button class:active={screen === 'data'} onclick={() => pick('data')}>
-      Data <small>what CTLD operates on</small>
-    </button>
+<div class="body">
+  <nav class="rail" aria-label="families">
+    <ul>
+      {#each families as f (f.key)}
+        {@const n = changedInFamily(f)}
+        <li>
+          <button class:active={f.key === current?.key} onclick={() => pickFamily(f.key)}>
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              {@html familyIcon(f.key)}
+            </svg>
+            <span class="name">{familyLabel(f.key)}</span>
+            {#if n}<span class="count" title={UI.changedCount(n)}>{n}</span>{/if}
+          </button>
+        </li>
+      {/each}
+    </ul>
   </nav>
 
-  <div class="body">
-    <aside class="families" aria-label="families">
-      <ul>
-        {#each familyList as family (family)}
-          <li>
-            <button class:active={family === activeFamily} onclick={() => (activeFamily = family)}>
-              {screen === 'parameters' ? familyLabel(family) : family}
-            </button>
-          </li>
-        {/each}
-      </ul>
-    </aside>
-
-    <main class="panel">
-      {#if activeFamily && screen === 'parameters'}
-        <h2>{familyLabel(activeFamily)}</h2>
-        {#if split.standard.length}
-          <h3>Standard</h3>
-          {#each split.standard as key (key)}{@render settingRow(key)}{/each}
-        {/if}
-        {#if split.advanced.length}
-          <h3>Advanced</h3>
-          {#each split.advanced as key (key)}{@render settingRow(key)}{/each}
-        {/if}
-      {:else if activeFamily}
-        <h2>{activeFamily}</h2>
-        {@render findingsBlock()}
-        {#key activeFamily}
-          {#if activeFamily === 'spawnableCrates'}
-            <CratesEditor
-              crates={snapshot.values.spawnableCrates as Record<string, Record<string, unknown>[]>}
-              fields={schema?.tableFields?.spawnableCrates ?? {}}
-              onchange={(v) => saveData('spawnableCrates', v)}
-            />
-          {:else if activeFamily === 'loadableGroups'}
-            <RecordListEditor
-              records={snapshot.values.loadableGroups as Record<string, unknown>[]}
-              fields={withTips(TROOP_FIELDS, schema?.tableFields?.loadableGroups)}
-              blank={() => ({ name: '' })}
-              onchange={(v) => saveData('loadableGroups', v)}
-            />
-          {:else if activeFamily === 'capabilitiesByType'}
-            <AircraftEditor
-              capabilities={snapshot.values.capabilitiesByType as Record<string, Record<string, unknown>>}
-              fields={schema?.tableFields?.capabilitiesByType ?? {}}
-              types={dcsTypes}
-              onchange={(v) => saveData('capabilitiesByType', v)}
-            />
-          {:else if ZONE_TYPES.includes(activeFamily)}
-            <ZonesEditor
-              zones={snapshot.values[activeFamily] as unknown[][]}
-              fields={schema?.zoneFields?.[activeFamily] ?? []}
-              onchange={(v) => saveData(activeFamily!, v)}
-            />
-          {:else if STRING_LISTS.includes(activeFamily)}
-            <StringListEditor
-              items={snapshot.values[activeFamily] as string[]}
-              onchange={(v) => saveData(activeFamily!, v)}
-            />
-          {:else if activeFamily === 'groundVehicleWeights'}
-            <KeyValueEditor
-              map={snapshot.values.groundVehicleWeights as Record<string, number>}
-              onchange={(v) => saveData('groundVehicleWeights', v)}
-            />
-          {:else}
-            <JsonEditor value={snapshot.values[activeFamily]} onchange={(v) => saveData(activeFamily!, v)} />
-          {/if}
-        {/key}
+  <main class="panel">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" />
+      </svg>
+      <input
+        type="search"
+        placeholder={UI.searchPlaceholder}
+        bind:value={query}
+        onkeydown={(e) => {
+          if (e.key === 'Escape') query = ''
+        }}
+      />
+      {#if searching}
+        <button class="ghost clear" aria-label={UI.actions.clearSearch} onclick={() => (query = '')}>✕</button>
       {/if}
-    </main>
-  </div>
-{/if}
+    </div>
+
+    <ValidationPanel {findings} ongoto={goto} />
+
+    {#if searching}
+      <h2 class="title">{UI.searchResults(hits.length)}</h2>
+      {#if !hits.length}
+        <p class="empty">{UI.searchEmpty}</p>
+      {/if}
+      {#each hits as hit (hit.key)}
+        <SettingRow
+          settingKey={hit.key}
+          meta={schema?.keys[hit.key]}
+          value={snapshot?.values[hit.key]}
+          fallback={defaults[hit.key]}
+          familyName={familyLabel(hit.family)}
+          onedit={edit}
+          onreset={reset}
+        />
+      {/each}
+    {:else if current && snapshot}
+      <h2 class="title">{familyLabel(current.key)}</h2>
+
+      {#if current.standard.length}
+        <h3 class="section">{UI.sectionStandard}</h3>
+        {#each current.standard as key (key)}
+          <SettingRow
+            settingKey={key}
+            meta={schema?.keys[key]}
+            value={snapshot.values[key]}
+            fallback={defaults[key]}
+            onedit={edit}
+            onreset={reset}
+          />
+        {/each}
+      {/if}
+
+      {#if current.advanced.length}
+        <details class="advanced" open={advancedOpen} ontoggle={(e) => (advancedManual = e.currentTarget.open)}>
+          <summary>
+            <span class="sum-title">{UI.sectionAdvanced}</span>
+            <span class="sum-hint">{UI.advancedHint(current.advanced.length)}</span>
+          </summary>
+          {#each current.advanced as key (key)}
+            <SettingRow
+              settingKey={key}
+              meta={schema?.keys[key]}
+              value={snapshot.values[key]}
+              fallback={defaults[key]}
+              onedit={edit}
+              onreset={reset}
+            />
+          {/each}
+        </details>
+      {/if}
+
+      {#if current.data.length}
+        <h3 class="section">{UI.sectionData}</h3>
+        {#each current.data as key (key)}
+          <section class="datacard">
+            <h4>
+              {humanize(key)}
+              <code class="rawkey">{key}</code>
+              {#if changedKeys.has(key)}<span class="cbadge">{UI.changedBadge}</span>{/if}
+            </h4>
+            <div class="dcbody">
+              {#key key}
+                {#if key === 'spawnableCrates'}
+                  <CratesEditor
+                    crates={snapshot.values.spawnableCrates as Record<string, Record<string, unknown>[]>}
+                    fields={schema?.tableFields?.spawnableCrates ?? {}}
+                    onchange={(v) => saveData('spawnableCrates', v)}
+                  />
+                {:else if key === 'loadableGroups'}
+                  <RecordListEditor
+                    records={snapshot.values.loadableGroups as Record<string, unknown>[]}
+                    fields={withTips(TROOP_FIELDS, schema?.tableFields?.loadableGroups)}
+                    blank={() => ({ name: '' })}
+                    onchange={(v) => saveData('loadableGroups', v)}
+                  />
+                {:else if key === 'capabilitiesByType'}
+                  <AircraftEditor
+                    capabilities={snapshot.values.capabilitiesByType as Record<string, Record<string, unknown>>}
+                    fields={schema?.tableFields?.capabilitiesByType ?? {}}
+                    types={dcsTypes}
+                    onchange={(v) => saveData('capabilitiesByType', v)}
+                  />
+                {:else if ZONE_TYPES.includes(key)}
+                  <ZonesEditor
+                    zones={snapshot.values[key] as unknown[][]}
+                    fields={schema?.zoneFields?.[key] ?? []}
+                    onchange={(v) => saveData(key, v)}
+                  />
+                {:else if STRING_LISTS.includes(key)}
+                  <StringListEditor items={snapshot.values[key] as string[]} onchange={(v) => saveData(key, v)} />
+                {:else if key === 'groundVehicleWeights'}
+                  <KeyValueEditor
+                    map={snapshot.values.groundVehicleWeights as Record<string, number>}
+                    onchange={(v) => saveData('groundVehicleWeights', v)}
+                  />
+                {:else}
+                  <JsonEditor value={snapshot.values[key]} onchange={(v) => saveData(key, v)} />
+                {/if}
+              {/key}
+            </div>
+          </section>
+        {/each}
+      {/if}
+    {/if}
+  </main>
+</div>
 
 <style>
-  :global(body) {
-    margin: 0;
-    font-family: system-ui, sans-serif;
-    color: #1c2330;
-    background: #f4f6fa;
-  }
-  header {
+  /* ── header ──────────────────────────────────────────────────── */
+  .bar {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 1.25rem;
-    background: #1c2330;
-    color: #fff;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    padding: 0.8rem var(--pad);
+    background: linear-gradient(180deg, #1b262c, #141c21);
+    border-bottom: 2px solid var(--accent);
   }
-  h1 {
-    font-size: 1.15rem;
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .brand .mark {
+    width: 36px;
+    height: 36px;
+    flex: none;
+    color: var(--accent);
+  }
+  .brand h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    letter-spacing: 1.5px;
     margin: 0;
-    white-space: nowrap;
+    line-height: 1;
   }
-  .actions {
+  .brand p {
+    margin: 0.15rem 0 0;
+    font-size: var(--fs-xs);
+    color: var(--ink-dim);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .readouts {
+    margin-left: auto;
     display: flex;
-    gap: 0.5rem;
-    flex: 1;
+    align-items: center;
+    gap: 1.4rem;
+    flex-wrap: wrap;
   }
-  button {
-    padding: 0.35rem 0.7rem;
-    border: 1px solid #c3ccda;
-    border-radius: 4px;
-    background: #fff;
-    cursor: pointer;
-  }
-  button:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
-  .error {
-    margin: 0.75rem 1.25rem;
-    color: #a12020;
-  }
-  .status {
-    margin: 0.75rem 1.25rem;
-    color: #1a6d3a;
-  }
-  .empty {
-    margin: 2rem 1.25rem;
-    color: #5a6473;
-  }
-  .tabs {
-    display: flex;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem 0;
-  }
-  .tabs button {
+  .readout {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    text-align: right;
   }
-  .tabs button small {
-    font-weight: 400;
-    color: #5a6473;
-    font-size: 0.7rem;
+  .readout .lbl {
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--ink-faint);
   }
-  .tabs button.active {
-    border-color: #1c2330;
-    border-bottom-width: 3px;
+  .readout .val {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
   }
-  .body {
+  .readout .val.sub {
+    color: var(--ink-dim);
+  }
+  .lamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    letter-spacing: 0.8px;
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--ok);
+    color: var(--ok);
+    background: var(--ok-soft);
+  }
+  .lamp .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 7px var(--ok);
+  }
+  .lamp.bad {
+    border-color: var(--err);
+    color: var(--err);
+    background: var(--err-soft);
+  }
+  .lamp.bad .dot {
+    background: var(--err);
+    box-shadow: 0 0 7px var(--err);
+  }
+
+  /* ── guided workflow strip ───────────────────────────────────── */
+  .flow {
     display: flex;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    align-items: flex-start;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 0;
+    background: var(--panel);
+    border-bottom: 1px solid var(--hair);
   }
-  .families {
-    flex: 0 0 12rem;
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1rem;
+    color: var(--ink-dim);
   }
-  .families ul {
+  .step + .step {
+    border-left: 1px solid var(--hair-soft);
+  }
+  .step .n {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    border: 1px solid var(--hair);
+    background: var(--raised);
+  }
+  .step.active {
+    color: var(--ink);
+  }
+  .step.active .n {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .step.done .n {
+    border-color: var(--ok);
+    color: var(--ok);
+  }
+  .step .txt {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+  .step .t {
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    letter-spacing: 0.3px;
+  }
+  .step .s {
+    font-size: var(--fs-xs);
+    color: var(--ink-faint);
+  }
+  .tools {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem var(--pad) 0.5rem 1rem;
+    flex-wrap: wrap;
+  }
+  .tools svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* ── banners ─────────────────────────────────────────────────── */
+  .banner {
+    margin: 0;
+    padding: 0.6rem var(--pad);
+    font-size: var(--fs-base);
+  }
+  .banner.error {
+    color: var(--err);
+    background: var(--err-soft);
+    border-bottom: 1px solid var(--err);
+  }
+  .banner.status {
+    color: var(--ok);
+    background: var(--ok-soft);
+    border-bottom: 1px solid var(--ok);
+  }
+
+  /* ── body ────────────────────────────────────────────────────── */
+  .body {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    align-items: start;
+  }
+  .rail {
+    background: var(--panel-2);
+    border-right: 1px solid var(--hair);
+    min-height: calc(100vh - 8.5rem);
+    padding: 0.6rem 0 1.5rem;
+  }
+  .rail ul {
     list-style: none;
     margin: 0;
     padding: 0;
   }
-  .families button {
+  .rail button {
     width: 100%;
+    justify-content: flex-start;
+    gap: 0.65rem;
+    padding: 0.45rem 0.9rem;
+    border: none;
+    border-left: 3px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink-dim);
+    font-family: var(--font-body);
+    font-size: var(--fs-base);
+    letter-spacing: 0;
+  }
+  .rail button:hover {
+    background: #172127;
+    color: var(--ink);
+  }
+  .rail button.active {
+    background: #1b272d;
+    color: var(--ink);
+    border-left-color: var(--accent);
+  }
+  .rail .ico {
+    width: 17px;
+    height: 17px;
+    flex: none;
+    opacity: 0.8;
+  }
+  .rail button.active .ico {
+    color: var(--accent);
+    opacity: 1;
+  }
+  .rail .name {
     text-align: left;
-    margin-bottom: 0.25rem;
   }
-  .families button.active {
-    background: #1c2330;
-    color: #fff;
-    border-color: #1c2330;
+  .rail .count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 3px;
+    padding: 0 0.3rem;
   }
+
   .panel {
-    flex: 1;
-    background: #fff;
-    border: 1px solid #e0e5ee;
-    border-radius: 6px;
-    padding: 1rem 1.25rem;
+    padding: 1.1rem var(--pad) 3rem;
+    min-width: 0;
   }
-  .panel h2 {
-    margin-top: 0;
+  .title {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    letter-spacing: 0.4px;
+    margin: 0 0 0.9rem;
   }
-  .panel h3 {
-    margin: 1rem 0 0.5rem;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #5a6473;
-    border-bottom: 1px solid #eef1f6;
-    padding-bottom: 0.25rem;
-  }
-  .row {
-    display: grid;
-    grid-template-columns: 45% 1fr;
-    gap: 0.25rem 1rem;
+  .section {
+    display: flex;
     align-items: center;
-    padding: 0.3rem 0;
+    gap: 0.7rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 1.5rem 0 0.6rem;
   }
-  .row .key {
-    font-weight: 600;
-    font-family: ui-monospace, monospace;
-    font-size: 0.85rem;
+  .section::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--hair), transparent);
   }
-  .row .editor input[type='text'],
-  .row .editor input[type='number'],
-  .row .editor select {
+  .empty {
+    color: var(--ink-dim);
+    margin: 0.5rem 0;
+  }
+
+  .search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .search > svg {
+    position: absolute;
+    left: 0.7rem;
+    width: 16px;
+    height: 16px;
+    color: var(--ink-faint);
+    pointer-events: none;
+  }
+  .search input {
     width: 100%;
-    padding: 0.3rem 0.4rem;
-    border: 1px solid #c3ccda;
-    border-radius: 4px;
+    padding: 0.55rem 2.2rem;
   }
-  .row .help {
-    grid-column: 1 / -1;
-    margin: 0 0 0.25rem;
-    font-size: 0.75rem;
-    color: #8a93a2;
+  .search .clear {
+    position: absolute;
+    right: 0.35rem;
+    border-color: transparent;
+    color: var(--ink-faint);
+    padding: 0.2rem 0.4rem;
   }
-  .hint {
-    color: #8a93a2;
-    font-size: 0.8rem;
-    margin-top: 1rem;
+
+  .advanced {
+    border: 1px solid var(--hair-soft);
+    border-radius: var(--radius);
+    margin: 0.9rem 0 0;
+    padding: 0 0.5rem 0.5rem;
+    background: rgba(0, 0, 0, 0.12);
   }
-  .findings {
+  .advanced summary {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.6rem 0.4rem;
+    cursor: pointer;
     list-style: none;
-    margin: 0 0 1rem;
-    padding: 0.5rem 0.75rem;
-    background: #fbf5f5;
-    border: 1px solid #e9d4d4;
-    border-radius: 6px;
-    font-size: 0.8rem;
   }
-  .findings li.error {
-    color: #a12020;
+  .advanced summary::-webkit-details-marker {
+    display: none;
   }
-  .findings li.warning {
-    color: #8a6d1a;
+  .advanced summary::before {
+    content: '▸';
+    color: var(--ink-faint);
+  }
+  .advanced[open] summary::before {
+    content: '▾';
+  }
+  .sum-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .sum-hint {
+    font-size: var(--fs-xs);
+    color: var(--ink-faint);
+  }
+
+  .datacard {
+    border: 1px solid var(--hair-soft);
+    border-radius: var(--radius);
+    background: var(--panel);
+    margin-bottom: 0.8rem;
+    overflow: hidden;
+  }
+  .datacard h4 {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    margin: 0;
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--hair-soft);
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .cbadge {
+    font-family: var(--font-display);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent-soft);
+    background: var(--accent-soft);
+    border-radius: 3px;
+    padding: 0.05rem 0.35rem;
+  }
+  /* Wide tables scroll inside the card — the page body never scrolls sideways. */
+  .dcbody {
+    padding: 0.75rem 0.9rem 0.9rem;
+    overflow-x: auto;
+  }
+
+  @media (max-width: 1000px) {
+    .body {
+      grid-template-columns: 1fr;
+    }
+    .rail {
+      min-height: 0;
+      border-right: none;
+      border-bottom: 1px solid var(--hair);
+    }
+    .rail ul {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .rail button {
+      width: auto;
+      border-left: none;
+      border-bottom: 3px solid transparent;
+    }
+    .rail button.active {
+      border-left: none;
+      border-bottom-color: var(--accent);
+    }
   }
 </style>

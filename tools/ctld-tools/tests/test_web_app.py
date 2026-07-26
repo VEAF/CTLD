@@ -63,6 +63,27 @@ def test_resources_frozen_path(monkeypatch, tmp_path):
     assert resources.src_dir() == tmp_path / "ctld_data"
 
 
+def test_defaults_endpoint_mirrors_the_default_catalogue():
+    # Powers the UI's "changed from default" markers and per-setting reset. It must not need a
+    # loaded catalogue — the UI fetches it while booting.
+    defaults = client.get("/api/defaults").json()["values"]
+    loaded = client.post("/api/catalog/load-default").json()["values"]
+    assert defaults == loaded
+
+
+def test_defaults_endpoint_coerces_to_plain_json():
+    values = client.get("/api/defaults").json()["values"]
+    assert values["configVersion"] == "2.0.0"
+    assert isinstance(values["spawnableCrates"], dict)
+    assert isinstance(values["numberOfTroops"], int)
+
+
+def test_defaults_endpoint_leaves_the_session_untouched():
+    client.get("/api/defaults")
+    # Reading the defaults is not "opening" a config.
+    assert client.get("/api/catalog").status_code == 409
+
+
 def test_dcs_types_endpoint():
     body = client.get("/api/dcs-types").json()
     assert isinstance(body["types"], list) and body["types"]  # datamine set is non-empty

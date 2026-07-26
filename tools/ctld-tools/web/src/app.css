@@ -1,6 +1,2 @@
-/* Global styles live in App.svelte (:global(body)); this file is intentionally minimal. */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+/* Global styles: the design tokens plus the shared control look. See lib/theme.css. */
+@import './lib/theme.css';

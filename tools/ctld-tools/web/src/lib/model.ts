@@ -1,38 +1,66 @@
-// Classify a catalogue into the two screens (ADR 0011 point 7):
-//   Parameters — scalar settings (how CTLD behaves), grouped by schema family.
-//   Data       — structured entries (what CTLD operates on): crates, troops, zones, …
+// Classify a catalogue into functional families — the single navigation axis.
+//
+// ADR 0011 point 7 originally split the UI into two screens (Parameters = scalars, Data =
+// structures). That split follows the *shape* of the value, which is an implementation detail: it
+// filed `enableCrates` and `spawnableCrates` under different screens even though a Mission Maker
+// thinks of both as "crates". Here every key — scalar or structured — lands in the family that owns
+// its subject, and a family renders its settings and its tables together.
 
 import type { SchemaInfo, SchemaKey, Snapshot, ZoneField } from './api'
+import { DATA_FAMILY, familyOf, orderFamilies, OTHER_FAMILY } from './families'
 
-export const OTHER_FAMILY = 'other'
+export { OTHER_FAMILY }
 
-export interface Screens {
-  parameters: Record<string, string[]> // family → setting keys
-  data: string[] // structured top-level keys
+export interface Family {
+  key: string
+  /** Scalar settings flagged `standard:` in the schema. */
+  standard: string[]
+  /** Everything else scalar — shown behind a disclosure. */
+  advanced: string[]
+  /** Structured keys (crates, troop groups, zones, …) owned by this family. */
+  data: string[]
 }
 
 function isStructured(v: unknown): boolean {
   return v !== null && typeof v === 'object' // arrays and objects
 }
 
-export function classify(snap: Snapshot, schema: SchemaInfo): Screens {
-  const parameters: Record<string, string[]> = {}
-  const data: string[] = []
+/**
+ * Group every catalogue key into its family, in domain order. Total: each key lands in exactly one
+ * family, so no setting can become unreachable.
+ */
+export function classify(snap: Snapshot, schema: SchemaInfo): Family[] {
+  const byKey = new Map<string, Family>()
+  const family = (name: string): Family => {
+    let f = byKey.get(name)
+    if (!f) {
+      f = { key: name, standard: [], advanced: [], data: [] }
+      byKey.set(name, f)
+    }
+    return f
+  }
+
   for (const key of snap.keys) {
     if (isStructured(snap.values[key])) {
-      data.push(key)
+      family(DATA_FAMILY[key] ?? OTHER_FAMILY).data.push(key)
     } else {
-      const family = schema.keys[key]?.group ?? OTHER_FAMILY
-      ;(parameters[family] ??= []).push(key)
+      const meta = schema.keys[key]
+      const f = family(familyOf(key, meta?.group))
+      ;(meta?.standard ? f.standard : f.advanced).push(key)
     }
   }
-  for (const family of Object.keys(parameters)) parameters[family].sort()
-  data.sort()
-  return { parameters, data }
+
+  for (const f of byKey.values()) {
+    f.standard.sort()
+    f.advanced.sort()
+    f.data.sort()
+  }
+  return orderFamilies(byKey.keys()).map((name) => byKey.get(name)!)
 }
 
-export function parameterFamilies(screens: Screens): string[] {
-  return Object.keys(screens.parameters).sort()
+/** Every scalar setting key in the catalogue, used by search. */
+export function settingKeys(snap: Snapshot): string[] {
+  return snap.keys.filter((k) => !isStructured(snap.values[k]))
 }
 
 // ── scalar editors ────────────────────────────────────────────────
@@ -57,6 +85,21 @@ export function coerce(raw: string | boolean, type: EditorType): unknown {
   return raw
 }
 
+/**
+ * Has this value been changed from the CTLD default?
+ *
+ * Compared loosely on purpose: a number that has been through a text field comes back as `"10"`
+ * while the default is `10`, and flagging that as a change would light up the whole panel after a
+ * no-op edit. Structured values are compared by their JSON form.
+ */
+export function isChanged(value: unknown, fallback: unknown): boolean {
+  if (value === fallback) return false
+  if (fallback === undefined) return false // no default known → nothing to compare against
+  const bothScalar = (v: unknown) => v === null || typeof v !== 'object'
+  if (bothScalar(value) && bothScalar(fallback)) return String(value) !== String(fallback)
+  return JSON.stringify(value) !== JSON.stringify(fallback)
+}
+
 // ── zones (positional arrays ↔ named records) ─────────────────────
 export function zoneToNamed(arr: unknown[], fields: ZoneField[]): Record<string, unknown> {
   const out: Record<string, unknown> = {}
@@ -76,12 +119,4 @@ export function namedToZone(named: Record<string, unknown>, fields: ZoneField[])
     out[f.pos] = has ? (f.type === 'int' ? Number(v) : v) : f.type === 'int' ? 0 : ''
   }
   return out
-}
-
-// Split a family's setting keys into Standard vs Advanced (schema `standard:` flag).
-export function standardSplit(keys: string[], schema: SchemaInfo): { standard: string[]; advanced: string[] } {
-  const standard: string[] = []
-  const advanced: string[] = []
-  for (const key of keys) (schema.keys[key]?.standard ? standard : advanced).push(key)
-  return { standard, advanced }
 }

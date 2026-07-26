@@ -54,6 +54,31 @@ jobs:
         run: gitleaks detect --source . --no-banner --redact -v
 
   # ─────────────────────────────────────────────────────────────
+  # ctld-tools web app (Svelte): type-check + vitest. The exe ships this frontend, so a break
+  # here reaches Mission Makers; release.yml only builds it, which would not catch a red test.
+  # ─────────────────────────────────────────────────────────────
+  frontend:
+    name: Web App (ctld-tools)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/ctld-tools/web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: tools/ctld-tools/web/package-lock.json
+      - run: npm ci
+      - name: Type-check (svelte-check + tsc)
+        run: npm run check
+      - name: Unit + component tests (vitest)
+        run: npm test
+      - name: Build the bundled frontend
+        run: npm run build
+
+  # ─────────────────────────────────────────────────────────────
   # Merge build — single source of truth: tools/build/merge_CTLD.ps1.
   # ─────────────────────────────────────────────────────────────
   build:

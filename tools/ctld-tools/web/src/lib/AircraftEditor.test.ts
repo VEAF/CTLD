@@ -22,8 +22,8 @@ test('lists existing aircraft types', () => {
 
 test('adding a type via the picker emits it with defaults', async () => {
   const { onchange } = setup()
-  await fireEvent.input(screen.getByPlaceholderText('add aircraft type…'), { target: { value: 'Mi-8MT' } })
-  await fireEvent.click(screen.getByText('+ type'))
+  await fireEvent.input(screen.getByPlaceholderText('Add an aircraft type…'), { target: { value: 'Mi-8MT' } })
+  await fireEvent.click(screen.getByText('+ Add aircraft'))
   const v = last(onchange)
   expect(Object.keys(v)).toContain('Mi-8MT')
   expect(v['Mi-8MT'].cratesEnabled).toBe(false) // blank default
@@ -31,7 +31,13 @@ test('adding a type via the picker emits it with defaults', async () => {
 
 test('toggling a capability emits the change', async () => {
   const { onchange } = setup()
-  const cb = screen.getByLabelText('cratesEnabled') as HTMLInputElement
+  const cb = screen.getByLabelText('Crates enabled') as HTMLInputElement
   await fireEvent.click(cb) // true → false
   expect(last(onchange)['UH-1H'].cratesEnabled).toBe(false)
+})
+
+test('names the coalition vehicle lists by side, not by schema key', () => {
+  setup()
+  expect(screen.getByText('Whole vehicles — BLUE')).toBeInTheDocument()
+  expect(screen.getByText('Whole vehicles — RED')).toBeInTheDocument()
 })

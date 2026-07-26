@@ -1,6 +1,8 @@
 <script lang="ts">
   // Editor for spawnableCrates: { section → [crate entry, …] }. Owns a local editable
   // copy and emits the whole structure on every change (single-user, coarse-grained PUT).
+  import { fieldLabel } from './tables'
+
   type Crate = Record<string, unknown>
 
   let {
@@ -40,90 +42,109 @@
   const num = (v: unknown) => (v === undefined || v === null || v === '' ? undefined : Number(v))
 </script>
 
+{#snippet removeButton(section: string, i: number, label: string)}
+  <button class="danger rm" title={`Remove ${label}`} aria-label={`Remove ${label}`} onclick={() => removeCrate(section, i)}>✕</button>
+{/snippet}
+
 {#each sections as section (section)}
   <fieldset class="section">
     <legend>{section}</legend>
     {#each model[section] as crate, i (i)}
       <div class="crate">
         {#if crate.mixedSet}
-          <span class="badge">mixed set</span>
-          <label>desc<input value={String(crate.desc ?? '')} onchange={(e) => setField(section, i, 'desc', e.currentTarget.value)} /></label>
-          <label>side<input type="number" value={crate.side as number} onchange={(e) => setField(section, i, 'side', num(e.currentTarget.value))} /></label>
-          <span class="mixed">weights: {(crate.mixedSet as unknown[]).join(', ')}</span>
+          <span class="badge">Mixed set</span>
+          <label>{fieldLabel('desc')}<input value={String(crate.desc ?? '')} onchange={(e) => setField(section, i, 'desc', e.currentTarget.value)} /></label>
+          <label>{fieldLabel('side')}<input type="number" value={crate.side as number} onchange={(e) => setField(section, i, 'side', num(e.currentTarget.value))} /></label>
+          <span class="mixed">Component weights: {(crate.mixedSet as unknown[]).join(', ')} kg</span>
         {:else}
-          <label title={tip('desc')}>desc<input value={String(crate.desc ?? '')} onchange={(e) => setField(section, i, 'desc', e.currentTarget.value)} /></label>
-          <label title={tip('unit')}>unit<input value={String(crate.unit ?? '')} onchange={(e) => setField(section, i, 'unit', e.currentTarget.value)} /></label>
-          <label title={tip('weight_kg')}>weight<input type="number" step="0.01" value={crate.weight as number} onchange={(e) => setField(section, i, 'weight', num(e.currentTarget.value))} /></label>
-          <label title={tip('cratesRequired')}>crates<input type="number" value={crate.cratesRequired as number} onchange={(e) => setField(section, i, 'cratesRequired', num(e.currentTarget.value))} /></label>
-          <label title={tip('side')}>side
-            <select value={crate.side === undefined ? '' : String(crate.side)} onchange={(e) => setField(section, i, 'side', e.currentTarget.value === '' ? undefined : Number(e.currentTarget.value))}>
-              <option value="">both</option>
+          <label title={tip('desc')}>{fieldLabel('desc')}<input value={String(crate.desc ?? '')} onchange={(e) => setField(section, i, 'desc', e.currentTarget.value)} /></label>
+          <label title={tip('unit')}>{fieldLabel('unit')}<input value={String(crate.unit ?? '')} onchange={(e) => setField(section, i, 'unit', e.currentTarget.value)} /></label>
+          <label title={tip('weight_kg')}>{fieldLabel('weight')}<input type="number" step="0.01" value={crate.weight as number} onchange={(e) => setField(section, i, 'weight', num(e.currentTarget.value))} /></label>
+          <label title={tip('cratesRequired')}>{fieldLabel('cratesRequired')}<input type="number" value={crate.cratesRequired as number} onchange={(e) => setField(section, i, 'cratesRequired', num(e.currentTarget.value))} /></label>
+          <label title={tip('side')}>{fieldLabel('side')}
+            <select class="side" class:red={crate.side === 1} class:blue={crate.side === 2} value={crate.side === undefined ? '' : String(crate.side)} onchange={(e) => setField(section, i, 'side', e.currentTarget.value === '' ? undefined : Number(e.currentTarget.value))}>
+              <option value="">Both</option>
               <option value="1">RED</option>
               <option value="2">BLUE</option>
             </select>
           </label>
         {/if}
-        <button class="rm" title="remove crate" onclick={() => removeCrate(section, i)}>✕</button>
+        {@render removeButton(section, i, String(crate.desc || 'this crate'))}
       </div>
     {/each}
-    <button class="add" onclick={() => addCrate(section)}>+ crate</button>
+    <button class="add" onclick={() => addCrate(section)}>+ Add crate</button>
   </fieldset>
 {/each}
 
 <style>
   .section {
-    border: 1px solid #e0e5ee;
-    border-radius: 6px;
-    margin: 0 0 1rem;
-    padding: 0.5rem 0.75rem 0.75rem;
+    border: 1px solid var(--hair-soft);
+    border-radius: var(--radius);
+    margin: 0 0 0.9rem;
+    padding: 0.4rem 0.8rem 0.7rem;
   }
   .section legend {
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    letter-spacing: 0.4px;
+    color: var(--accent);
     padding: 0 0.4rem;
   }
   .crate {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.5rem 0.7rem;
     align-items: flex-end;
-    padding: 0.35rem 0;
-    border-bottom: 1px solid #f0f2f7;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--hair-soft);
+  }
+  .crate:last-of-type {
+    border-bottom: none;
   }
   .crate label {
     display: flex;
     flex-direction: column;
-    font-size: 0.7rem;
-    color: #5a6473;
-    gap: 0.15rem;
-  }
-  .crate input,
-  .crate select {
-    padding: 0.25rem 0.35rem;
-    border: 1px solid #c3ccda;
-    border-radius: 4px;
-    font-size: 0.85rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    gap: 0.2rem;
   }
   .crate input[type='number'] {
-    width: 6rem;
+    width: 6.5rem;
+  }
+  /* Coalition reads as a coalition, not as a number. */
+  .side.red {
+    color: var(--side-red);
+    border-color: var(--side-red-hair);
+    background-color: var(--side-red-soft);
+  }
+  .side.blue {
+    color: var(--side-blue);
+    border-color: var(--side-blue-hair);
+    background-color: var(--side-blue-soft);
   }
   .badge {
     align-self: center;
-    background: #eef1f6;
-    color: #5a6473;
-    border-radius: 4px;
+    font-family: var(--font-display);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.5px;
+    background: var(--raised);
+    color: var(--ink-dim);
+    border: 1px solid var(--hair);
+    border-radius: 3px;
     padding: 0.1rem 0.4rem;
-    font-size: 0.7rem;
   }
   .mixed {
     align-self: center;
-    font-size: 0.75rem;
-    color: #8a93a2;
+    font-size: var(--fs-sm);
+    color: var(--ink-faint);
   }
   .rm {
-    color: #a12020;
-    border-color: #e0c3c3;
+    align-self: center;
   }
   .add {
-    margin-top: 0.5rem;
+    margin-top: 0.6rem;
   }
 </style>

@@ -95,6 +95,17 @@ def get_schema() -> dict[str, Any]:
     return {"families": schema.families(), "keys": keys, "tableFields": tables, "zoneFields": ZONE_FIELD_SCHEMAS}
 
 
+@app.get("/api/defaults")
+def get_defaults() -> dict[str, Any]:
+    """The CTLD default values, flat.
+
+    Lets the UI mark a setting as changed from the default and offer a one-click reset — editing is
+    otherwise a one-way door, which makes a non-technical MM afraid to touch anything.
+    """
+    cat = session.default_catalog()
+    return {"values": {k: _plain(cat.get(k)) for k in cat.keys()}}
+
+
 @app.get("/api/dcs-types")
 def dcs_types() -> dict[str, list[str]]:
     """The datamine DCS type-name set — source for the aircraft/unit pickers."""
