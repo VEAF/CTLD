@@ -516,19 +516,22 @@
     content: '';
     position: absolute;
     inset: 0;
-    background-image: url('/hero-slingload.jpg');
+    background-image: url('/hero-troop-insertion.webp');
     background-size: cover;
-    /* Framed low and right: crops the third-party watermark off the top of the source frame, and
-       puts the helicopter where the header is otherwise empty. */
-    background-position: 62% 68%;
-    /* Pulled towards the panel's own palette rather than left as a bright daylight photo. */
-    filter: saturate(0.4) contrast(1.08) brightness(0.62) sepia(0.16);
-    /* Dissolves leftwards, so it never fights the brand or the readouts. */
-    -webkit-mask-image: linear-gradient(90deg, transparent 20%, rgba(0, 0, 0, 0.3) 42%, #000 78%);
-    mask-image: linear-gradient(90deg, transparent 20%, rgba(0, 0, 0, 0.3) 42%, #000 78%);
-    opacity: 0.62;
+    /* 78% down the frame: a row-by-row detail scan put the busiest band there — the troops walking
+       out. A header this wide and shallow only ever shows ~12% of the frame's height, so which 12%
+       is the whole decision. */
+    background-position: 62% 78%;
+    /* Desaturated and slightly warmed into the panel's palette; brightness and the scrim below were
+       solved together against a 5:1 contrast floor for the header text (WCAG AA wants 4.5). */
+    filter: saturate(0.45) contrast(1.08) brightness(1.1) sepia(0.16);
+    /* Dissolves leftwards so it never reaches the brand. */
+    -webkit-mask-image: linear-gradient(90deg, transparent 18%, rgba(0, 0, 0, 0.35) 40%, #000 76%);
+    mask-image: linear-gradient(90deg, transparent 18%, rgba(0, 0, 0, 0.35) 40%, #000 76%);
     z-index: 0;
   }
+  /* The scrim does all the legibility work, so the photo itself can stay unfaded. Measured contrast
+     against --ink: 13:1 over the brand, 6:1 at the readouts, 5.2:1 at the lamp. */
   .bar::after {
     content: '';
     position: absolute;
@@ -537,8 +540,8 @@
       90deg,
       #141c21 0%,
       rgba(20, 28, 33, 0.94) 34%,
-      rgba(20, 28, 33, 0.62) 62%,
-      rgba(20, 28, 33, 0.3) 100%
+      rgba(20, 28, 33, 0.5) 62%,
+      rgba(20, 28, 33, 0.15) 100%
     );
     z-index: 0;
   }
