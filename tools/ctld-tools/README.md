@@ -54,7 +54,8 @@ JSON catalogs in `ctld_tools/data/locales/`). Language follows the OS locale; ov
 to the key itself).
 
 **Settings schema** — `src/CTLD_config_schema.yaml` holds authoring metadata for settings
-(functional `group`, `standard` flag, `choices` enum, bilingual `label` and `description`), plus two
+(functional `group`, `standard` flag, `choices` enum, `unit`, bilingual `label` and `description`),
+plus two
 reserved sections: `families:` and `tableFields:`. Optional: a setting with no entry is still
 editable, the UI falls back to a generic editor and a name derived from the key.
 
@@ -77,15 +78,18 @@ Presentation metadata comes from `src/CTLD_config_schema.yaml`:
   stays visible beside it, since that is what the docs and forums name). A setting without one falls
   back to `humanize(key)` in `web/src/lib/labels.ts`, which is always English.
 
-Two things are still derived in the frontend, for want of a source:
+- **`unit:`** per numeric setting — the symbol shown next to the value (`m`, `s`, `min`, `m/s`, `kg`),
+  untranslated. Each was traced to the Lua that consumes the value, never inferred from the key name;
+  settings that are counters, codes, fractions or multipliers deliberately have none. The frontend
+  still falls back to scraping the unit out of the description text when `unit:` is absent.
 
-- **Units** are extracted from the schema `description` text, which already documents them
-  (`Max height (m) …`) — never inferred from a key name, where a wrong guess would be worse than
-  nothing.
+One thing is still derived in the frontend, for want of a source:
+
 - **Family fallback** (`familyOf`) derives a family from the key's spelling for the ~44 settings the
   schema has no `group:` for, which shrinks the catch-all `Other` family from ~44 settings to 7.
 
-An explicit `unit:` and the missing `group:` are the remaining schema work — see `dev/roadmap.md`.
+Those missing `group:` entries are the remaining schema work — see `dev/roadmap.md`, which also lists
+the runtime anomalies the unit-tracing sweep turned up.
 
 ### i18n
 

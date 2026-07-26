@@ -1,8 +1,9 @@
 """Authoring-schema accessor — the schema-driven half of the tool core.
 
 `CTLD_config_schema.yaml` carries per-setting authoring metadata (functional `group`,
-`standard` flag, `choices` enum, bilingual `description`). It is optional: a setting with
-no entry is still editable (the UI falls back to a generic editor). This class gives the
+`standard` flag, `choices` enum, `unit`, bilingual `label` and `description`). It is optional: a
+setting with no entry is still editable (the UI falls back to a generic editor and a name derived
+from the key). This class gives the
 core (and lot-3 UI) typed access to that metadata without re-reading YAML everywhere.
 """
 
@@ -58,6 +59,16 @@ class Schema:
         """Short display name for a setting, or None — the UI then derives one from the key."""
         label = self._entry(key).get("label")
         return label.get(lang) or label.get("en") if isinstance(label, dict) else None
+
+    def unit(self, key: str) -> str | None:
+        """The unit a value is expressed in ("m", "s", "kg", …), or None.
+
+        Not translated: these are symbols, identical in every language. Authored here rather than
+        parsed out of the description, which only documents a unit for about half the numeric
+        settings — and says nothing at all for those with no description.
+        """
+        unit = self._entry(key).get("unit")
+        return str(unit) if unit is not None else None
 
     def families(self) -> list[str]:
         """The distinct functional families declared across the schema, sorted."""

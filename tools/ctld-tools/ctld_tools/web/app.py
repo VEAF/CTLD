@@ -108,6 +108,7 @@ def get_schema(lang: str | None = None) -> dict[str, Any]:
             "standard": schema.standard(k),
             "choices": schema.choices(k),
             "label": schema.label(k, language),
+            "unit": schema.unit(k),
             "description": schema.description(k, language) or schema.description(k),
         }
         for k in schema.keys()

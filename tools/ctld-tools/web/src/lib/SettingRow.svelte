@@ -4,7 +4,7 @@
   // does, see whether they have touched it, and undo that, without leaving the row.
   import type { SchemaKey } from './api'
   import { t } from './i18n.svelte'
-  import { settingLabel, unitOf } from './labels'
+  import { settingLabel, settingUnit } from './labels'
   import { editorType, isChanged, type EditorType } from './model'
 
   let {
@@ -28,7 +28,7 @@
 
   const name = $derived(settingLabel(settingKey, meta?.label))
   const type = $derived<EditorType>(editorType(meta, value))
-  const unit = $derived(unitOf(meta?.description))
+  const unit = $derived(settingUnit(meta?.unit, meta?.description))
   const changed = $derived(isChanged(value, fallback))
   const id = $derived(`f_${settingKey}`)
 </script>

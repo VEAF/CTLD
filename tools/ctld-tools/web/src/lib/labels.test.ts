@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { humanize, settingLabel, unitOf } from './labels'
+import { humanize, settingLabel, settingUnit, unitOf } from './labels'
 
 describe('settingLabel', () => {
   it('prefers the schema label — that is what carries the translation', () => {
@@ -55,6 +55,22 @@ describe('humanize', () => {
     expect(humanize('x')).toBe('X')
     expect(humanize('')).toBe('')
     expect(humanize('_')).toBe('_')
+  })
+})
+
+describe('settingUnit', () => {
+  it('prefers the schema unit over whatever the description happens to say', () => {
+    expect(settingUnit('m/s', 'Descent rate (m) something')).toBe('m/s')
+  })
+
+  it('falls back to the description when the schema has no unit', () => {
+    expect(settingUnit(null, 'Max height (m) for fast-rope insertion')).toBe('m')
+    expect(settingUnit(undefined, 'JTAC laser + radio (kg)')).toBe('kg')
+  })
+
+  it('reports nothing when neither source knows', () => {
+    expect(settingUnit(null, 'Master switch for crate spawning')).toBeNull()
+    expect(settingUnit(null, null)).toBeNull()
   })
 })
 

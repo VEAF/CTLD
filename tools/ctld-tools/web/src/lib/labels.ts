@@ -99,3 +99,12 @@ export function unitOf(description: string | null | undefined): string | null {
   for (const [pattern, unit] of UNIT_PATTERNS) if (pattern.test(description)) return unit
   return null
 }
+
+/**
+ * The unit to show next to a value: the schema's authored `unit:` first, else whatever the
+ * description happens to document. The authored field exists because the description route covers
+ * only about half the numeric settings, and nothing at all for those without a description.
+ */
+export function settingUnit(authored: string | null | undefined, description: string | null | undefined): string | null {
+  return authored || unitOf(description)
+}

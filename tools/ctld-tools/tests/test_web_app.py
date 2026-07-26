@@ -107,6 +107,40 @@ def test_schema_endpoint_translates_setting_labels():
 _SAME_IN_BOTH = {"JTAC_lock", "modTypes"}
 
 
+def test_schema_endpoint_exposes_units():
+    keys = client.get("/api/schema?lang=en").json()["keys"]
+    # Each of these was traced to the code that consumes the value.
+    assert keys["maxSlingloadSpeed"]["unit"] == "m/s"  # vs the magnitude of Unit:getVelocity()
+    assert keys["deployedBeaconBattery"]["unit"] == "min"  # the engine multiplies it by 60
+    assert keys["hoverTime"]["unit"] == "s"  # counted down on a 1s tick
+    assert keys["maxDistanceFromCrate"]["unit"] == "m"  # a 2D distance over getPoint() coords
+    assert keys["maxTransportWeight"]["unit"] == "kg"  # summed into setUnitInternalCargo()
+
+
+def test_units_are_not_translated():
+    # Unit symbols are language-independent; only labels and descriptions are translated.
+    en = client.get("/api/schema?lang=en").json()["keys"]
+    fr = client.get("/api/schema?lang=fr").json()["keys"]
+    assert {k: v["unit"] for k, v in en.items()} == {k: v["unit"] for k, v in fr.items()}
+
+
+def test_settings_that_are_not_measurements_have_no_unit():
+    # Counters, colour codes, laser codes, fractions and multipliers must stay bare: showing a
+    # unit there would invent one.
+    keys = client.get("/api/schema?lang=en").json()["keys"]
+    for key in (
+        "numberOfTroops",
+        "aaLaunchers",
+        "JTAC_smokeColour_BLUE",
+        "jtacLaserCodeMin",
+        "fobDestructionThreshold",
+        "parachuteInertiaFactor",
+        "reconIconScale",
+        "beaconTextSize",
+    ):
+        assert keys[key]["unit"] is None, key
+
+
 def test_labels_never_use_the_banned_repack_wording():
     # Project convention: "repack" is banned, "pack" everywhere — including user-facing labels.
     for lang in ("en", "fr"):

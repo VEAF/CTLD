@@ -5,14 +5,14 @@ import App from './App.svelte'
 const SCHEMA = {
   families: ['aa', 'troops'],
   keys: {
-    numberOfTroops: { group: 'troops', standard: true, choices: null, label: null, description: 'Default troop group size' },
-    aaRearmDistance: { group: 'aa', standard: false, choices: null, label: null, description: 'Rearm range (metres)' },
+    numberOfTroops: { group: 'troops', standard: true, choices: null, label: null, unit: null, description: 'Default troop group size' },
+    aaRearmDistance: { group: 'aa', standard: false, choices: null, label: null, unit: null, description: 'Rearm range (metres)' },
   },
   familyMeta: {
-    aa: { label: 'AA system', description: 'Anti-air systems assembled from crates.', order: 100 },
-    troops: { label: 'Troops', description: 'Loading, deploying and extracting infantry.', order: 40 },
-    crates: { label: 'Crates', description: 'Spawning and unpacking supply crates.', order: 30 },
-    aircraft: { label: 'Aircraft', description: 'Which airframes carry what.', order: 20 },
+    aa: { label: 'AA system', unit: null, description: 'Anti-air systems assembled from crates.', order: 100 },
+    troops: { label: 'Troops', unit: null, description: 'Loading, deploying and extracting infantry.', order: 40 },
+    crates: { label: 'Crates', unit: null, description: 'Spawning and unpacking supply crates.', order: 30 },
+    aircraft: { label: 'Aircraft', unit: null, description: 'Which airframes carry what.', order: 20 },
   },
   tableFields: { spawnableCrates: { desc: 'Display name', unit: 'DCS type', weight_kg: 'mass' } },
   zoneFields: {},

@@ -52,6 +52,11 @@ The first three of these were deferred, then requested straight after the first 
   authoring 137 bilingual labels closed that. It also improved several English names over the naive
   derivation, and let the project's "no repack" convention reach the UI.
 
+- **`unit:` per setting** → ticket 14. Reading the unit out of the description covered 40 of 80
+  numeric settings; tracing each one to its consuming Lua code covered 66, and proved the other 14
+  have no unit at all. I had filed this as needing engine knowledge I lacked — the answer was to go
+  read the engine.
+
 ### Still out of scope
 
 - **The ~44 missing `group:` entries.** The name-derived fallback shrinks `Other` to 7, so the
@@ -82,6 +87,7 @@ The first three of these were deferred, then requested straight after the first 
 | 11 | French UI | pulled in from the deferred list |
 | 12 | A picture of what the tool is for | asked for after the first review |
 | 13 | Bilingual setting names in the schema | closes the i18n hole left by ticket 11 |
+| 14 | Units traced from the Lua, not guessed | 11 — the description-scraping covered only half |
 
 ## Acceptance
 

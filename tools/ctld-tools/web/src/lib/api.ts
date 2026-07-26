@@ -12,6 +12,8 @@ export interface SchemaKey {
   choices: unknown[] | null
   /** Authored display name in the active language; null → derive one from the key. */
   label: string | null
+  /** Authored unit symbol ("m", "s", "kg", …); null → fall back to reading the description. */
+  unit: string | null
   description: string | null
 }
 

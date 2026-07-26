@@ -42,6 +42,20 @@ identity rooted in the subject (DCS rotary-wing logistics). `tools/` only — no
   olive-biased neutrals, caution-amber accent, NATO side colours for RED/BLUE, display/mono type
   split), shared control styling, real page title and favicon (was Vite's default), responsive down
   to ~1000px, visible focus, `prefers-reduced-motion` honoured.
+- **Units are traced from the engine, not guessed.** `unit:` on 66 numeric settings in
+  `src/CTLD_config_schema.yaml`, each one established by reading the Lua that consumes the value —
+  `maxSlingloadSpeed` is **m/s** (compared to the magnitude of `Unit:getVelocity()`, no conversion
+  anywhere in `src/`), `deployedBeaconBattery` is **minutes** (the engine applies `* 60` at four
+  sites), `hoverTime` is **seconds** (counted down on a 1s tick), and so on. Previously the unit was
+  scraped out of the description text, which covered 40 of the 80 numeric settings and nothing for
+  those without a description. The remaining 14 provably have no unit (counters, colour and laser
+  codes, 0–1 fractions, a multiplier, a DCS font size) and stay bare. Units are not translated.
+  Two fixes fell out of the investigation: `spawnDistanceInCircle` was mislabelled as a *spacing*
+  when the code uses it as a **radius**, and `maxTransportWeight` gained a description because `0`
+  (which disables the check entirely) was unreadable. The runtime anomalies the sweep turned up —
+  including a `maxSlingloadSpeed` default of 50 m/s ≈ 180 km/h, two Lua fallbacks that disagree with
+  the YAML catalogue, and three settings that would raise on a missing key — are recorded on
+  `dev/roadmap.md` rather than changed here.
 - **Setting names are authored and bilingual.** `label: { en, fr }` on all 137 catalogue keys in
   `src/CTLD_config_schema.yaml` (41 keys had no schema entry and got one), exposed per-language by
   `/api/schema` and preferred over the key-derived name everywhere a setting is named — rows, search,

@@ -85,3 +85,44 @@ Le lot CTLD-TOOLS-MM-UX a mis dans `src/CTLD_config_schema.yaml` les **familles*
 Converge avec « générer les tableaux de config de la doc depuis le schéma » : mêmes métadonnées, même
 source. Le vrai reste-à-faire coûteux, ce sont les **descriptions** des ~44 réglages non documentés
 (les inventer serait contraire à la règle zéro-supposition).
+
+---
+
+## Runtime — anomalies relevées en traçant les unités (lot CTLD-TOOLS-MM-UX, ticket 14)
+
+Quatre balayages de `src/` pour établir l'unité de chaque réglage numérique ont mis au jour des
+points qui n'ont **rien à voir avec l'UI** et n'ont donc pas été touchés. Chacun est étayé par le
+code ; à trier avant d'en faire des tickets.
+
+**1. `maxSlingloadSpeed` : défaut probablement faux.** Le code compare la valeur à la norme de
+`Unit:getVelocity()`, donc en **m/s** (`CTLD_crate.lua:1100-1102`, aucun facteur de conversion dans
+tout `src/`). Le défaut de 50 vaut donc **180 km/h**, ce qui est très permissif pour une limite de
+sling-load. Le seuil frère de `CTLD_troop.lua:1266` (`speed < 2.2`) suggère que 50 a peut-être été
+écrit en pensant km/h. À trancher par quelqu'un qui connaît l'intention.
+
+**2. Défauts du code divergents du catalogue YAML.** Les fallbacks `or <valeur>` dans le Lua ne
+correspondent pas à `src/CTLD_config.yaml` :
+
+| Réglage | YAML | Fallback Lua | Où |
+|---|---|---|---|
+| `maximumSearchDistance` | 3000 | 10000 | `CTLD_troop.lua:1521` |
+| `maximumDistanceLogistic` | 200 | 500 | `CTLD_zone.lua:897` |
+
+Sans effet tant que le catalogue est chargé (il l'est toujours), mais deux sources de vérité pour la
+même valeur par défaut.
+
+**3. Trois réglages sans fallback → erreur arithmétique si la clé manque.** `ctld.gs()` renvoie `nil`
+et la valeur part directement dans une comparaison ou une addition :
+`JTAC_laseIntervalSeconds` / `JTAC_searchIntervalSeconds` (`CTLD_jtac.lua:905-906`, puis
+`t + interval`) et `slingCutDestroyHeight` (`CTLD_crate.lua:1503`). Une config utilisateur amputée de
+ces clés planterait au lieu de retomber sur un défaut.
+
+**4. `CTLDCrateManager:dropCrate` semble mort.** Aucun appelant dans `src/` — uniquement
+`tests/ci/unit/crate_lifecycle_spec.lua`. Donc `maxDropHeight` (`CTLD_crate.lua:2135`) ne sert
+qu'en test. À confirmer avant de supprimer : peut-être un point d'entrée d'API pour les plugins.
+
+**5. `minimumHoverHeight` / `maximumHoverHeight` : référentiel incohérent selon l'appelant.** Hauteur
+au-dessus de l'objet visé à `CTLD_crate.lua:1152` et `CTLD_vehicle.lua:1193`
+(`transportPos.y - cratePos.y`), mais vrai AGL terrain à `CTLD_crate.lua:1463`
+(`pos.y - land.getHeight(...)`). Sur terrain en pente, ou pour une caisse posée en hauteur, les deux
+ne donnent pas la même chose — le pilote peut satisfaire un test et pas l'autre.
