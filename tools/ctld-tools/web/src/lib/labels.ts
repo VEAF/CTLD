@@ -79,10 +79,15 @@ export function humanize(key: string): string {
 }
 
 // Units as the schema descriptions spell them, mapped to the symbol shown next to the field.
+// Order matters: the compound units come first, so "(m/s)" is not shadowed by a looser match.
+// This list is exhaustive over what the descriptions actually contain — checked by scanning every
+// parenthesised fragment in them, which is also how "(m/s)" and "(minutes)" were found missing.
 const UNIT_PATTERNS: [RegExp, string][] = [
+  [/\(m\/s\)/i, 'm/s'],
   [/\((?:m|metres|meters)\)/i, 'm'],
   [/\(kg\)/i, 'kg'],
   [/\((?:s|seconds)\)/i, 's'],
+  [/\((?:min|minutes)\)/i, 'min'],
 ]
 
 /**

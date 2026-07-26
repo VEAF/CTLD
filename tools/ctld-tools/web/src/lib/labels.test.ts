@@ -66,10 +66,25 @@ describe('unitOf', () => {
     expect(unitOf('Auto-refresh interval (seconds)')).toBe('s')
   })
 
+  it('reads compound and spelled-out units', () => {
+    // Found by scanning every parenthesised fragment in the descriptions: these were being
+    // silently dropped, so a descent rate rendered as a bare number.
+    expect(unitOf('Descent rate (m/s) for parachuted crates')).toBe('m/s')
+    expect(unitOf('Beacon battery life (minutes)')).toBe('min')
+  })
+
+  it('does not let a looser pattern shadow a compound unit', () => {
+    expect(unitOf('Descent rate (m/s)')).not.toBe('m')
+  })
+
   it('reports no unit rather than guessing one', () => {
     // A parenthesised range is not a unit — and a description is optional in the first place.
     expect(unitOf('Horizontal inertia factor applied to the crate velocity (0–1, lower = less drift)')).toBeNull()
     expect(unitOf('Master switch for crate spawning and unpacking')).toBeNull()
+    // Parenthesised, but not units — these all appear in the real descriptions.
+    expect(unitOf('Highest assignable JTAC laser code (NATO range)')).toBeNull()
+    expect(unitOf('Max JTAC objects RED may spawn (same)')).toBeNull()
+    expect(unitOf('Fraction of scene objects destroyed before a FOB is lost (0.0–1.0)')).toBeNull()
     expect(unitOf(null)).toBeNull()
     expect(unitOf(undefined)).toBeNull()
     expect(unitOf('')).toBeNull()
