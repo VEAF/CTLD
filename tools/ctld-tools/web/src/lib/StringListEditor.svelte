@@ -39,7 +39,7 @@
   {#each model as item, i (i)}
     {@const removeLabel = t('web.table.remove', { what: item || t('web.table.this_entry') })}
     <div class="item">
-      <input value={item} list={listId} {placeholder} onchange={(e) => edit(i, e.currentTarget.value)} />
+      <input class={listId ? 'combo' : undefined} value={item} list={listId} {placeholder} onchange={(e) => edit(i, e.currentTarget.value)} />
       <button class="danger" title={removeLabel} aria-label={removeLabel} onclick={() => remove(i)}>✕</button>
     </div>
   {/each}

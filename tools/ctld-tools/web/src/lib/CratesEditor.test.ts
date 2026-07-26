@@ -40,6 +40,14 @@ test('removing a crate emits the shorter list', async () => {
   expect(lastValue(onchange).Support).toHaveLength(0)
 })
 
+test('the DCS unit field is a combo backed by the shared type list', () => {
+  setup()
+  const unitField = screen.getByDisplayValue('Ural-375')
+  // Free text plus a picker: a mod's type will not be in the datamine list.
+  expect(unitField).toHaveAttribute('list', 'dcs-types')
+  expect(unitField).toHaveClass('combo')
+})
+
 test('labels the crate fields in words, not schema keys', () => {
   setup()
   expect(screen.getByText('Display name')).toBeInTheDocument()

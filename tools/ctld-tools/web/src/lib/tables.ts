@@ -41,6 +41,13 @@ export function fieldLabel(field: string): string {
   return LABELLED_FIELDS.has(field) ? t(`web.field.${field}`) : humanize(field)
 }
 
+/**
+ * The `<datalist>` of DCS type names, mounted once in App.svelte and referenced by every field that
+ * takes a DCS type. Any such field is a combo — pick from the 1000+ datamine types, or type a name
+ * freely (a mod's type will not be in the list).
+ */
+export const DCS_TYPES_LIST = 'dcs-types'
+
 export const TROOP_FIELDS: Omit<Field, 'tip'>[] = [
   { name: 'name', type: 'string' },
   { name: 'inf', type: 'number' },

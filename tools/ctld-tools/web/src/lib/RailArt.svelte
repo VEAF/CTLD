@@ -1,44 +1,48 @@
 <script lang="ts">
-  // Decorative line-art: a transport helicopter in the hover, inserting troops on ropes — the one
+  // Decorative line-art: a transport helicopter in the hover with a crate slung under it — the one
   // scene that says what this tool is for.
   //
-  // It lives at the foot of the navigation rail rather than in the header: measured on a 1280px
-  // window, the header's spare middle is only ~200px wide and the art landed under the readouts,
-  // and a watermark beneath figures a Mission Maker is reading is worse than no watermark. The
-  // bottom of the rail is genuinely empty space, so the drawing can breathe and never sits under
-  // text. It goes away when the rail collapses into a horizontal bar.
+  // Composed after a real DCS screenshot David sent: seen head-on rather than in profile, the rotor
+  // disc read almost edge-on as a shallow lens, the sling line hanging dead vertical, and the crate
+  // already sitting on the ground. The profile sketch this replaces was legible but flat — head-on is
+  // how you actually watch a load being placed.
+  //
+  // Hand-drawn vector rather than the photo itself: a DCS capture is someone else's frame (that one
+  // even carries a third party's watermark) and this repo ships publicly.
+  //
+  // It lives at the foot of the navigation rail, not in the header: measured on a 1280px window the
+  // header's spare middle is only ~200px wide and the drawing landed under the readouts. The bottom
+  // of the rail is genuinely empty, so it never sits under text. It goes away when the rail collapses
+  // into a horizontal bar.
 </script>
 
-<svg class="art" viewBox="0 0 300 112" fill="none" aria-hidden="true" focusable="false">
-  <g stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <!-- main rotor disc, seen edge-on, with a slight cone -->
-    <path d="M46 24q104-7 208 0" />
-    <path d="M150 24v9" />
-    <!-- fuselage: rounded nose at the left, tapering to the tail boom -->
-    <path
-      d="M112 52q0-19 24-19h44q17 0 23 11l31 4q4 1 0 2l-31 4q-7 8-23 8h-44q-24 0-24-10z"
-    />
-    <!-- cockpit glazing -->
-    <path d="M118 44q6-7 18-8" />
-    <!-- tail boom, fin and tail rotor -->
-    <path d="M234 50h30" />
-    <path d="M258 50l7-16 5 2-6 14" />
-    <circle cx="266" cy="41" r="6" />
-    <path d="M262 37l8 8M270 37l-8 8" />
-    <!-- skids -->
-    <path d="M133 62l-3 12M182 62l3 12" />
-    <path d="M120 74h74" />
-    <!-- fast ropes -->
-    <path d="M150 62l-3 46M170 62l4 46" />
-    <!-- two troopers on the way down -->
-    <g>
-      <circle cx="146" cy="82" r="3" />
-      <path d="M146 85v9M146 94l-4 7M146 94l4 7M144 87l4-3M148 87l-2-3" />
-    </g>
-    <g>
-      <circle cx="173" cy="96" r="3" />
-      <path d="M173 99v8M173 107l-4 5M173 107l4 5M171 101l3-3" />
-    </g>
+<svg class="art" viewBox="0 0 220 164" fill="none" aria-hidden="true" focusable="false">
+  <g stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- rotor disc, seen almost edge-on: two arcs closing into a shallow lens -->
+    <path d="M12 34q98-13 196 0" />
+    <path d="M12 34q98 13 196 0" opacity="0.55" />
+    <!-- hub and mast -->
+    <path d="M110 34v10" />
+    <!-- fuselage, head-on: a rounded cabin -->
+    <path d="M84 61q0-17 26-17t26 17q0 18-26 18t-26-18z" />
+    <!-- glazing -->
+    <path d="M93 55q7-8 17-8t17 8" />
+    <path d="M110 47v9" opacity="0.6" />
+    <!-- main gear, splayed left and right -->
+    <path d="M92 76l-11 13M128 76l11 13" />
+    <circle cx="79" cy="92" r="3.4" />
+    <circle cx="141" cy="92" r="3.4" />
+    <!-- sling line, dead vertical, and the hook -->
+    <path d="M110 79v39" />
+    <circle cx="110" cy="121" r="3" />
+    <!-- four-point strop down to the crate -->
+    <path d="M110 124l-14 8M110 124l14 8" />
+    <!-- the crate, already on the ground: front face plus a top edge for depth -->
+    <path d="M96 132h28v20H96z" />
+    <path d="M96 132l6-5h28l-6 5" opacity="0.7" />
+    <path d="M124 132l6-5v20l-6 5" opacity="0.7" />
+    <!-- ground line -->
+    <path d="M58 157h104" opacity="0.35" stroke-dasharray="5 7" />
   </g>
 </svg>
 
@@ -46,11 +50,11 @@
   .art {
     display: block;
     width: 100%;
-    max-width: 210px;
+    max-width: 200px;
     height: auto;
     margin: 2.5rem auto 0.5rem;
     color: var(--accent);
-    opacity: 0.22;
+    opacity: 0.28;
     pointer-events: none;
   }
   /* The rail becomes a horizontal bar here — no vertical space left to decorate. */

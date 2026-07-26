@@ -33,7 +33,7 @@
   import { settingLabel } from './lib/labels'
   import { classify, coerce, isChanged, settingKeys, type EditorType, type Family } from './lib/model'
   import { searchSettings } from './lib/search'
-  import { TROOP_FIELDS, withTips } from './lib/tables'
+  import { DCS_TYPES_LIST, TROOP_FIELDS, withTips } from './lib/tables'
 
   const LANG_NAMES: Record<string, string> = { en: 'English', fr: 'Français' }
 
@@ -268,11 +268,12 @@
 
 <header class="bar">
   <div class="brand">
-    <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M12 12l8-3M12 12l-8-3M12 12v6.5" />
-      <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" />
-      <path d="M6.5 18.5h9M9.5 18.5v-1.2" />
-      <path d="M3.5 9c3-1.1 6-1 8.5 3M20.5 9c-3-1.1-6-1-8.5 3" />
+    <!-- Same motif as the favicon — a crate on a sling line. Two shapes, because a rotor-and-skids
+         sketch turns to mush at 36px (it did). One mark, declined at both sizes. -->
+    <svg class="mark" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11.5 5h9" />
+      <path d="M16 5.5v7" />
+      <rect x="7.7" y="13.6" width="16.6" height="12.4" rx="1.6" />
     </svg>
     <div>
       <h1>CTLD</h1>
@@ -307,6 +308,12 @@
     </div>
   </div>
 </header>
+
+<!-- Mounted once, outside every family: any field taking a DCS type references it, so the combo
+     works everywhere and not only on the Aircraft family where the list used to live. -->
+<datalist id={DCS_TYPES_LIST}>
+  {#each dcsTypes as dcsType (dcsType)}<option value={dcsType}></option>{/each}
+</datalist>
 
 <div class="flow">
   {#each steps as s, i (s.title)}
@@ -460,7 +467,6 @@
                   <AircraftEditor
                     capabilities={snapshot.values.capabilitiesByType as Record<string, Record<string, unknown>>}
                     fields={schema?.tableFields?.capabilitiesByType ?? {}}
-                    types={dcsTypes}
                     onchange={(v) => saveData('capabilitiesByType', v)}
                   />
                 {:else if ZONE_TYPES.includes(key)}
@@ -474,6 +480,7 @@
                 {:else if key === 'groundVehicleWeights'}
                   <KeyValueEditor
                     map={snapshot.values.groundVehicleWeights as Record<string, number>}
+                    keyList={DCS_TYPES_LIST}
                     onchange={(v) => saveData('groundVehicleWeights', v)}
                   />
                 {:else}

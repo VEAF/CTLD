@@ -4,7 +4,16 @@
   import { t } from './i18n.svelte'
   import { fieldLabel } from './tables'
 
-  let { map, onchange }: { map: Record<string, number>; onchange: (v: Record<string, number>) => void } = $props()
+  let {
+    map,
+    keyList,
+    onchange,
+  }: {
+    map: Record<string, number>
+    /** `<datalist>` id backing the key column — set when the key is a DCS type name. */
+    keyList?: string
+    onchange: (v: Record<string, number>) => void
+  } = $props()
 
   // svelte-ignore state_referenced_locally
   let rows = $state<[string, number][]>(Object.entries($state.snapshot(map) ?? {}) as [string, number][])
@@ -37,7 +46,7 @@
   <tbody>
     {#each rows as row, i (i)}
       <tr>
-        <td><input value={row[0]} onchange={(e) => setKey(i, e.currentTarget.value)} /></td>
+        <td><input class={keyList ? 'combo' : undefined} list={keyList} value={row[0]} onchange={(e) => setKey(i, e.currentTarget.value)} /></td>
         <td><input type="number" value={row[1]} onchange={(e) => setVal(i, e.currentTarget.value)} /></td>
         <td><button class="danger" title={t('web.table.remove', { what: row[0] || t('web.table.this_entry') })} aria-label={t('web.table.remove', { what: row[0] || t('web.table.this_entry') })} onclick={() => remove(i)}>✕</button></td>
       </tr>

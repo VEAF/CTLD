@@ -7,7 +7,6 @@ function setup() {
   render(AircraftEditor, {
     capabilities: { 'UH-1H': { cratesEnabled: true, maxCratesOnboard: 1, loadableVehiclesBLUE: [], loadableVehiclesRED: [] } },
     fields: {},
-    types: ['UH-1H', 'Ka-50', 'Mi-8MT'],
     onchange,
   })
   return { onchange }

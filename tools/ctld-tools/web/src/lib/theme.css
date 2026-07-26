@@ -135,9 +135,13 @@ button.danger {
   background: transparent;
 }
 
-input[type='text'],
-input[type='number'],
-input[type='search'],
+/* Matched by exclusion, not by listing `type` values: a bare `<input>` IS a text field, but
+   `input[type='text']` does not match it — which left every table editor's field on the browser's
+   white default. Excluding the two natively-drawn types is both shorter and future-proof.
+   The exclusions sit inside `:where()` so they add NO specificity: this stays a plain element
+   selector that `input.combo` and `input[type='number']` below can override. Without it, two
+   `:not()` clauses outweigh a class and the combo styling silently loses. */
+input:where(:not([type='checkbox']):not([type='radio'])),
 select,
 textarea {
   font-family: var(--font-body);
@@ -167,6 +171,21 @@ input[type='checkbox'] {
   accent-color: var(--accent);
   width: 1rem;
   height: 1rem;
+}
+
+/* A field backed by a <datalist>: free text, but with a list to pick from. It gets the same chevron
+   as a <select> so it reads as a combo rather than a blank box. Chrome draws its own picker button
+   on hover, which would sit on top of ours — made transparent and left over the chevron, so it stays
+   clickable and opens the list. Firefox draws none; the chevron is then purely a hint. */
+input.combo {
+  padding-right: 1.85rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%238ea1ab' stroke-width='2'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+}
+input.combo::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  cursor: pointer;
 }
 
 /* A config key, wherever it appears next to its human label. */

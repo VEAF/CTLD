@@ -2,7 +2,7 @@
   // Editor for spawnableCrates: { section → [crate entry, …] }. Owns a local editable
   // copy and emits the whole structure on every change (single-user, coarse-grained PUT).
   import { t } from './i18n.svelte'
-  import { fieldLabel } from './tables'
+  import { DCS_TYPES_LIST, fieldLabel } from './tables'
 
   type Crate = Record<string, unknown>
 
@@ -59,7 +59,7 @@
           <span class="mixed">{t('web.table.component_weights', { weights: (crate.mixedSet as unknown[]).join(', ') })}</span>
         {:else}
           <label title={tip('desc')}>{fieldLabel('desc')}<input value={String(crate.desc ?? '')} onchange={(e) => setField(section, i, 'desc', e.currentTarget.value)} /></label>
-          <label title={tip('unit')}>{fieldLabel('unit')}<input value={String(crate.unit ?? '')} onchange={(e) => setField(section, i, 'unit', e.currentTarget.value)} /></label>
+          <label title={tip('unit')}>{fieldLabel('unit')}<input class="combo" list={DCS_TYPES_LIST} value={String(crate.unit ?? '')} onchange={(e) => setField(section, i, 'unit', e.currentTarget.value)} /></label>
           <label title={tip('weight_kg')}>{fieldLabel('weight')}<input type="number" step="0.01" value={crate.weight as number} onchange={(e) => setField(section, i, 'weight', num(e.currentTarget.value))} /></label>
           <label title={tip('cratesRequired')}>{fieldLabel('cratesRequired')}<input type="number" value={crate.cratesRequired as number} onchange={(e) => setField(section, i, 'cratesRequired', num(e.currentTarget.value))} /></label>
           <label title={tip('side')}>{fieldLabel('side')}

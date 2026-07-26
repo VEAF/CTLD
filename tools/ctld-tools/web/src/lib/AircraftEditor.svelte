@@ -3,19 +3,17 @@
   // numeric maxima, two loadable-vehicle string lists). Add a type via a datamine picker.
   import StringListEditor from './StringListEditor.svelte'
   import { t } from './i18n.svelte'
-  import { AIRCRAFT_BOOLS, AIRCRAFT_NUMS, blankAircraft, fieldLabel } from './tables'
+  import { AIRCRAFT_BOOLS, AIRCRAFT_NUMS, blankAircraft, DCS_TYPES_LIST, fieldLabel } from './tables'
 
   type Rec = Record<string, unknown>
 
   let {
     capabilities,
     fields,
-    types,
     onchange,
   }: {
     capabilities: Record<string, Rec>
     fields: Record<string, string | null>
-    types: string[]
     onchange: (v: Record<string, Rec>) => void
   } = $props()
 
@@ -54,9 +52,8 @@
 </script>
 
 <div class="add-type">
-  <input list="dcs-types" placeholder={t('web.table.add_aircraft_placeholder')} bind:value={newType} />
-  <!-- Loop variable is not `t`: that would shadow the translation helper. -->
-  <datalist id="dcs-types">{#each types as dcsType (dcsType)}<option value={dcsType}></option>{/each}</datalist>
+  <!-- The DCS type list is mounted once by App.svelte, so it is available on every family. -->
+  <input class="combo" list={DCS_TYPES_LIST} placeholder={t('web.table.add_aircraft_placeholder')} bind:value={newType} />
   <button onclick={addType} disabled={!newType.trim()}>{t('web.table.add_aircraft')}</button>
 </div>
 
@@ -78,9 +75,9 @@
     </div>
     <div class="lists">
       <div><h4 class="blue" title={tip('loadableVehiclesBLUE')}>{t('web.table.vehicles_blue')}</h4>
-        <StringListEditor items={(model[type].loadableVehiclesBLUE as string[]) ?? []} listId="dcs-types" onchange={(v) => setList(type, 'loadableVehiclesBLUE', v)} /></div>
+        <StringListEditor items={(model[type].loadableVehiclesBLUE as string[]) ?? []} listId={DCS_TYPES_LIST} onchange={(v) => setList(type, 'loadableVehiclesBLUE', v)} /></div>
       <div><h4 class="red" title={tip('loadableVehiclesRED')}>{t('web.table.vehicles_red')}</h4>
-        <StringListEditor items={(model[type].loadableVehiclesRED as string[]) ?? []} listId="dcs-types" onchange={(v) => setList(type, 'loadableVehiclesRED', v)} /></div>
+        <StringListEditor items={(model[type].loadableVehiclesRED as string[]) ?? []} listId={DCS_TYPES_LIST} onchange={(v) => setList(type, 'loadableVehiclesRED', v)} /></div>
     </div>
   </details>
 {/each}

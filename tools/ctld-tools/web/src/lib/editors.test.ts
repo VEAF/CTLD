@@ -18,6 +18,18 @@ test('StringListEditor edits, adds and removes', async () => {
   expect(last(onchange)).toHaveLength(3)
 })
 
+test('KeyValueEditor turns its key column into a combo when given a list', async () => {
+  render(KeyValueEditor, { map: { Hummer: 2500 }, keyList: 'dcs-types', onchange: vi.fn() })
+  const keyField = screen.getByDisplayValue('Hummer')
+  expect(keyField).toHaveAttribute('list', 'dcs-types')
+  expect(keyField).toHaveClass('combo')
+})
+
+test('KeyValueEditor leaves the key a plain field with no list', async () => {
+  render(KeyValueEditor, { map: { Hummer: 2500 }, onchange: vi.fn() })
+  expect(screen.getByDisplayValue('Hummer')).not.toHaveAttribute('list')
+})
+
 test('KeyValueEditor emits a name→number map', async () => {
   const onchange = vi.fn()
   render(KeyValueEditor, { map: { Hummer: 2500 }, onchange })
