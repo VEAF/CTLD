@@ -18,6 +18,7 @@
     type VersionGap,
   } from './lib/api'
   import AircraftEditor from './lib/AircraftEditor.svelte'
+  import BrandMark from './lib/BrandMark.svelte'
   import CratesEditor from './lib/CratesEditor.svelte'
   import JsonEditor from './lib/JsonEditor.svelte'
   import KeyValueEditor from './lib/KeyValueEditor.svelte'
@@ -267,13 +268,7 @@
 
 <header class="bar">
   <div class="brand">
-    <!-- Same motif as the favicon — a crate on a sling line. Two shapes, because a rotor-and-skids
-         sketch turns to mush at 36px (it did). One mark, declined at both sizes. -->
-    <svg class="mark" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M11.5 5h9" />
-      <path d="M16 5.5v7" />
-      <rect x="7.7" y="13.6" width="16.6" height="12.4" rx="1.6" />
-    </svg>
+    <BrandMark height={34} />
     <div>
       <h1>CTLD</h1>
       <p>{t('web.tagline')}</p>
@@ -513,10 +508,8 @@
     align-items: center;
     gap: 0.8rem;
   }
-  .brand .mark {
-    width: 36px;
-    height: 36px;
-    flex: none;
+  /* The mark colours itself from `currentColor`, so it just needs the accent. */
+  .brand :global(.brand-mark) {
     color: var(--accent);
   }
   .brand h1 {
