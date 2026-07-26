@@ -975,6 +975,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#finding-your-way-around" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Se repérer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#editing-your-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -982,6 +993,34 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Éditer votre configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#undoing-a-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annuler une modification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2003,6 +2042,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#finding-your-way-around" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Se repérer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#editing-your-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2010,6 +2060,34 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Éditer votre configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#undoing-a-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annuler une modification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2106,32 +2184,68 @@ bas → <strong>OK</strong>.</p>
 <p><strong>Double-cliquez <code>ctld-tools.exe</code>.</strong> Une petite fenêtre console s'ouvre — c'est le serveur local ;
 laissez-la ouverte, la fermer quitte l'outil — et votre <strong>navigateur</strong> s'ouvre sur l'application.
 Aucune commande à taper.</p>
+<p>L'application <strong>démarre sur la configuration par défaut de CTLD</strong> : il n'y a rien à charger avant de
+commencer.</p>
 <p>(Depuis un terminal vous pouvez aussi lancer <code>ctld-tools serve</code>. Le même fichier est aussi un outil
 en ligne de commande — utilisé par le build de CTLD — mais en tant que Mission Maker vous n'en aurez
 pas besoin.)</p>
+<h2 id="finding-your-way-around">Se repérer<a class="headerlink" href="#finding-your-way-around" title="Permanent link">&para;</a></h2>
+<p>Un bandeau en haut montre les trois étapes : <strong>Charger → Régler → Injecter dans la mission</strong>, l'étape
+courante étant mise en évidence. L'en-tête indique en permanence quelle configuration est ouverte,
+combien de réglages vous avez modifiés, et si votre travail est enregistré.</p>
+<div class="admonition tip">
+<p class="admonition-title">Interface en français</p>
+<p>L'interface suit la langue de votre Windows, et un sélecteur <strong>Langue</strong> dans l'en-tête permet de
+basculer entre français et anglais à tout moment — y compris les textes d'aide des réglages.
+Votre choix est mémorisé.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Aide intégrée</p>
+<p>Le bouton <strong>Aide</strong> de l'en-tête ouvre un guide de l'éditeur dans votre langue : les trois étapes,
+comment lire un réglage, ce que signifie le voyant de validation, et la règle du snapshot complet.
+Il liste aussi <strong>votre</strong> configuration — chaque famille avec ce qu'elle couvre, et chaque tableau
+de données de mission avec le nombre d'entrées qu'il contient. Il est généré depuis la
+configuration ouverte : il décrit donc toujours ce que vous avez réellement sous les yeux.</p>
+</div>
+<p>La colonne de gauche liste les <strong>familles fonctionnelles</strong> de CTLD — Général, Appareils, Caisses,
+Troupes, Zones, Embarquement, FOB / FARP, JTAC, Reconnaissance, Système AA, Beacons, Fumigènes,
+Mines, Parachute, Poids soldats. Choisissez une famille et vous obtenez <strong>tout</strong> ce qui concerne
+cette partie de CTLD au même endroit : ses réglages <em>et</em> ses entrées de catalogue, avec une phrase
+sous le titre qui indique ce que couvre la famille. Caisses, par exemple, contient les réglages des
+caisses <em>et</em> la liste des caisses que vous pouvez faire apparaître.</p>
+<p>Dans une famille, les réglages sont séparés en <strong>Réglages courants</strong> et une section <strong>Réglages
+avancés</strong> qui reste repliée jusqu'à ce que vous en ayez besoin (elle s'ouvre d'elle-même si elle
+contient un réglage que vous avez modifié).</p>
+<p><strong>Vous ne savez pas où se trouve un réglage ?</strong> Utilisez le <strong>champ de recherche</strong> : il parcourt
+toutes les familles à la fois, par nom ou par description, et indique à quelle famille appartient
+chaque résultat.</p>
 <h2 id="editing-your-configuration">Éditer votre configuration<a class="headerlink" href="#editing-your-configuration" title="Permanent link">&para;</a></h2>
-<p>L'application montre la <strong>configuration complète</strong> de CTLD, répartie en deux écrans :</p>
-<ul>
-<li><strong>Parameters</strong> — <em>comment CTLD se comporte</em> : les réglages, regroupés en <strong>familles</strong>
-  fonctionnelles (General, Crates, Troops, JTAC, FOB / FARP, AA system, Parachute, …), chacune
-  divisée en <strong>Standard</strong> (les courants) et <strong>Advanced</strong>. Chaque champ a le bon éditeur — une case à
-  cocher pour on/off, une liste déroulante pour les choix fixes, un champ nombre ou texte sinon — avec
-  une courte description en aide.</li>
-<li><strong>Data</strong> — <em>ce sur quoi CTLD opère</em> : le catalogue — <strong>crates</strong>, <strong>troop groups</strong>, <strong>aircraft
-  capabilities</strong> (choisir un type d'aéronef dans la liste DCS), <strong>zones</strong>, noms des pilotes de
-  transport, poids des véhicules. Ajoutez, éditez et supprimez des entrées via des formulaires.</li>
-</ul>
-<p>Partez de <strong>Load defaults</strong> (la configuration d'usine de CTLD) ou <strong>Open…</strong> pour ouvrir une
-configuration enregistrée précédemment (une boîte de dialogue de fichier native).</p>
-<p>La <strong>validation en direct</strong> s'exécute pendant que vous éditez : types d'unités DCS inconnus, poids de
-caisse en double et autres problèmes apparaissent immédiatement, pour ne jamais livrer une config
-cassée.</p>
+<p>Chaque réglage affiche un <strong>nom en langage clair</strong>, son unité quand CTLD la documente (mètres,
+kilogrammes, secondes), une courte description, et l'éditeur adapté à son type — un interrupteur pour
+on/off, une liste déroulante pour les choix fixes, un champ nombre ou texte sinon. Le <strong>nom technique
+du réglage</strong> (celui utilisé dans la documentation CTLD et sur les forums) est affiché à côté en petit.</p>
+<p>Les entrées de catalogue — <strong>caisses</strong>, <strong>groupes de troupes</strong>, <strong>capacités des aéronefs</strong> (choisir un
+type d'aéronef dans la liste DCS), <strong>zones</strong>, noms des pilotes de transport, poids des véhicules —
+s'éditent sous forme de tableaux, en bas de la famille à laquelle elles appartiennent.</p>
+<h3 id="undoing-a-change">Annuler une modification<a class="headerlink" href="#undoing-a-change" title="Permanent link">&para;</a></h3>
+<p>Tout réglage que vous modifiez est marqué <strong>modifié</strong>, et la famille reçoit un compteur dans la
+colonne de gauche : vous voyez donc toujours ce que vous avez touché. Une <strong>flèche de
+réinitialisation</strong> apparaît à côté d'un réglage modifié et remet la valeur par défaut de CTLD.</p>
+<p>Vous préférez repartir de zéro ? <strong>Partir des défauts CTLD</strong>. Pour reprendre une configuration
+précédente, utilisez <strong>Ouvrir un fichier de config…</strong> (dialogue de fichier natif). Les deux vous
+avertissent d'abord si vous avez des modifications non enregistrées.</p>
+<h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
+<p>La <strong>validation en direct</strong> s'exécute pendant que vous éditez. Un voyant dans l'en-tête indique
+<strong>VALIDE</strong> ou <strong>À VÉRIFIER</strong>, et un panneau au-dessus des réglages liste chaque problème en langage
+clair — types d'unités DCS inconnus, poids de caisse en double, etc. Cliquez sur un problème et
+l'application saute directement au réglage concerné.</p>
 <h2 id="saving-and-using-it">Enregistrer et utiliser<a class="headerlink" href="#saving-and-using-it" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Save…</strong> écrit votre configuration dans un fichier (dialogue d'enregistrement natif) pour la
-  rouvrir plus tard.</li>
-<li><strong>Inject to .miz…</strong> choisit une mission et y insère votre configuration comme trigger MISSION
-  START, prête à jouer. L'injection est <strong>refusée tant qu'une erreur de validation subsiste</strong>.</li>
+<li><strong>Enregistrer sous…</strong> écrit votre configuration dans un fichier (dialogue d'enregistrement natif)
+  pour la rouvrir plus tard.</li>
+<li><strong>Injecter dans la mission…</strong> choisit une mission et y insère votre configuration comme trigger
+  MISSION START, prête à jouer. Le bouton reste <strong>désactivé tant qu'une erreur de validation
+  subsiste</strong>.</li>
 </ul>
 <p>L'injection est <strong>idempotente</strong> — ré-injecter met à jour le même trigger au lieu de le dupliquer — et
 place le trigger <strong>en premier</strong>, pour qu'il s'exécute avant CTLD.</p>
@@ -2148,9 +2262,10 @@ remis silencieusement au défaut. C'est pourquoi vous partez toujours <strong>de
 existante) : pour ne rien perdre par accident.</p>
 <h3 id="when-ctld-is-updated">Quand CTLD est mis à jour<a class="headerlink" href="#when-ctld-is-updated" title="Permanent link">&para;</a></h3>
 <p>CTLD estampille une <strong>version</strong> sur sa configuration. Quand vous ouvrez une config écrite pour un
-CTLD plus ancien, l'outil affiche un <strong>popup</strong> listant en quoi les défauts actuels diffèrent
-(réglages ajoutés, retirés, valeurs changées) pour que vous puissiez vérifier avant de ré-injecter —
-jamais de fusion silencieuse.</p>
+CTLD plus ancien, l'outil vous le signale et résume en quoi les défauts actuels diffèrent — réglages
+ajoutés, réglages devenus inutiles, valeurs par défaut modifiées — chaque groupe pouvant être déplié
+pour le détail. <strong>Rien n'est fusionné</strong> : vos réglages restent exactement tels quels, et vous décidez
+de ce que vous mettez à jour avant de ré-injecter.</p>
 <h2 id="loading-it-by-hand-alternative-to-inject">Charger à la main (alternative à l'injection)<a class="headerlink" href="#loading-it-by-hand-alternative-to-inject" title="Permanent link">&para;</a></h2>
 <p>Si vous préférez ajouter le trigger vous-même, chargez la configuration exactement comme le modèle
 écrit à la main :</p>
