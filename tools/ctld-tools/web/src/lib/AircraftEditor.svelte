@@ -96,7 +96,7 @@
     border-radius: var(--radius);
     margin-bottom: 0.5rem;
     padding: 0.3rem 0.7rem;
-    background: rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.22);
   }
   .aircraft summary {
     cursor: pointer;

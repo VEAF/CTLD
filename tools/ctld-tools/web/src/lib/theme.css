@@ -27,7 +27,16 @@
   /* ── ink ── */
   --ink: #dbe6ea;
   --ink-dim: #8ea1ab;
-  --ink-faint: #62757e;
+  /* Lifted from #62757e: the photo behind the page raises the background's luminance, and the old
+     value fell to 2.5:1 on it. This clears 3:1 for what is decorative-hint text. */
+  --ink-faint: #7b8d96;
+
+  /* ── glass ──
+     Cards sit ON the photo, so they are translucent rather than solid. 0.80 is the measured floor:
+     any lighter and the muted text on a card drops under AA over the frame's brightest region. */
+  --panel-glass: rgba(23, 31, 36, 0.8);
+  --panel-2-glass: rgba(18, 25, 29, 0.78);
+  --raised-glass: rgba(30, 42, 49, 0.82);
 
   /* ── accent: caution amber ── */
   --accent: #e8a13a;
@@ -85,6 +94,32 @@ body {
   font-size: var(--fs-base);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * The subject, behind the whole page: a Mi-8 putting troops on the ground. The cards and the rail
+ * are translucent over it, so the photo shows through in the margins and between the boxes.
+ *
+ * `position: fixed` rather than `background-attachment: fixed` — the latter repaints the image on
+ * every scroll frame. Here it is painted once, and the page scrolls over it.
+ *
+ * Intensity is not a taste setting: brightness × opacity was swept against a contrast floor for
+ * every text colour that sits on it (ink 9.5:1, ink-dim 4.5:1, accent 5.5:1 over the frame's
+ * brightest region). Turning it up further starts costing legibility.
+ *
+ * A missing file paints nothing, so the page falls back to its gradient.
+ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('/hero-troop-insertion.webp');
+  background-size: cover;
+  background-position: center 45%;
+  filter: saturate(0.35) contrast(1.05) brightness(0.85);
+  opacity: 0.45;
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* Keyboard focus must stay obvious against a dark ground. */

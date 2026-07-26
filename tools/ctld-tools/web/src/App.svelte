@@ -494,62 +494,19 @@
 </div>
 
 <style>
-  /* ── header ──────────────────────────────────────────────────────
-     A photo of the real thing — a Mi-8 in the hover with a crate on the hook — banded across the
-     header. Two pseudo-elements do the work: ::before is the frame, ::after is the scrim that keeps
-     the text readable over it. The content sits above both (z-index: 1).
-
-     Absent asset degrades silently: a missing CSS background paints nothing, so the header simply
-     falls back to its gradient. Drop the file at web/public/hero-slingload.jpg to light it up. */
+  /* ── header ────────────────────────────────────────────────────
+     Deliberately opaque: it is the band that anchors the page above the photo behind everything
+     else. The photo used to live here and it was the wrong place — a 15:1 band can only ever show
+     about an eighth of a 16:9 frame. */
   .bar {
     position: relative;
-    overflow: hidden;
     display: flex;
     align-items: center;
     gap: 1.5rem;
     flex-wrap: wrap;
-    padding: 1.15rem var(--pad);
+    padding: 0.8rem var(--pad);
     background: linear-gradient(180deg, #1b262c, #141c21);
     border-bottom: 2px solid var(--accent);
-  }
-  .bar::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url('/hero-troop-insertion.webp');
-    background-size: cover;
-    /* 78% down the frame: a row-by-row detail scan put the busiest band there — the troops walking
-       out. A header this wide and shallow only ever shows ~12% of the frame's height, so which 12%
-       is the whole decision. */
-    background-position: 62% 78%;
-    /* Desaturated and slightly warmed into the panel's palette; brightness and the scrim below were
-       solved together against a 5:1 contrast floor for the header text (WCAG AA wants 4.5). */
-    filter: saturate(0.45) contrast(1.08) brightness(1.1) sepia(0.16);
-    /* Dissolves leftwards so it never reaches the brand. */
-    -webkit-mask-image: linear-gradient(90deg, transparent 18%, rgba(0, 0, 0, 0.35) 40%, #000 76%);
-    mask-image: linear-gradient(90deg, transparent 18%, rgba(0, 0, 0, 0.35) 40%, #000 76%);
-    z-index: 0;
-  }
-  /* The scrim does all the legibility work, so the photo itself can stay unfaded. Measured contrast
-     against --ink: 13:1 over the brand, 6:1 at the readouts, 5.2:1 at the lamp. */
-  .bar::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      90deg,
-      #141c21 0%,
-      rgba(20, 28, 33, 0.94) 34%,
-      rgba(20, 28, 33, 0.5) 62%,
-      rgba(20, 28, 33, 0.15) 100%
-    );
-    z-index: 0;
-  }
-  /* Above the photo and its scrim. */
-  .brand,
-  .readouts {
-    position: relative;
-    z-index: 1;
   }
   .brand {
     display: flex;
@@ -652,7 +609,7 @@
     align-items: stretch;
     flex-wrap: wrap;
     gap: 0;
-    background: var(--panel);
+    background: var(--panel-glass);
     border-bottom: 1px solid var(--hair);
   }
   .step {
@@ -675,7 +632,7 @@
     font-family: var(--font-display);
     font-size: var(--fs-sm);
     border: 1px solid var(--hair);
-    background: var(--raised);
+    background: var(--raised-glass);
   }
   .step.active {
     color: var(--ink);
@@ -739,7 +696,7 @@
     align-items: start;
   }
   .rail {
-    background: var(--panel-2);
+    background: var(--panel-2-glass);
     border-right: 1px solid var(--hair);
     min-height: calc(100vh - 8.5rem);
     padding: 0.6rem 0 1.5rem;
@@ -764,11 +721,11 @@
     letter-spacing: 0;
   }
   .rail button:hover {
-    background: #172127;
+    background: rgba(23, 33, 39, 0.85);
     color: var(--ink);
   }
   .rail button.active {
-    background: #1b272d;
+    background: rgba(27, 39, 45, 0.9);
     color: var(--ink);
     border-left-color: var(--accent);
   }
@@ -899,7 +856,7 @@
   .datacard {
     border: 1px solid var(--hair-soft);
     border-radius: var(--radius);
-    background: var(--panel);
+    background: var(--panel-glass);
     margin-bottom: 0.8rem;
     overflow: hidden;
   }

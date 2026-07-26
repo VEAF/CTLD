@@ -79,11 +79,14 @@ identity rooted in the subject (DCS rotary-wing logistics). `tools/` only — no
   and `families` joins `tableFields` as a reserved section so it is never taken for a setting. The UI
   shows the description under the family title. This is the only `src/` change in the lot and it is
   authoring metadata — not read by the build, so `CTLD.lua` is unaffected.
-- **A picture of the subject** in the header: a DCS frame of a helicopter placing a slung crate,
-  banded across it behind a masked scrim, filtered into the panel's palette. A missing asset degrades
-  silently to the previous gradient. (An earlier hand-drawn SVG version was rejected on looks; the
-  placement lesson survived — as an unprotected header watermark it landed under the readouts at
-  1280px.)
+- **A picture of the subject, behind the whole page**: a DCS frame of a Mi-8 putting troops on the
+  ground, fixed behind the app with the setting rows, data cards, step strip and rail translucent over
+  it (`--panel-glass`). Because the viewport is roughly 16:9, the entire frame shows — an earlier
+  attempt banded it across the header, where a 15:1 strip could only ever reveal 11% of it. Photo
+  brightness, opacity and card alpha were swept together against a contrast floor for every text
+  colour that lands on the image (12.4:1 for body text on a card, 4.5:1 for muted text straight on the
+  background); `--ink-faint` was lifted to `#7b8d96`, which the brighter backdrop had pushed to 2.5:1.
+  Asset is 79 KB (1600×900 WebP), and a missing file degrades silently to the gradient.
 - **CI gains a `frontend` job** (`npm run check` + `npm test` + `npm run build`). The web-app suite
   existed since `CTLD-TOOLS-WEBAPP` but no workflow ran it — `release.yml` only built the bundle, so
   a red test could ship. The exe embeds this frontend, so it now gates like the rest.

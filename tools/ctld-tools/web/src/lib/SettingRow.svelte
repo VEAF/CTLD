@@ -78,7 +78,7 @@
     gap: 0.2rem 1.25rem;
     align-items: center;
     padding: 0.7rem 0.9rem;
-    background: var(--panel);
+    background: var(--panel-glass);
     border: 1px solid var(--hair-soft);
     border-radius: var(--radius);
     margin-bottom: 0.4rem;
