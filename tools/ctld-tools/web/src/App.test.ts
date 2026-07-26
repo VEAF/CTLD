@@ -8,6 +8,12 @@ const SCHEMA = {
     numberOfTroops: { group: 'troops', standard: true, choices: null, description: 'Default troop group size' },
     aaRearmDistance: { group: 'aa', standard: false, choices: null, description: 'Rearm range (metres)' },
   },
+  familyMeta: {
+    aa: { label: 'AA system', description: 'Anti-air systems assembled from crates.', order: 100 },
+    troops: { label: 'Troops', description: 'Loading, deploying and extracting infantry.', order: 40 },
+    crates: { label: 'Crates', description: 'Spawning and unpacking supply crates.', order: 30 },
+    aircraft: { label: 'Aircraft', description: 'Which airframes carry what.', order: 20 },
+  },
   tableFields: { spawnableCrates: { desc: 'Display name', unit: 'DCS type', weight_kg: 'mass' } },
   zoneFields: {},
 }
@@ -36,7 +42,17 @@ beforeEach(() => {
   vi.stubGlobal('confirm', vi.fn(() => true))
   global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
-    if (url.endsWith('/api/schema')) return Promise.resolve(jsonResponse(SCHEMA))
+    if (url.includes('/api/schema')) return Promise.resolve(jsonResponse(SCHEMA))
+    if (url.includes('/api/i18n')) {
+      const fr = url.includes('lang=fr')
+      return Promise.resolve(
+        jsonResponse({
+          lang: fr ? 'fr' : 'en',
+          available: ['en', 'fr'],
+          strings: fr ? { 'web.state.clean': 'Aucune modification' } : {},
+        }),
+      )
+    }
     if (url.endsWith('/api/defaults')) return Promise.resolve(jsonResponse(DEFAULTS))
     if (url.endsWith('/api/dcs-types')) return Promise.resolve(jsonResponse({ types: ['Ka-50', 'UH-1H'] }))
     if (url.endsWith('/api/catalog/load-default')) return Promise.resolve(jsonResponse(SNAP))
@@ -172,6 +188,19 @@ test('injecting reports success and what happens next', async () => {
   await fireEvent.click(await screen.findByRole('button', { name: /Inject into mission/ }))
   expect(await screen.findByText(/Injected into \/m\.miz/)).toBeInTheDocument()
   expect(screen.getByText(/applied when the mission starts/)).toBeInTheDocument()
+})
+
+test('switching language translates the chrome and re-fetches the schema', async () => {
+  render(App)
+  await screen.findByRole('button', { name: /Troops/ })
+  expect(screen.getByText('No changes')).toBeInTheDocument()
+
+  await fireEvent.change(screen.getByRole('combobox', { name: /Language/ }), { target: { value: 'fr' } })
+
+  // The chrome now comes from the backend catalog…
+  expect(await screen.findByText('Aucune modification')).toBeInTheDocument()
+  // …and the schema is re-requested for the new language, since descriptions live in it.
+  expect(global.fetch).toHaveBeenCalledWith('/api/schema?lang=fr')
 })
 
 test('opening a file warns before discarding unsaved changes', async () => {

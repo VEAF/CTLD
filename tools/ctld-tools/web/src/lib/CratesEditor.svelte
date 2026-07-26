@@ -1,6 +1,7 @@
 <script lang="ts">
   // Editor for spawnableCrates: { section → [crate entry, …] }. Owns a local editable
   // copy and emits the whole structure on every change (single-user, coarse-grained PUT).
+  import { t } from './i18n.svelte'
   import { fieldLabel } from './tables'
 
   type Crate = Record<string, unknown>
@@ -43,7 +44,7 @@
 </script>
 
 {#snippet removeButton(section: string, i: number, label: string)}
-  <button class="danger rm" title={`Remove ${label}`} aria-label={`Remove ${label}`} onclick={() => removeCrate(section, i)}>✕</button>
+  <button class="danger rm" title={t('web.table.remove', { what: label })} aria-label={t('web.table.remove', { what: label })} onclick={() => removeCrate(section, i)}>✕</button>
 {/snippet}
 
 {#each sections as section (section)}
@@ -52,10 +53,10 @@
     {#each model[section] as crate, i (i)}
       <div class="crate">
         {#if crate.mixedSet}
-          <span class="badge">Mixed set</span>
+          <span class="badge">{t('web.table.mixed_set')}</span>
           <label>{fieldLabel('desc')}<input value={String(crate.desc ?? '')} onchange={(e) => setField(section, i, 'desc', e.currentTarget.value)} /></label>
           <label>{fieldLabel('side')}<input type="number" value={crate.side as number} onchange={(e) => setField(section, i, 'side', num(e.currentTarget.value))} /></label>
-          <span class="mixed">Component weights: {(crate.mixedSet as unknown[]).join(', ')} kg</span>
+          <span class="mixed">{t('web.table.component_weights', { weights: (crate.mixedSet as unknown[]).join(', ') })}</span>
         {:else}
           <label title={tip('desc')}>{fieldLabel('desc')}<input value={String(crate.desc ?? '')} onchange={(e) => setField(section, i, 'desc', e.currentTarget.value)} /></label>
           <label title={tip('unit')}>{fieldLabel('unit')}<input value={String(crate.unit ?? '')} onchange={(e) => setField(section, i, 'unit', e.currentTarget.value)} /></label>
@@ -63,16 +64,16 @@
           <label title={tip('cratesRequired')}>{fieldLabel('cratesRequired')}<input type="number" value={crate.cratesRequired as number} onchange={(e) => setField(section, i, 'cratesRequired', num(e.currentTarget.value))} /></label>
           <label title={tip('side')}>{fieldLabel('side')}
             <select class="side" class:red={crate.side === 1} class:blue={crate.side === 2} value={crate.side === undefined ? '' : String(crate.side)} onchange={(e) => setField(section, i, 'side', e.currentTarget.value === '' ? undefined : Number(e.currentTarget.value))}>
-              <option value="">Both</option>
+              <option value="">{t('web.table.side_both')}</option>
               <option value="1">RED</option>
               <option value="2">BLUE</option>
             </select>
           </label>
         {/if}
-        {@render removeButton(section, i, String(crate.desc || 'this crate'))}
+        {@render removeButton(section, i, String(crate.desc || t('web.table.this_crate')))}
       </div>
     {/each}
-    <button class="add" onclick={() => addCrate(section)}>+ Add crate</button>
+    <button class="add" onclick={() => addCrate(section)}>{t('web.table.add_crate')}</button>
   </fieldset>
 {/each}
 

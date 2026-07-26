@@ -42,6 +42,25 @@ identity rooted in the subject (DCS rotary-wing logistics). `tools/` only — no
   olive-biased neutrals, caution-amber accent, NATO side colours for RED/BLUE, display/mono type
   split), shared control styling, real page title and favicon (was Vite's default), responsive down
   to ~1000px, visible focus, `prefers-reduced-motion` honoured.
+- **French UI.** The web app is now bilingual, reusing the backend i18n layer that already served the
+  CLI's validation messages: 90 `web.*` keys in `ctld_tools/data/locales/{en,fr}.json`, a new
+  `GET /api/i18n`, and `GET /api/schema?lang=` so that switching language also translates **setting
+  descriptions, table headings and family labels** — not just the chrome. A header picker overrides
+  the OS locale and is remembered in `localStorage`. A parity test reads the catalogs from disk and
+  fails the build if EN/FR key sets, texts, placeholders or plural pairs drift apart. Known limit:
+  setting *names* are derived from the config key, so they stay English (a `label:` per setting is on
+  `dev/roadmap.md`).
+- **Families are named and described in the schema** (`src/CTLD_config_schema.yaml`, new reserved
+  `families:` section: bilingual `label` + `description`, plus `order` for the navigation). The
+  labels were **recovered from the retired TUI's `tui.family.*` catalogs** (commit `3205ef6`) rather
+  than re-invented — they had existed in EN+FR all along. Descriptions are new, written from the
+  settings and tables each family actually holds. `Schema` gains `family_label/description/order`,
+  and `families` joins `tableFields` as a reserved section so it is never taken for a setting. The UI
+  shows the description under the family title. This is the only `src/` change in the lot and it is
+  authoring metadata — not read by the build, so `CTLD.lua` is unaffected.
+- **A picture of the subject**: hand-drawn SVG line art of a transport helicopter inserting troops on
+  fast ropes, at the foot of the navigation rail. Placement was measured rather than assumed — as a
+  header watermark it landed under the readouts at 1280px.
 - **CI gains a `frontend` job** (`npm run check` + `npm test` + `npm run build`). The web-app suite
   existed since `CTLD-TOOLS-WEBAPP` but no workflow ran it — `release.yml` only built the bundle, so
   a red test could ship. The exe embeds this frontend, so it now gates like the rest.

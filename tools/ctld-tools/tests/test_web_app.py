@@ -63,6 +63,66 @@ def test_resources_frozen_path(monkeypatch, tmp_path):
     assert resources.src_dir() == tmp_path / "ctld_data"
 
 
+def test_schema_endpoint_exposes_family_metadata():
+    # Explicit lang: without it the endpoint follows the OS locale, which differs between a
+    # developer's machine and CI — the assertions below would then be non-deterministic.
+    body = client.get("/api/schema?lang=en").json()
+    crates = body["familyMeta"]["crates"]
+    assert crates["label"] == "Crates"
+    assert "crate" in crates["description"].lower()
+    assert isinstance(crates["order"], int)
+    # Every family a setting declares must be described, or the nav shows a bare key.
+    assert set(body["families"]) <= set(body["familyMeta"])
+
+
+def test_schema_endpoint_translates_with_lang():
+    fr = client.get("/api/schema?lang=fr").json()
+    assert fr["familyMeta"]["crates"]["label"] == "Caisses"
+    assert "caisses" in fr["familyMeta"]["crates"]["description"].lower()
+    # Setting descriptions and table field headings follow the same language.
+    en = client.get("/api/schema?lang=en").json()
+    assert fr["keys"]["enableCrates"]["description"] != en["keys"]["enableCrates"]["description"]
+    assert "DCS" in fr["tableFields"]["spawnableCrates"]["unit"]
+
+
+def test_schema_endpoint_falls_back_to_en_for_an_unknown_lang():
+    body = client.get("/api/schema?lang=zz").json()
+    assert body["familyMeta"]["crates"]["label"] == "Crates"
+    assert body["keys"]["enableCrates"]["description"]
+
+
+def test_reserved_sections_are_not_settings():
+    keys = client.get("/api/schema?lang=en").json()["keys"]
+    assert "tableFields" not in keys
+    assert "families" not in keys
+
+
+def test_i18n_endpoint_serves_the_web_catalog():
+    body = client.get("/api/i18n?lang=en").json()
+    assert body["lang"] == "en"
+    assert "en" in body["available"] and "fr" in body["available"]
+    assert body["strings"]["web.action.inject"] == "Inject into mission…"
+    # The retired TUI's strings are not the web app's business.
+    assert not [k for k in body["strings"] if not k.startswith("web.")]
+
+
+def test_i18n_endpoint_translates():
+    fr = client.get("/api/i18n?lang=fr").json()
+    assert fr["lang"] == "fr"
+    assert fr["strings"]["web.action.inject"] == "Injecter dans la mission…"
+
+
+def test_i18n_endpoint_covers_the_same_keys_in_every_language():
+    en = client.get("/api/i18n?lang=en").json()["strings"]
+    fr = client.get("/api/i18n?lang=fr").json()["strings"]
+    assert set(en) == set(fr)
+
+
+def test_i18n_endpoint_unknown_lang_falls_back_to_en():
+    body = client.get("/api/i18n?lang=zz").json()
+    assert body["strings"]["web.action.inject"] == "Inject into mission…"
+
+
 def test_defaults_endpoint_mirrors_the_default_catalogue():
     # Powers the UI's "changed from default" markers and per-setting reset. It must not need a
     # loaded catalogue — the UI fetches it while booting.

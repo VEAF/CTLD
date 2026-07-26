@@ -55,7 +55,7 @@ export function classify(snap: Snapshot, schema: SchemaInfo): Family[] {
     f.advanced.sort()
     f.data.sort()
   }
-  return orderFamilies(byKey.keys()).map((name) => byKey.get(name)!)
+  return orderFamilies(byKey.keys(), schema.familyMeta).map((name) => byKey.get(name)!)
 }
 
 /** Every scalar setting key in the catalogue, used by search. */

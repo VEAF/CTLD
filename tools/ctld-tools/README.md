@@ -67,17 +67,33 @@ scalar settings and its structured tables (see `web/src/lib/families.ts`). There
 Parameters/Data split: that followed the *shape* of a value rather than its subject, and filed
 `enableCrates` and `spawnableCrates` under different screens.
 
-Two pieces of presentation metadata live in the frontend rather than in the schema, deliberately:
+Families are declared in the schema's reserved `families:` section (bilingual `label` +
+`description`, plus `order` for the navigation); `web/src/lib/families.ts` keeps constants only as a
+fallback. Two pieces of presentation metadata still live in the frontend, for want of a source:
 
-- **Labels** (`web/src/lib/labels.ts`) are derived from the key itself (`humanize`), with a short
-  override map. Units are extracted from the schema `description` text, which already documents them
-  (`Max height (m) …`) — never inferred from a key name.
+- **Setting labels** (`web/src/lib/labels.ts`) are derived from the key itself (`humanize`), with a
+  short override map — so they stay English even when the UI is French.
+- **Units** are extracted from the schema `description` text, which already documents them
+  (`Max height (m) …`) — never inferred from a key name, where a wrong guess would be worse than
+  nothing.
 - **Family fallback** (`familyOf`) derives a family from the key's spelling for the ~44 settings the
-  schema has no `group:` for.
+  schema has no `group:` for, which shrinks the catch-all `Other` family from ~44 settings to 7.
 
-Both are stopgaps. The durable home for this metadata is `src/CTLD_config_schema.yaml` (adding the
-missing `group:`, plus real `label:` / `unit:` fields), which would also let the doc tables be
-generated from it — see `dev/roadmap.md`.
+The durable home for all of it is `src/CTLD_config_schema.yaml` (a `label:` / `unit:` per setting and
+the missing `group:`), which would also let the doc tables be generated from it — see
+`dev/roadmap.md`.
 
-All user-facing strings sit in `web/src/lib/strings.ts` so the FR translation of the UI (the backend
-i18n layer already exists) stays a mechanical substitution.
+### i18n
+
+The UI is EN+FR. English is the frontend's base dictionary (`web/src/lib/strings.ts`) because it is
+needed before any fetch — first paint and the boot-failure path; translations come from the same
+backend catalogs as the CLI's messages (`ctld_tools/data/locales/*.json`, `web.*` keys) via
+`GET /api/i18n`. `GET /api/schema?lang=` translates setting descriptions, table headings and family
+metadata, so a language switch re-fetches the schema.
+
+That EN duplication (frontend + catalog) is guarded: `web/src/lib/i18n.parity.test.ts` reads the
+catalogs from disk and fails on any drift in keys, texts, placeholders or plural pairs. Adding a
+string means editing `strings.ts` **and** both catalogs.
+
+Backend tests that assert on language must pass `?lang=` explicitly — without it the endpoints follow
+the OS locale, which differs between a dev machine and CI.

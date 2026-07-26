@@ -4,6 +4,7 @@ import { searchSettings } from './search'
 
 const schema: SchemaInfo = {
   families: [],
+  familyMeta: {},
   keys: {
     enableCrates: { group: 'crates', standard: true, choices: null, description: 'Master switch for crate spawning' },
     crateSpacing: { group: 'crates', standard: false, choices: null, description: null },

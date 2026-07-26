@@ -33,16 +33,30 @@ Ordered by how much it hurts a non-technical user.
 | 11 | **Units are invisible.** `maxDropHeight = 7.5` — metres? feet? | Silent misconfiguration. The schema descriptions already carry `(m)` / `(kg)` / `(seconds)`. | Extract the unit **from the existing description text** and show it in the field. Never guessed. |
 | 12 | **No visual identity.** system-ui, `#f4f6fa`, default form controls. | Nothing connects the tool to DCS or to helicopter logistics. | A cockpit/kneeboard direction: dark instrument ground, olive-biased neutrals, caution-amber accent, condensed display face for labels, mono for values, NATO side colours for RED/BLUE. |
 
-Deliberately **not** in this lot (kept as follow-ups):
+### Pulled back in (tickets 10–12)
 
-- **UI i18n (FR)** — the backend already has an i18n layer (`ctld_tools/i18n.py`, EN+FR). The new UI
-  strings are authored EN-only here; wiring them through a catalogue is its own lot. Every
-  user-facing string is centralised in one module to make that migration mechanical.
-- **Enriching `src/CTLD_config_schema.yaml`** with the ~44 missing `group:` entries (plus real
-  `label:` / `unit:` fields). That is the durable home for this metadata and would let the doc
-  tables be generated from it (already on `dev/roadmap.md`). Doing it properly means authoring
-  bilingual descriptions for 44 settings — a lot of its own, and inventing them here would violate
-  the zero-assumptions rule. The UI-side fallback is explicitly a stopgap.
+The first three of these were deferred, then requested straight after the first review — the
+"deferred" reasoning was partly wrong and worth recording:
+
+- **UI i18n (FR)** → ticket 11. Deferring it was defensible but it was the single biggest remaining
+  barrier for a francophone MM, and the backend machinery already existed.
+- **Family metadata in the schema** → ticket 10. The blanket "authoring 44 descriptions would mean
+  inventing meaning" conflated two jobs. Family **labels** already existed in EN+FR in the retired
+  TUI's locale catalogs (`tui.family.*`, commit `3205ef6`) — this lot had been re-inventing them as
+  English frontend constants. Family **descriptions** did not exist, but 16 of them are derivable
+  from the settings each family holds, which is nothing like guessing at 44 individual settings.
+  Lesson: check the history before declaring metadata absent.
+- **Decoration** → ticket 12. Tickets 01–09 delivered a palette and functional icons but nothing
+  depicting the subject.
+
+### Still out of scope
+
+- **`label:` per setting in the schema.** Setting names remain derived from the config key, so they
+  stay English. Translating them means authoring ~136 labels — the ticket-10 job an order of
+  magnitude larger. A French MM gets an English name, a French description and the raw key. On
+  `dev/roadmap.md`.
+- **The ~44 missing `group:` entries.** The name-derived fallback shrinks `Other` to 7, so the
+  remaining value is mostly tidiness; the durable fix still needs authored descriptions.
 - Replacing the raw `JsonEditor` fallback (`modTypes`, `aiZones`, …) with structured editors.
 
 ## Scope
@@ -63,6 +77,9 @@ so no `CTLD.lua` rebuild and no Lua behaviour change.
 | 07 | Plain-language validation panel + version-gap rewrite | 9 |
 | 08 | Docs + CHANGELOG | — |
 | 09 | CI job for the web app | found in flight: the frontend suite gated nothing |
+| 10 | Families named and described in the schema | pulled in from the deferred list (see below) |
+| 11 | French UI | pulled in from the deferred list |
+| 12 | A picture of what the tool is for | asked for after the first review |
 
 ## Acceptance
 

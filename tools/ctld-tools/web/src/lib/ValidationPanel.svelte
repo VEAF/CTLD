@@ -5,8 +5,8 @@
   // technical dump on one screen out of two. Here the panel is always mounted, findings are named
   // by their human label, and clicking one takes the MM to the setting it concerns.
   import type { Finding } from './api'
+  import { plural, t } from './i18n.svelte'
   import { humanize } from './labels'
-  import { UI } from './strings'
 
   let {
     findings,
@@ -26,7 +26,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
       <circle cx="12" cy="12" r="9" /><path d="M8 12l3 3 5-6" />
     </svg>
-    {UI.validation.ok}
+    {t('web.validation.ok')}
   </p>
 {:else}
   <section class="panel" class:has-errors={errors.length > 0} aria-label="validation">
@@ -35,7 +35,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
           <path d="M12 3.5 21 20H3z" /><path d="M12 9.5v4.5M12 17v.01" />
         </svg>
-        {UI.validation.errorsTitle(errors.length)}
+        {plural('web.validation.problems', errors.length)}
       </h3>
       <ul>
         {#each errors as f (f.where + f.key + f.message)}
@@ -48,11 +48,11 @@
           </li>
         {/each}
       </ul>
-      <p class="blocks">{UI.validation.blocksInject}</p>
+      <p class="blocks">{t('web.validation.blocks_inject')}</p>
     {/if}
 
     {#if warnings.length}
-      <h3 class="warn-title">{UI.validation.warningsTitle(warnings.length)}</h3>
+      <h3 class="warn-title">{plural('web.validation.warnings', warnings.length)}</h3>
       <ul>
         {#each warnings as f (f.where + f.key + f.message)}
           <li>

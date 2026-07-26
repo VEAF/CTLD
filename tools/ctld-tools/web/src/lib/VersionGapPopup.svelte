@@ -3,26 +3,28 @@
   // current CTLD default. Nothing is ever merged silently — so the dialog's job is to say that
   // plainly, then let the MM see what changed without drowning them in three key lists.
   import type { VersionGap } from './api'
+  import { plural, t } from './i18n.svelte'
   import { humanize } from './labels'
-  import { UI } from './strings'
 
   let { gap, onclose }: { gap: VersionGap; onclose: () => void } = $props()
 
   function short(v: unknown): string {
-    if (v === null || v === undefined) return 'none'
-    if (typeof v === 'object') return Array.isArray(v) ? `${v.length} entries` : 'a table'
+    if (v === null || v === undefined) return '—'
+    if (typeof v === 'object') return Array.isArray(v) ? `[${v.length}]` : '{…}'
     return String(v)
   }
 </script>
 
 <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="gap-title">
   <div class="modal">
-    <h2 id="gap-title">{UI.gap.title}</h2>
-    <p class="body">{UI.gap.body(gap.fromVersion ?? '?', gap.toVersion ?? '?')}</p>
+    <h2 id="gap-title">{t('web.gap.title')}</h2>
+    <p class="body">
+      {t('web.gap.body', { from_version: gap.fromVersion ?? '?', to_version: gap.toVersion ?? '?' })}
+    </p>
 
     {#if gap.added.length}
       <details>
-        <summary>{UI.gap.added(gap.added.length)}</summary>
+        <summary>{plural('web.gap.added', gap.added.length)}</summary>
         <ul>
           {#each gap.added as k (k)}
             <li>{humanize(k)} <code class="rawkey">{k}</code></li>
@@ -33,7 +35,7 @@
 
     {#if gap.removed.length}
       <details>
-        <summary>{UI.gap.removed(gap.removed.length)}</summary>
+        <summary>{plural('web.gap.removed', gap.removed.length)}</summary>
         <ul>
           {#each gap.removed as k (k)}
             <li>{humanize(k)} <code class="rawkey">{k}</code></li>
@@ -44,7 +46,7 @@
 
     {#if gap.changed.length}
       <details>
-        <summary>{UI.gap.changed(gap.changed.length)}</summary>
+        <summary>{plural('web.gap.changed', gap.changed.length)}</summary>
         <ul>
           {#each gap.changed as c (c.key)}
             <li>
@@ -56,7 +58,7 @@
       </details>
     {/if}
 
-    <div class="actions"><button class="primary" onclick={onclose}>{UI.gap.close}</button></div>
+    <div class="actions"><button class="primary" onclick={onclose}>{t('web.gap.close')}</button></div>
   </div>
 </div>
 

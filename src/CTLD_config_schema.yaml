@@ -508,6 +508,110 @@ CIV_WEIGHT:
     en: Light personal items for the civilian role (kg)
     fr: Effets personnels légers pour le rôle civil (kg)
 
+# Functional families — the `group:` values above, named and described for the UI.
+#
+# `label` was carried over from the TUI's `tui.family.*` i18n catalog (lot CTLD-TOOLS-TUI);
+# `description` says what a Mission Maker will find in the family, derived from the settings and
+# tables it actually holds. `order` drives the navigation: domain order (airframes, then what they
+# carry, then where they operate, then the subsystems), not alphabetical.
+families:
+  general:
+    order: 10
+    label: { en: General, fr: Général }
+    description:
+      en: Cross-cutting settings — CTLD's interface language, coordinate format, beacon sound files and logging.
+      fr: Réglages transversaux — langue de l'interface CTLD, format des coordonnées, fichiers son des beacons et journalisation.
+  aircraft:
+    order: 20
+    label: { en: Aircraft, fr: Appareils }
+    description:
+      en: Which airframes may carry crates, troops and whole vehicles, how many of each, and the pilot slot names CTLD watches.
+      fr: Quels appareils peuvent transporter caisses, troupes et véhicules entiers, en quelle quantité, et les noms de slots pilote surveillés par CTLD.
+  crates:
+    order: 30
+    label: { en: Crates, fr: Caisses }
+    description:
+      en: Spawning, sling-loading and unpacking supply crates — and the catalogue of crates a mission can request.
+      fr: Apparition, transport à l'élingue et déballage des caisses de ravitaillement — et le catalogue des caisses qu'une mission peut demander.
+  troops:
+    order: 40
+    label: { en: Troops, fr: Troupes }
+    description:
+      en: Loading, deploying and extracting infantry — and the troop groups a transport can board.
+      fr: Embarquement, déploiement et extraction de l'infanterie — et les groupes de troupes qu'un transport peut charger.
+  zones:
+    order: 50
+    label: { en: Zones, fr: Zones }
+    description:
+      en: The mission zones CTLD works with — troop pickup, waypoint and AI transport zones — and their default radius.
+      fr: Les zones de mission utilisées par CTLD — pickup de troupes, waypoint et transport IA — et leur rayon par défaut.
+  boarding:
+    order: 60
+    label: { en: Boarding, fr: Embarquement }
+    description:
+      en: How troops get aboard and back down, including fast-rope insertion and its height limit.
+      fr: Comment les troupes montent à bord et redescendent, dont l'insertion en fast-rope et sa hauteur limite.
+  fob:
+    order: 70
+    label: { en: FOB / FARP, fr: FOB / FARP }
+    description:
+      en: Building and running Forward Operating Bases and FARPs — crate collection radius, spacing rules and what a built FOB offers.
+      fr: Construction et fonctionnement des FOB et FARP — rayon de collecte des caisses, règles d'espacement et ce qu'une FOB offre.
+  jtac:
+    order: 80
+    label: { en: JTAC, fr: JTAC }
+    description:
+      en: Deployed JTACs — target search and lasing, smoke marking, 9-line, laser codes and drone JTAC behaviour.
+      fr: JTAC déployés — recherche et lasing des cibles, marquage à la fumée, 9-line, codes laser et comportement des JTAC drones.
+  recon:
+    order: 90
+    label: { en: Recon, fr: Reconnaissance }
+    description:
+      en: Aerial reconnaissance — what a recon flight detects, at what altitude and radius, and how it is drawn on the F10 map.
+      fr: Reconnaissance aérienne — ce qu'un vol de reconnaissance détecte, à quelle altitude et dans quel rayon, et son rendu sur la carte F10.
+  aa:
+    order: 100
+    label: { en: AA system, fr: Système AA }
+    description:
+      en: Anti-air systems assembled from crates — how many each coalition may build, assembly distance and rearming.
+      fr: Systèmes anti-aériens assemblés depuis des caisses — combien chaque coalition peut en construire, distance d'assemblage et réapprovisionnement.
+  beacon:
+    order: 110
+    label: { en: Beacons, fr: Beacons }
+    description:
+      en: Radio beacons dropped in the field — battery life, removal radius and how they appear on the F10 map.
+      fr: Beacons radio largués sur le terrain — autonomie, rayon de retrait et affichage sur la carte F10.
+  smoke:
+    order: 120
+    label: { en: Smoke, fr: Fumigènes }
+    description:
+      en: Smoke markers dropped by transports — whether they may be dropped at all, and how they are refreshed.
+      fr: Fumigènes largués par les transports — s'ils peuvent l'être, et leur rafraîchissement.
+  mines:
+    order: 130
+    label: { en: Mines, fr: Mines }
+    description:
+      en: Minefields — clearing radius and whether they are shown on the F10 map.
+      fr: Champs de mines — rayon de déminage et affichage sur la carte F10.
+  parachute:
+    order: 140
+    label: { en: Parachute, fr: Parachute }
+    description:
+      en: Physics of parachute drops — descent rates, deployment altitudes and how far a load drifts before it lands.
+      fr: Physique des largages sous parachute — vitesses de descente, altitudes de déploiement et dérive avant l'atterrissage.
+  soldier_weights:
+    order: 150
+    label: { en: Soldier weights, fr: Poids soldats }
+    description:
+      en: Per-soldier weights, used to check whether a troop group fits inside a transport.
+      fr: Poids par soldat, utilisés pour vérifier qu'un groupe de troupes tient dans un transport.
+  other:
+    order: 999
+    label: { en: Other, fr: Autres }
+    description:
+      en: Settings not yet attached to a specific subsystem.
+      fr: Réglages pas encore rattachés à un sous-système précis.
+
 # Table field descriptions — used by ctld-tools forms for tooltips.
 # Each table has named fields with { en, fr } descriptions.
 tableFields:

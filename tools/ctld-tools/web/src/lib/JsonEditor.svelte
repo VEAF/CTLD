@@ -1,6 +1,8 @@
 <script lang="ts">
   // Generic fallback editor: any structured value edited as JSON. Guarantees every Data
   // family renders *something* (the no-editing-gaps rule); bespoke editors override it.
+  import { t } from './i18n.svelte'
+
   let { value, onchange }: { value: unknown; onchange: (v: unknown) => void } = $props()
 
   // svelte-ignore state_referenced_locally
@@ -13,17 +15,14 @@
       err = null
       onchange(parsed)
     } catch (e) {
-      err = `Invalid JSON: ${(e as Error).message}`
+      err = t('web.table.json_invalid', { message: (e as Error).message })
     }
   }
 </script>
 
 <textarea class="json" bind:value={text} onchange={commit} spellcheck="false"></textarea>
 {#if err}<p class="err" role="alert">{err}</p>{/if}
-<p class="hint">
-  This table has no dedicated editor yet, so it is edited in its raw form. Keep the punctuation
-  (braces, brackets, commas) exactly as it is and change only the values.
-</p>
+<p class="hint">{t('web.table.json_hint')}</p>
 
 <style>
   .json {

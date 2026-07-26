@@ -19,6 +19,7 @@
   } from './lib/api'
   import AircraftEditor from './lib/AircraftEditor.svelte'
   import CratesEditor from './lib/CratesEditor.svelte'
+  import RailArt from './lib/RailArt.svelte'
   import JsonEditor from './lib/JsonEditor.svelte'
   import KeyValueEditor from './lib/KeyValueEditor.svelte'
   import RecordListEditor from './lib/RecordListEditor.svelte'
@@ -27,12 +28,14 @@
   import ValidationPanel from './lib/ValidationPanel.svelte'
   import VersionGapPopup from './lib/VersionGapPopup.svelte'
   import ZonesEditor from './lib/ZonesEditor.svelte'
-  import { DATA_FAMILY, familyIcon, familyLabel, familyOf, OTHER_FAMILY } from './lib/families'
+  import { DATA_FAMILY, familyDescription, familyIcon, familyLabel, familyOf } from './lib/families'
+  import { availableLanguages, currentLanguage, initLanguage, plural, setLanguage, t } from './lib/i18n.svelte'
   import { humanize } from './lib/labels'
   import { classify, coerce, isChanged, settingKeys, type EditorType, type Family } from './lib/model'
   import { searchSettings } from './lib/search'
-  import { UI } from './lib/strings'
   import { TROOP_FIELDS, withTips } from './lib/tables'
+
+  const LANG_NAMES: Record<string, string> = { en: 'English', fr: 'Français' }
 
   const ZONE_TYPES = ['troopZones', 'wpZones', 'AIZones']
   const STRING_LISTS = ['transportPilotNames', 'extractableGroups', 'logisticUnits']
@@ -89,24 +92,43 @@
   const advancedOpen = $derived(advancedManual ?? advancedAuto)
 
   const configName = $derived(
-    fromDefaults || !snapshot?.path ? UI.defaultsName : snapshot.path.replace(/^.*[\\/]/, ''),
+    fromDefaults || !snapshot?.path ? t('web.header.defaults') : snapshot.path.replace(/^.*[\\/]/, ''),
   )
   const configVersion = $derived(String(snapshot?.values?.configVersion ?? '—'))
-  const saveLabel = $derived(dirty ? UI.saveState.dirty : justSaved ? UI.saveState.saved : UI.saveState.clean)
+  const saveLabel = $derived(
+    dirty ? t('web.state.dirty') : justSaved ? t('web.state.saved') : t('web.state.clean'),
+  )
   const step = $derived(injected ? 3 : snapshot ? 2 : 1)
+  const steps = $derived([
+    { title: t('web.step.load'), hint: t('web.step.load_hint') },
+    { title: t('web.step.adjust'), hint: t('web.step.adjust_hint') },
+    { title: t('web.step.inject'), hint: t('web.step.inject_hint') },
+  ])
 
   onMount(async () => {
     try {
-      schema = await getSchema()
+      // Language first: everything rendered afterwards (including a boot failure) is translated.
+      await initLanguage()
+      schema = await getSchema(currentLanguage())
       dcsTypes = (await getDcsTypes()).types
       defaults = (await getDefaults()).values
       // Boot straight into a usable state: an empty screen asking the user to "load the defaults"
       // is a question a first-time MM cannot answer.
       await run(loadDefault, true)
     } catch {
-      error = UI.bootFailed
+      error = t('web.outcome.boot_failed')
     }
   })
+
+  // Descriptions and family labels live in the schema, so a language switch re-fetches it.
+  async function switchLanguage(next: string) {
+    try {
+      await setLanguage(next)
+      schema = await getSchema(currentLanguage())
+    } catch (e) {
+      error = String(e)
+    }
+  }
 
   $effect(() => {
     if (!revealKey) return
@@ -142,7 +164,7 @@
   }
 
   function confirmDiscard(): boolean {
-    return !dirty || confirm(UI.confirmDiscard)
+    return !dirty || confirm(t('web.confirm_discard'))
   }
 
   async function applySetting(key: string, value: unknown) {
@@ -204,7 +226,7 @@
       error = null
       dirty = false
       justSaved = true
-      status = UI.savedTo(path)
+      status = t('web.outcome.saved_to', { path })
     } catch (e) {
       error = String(e)
     }
@@ -217,10 +239,10 @@
       const r = await injectMiz(path)
       error = null
       injected = true
-      status = UI.injected(r.injected)
+      status = t('web.outcome.injected', { miz: r.injected })
     } catch (e) {
       status = null
-      error = hasErrors ? UI.injectBlocked : String(e)
+      error = hasErrors ? t('web.outcome.inject_blocked') : String(e)
     }
   }
 
@@ -250,46 +272,55 @@
       <path d="M3.5 9c3-1.1 6-1 8.5 3M20.5 9c-3-1.1-6-1-8.5 3" />
     </svg>
     <div>
-      <h1>{UI.appName}</h1>
-      <p>{UI.appTagline}</p>
+      <h1>CTLD</h1>
+      <p>{t('web.tagline')}</p>
     </div>
   </div>
 
   <div class="readouts">
     <div class="readout">
-      <span class="lbl">{UI.configLabel}</span>
+      <span class="lbl">{t('web.header.config')}</span>
       <span class="val">{configName}</span>
     </div>
     <div class="readout">
-      <span class="lbl">{UI.versionLabel}</span>
+      <span class="lbl">{t('web.header.version')}</span>
       <span class="val">{configVersion}</span>
     </div>
     <div class="readout">
       <span class="lbl">{saveLabel}</span>
-      <span class="val sub">{changedKeys.size ? UI.changedCount(changedKeys.size) : '—'}</span>
+      <span class="val sub">{changedKeys.size ? plural('web.changed', changedKeys.size) : '—'}</span>
     </div>
+    <label class="lang">
+      <span class="lbl">{t('web.lang.label')}</span>
+      <select value={currentLanguage()} onchange={(e) => switchLanguage(e.currentTarget.value)}>
+        {#each availableLanguages() as code (code)}
+          <option value={code}>{LANG_NAMES[code] ?? code.toUpperCase()}</option>
+        {/each}
+      </select>
+    </label>
+
     <div class="lamp" class:bad={hasErrors}>
-      <span class="dot"></span>{hasErrors ? UI.validation.lampError : UI.validation.lampOk}
+      <span class="dot"></span>{hasErrors ? t('web.validation.lamp_error') : t('web.validation.lamp_ok')}
     </div>
   </div>
 </header>
 
 <div class="flow">
-  {#each UI.steps as s, i (s.title)}
+  {#each steps as s, i (s.title)}
     <div class="step" class:active={step === i + 1} class:done={step > i + 1}>
       <span class="n">{step > i + 1 ? '✓' : i + 1}</span>
       <span class="txt"><span class="t">{s.title}</span><span class="s">{s.hint}</span></span>
     </div>
   {/each}
   <div class="tools">
-    <button onclick={doLoadDefaults}>{UI.actions.loadDefaults}</button>
-    <button onclick={doOpen}>{UI.actions.open}</button>
-    <button onclick={doSave} disabled={!snapshot}>{UI.actions.save}</button>
+    <button onclick={doLoadDefaults}>{t('web.action.load_defaults')}</button>
+    <button onclick={doOpen}>{t('web.action.open')}</button>
+    <button onclick={doSave} disabled={!snapshot}>{t('web.action.save')}</button>
     <button class="primary" onclick={doInject} disabled={!snapshot || hasErrors}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
         <path d="M12 3.5v11M12 14.5l-4-4M12 14.5l4-4M4.5 19.5h15" />
       </svg>
-      {UI.actions.inject}
+      {t('web.action.inject')}
     </button>
   </div>
 </div>
@@ -314,12 +345,13 @@
             <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               {@html familyIcon(f.key)}
             </svg>
-            <span class="name">{familyLabel(f.key)}</span>
-            {#if n}<span class="count" title={UI.changedCount(n)}>{n}</span>{/if}
+            <span class="name">{familyLabel(f.key, schema?.familyMeta)}</span>
+            {#if n}<span class="count" title={plural('web.changed', n)}>{n}</span>{/if}
           </button>
         </li>
       {/each}
     </ul>
+    <RailArt />
   </nav>
 
   <main class="panel">
@@ -329,23 +361,23 @@
       </svg>
       <input
         type="search"
-        placeholder={UI.searchPlaceholder}
+        placeholder={t('web.search.placeholder')}
         bind:value={query}
         onkeydown={(e) => {
           if (e.key === 'Escape') query = ''
         }}
       />
       {#if searching}
-        <button class="ghost clear" aria-label={UI.actions.clearSearch} onclick={() => (query = '')}>✕</button>
+        <button class="ghost clear" aria-label={t('web.action.clear_search')} onclick={() => (query = '')}>✕</button>
       {/if}
     </div>
 
     <ValidationPanel {findings} ongoto={goto} />
 
     {#if searching}
-      <h2 class="title">{UI.searchResults(hits.length)}</h2>
+      <h2 class="title">{plural('web.search.results', hits.length)}</h2>
       {#if !hits.length}
-        <p class="empty">{UI.searchEmpty}</p>
+        <p class="empty">{t('web.search.empty')}</p>
       {/if}
       {#each hits as hit (hit.key)}
         <SettingRow
@@ -353,16 +385,19 @@
           meta={schema?.keys[hit.key]}
           value={snapshot?.values[hit.key]}
           fallback={defaults[hit.key]}
-          familyName={familyLabel(hit.family)}
+          familyName={familyLabel(hit.family, schema?.familyMeta)}
           onedit={edit}
           onreset={reset}
         />
       {/each}
     {:else if current && snapshot}
-      <h2 class="title">{familyLabel(current.key)}</h2>
+      <h2 class="title">{familyLabel(current.key, schema?.familyMeta)}</h2>
+      {#if familyDescription(current.key, schema?.familyMeta)}
+        <p class="family-desc">{familyDescription(current.key, schema?.familyMeta)}</p>
+      {/if}
 
       {#if current.standard.length}
-        <h3 class="section">{UI.sectionStandard}</h3>
+        <h3 class="section">{t('web.section.standard')}</h3>
         {#each current.standard as key (key)}
           <SettingRow
             settingKey={key}
@@ -378,8 +413,8 @@
       {#if current.advanced.length}
         <details class="advanced" open={advancedOpen} ontoggle={(e) => (advancedManual = e.currentTarget.open)}>
           <summary>
-            <span class="sum-title">{UI.sectionAdvanced}</span>
-            <span class="sum-hint">{UI.advancedHint(current.advanced.length)}</span>
+            <span class="sum-title">{t('web.section.advanced')}</span>
+            <span class="sum-hint">{plural('web.section.advanced_hint', current.advanced.length)}</span>
           </summary>
           {#each current.advanced as key (key)}
             <SettingRow
@@ -395,13 +430,13 @@
       {/if}
 
       {#if current.data.length}
-        <h3 class="section">{UI.sectionData}</h3>
+        <h3 class="section">{t('web.section.data')}</h3>
         {#each current.data as key (key)}
           <section class="datacard">
             <h4>
               {humanize(key)}
               <code class="rawkey">{key}</code>
-              {#if changedKeys.has(key)}<span class="cbadge">{UI.changedBadge}</span>{/if}
+              {#if changedKeys.has(key)}<span class="cbadge">{t('web.badge.changed')}</span>{/if}
             </h4>
             <div class="dcbody">
               {#key key}
@@ -510,6 +545,21 @@
   }
   .readout .val.sub {
     color: var(--ink-dim);
+  }
+  .lang {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .lang .lbl {
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--ink-faint);
+  }
+  .lang select {
+    padding: 0.2rem 1.7rem 0.2rem 0.4rem;
+    font-size: var(--fs-sm);
   }
   .lamp {
     display: inline-flex;
@@ -698,7 +748,13 @@
     font-family: var(--font-display);
     font-size: var(--fs-lg);
     letter-spacing: 0.4px;
-    margin: 0 0 0.9rem;
+    margin: 0 0 0.35rem;
+  }
+  /* What the family covers, from the schema — orients a MM who lands here from search. */
+  .family-desc {
+    margin: 0 0 1rem;
+    color: var(--ink-dim);
+    max-width: 78ch;
   }
   .section {
     display: flex;

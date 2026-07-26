@@ -1,6 +1,8 @@
 <script lang="ts">
   // Edit a list of strings (pilot names, loadable-vehicle lists, …). Optional datalist
   // for autocomplete (e.g. DCS type names). Owns a local copy, emits on change.
+  import { t } from './i18n.svelte'
+
   let {
     items,
     listId,
@@ -35,12 +37,13 @@
 
 <div class="list">
   {#each model as item, i (i)}
+    {@const removeLabel = t('web.table.remove', { what: item || t('web.table.this_entry') })}
     <div class="item">
       <input value={item} list={listId} {placeholder} onchange={(e) => edit(i, e.currentTarget.value)} />
-      <button class="danger" title={`Remove ${item || 'this entry'}`} aria-label={`Remove ${item || 'this entry'}`} onclick={() => remove(i)}>✕</button>
+      <button class="danger" title={removeLabel} aria-label={removeLabel} onclick={() => remove(i)}>✕</button>
     </div>
   {/each}
-  <button class="add" onclick={add}>+ Add</button>
+  <button class="add" onclick={add}>{t('web.table.add')}</button>
 </div>
 
 <style>

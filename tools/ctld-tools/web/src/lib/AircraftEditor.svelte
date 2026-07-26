@@ -2,6 +2,7 @@
   // Editor for capabilitiesByType: aircraft type → capabilities record (bool flags,
   // numeric maxima, two loadable-vehicle string lists). Add a type via a datamine picker.
   import StringListEditor from './StringListEditor.svelte'
+  import { t } from './i18n.svelte'
   import { AIRCRAFT_BOOLS, AIRCRAFT_NUMS, blankAircraft, fieldLabel } from './tables'
 
   type Rec = Record<string, unknown>
@@ -53,16 +54,17 @@
 </script>
 
 <div class="add-type">
-  <input list="dcs-types" placeholder="Add an aircraft type…" bind:value={newType} />
-  <datalist id="dcs-types">{#each types as t (t)}<option value={t}></option>{/each}</datalist>
-  <button onclick={addType} disabled={!newType.trim()}>+ Add aircraft</button>
+  <input list="dcs-types" placeholder={t('web.table.add_aircraft_placeholder')} bind:value={newType} />
+  <!-- Loop variable is not `t`: that would shadow the translation helper. -->
+  <datalist id="dcs-types">{#each types as dcsType (dcsType)}<option value={dcsType}></option>{/each}</datalist>
+  <button onclick={addType} disabled={!newType.trim()}>{t('web.table.add_aircraft')}</button>
 </div>
 
 {#each typeNames as type (type)}
   <details class="aircraft">
     <summary>
       <span class="type">{type}</span>
-      <button class="danger" title={`Remove ${type}`} aria-label={`Remove ${type}`} onclick={(e) => { e.preventDefault(); removeType(type) }}>✕</button>
+      <button class="danger" title={t('web.table.remove', { what: type })} aria-label={t('web.table.remove', { what: type })} onclick={(e) => { e.preventDefault(); removeType(type) }}>✕</button>
     </summary>
     <div class="flags">
       {#each AIRCRAFT_BOOLS as f (f)}
@@ -75,9 +77,9 @@
       {/each}
     </div>
     <div class="lists">
-      <div><h4 class="blue" title={tip('loadableVehiclesBLUE')}>Whole vehicles — BLUE</h4>
+      <div><h4 class="blue" title={tip('loadableVehiclesBLUE')}>{t('web.table.vehicles_blue')}</h4>
         <StringListEditor items={(model[type].loadableVehiclesBLUE as string[]) ?? []} listId="dcs-types" onchange={(v) => setList(type, 'loadableVehiclesBLUE', v)} /></div>
-      <div><h4 class="red" title={tip('loadableVehiclesRED')}>Whole vehicles — RED</h4>
+      <div><h4 class="red" title={tip('loadableVehiclesRED')}>{t('web.table.vehicles_red')}</h4>
         <StringListEditor items={(model[type].loadableVehiclesRED as string[]) ?? []} listId="dcs-types" onchange={(v) => setList(type, 'loadableVehiclesRED', v)} /></div>
     </div>
   </details>

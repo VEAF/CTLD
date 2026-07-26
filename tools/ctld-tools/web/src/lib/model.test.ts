@@ -14,6 +14,7 @@ import {
 
 const schema: SchemaInfo = {
   families: ['aa', 'troops', 'jtac'],
+  familyMeta: {},
   keys: {
     numberOfTroops: { group: 'troops', standard: true, choices: null, description: null },
     aaRearmDistance: { group: 'aa', standard: false, choices: null, description: null },

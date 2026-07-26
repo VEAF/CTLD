@@ -1,6 +1,9 @@
 <script lang="ts">
   // Editor for a name → number map (groundVehicleWeights). Rows of (key, value); emits
   // the reconstructed object on change.
+  import { t } from './i18n.svelte'
+  import { fieldLabel } from './tables'
+
   let { map, onchange }: { map: Record<string, number>; onchange: (v: Record<string, number>) => void } = $props()
 
   // svelte-ignore state_referenced_locally
@@ -30,18 +33,18 @@
 </script>
 
 <table class="kv">
-  <thead><tr><th>DCS unit type</th><th>Weight (kg)</th><th></th></tr></thead>
+  <thead><tr><th>{fieldLabel('unit')}</th><th>{fieldLabel('weight')}</th><th></th></tr></thead>
   <tbody>
     {#each rows as row, i (i)}
       <tr>
         <td><input value={row[0]} onchange={(e) => setKey(i, e.currentTarget.value)} /></td>
         <td><input type="number" value={row[1]} onchange={(e) => setVal(i, e.currentTarget.value)} /></td>
-        <td><button class="danger" title={`Remove ${row[0] || 'this entry'}`} aria-label={`Remove ${row[0] || 'this entry'}`} onclick={() => remove(i)}>✕</button></td>
+        <td><button class="danger" title={t('web.table.remove', { what: row[0] || t('web.table.this_entry') })} aria-label={t('web.table.remove', { what: row[0] || t('web.table.this_entry') })} onclick={() => remove(i)}>✕</button></td>
       </tr>
     {/each}
   </tbody>
 </table>
-<button class="add" onclick={add}>+ Add vehicle</button>
+<button class="add" onclick={add}>{t('web.table.add_vehicle')}</button>
 
 <style>
   .kv {

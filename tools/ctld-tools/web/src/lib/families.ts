@@ -10,6 +10,8 @@
 //      cover yet, derived from the key's own spelling and nothing else;
 //   3. `other`.
 
+import type { FamilyMeta } from './api'
+
 export const OTHER_FAMILY = 'other'
 
 export const FAMILY_LABELS: Record<string, string> = {
@@ -73,19 +75,35 @@ export const FAMILY_ICONS: Record<string, string> = {
   [OTHER_FAMILY]: '<circle cx="12" cy="12" r="8.5"/><path d="M12 16.5v.01M12 7.5a2.2 2.2 0 0 1 1.2 4c-.7.5-1.2.9-1.2 1.8"/>',
 }
 
-export function familyLabel(key: string): string {
-  return FAMILY_LABELS[key] ?? key
+/**
+ * The family's display name. The schema's `families:` section is authoritative (and translated);
+ * the constants above are the fallback when a family has no schema entry.
+ */
+export function familyLabel(key: string, meta?: Record<string, FamilyMeta>): string {
+  return meta?.[key]?.label || FAMILY_LABELS[key] || key
+}
+
+/** What a Mission Maker will find in the family. Schema-only — never derived. */
+export function familyDescription(key: string, meta?: Record<string, FamilyMeta>): string | null {
+  return meta?.[key]?.description ?? null
 }
 
 export function familyIcon(key: string): string {
   return FAMILY_ICONS[key] ?? FAMILY_ICONS[OTHER_FAMILY]
 }
 
-/** Order families for the rail: known families in domain order, anything unknown appended. */
-export function orderFamilies(families: Iterable<string>): string[] {
-  const present = new Set(families)
-  const known = FAMILY_ORDER.filter((f) => present.has(f))
-  const extra = [...present].filter((f) => !FAMILY_ORDER.includes(f)).sort()
+/**
+ * Order families for the rail. The schema's `order:` wins when present; otherwise the domain order
+ * above, with anything unknown appended alphabetically.
+ */
+export function orderFamilies(families: Iterable<string>, meta?: Record<string, FamilyMeta>): string[] {
+  const present = [...new Set(families)]
+  if (meta && Object.keys(meta).length) {
+    const rank = (f: string) => meta[f]?.order ?? 998
+    return present.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
+  }
+  const known = FAMILY_ORDER.filter((f) => present.includes(f))
+  const extra = present.filter((f) => !FAMILY_ORDER.includes(f)).sort()
   return [...known, ...extra]
 }
 

@@ -35,11 +35,16 @@ A strip across the top shows the three steps: **Load → Adjust → Inject into 
 current one highlighted. The header always tells you which configuration is open, how many settings
 you have changed, and whether your work is saved.
 
+!!! tip "English or French"
+    The interface follows your Windows language, and a **Language** picker in the header switches
+    between English and French at any time — including the settings' own help texts. Your choice is
+    remembered.
+
 The left column lists CTLD's **functional families** — General, Aircraft, Crates, Troops, Zones,
 Boarding, FOB / FARP, JTAC, Recon, AA system, Beacons, Smoke, Mines, Parachute, Soldier weights. Pick
 a family and you get **everything** about that part of CTLD in one place: its settings *and* its
-catalogue entries. Crates, for instance, holds the crate settings *and* the list of crates you can
-spawn.
+catalogue entries, with a line under the title telling you what the family covers. Crates, for
+instance, holds the crate settings *and* the list of crates you can spawn.
 
 Within a family, settings are split into **Common settings** and an **Advanced settings** section
 that stays folded until you need it (it opens by itself if it contains something you have changed).

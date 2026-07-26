@@ -1,6 +1,7 @@
 // Field specs for the structured Data tables — the editor type per field, since the
 // schema only carries descriptions (not types). Tooltips come from schema.tableFields.
 
+import { t } from './i18n.svelte'
 import { humanize } from './labels'
 import type { EditorType } from './model'
 
@@ -11,33 +12,33 @@ export interface Field {
   choices?: string[]
 }
 
-// Column headings for the structured tables. Each wording restates the field's own schema
-// description (`tableFields` in CTLD_config_schema.yaml) — e.g. `at` is documented as
-// "Number of anti-tank soldiers (RPG)" — so no meaning is invented here.
-const FIELD_LABELS: Record<string, string> = {
-  aa: 'Anti-air (MANPAD)',
-  at: 'Anti-tank (RPG)',
-  canPickup: 'Pickup allowed',
-  colour: 'Smoke colour',
-  cratesRequired: 'Crates required',
-  desc: 'Display name',
-  groupSize: 'Group size',
-  iconId: 'Map icon ID',
-  inf: 'Infantry',
-  jtac: 'JTAC',
-  mg: 'Machine-gunners',
-  mortar: 'Mortar crew',
-  name: 'Display name',
-  side: 'Coalition',
-  troopLimit: 'Troop limit',
-  unit: 'DCS unit type',
-  weight: 'Weight (kg)',
-  zoneName: 'DCS zone name',
-}
+// Fields with a translated heading (`web.field.<name>`); anything else falls back to a label
+// derived from the field name. Each wording restates the field's own schema description
+// (`tableFields` in CTLD_config_schema.yaml) — e.g. `at` is "Number of anti-tank soldiers (RPG)".
+const LABELLED_FIELDS = new Set([
+  'aa',
+  'at',
+  'canPickup',
+  'colour',
+  'cratesRequired',
+  'desc',
+  'groupSize',
+  'iconId',
+  'inf',
+  'jtac',
+  'mg',
+  'mortar',
+  'name',
+  'side',
+  'troopLimit',
+  'unit',
+  'weight',
+  'zoneName',
+])
 
 /** A readable column heading for a table field. */
 export function fieldLabel(field: string): string {
-  return FIELD_LABELS[field] ?? humanize(field)
+  return LABELLED_FIELDS.has(field) ? t(`web.field.${field}`) : humanize(field)
 }
 
 export const TROOP_FIELDS: Omit<Field, 'tip'>[] = [

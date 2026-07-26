@@ -36,18 +36,24 @@ pas besoin.)
 
 ## Se repérer { #finding-your-way-around }
 
-Un bandeau en haut montre les trois étapes : **Load → Adjust → Inject into your mission**, l'étape
+Un bandeau en haut montre les trois étapes : **Charger → Régler → Injecter dans la mission**, l'étape
 courante étant mise en évidence. L'en-tête indique en permanence quelle configuration est ouverte,
 combien de réglages vous avez modifiés, et si votre travail est enregistré.
 
-La colonne de gauche liste les **familles fonctionnelles** de CTLD — General, Aircraft, Crates,
-Troops, Zones, Boarding, FOB / FARP, JTAC, Recon, AA system, Beacons, Smoke, Mines, Parachute,
-Soldier weights. Choisissez une famille et vous obtenez **tout** ce qui concerne cette partie de CTLD
-au même endroit : ses réglages *et* ses entrées de catalogue. Crates, par exemple, contient les
-réglages des caisses *et* la liste des caisses que vous pouvez faire apparaître.
+!!! tip "Interface en français"
+    L'interface suit la langue de votre Windows, et un sélecteur **Langue** dans l'en-tête permet de
+    basculer entre français et anglais à tout moment — y compris les textes d'aide des réglages.
+    Votre choix est mémorisé.
 
-Dans une famille, les réglages sont séparés en **Common settings** et une section **Advanced
-settings** qui reste repliée jusqu'à ce que vous en ayez besoin (elle s'ouvre d'elle-même si elle
+La colonne de gauche liste les **familles fonctionnelles** de CTLD — Général, Appareils, Caisses,
+Troupes, Zones, Embarquement, FOB / FARP, JTAC, Reconnaissance, Système AA, Beacons, Fumigènes,
+Mines, Parachute, Poids soldats. Choisissez une famille et vous obtenez **tout** ce qui concerne
+cette partie de CTLD au même endroit : ses réglages *et* ses entrées de catalogue, avec une phrase
+sous le titre qui indique ce que couvre la famille. Caisses, par exemple, contient les réglages des
+caisses *et* la liste des caisses que vous pouvez faire apparaître.
+
+Dans une famille, les réglages sont séparés en **Réglages courants** et une section **Réglages
+avancés** qui reste repliée jusqu'à ce que vous en ayez besoin (elle s'ouvre d'elle-même si elle
 contient un réglage que vous avez modifié).
 
 **Vous ne savez pas où se trouve un réglage ?** Utilisez le **champ de recherche** : il parcourt
@@ -67,27 +73,28 @@ s'éditent sous forme de tableaux, en bas de la famille à laquelle elles appart
 
 ### Annuler une modification { #undoing-a-change }
 
-Tout réglage que vous modifiez est marqué **changed**, et la famille reçoit un compteur dans la
-colonne de gauche : vous voyez donc toujours ce que vous avez touché. Une **flèche de réinitialisation**
-apparaît à côté d'un réglage modifié et remet la valeur par défaut de CTLD.
+Tout réglage que vous modifiez est marqué **modifié**, et la famille reçoit un compteur dans la
+colonne de gauche : vous voyez donc toujours ce que vous avez touché. Une **flèche de
+réinitialisation** apparaît à côté d'un réglage modifié et remet la valeur par défaut de CTLD.
 
-Vous préférez repartir de zéro ? **Start from CTLD defaults**. Pour reprendre une configuration
-précédente, utilisez **Open a config file…** (dialogue de fichier natif). Les deux vous avertissent
-d'abord si vous avez des modifications non enregistrées.
+Vous préférez repartir de zéro ? **Partir des défauts CTLD**. Pour reprendre une configuration
+précédente, utilisez **Ouvrir un fichier de config…** (dialogue de fichier natif). Les deux vous
+avertissent d'abord si vous avez des modifications non enregistrées.
 
 ### Validation { #validation }
 
 La **validation en direct** s'exécute pendant que vous éditez. Un voyant dans l'en-tête indique
-**VALID** ou **CHECK**, et un panneau au-dessus des réglages liste chaque problème en langage clair —
-types d'unités DCS inconnus, poids de caisse en double, etc. Cliquez sur un problème et l'application
-saute directement au réglage concerné.
+**VALIDE** ou **À VÉRIFIER**, et un panneau au-dessus des réglages liste chaque problème en langage
+clair — types d'unités DCS inconnus, poids de caisse en double, etc. Cliquez sur un problème et
+l'application saute directement au réglage concerné.
 
 ## Enregistrer et utiliser { #saving-and-using-it }
 
-- **Save as…** écrit votre configuration dans un fichier (dialogue d'enregistrement natif) pour la
-  rouvrir plus tard.
-- **Inject into mission…** choisit une mission et y insère votre configuration comme trigger MISSION
-  START, prête à jouer. Le bouton reste **désactivé tant qu'une erreur de validation subsiste**.
+- **Enregistrer sous…** écrit votre configuration dans un fichier (dialogue d'enregistrement natif)
+  pour la rouvrir plus tard.
+- **Injecter dans la mission…** choisit une mission et y insère votre configuration comme trigger
+  MISSION START, prête à jouer. Le bouton reste **désactivé tant qu'une erreur de validation
+  subsiste**.
 
 L'injection est **idempotente** — ré-injecter met à jour le même trigger au lieu de le dupliquer — et
 place le trigger **en premier**, pour qu'il s'exécute avant CTLD.

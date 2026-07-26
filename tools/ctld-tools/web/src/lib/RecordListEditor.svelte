@@ -1,6 +1,7 @@
 <script lang="ts">
   // Generic editor for a list of records (e.g. loadableGroups, zones). Owns a local copy
   // and emits the whole list on every change. Fields + their editor types are passed in.
+  import { t } from './i18n.svelte'
   import { fieldLabel, type Field } from './tables'
 
   type Rec = Record<string, unknown>
@@ -65,12 +66,12 @@
             {/if}
           </td>
         {/each}
-        <td><button class="danger" title="Remove this row" aria-label="Remove this row" onclick={() => removeRow(i)}>✕</button></td>
+        <td><button class="danger" title={t('web.table.remove_row')} aria-label={t('web.table.remove_row')} onclick={() => removeRow(i)}>✕</button></td>
       </tr>
     {/each}
   </tbody>
 </table>
-<button class="add" onclick={addRow}>+ Add row</button>
+<button class="add" onclick={addRow}>{t('web.table.add_row')}</button>
 
 <style>
   .records {

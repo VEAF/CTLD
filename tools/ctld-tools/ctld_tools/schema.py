@@ -13,6 +13,9 @@ from typing import Any
 
 from ruamel.yaml import YAML
 
+# Top-level sections that carry authoring metadata rather than a setting.
+_RESERVED = frozenset({"tableFields", "families"})
+
 
 class Schema:
     """Read-only view over CTLD_config_schema.yaml."""
@@ -53,7 +56,7 @@ class Schema:
 
     def families(self) -> list[str]:
         """The distinct functional families declared across the schema, sorted."""
-        return sorted({g for k in self._e if k != "tableFields" and (g := self.group(k))})
+        return sorted({g for k in self.keys() if (g := self.group(k))})
 
     def table_fields(self) -> dict[str, Any]:
         """Per-field authoring metadata for structured tables (crates, troops, zones, …)."""
@@ -61,5 +64,28 @@ class Schema:
         return tf if isinstance(tf, dict) else {}
 
     def keys(self) -> list[str]:
-        """Every setting key (excluding the reserved `tableFields` section)."""
-        return [k for k in self._e if k != "tableFields"]
+        """Every setting key (excluding the reserved metadata sections)."""
+        return [k for k in self._e if k not in _RESERVED]
+
+    # ── families ───────────────────────────────────────────────────
+    def family_meta(self) -> dict[str, Any]:
+        """The reserved `families:` section — per-family label / description / order."""
+        fam = self._e.get("families")
+        return fam if isinstance(fam, dict) else {}
+
+    def _family_entry(self, family: str) -> dict[str, Any]:
+        entry = self.family_meta().get(family)
+        return entry if isinstance(entry, dict) else {}
+
+    def family_label(self, family: str, lang: str = "en") -> str | None:
+        label = self._family_entry(family).get("label")
+        return label.get(lang) or label.get("en") if isinstance(label, dict) else None
+
+    def family_description(self, family: str, lang: str = "en") -> str | None:
+        desc = self._family_entry(family).get("description")
+        return desc.get(lang) or desc.get("en") if isinstance(desc, dict) else None
+
+    def family_order(self, family: str) -> int:
+        """Navigation rank; families without one sort last (but before `other`'s explicit 999)."""
+        order = self._family_entry(family).get("order")
+        return int(order) if isinstance(order, int) else 998
