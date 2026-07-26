@@ -19,7 +19,6 @@
   } from './lib/api'
   import AircraftEditor from './lib/AircraftEditor.svelte'
   import CratesEditor from './lib/CratesEditor.svelte'
-  import RailArt from './lib/RailArt.svelte'
   import JsonEditor from './lib/JsonEditor.svelte'
   import KeyValueEditor from './lib/KeyValueEditor.svelte'
   import RecordListEditor from './lib/RecordListEditor.svelte'
@@ -361,7 +360,6 @@
         </li>
       {/each}
     </ul>
-    <RailArt />
   </nav>
 
   <main class="panel">
@@ -496,15 +494,59 @@
 </div>
 
 <style>
-  /* ── header ──────────────────────────────────────────────────── */
+  /* ── header ──────────────────────────────────────────────────────
+     A photo of the real thing — a Mi-8 in the hover with a crate on the hook — banded across the
+     header. Two pseudo-elements do the work: ::before is the frame, ::after is the scrim that keeps
+     the text readable over it. The content sits above both (z-index: 1).
+
+     Absent asset degrades silently: a missing CSS background paints nothing, so the header simply
+     falls back to its gradient. Drop the file at web/public/hero-slingload.jpg to light it up. */
   .bar {
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: center;
     gap: 1.5rem;
     flex-wrap: wrap;
-    padding: 0.8rem var(--pad);
+    padding: 1.15rem var(--pad);
     background: linear-gradient(180deg, #1b262c, #141c21);
     border-bottom: 2px solid var(--accent);
+  }
+  .bar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('/hero-slingload.jpg');
+    background-size: cover;
+    /* Framed low and right: crops the third-party watermark off the top of the source frame, and
+       puts the helicopter where the header is otherwise empty. */
+    background-position: 62% 68%;
+    /* Pulled towards the panel's own palette rather than left as a bright daylight photo. */
+    filter: saturate(0.4) contrast(1.08) brightness(0.62) sepia(0.16);
+    /* Dissolves leftwards, so it never fights the brand or the readouts. */
+    -webkit-mask-image: linear-gradient(90deg, transparent 20%, rgba(0, 0, 0, 0.3) 42%, #000 78%);
+    mask-image: linear-gradient(90deg, transparent 20%, rgba(0, 0, 0, 0.3) 42%, #000 78%);
+    opacity: 0.62;
+    z-index: 0;
+  }
+  .bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      #141c21 0%,
+      rgba(20, 28, 33, 0.94) 34%,
+      rgba(20, 28, 33, 0.62) 62%,
+      rgba(20, 28, 33, 0.3) 100%
+    );
+    z-index: 0;
+  }
+  /* Above the photo and its scrim. */
+  .brand,
+  .readouts {
+    position: relative;
+    z-index: 1;
   }
   .brand {
     display: flex;

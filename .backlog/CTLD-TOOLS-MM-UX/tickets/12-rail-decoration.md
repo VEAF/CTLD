@@ -1,33 +1,45 @@
 # 12 — A picture of what the tool is for
 
-**Status:** done
+**Status:** in progress — waiting on the image file
 
 ## Why
 
 David asked whether the UI had any decoration — "une image d'hélicoptère qui dépose des troupes par
 exemple". It did not: tickets 01–09 gave the app a palette, a type system and functional icons, but
-nothing that depicts the subject. For a tool whose whole purpose is helicopter troop insertion and
-sling-loading, that is a missed opportunity.
+nothing depicting the subject.
 
-## Work
+## First attempt, rejected
 
-`RailArt.svelte` — hand-authored SVG line art: a transport helicopter in the hover with two troopers
-descending on fast ropes. Stroked in the accent amber, no fill, so it reads as a technical sketch
-rather than clip-art, and it needs no raster asset (the exe serves offline).
+Hand-drawn SVG line art of a transport helicopter with a slung crate, at the foot of the navigation
+rail. Redrawn once head-on (after a DCS screenshot David sent) because the first profile version read
+flat. Verdict: *"mignon mais pas dingue"*, then *"non c'est moche"*. Removed — a decoration nobody
+likes is worse than none.
 
-**Placement was measured, not assumed.** It started as a header watermark; on a 1280px window the
-header's spare middle is only ~198px wide and the drawing landed *under the readouts* — a watermark
-beneath figures a MM is reading is worse than none. Moved to the foot of the navigation rail: real
-empty space, never text on top, verified with getBoundingClientRect (inside the rail, below the last
-family, zero overlap with any nav button). Hidden below 1000px, where the rail collapses to a
-horizontal bar.
+Worth keeping from that round: the placement finding. As a header watermark the drawing landed **under
+the readouts** on a 1280px window (the header's spare middle is only ~198px), which is why the photo
+now uses a masked scrim instead of sitting behind the text unprotected.
 
-Sized 210px wide at 22% opacity — present enough to give the app a subject, quiet enough that the
-amber accent still means "this is interactive".
+## Current approach: the real thing
 
-## Done when
+A DCS screenshot — Mi-8 in the hover, crate on the hook — banded across the header:
 
-- The art renders inside the rail, below the family list, overlapping no control.
-- No horizontal body scroll at 1280px.
-- Aesthetics reviewed by David (a standalone preview SVG was sent, since the agent cannot see the
-  rendered page).
+- `.bar::before` carries the frame, `::after` a left-to-right scrim, content above both.
+- Framed low and right (`background-position: 62% 68%`) so the source frame's third-party watermark
+  is cropped out and the airframe sits where the header is otherwise empty.
+- `filter: saturate(.4) contrast(1.08) brightness(.62) sepia(.16)` pulls a bright daylight photo into
+  the panel's palette.
+- `mask-image` dissolves it leftwards so it never competes with the brand or the readouts.
+- **Missing asset degrades silently**: a CSS background that does not resolve paints nothing, so the
+  header falls back to its gradient. No broken-image box, no build failure.
+
+## Provenance
+
+Raised with David that the frame carries a third party's watermark and this repo ships publicly; he
+decided to use it. Noted here rather than argued: it is the maintainer's call. The crop removes the
+watermark either way.
+
+## Remaining
+
+Drop the file at `tools/ctld-tools/web/public/hero-slingload.jpg`. Then: crop the watermark in pixels
+rather than only in CSS, resize to ~1600px wide and compress (Pillow and ffmpeg are both available),
+and re-measure the header contrast with the photo actually in place.

@@ -79,9 +79,11 @@ identity rooted in the subject (DCS rotary-wing logistics). `tools/` only — no
   and `families` joins `tableFields` as a reserved section so it is never taken for a setting. The UI
   shows the description under the family title. This is the only `src/` change in the lot and it is
   authoring metadata — not read by the build, so `CTLD.lua` is unaffected.
-- **A picture of the subject**: hand-drawn SVG line art of a transport helicopter inserting troops on
-  fast ropes, at the foot of the navigation rail. Placement was measured rather than assumed — as a
-  header watermark it landed under the readouts at 1280px.
+- **A picture of the subject** in the header: a DCS frame of a helicopter placing a slung crate,
+  banded across it behind a masked scrim, filtered into the panel's palette. A missing asset degrades
+  silently to the previous gradient. (An earlier hand-drawn SVG version was rejected on looks; the
+  placement lesson survived — as an unprotected header watermark it landed under the readouts at
+  1280px.)
 - **CI gains a `frontend` job** (`npm run check` + `npm test` + `npm run build`). The web-app suite
   existed since `CTLD-TOOLS-WEBAPP` but no workflow ran it — `release.yml` only built the bundle, so
   a red test could ship. The exe embeds this frontend, so it now gates like the rest.
