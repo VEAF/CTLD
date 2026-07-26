@@ -203,6 +203,34 @@ test('switching language translates the chrome and re-fetches the schema', async
   expect(global.fetch).toHaveBeenCalledWith('/api/schema?lang=fr')
 })
 
+test('help opens, and is written from the schema and the catalogue', async () => {
+  render(App)
+  // Wait for the boot fetch: the help button exists from the first paint, and clicking it earlier
+  // would render the panel before there is a catalogue to describe.
+  await screen.findByRole('button', { name: /Troops/ })
+  await fireEvent.click(screen.getByRole('button', { name: /Help/ }))
+  const dialog = await screen.findByRole('dialog')
+  expect(dialog).toBeInTheDocument()
+
+  // Counts come from the live catalogue: 2 scalar settings across the families it produces.
+  expect(screen.getByText(/2 settings across \d+ families/)).toBeInTheDocument()
+  // Family descriptions are the schema's, not a hand-written copy.
+  expect(screen.getByText('Anti-air systems assembled from crates.')).toBeInTheDocument()
+  // The data inventory lists the real tables with their real sizes.
+  expect(screen.getByText('spawnableCrates')).toBeInTheDocument()
+  expect(screen.getByText('1 sections')).toBeInTheDocument() // { Support: [] }
+  expect(screen.getByText('1 entries')).toBeInTheDocument() // transportPilotNames
+})
+
+test('help closes on Escape', async () => {
+  render(App)
+  await screen.findByRole('button', { name: /Troops/ })
+  await fireEvent.click(screen.getByRole('button', { name: /Help/ }))
+  await screen.findByRole('dialog')
+  await fireEvent.keyDown(window, { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+})
+
 test('opening a file warns before discarding unsaved changes', async () => {
   render(App)
   await fireEvent.click(await screen.findByRole('button', { name: /Troops/ }))

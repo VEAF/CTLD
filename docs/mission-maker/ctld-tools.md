@@ -40,6 +40,13 @@ you have changed, and whether your work is saved.
     between English and French at any time — including the settings' own help texts. Your choice is
     remembered.
 
+!!! tip "Built-in help"
+    The **Help** button in the header opens a walkthrough of the editor in your language: the three
+    steps, how to read a setting, what the validation lamp means, and the complete-snapshot rule. It
+    also lists **your** configuration — every family with what it covers, and every mission-data table
+    with how many entries it currently holds. It is generated from the configuration you have open, so
+    it always describes what is actually in front of you.
+
 The left column lists CTLD's **functional families** — General, Aircraft, Crates, Troops, Zones,
 Boarding, FOB / FARP, JTAC, Recon, AA system, Beacons, Smoke, Mines, Parachute, Soldier weights. Pick
 a family and you get **everything** about that part of CTLD in one place: its settings *and* its

@@ -45,6 +45,13 @@ combien de réglages vous avez modifiés, et si votre travail est enregistré.
     basculer entre français et anglais à tout moment — y compris les textes d'aide des réglages.
     Votre choix est mémorisé.
 
+!!! tip "Aide intégrée"
+    Le bouton **Aide** de l'en-tête ouvre un guide de l'éditeur dans votre langue : les trois étapes,
+    comment lire un réglage, ce que signifie le voyant de validation, et la règle du snapshot complet.
+    Il liste aussi **votre** configuration — chaque famille avec ce qu'elle couvre, et chaque tableau
+    de données de mission avec le nombre d'entrées qu'il contient. Il est généré depuis la
+    configuration ouverte : il décrit donc toujours ce que vous avez réellement sous les yeux.
+
 La colonne de gauche liste les **familles fonctionnelles** de CTLD — Général, Appareils, Caisses,
 Troupes, Zones, Embarquement, FOB / FARP, JTAC, Reconnaissance, Système AA, Beacons, Fumigènes,
 Mines, Parachute, Poids soldats. Choisissez une famille et vous obtenez **tout** ce qui concerne

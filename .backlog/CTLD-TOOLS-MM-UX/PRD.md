@@ -88,6 +88,7 @@ The first three of these were deferred, then requested straight after the first 
 | 12 | A picture of what the tool is for | asked for after the first review |
 | 13 | Bilingual setting names in the schema | closes the i18n hole left by ticket 11 |
 | 14 | Units traced from the Lua, not guessed | 11 — the description-scraping covered only half |
+| 15 | In-app help, generated from the schema and the catalogue | asked for at the end of the review |
 
 ## Acceptance
 

@@ -91,6 +91,11 @@ One thing is still derived in the frontend, for want of a source:
 Those missing `group:` entries are the remaining schema work — see `dev/roadmap.md`, which also lists
 the runtime anomalies the unit-tracing sweep turned up.
 
+The in-app help (`HelpPanel.svelte`) is generated from the schema and the open catalogue rather than
+written as prose: setting and family counts, the family list with the schema's own descriptions, and
+an inventory of every structured table with its size. Add a family or a table and the help describes
+it with no prose to update.
+
 ### i18n
 
 The UI is EN+FR. English is the frontend's base dictionary (`web/src/lib/strings.ts`) because it is

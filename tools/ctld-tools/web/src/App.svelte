@@ -20,6 +20,7 @@
   import AircraftEditor from './lib/AircraftEditor.svelte'
   import BrandMark from './lib/BrandMark.svelte'
   import CratesEditor from './lib/CratesEditor.svelte'
+  import HelpPanel from './lib/HelpPanel.svelte'
   import JsonEditor from './lib/JsonEditor.svelte'
   import KeyValueEditor from './lib/KeyValueEditor.svelte'
   import RecordListEditor from './lib/RecordListEditor.svelte'
@@ -58,6 +59,7 @@
   let dirty = $state(false)
   let justSaved = $state(false)
   let injected = $state(false)
+  let helpOpen = $state(false)
 
   const families = $derived<Family[]>(snapshot && schema ? classify(snapshot, schema) : [])
   const current = $derived<Family | null>(families.find((f) => f.key === activeFamily) ?? families[0] ?? null)
@@ -288,6 +290,14 @@
       <span class="lbl">{saveLabel}</span>
       <span class="val sub">{changedKeys.size ? plural('web.changed', changedKeys.size) : '—'}</span>
     </div>
+    <button class="help" title={t('web.help.open')} onclick={() => (helpOpen = true)}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9.4 9.2a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2.2-2.6 4M12 17.4v.01" />
+      </svg>
+      {t('web.help.open')}
+    </button>
+
     <label class="lang">
       <span class="lbl">{t('web.lang.label')}</span>
       <select value={currentLanguage()} onchange={(e) => switchLanguage(e.currentTarget.value)}>
@@ -337,6 +347,10 @@
 
 {#if gap}
   <VersionGapPopup {gap} {labelOf} onclose={() => (gap = null)} />
+{/if}
+
+{#if helpOpen}
+  <HelpPanel {families} {schema} {snapshot} onclose={() => (helpOpen = false)} />
 {/if}
 
 <div class="body">
@@ -550,6 +564,14 @@
   }
   .readout .val.sub {
     color: var(--ink-dim);
+  }
+  .help {
+    font-size: var(--fs-sm);
+    padding: 0.35rem 0.7rem;
+  }
+  .help svg {
+    width: 15px;
+    height: 15px;
   }
   .lang {
     display: flex;

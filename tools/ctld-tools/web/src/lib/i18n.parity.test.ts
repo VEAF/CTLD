@@ -40,10 +40,23 @@ describe('FR catalog', () => {
   })
 
   it('actually differs from EN (no untranslated leftovers)', () => {
-    // A handful of strings are legitimately identical across the two languages (proper nouns,
-    // labels that are already French-agnostic). Anything else identical is a missed translation.
+    // A handful of strings are legitimately identical across the two languages. Each one is listed
+    // deliberately, so a genuinely untranslated string cannot slip in unnoticed:
+    //   web.field.jtac            — an acronym
+    //   web.field.side            — "Coalition" is spelled the same
+    //   web.header.config         — likewise "Configuration"
+    //   web.help.validation_title — likewise "Validation"
+    //   web.help.data_sections    — "{n} sections" is identical in both
     const identical = Object.keys(en).filter((key) => en[key] === fr[key])
-    expect(identical).toEqual(['web.field.jtac', 'web.header.config', 'web.field.side'].sort())
+    expect(identical).toEqual(
+      [
+        'web.field.jtac',
+        'web.field.side',
+        'web.header.config',
+        'web.help.data_sections',
+        'web.help.validation_title',
+      ].sort(),
+    )
   })
 
   it('keeps every placeholder', () => {

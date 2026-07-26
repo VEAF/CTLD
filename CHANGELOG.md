@@ -64,6 +64,14 @@ identity rooted in the subject (DCS rotary-wing logistics). `tools/` only — no
   (`enableAllCrates` → "Show the \"All crates\" shortcuts", per its own description) and brings the
   project's **"no repack"** convention into the UI (`enableFARPRepack` → "Allow packing a FARP back
   into crates"), with a test asserting no label in either language says "repack".
+- **In-app help**, from a `Help` button in the header — and generated from the schema and the open
+  catalogue rather than written as prose: setting and family counts, the family list carrying the
+  schema's own descriptions, and an inventory of every mission-data table with its real size. Adding a
+  family or a table updates the help with no text to maintain. The hand-written part covers what data
+  cannot say (the three steps, reading a setting row, validation, saving vs injecting, and the
+  complete-snapshot rule). EN+FR like the rest, 28 new keys. Counts only render once a catalogue is
+  loaded — the button is reachable from the first paint, and "0 settings across 0 families" would have
+  been a lie rather than a loading state.
 - **French UI.** The web app is now bilingual, reusing the backend i18n layer that already served the
   CLI's validation messages: 90 `web.*` keys in `ctld_tools/data/locales/{en,fr}.json`, a new
   `GET /api/i18n`, and `GET /api/schema?lang=` so that switching language also translates **setting
@@ -87,6 +95,11 @@ identity rooted in the subject (DCS rotary-wing logistics). `tools/` only — no
   colour that lands on the image (12.4:1 for body text on a card, 4.5:1 for muted text straight on the
   background); `--ink-faint` was lifted to `#7b8d96`, which the brighter backdrop had pushed to 2.5:1.
   Asset is 79 KB (1600×900 WebP), and a missing file degrades silently to the gradient.
+- **The release smoke-check now boots the exe and pulls resources out of it** — the page, the
+  background photo, the favicon, and the schema / i18n / defaults / DCS-types endpoints. The previous
+  check only ran `--help`, so an exe with a missing or broken bundled web app would have shipped
+  green; that is the part a Mission Maker actually double-clicks. Verified against a locally built
+  exe: 21.2 MB, and every resource served.
 - **CI gains a `frontend` job** (`npm run check` + `npm test` + `npm run build`). The web-app suite
   existed since `CTLD-TOOLS-WEBAPP` but no workflow ran it — `release.yml` only built the bundle, so
   a red test could ship. The exe embeds this frontend, so it now gates like the rest.
