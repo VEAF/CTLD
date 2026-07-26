@@ -63,6 +63,150 @@ def test_resources_frozen_path(monkeypatch, tmp_path):
     assert resources.src_dir() == tmp_path / "ctld_data"
 
 
+def test_schema_endpoint_exposes_family_metadata():
+    # Explicit lang: without it the endpoint follows the OS locale, which differs between a
+    # developer's machine and CI — the assertions below would then be non-deterministic.
+    body = client.get("/api/schema?lang=en").json()
+    crates = body["familyMeta"]["crates"]
+    assert crates["label"] == "Crates"
+    assert "crate" in crates["description"].lower()
+    assert isinstance(crates["order"], int)
+    # Every family a setting declares must be described, or the nav shows a bare key.
+    assert set(body["families"]) <= set(body["familyMeta"])
+
+
+def test_schema_endpoint_translates_with_lang():
+    fr = client.get("/api/schema?lang=fr").json()
+    assert fr["familyMeta"]["crates"]["label"] == "Caisses"
+    assert "caisses" in fr["familyMeta"]["crates"]["description"].lower()
+    # Setting descriptions and table field headings follow the same language.
+    en = client.get("/api/schema?lang=en").json()
+    assert fr["keys"]["enableCrates"]["description"] != en["keys"]["enableCrates"]["description"]
+    assert "DCS" in fr["tableFields"]["spawnableCrates"]["unit"]
+
+
+def test_schema_endpoint_labels_every_setting():
+    # Setting names are what a Mission Maker reads first; an unlabelled setting falls back to a
+    # name derived from its key, which is always English.
+    keys = client.get("/api/schema?lang=en").json()["keys"]
+    unlabelled = [k for k, meta in keys.items() if not meta["label"]]
+    assert unlabelled == []
+
+
+def test_schema_endpoint_translates_setting_labels():
+    en = client.get("/api/schema?lang=en").json()["keys"]
+    fr = client.get("/api/schema?lang=fr").json()["keys"]
+    assert en["enableCrates"]["label"] == "Enable crates"
+    assert fr["enableCrates"]["label"] == "Activer les caisses"
+    assert fr["aaRearmDistance"]["label"] == "Distance de réapprovisionnement AA"
+    # Every label is translated, not just a handful.
+    assert not [k for k in en if en[k]["label"] == fr[k]["label"] and k not in _SAME_IN_BOTH]
+
+
+# Labels that are legitimately identical in EN and FR (acronyms, proper nouns).
+_SAME_IN_BOTH = {"JTAC_lock", "modTypes"}
+
+
+def test_schema_endpoint_exposes_units():
+    keys = client.get("/api/schema?lang=en").json()["keys"]
+    # Each of these was traced to the code that consumes the value.
+    assert keys["maxSlingloadSpeed"]["unit"] == "m/s"  # vs the magnitude of Unit:getVelocity()
+    assert keys["deployedBeaconBattery"]["unit"] == "min"  # the engine multiplies it by 60
+    assert keys["hoverTime"]["unit"] == "s"  # counted down on a 1s tick
+    assert keys["maxDistanceFromCrate"]["unit"] == "m"  # a 2D distance over getPoint() coords
+    assert keys["maxTransportWeight"]["unit"] == "kg"  # summed into setUnitInternalCargo()
+
+
+def test_units_are_not_translated():
+    # Unit symbols are language-independent; only labels and descriptions are translated.
+    en = client.get("/api/schema?lang=en").json()["keys"]
+    fr = client.get("/api/schema?lang=fr").json()["keys"]
+    assert {k: v["unit"] for k, v in en.items()} == {k: v["unit"] for k, v in fr.items()}
+
+
+def test_settings_that_are_not_measurements_have_no_unit():
+    # Counters, colour codes, laser codes, fractions and multipliers must stay bare: showing a
+    # unit there would invent one.
+    keys = client.get("/api/schema?lang=en").json()["keys"]
+    for key in (
+        "numberOfTroops",
+        "aaLaunchers",
+        "JTAC_smokeColour_BLUE",
+        "jtacLaserCodeMin",
+        "fobDestructionThreshold",
+        "parachuteInertiaFactor",
+        "reconIconScale",
+        "beaconTextSize",
+    ):
+        assert keys[key]["unit"] is None, key
+
+
+def test_labels_never_use_the_banned_repack_wording():
+    # Project convention: "repack" is banned, "pack" everywhere — including user-facing labels.
+    for lang in ("en", "fr"):
+        keys = client.get(f"/api/schema?lang={lang}").json()["keys"]
+        assert not [k for k, meta in keys.items() if "repack" in (meta["label"] or "").lower()]
+
+
+def test_schema_endpoint_falls_back_to_en_for_an_unknown_lang():
+    body = client.get("/api/schema?lang=zz").json()
+    assert body["familyMeta"]["crates"]["label"] == "Crates"
+    assert body["keys"]["enableCrates"]["description"]
+
+
+def test_reserved_sections_are_not_settings():
+    keys = client.get("/api/schema?lang=en").json()["keys"]
+    assert "tableFields" not in keys
+    assert "families" not in keys
+
+
+def test_i18n_endpoint_serves_the_web_catalog():
+    body = client.get("/api/i18n?lang=en").json()
+    assert body["lang"] == "en"
+    assert "en" in body["available"] and "fr" in body["available"]
+    assert body["strings"]["web.action.inject"] == "Inject into mission…"
+    # The retired TUI's strings are not the web app's business.
+    assert not [k for k in body["strings"] if not k.startswith("web.")]
+
+
+def test_i18n_endpoint_translates():
+    fr = client.get("/api/i18n?lang=fr").json()
+    assert fr["lang"] == "fr"
+    assert fr["strings"]["web.action.inject"] == "Injecter dans la mission…"
+
+
+def test_i18n_endpoint_covers_the_same_keys_in_every_language():
+    en = client.get("/api/i18n?lang=en").json()["strings"]
+    fr = client.get("/api/i18n?lang=fr").json()["strings"]
+    assert set(en) == set(fr)
+
+
+def test_i18n_endpoint_unknown_lang_falls_back_to_en():
+    body = client.get("/api/i18n?lang=zz").json()
+    assert body["strings"]["web.action.inject"] == "Inject into mission…"
+
+
+def test_defaults_endpoint_mirrors_the_default_catalogue():
+    # Powers the UI's "changed from default" markers and per-setting reset. It must not need a
+    # loaded catalogue — the UI fetches it while booting.
+    defaults = client.get("/api/defaults").json()["values"]
+    loaded = client.post("/api/catalog/load-default").json()["values"]
+    assert defaults == loaded
+
+
+def test_defaults_endpoint_coerces_to_plain_json():
+    values = client.get("/api/defaults").json()["values"]
+    assert values["configVersion"] == "2.0.0"
+    assert isinstance(values["spawnableCrates"], dict)
+    assert isinstance(values["numberOfTroops"], int)
+
+
+def test_defaults_endpoint_leaves_the_session_untouched():
+    client.get("/api/defaults")
+    # Reading the defaults is not "opening" a config.
+    assert client.get("/api/catalog").status_code == 409
+
+
 def test_dcs_types_endpoint():
     body = client.get("/api/dcs-types").json()
     assert isinstance(body["types"], list) and body["types"]  # datamine set is non-empty

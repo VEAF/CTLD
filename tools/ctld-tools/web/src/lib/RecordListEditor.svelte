@@ -1,7 +1,8 @@
 <script lang="ts">
   // Generic editor for a list of records (e.g. loadableGroups, zones). Owns a local copy
   // and emits the whole list on every change. Fields + their editor types are passed in.
-  import type { Field } from './tables'
+  import { t } from './i18n.svelte'
+  import { fieldLabel, type Field } from './tables'
 
   type Rec = Record<string, unknown>
 
@@ -43,7 +44,7 @@
 <table class="records">
   <thead>
     <tr>
-      {#each fields as f (f.name)}<th title={f.tip ?? undefined}>{f.name}</th>{/each}
+      {#each fields as f (f.name)}<th title={f.tip ?? undefined}>{fieldLabel(f.name)}</th>{/each}
       <th></th>
     </tr>
   </thead>
@@ -65,12 +66,12 @@
             {/if}
           </td>
         {/each}
-        <td><button class="rm" title="remove row" onclick={() => removeRow(i)}>✕</button></td>
+        <td><button class="danger" title={t('web.table.remove_row')} aria-label={t('web.table.remove_row')} onclick={() => removeRow(i)}>✕</button></td>
       </tr>
     {/each}
   </tbody>
 </table>
-<button class="add" onclick={addRow}>+ add</button>
+<button class="add" onclick={addRow}>{t('web.table.add_row')}</button>
 
 <style>
   .records {
@@ -79,30 +80,30 @@
   }
   .records th {
     text-align: left;
-    font-size: 0.7rem;
-    color: #5a6473;
-    padding: 0.25rem 0.4rem;
-    border-bottom: 1px solid #e0e5ee;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 0.3rem 0.4rem;
+    border-bottom: 1px solid var(--hair);
+    white-space: nowrap;
   }
   .records td {
-    padding: 0.2rem 0.4rem;
-    border-bottom: 1px solid #f0f2f7;
+    padding: 0.25rem 0.4rem;
+    border-bottom: 1px solid var(--hair-soft);
+  }
+  .records tr:last-child td {
+    border-bottom: none;
   }
   .records input[type='text'],
   .records input[type='number'],
   .records select {
     width: 100%;
-    min-width: 4rem;
-    padding: 0.25rem 0.35rem;
-    border: 1px solid #c3ccda;
-    border-radius: 4px;
-    font-size: 0.85rem;
-  }
-  .rm {
-    color: #a12020;
-    border-color: #e0c3c3;
+    min-width: 4.5rem;
   }
   .add {
-    margin-top: 0.5rem;
+    margin-top: 0.6rem;
   }
 </style>

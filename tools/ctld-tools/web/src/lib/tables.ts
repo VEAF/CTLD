@@ -1,6 +1,8 @@
 // Field specs for the structured Data tables — the editor type per field, since the
 // schema only carries descriptions (not types). Tooltips come from schema.tableFields.
 
+import { t } from './i18n.svelte'
+import { humanize } from './labels'
 import type { EditorType } from './model'
 
 export interface Field {
@@ -9,6 +11,42 @@ export interface Field {
   tip?: string | null
   choices?: string[]
 }
+
+// Fields with a translated heading (`web.field.<name>`); anything else falls back to a label
+// derived from the field name. Each wording restates the field's own schema description
+// (`tableFields` in CTLD_config_schema.yaml) — e.g. `at` is "Number of anti-tank soldiers (RPG)".
+const LABELLED_FIELDS = new Set([
+  'aa',
+  'at',
+  'canPickup',
+  'colour',
+  'cratesRequired',
+  'desc',
+  'groupSize',
+  'iconId',
+  'inf',
+  'jtac',
+  'mg',
+  'mortar',
+  'name',
+  'side',
+  'troopLimit',
+  'unit',
+  'weight',
+  'zoneName',
+])
+
+/** A readable column heading for a table field. */
+export function fieldLabel(field: string): string {
+  return LABELLED_FIELDS.has(field) ? t(`web.field.${field}`) : humanize(field)
+}
+
+/**
+ * The `<datalist>` of DCS type names, mounted once in App.svelte and referenced by every field that
+ * takes a DCS type. Any such field is a combo — pick from the 1000+ datamine types, or type a name
+ * freely (a mod's type will not be in the list).
+ */
+export const DCS_TYPES_LIST = 'dcs-types'
 
 export const TROOP_FIELDS: Omit<Field, 'tip'>[] = [
   { name: 'name', type: 'string' },

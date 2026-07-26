@@ -29,12 +29,29 @@ test('editing a field emits the whole structure', async () => {
 
 test('adding a crate emits a new entry', async () => {
   const { onchange } = setup()
-  await fireEvent.click(screen.getByText('+ crate'))
+  await fireEvent.click(screen.getByText('+ Add crate'))
   expect(lastValue(onchange).Support).toHaveLength(2)
 })
 
 test('removing a crate emits the shorter list', async () => {
   const { onchange } = setup()
-  await fireEvent.click(screen.getByTitle('remove crate'))
+  // The control names what it removes, so a row of ✕ buttons stays unambiguous.
+  await fireEvent.click(screen.getByTitle('Remove Ammo'))
   expect(lastValue(onchange).Support).toHaveLength(0)
+})
+
+test('the DCS unit field is a combo backed by the shared type list', () => {
+  setup()
+  const unitField = screen.getByDisplayValue('Ural-375')
+  // Free text plus a picker: a mod's type will not be in the datamine list.
+  expect(unitField).toHaveAttribute('list', 'dcs-types')
+  expect(unitField).toHaveClass('combo')
+})
+
+test('labels the crate fields in words, not schema keys', () => {
+  setup()
+  expect(screen.getByText('Display name')).toBeInTheDocument()
+  expect(screen.getByText('DCS unit type')).toBeInTheDocument()
+  expect(screen.getByText('Weight (kg)')).toBeInTheDocument()
+  expect(screen.getByText('Coalition')).toBeInTheDocument()
 })

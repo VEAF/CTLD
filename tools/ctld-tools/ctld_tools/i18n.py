@@ -104,6 +104,17 @@ def language(lang: str) -> Iterator[None]:
         set_language(previous)
 
 
+def available_languages() -> list[str]:
+    """The languages that ship a catalog, sorted — EN first since it is authoritative."""
+    langs = sorted(p.name[:-5] for p in _LOCALES.iterdir() if p.name.endswith(".json"))
+    return ["en", *(lang for lang in langs if lang != "en")] if "en" in langs else langs
+
+
+def catalog_keys(prefix: str = "") -> list[str]:
+    """Catalog keys, optionally restricted to a prefix. Keyed off EN, which is authoritative."""
+    return sorted(key for key in _en_catalog if key.startswith(prefix))
+
+
 def t(key: str, **kwargs: object) -> str:
     """Translate a key, falling back to EN then to the key itself; formats with kwargs."""
     text = _catalog.get(key) or _en_catalog.get(key, key)

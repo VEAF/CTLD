@@ -19,6 +19,9 @@ from ctld_tools.web.state import session
 
 app = FastAPI(title="ctld-tools", version="2.0")
 
+# The web UI's slice of the i18n catalog (`tui.*` belongs to the retired TUI).
+_WEB_PREFIX = "web."
+
 
 # ── request bodies ─────────────────────────────────────────────────
 class LoadRequest(BaseModel):
@@ -73,26 +76,75 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/api/i18n")
+def get_i18n(lang: str | None = None) -> dict[str, Any]:
+    """The web UI's translated strings (the `web.*` catalog keys) for `lang`.
+
+    The frontend owns the active language (the user can switch it); this returns the catalog for
+    whichever one it asks for, defaulting to the language resolved from the OS locale.
+    """
+    from ctld_tools import i18n
+
+    requested = (lang or i18n.current_language()).strip().lower()[:2]
+    with i18n.language(requested):
+        strings = {key: i18n.t(key) for key in i18n.catalog_keys(prefix=_WEB_PREFIX)}
+    return {"lang": requested, "available": i18n.available_languages(), "strings": strings}
+
+
 @app.get("/api/schema")
-def get_schema() -> dict[str, Any]:
-    """Authoring metadata for the frontend nav: families + per-key group/standard/choices/desc."""
+def get_schema(lang: str | None = None) -> dict[str, Any]:
+    """Authoring metadata for the frontend: families + per-key group/standard/choices/description.
+
+    Descriptions, family labels and field headings follow `lang` (the schema stores them bilingually),
+    so switching language in the UI translates the settings themselves, not just the chrome.
+    """
+    from ctld_tools import i18n
+
+    language = (lang or i18n.current_language()).strip().lower()[:2]
     schema = session.schema
     keys = {
         k: {
             "group": schema.group(k),
             "standard": schema.standard(k),
             "choices": schema.choices(k),
-            "description": schema.description(k),
+            "label": schema.label(k, language),
+            "unit": schema.unit(k),
+            "description": schema.description(k, language) or schema.description(k),
         }
         for k in schema.keys()
     }
     tables = {
-        table: {field: (meta or {}).get("en") for field, meta in fields.items()}
+        table: {field: (meta or {}).get(language) or (meta or {}).get("en") for field, meta in fields.items()}
         for table, fields in schema.table_fields().items()
+    }
+    families = {
+        family: {
+            "label": schema.family_label(family, language),
+            "description": schema.family_description(family, language),
+            "order": schema.family_order(family),
+        }
+        for family in schema.family_meta()
     }
     from ctld_tools.web.zones import ZONE_FIELD_SCHEMAS
 
-    return {"families": schema.families(), "keys": keys, "tableFields": tables, "zoneFields": ZONE_FIELD_SCHEMAS}
+    return {
+        "families": schema.families(),
+        "familyMeta": families,
+        "keys": keys,
+        "tableFields": tables,
+        "zoneFields": ZONE_FIELD_SCHEMAS,
+    }
+
+
+@app.get("/api/defaults")
+def get_defaults() -> dict[str, Any]:
+    """The CTLD default values, flat.
+
+    Lets the UI mark a setting as changed from the default and offer a one-click reset — editing is
+    otherwise a one-way door, which makes a non-technical MM afraid to touch anything.
+    """
+    cat = session.default_catalog()
+    return {"values": {k: _plain(cat.get(k)) for k in cat.keys()}}
 
 
 @app.get("/api/dcs-types")

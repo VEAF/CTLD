@@ -22,10 +22,13 @@ function setup() {
 
 const last = (m: ReturnType<typeof vi.fn>) => m.mock.calls.at(-1)![0] as Record<string, unknown>[]
 
-test('renders records with typed editors', () => {
+test('renders records with typed editors under readable headings', () => {
   setup()
   expect(screen.getByDisplayValue('Standard Group')).toBeInTheDocument()
   expect(screen.getByDisplayValue('6')).toBeInTheDocument()
+  // `inf` is documented as "Number of infantry soldiers" — the heading says so.
+  expect(screen.getByText('Infantry')).toBeInTheDocument()
+  expect(screen.getByText('Display name')).toBeInTheDocument()
 })
 
 test('editing a numeric field coerces and emits', async () => {
@@ -36,8 +39,8 @@ test('editing a numeric field coerces and emits', async () => {
 
 test('add and remove emit the new list', async () => {
   const { onchange } = setup()
-  await fireEvent.click(screen.getByText('+ add'))
+  await fireEvent.click(screen.getByText('+ Add row'))
   expect(last(onchange)).toHaveLength(2)
-  await fireEvent.click(screen.getAllByTitle('remove row')[0])
+  await fireEvent.click(screen.getAllByTitle('Remove this row')[0])
   expect(last(onchange)).toHaveLength(1)
 })

@@ -27,36 +27,81 @@ fichier unique.
 laissez-la ouverte, la fermer quitte l'outil — et votre **navigateur** s'ouvre sur l'application.
 Aucune commande à taper.
 
+L'application **démarre sur la configuration par défaut de CTLD** : il n'y a rien à charger avant de
+commencer.
+
 (Depuis un terminal vous pouvez aussi lancer `ctld-tools serve`. Le même fichier est aussi un outil
 en ligne de commande — utilisé par le build de CTLD — mais en tant que Mission Maker vous n'en aurez
 pas besoin.)
 
+## Se repérer { #finding-your-way-around }
+
+Un bandeau en haut montre les trois étapes : **Charger → Régler → Injecter dans la mission**, l'étape
+courante étant mise en évidence. L'en-tête indique en permanence quelle configuration est ouverte,
+combien de réglages vous avez modifiés, et si votre travail est enregistré.
+
+!!! tip "Interface en français"
+    L'interface suit la langue de votre Windows, et un sélecteur **Langue** dans l'en-tête permet de
+    basculer entre français et anglais à tout moment — y compris les textes d'aide des réglages.
+    Votre choix est mémorisé.
+
+!!! tip "Aide intégrée"
+    Le bouton **Aide** de l'en-tête ouvre un guide de l'éditeur dans votre langue : les trois étapes,
+    comment lire un réglage, ce que signifie le voyant de validation, et la règle du snapshot complet.
+    Il liste aussi **votre** configuration — chaque famille avec ce qu'elle couvre, et chaque tableau
+    de données de mission avec le nombre d'entrées qu'il contient. Il est généré depuis la
+    configuration ouverte : il décrit donc toujours ce que vous avez réellement sous les yeux.
+
+La colonne de gauche liste les **familles fonctionnelles** de CTLD — Général, Appareils, Caisses,
+Troupes, Zones, Embarquement, FOB / FARP, JTAC, Reconnaissance, Système AA, Beacons, Fumigènes,
+Mines, Parachute, Poids soldats. Choisissez une famille et vous obtenez **tout** ce qui concerne
+cette partie de CTLD au même endroit : ses réglages *et* ses entrées de catalogue, avec une phrase
+sous le titre qui indique ce que couvre la famille. Caisses, par exemple, contient les réglages des
+caisses *et* la liste des caisses que vous pouvez faire apparaître.
+
+Dans une famille, les réglages sont séparés en **Réglages courants** et une section **Réglages
+avancés** qui reste repliée jusqu'à ce que vous en ayez besoin (elle s'ouvre d'elle-même si elle
+contient un réglage que vous avez modifié).
+
+**Vous ne savez pas où se trouve un réglage ?** Utilisez le **champ de recherche** : il parcourt
+toutes les familles à la fois, par nom ou par description, et indique à quelle famille appartient
+chaque résultat.
+
 ## Éditer votre configuration { #editing-your-configuration }
 
-L'application montre la **configuration complète** de CTLD, répartie en deux écrans :
+Chaque réglage affiche un **nom en langage clair**, son unité quand CTLD la documente (mètres,
+kilogrammes, secondes), une courte description, et l'éditeur adapté à son type — un interrupteur pour
+on/off, une liste déroulante pour les choix fixes, un champ nombre ou texte sinon. Le **nom technique
+du réglage** (celui utilisé dans la documentation CTLD et sur les forums) est affiché à côté en petit.
 
-- **Parameters** — *comment CTLD se comporte* : les réglages, regroupés en **familles**
-  fonctionnelles (General, Crates, Troops, JTAC, FOB / FARP, AA system, Parachute, …), chacune
-  divisée en **Standard** (les courants) et **Advanced**. Chaque champ a le bon éditeur — une case à
-  cocher pour on/off, une liste déroulante pour les choix fixes, un champ nombre ou texte sinon — avec
-  une courte description en aide.
-- **Data** — *ce sur quoi CTLD opère* : le catalogue — **crates**, **troop groups**, **aircraft
-  capabilities** (choisir un type d'aéronef dans la liste DCS), **zones**, noms des pilotes de
-  transport, poids des véhicules. Ajoutez, éditez et supprimez des entrées via des formulaires.
+Les entrées de catalogue — **caisses**, **groupes de troupes**, **capacités des aéronefs** (choisir un
+type d'aéronef dans la liste DCS), **zones**, noms des pilotes de transport, poids des véhicules —
+s'éditent sous forme de tableaux, en bas de la famille à laquelle elles appartiennent.
 
-Partez de **Load defaults** (la configuration d'usine de CTLD) ou **Open…** pour ouvrir une
-configuration enregistrée précédemment (une boîte de dialogue de fichier native).
+### Annuler une modification { #undoing-a-change }
 
-La **validation en direct** s'exécute pendant que vous éditez : types d'unités DCS inconnus, poids de
-caisse en double et autres problèmes apparaissent immédiatement, pour ne jamais livrer une config
-cassée.
+Tout réglage que vous modifiez est marqué **modifié**, et la famille reçoit un compteur dans la
+colonne de gauche : vous voyez donc toujours ce que vous avez touché. Une **flèche de
+réinitialisation** apparaît à côté d'un réglage modifié et remet la valeur par défaut de CTLD.
+
+Vous préférez repartir de zéro ? **Partir des défauts CTLD**. Pour reprendre une configuration
+précédente, utilisez **Ouvrir un fichier de config…** (dialogue de fichier natif). Les deux vous
+avertissent d'abord si vous avez des modifications non enregistrées.
+
+### Validation { #validation }
+
+La **validation en direct** s'exécute pendant que vous éditez. Un voyant dans l'en-tête indique
+**VALIDE** ou **À VÉRIFIER**, et un panneau au-dessus des réglages liste chaque problème en langage
+clair — types d'unités DCS inconnus, poids de caisse en double, etc. Cliquez sur un problème et
+l'application saute directement au réglage concerné.
 
 ## Enregistrer et utiliser { #saving-and-using-it }
 
-- **Save…** écrit votre configuration dans un fichier (dialogue d'enregistrement natif) pour la
-  rouvrir plus tard.
-- **Inject to .miz…** choisit une mission et y insère votre configuration comme trigger MISSION
-  START, prête à jouer. L'injection est **refusée tant qu'une erreur de validation subsiste**.
+- **Enregistrer sous…** écrit votre configuration dans un fichier (dialogue d'enregistrement natif)
+  pour la rouvrir plus tard.
+- **Injecter dans la mission…** choisit une mission et y insère votre configuration comme trigger
+  MISSION START, prête à jouer. Le bouton reste **désactivé tant qu'une erreur de validation
+  subsiste**.
 
 L'injection est **idempotente** — ré-injecter met à jour le même trigger au lieu de le dupliquer — et
 place le trigger **en premier**, pour qu'il s'exécute avant CTLD.
@@ -76,9 +121,10 @@ existante) : pour ne rien perdre par accident.
 ### Quand CTLD est mis à jour { #when-ctld-is-updated }
 
 CTLD estampille une **version** sur sa configuration. Quand vous ouvrez une config écrite pour un
-CTLD plus ancien, l'outil affiche un **popup** listant en quoi les défauts actuels diffèrent
-(réglages ajoutés, retirés, valeurs changées) pour que vous puissiez vérifier avant de ré-injecter —
-jamais de fusion silencieuse.
+CTLD plus ancien, l'outil vous le signale et résume en quoi les défauts actuels diffèrent — réglages
+ajoutés, réglages devenus inutiles, valeurs par défaut modifiées — chaque groupe pouvant être déplié
+pour le détail. **Rien n'est fusionné** : vos réglages restent exactement tels quels, et vous décidez
+de ce que vous mettez à jour avant de ré-injecter.
 
 ## Charger à la main (alternative à l'injection) { #loading-it-by-hand-alternative-to-inject }
 

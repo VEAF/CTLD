@@ -1,6 +1,8 @@
 <script lang="ts">
   // Edit a list of strings (pilot names, loadable-vehicle lists, …). Optional datalist
   // for autocomplete (e.g. DCS type names). Owns a local copy, emits on change.
+  import { t } from './i18n.svelte'
+
   let {
     items,
     listId,
@@ -35,19 +37,20 @@
 
 <div class="list">
   {#each model as item, i (i)}
+    {@const removeLabel = t('web.table.remove', { what: item || t('web.table.this_entry') })}
     <div class="item">
-      <input value={item} list={listId} {placeholder} onchange={(e) => edit(i, e.currentTarget.value)} />
-      <button class="rm" title="remove" onclick={() => remove(i)}>✕</button>
+      <input class={listId ? 'combo' : undefined} value={item} list={listId} {placeholder} onchange={(e) => edit(i, e.currentTarget.value)} />
+      <button class="danger" title={removeLabel} aria-label={removeLabel} onclick={() => remove(i)}>✕</button>
     </div>
   {/each}
-  <button class="add" onclick={add}>+ add</button>
+  <button class="add" onclick={add}>{t('web.table.add')}</button>
 </div>
 
 <style>
   .list {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.3rem;
   }
   .item {
     display: flex;
@@ -55,16 +58,10 @@
   }
   .item input {
     flex: 1;
-    padding: 0.25rem 0.4rem;
-    border: 1px solid #c3ccda;
-    border-radius: 4px;
-    font-size: 0.85rem;
-  }
-  .rm {
-    color: #a12020;
-    border-color: #e0c3c3;
+    min-width: 10rem;
   }
   .add {
     align-self: flex-start;
+    margin-top: 0.2rem;
   }
 </style>

@@ -1,7 +1,19 @@
 <script lang="ts">
   // Editor for a name → number map (groundVehicleWeights). Rows of (key, value); emits
   // the reconstructed object on change.
-  let { map, onchange }: { map: Record<string, number>; onchange: (v: Record<string, number>) => void } = $props()
+  import { t } from './i18n.svelte'
+  import { fieldLabel } from './tables'
+
+  let {
+    map,
+    keyList,
+    onchange,
+  }: {
+    map: Record<string, number>
+    /** `<datalist>` id backing the key column — set when the key is a DCS type name. */
+    keyList?: string
+    onchange: (v: Record<string, number>) => void
+  } = $props()
 
   // svelte-ignore state_referenced_locally
   let rows = $state<[string, number][]>(Object.entries($state.snapshot(map) ?? {}) as [string, number][])
@@ -30,18 +42,18 @@
 </script>
 
 <table class="kv">
-  <thead><tr><th>unit</th><th>weight (kg)</th><th></th></tr></thead>
+  <thead><tr><th>{fieldLabel('unit')}</th><th>{fieldLabel('weight')}</th><th></th></tr></thead>
   <tbody>
     {#each rows as row, i (i)}
       <tr>
-        <td><input value={row[0]} onchange={(e) => setKey(i, e.currentTarget.value)} /></td>
+        <td><input class={keyList ? 'combo' : undefined} list={keyList} value={row[0]} onchange={(e) => setKey(i, e.currentTarget.value)} /></td>
         <td><input type="number" value={row[1]} onchange={(e) => setVal(i, e.currentTarget.value)} /></td>
-        <td><button class="rm" title="remove" onclick={() => remove(i)}>✕</button></td>
+        <td><button class="danger" title={t('web.table.remove', { what: row[0] || t('web.table.this_entry') })} aria-label={t('web.table.remove', { what: row[0] || t('web.table.this_entry') })} onclick={() => remove(i)}>✕</button></td>
       </tr>
     {/each}
   </tbody>
 </table>
-<button class="add" onclick={add}>+ add</button>
+<button class="add" onclick={add}>{t('web.table.add_vehicle')}</button>
 
 <style>
   .kv {
@@ -50,27 +62,28 @@
   }
   .kv th {
     text-align: left;
-    font-size: 0.7rem;
-    color: #5a6473;
-    padding: 0.25rem 0.4rem;
-    border-bottom: 1px solid #e0e5ee;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 0.3rem 0.4rem;
+    border-bottom: 1px solid var(--hair);
+    white-space: nowrap;
   }
   .kv td {
-    padding: 0.2rem 0.4rem;
-    border-bottom: 1px solid #f0f2f7;
+    padding: 0.25rem 0.4rem;
+    border-bottom: 1px solid var(--hair-soft);
+  }
+  .kv tr:last-child td {
+    border-bottom: none;
   }
   .kv input {
     width: 100%;
-    padding: 0.25rem 0.35rem;
-    border: 1px solid #c3ccda;
-    border-radius: 4px;
-    font-size: 0.85rem;
-  }
-  .rm {
-    color: #a12020;
-    border-color: #e0c3c3;
+    min-width: 6rem;
   }
   .add {
-    margin-top: 0.5rem;
+    margin-top: 0.6rem;
   }
 </style>

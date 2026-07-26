@@ -1,14 +1,26 @@
-# CTLD settings schema — authoring metadata for ctld-tools (the TUI / validate).
+# CTLD settings schema — authoring metadata for ctld-tools (the web app / validate).
 #
 # NOT consumed by the build (gen-config) — it only guides the authoring tool. Additive:
 # one entry per setting name, with any of:
-#   group:        functional family key (maps to tui.family.<key> i18n string)
-#   standard:     true = shown in Standard sub-node; false/absent = Advanced
-#   choices:      allowed values (a fixed enum) — offered as a value list in the TUI
+#   group:        functional family key (see the `families:` section below)
+#   standard:     true = shown under "Common settings"; false/absent = Advanced
+#   choices:      allowed values (a fixed enum) — offered as a value list
+#   label:        { en, fr } short display name, shown instead of the raw config key
+#   unit:         unit symbol shown next to a numeric value ("m", "s", "min", "m/s", "kg").
+#                 Not translated — symbols are language-independent. Each one was traced to
+#                 the code that consumes the value (see .backlog/CTLD-TOOLS-MM-UX ticket 14);
+#                 settings that are counters, codes, fractions or multipliers have none, on
+#                 purpose. `deployedBeaconBattery` is the only one the engine converts (× 60).
 #   description:  { en, fr } help text — shown and searchable in the settings picker
 #
+# Two reserved top-level sections are not settings: `families:` (per-family label /
+# description / navigation order) and `tableFields:` (per-field help for the structured
+# tables).
+#
 # Descriptions were seeded from docs/mission-maker/configuration(.fr).md; the schema is
-# now their source of truth (see dev/roadmap.md: generate the doc tables from it).
+# now their source of truth (see dev/roadmap.md: generate the doc tables from it). Labels
+# restate the setting's own name and description — they never add a new claim about
+# behaviour; a setting with no `label:` falls back to one derived from its key.
 
 # ── Général ──────────────────────────────────────────────────────────────────
 i18n_lang:
@@ -19,44 +31,52 @@ i18n_lang:
   # set, lands in settings and wins via ctld.gs("i18n_lang").
   default: en
   choices: [en, fr, es, ko]
+  label: {en: CTLD interface language, fr: Langue de l'interface CTLD}
   description:
     en: 'CTLD interface language: en, fr, es or ko'
     fr: "Langue de l'interface CTLD : en, fr, es ou ko"
 location_DMS:
   group: general
   standard: true
+  label: {en: Coordinates in degrees-minutes-seconds, fr: Coordonnées en degrés-minutes-secondes}
   description:
     en: Show coordinates as Degrees-Minutes-Seconds instead of Degrees-Decimal-Minutes
     fr: Affiche les coordonnées en Degrés-Minutes-Secondes au lieu de Degrés-Minutes-Décimales
 radioSound:
   group: general
   standard: true
+  label: {en: Beacon sound file, fr: Fichier son du beacon}
   description:
     en: Beacon sound file — must be added to the mission .miz, or beacons will not work
     fr: Fichier son du beacon — doit être ajouté au .miz de la mission, sinon les beacon ne fonctionneront pas
 radioSoundFC3:
   group: general
   standard: true
+  label: {en: Silent beacon file for FC3, fr: Fichier de beacon silencieux FC3}
   description:
     en: Silent beacon file for FC3 aircraft
     fr: Fichier de beacon silencieux pour les appareils FC3
 addPlayerAircraftByType:
   group: general
+  label: {en: Detect player units by type, fr: Détecter les unités joueur par type}
   description:
     en: How CTLD selects player units that receive menus
     fr: Comment CTLD sélectionne les unités joueur qui reçoivent les menus
 debug:
   group: general
+  label: {en: Verbose logging, fr: Journalisation détaillée}
   description:
     en: Verbose logging to CTLD.log (requires a non-sanitized DCS install)
     fr: Journalisation verbeuse vers CTLD.log (nécessite une installation DCS non sanitized)
 debugScreenLog:
   group: general
+  label: {en: Echo log to the DCS screen, fr: Répéter le log à l'écran DCS}
   description:
     en: Also echo log messages to the DCS screen via outText
     fr: Répète aussi les messages de log à l'écran DCS via outText
 ctldLogPath:
   group: general
+  label: {en: Log file path, fr: Chemin du fichier de log}
   description:
     en: Override the log file path; empty = default DCS Saved Games folder
     fr: Surcharge le chemin du fichier de log ; vide = dossier Saved Games DCS par défaut
@@ -65,41 +85,49 @@ ctldLogPath:
 enableCrates:
   group: crates
   standard: true
+  label: {en: Enable crates, fr: Activer les caisses}
   description:
     en: Master switch for crate spawning and unpacking
     fr: Interrupteur maître pour le spawn et le déballage des crate
 enableAllCrates:
   group: crates
   standard: true
+  label: {en: Show the "All crates" shortcuts, fr: Afficher les raccourcis « toutes les caisses »}
   description:
     en: Show the "All crates" shortcut entries in the Request Equipment menus. Set false to keep only individual crate entries
     fr: Affiche les entrées raccourci « All crates » dans les menus Request Equipment. Mettre à false pour ne conserver que les entrées de crate individuelles
 loadCrateFromMenu:
   group: crates
   standard: true
+  label: {en: Load crates from the F10 menu, fr: Charger les caisses via le menu F10}
   description:
     en: Allow crate loading via the F10 menu (useful for fixed-wing that cannot hover)
     fr: Autorise le chargement de crate via le menu F10 (utile pour les fixed-wing incapables de hover)
 enableHoverSlingload:
   group: crates
   standard: true
+  label: {en: Load crates by hovering, fr: Charger les caisses en stationnaire}
   description:
     en: Allow crate loading by hovering above it. If false, crates load only via the F10 menu (loadCrateFromMenu)
     fr: Autorise le chargement de crate en hover au-dessus. Si false, les crate ne se chargent que via le menu F10 (loadCrateFromMenu)
 slingLoad:
   group: crates
   standard: true
+  label: {en: Use DCS sling-load physics, fr: Utiliser la physique sling-load DCS}
   description:
     en: Use DCS sling-load physics instead of the virtual hover system
     fr: Utilise la physique sling-load de DCS au lieu du système virtuel de hover
 enablePackingVehicles:
   group: crates
   standard: true
+  label: {en: Allow packing vehicles into crates, fr: Autoriser le pack des véhicules en caisses}
   description:
     en: Allow vehicles to be packed back into crates
     fr: Autorise le pack des véhicules de nouveau en crate
 maximumDistancePackableUnitsSearch:
   group: crates
+  label: {en: Packable vehicle search distance, fr: Distance de recherche des véhicules packables}
+  unit: m
   description:
     en: Max distance to search for packable vehicles
     fr: Distance max pour chercher des véhicules pack-ables
@@ -108,29 +136,36 @@ maximumDistancePackableUnitsSearch:
 numberOfTroops:
   group: troops
   standard: true
+  label: {en: Default troop group size, fr: Taille de groupe de troupes par défaut}
   description:
     en: Default / max troop group size per transport (overridden per aircraft by maxTroopsOnboard)
     fr: Taille de groupe de troops par défaut / max par transport (surchargée par appareil via maxTroopsOnboard)
 allowRandomAiTeamPickups:
   group: troops
   standard: true
+  label: {en: AI picks troop templates at random, fr: L'IA choisit les modèles de troupes au hasard}
   description:
     en: Allow AI transports to randomly pick a troop template at pickup zones. When false, the AI always picks the first available template for its coalition
     fr: Autorise les transports IA à choisir aléatoirement un template de troop aux zones de pickup. Si false, l'IA prend toujours le premier template disponible pour sa coalition
 troopPickupAtFOB:
   group: troops
   standard: true
+  label: {en: Allow troop pickup at FOBs, fr: Autoriser l'embarquement aux FOB}
   description:
     en: Allow troop pickup at built FOBs
     fr: Autorise le pickup de troops aux FOB construits
 maxExtractDistance:
   group: troops
   standard: true
+  label: {en: Max extraction distance, fr: Distance max d'extraction}
+  unit: m
   description:
     en: Max distance from the vehicle to troops for extraction
     fr: Distance max entre le véhicule et les troops pour l'extraction
 maximumSearchDistance:
   group: troops
+  label: {en: Enemy search distance for deployed troops, fr: Distance de recherche d'ennemis des troupes déployées}
+  unit: m
   description:
     en: Max distance for deployed AI troops to search for enemies
     fr: Distance max pour que les troops IA déployées cherchent des ennemis
@@ -139,12 +174,15 @@ maximumSearchDistance:
 enableFastRopeInsertion:
   group: boarding
   standard: true
+  label: {en: Allow fast-rope insertion, fr: Autoriser l'insertion en fast-rope}
   description:
     en: Allow fast-rope deployment
     fr: Autorise le déploiement en fast-rope
 fastRopeMaximumHeight:
   group: boarding
   standard: true
+  label: {en: Max fast-rope height, fr: Hauteur max de fast-rope}
+  unit: m
   description:
     en: Max height (m) for fast-rope insertion (≈ 60 ft)
     fr: Hauteur max (m) pour l'insertion fast-rope (≈ 60 ft)
@@ -154,112 +192,140 @@ JTAC_lock:
   group: jtac
   standard: true
   choices: [all, vehicle, troop]
+  label: {en: Target filter, fr: Filtre de cibles}
   description:
     en: 'Target filter: "vehicle" | "troop" | "all"'
     fr: 'Filtre de cible : "vehicle" | "troop" | "all"'
 JTAC_LIMIT_BLUE:
   group: jtac
   standard: true
+  label: {en: BLUE JTAC quota, fr: Quota de JTAC BLUE}
   description:
     en: Max JTAC objects BLUE may spawn (fixed quota — not refilled when a JTAC is killed)
     fr: Nombre max d'objets JTAC que BLUE peut spawn (quota fixe — non réapprovisionné lorsqu'un JTAC est tué)
 JTAC_LIMIT_RED:
   group: jtac
   standard: true
+  label: {en: RED JTAC quota, fr: Quota de JTAC RED}
   description:
     en: Max JTAC objects RED may spawn (same)
     fr: Nombre max d'objets JTAC que RED peut spawn (idem)
 JTAC_dropEnabled:
   group: jtac
   standard: true
+  label: {en: Allow JTAC crate spawn, fr: Autoriser la création de caisses JTAC}
   description:
     en: Allow JTAC crate spawn from F10
     fr: Autorise le spawn de crate JTAC depuis F10
 JTAC_maxDistance:
   group: jtac
   standard: true
+  label: {en: JTAC line-of-sight range, fr: Portée de vue du JTAC}
+  unit: m
   description:
     en: JTAC line-of-sight range (metres)
     fr: Portée en ligne de vue du JTAC (mètres)
 JTAC_allow9Line:
   group: jtac
   standard: true
+  label: {en: Allow 9-line requests, fr: Autoriser les demandes de 9-line}
   description:
     en: Allow 9-line requests
     fr: Autorise les requêtes 9-line
 JTAC_allowSmokeRequest:
   group: jtac
   standard: true
+  label: {en: Allow smoke-on-target requests, fr: Autoriser les demandes de fumigène sur cible}
   description:
     en: Allow smoke-on-target requests
     fr: Autorise les requêtes de smoke-on-target
 JTAC_allowStandbyMode:
   group: jtac
   standard: true
+  label: {en: Allow toggling lasing on and off, fr: Autoriser l'activation/désactivation du lasing}
   description:
     en: Allow toggling lasing on/off
     fr: Autorise l'activation/désactivation du lasing
 JTAC_smokeOn_BLUE:
   group: jtac
   standard: true
+  label: {en: BLUE JTAC smoke marking, fr: Marquage à la fumée des JTAC BLUE}
   description:
     en: Enable smoke marking for BLUE JTACs
     fr: Active le marquage smoke pour les JTAC BLUE
 JTAC_smokeOn_RED:
   group: jtac
   standard: true
+  label: {en: RED JTAC smoke marking, fr: Marquage à la fumée des JTAC RED}
   description:
     en: Enable smoke marking for RED JTACs
     fr: Active le marquage smoke pour les JTAC RED
 JTAC_smokeColour_BLUE:
   group: jtac
   standard: true
+  label: {en: BLUE JTAC smoke colour, fr: Couleur de fumigène des JTAC BLUE}
   description:
     en: BLUE JTAC smoke colour — 0=Green 1=Red 2=White 3=Orange 4=Blue
     fr: Couleur de smoke du JTAC BLUE — 0=Green 1=Red 2=White 3=Orange 4=Blue
 JTAC_smokeColour_RED:
   group: jtac
   standard: true
+  label: {en: RED JTAC smoke colour, fr: Couleur de fumigène des JTAC RED}
   description:
     en: RED JTAC smoke colour — 0=Green 1=Red 2=White 3=Orange 4=Blue
     fr: Couleur de smoke du JTAC RED — 0=Green 1=Red 2=White 3=Orange 4=Blue
 JTAC_WEIGHT:
   group: jtac
+  label: {en: JTAC equipment weight, fr: Poids de l'équipement JTAC}
+  unit: kg
   description:
     en: JTAC laser + radio + binoculars (kg)
     fr: Laser + radio + jumelles du JTAC (kg)
 JTAC_droneAltitude:
   group: jtac
+  label: {en: Drone JTAC orbit altitude, fr: Altitude d'orbite des JTAC drones}
+  unit: m
   description:
     en: Fallback orbit altitude AGL (m) for drone JTACs when the crate has no specificParams
     fr: Altitude d'orbite de repli AGL (m) pour les JTAC drones quand la crate n'a pas de specificParams
 JTAC_droneRadius:
   group: jtac
+  label: {en: Drone JTAC orbit radius, fr: Rayon d'orbite des JTAC drones}
+  unit: m
   description:
     en: Fallback orbit radius (m) for drone JTACs when the crate has no specificParams
     fr: Rayon d'orbite de repli (m) pour les JTAC drones quand la crate n'a pas de specificParams
 JTAC_laseSpotCorrections:
   group: jtac
+  label: {en: Lead moving targets when lasing, fr: Anticiper les cibles mobiles au lasing}
   description:
     en: Lead moving targets, accounting for wind and target speed
     fr: Anticipe les cibles mobiles, en tenant compte du vent et de la vitesse de la cible
 JTAC_smokeMarginOfError:
   group: jtac
+  label: {en: Smoke placement error radius, fr: Rayon d'erreur de placement du fumigène}
+  unit: m
   description:
     en: Max random placement error radius (m) for smoke
     fr: Rayon max d'erreur de placement aléatoire (m) pour la smoke
 JTAC_smokeOffset_x:
   group: jtac
+  label: {en: Smoke east/west offset, fr: Décalage est/ouest du fumigène}
+  unit: m
   description:
     en: Fixed East/West offset (m) added before the random error
     fr: Offset Est/Ouest fixe (m) ajouté avant l'erreur aléatoire
 JTAC_smokeOffset_y:
   group: jtac
+  label: {en: Smoke vertical offset, fr: Décalage vertical du fumigène}
+  unit: m
   description:
     en: Fixed vertical offset (m) — keeps smoke visible above terrain
     fr: Offset vertical fixe (m) — garde la smoke visible au-dessus du terrain
 JTAC_smokeOffset_z:
   group: jtac
+  label: {en: Smoke north/south offset, fr: Décalage nord/sud du fumigène}
+  unit: m
   description:
     en: Fixed North/South offset (m) added before the random error
     fr: Offset Nord/Sud fixe (m) ajouté avant l'erreur aléatoire
@@ -268,12 +334,14 @@ JTAC_smokeOffset_z:
 disableAllSmoke:
   group: smoke
   standard: true
+  label: {en: Disable all zone smoke, fr: Désactiver tous les fumigènes de zone}
   description:
     en: Globally disable all smoke at pickup and drop-off zones
     fr: Désactive globalement toute la smoke aux zones de pickup et de drop-off
 enableSmokeDrop:
   group: smoke
   standard: true
+  label: {en: Enable the "Drop Smoke" menu entry, fr: Activer l'entrée de menu « largage de fumigène »}
   description:
     en: Enable the "Drop Smoke" F10 entry
     fr: Active l'entrée F10 « Drop Smoke »
@@ -282,12 +350,15 @@ enableSmokeDrop:
 enabledRadioBeaconDrop:
   group: beacon
   standard: true
+  label: {en: Allow beacon deployment, fr: Autoriser le déploiement de beacons}
   description:
     en: Allow beacon deployment
     fr: Autorise le déploiement de beacon
 deployedBeaconBattery:
   group: beacon
   standard: true
+  label: {en: Beacon battery life, fr: Autonomie de la batterie du beacon}
+  unit: min
   description:
     en: Beacon battery life (minutes)
     fr: Durée de vie de la batterie du beacon (minutes)
@@ -296,38 +367,49 @@ deployedBeaconBattery:
 enabledFOBBuilding:
   group: fob
   standard: true
+  label: {en: Allow FOB construction, fr: Autoriser la construction de FOB}
   description:
     en: Allow FOB construction from crates
     fr: Autorise la construction de FOB depuis des crate
 enableFARPRepack:
   group: fob
   standard: true
+  label: {en: Allow packing a FARP back into crates, fr: Autoriser le pack d'une FARP en caisses}
   description:
     en: Allow players to pack a deployed FARP scene back into crates for redeployment
     fr: Autorise les joueurs à pack une scène FARP déployée de nouveau en crate pour redéploiement
 fobTroopPickupRadius:
   group: fob
   standard: true
+  label: {en: FOB troop boarding radius, fr: Rayon d'embarquement à une FOB}
+  unit: m
   description:
     en: Radius (m) within which troops may board at a FOB
     fr: Rayon (m) dans lequel les troops peuvent embarquer à un FOB
 fobDestructionThreshold:
   group: fob
+  label: {en: FOB destruction threshold, fr: Seuil de destruction d'une FOB}
   description:
     en: Fraction of scene objects destroyed before a FOB is considered lost (0.0–1.0)
     fr: Fraction d'objets de scène détruits avant qu'un FOB soit considéré perdu (0.0–1.0)
 fobLogisticZoneRadius:
   group: fob
+  label: {en: FOB logistic zone radius, fr: Rayon de la zone logistique d'une FOB}
+  unit: m
   description:
     en: Radius (m) of the logistic zone created around a deployed FOB
     fr: Rayon (m) de la zone logistique créée autour d'un FOB déployé
 fobMinDistanceFromZones:
   group: fob
+  label: {en: Min FOB distance from logistic zones, fr: Distance min d'une FOB aux zones logistiques}
+  unit: m
   description:
     en: Minimum distance (m) from any logistic zone at which a FOB may be deployed
     fr: Distance minimale (m) de toute zone logistique à laquelle un FOB peut être déployé
 maximumDistanceLogistic:
   group: fob
+  label: {en: Max distance to a logistics zone, fr: Distance max à une zone logistique}
+  unit: m
   description:
     en: Max distance from a logistics zone to load or spawn a crate
     fr: Distance max depuis une zone logistique pour charger ou spawn une crate
@@ -336,33 +418,42 @@ maximumDistanceLogistic:
 reconEnabled:
   group: recon
   standard: true
+  label: {en: Enable recon, fr: Activer la reconnaissance}
   description:
     en: Master switch — must be true for scan commands to work
     fr: Interrupteur maître — doit être true pour que les commandes de scan fonctionnent
 reconF10Menu:
   group: recon
   standard: true
+  label: {en: Show the RECON F10 menu, fr: Afficher le menu F10 RECON}
   description:
     en: Enable the RECON F10 submenu
     fr: Active le sous-menu F10 RECON
 reconSearchRadius:
   group: recon
   standard: true
+  label: {en: Scan radius, fr: Rayon de scan}
+  unit: m
   description:
     en: Line-of-sight scan radius (metres)
     fr: Rayon de scan en ligne de vue (mètres)
 reconMinAltitude:
   group: recon
+  label: {en: Minimum scan altitude, fr: Altitude minimale de scan}
+  unit: m
   description:
     en: Minimum AGL altitude (m) required to perform a scan
     fr: Altitude AGL minimale (m) requise pour effectuer un scan
 reconIconScale:
   group: recon
+  label: {en: Map icon size, fr: Taille des icônes sur la carte}
   description:
     en: Icon size multiplier (1.0 = default, 2.0 = double)
     fr: Multiplicateur de taille d'icône (1.0 = défaut, 2.0 = double)
 reconRefreshInterval:
   group: recon
+  label: {en: Auto-refresh interval, fr: Intervalle de rafraîchissement auto}
+  unit: s
   description:
     en: Auto-refresh interval (seconds)
     fr: Intervalle de rafraîchissement automatique (secondes)
@@ -371,12 +462,15 @@ reconRefreshInterval:
 showMinefieldOnF10Map:
   group: mines
   standard: true
+  label: {en: Show minefields on the F10 map, fr: Afficher les champs de mines sur la carte F10}
   description:
     en: Draw a bounding quad on the F10 map when a minefield is deployed
     fr: Dessine un quadrilatère englobant sur la carte F10 lorsqu'un minefield est déployé
 demineRadius:
   group: mines
   standard: true
+  label: {en: Mine clearing distance, fr: Distance de déminage}
+  unit: m
   description:
     en: Max distance (m) from the player to the minefield centre for the "Clear Mine Field" entry to appear
     fr: Distance max (m) du joueur au centre du minefield pour que l'entrée « Clear Mine Field » apparaisse
@@ -385,23 +479,27 @@ demineRadius:
 aaLaunchers:
   group: aa
   standard: true
+  label: {en: Launchers per AA system, fr: Lanceurs par système AA}
   description:
     en: Default number of launchers per AA system when the template does not specify
     fr: Nombre par défaut de launchers par système AA quand le template n'en précise pas
 AASystemLimitBLUE:
   group: aa
   standard: true
+  label: {en: BLUE AA system limit, fr: Limite de systèmes AA BLUE}
   description:
     en: Max active AA systems for BLUE
     fr: Nombre max de systèmes AA actifs pour BLUE
 AASystemLimitRED:
   group: aa
   standard: true
+  label: {en: RED AA system limit, fr: Limite de systèmes AA RED}
   description:
     en: Max active AA systems for RED
     fr: Nombre max de systèmes AA actifs pour RED
 AASystemCrateStacking:
   group: aa
+  label: {en: Extra crate sets add launchers, fr: Des lots de caisses supplémentaires ajoutent des lanceurs}
   description:
     en: Allow multiple crate sets to add extra launchers (N×crates → N×launchers)
     fr: Autorise plusieurs jeux de crate à ajouter des launchers supplémentaires (N×crates → N×launchers)
@@ -409,51 +507,70 @@ AASystemCrateStacking:
 # ── Parachute ────────────────────────────────────────────────────────────────
 autoUnpackRadiusParachute:
   group: parachute
+  label: {en: Auto-unpack radius on landing, fr: Rayon de déballage auto à l'atterrissage}
+  unit: m
   description:
     en: Radius (m) within which a parachuted crate auto-unpacks on landing
     fr: Rayon (m) dans lequel une crate parachutée se déballe automatiquement à l'atterrissage
 parachuteDescentRateCrates:
   group: parachute
+  label: {en: Crate descent rate, fr: Vitesse de descente des caisses}
+  unit: m/s
   description:
     en: Descent rate (m/s) for parachuted crates
     fr: Vitesse de descente (m/s) des crates en parachute
 parachuteDescentRateTroops:
   group: parachute
+  label: {en: Troop descent rate, fr: Vitesse de descente des troupes}
+  unit: m/s
   description:
     en: Descent rate (m/s) for parachuted troops
     fr: Vitesse de descente (m/s) des troupes en parachute
 parachuteDescentRateVehicles:
   group: parachute
+  label: {en: Vehicle descent rate, fr: Vitesse de descente des véhicules}
+  unit: m/s
   description:
     en: Descent rate (m/s) for parachuted vehicles
     fr: Vitesse de descente (m/s) des véhicules en parachute
 parachuteInertiaFactor:
   group: parachute
+  label: {en: Horizontal inertia factor, fr: Facteur d'inertie horizontale}
   description:
     en: Horizontal inertia factor applied to the crate velocity at drop (0–1, lower = less drift from aircraft speed)
     fr: Facteur d'inertie horizontale appliqué à la vitesse de la crate au largage (0–1, plus bas = moins de dérive due à la vitesse de l'appareil)
 parachuteLateralDriftMax:
   group: parachute
+  label: {en: Maximum lateral drift, fr: Dérive latérale maximale}
+  unit: m
   description:
     en: Maximum random lateral drift (m) during descent
     fr: Dérive latérale aléatoire maximale (m) pendant la descente
 parachuteLateralDriftMin:
   group: parachute
+  label: {en: Minimum lateral drift, fr: Dérive latérale minimale}
+  unit: m
   description:
     en: Minimum random lateral drift (m) during descent
     fr: Dérive latérale aléatoire minimale (m) pendant la descente
 parachuteMinAltitudeCrates:
   group: parachute
+  label: {en: Crate parachute opening altitude, fr: Altitude d'ouverture du parachute des caisses}
+  unit: m
   description:
     en: Minimum AGL altitude (m) at which crate parachute deployment triggers
     fr: Altitude AGL minimale (m) à laquelle le déploiement du parachute de la crate se déclenche
 parachuteMinAltitudeTroops:
   group: parachute
+  label: {en: Troop parachute opening altitude, fr: Altitude d'ouverture du parachute des troupes}
+  unit: m
   description:
     en: Minimum AGL altitude (m) at which troop parachute deployment triggers
     fr: Altitude AGL minimale (m) à laquelle le déploiement du parachute des troupes se déclenche
 parachuteMinAltitudeVehicles:
   group: parachute
+  label: {en: Vehicle parachute opening altitude, fr: Altitude d'ouverture du parachute des véhicules}
+  unit: m
   description:
     en: Minimum AGL altitude (m) at which vehicle parachute deployment triggers
     fr: Altitude AGL minimale (m) à laquelle le déploiement du parachute des véhicules se déclenche
@@ -462,51 +579,171 @@ parachuteMinAltitudeVehicles:
 SOLDIER_WEIGHT:
   group: soldier_weights
   standard: true
+  label: {en: Base soldier weight, fr: Poids de base d'un soldat}
+  unit: kg
   description:
     en: Base body weight per soldier (kg)
     fr: Poids corporel de base par soldat (kg)
 KIT_WEIGHT:
   group: soldier_weights
   standard: true
+  label: {en: Helmet and backpack weight, fr: Poids du casque et du sac}
+  unit: kg
   description:
     en: Helmet + backpack per soldier (kg)
     fr: Casque + sac à dos par soldat (kg)
 RIFLE_WEIGHT:
   group: soldier_weights
   standard: true
+  label: {en: Rifleman kit weight, fr: Poids de l'équipement de fusilier}
+  unit: kg
   description:
     en: Standard rifleman kit (kg)
     fr: Équipement standard de fusilier (kg)
 MG_WEIGHT:
   group: soldier_weights
   standard: true
+  label: {en: Machine-gunner kit weight, fr: Poids de l'équipement de mitrailleur}
+  unit: kg
   description:
     en: Machine-gunner weapon + 200-round belt (kg)
     fr: Arme du mitrailleur + bande de 200 cartouches (kg)
 RPG_WEIGHT:
   group: soldier_weights
   standard: true
+  label: {en: Anti-tank kit weight, fr: Poids de l'équipement anti-char}
+  unit: kg
   description:
     en: AT soldier RPG + rocket (kg)
     fr: RPG + roquette du soldat AT (kg)
 MANPAD_WEIGHT:
   group: soldier_weights
   standard: true
+  label: {en: MANPAD weight, fr: Poids du MANPAD}
+  unit: kg
   description:
     en: AA soldier MANPAD tube (kg)
     fr: Tube MANPAD du soldat AA (kg)
 MORTAR_WEIGHT:
   group: soldier_weights
   standard: true
+  label: {en: Mortar crew kit weight, fr: Poids de l'équipement de mortier}
+  unit: kg
   description:
     en: Mortar crew tube + shells (kg)
     fr: Tube + obus de l'équipe de mortier (kg)
 CIV_WEIGHT:
   group: soldier_weights
   standard: true
+  label: {en: Civilian personal items weight, fr: Poids des effets personnels civils}
+  unit: kg
   description:
     en: Light personal items for the civilian role (kg)
     fr: Effets personnels légers pour le rôle civil (kg)
+
+# Functional families — the `group:` values above, named and described for the UI.
+#
+# `label` was carried over from the TUI's `tui.family.*` i18n catalog (lot CTLD-TOOLS-TUI);
+# `description` says what a Mission Maker will find in the family, derived from the settings and
+# tables it actually holds. `order` drives the navigation: domain order (airframes, then what they
+# carry, then where they operate, then the subsystems), not alphabetical.
+families:
+  general:
+    order: 10
+    label: {en: General, fr: Général}
+    description:
+      en: Cross-cutting settings — CTLD's interface language, coordinate format, beacon sound files and logging.
+      fr: Réglages transversaux — langue de l'interface CTLD, format des coordonnées, fichiers son des beacons et journalisation.
+  aircraft:
+    order: 20
+    label: {en: Aircraft, fr: Appareils}
+    description:
+      en: Which airframes may carry crates, troops and whole vehicles, how many of each, and the pilot slot names CTLD watches.
+      fr: Quels appareils peuvent transporter caisses, troupes et véhicules entiers, en quelle quantité, et les noms de slots pilote surveillés par CTLD.
+  crates:
+    order: 30
+    label: {en: Crates, fr: Caisses}
+    description:
+      en: Spawning, sling-loading and unpacking supply crates — and the catalogue of crates a mission can request.
+      fr: Apparition, transport à l'élingue et déballage des caisses de ravitaillement — et le catalogue des caisses qu'une mission peut demander.
+  troops:
+    order: 40
+    label: {en: Troops, fr: Troupes}
+    description:
+      en: Loading, deploying and extracting infantry — and the troop groups a transport can board.
+      fr: Embarquement, déploiement et extraction de l'infanterie — et les groupes de troupes qu'un transport peut charger.
+  zones:
+    order: 50
+    label: {en: Zones, fr: Zones}
+    description:
+      en: The mission zones CTLD works with — troop pickup, waypoint and AI transport zones — and their default radius.
+      fr: Les zones de mission utilisées par CTLD — pickup de troupes, waypoint et transport IA — et leur rayon par défaut.
+  boarding:
+    order: 60
+    label: {en: Boarding, fr: Embarquement}
+    description:
+      en: How troops get aboard and back down, including fast-rope insertion and its height limit.
+      fr: Comment les troupes montent à bord et redescendent, dont l'insertion en fast-rope et sa hauteur limite.
+  fob:
+    order: 70
+    label: {en: FOB / FARP, fr: FOB / FARP}
+    description:
+      en: Building and running Forward Operating Bases and FARPs — crate collection radius, spacing rules and what a built FOB offers.
+      fr: Construction et fonctionnement des FOB et FARP — rayon de collecte des caisses, règles d'espacement et ce qu'une FOB offre.
+  jtac:
+    order: 80
+    label: {en: JTAC, fr: JTAC}
+    description:
+      en: Deployed JTACs — target search and lasing, smoke marking, 9-line, laser codes and drone JTAC behaviour.
+      fr: JTAC déployés — recherche et lasing des cibles, marquage à la fumée, 9-line, codes laser et comportement des JTAC drones.
+  recon:
+    order: 90
+    label: {en: Recon, fr: Reconnaissance}
+    description:
+      en: Aerial reconnaissance — what a recon flight detects, at what altitude and radius, and how it is drawn on the F10 map.
+      fr: Reconnaissance aérienne — ce qu'un vol de reconnaissance détecte, à quelle altitude et dans quel rayon, et son rendu sur la carte F10.
+  aa:
+    order: 100
+    label: {en: AA system, fr: Système AA}
+    description:
+      en: Anti-air systems assembled from crates — how many each coalition may build, assembly distance and rearming.
+      fr: Systèmes anti-aériens assemblés depuis des caisses — combien chaque coalition peut en construire, distance d'assemblage et réapprovisionnement.
+  beacon:
+    order: 110
+    label: {en: Beacons, fr: Beacons}
+    description:
+      en: Radio beacons dropped in the field — battery life, removal radius and how they appear on the F10 map.
+      fr: Beacons radio largués sur le terrain — autonomie, rayon de retrait et affichage sur la carte F10.
+  smoke:
+    order: 120
+    label: {en: Smoke, fr: Fumigènes}
+    description:
+      en: Smoke markers dropped by transports — whether they may be dropped at all, and how they are refreshed.
+      fr: Fumigènes largués par les transports — s'ils peuvent l'être, et leur rafraîchissement.
+  mines:
+    order: 130
+    label: {en: Mines, fr: Mines}
+    description:
+      en: Minefields — clearing radius and whether they are shown on the F10 map.
+      fr: Champs de mines — rayon de déminage et affichage sur la carte F10.
+  parachute:
+    order: 140
+    label: {en: Parachute, fr: Parachute}
+    description:
+      en: Physics of parachute drops — descent rates, deployment altitudes and how far a load drifts before it lands.
+      fr: Physique des largages sous parachute — vitesses de descente, altitudes de déploiement et dérive avant l'atterrissage.
+  soldier_weights:
+    order: 150
+    label: {en: Soldier weights, fr: Poids soldats}
+    description:
+      en: Per-soldier weights, used to check whether a troop group fits inside a transport.
+      fr: Poids par soldat, utilisés pour vérifier qu'un groupe de troupes tient dans un transport.
+  other:
+    order: 999
+    label: {en: Other, fr: Autres}
+    description:
+      en: Settings not yet attached to a specific subsystem.
+      fr: Réglages pas encore rattachés à un sous-système précis.
 
 # Table field descriptions — used by ctld-tools forms for tooltips.
 # Each table has named fields with { en, fr } descriptions.
@@ -664,71 +901,197 @@ tableFields:
 aaAssemblyDistance:
   group: aa
   standard: true
+  label: {en: AA assembly distance, fr: Distance d'assemblage AA}
+  unit: m
   description:
     en: Max distance (m) between crates and the reference point to assemble an AA system
     fr: Distance max (m) entre les caisses et le point de rÃ©fÃ©rence pour assembler un systÃ¨me AA
 aaRearmDistance:
   group: aa
   standard: true
+  label: {en: AA rearming distance, fr: Distance de réapprovisionnement AA}
+  unit: m
   description:
     en: Max distance (m) from a launcher crate to an existing AA system to rearm/repair it
     fr: Distance max (m) entre une caisse de lanceur et un systÃ¨me AA existant pour le rÃ©armer/rÃ©parer
 beaconRemovalRadius:
   group: beacon
+  label: {en: Beacon removal search radius, fr: Rayon de recherche pour retirer un beacon}
+  unit: m
   description:
     en: Search radius (m) for the "Remove Closest Beacon" action
     fr: Rayon de recherche (m) pour l'action Â« Retirer la balise la plus proche Â»
 loadCrateSearchRadius:
   group: crates
   standard: true
+  label: {en: Crate loading radius, fr: Rayon de chargement des caisses}
+  unit: m
   description:
     en: Radius (m) within which crates are grouped/loadable from the Load Crate menu
     fr: Rayon (m) dans lequel les caisses sont regroupÃ©es/chargeables depuis le menu Charger une caisse
 unpackSearchRadius:
   group: crates
   standard: true
+  label: {en: Crate unpacking radius, fr: Rayon de déballage des caisses}
+  unit: m
   description:
     en: Radius (m) within which crates are gathered to unpack or list nearby crates
     fr: Rayon (m) dans lequel les caisses sont rassemblÃ©es pour le dÃ©paquetage ou la liste des caisses proches
 fobCrateCollectionRadius:
   group: fob
   standard: true
+  label: {en: FOB crate collection radius, fr: Rayon de collecte des caisses de FOB}
+  unit: m
   description:
     en: Radius (m) within which FOB crates must be gathered to deploy a FOB
     fr: Rayon (m) dans lequel les caisses de FOB doivent Ãªtre rassemblÃ©es pour dÃ©ployer un FOB
 slingCutDestroyHeight:
   group: crates
   standard: true
+  label: {en: Height above which a cut load breaks, fr: Hauteur au-delà de laquelle une charge larguée casse}
+  unit: m
   description:
     en: AGL height (m) above which cutting a slingload destroys the crate on impact
     fr: Hauteur AGL (m) au-dessus de laquelle couper une Ã©lingue dÃ©truit la caisse Ã  l'impact
 jtacLaserCodeMin:
   group: jtac
+  label: {en: Lowest laser code, fr: Code laser le plus bas}
   description:
     en: Lowest assignable JTAC laser code (NATO range)
     fr: Code laser JTAC assignable le plus bas (plage OTAN)
 jtacLaserCodeMax:
   group: jtac
+  label: {en: Highest laser code, fr: Code laser le plus haut}
   description:
     en: Highest assignable JTAC laser code (NATO range)
     fr: Code laser JTAC assignable le plus haut (plage OTAN)
 defaultVehicleWeight:
   group: crates
+  label: {en: Default vehicle weight, fr: Poids de véhicule par défaut}
+  unit: kg
   description:
     en: Weight (kg) assumed for a loaded vehicle type absent from groundVehicleWeights
     fr: Poids (kg) supposÃ© pour un type de vÃ©hicule chargÃ© absent de groundVehicleWeights
 fieldExtractTroopWeight:
   group: troops
+  label: {en: Assumed weight of field-extracted troops, fr: Poids supposé des troupes extraites sur le terrain}
+  unit: kg
   description:
     en: Assumed per-troop weight (kg) when extracting a field group with no stored data
     fr: Poids par troupe supposÃ© (kg) lors de l'extraction d'un groupe de terrain sans donnÃ©es stockÃ©es
 defaultZoneRadius:
   group: crates
+  label: {en: Default zone radius, fr: Rayon de zone par défaut}
+  unit: m
   description:
     en: Default radius (m) when a discovered TRZ/WPZ/AIZ trigger zone lacks one
     fr: Rayon par dÃ©faut (m) quand une zone trigger TRZ/WPZ/AIZ dÃ©couverte n'en a pas
 configVersion:
   # tool-managed metadata (not an MM-editable setting; no family)
+  label: {en: Configuration version, fr: Version de la configuration}
   description:
     en: Schema/catalogue version this config is authored against (used for version-gap detection).
     fr: Version du schÃ©ma/catalogue contre laquelle cette config est Ã©crite (dÃ©tection d'Ã©cart de version).
+debugScreenLogDuration:
+  label: {en: On-screen log duration, fr: Durée d'affichage du log à l'écran}
+  unit: s
+capabilitiesByType:
+  label: {en: Aircraft capabilities, fr: Capacités des appareils}
+transportPilotNames:
+  label: {en: Transport pilot slot names, fr: Noms des slots pilote de transport}
+crateSpacing:
+  label: {en: Spacing between spawned crates, fr: Espacement entre les caisses créées}
+  unit: m
+maxDistanceFromCrate:
+  label: {en: Max distance to a crate, fr: Distance max à une caisse}
+  unit: m
+maxSlingloadSpeed:
+  label: {en: Max sling-load speed, fr: Vitesse max en sling-load}
+  unit: m/s
+maxDropHeight:
+  label: {en: Max drop height, fr: Hauteur max de largage}
+  unit: m
+maxTransportWeight:
+  label: {en: Max transport weight, fr: Poids de transport max}
+  unit: kg
+  description:
+    en: Maximum total troop weight a transport may carry; 0 disables the check
+    fr: Poids total maximum de troupes qu'un transport peut emporter ; 0 désactive la vérification
+spawnDistanceInCircle:
+  label: {en: Spawn circle radius, fr: Rayon du cercle d'apparition}
+  unit: m
+hoverTime:
+  label: {en: Hover time required, fr: Durée de stationnaire requise}
+  unit: s
+minimumHoverHeight:
+  label: {en: Minimum hover height, fr: Hauteur de stationnaire minimale}
+  unit: m
+maximumHoverHeight:
+  label: {en: Maximum hover height, fr: Hauteur de stationnaire maximale}
+  unit: m
+groundAglThreshold:
+  label: {en: Ground contact AGL threshold, fr: Seuil AGL de contact au sol}
+  unit: m
+spawnableCrates:
+  label: {en: Spawnable crates, fr: Caisses disponibles}
+spawnableCratesModels:
+  label: {en: Crate 3D models, fr: Modèles 3D des caisses}
+logisticUnits:
+  label: {en: Logistic units, fr: Unités logistiques}
+groundVehicleWeights:
+  label: {en: Ground vehicle weights, fr: Poids des véhicules terrestres}
+loadableGroups:
+  label: {en: Troop groups, fr: Groupes de troupes}
+extractableGroups:
+  label: {en: Extractable troop groups, fr: Groupes de troupes extractibles}
+nbLimitSpawnedTroops:
+  label: {en: Spawned troop limits, fr: Limites de troupes créées}
+dynamicZoneRadius:
+  label: {en: Dynamic zone radius, fr: Rayon des zones dynamiques}
+  unit: m
+troopZones:
+  label: {en: Troop pickup zones, fr: Zones d'embarquement de troupes}
+wpZones:
+  label: {en: Waypoint zones, fr: Zones de waypoint}
+AIZones:
+  label: {en: AI transport zones, fr: Zones de transport IA}
+aiZones:
+  label: {en: AI transport zone settings, fr: Réglages des zones de transport IA}
+JTAC_laseIntervalSeconds:
+  label: {en: Lasing interval, fr: Intervalle de lasing}
+  unit: s
+JTAC_searchIntervalSeconds:
+  label: {en: Target search interval, fr: Intervalle de recherche de cibles}
+  unit: s
+JTAC_targetDeconfliction:
+  label: {en: Avoid two JTACs lasing the same target, fr: Éviter que deux JTAC lasent la même cible}
+JTAC_location:
+  label: {en: Report target coordinates, fr: Indiquer les coordonnées de la cible}
+JTAC_jtacStatusF10:
+  label: {en: JTAC status in the F10 menu, fr: État des JTAC dans le menu F10}
+enableAutoOrbitingFlyingJtacOnTarget:
+  label: {en: Flying JTACs orbit their target, fr: Les JTAC volants orbitent autour de leur cible}
+beaconLayerEnabled:
+  label: {en: Show beacons on the F10 map, fr: Afficher les beacons sur la carte F10}
+beaconAutoRefreshLayer:
+  label: {en: Auto-refresh the beacon layer, fr: Rafraîchir automatiquement la couche beacons}
+beaconRefreshInterval:
+  label: {en: Beacon layer refresh interval, fr: Intervalle de rafraîchissement des beacons}
+  unit: s
+beaconIconRadius:
+  label: {en: Beacon icon radius, fr: Rayon des icônes de beacon}
+  unit: m
+beaconTextSize:
+  label: {en: Beacon label text size, fr: Taille du texte des étiquettes de beacon}
+beaconIconColor:
+  label: {en: Beacon icon colour, fr: Couleur des icônes de beacon}
+smokeRefreshInterval:
+  label: {en: Smoke refresh interval, fr: Intervalle de rafraîchissement des fumigènes}
+  unit: s
+smokeAutoResume:
+  label: {en: Resume smoke automatically, fr: Reprendre les fumigènes automatiquement}
+smokeAutoResumeInterval:
+  label: {en: Smoke auto-resume interval, fr: Intervalle de reprise auto des fumigènes}
+  unit: s
+modTypes:
+  label: {en: Mod unit types, fr: Types d'unités de mods}

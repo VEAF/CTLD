@@ -24,32 +24,73 @@ file.
 **Double-click `ctld-tools.exe`.** A small console window opens — that is the local server; leave it
 open, closing it quits the tool — and your **browser** opens on the app. No command to type.
 
+The app **starts on CTLD's default configuration**, so there is nothing to load before you begin.
+
 (From a terminal you can also run `ctld-tools serve` to open it. The same file is a command-line tool
 too — used by the CTLD build — but as a Mission Maker you won't need that.)
 
+## Finding your way around
+
+A strip across the top shows the three steps: **Load → Adjust → Inject into your mission**, with the
+current one highlighted. The header always tells you which configuration is open, how many settings
+you have changed, and whether your work is saved.
+
+!!! tip "English or French"
+    The interface follows your Windows language, and a **Language** picker in the header switches
+    between English and French at any time — including the settings' own help texts. Your choice is
+    remembered.
+
+!!! tip "Built-in help"
+    The **Help** button in the header opens a walkthrough of the editor in your language: the three
+    steps, how to read a setting, what the validation lamp means, and the complete-snapshot rule. It
+    also lists **your** configuration — every family with what it covers, and every mission-data table
+    with how many entries it currently holds. It is generated from the configuration you have open, so
+    it always describes what is actually in front of you.
+
+The left column lists CTLD's **functional families** — General, Aircraft, Crates, Troops, Zones,
+Boarding, FOB / FARP, JTAC, Recon, AA system, Beacons, Smoke, Mines, Parachute, Soldier weights. Pick
+a family and you get **everything** about that part of CTLD in one place: its settings *and* its
+catalogue entries, with a line under the title telling you what the family covers. Crates, for
+instance, holds the crate settings *and* the list of crates you can spawn.
+
+Within a family, settings are split into **Common settings** and an **Advanced settings** section
+that stays folded until you need it (it opens by itself if it contains something you have changed).
+
+**Don't know where a setting lives?** Use the **search box** — it looks through every family at once,
+by name or by description, and tells you which family each result belongs to.
+
 ## Editing your configuration
 
-The app shows CTLD's **complete configuration**, split into two screens:
+Each setting shows a **plain-language name**, its unit where CTLD documents one (metres, kilograms,
+seconds), a short description, and the right editor for its type — a switch for on/off, a dropdown
+for fixed choices, a number or text box otherwise. The **raw config name** (the one used in the CTLD
+documentation and on the forums) is shown next to it in small type.
 
-- **Parameters** — *how CTLD behaves*: the settings, grouped into functional **families** (General,
-  Crates, Troops, JTAC, FOB / FARP, AA system, Parachute, …), each split into **Standard** (the
-  common ones) and **Advanced**. Every field has the right editor — a checkbox for on/off, a dropdown
-  for fixed choices, a number or text box otherwise — with a short description as help.
-- **Data** — *what CTLD operates on*: the catalogue — **crates**, **troop groups**, **aircraft
-  capabilities** (pick an aircraft type from the DCS list), **zones**, transport pilot names, vehicle
-  weights. Add, edit and remove entries through forms.
+Catalogue entries — **crates**, **troop groups**, **aircraft capabilities** (pick an aircraft type
+from the DCS list), **zones**, transport pilot names, vehicle weights — are edited as tables, at the
+bottom of the family they belong to.
 
-Start from **Load defaults** (CTLD's factory configuration) or **Open…** an existing config you saved
-earlier (a native file dialog).
+### Undoing a change
 
-**Live validation** runs as you edit: unknown DCS unit types, duplicate crate weights and other
-problems appear immediately, so you never ship a broken config.
+Any setting you change is marked **changed**, and the family gets a counter in the left column, so
+you can always see what you have touched. A **reset arrow** appears next to a changed setting and
+puts CTLD's default value back.
+
+Prefer to start over? **Start from CTLD defaults**. To pick up an earlier config, use
+**Open a config file…** (a native file dialog). Either one warns you first if you have unsaved
+changes.
+
+### Validation
+
+**Live validation** runs as you edit. A lamp in the header reads **VALID** or **CHECK**, and a panel
+above the settings lists any problem in plain words — unknown DCS unit types, duplicate crate
+weights, and so on. Click a problem and the app jumps straight to the setting it concerns.
 
 ## Saving and using it
 
-- **Save…** writes your configuration to a file (a native save dialog) so you can reopen it later.
-- **Inject to .miz…** picks a mission and inserts your configuration into it as a MISSION START
-  trigger, ready to play. Injection is **refused while any validation error remains**.
+- **Save as…** writes your configuration to a file (a native save dialog) so you can reopen it later.
+- **Inject into mission…** picks a mission and inserts your configuration into it as a MISSION START
+  trigger, ready to play. The button stays **disabled while any validation error remains**.
 
 Injection is **idempotent** — re-injecting updates the same trigger instead of duplicating it — and
 places the trigger **first**, so it runs before CTLD.
@@ -68,8 +109,10 @@ defaults. Anything you remove is absent at runtime — not silently defaulted. T
 ### When CTLD is updated
 
 CTLD stamps a **version** on its configuration. When you open a config authored for an older CTLD,
-the tool shows a **popup** listing how the current defaults differ (settings added, settings removed,
-values that changed) so you can review before re-injecting — never a silent merge.
+the tool tells you so and summarises how the current defaults differ — settings added, settings no
+longer used, default values that changed — each expandable if you want the detail. **Nothing is
+merged**: your settings are left exactly as they were, and you decide what to update before
+re-injecting.
 
 ## Loading it by hand (alternative to inject)
 

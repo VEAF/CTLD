@@ -125,6 +125,41 @@ jobs:
             echo "$help" | grep -q " $cmd " || { echo "::error::$cmd command missing from exe"; exit 1; }
           done
 
+      # The CLI check above passes even if the bundled web app is missing or broken, which is what a
+      # Mission Maker actually double-clicks. So boot the real thing and pull every kind of resource
+      # out of it: the page, a static asset, and the API a screen cannot render without.
+      - name: Smoke-check the exe (serves the web app and its assets)
+        working-directory: tools/ctld-tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./dist/ctld-tools.exe serve --no-browser --port 8765 &
+          exe_pid=$!
+          trap 'kill "$exe_pid" 2>/dev/null || true' EXIT
+
+          for _ in $(seq 1 40); do
+            curl -sf -m 3 http://127.0.0.1:8765/api/health >/dev/null && break
+            sleep 1
+          done
+          curl -sf -m 5 http://127.0.0.1:8765/api/health >/dev/null \
+            || { echo "::error::exe did not start serving"; exit 1; }
+
+          check() {  # path, min bytes, label
+            size=$(curl -sf -m 10 -o /dev/null -w '%{size_download}' "http://127.0.0.1:8765$1") \
+              || { echo "::error::$3 not served ($1)"; exit 1; }
+            [ "$size" -ge "$2" ] \
+              || { echo "::error::$3 served but only $size bytes ($1)"; exit 1; }
+            echo "ok: $3 — $size bytes"
+          }
+
+          check /                            200   "bundled index.html"
+          check /hero-troop-insertion.webp   10000 "header/background photo"
+          check /favicon.svg                 100   "favicon"
+          check /api/schema?lang=fr          10000 "schema (FR)"
+          check /api/i18n?lang=fr            2000  "translations (FR)"
+          check /api/defaults                10000 "default catalogue"
+          check /api/dcs-types               10000 "DCS type list"
+
       - name: Attach ctld-tools.exe to the release
         shell: bash
         env:

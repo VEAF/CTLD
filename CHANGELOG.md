@@ -8,6 +8,106 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Tooling — ctld-tools Mission-Maker UX pass (CTLD-TOOLS-MM-UX)
+
+UI/UX rework of the `ctld-tools.exe` web app for a **non-technical Mission Maker**, plus a visual
+identity rooted in the subject (DCS rotary-wing logistics). `tools/` only — no `src/` change, no
+`CTLD.lua` rebuild, no runtime behaviour change.
+
+- **One navigation by functional family** replaces the `Parameters` / `Data` split. That split
+  followed the *shape* of a value rather than its subject, filing `enableCrates` under one screen and
+  `spawnableCrates` under another; a family now owns its settings **and** its tables. Two new
+  families (`Aircraft`, `Zones`), explicit domain ordering, per-family icons.
+- **Settings placed by name when the schema is silent** — a prefix/substring fallback
+  (`familyOf`) shrinks the catch-all `Other` family from ~44 settings to 7. Schema `group:` always
+  wins; the fallback reads the key's spelling only and invents nothing.
+- **Human labels** (`humanize`) instead of raw config keys, with the raw key kept alongside in small
+  type since that is what the docs and forums name. **Units** (m / kg / s) are extracted from the
+  existing schema descriptions — never guessed from a key name. Readable column headings for the
+  crate / troop / aircraft / zone tables.
+- **Boots onto the CTLD defaults** instead of an empty "load something to begin" screen.
+- **Guided workflow** — a Load → Adjust → Inject step strip, `Inject into mission…` promoted to the
+  single primary action, intent-based button wording, an explicit **save-state** indicator
+  (`No changes` / `Unsaved changes` / `Saved`) and an unsaved-changes guard on open / reset.
+- **Reset to default + changed markers**, backed by a new additive `GET /api/defaults`: a changed
+  setting is marked, counted per family and in the header, and restorable in one click.
+- **Search across all settings** (label, key, description, ranked) — including behind the Advanced
+  disclosure, which is now collapsed by default and opens by itself when it holds a change or when a
+  family has no common settings.
+- **Plain-language validation panel**, always visible, naming settings by their human label, with a
+  header status lamp; clicking a finding jumps to the setting. `Inject` is disabled while errors
+  remain. The version-gap dialog is rewritten as counted, expandable summaries that state plainly
+  that nothing was merged.
+- **Cockpit/kneeboard theme** — design tokens in `web/src/lib/theme.css` (dark instrument ground,
+  olive-biased neutrals, caution-amber accent, NATO side colours for RED/BLUE, display/mono type
+  split), shared control styling, real page title and favicon (was Vite's default), responsive down
+  to ~1000px, visible focus, `prefers-reduced-motion` honoured.
+- **Units are traced from the engine, not guessed.** `unit:` on 66 numeric settings in
+  `src/CTLD_config_schema.yaml`, each one established by reading the Lua that consumes the value —
+  `maxSlingloadSpeed` is **m/s** (compared to the magnitude of `Unit:getVelocity()`, no conversion
+  anywhere in `src/`), `deployedBeaconBattery` is **minutes** (the engine applies `* 60` at four
+  sites), `hoverTime` is **seconds** (counted down on a 1s tick), and so on. Previously the unit was
+  scraped out of the description text, which covered 40 of the 80 numeric settings and nothing for
+  those without a description. The remaining 14 provably have no unit (counters, colour and laser
+  codes, 0–1 fractions, a multiplier, a DCS font size) and stay bare. Units are not translated.
+  Two fixes fell out of the investigation: `spawnDistanceInCircle` was mislabelled as a *spacing*
+  when the code uses it as a **radius**, and `maxTransportWeight` gained a description because `0`
+  (which disables the check entirely) was unreadable. The runtime anomalies the sweep turned up —
+  including a `maxSlingloadSpeed` default of 50 m/s ≈ 180 km/h, two Lua fallbacks that disagree with
+  the YAML catalogue, and three settings that would raise on a missing key — are recorded on
+  `dev/roadmap.md` rather than changed here.
+- **Setting names are authored and bilingual.** `label: { en, fr }` on all 137 catalogue keys in
+  `src/CTLD_config_schema.yaml` (41 keys had no schema entry and got one), exposed per-language by
+  `/api/schema` and preferred over the key-derived name everywhere a setting is named — rows, search,
+  validation findings, version-gap and data-table titles. Search therefore matches the *translated*
+  name. Beyond translation this fixes several English names the derivation got wrong
+  (`enableAllCrates` → "Show the \"All crates\" shortcuts", per its own description) and brings the
+  project's **"no repack"** convention into the UI (`enableFARPRepack` → "Allow packing a FARP back
+  into crates"), with a test asserting no label in either language says "repack".
+- **In-app help**, from a `Help` button in the header — and generated from the schema and the open
+  catalogue rather than written as prose: setting and family counts, the family list carrying the
+  schema's own descriptions, and an inventory of every mission-data table with its real size. Adding a
+  family or a table updates the help with no text to maintain. The hand-written part covers what data
+  cannot say (the three steps, reading a setting row, validation, saving vs injecting, and the
+  complete-snapshot rule). EN+FR like the rest, 28 new keys. Counts only render once a catalogue is
+  loaded — the button is reachable from the first paint, and "0 settings across 0 families" would have
+  been a lie rather than a loading state.
+- **French UI.** The web app is now bilingual, reusing the backend i18n layer that already served the
+  CLI's validation messages: 90 `web.*` keys in `ctld_tools/data/locales/{en,fr}.json`, a new
+  `GET /api/i18n`, and `GET /api/schema?lang=` so that switching language also translates **setting
+  descriptions, table headings and family labels** — not just the chrome. A header picker overrides
+  the OS locale and is remembered in `localStorage`. A parity test reads the catalogs from disk and
+  fails the build if EN/FR key sets, texts, placeholders or plural pairs drift apart. Known limit:
+  setting *names* were still English at this point — closed by the `label:` work above.
+- **Families are named and described in the schema** (`src/CTLD_config_schema.yaml`, new reserved
+  `families:` section: bilingual `label` + `description`, plus `order` for the navigation). The
+  labels were **recovered from the retired TUI's `tui.family.*` catalogs** (commit `3205ef6`) rather
+  than re-invented — they had existed in EN+FR all along. Descriptions are new, written from the
+  settings and tables each family actually holds. `Schema` gains `family_label/description/order`,
+  and `families` joins `tableFields` as a reserved section so it is never taken for a setting. The UI
+  shows the description under the family title. This is the only `src/` change in the lot and it is
+  authoring metadata — not read by the build, so `CTLD.lua` is unaffected.
+- **A picture of the subject, behind the whole page**: a DCS frame of a Mi-8 putting troops on the
+  ground, fixed behind the app with the setting rows, data cards, step strip and rail translucent over
+  it (`--panel-glass`). Because the viewport is roughly 16:9, the entire frame shows — an earlier
+  attempt banded it across the header, where a 15:1 strip could only ever reveal 11% of it. Photo
+  brightness, opacity and card alpha were swept together against a contrast floor for every text
+  colour that lands on the image (12.4:1 for body text on a card, 4.5:1 for muted text straight on the
+  background); `--ink-faint` was lifted to `#7b8d96`, which the brighter backdrop had pushed to 2.5:1.
+  Asset is 79 KB (1600×900 WebP), and a missing file degrades silently to the gradient.
+- **The release smoke-check now boots the exe and pulls resources out of it** — the page, the
+  background photo, the favicon, and the schema / i18n / defaults / DCS-types endpoints. The previous
+  check only ran `--help`, so an exe with a missing or broken bundled web app would have shipped
+  green; that is the part a Mission Maker actually double-clicks. Verified against a locally built
+  exe: 21.2 MB, and every resource served.
+- **CI gains a `frontend` job** (`npm run check` + `npm test` + `npm run build`). The web-app suite
+  existed since `CTLD-TOOLS-WEBAPP` but no workflow ran it — `release.yml` only built the bundle, so
+  a red test could ship. The exe embeds this frontend, so it now gates like the rest.
+- Docs: `docs/mission-maker/ctld-tools.{md,fr.md}` updated to the new UI. Deferred follow-ups
+  recorded on `dev/roadmap.md`: **UI i18n (FR)** — every string is centralised in
+  `web/src/lib/strings.ts` to make it mechanical — and **enriching `CTLD_config_schema.yaml`** with
+  the missing `group:` / `label:` / `unit:` metadata, which is the durable home for it.
+
 ### Tooling — ctld-tools v2 web app (CTLD-TOOLS-WEBAPP)
 
 - Lot 3 (ticket 08): **docs rewrite** — `docs/mission-maker/ctld-tools.{md,fr.md}` rewritten for the
