@@ -54,6 +54,11 @@ class Schema:
         desc = self._entry(key).get("description")
         return desc.get(lang) if isinstance(desc, dict) else None
 
+    def label(self, key: str, lang: str = "en") -> str | None:
+        """Short display name for a setting, or None — the UI then derives one from the key."""
+        label = self._entry(key).get("label")
+        return label.get(lang) or label.get("en") if isinstance(label, dict) else None
+
     def families(self) -> list[str]:
         """The distinct functional families declared across the schema, sorted."""
         return sorted({g for k in self.keys() if (g := self.group(k))})

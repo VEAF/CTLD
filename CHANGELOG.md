@@ -42,14 +42,21 @@ identity rooted in the subject (DCS rotary-wing logistics). `tools/` only — no
   olive-biased neutrals, caution-amber accent, NATO side colours for RED/BLUE, display/mono type
   split), shared control styling, real page title and favicon (was Vite's default), responsive down
   to ~1000px, visible focus, `prefers-reduced-motion` honoured.
+- **Setting names are authored and bilingual.** `label: { en, fr }` on all 137 catalogue keys in
+  `src/CTLD_config_schema.yaml` (41 keys had no schema entry and got one), exposed per-language by
+  `/api/schema` and preferred over the key-derived name everywhere a setting is named — rows, search,
+  validation findings, version-gap and data-table titles. Search therefore matches the *translated*
+  name. Beyond translation this fixes several English names the derivation got wrong
+  (`enableAllCrates` → "Show the \"All crates\" shortcuts", per its own description) and brings the
+  project's **"no repack"** convention into the UI (`enableFARPRepack` → "Allow packing a FARP back
+  into crates"), with a test asserting no label in either language says "repack".
 - **French UI.** The web app is now bilingual, reusing the backend i18n layer that already served the
   CLI's validation messages: 90 `web.*` keys in `ctld_tools/data/locales/{en,fr}.json`, a new
   `GET /api/i18n`, and `GET /api/schema?lang=` so that switching language also translates **setting
   descriptions, table headings and family labels** — not just the chrome. A header picker overrides
   the OS locale and is remembered in `localStorage`. A parity test reads the catalogs from disk and
   fails the build if EN/FR key sets, texts, placeholders or plural pairs drift apart. Known limit:
-  setting *names* are derived from the config key, so they stay English (a `label:` per setting is on
-  `dev/roadmap.md`).
+  setting *names* were still English at this point — closed by the `label:` work above.
 - **Families are named and described in the schema** (`src/CTLD_config_schema.yaml`, new reserved
   `families:` section: bilingual `label` + `description`, plus `order` for the navigation). The
   labels were **recovered from the retired TUI's `tui.family.*` catalogs** (commit `3205ef6`) rather

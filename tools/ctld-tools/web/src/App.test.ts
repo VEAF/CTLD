@@ -5,8 +5,8 @@ import App from './App.svelte'
 const SCHEMA = {
   families: ['aa', 'troops'],
   keys: {
-    numberOfTroops: { group: 'troops', standard: true, choices: null, description: 'Default troop group size' },
-    aaRearmDistance: { group: 'aa', standard: false, choices: null, description: 'Rearm range (metres)' },
+    numberOfTroops: { group: 'troops', standard: true, choices: null, label: null, description: 'Default troop group size' },
+    aaRearmDistance: { group: 'aa', standard: false, choices: null, label: null, description: 'Rearm range (metres)' },
   },
   familyMeta: {
     aa: { label: 'AA system', description: 'Anti-air systems assembled from crates.', order: 100 },

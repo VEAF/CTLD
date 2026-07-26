@@ -48,21 +48,22 @@ The first three of these were deferred, then requested straight after the first 
   Lesson: check the history before declaring metadata absent.
 - **Decoration** → ticket 12. Tickets 01–09 delivered a palette and functional icons but nothing
   depicting the subject.
+- **`label:` per setting** → ticket 13. Ticket 11's French UI still showed English setting *names*;
+  authoring 137 bilingual labels closed that. It also improved several English names over the naive
+  derivation, and let the project's "no repack" convention reach the UI.
 
 ### Still out of scope
 
-- **`label:` per setting in the schema.** Setting names remain derived from the config key, so they
-  stay English. Translating them means authoring ~136 labels — the ticket-10 job an order of
-  magnitude larger. A French MM gets an English name, a French description and the raw key. On
-  `dev/roadmap.md`.
 - **The ~44 missing `group:` entries.** The name-derived fallback shrinks `Other` to 7, so the
   remaining value is mostly tidiness; the durable fix still needs authored descriptions.
 - Replacing the raw `JsonEditor` fallback (`modTypes`, `aiZones`, …) with structured editors.
 
 ## Scope
 
-`tools/ctld-tools/` only — the Svelte frontend plus one additive backend endpoint. No `src/` change,
-so no `CTLD.lua` rebuild and no Lua behaviour change.
+`tools/ctld-tools/` — the Svelte frontend plus additive backend endpoints — and, from tickets 10 and
+13, `src/CTLD_config_schema.yaml`. That file is **authoring metadata**: it is not read by
+`merge_CTLD.ps1` (verified), so `CTLD.lua` needs no rebuild and no Lua behaviour changes. The
+`changelog-guard` job does apply, and the lot has a CHANGELOG entry.
 
 ## Tickets
 
@@ -80,12 +81,15 @@ so no `CTLD.lua` rebuild and no Lua behaviour change.
 | 10 | Families named and described in the schema | pulled in from the deferred list (see below) |
 | 11 | French UI | pulled in from the deferred list |
 | 12 | A picture of what the tool is for | asked for after the first review |
+| 13 | Bilingual setting names in the schema | closes the i18n hole left by ticket 11 |
 
 ## Acceptance
 
 - A MM opening the exe lands on a populated, themed screen and can reach any setting in ≤ 2 clicks
   or one search.
-- Every setting shows a human label, its unit when the schema documents one, and can be reset.
+- Every setting shows a human label — translated, from the schema — its unit when the schema
+  documents one, and can be reset.
+- Nothing user-facing is English-only when the UI is in French, apart from DCS's own type names.
 - One navigation; no `Parameters` / `Data` wording anywhere in the UI.
 - `Other` holds only settings whose family cannot be derived from schema or key.
 - Existing test suites stay green; new logic (labels, families, units, search, diff-vs-default)

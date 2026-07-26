@@ -16,8 +16,8 @@ const schema: SchemaInfo = {
   families: ['aa', 'troops', 'jtac'],
   familyMeta: {},
   keys: {
-    numberOfTroops: { group: 'troops', standard: true, choices: null, description: null },
-    aaRearmDistance: { group: 'aa', standard: false, choices: null, description: null },
+    numberOfTroops: { group: 'troops', standard: true, choices: null, label: null, description: null },
+    aaRearmDistance: { group: 'aa', standard: false, choices: null, label: null, description: null },
     // hoverTime has no schema entry and no prefix rule → OTHER_FAMILY
   },
   tableFields: {},
@@ -73,7 +73,7 @@ describe('settingKeys', () => {
 })
 
 describe('editorType', () => {
-  const enumMeta: SchemaKey = { group: null, standard: false, choices: ['a', 'b'], description: null }
+  const enumMeta: SchemaKey = { group: null, standard: false, choices: ['a', 'b'], label: null, description: null }
 
   it('resolves each scalar type', () => {
     expect(editorType(enumMeta, 'a')).toBe('enum')

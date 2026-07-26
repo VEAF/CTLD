@@ -4,9 +4,8 @@
   // plainly, then let the MM see what changed without drowning them in three key lists.
   import type { VersionGap } from './api'
   import { plural, t } from './i18n.svelte'
-  import { humanize } from './labels'
 
-  let { gap, onclose }: { gap: VersionGap; onclose: () => void } = $props()
+  let { gap, labelOf, onclose }: { gap: VersionGap; labelOf: (key: string) => string; onclose: () => void } = $props()
 
   function short(v: unknown): string {
     if (v === null || v === undefined) return '—'
@@ -27,7 +26,7 @@
         <summary>{plural('web.gap.added', gap.added.length)}</summary>
         <ul>
           {#each gap.added as k (k)}
-            <li>{humanize(k)} <code class="rawkey">{k}</code></li>
+            <li>{labelOf(k)} <code class="rawkey">{k}</code></li>
           {/each}
         </ul>
       </details>
@@ -38,7 +37,7 @@
         <summary>{plural('web.gap.removed', gap.removed.length)}</summary>
         <ul>
           {#each gap.removed as k (k)}
-            <li>{humanize(k)} <code class="rawkey">{k}</code></li>
+            <li>{labelOf(k)} <code class="rawkey">{k}</code></li>
           {/each}
         </ul>
       </details>
@@ -50,7 +49,7 @@
         <ul>
           {#each gap.changed as c (c.key)}
             <li>
-              {humanize(c.key)} <code class="rawkey">{c.key}</code>
+              {labelOf(c.key)} <code class="rawkey">{c.key}</code>
               <span class="diff">{short(c.old)} → {short(c.new)}</span>
             </li>
           {/each}

@@ -48,6 +48,7 @@ test('VersionGapPopup summarises the three diff buckets and closes', async () =>
       removed: ['oldSetting'],
       changed: [{ key: 'hoverTime', old: 10, new: 15 }],
     },
+    labelOf: (k: string) => `name of ${k}`,
     onclose,
   })
   expect(screen.getByRole('dialog')).toBeInTheDocument()
@@ -57,7 +58,8 @@ test('VersionGapPopup summarises the three diff buckets and closes', async () =>
   expect(screen.getByText('1 default value changed')).toBeInTheDocument()
   // It must say plainly that nothing was merged behind the user's back.
   expect(screen.getByText(/Nothing has been merged/)).toBeInTheDocument()
-  expect(screen.getByText('Hover time')).toBeInTheDocument()
+  // Names come from the injected resolver (the schema's translated label in the app).
+  expect(screen.getByText(/name of hoverTime/)).toBeInTheDocument()
   await fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
   expect(onclose).toHaveBeenCalled()
 })

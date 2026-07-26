@@ -71,23 +71,17 @@ passer par la config `logisticUnits`. La zone logistique suit le véhicule en mo
 
 ---
 
-## ctld-tools — `label:` et `unit:` par réglage dans le schéma
+## ctld-tools — `unit:` et `group:` manquants dans le schéma
 
-Le lot CTLD-TOOLS-MM-UX a mis les **familles** dans `src/CTLD_config_schema.yaml` (section
-`families:` : `label` + `description` bilingues + `order`). Restent deux métadonnées dérivées côté
-frontend, faute de source :
+Le lot CTLD-TOOLS-MM-UX a mis dans `src/CTLD_config_schema.yaml` les **familles** (section
+`families:` : `label` + `description` bilingues + `order`) et un **`label:` bilingue par réglage**
+(137 entrées). Restent deux métadonnées dérivées côté frontend :
 
-- le **libellé** d'un réglage, dérivé du nom de la clé (`humanize` + petite table d'overrides) — donc
-  **toujours en anglais**, même quand l'UI est en français. C'est la principale limite de l'i18n
-  livrée : un MM francophone voit un nom anglais, une description française, et la clé brute ;
 - l'**unité**, extraite du texte de la `description` (`(m)`, `(kg)`, `(seconds)`) — fiable mais
-  indirect ; un champ `unit:` serait explicite.
+  indirect, et muette pour les réglages sans description. Un champ `unit:` serait explicite ;
 - la **famille** des ~44 réglages sans `group:`, dérivée du nom de la clé (`familyOf`). Ça réduit la
   famille fourre-tout `Other` de ~44 à 7, donc le gain restant est surtout cosmétique.
 
-Le lot candidat : ajouter `label:` (bilingue) et `unit:` par réglage, + les `group:` manquants, puis
-faire consommer ça par l'UI et retirer les heuristiques. Converge avec « générer les tableaux de
-config de la doc depuis le schéma » : mêmes métadonnées, même source.
-
-Attention au volume : ~136 libellés bilingues à **écrire** (les inventer serait contraire à la règle
-zéro-supposition). C'est un vrai lot d'écriture, pas un coup de sed.
+Converge avec « générer les tableaux de config de la doc depuis le schéma » : mêmes métadonnées, même
+source. Le vrai reste-à-faire coûteux, ce sont les **descriptions** des ~44 réglages non documentés
+(les inventer serait contraire à la règle zéro-supposition).

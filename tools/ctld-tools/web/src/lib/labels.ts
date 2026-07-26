@@ -55,6 +55,14 @@ function words(key: string): string[] {
     .filter(Boolean)
 }
 
+/**
+ * The display name for a setting: the schema's authored `label:` when there is one (translated,
+ * and able to phrase things a key never could), otherwise one derived from the key.
+ */
+export function settingLabel(key: string, authored: string | null | undefined): string {
+  return authored || humanize(key)
+}
+
 /** A sentence-case label for a config key. Falls back to the key itself if it has no words. */
 export function humanize(key: string): string {
   const override = LABEL_OVERRIDES[key]

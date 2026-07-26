@@ -30,7 +30,7 @@
   import ZonesEditor from './lib/ZonesEditor.svelte'
   import { DATA_FAMILY, familyDescription, familyIcon, familyLabel, familyOf } from './lib/families'
   import { availableLanguages, currentLanguage, initLanguage, plural, setLanguage, t } from './lib/i18n.svelte'
-  import { humanize } from './lib/labels'
+  import { settingLabel } from './lib/labels'
   import { classify, coerce, isChanged, settingKeys, type EditorType, type Family } from './lib/model'
   import { searchSettings } from './lib/search'
   import { TROOP_FIELDS, withTips } from './lib/tables'
@@ -62,6 +62,9 @@
   const families = $derived<Family[]>(snapshot && schema ? classify(snapshot, schema) : [])
   const current = $derived<Family | null>(families.find((f) => f.key === activeFamily) ?? families[0] ?? null)
   const hasErrors = $derived(findings.some((f) => f.severity === 'error'))
+
+  /** A setting's display name: the schema's translated label, else derived from the key. */
+  const labelOf = (key: string) => settingLabel(key, schema?.keys[key]?.label)
 
   const familyForKey = (key: string) =>
     DATA_FAMILY[key] ?? familyOf(key, schema?.keys[key]?.group)
@@ -332,7 +335,7 @@
 {/if}
 
 {#if gap}
-  <VersionGapPopup {gap} onclose={() => (gap = null)} />
+  <VersionGapPopup {gap} {labelOf} onclose={() => (gap = null)} />
 {/if}
 
 <div class="body">
@@ -372,7 +375,7 @@
       {/if}
     </div>
 
-    <ValidationPanel {findings} ongoto={goto} />
+    <ValidationPanel {findings} {labelOf} ongoto={goto} />
 
     {#if searching}
       <h2 class="title">{plural('web.search.results', hits.length)}</h2>
@@ -434,7 +437,7 @@
         {#each current.data as key (key)}
           <section class="datacard">
             <h4>
-              {humanize(key)}
+              {labelOf(key)}
               <code class="rawkey">{key}</code>
               {#if changedKeys.has(key)}<span class="cbadge">{t('web.badge.changed')}</span>{/if}
             </h4>

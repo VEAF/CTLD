@@ -6,13 +6,15 @@
   // by their human label, and clicking one takes the MM to the setting it concerns.
   import type { Finding } from './api'
   import { plural, t } from './i18n.svelte'
-  import { humanize } from './labels'
 
   let {
     findings,
+    labelOf,
     ongoto,
   }: {
     findings: Finding[]
+    /** Resolve a setting's display name (schema label, else derived from the key). */
+    labelOf: (key: string) => string
     /** Navigate to the setting a finding concerns (family + reveal). */
     ongoto: (key: string) => void
   } = $props()
@@ -41,7 +43,7 @@
         {#each errors as f (f.where + f.key + f.message)}
           <li>
             <button class="ghost finding" onclick={() => ongoto(f.key)}>
-              <span class="what">{f.key ? humanize(f.key) : f.where}</span>
+              <span class="what">{f.key ? labelOf(f.key) : f.where}</span>
               <span class="msg">{f.message}</span>
               {#if f.key}<code class="rawkey">{f.key}</code>{/if}
             </button>
@@ -57,7 +59,7 @@
         {#each warnings as f (f.where + f.key + f.message)}
           <li>
             <button class="ghost finding" onclick={() => ongoto(f.key)}>
-              <span class="what">{f.key ? humanize(f.key) : f.where}</span>
+              <span class="what">{f.key ? labelOf(f.key) : f.where}</span>
               <span class="msg">{f.message}</span>
               {#if f.key}<code class="rawkey">{f.key}</code>{/if}
             </button>

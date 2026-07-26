@@ -4,7 +4,7 @@
   // does, see whether they have touched it, and undo that, without leaving the row.
   import type { SchemaKey } from './api'
   import { t } from './i18n.svelte'
-  import { humanize, unitOf } from './labels'
+  import { settingLabel, unitOf } from './labels'
   import { editorType, isChanged, type EditorType } from './model'
 
   let {
@@ -26,6 +26,7 @@
     onreset: (key: string, fallback: unknown) => void
   } = $props()
 
+  const name = $derived(settingLabel(settingKey, meta?.label))
   const type = $derived<EditorType>(editorType(meta, value))
   const unit = $derived(unitOf(meta?.description))
   const changed = $derived(isChanged(value, fallback))
@@ -34,7 +35,7 @@
 
 <div class="row" class:changed>
   <div class="head">
-    <label for={id}>{humanize(settingKey)}</label>
+    <label for={id}>{name}</label>
     <code class="rawkey">{settingKey}</code>
     {#if changed}<span class="badge">{t('web.badge.changed')}</span>{/if}
     {#if familyName}<span class="family">{t('web.search.in')} {familyName}</span>{/if}
@@ -59,7 +60,7 @@
     {/if}
 
     {#if changed}
-      <button class="ghost reset" title={t('web.action.reset')} aria-label={`${t('web.action.reset')}: ${humanize(settingKey)}`} onclick={() => onreset(settingKey, fallback)}>
+      <button class="ghost reset" title={t('web.action.reset')} aria-label={`${t('web.action.reset')}: ${name}`} onclick={() => onreset(settingKey, fallback)}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
           <path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4" />
         </svg>

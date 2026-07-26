@@ -14,7 +14,8 @@ runtime; nothing generates or reads a Lua *table* of defaults any more.
 - `catalog.py` (`Catalog`) — load / get / set / add / remove / save a complete config YAML
   in full (round-trip via ruamel, over the `mm_facing` / `advanced` sections + top-level).
 - `schema.py` (`Schema`) — typed access to the authoring metadata in
-  `src/CTLD_config_schema.yaml` (`group` / `standard` / `choices` / `description`).
+  `src/CTLD_config_schema.yaml` (`group` / `standard` / `choices` / `label` / `description`, plus the
+  reserved `families:` and `tableFields:` sections).
 - `validate.py` — validate a complete catalogue: DCS unit types (datamine), unique crate
   weights, AA **mixedSet** consistency, schema `choices` enums.
 - `versiongap.py` — diff an authored catalogue against the current default (new / removed /
@@ -53,8 +54,9 @@ JSON catalogs in `ctld_tools/data/locales/`). Language follows the OS locale; ov
 to the key itself).
 
 **Settings schema** — `src/CTLD_config_schema.yaml` holds authoring metadata for settings
-(functional `group`, `standard` flag, `choices` enum, bilingual `description`). Optional: a
-setting with no entry is still editable, the UI falls back to a generic editor.
+(functional `group`, `standard` flag, `choices` enum, bilingual `label` and `description`), plus two
+reserved sections: `families:` and `tableFields:`. Optional: a setting with no entry is still
+editable, the UI falls back to a generic editor and a name derived from the key.
 
 ## Web app
 
@@ -67,21 +69,23 @@ scalar settings and its structured tables (see `web/src/lib/families.ts`). There
 Parameters/Data split: that followed the *shape* of a value rather than its subject, and filed
 `enableCrates` and `spawnableCrates` under different screens.
 
-Families are declared in the schema's reserved `families:` section (bilingual `label` +
-`description`, plus `order` for the navigation); `web/src/lib/families.ts` keeps constants only as a
-fallback. Two pieces of presentation metadata still live in the frontend, for want of a source:
+Presentation metadata comes from `src/CTLD_config_schema.yaml`:
 
-- **Setting labels** (`web/src/lib/labels.ts`) are derived from the key itself (`humanize`), with a
-  short override map — so they stay English even when the UI is French.
+- **`families:`** (reserved section) — per-family bilingual `label` + `description`, plus `order` for
+  the navigation. `web/src/lib/families.ts` keeps constants only as a fallback.
+- **`label: { en, fr }`** per setting — the display name, shown instead of the raw config key (which
+  stays visible beside it, since that is what the docs and forums name). A setting without one falls
+  back to `humanize(key)` in `web/src/lib/labels.ts`, which is always English.
+
+Two things are still derived in the frontend, for want of a source:
+
 - **Units** are extracted from the schema `description` text, which already documents them
   (`Max height (m) …`) — never inferred from a key name, where a wrong guess would be worse than
   nothing.
 - **Family fallback** (`familyOf`) derives a family from the key's spelling for the ~44 settings the
   schema has no `group:` for, which shrinks the catch-all `Other` family from ~44 settings to 7.
 
-The durable home for all of it is `src/CTLD_config_schema.yaml` (a `label:` / `unit:` per setting and
-the missing `group:`), which would also let the doc tables be generated from it — see
-`dev/roadmap.md`.
+An explicit `unit:` and the missing `group:` are the remaining schema work — see `dev/roadmap.md`.
 
 ### i18n
 

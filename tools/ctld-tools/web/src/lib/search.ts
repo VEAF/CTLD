@@ -5,7 +5,7 @@
 // behind the Advanced disclosure is still one query away.
 
 import type { SchemaInfo } from './api'
-import { humanize } from './labels'
+import { settingLabel } from './labels'
 
 export interface Hit {
   key: string
@@ -34,7 +34,7 @@ export function searchSettings(
   if (!q) return []
   const hits: Hit[] = []
   for (const key of keys) {
-    const label = humanize(key).toLowerCase()
+    const label = settingLabel(key, schema?.keys[key]?.label).toLowerCase()
     const description = (schema?.keys[key]?.description ?? '').toLowerCase()
     let score: number | null = null
     if (label.startsWith(q)) score = LABEL_PREFIX
@@ -44,5 +44,6 @@ export function searchSettings(
     if (score !== null) hits.push({ key, family: familyFor(key), score })
   }
   // Stable within a score band: alphabetical by label, so repeated searches don't reshuffle.
-  return hits.sort((a, b) => a.score - b.score || humanize(a.key).localeCompare(humanize(b.key)))
+  const name = (k: string) => settingLabel(k, schema?.keys[k]?.label)
+  return hits.sort((a, b) => a.score - b.score || name(a.key).localeCompare(name(b.key)))
 }

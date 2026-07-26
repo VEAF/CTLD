@@ -6,10 +6,10 @@ const schema: SchemaInfo = {
   families: [],
   familyMeta: {},
   keys: {
-    enableCrates: { group: 'crates', standard: true, choices: null, description: 'Master switch for crate spawning' },
-    crateSpacing: { group: 'crates', standard: false, choices: null, description: null },
-    maxDropHeight: { group: 'crates', standard: false, choices: null, description: 'Highest altitude to drop a crate from' },
-    hoverTime: { group: null, standard: false, choices: null, description: 'Seconds a pilot must hover' },
+    enableCrates: { group: 'crates', standard: true, choices: null, label: null, description: 'Master switch for crate spawning' },
+    crateSpacing: { group: 'crates', standard: false, choices: null, label: null, description: null },
+    maxDropHeight: { group: 'crates', standard: false, choices: null, label: null, description: 'Highest altitude to drop a crate from' },
+    hoverTime: { group: null, standard: false, choices: null, label: null, description: 'Seconds a pilot must hover' },
   },
   tableFields: {},
   zoneFields: {},
@@ -53,6 +53,21 @@ describe('searchSettings', () => {
 
   it('is stable — the same query twice gives the same order', () => {
     expect(run('crate')).toEqual(run('crate'))
+  })
+
+  it('searches the translated label, so a French query finds its setting', () => {
+    const fr: SchemaInfo = {
+      ...schema,
+      keys: {
+        ...schema.keys,
+        enableCrates: { ...schema.keys.enableCrates, label: 'Activer les caisses', description: null },
+      },
+    }
+    expect(searchSettings('caisses', keys, fr, familyFor).map((h) => h.key)).toEqual(['enableCrates'])
+    // The English derivation no longer matches once a label is authored.
+    expect(searchSettings('enable crates', keys, fr, familyFor).map((h) => h.key)).toEqual([])
+    // …but the raw key still works, which is what the docs and forums name.
+    expect(searchSettings('enableCrates', keys, fr, familyFor).map((h) => h.key)).toEqual(['enableCrates'])
   })
 
   it('still matches on label and key when the schema is missing', () => {

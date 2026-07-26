@@ -10,6 +10,8 @@ export interface SchemaKey {
   group: string | null
   standard: boolean
   choices: unknown[] | null
+  /** Authored display name in the active language; null → derive one from the key. */
+  label: string | null
   description: string | null
 }
 

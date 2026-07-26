@@ -85,6 +85,35 @@ def test_schema_endpoint_translates_with_lang():
     assert "DCS" in fr["tableFields"]["spawnableCrates"]["unit"]
 
 
+def test_schema_endpoint_labels_every_setting():
+    # Setting names are what a Mission Maker reads first; an unlabelled setting falls back to a
+    # name derived from its key, which is always English.
+    keys = client.get("/api/schema?lang=en").json()["keys"]
+    unlabelled = [k for k, meta in keys.items() if not meta["label"]]
+    assert unlabelled == []
+
+
+def test_schema_endpoint_translates_setting_labels():
+    en = client.get("/api/schema?lang=en").json()["keys"]
+    fr = client.get("/api/schema?lang=fr").json()["keys"]
+    assert en["enableCrates"]["label"] == "Enable crates"
+    assert fr["enableCrates"]["label"] == "Activer les caisses"
+    assert fr["aaRearmDistance"]["label"] == "Distance de réapprovisionnement AA"
+    # Every label is translated, not just a handful.
+    assert not [k for k in en if en[k]["label"] == fr[k]["label"] and k not in _SAME_IN_BOTH]
+
+
+# Labels that are legitimately identical in EN and FR (acronyms, proper nouns).
+_SAME_IN_BOTH = {"JTAC_lock", "modTypes"}
+
+
+def test_labels_never_use_the_banned_repack_wording():
+    # Project convention: "repack" is banned, "pack" everywhere — including user-facing labels.
+    for lang in ("en", "fr"):
+        keys = client.get(f"/api/schema?lang={lang}").json()["keys"]
+        assert not [k for k, meta in keys.items() if "repack" in (meta["label"] or "").lower()]
+
+
 def test_schema_endpoint_falls_back_to_en_for_an_unknown_lang():
     body = client.get("/api/schema?lang=zz").json()
     assert body["familyMeta"]["crates"]["label"] == "Crates"

@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import { humanize, unitOf } from './labels'
+import { humanize, settingLabel, unitOf } from './labels'
+
+describe('settingLabel', () => {
+  it('prefers the schema label — that is what carries the translation', () => {
+    expect(settingLabel('aaRearmDistance', 'Distance de réapprovisionnement AA')).toBe(
+      'Distance de réapprovisionnement AA',
+    )
+  })
+
+  it('derives one from the key when the schema has none', () => {
+    expect(settingLabel('aaRearmDistance', null)).toBe('AA rearm distance')
+    expect(settingLabel('hoverTime', undefined)).toBe('Hover time')
+    expect(settingLabel('hoverTime', '')).toBe('Hover time')
+  })
+})
 
 describe('humanize', () => {
   it('splits camelCase into a sentence-case label', () => {
