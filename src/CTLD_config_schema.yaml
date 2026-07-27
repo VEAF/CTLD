@@ -1008,6 +1008,10 @@ maxDistanceFromCrate:
 maxSlingloadSpeed:
   label: {en: Max sling-load speed, fr: Vitesse max en sling-load}
   unit: m/s
+  standard: true
+  description:
+    en: "Ground speed above which a slung crate is lost, in metres per second — the engine compares it to the helicopter's own velocity. The default 26 m/s is about 50 kt / 94 km/h, in line with a UH-1H sling-load limit. Raise it for a faster airframe, but remember the unit: 50 here would mean 180 km/h."
+    fr: "Vitesse au-delà de laquelle une caisse à l'élingue est perdue, en mètres par seconde — le moteur la compare à la vitesse de l'hélicoptère. Le défaut de 26 m/s vaut environ 50 kt / 94 km/h, cohérent avec la limite de sling-load d'un UH-1H. Augmentez-la pour un appareil plus rapide, mais attention à l'unité : 50 ici signifierait 180 km/h."
 maxDropHeight:
   label: {en: Max drop height, fr: Hauteur max de largage}
   unit: m

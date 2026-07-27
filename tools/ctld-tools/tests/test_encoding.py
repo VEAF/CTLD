@@ -65,3 +65,36 @@ def test_the_detector_actually_detects(tmp_path: Path) -> None:
     clean = tmp_path / "clean.yaml"
     clean.write_text("fr: le point de référence\nfr: l'action « Retirer »\n", encoding="utf-8")
     assert _offenders(clean) == []
+
+
+# ── in-code fallbacks vs the catalogue ──────────────────────────────
+# Several `ctld.gs("x") or <default>` fallbacks in the Lua disagreed with the catalogue, so the same
+# setting had two defaults depending on whether a config was loaded. Reviewing `maxSlingloadSpeed`
+# turned that up, so the setting that prompted it gets pinned here.
+FALLBACK_PATTERN = r'ctld\.gs\("{key}"\)\s*or\s+([\d.]+)'
+
+
+def _catalogue_value(key: str):
+    from ruamel.yaml import YAML
+
+    cfg = YAML(typ="safe").load((ROOT / "src" / "CTLD_config.yaml").read_text(encoding="utf-8"))
+    flat: dict = {}
+    for section, value in cfg.items():
+        if section in ("mm_facing", "advanced") and isinstance(value, dict):
+            flat.update(value)
+        else:
+            flat[section] = value
+    return flat[key]
+
+
+def test_max_slingload_speed_fallback_matches_the_catalogue() -> None:
+    """The Lua fallback and the catalogue must not drift.
+
+    The value is in m/s (the engine compares it to `Unit:getVelocity()`), and the original default of
+    50 read like knots — 50 m/s is ~180 km/h. Corrected to 26 (~50 kt) in both places; this test is
+    what keeps them together.
+    """
+    lua = (ROOT / "src" / "CTLD_crate.lua").read_text(encoding="utf-8")
+    match = re.search(FALLBACK_PATTERN.format(key="maxSlingloadSpeed"), lua)
+    assert match, "the maxSlingloadSpeed fallback disappeared — update this test with it"
+    assert float(match.group(1)) == float(_catalogue_value("maxSlingloadSpeed"))

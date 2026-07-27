@@ -7,6 +7,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Changed — runtime
+
+- **`maxSlingloadSpeed` default corrected from `50` to `26`.** The value is in **metres per second**:
+  the engine compares it to the magnitude of `Unit:getVelocity()` (`CTLD_crate.lua:1100`), with no
+  conversion anywhere in `src/`. So `50` meant ~180 km/h / 97 kt — nearly double a UH-1H's sling-load
+  limit — and reads like a value entered as knots. `26` m/s is ~50 kt / 94 km/h. **This changes
+  in-flight behaviour**: a crate is now cut loose at a lower speed than before. Raise the setting per
+  mission if your airframe warrants it; the unit is now spelled out in the setting's description.
+  The Lua fallback (`ctld.gs(...) or 50`) was corrected in the same move — leaving it would have left
+  two different defaults depending on whether a config was loaded — and a test now pins the two
+  together.
 ### Fixed
 
 - **A troop-group editor that corrupted the file it edited.** `jtac` was typed as a boolean in the web

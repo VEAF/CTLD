@@ -2993,7 +2993,7 @@ mm_facing:
   - logistic9
   - logistic10
   maxExtractDistance: 125
-  maxSlingloadSpeed: 50
+  maxSlingloadSpeed: 26
   maxTransportWeight: 0
   maximumDistanceLogistic: 200
   maximumDistancePackableUnitsSearch: 200
@@ -12797,7 +12797,7 @@ function CTLDCrateManager:checkHoverStatus()
     local minH        = ctld.gs("minimumHoverHeight")   or 7.5
     local maxH        = ctld.gs("maximumHoverHeight")   or 12.0
     local hoverTime   = ctld.gs("hoverTime")            or 10
-    local maxSpeed    = ctld.gs("maxSlingloadSpeed")    or 50
+    local maxSpeed    = ctld.gs("maxSlingloadSpeed")    or 26
 
     local players = CTLDPlayerManager.getInstance()._players
 

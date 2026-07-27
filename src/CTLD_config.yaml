@@ -277,7 +277,7 @@ mm_facing:
   - logistic9
   - logistic10
   maxExtractDistance: 125
-  maxSlingloadSpeed: 50
+  maxSlingloadSpeed: 26
   maxTransportWeight: 0
   maximumDistanceLogistic: 200
   maximumDistancePackableUnitsSearch: 200

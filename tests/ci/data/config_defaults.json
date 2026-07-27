@@ -382,7 +382,7 @@
   "maxDistanceFromCrate": 5.5,
   "maxDropHeight": 7.5,
   "maxExtractDistance": 125,
-  "maxSlingloadSpeed": 50,
+  "maxSlingloadSpeed": 26,
   "maxTransportWeight": 0,
   "maximumDistanceLogistic": 200,
   "maximumDistancePackableUnitsSearch": 200,

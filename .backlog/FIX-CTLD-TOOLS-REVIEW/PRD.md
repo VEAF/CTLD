@@ -18,11 +18,9 @@ Every point was re-verified against the code before acting; this lot fixes what 
 
 ## Deliberately out of scope
 
-- **`maxSlingloadSpeed` default `50` → `26`.** FullGas's reasoning is sound (the value is m/s, so 50 is
-  ~180 km/h against a UH-1H sling-load limit near 50 KIAS ≈ 26 m/s). But this changes in-flight
-  behaviour, so it is the maintainers' call, not a UI fix. Note for whoever takes it: the
-  `CTLD_config_defaults.lua` named in the report no longer exists — since ADR 0011 the only source is
-  `src/CTLD_config.yaml`, with `CTLD_config_default_yaml.lua` generated from it by the build.
+- ~~`maxSlingloadSpeed`~~ — **now in scope**: David called it, see ticket 02. The
+  `CTLD_config_defaults.lua` named in the report no longer exists; since ADR 0011 the only source is
+  `src/CTLD_config.yaml`, plus the in-code fallback.
 - The hover-height reference frames: FullGas analysed them and closed the point as no-bug.
 
 ## Acceptance
