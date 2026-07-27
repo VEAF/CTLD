@@ -48,6 +48,10 @@ export function fieldLabel(field: string): string {
  */
 export const DCS_TYPES_LIST = 'dcs-types'
 
+// Every count in a troop group is a number, `jtac` included — the catalogue ships `jtac: 1` and
+// `jtac: 2`. Typing it `boolean` (as this did) rendered a checkbox that was unchecked for any numeric
+// value, so "JTAC Group" and "JTAC Group 2" looked identical and "Single JTAC" looked empty; worse,
+// toggling it wrote `true`/`false` into the Mission Maker's YAML in place of the count.
 export const TROOP_FIELDS: Omit<Field, 'tip'>[] = [
   { name: 'name', type: 'string' },
   { name: 'inf', type: 'number' },
@@ -55,7 +59,7 @@ export const TROOP_FIELDS: Omit<Field, 'tip'>[] = [
   { name: 'at', type: 'number' },
   { name: 'aa', type: 'number' },
   { name: 'mortar', type: 'number' },
-  { name: 'jtac', type: 'boolean' },
+  { name: 'jtac', type: 'number' },
 ]
 
 // Merge a field spec with the tooltips for a table (schema.tableFields[table]).

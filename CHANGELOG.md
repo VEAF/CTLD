@@ -7,12 +7,49 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Changed — runtime
+
+- **`maxSlingloadSpeed` default corrected from `50` to `26`.** The value is in **metres per second**:
+  the engine compares it to the magnitude of `Unit:getVelocity()` (`CTLD_crate.lua:1100`), with no
+  conversion anywhere in `src/`. So `50` meant ~180 km/h / 97 kt — nearly double a UH-1H's sling-load
+  limit — and reads like a value entered as knots. `26` m/s is ~50 kt / 94 km/h. **This changes
+  in-flight behaviour**: a crate is now cut loose at a lower speed than before. Raise the setting per
+  mission if your airframe warrants it; the unit is now spelled out in the setting's description.
+  The Lua fallback (`ctld.gs(...) or 50`) was corrected in the same move — leaving it would have left
+  two different defaults depending on whether a config was loaded — and a test now pins the two
+  together.
+### Fixed
+
+- **A troop-group editor that corrupted the file it edited.** `jtac` was typed as a boolean in the web
+  app while the catalogue ships counts (`jtac: 1`, `jtac: 2`): it rendered as a checkbox that no
+  numeric value could tick — so "JTAC Group" and "JTAC Group 2" looked identical and "Single JTAC"
+  looked empty — and toggling it wrote `true`/`false` over the count in the Mission Maker's YAML. Now
+  typed as a number, with tests on both sides pinning every troop-group field as a count.
+- **Eleven French setting descriptions were double-encoded** in `src/CTLD_config_schema.yaml`
+  (`rÃ©fÃ©rence` for `référence`) — UTF-8 bytes written out as cp1252. Introduced in `5e4dc50`
+  (PR #66) and only visible once the FR UI shipped. Repaired, and `tests/test_encoding.py` now fails
+  the build on any such sequence in the authored YAML and locale files, including a test that the
+  detector itself still fires.
+- **`AIZones` was a dead catalogue key.** Nothing in `src/` reads it — the engine reads `aiZones`
+  (lowercase), whose entries are named records, not positional arrays — and the legacy monolith has
+  neither spelling. It shipped four default AI zones with no effect in game, and the web app gave them
+  a dedicated editor, which made them look configured. Key, schema entry and positional field schema
+  removed; the parity oracle and `CTLD.lua` regenerated. `aiZones` now defaults to `[]` (the engine
+  iterates it) and its record format is documented in the schema.
+- **`logisticUnits` moved from Crates to Zones.** A logistic unit *is* a zone — a mobile one, centred
+  on a vehicle rather than drawn in the Mission Editor. Classifying it by use rather than by nature
+  would equally justify filing `troopZones` under Troops, emptying the Zones family.
+- **`nbLimitSpawnedTroops` and `beaconIconColor` are no longer raw JSON.** Both are short positional
+  arrays whose meaning is the index: named fields now (RED / BLUE coalition limits; DCS RGBA with a
+  colour preview), with the format documented in the schema. Array length is preserved — the engine
+  indexes these by position.
 
 ### Tooling — ctld-tools Mission-Maker UX pass (CTLD-TOOLS-MM-UX)
 
 UI/UX rework of the `ctld-tools.exe` web app for a **non-technical Mission Maker**, plus a visual
-identity rooted in the subject (DCS rotary-wing logistics). `tools/` only — no `src/` change, no
-`CTLD.lua` rebuild, no runtime behaviour change.
+identity rooted in the subject (DCS rotary-wing logistics). Confined to `tools/` and to the authoring
+metadata in `src/CTLD_config_schema.yaml`, which the build does not read — so no `CTLD.lua` rebuild and
+no runtime behaviour change.
 
 - **One navigation by functional family** replaces the `Parameters` / `Data` split. That split
   followed the *shape* of a value rather than its subject, filing `enableCrates` under one screen and

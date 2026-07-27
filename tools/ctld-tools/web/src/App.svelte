@@ -23,6 +23,7 @@
   import HelpPanel from './lib/HelpPanel.svelte'
   import JsonEditor from './lib/JsonEditor.svelte'
   import KeyValueEditor from './lib/KeyValueEditor.svelte'
+  import PositionalEditor from './lib/PositionalEditor.svelte'
   import RecordListEditor from './lib/RecordListEditor.svelte'
   import SettingRow from './lib/SettingRow.svelte'
   import StringListEditor from './lib/StringListEditor.svelte'
@@ -38,7 +39,11 @@
 
   const LANG_NAMES: Record<string, string> = { en: 'English', fr: 'Français' }
 
-  const ZONE_TYPES = ['troopZones', 'wpZones', 'AIZones']
+  // Positional zone arrays only. `aiZones` is deliberately absent: its entries are named records
+  // (dcsZoneName / coalition / isPickup / troopStock …), so it falls through to the raw editor until
+  // it gets one of its own — a wrong editor would be worse than none. `AIZones` used to be here and
+  // was a dead key nothing read.
+  const ZONE_TYPES = ['troopZones', 'wpZones']
   const STRING_LISTS = ['transportPilotNames', 'extractableGroups', 'logisticUnits']
 
   let schema = $state<SchemaInfo | null>(null)
@@ -104,6 +109,21 @@
     dirty ? t('web.state.dirty') : justSaved ? t('web.state.saved') : t('web.state.clean'),
   )
   const step = $derived(injected ? 3 : snapshot ? 2 : 1)
+  // Fixed-length positional arrays whose meaning lives in the index, not in a key. Both used to
+  // render as raw JSON (`[0, 0]`, `[1, 0.5, 0, 1]`).
+  const troopLimitSlots = $derived([
+    { label: t('web.slot.troops_red'), hint: t('web.slot.troops_hint'), min: 0 },
+    { label: t('web.slot.troops_blue'), hint: t('web.slot.troops_hint'), min: 0 },
+  ])
+  const colourSlots = $derived(
+    [
+      t('web.slot.colour_r'),
+      t('web.slot.colour_g'),
+      t('web.slot.colour_b'),
+      t('web.slot.colour_a'),
+    ].map((label) => ({ label, hint: t('web.slot.colour_hint'), min: 0, max: 1, step: 0.05 })),
+  )
+
   const steps = $derived([
     { title: t('web.step.load'), hint: t('web.step.load_hint') },
     { title: t('web.step.adjust'), hint: t('web.step.adjust_hint') },
@@ -484,6 +504,19 @@
                   />
                 {:else if STRING_LISTS.includes(key)}
                   <StringListEditor items={snapshot.values[key] as string[]} onchange={(v) => saveData(key, v)} />
+                {:else if key === 'nbLimitSpawnedTroops'}
+                  <PositionalEditor
+                    value={snapshot.values[key] as unknown[]}
+                    slots={troopLimitSlots}
+                    onchange={(v) => saveData(key, v)}
+                  />
+                {:else if key === 'beaconIconColor'}
+                  <PositionalEditor
+                    value={snapshot.values[key] as unknown[]}
+                    slots={colourSlots}
+                    swatch
+                    onchange={(v) => saveData(key, v)}
+                  />
                 {:else if key === 'groundVehicleWeights'}
                   <KeyValueEditor
                     map={snapshot.values.groundVehicleWeights as Record<string, number>}

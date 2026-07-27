@@ -109,10 +109,13 @@ export function orderFamilies(families: Iterable<string>, meta?: Record<string, 
 
 // Which family owns each structured table. Assigned by domain — the value's shape (list vs map)
 // says nothing about where a user would look for it.
+// Classified by what the thing IS, not by what it is used for. `logisticUnits` sat under Crates
+// because that is where its crates come from, but a logistic unit is a zone — a mobile one, centred
+// on a vehicle rather than drawn in the Mission Editor. Sorting it by use would equally justify
+// filing troopZones under Troops, which would empty the Zones family of its content.
 export const DATA_FAMILY: Record<string, string> = {
   spawnableCrates: 'crates',
   spawnableCratesModels: 'crates',
-  logisticUnits: 'crates',
   groundVehicleWeights: 'crates',
   loadableGroups: 'troops',
   extractableGroups: 'troops',
@@ -121,8 +124,8 @@ export const DATA_FAMILY: Record<string, string> = {
   transportPilotNames: 'aircraft',
   troopZones: 'zones',
   wpZones: 'zones',
-  AIZones: 'zones',
   aiZones: 'zones',
+  logisticUnits: 'zones',
   beaconIconColor: 'beacon',
 }
 

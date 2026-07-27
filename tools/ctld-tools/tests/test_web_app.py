@@ -323,3 +323,21 @@ def test_version_gap_against_default():
     assert gap["fromVersion"] == "1.0.0"
     assert gap["toVersion"] == "2.0.0"
     assert gap["isEmpty"] is False
+
+
+def test_troop_groups_hold_counts_not_flags():
+    """The web editor types every troop-group field from this shape.
+
+    `jtac` was typed as a boolean in the frontend while the catalogue ships `jtac: 1` / `jtac: 2`,
+    which rendered an always-unchecked box and — worse — wrote `true`/`false` over the count when
+    touched. If a field here ever legitimately becomes a boolean, this test should fail so the
+    frontend is updated deliberately rather than silently corrupting a user's file.
+    """
+    groups = client.post("/api/catalog/load-default").json()["values"]["loadableGroups"]
+    assert groups, "the default catalogue should ship troop groups"
+    for group in groups:
+        for field, value in group.items():
+            if field == "name":
+                assert isinstance(value, str), group
+            else:
+                assert isinstance(value, int) and not isinstance(value, bool), (field, value, group)

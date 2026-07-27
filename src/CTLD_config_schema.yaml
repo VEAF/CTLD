@@ -905,7 +905,7 @@ aaAssemblyDistance:
   unit: m
   description:
     en: Max distance (m) between crates and the reference point to assemble an AA system
-    fr: Distance max (m) entre les caisses et le point de rÃ©fÃ©rence pour assembler un systÃ¨me AA
+    fr: Distance max (m) entre les caisses et le point de référence pour assembler un système AA
 aaRearmDistance:
   group: aa
   standard: true
@@ -913,14 +913,14 @@ aaRearmDistance:
   unit: m
   description:
     en: Max distance (m) from a launcher crate to an existing AA system to rearm/repair it
-    fr: Distance max (m) entre une caisse de lanceur et un systÃ¨me AA existant pour le rÃ©armer/rÃ©parer
+    fr: Distance max (m) entre une caisse de lanceur et un système AA existant pour le réarmer/réparer
 beaconRemovalRadius:
   group: beacon
   label: {en: Beacon removal search radius, fr: Rayon de recherche pour retirer un beacon}
   unit: m
   description:
     en: Search radius (m) for the "Remove Closest Beacon" action
-    fr: Rayon de recherche (m) pour l'action Â« Retirer la balise la plus proche Â»
+    fr: Rayon de recherche (m) pour l'action « Retirer la balise la plus proche »
 loadCrateSearchRadius:
   group: crates
   standard: true
@@ -928,7 +928,7 @@ loadCrateSearchRadius:
   unit: m
   description:
     en: Radius (m) within which crates are grouped/loadable from the Load Crate menu
-    fr: Rayon (m) dans lequel les caisses sont regroupÃ©es/chargeables depuis le menu Charger une caisse
+    fr: Rayon (m) dans lequel les caisses sont regroupées/chargeables depuis le menu Charger une caisse
 unpackSearchRadius:
   group: crates
   standard: true
@@ -936,7 +936,7 @@ unpackSearchRadius:
   unit: m
   description:
     en: Radius (m) within which crates are gathered to unpack or list nearby crates
-    fr: Rayon (m) dans lequel les caisses sont rassemblÃ©es pour le dÃ©paquetage ou la liste des caisses proches
+    fr: Rayon (m) dans lequel les caisses sont rassemblées pour le dépaquetage ou la liste des caisses proches
 fobCrateCollectionRadius:
   group: fob
   standard: true
@@ -944,7 +944,7 @@ fobCrateCollectionRadius:
   unit: m
   description:
     en: Radius (m) within which FOB crates must be gathered to deploy a FOB
-    fr: Rayon (m) dans lequel les caisses de FOB doivent Ãªtre rassemblÃ©es pour dÃ©ployer un FOB
+    fr: Rayon (m) dans lequel les caisses de FOB doivent être rassemblées pour déployer un FOB
 slingCutDestroyHeight:
   group: crates
   standard: true
@@ -952,7 +952,7 @@ slingCutDestroyHeight:
   unit: m
   description:
     en: AGL height (m) above which cutting a slingload destroys the crate on impact
-    fr: Hauteur AGL (m) au-dessus de laquelle couper une Ã©lingue dÃ©truit la caisse Ã  l'impact
+    fr: Hauteur AGL (m) au-dessus de laquelle couper une élingue détruit la caisse à l'impact
 jtacLaserCodeMin:
   group: jtac
   label: {en: Lowest laser code, fr: Code laser le plus bas}
@@ -971,27 +971,27 @@ defaultVehicleWeight:
   unit: kg
   description:
     en: Weight (kg) assumed for a loaded vehicle type absent from groundVehicleWeights
-    fr: Poids (kg) supposÃ© pour un type de vÃ©hicule chargÃ© absent de groundVehicleWeights
+    fr: Poids (kg) supposé pour un type de véhicule chargé absent de groundVehicleWeights
 fieldExtractTroopWeight:
   group: troops
   label: {en: Assumed weight of field-extracted troops, fr: Poids supposé des troupes extraites sur le terrain}
   unit: kg
   description:
     en: Assumed per-troop weight (kg) when extracting a field group with no stored data
-    fr: Poids par troupe supposÃ© (kg) lors de l'extraction d'un groupe de terrain sans donnÃ©es stockÃ©es
+    fr: Poids par troupe supposé (kg) lors de l'extraction d'un groupe de terrain sans données stockées
 defaultZoneRadius:
   group: crates
   label: {en: Default zone radius, fr: Rayon de zone par défaut}
   unit: m
   description:
     en: Default radius (m) when a discovered TRZ/WPZ/AIZ trigger zone lacks one
-    fr: Rayon par dÃ©faut (m) quand une zone trigger TRZ/WPZ/AIZ dÃ©couverte n'en a pas
+    fr: Rayon par défaut (m) quand une zone trigger TRZ/WPZ/AIZ découverte n'en a pas
 configVersion:
   # tool-managed metadata (not an MM-editable setting; no family)
   label: {en: Configuration version, fr: Version de la configuration}
   description:
     en: Schema/catalogue version this config is authored against (used for version-gap detection).
-    fr: Version du schÃ©ma/catalogue contre laquelle cette config est Ã©crite (dÃ©tection d'Ã©cart de version).
+    fr: Version du schéma/catalogue contre laquelle cette config est écrite (détection d'écart de version).
 debugScreenLogDuration:
   label: {en: On-screen log duration, fr: Durée d'affichage du log à l'écran}
   unit: s
@@ -1008,6 +1008,10 @@ maxDistanceFromCrate:
 maxSlingloadSpeed:
   label: {en: Max sling-load speed, fr: Vitesse max en sling-load}
   unit: m/s
+  standard: true
+  description:
+    en: "Ground speed above which a slung crate is lost, in metres per second — the engine compares it to the helicopter's own velocity. The default 26 m/s is about 50 kt / 94 km/h, in line with a UH-1H sling-load limit. Raise it for a faster airframe, but remember the unit: 50 here would mean 180 km/h."
+    fr: "Vitesse au-delà de laquelle une caisse à l'élingue est perdue, en mètres par seconde — le moteur la compare à la vitesse de l'hélicoptère. Le défaut de 26 m/s vaut environ 50 kt / 94 km/h, cohérent avec la limite de sling-load d'un UH-1H. Augmentez-la pour un appareil plus rapide, mais attention à l'unité : 50 ici signifierait 180 km/h."
 maxDropHeight:
   label: {en: Max drop height, fr: Hauteur max de largage}
   unit: m
@@ -1046,6 +1050,9 @@ extractableGroups:
   label: {en: Extractable troop groups, fr: Groupes de troupes extractibles}
 nbLimitSpawnedTroops:
   label: {en: Spawned troop limits, fr: Limites de troupes créées}
+  description:
+    en: 'Maximum troops each coalition may have on the ground at once, by DCS coalition index: [1] = RED, [2] = BLUE. 0 disables the limit for that coalition.'
+    fr: "Nombre maximum de troupes qu'une coalition peut avoir au sol simultanément, par index de coalition DCS : [1] = ROUGE, [2] = BLEU. 0 désactive la limite pour cette coalition."
 dynamicZoneRadius:
   label: {en: Dynamic zone radius, fr: Rayon des zones dynamiques}
   unit: m
@@ -1053,10 +1060,12 @@ troopZones:
   label: {en: Troop pickup zones, fr: Zones d'embarquement de troupes}
 wpZones:
   label: {en: Waypoint zones, fr: Zones de waypoint}
-AIZones:
-  label: {en: AI transport zones, fr: Zones de transport IA}
 aiZones:
-  label: {en: AI transport zone settings, fr: Réglages des zones de transport IA}
+  label: {en: AI transport zones, fr: Zones de transport IA}
+  group: zones
+  description:
+    en: Zones where AI transports pick up or drop off. A list of records, each with dcsZoneName, coalition (RED/BLUE/NEUTRAL), isPickup, isDropoff, cargoType (T=troops, V=vehicles) and optional troopStock / vehicleStock tables mapping a template name to a count (-1 = unlimited, "All" = every template).
+    fr: Zones où les transports IA embarquent ou débarquent. Une liste d'enregistrements comportant dcsZoneName, coalition (RED/BLUE/NEUTRAL), isPickup, isDropoff, cargoType (T=troupes, V=véhicules) et, en option, des tables troopStock / vehicleStock associant un nom de modèle à un nombre (-1 = illimité, "All" = tous les modèles).
 JTAC_laseIntervalSeconds:
   label: {en: Lasing interval, fr: Intervalle de lasing}
   unit: s
@@ -1085,6 +1094,9 @@ beaconTextSize:
   label: {en: Beacon label text size, fr: Taille du texte des étiquettes de beacon}
 beaconIconColor:
   label: {en: Beacon icon colour, fr: Couleur des icônes de beacon}
+  description:
+    en: 'Colour of the F10 map marker, in DCS RGBA: four floats from 0.0 to 1.0, as [Red, Green, Blue, Opacity]. The default [1, 0.5, 0, 1] is opaque orange. Only the circle outline uses this opacity — the engine fills the circle at a fixed 0.2.'
+    fr: 'Couleur du marqueur sur la carte F10, au format RGBA DCS : quatre flottants de 0,0 à 1,0, sous la forme [Rouge, Vert, Bleu, Opacité]. Le défaut [1, 0.5, 0, 1] correspond à un orange opaque. Seul le contour du cercle utilise cette opacité — le moteur remplit le cercle à 0,2 fixe.'
 smokeRefreshInterval:
   label: {en: Smoke refresh interval, fr: Intervalle de rafraîchissement des fumigènes}
   unit: s
