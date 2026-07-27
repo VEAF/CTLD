@@ -153,4 +153,14 @@ export const EN_STRINGS: Record<string, string> = {
   'web.help.snapshot_title': "One important rule",
   'web.help.snapshot_body': "Your configuration replaces CTLD's defaults completely — it is not a list of changes. Anything removed here is absent in game rather than falling back to a default. That is why you start from the defaults rather than from an empty file.",
   'web.help.close': "Close",
+  // ── positional editors (coalition limits, DCS RGBA) ─────────────
+  'web.table.colour_preview': "Preview",
+  'web.slot.troops_red': "RED coalition",
+  'web.slot.troops_blue': "BLUE coalition",
+  'web.slot.troops_hint': "0 = no limit",
+  'web.slot.colour_r': "Red",
+  'web.slot.colour_g': "Green",
+  'web.slot.colour_b': "Blue",
+  'web.slot.colour_a': "Opacity",
+  'web.slot.colour_hint': "0.0 to 1.0",
 }
