@@ -70,8 +70,14 @@ def test_the_detector_actually_detects(tmp_path: Path) -> None:
 # ── in-code fallbacks vs the catalogue ──────────────────────────────
 # Several `ctld.gs("x") or <default>` fallbacks in the Lua disagreed with the catalogue, so the same
 # setting had two defaults depending on whether a config was loaded. Reviewing `maxSlingloadSpeed`
-# turned that up, so the setting that prompted it gets pinned here.
+# turned that up.
+#
+# FEAT-CONFIG-PARAM-SEMANTICS then removed the whole class: a missing parameter now resolves from the
+# catalogue at runtime (ADR 0011 Addendum 1), so an in-code literal is a second, silently divergent
+# default. Five had already drifted. The invariant is therefore stronger than "the two agree" — it is
+# "there is only one". These tests enforce that, and keep pinning the value the review corrected.
 FALLBACK_PATTERN = r'ctld\.gs\("{key}"\)\s*or\s+([\d.]+)'
+SCALAR_FALLBACK = re.compile(r'ctld\.gs\("([A-Za-z_]\w*)"\)\s+or\s+(-?[\d.]+|true|false|"[^"]*")')
 
 
 def _catalogue_value(key: str):
@@ -87,14 +93,33 @@ def _catalogue_value(key: str):
     return flat[key]
 
 
-def test_max_slingload_speed_fallback_matches_the_catalogue() -> None:
-    """The Lua fallback and the catalogue must not drift.
+def test_max_slingload_speed_has_one_default_and_it_is_26() -> None:
+    """The setting that prompted the review keeps its corrected value, in one place only.
 
     The value is in m/s (the engine compares it to `Unit:getVelocity()`), and the original default of
-    50 read like knots — 50 m/s is ~180 km/h. Corrected to 26 (~50 kt) in both places; this test is
-    what keeps them together.
+    50 read like knots — 50 m/s is ~180 km/h. Corrected to 26 (~50 kt). It used to live in two places
+    with a test holding them together; now it lives only in the catalogue.
     """
     lua = (ROOT / "src" / "CTLD_crate.lua").read_text(encoding="utf-8")
-    match = re.search(FALLBACK_PATTERN.format(key="maxSlingloadSpeed"), lua)
-    assert match, "the maxSlingloadSpeed fallback disappeared — update this test with it"
-    assert float(match.group(1)) == float(_catalogue_value("maxSlingloadSpeed"))
+    assert re.search(FALLBACK_PATTERN.format(key="maxSlingloadSpeed"), lua) is None, (
+        "an in-code fallback for maxSlingloadSpeed reappeared — the catalogue is the only default"
+    )
+    assert float(_catalogue_value("maxSlingloadSpeed")) == 26.0
+
+
+def test_no_setting_carries_a_scalar_fallback_in_the_lua() -> None:
+    """A scalar default belongs in src/CTLD_config.yaml and nowhere else.
+
+    `ctld.gs("x") or <literal>` is a duplicate default the catalogue cannot keep in step. Collection
+    guards (`or {}`) are deliberately excluded: for a list, absent means removed, and the engine
+    returns nil for a table default by design.
+    """
+    offenders = []
+    for lua_file in sorted((ROOT / "src").rglob("*.lua")):
+        if lua_file.name == "CTLD_config_default_yaml.lua":  # generated: the catalogue as a string
+            continue
+        text = lua_file.read_text(encoding="utf-8")
+        for line_no, line in enumerate(text.splitlines(), start=1):
+            for key, literal in SCALAR_FALLBACK.findall(line):
+                offenders.append(f"{lua_file.relative_to(ROOT)}:{line_no}  {key} or {literal}")
+    assert offenders == []

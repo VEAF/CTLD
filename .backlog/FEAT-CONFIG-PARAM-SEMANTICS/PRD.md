@@ -1,9 +1,22 @@
 # FEAT-CONFIG-PARAM-SEMANTICS — parameters are always complete, lists are removable
 
-**Status:** ready
+**Status:** done — all four tickets delivered, pending PR to `develop`.
 
 Lot **A** of the post-review program (2026-07-30). Independent of lots B / C / D — can ship in
 parallel. Closes `dev/roadmap.md` items 2 and 3, which turn out to be one subject.
+
+> **Delivered.** ADR 0011 Addendum 1 (and the stale "Accepted" status on ADRs 0008/0009, found by
+> ticket 01's acceptance check). Engine: `CTLDConfig.flatten()` extracted, an eager default-resolution
+> map built only when a `configUser` is present, `getSetting()` falling back for scalars only, and a
+> single on-screen startup NOTICE. **114 duplicate fallbacks deleted**, five of which had drifted —
+> including three parachute-altitude divergences the roadmap never listed. Tool: a `validate`
+> completeness rule at `ERROR`, keyed off the default catalogue.
+>
+> **Verification.** 124 pytest tests + ruff clean. Lua: busted is not installed on this machine, so
+> the specs were mirrored through standalone Lua harnesses (13 tier assertions, plus a post-sweep
+> invariant proving every unguarded `ctld.gs()` resolves); `luacheck` reports 66 warnings before and
+> after, none introduced. `tests/test_web_app.py` could not run — `fastapi` is declared but not
+> installed and pypi.org is unreachable from this network. CI covers both.
 
 ## Why
 

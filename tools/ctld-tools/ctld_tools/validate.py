@@ -5,7 +5,8 @@ Checks the whole `Catalog`:
   - crate `weight`s are globally unique (the weight is the crate lookup key),
   - every AA `mixedSet` weight resolves to a crate in its section (the invariant the
     runtime injection loop used to guarantee — now static data),
-  - settings with a schema `choices` enum hold an allowed value.
+  - settings with a schema `choices` enum hold an allowed value,
+  - every *parameter* is present (ADR 0011 Addendum 1) — see `_validate_completeness`.
 
 Produces `Finding`s (errors block export; warnings do not), each an i18n key + params.
 """
@@ -98,12 +99,45 @@ def _validate_choices(catalog: Catalog, schema: Schema, out: list[Finding]) -> N
             )
 
 
-def validate(catalog: Catalog, schema: Schema, types: Collection[str] | None = None) -> list[Finding]:
-    """Return findings for a complete catalogue against the DCS types + the schema."""
+def _validate_completeness(catalog: Catalog, default: Catalog, out: list[Finding]) -> None:
+    """Every *parameter* must be present; a missing *list* is an intentional removal.
+
+    ADR 0011 Addendum 1 splits the config in two tiers. A **parameter** — a key whose default
+    value is a scalar — cannot be "removed": the engine needs a value to compute with, so an
+    omission is an incomplete document. It survives at runtime (the engine falls back to the
+    default and says so on screen) but it is not something to bless, so it blocks export. A
+    **list** keeps ADR 0011 point 1: omitting it, or one of its elements, is deliberate.
+
+    Keyed off the **default catalogue**, never the schema. `i18n_lang` is schema-declared but
+    deliberately absent from the catalogue (see the comment in `CTLD_config_schema.yaml`), so a
+    schema-driven rule would demand it and fail every valid config. The engine's tier rule reads
+    the same document for the same reason, so the two layers cannot disagree.
+    """
+    for key in default.keys():
+        value = default.get(key)
+        if isinstance(value, (dict, list)):
+            continue
+        if not catalog.has(key):
+            out.append(Finding(ERROR, f"settings.{key}", "validate.parameter.missing", {"name": key}))
+
+
+def validate(
+    catalog: Catalog,
+    schema: Schema,
+    types: Collection[str] | None = None,
+    default: Catalog | None = None,
+) -> list[Finding]:
+    """Return findings for a complete catalogue against the DCS types + the schema.
+
+    `default` is the reference catalogue the completeness check compares against; injected
+    like `types` so this stays a pure function. When omitted the check is skipped.
+    """
     resolved: set[str] = set(known_dcs_types()) if types is None else set(types)
     out: list[Finding] = []
     _validate_crates(catalog, resolved, out)
     _validate_choices(catalog, schema, out)
+    if default is not None:
+        _validate_completeness(catalog, default, out)
     return out
 
 

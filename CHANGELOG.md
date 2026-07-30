@@ -68,6 +68,21 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   colour preview), with the format documented in the schema. Array length is preserved — the engine
   indexes these by position.
 
+### Tooling — config completeness is checked before export (FEAT-CONFIG-PARAM-SEMANTICS)
+
+- **`validate` now refuses an incomplete config.** A setting the config omits is reported as an
+  `ERROR`, which blocks export to the `.miz` — a setting cannot be removed by omission, because the
+  engine needs a value (ADR 0011 Addendum 1). Omitting a **list**, or one of its elements, stays a
+  legitimate removal and is not reported. The rule is keyed off the **default catalogue**, never the
+  schema: `i18n_lang` is schema-declared but deliberately absent from the catalogue, so a
+  schema-driven rule would fail every valid config.
+- `validate` gains `--default` (the reference catalogue); it falls back to the bundled one, so
+  `ctld-tools validate --yaml mine.yaml` checks completeness with no extra ceremony. The web app
+  passes the loaded default automatically, on both `/api/validate` and the `/api/inject` guard.
+- This is the design-time half of the pair. The runtime half is the on-screen startup notice, and it
+  exists because nothing obliges a Mission Maker to run the tool at all — a hand-written YAML never
+  reaches `validate`.
+
 ### Tooling — ctld-tools Mission-Maker UX pass (CTLD-TOOLS-MM-UX)
 
 UI/UX rework of the `ctld-tools.exe` web app for a **non-technical Mission Maker**, plus a visual

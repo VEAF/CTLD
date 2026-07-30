@@ -1,8 +1,22 @@
 # 04 — `validate`: a missing parameter is an ERROR
 
-**Status:** ready
+**Status:** done
 
 Independent of 02 / 03 — different layer, can be built in parallel.
+
+> `validate()` gains an injected `default: Catalog | None`, mirroring the existing `types` parameter so
+> the function stays pure; the check is skipped when it is absent. Path resolution stays in the callers
+> (`cli.py` via `resources.default_catalog_path()`, `web/app.py` via `session.default_catalog()`) rather
+> than in the core module.
+>
+> **`test_web_app.py` needed a fix this ticket caused.** Its `SAMPLE` fixture is a 3-setting snapshot,
+> so `test_validate_clean_and_bad_unit`'s `hasErrors is False` would have started failing. The clean
+> assertion now loads the default catalogue — the only genuinely complete subject — and the tiny fixture
+> became the vehicle for a new test asserting an incomplete catalogue *is* reported.
+>
+> **Not verified locally:** `test_web_app.py` cannot run on this machine — `fastapi` is declared but not
+> installed, and `poetry install` cannot reach pypi.org from this network. The other 124 tests pass, and
+> ruff check + format are clean. CI covers the web tests.
 
 ## Why
 
