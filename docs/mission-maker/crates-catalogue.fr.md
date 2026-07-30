@@ -2,8 +2,9 @@
 
 Cette page traite de **ce que vous proposez aux pilotes de faire spawner** : les crates, les
 véhicules complets, les systèmes AA et les unités JTAC qu'un mission maker définit dans la
-configuration. Tout ce qui est décrit ici est de la donnée que vous réglez une fois dans
-`CTLD_userConfig.lua` ; les pilotes la parcourent ensuite depuis le menu F10 à l'exécution.
+configuration. Tout ce qui est décrit ici est de la donnée que vous réglez une fois dans votre
+configuration — le plus simplement dans [`ctld-tools`](ctld-tools.fr.md) ; les pilotes la parcourent
+ensuite depuis le menu F10 à l'exécution.
 
 Les actions en cockpit — chargement, largage, unpack, requête, pack — sont décrites dans le guide
 Pilote : [Crates](../pilot/crates.md), [Véhicules](../pilot/vehicles.md), [JTAC](../pilot/jtac.md).
@@ -15,16 +16,29 @@ complets, et combien) sont réglées dans [Configuration](configuration.md) via 
 `spawnableCrates` est le catalogue maître. C'est une table de **sections nommées** (chacune devient
 un sous-menu F10), et chaque section contient une liste de descripteurs de crate :
 
-```lua
-_cfg.settings["spawnableCrates"] = {
-    ["Combat Vehicles"] = {
-        { weight = 1000.01, desc = ctld.tr("Humvee - MG"),  unit = "M1043 HMMWV Armament", side = 2, cratesRequired = 3 },
-        { weight = 1000.05, desc = ctld.tr("Heavy Tank - Abrams"), unit = "M-1 Abrams",     side = 2, cratesRequired = 4 },
-    },
-    ["Artillery"] = {
-        { weight = 1002.01, desc = ctld.tr("MLRS"), unit = "MLRS", side = 2, cratesRequired = 3 },
-    },
-}
+Dans `ctld-tools`, c'est la famille **Caisses**, éditée comme un tableau par section. Dans un
+instantané de configuration écrit à la main, elle vit sous `mm_facing` :
+
+```yaml
+mm_facing:
+  spawnableCrates:
+    Combat Vehicles:
+    - unit: M1043 HMMWV Armament
+      desc: Humvee - MG
+      weight: 1000.01
+      cratesRequired: 3
+      side: 2
+    - unit: M-1 Abrams
+      desc: Heavy Tank - Abrams
+      weight: 1000.05
+      cratesRequired: 4
+      side: 2
+    Artillery:
+    - unit: MLRS
+      desc: MLRS
+      weight: 1002.01
+      cratesRequired: 3
+      side: 2
 ```
 
 ### Champs du descripteur { #descriptor-fields }
@@ -32,12 +46,12 @@ _cfg.settings["spawnableCrates"] = {
 | Champ | Type | Signification |
 |---|---|---|
 | `weight` | number | Poids **unique** du crate (kg). Double rôle : la masse de slingload DCS *et* la clé de recherche que CTLD utilise pour résoudre quelle unité faire spawner à l'unpack. Deux crates ne doivent jamais partager un même poids. |
-| `desc` | string | Libellé du menu. À encadrer dans `ctld.tr(...)` pour la traduction. |
+| `desc` | string | Libellé du menu, écrit en texte simple. CTLD passe chaque `desc` dans son traducteur au chargement : un libellé présent dans les dictionnaires s'affiche dans la langue du pilote — voir [Traductions](translations.md). |
 | `unit` | string | **Type name** DCS de l'unité qui spawn quand le jeu de crates est unpacké (ex. `"M-1 Abrams"`). À vérifier contre le [dataset datamine](https://github.com/Quaggles/dcs-lua-datamine). |
 | `side` | number | Coalition à laquelle le crate est proposé : `2` = BLUE, `1` = RED. Omettre pour proposer aux deux. |
 | `cratesRequired` | number | Combien de crates de ce type doivent se trouver dans un rayon de 300 m les uns des autres pour l'unpack (défaut `1`). |
 | `isJTAC` | bool | Marque l'unité comme un JTAC — voir [unités JTAC](#jtac-units) plus bas. |
-| `spawnAs` | string | Surcharge de catégorie de spawn pour les unités aériennes : `"AIRPLANE"` ou `"HELICOPTER"` (utilisé par les JTAC drones). Les véhicules terrestres n'ont besoin d'aucune surcharge. |
+| `spawnAs` | string | Surcharge de catégorie de spawn pour les unités aériennes : `AIRPLANE` ou `HELICOPTER` (utilisé par les JTAC drones). Les véhicules terrestres n'ont besoin d'aucune surcharge. Dans `ctld-tools` vous choisissez `GROUND` ou `AIR` et l'outil écrit la bonne valeur, résolue depuis la catégorie DCS de l'unité. |
 | `mixedSet` | array | Alternative à `weight` : une entrée dont la valeur est une liste de poids définit un **jeu combiné** — un seul item de menu qui fait spawner plusieurs types de crate différents d'un coup (voir plus bas). |
 
 ### Crates simples vs jeux { #single-crates-vs-sets }
@@ -81,7 +95,7 @@ voulez une apparence de cargo différente.
 | `hoverTime` | `10` | Secondes de hover à tenir pour accrocher un crate. |
 | `minimumHoverHeight` / `maximumHoverHeight` | `7.5` / `12.0` | Fenêtre de hover (m) pour le ramassage. |
 | `maxDistanceFromCrate` | `5.5` | Distance horizontale max (m) à un crate pendant le ramassage en hover. |
-| `maxSlingloadSpeed` | `50` | Vitesse (m/s) au-delà de laquelle un crate en slingload est perdu. |
+| `maxSlingloadSpeed` | `26` | Vitesse (**m/s**) au-delà de laquelle un crate en slingload est largué — ≈ 94 km/h / 50 kt. À augmenter si votre appareil supporte une limite plus élevée. |
 | `crateSpacing` | `5` | Espacement (m) entre les crates spawnés dans un jeu. |
 
 ## Transport de véhicules complets { #whole-vehicle-transport }

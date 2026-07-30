@@ -56,9 +56,9 @@ builder and every descriptor lookup rely on:
 - `self._weightIndex[weight] = descriptor` — an O(1) index used by all `findDescriptorBy*` methods
   (single crates only; mixed sets have no `weight` field).
 
-Before the main loop, `CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)` injects the AA
-system part/repair crate entries so they flow through the same passes. The transform then runs in
-three passes per category:
+The AA system part/repair crate entries are plain catalogue entries in `CTLD_config.yaml` (see
+[AA system assembly](aa.md)), so they flow through the same passes as any other crate — nothing
+injects them at runtime. The transform runs in three passes per category:
 
 1. **Separation.** Each entry with a `weight` field becomes a single crate (indexed into a
    per-category `catWeightIdx` and into `self._weightIndex`); each entry with a `mixedSet` field
@@ -157,7 +157,7 @@ supplied, the vehicle spawner's load and pack submenus are refreshed.
 | --- | --- |
 | `spawnAs` (string, default `"GROUND"`) | Selects the `addGroup` category or routes to `addStaticObject` |
 | `isJTAC` (boolean) | **Source of truth for the JTAC role.** Adds the orbit route to an air unit definition and triggers `startLase` post-spawn. The unit type name (`unit`) is never used for JTAC detection in the OOP stack. |
-| `specificParams` (table, air only) | Orbit tuning passed to `startLase` / `deployAirJTAC`: `speed`, `alti`, `orbitRadiusNoLase`, `orbitRadiusOnLase` |
+| `specificParams` (table) | **Ignored on a crate.** Drone JTAC orbit geometry comes from the `JTAC_droneAltitude` / `JTAC_droneRadiusNoLase` / `JTAC_droneRadiusOnLase` / `JTAC_droneSpeed` settings. A crate still carrying the field produces a startup `NOTICE` naming the crates concerned. (Unrelated to `specificParams.task` on `loadableGroups` templates, which is live — see [Troop + JTAC lifecycle](troops-jtac.md).) |
 | `cratesRequired` (number) | Guards unpack — the count must be met before the pipeline runs |
 | `showSets` (boolean, default `true`) | When `false`, suppresses the auto-generated "All crates" `singleTypeSet` entry even if `enableAllCrates` is on |
 

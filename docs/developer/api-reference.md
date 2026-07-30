@@ -235,9 +235,8 @@ CTLDSceneManager.getInstance():registerSceneModel(myScene)
 
 | Method / Field | Signature | Description |
 | --- | --- | --- |
-| `TEMPLATES` | static table | AA system templates, populated from `CTLD_config.lua` at config load. Override it before CTLD init to add or replace systems. Each entry: `{ name, side, sectionName, parts = {{DCSTypename, desc, weight, launcher?, amount?, NoCrate?}}, repair = {desc, weight} }`. |
+| `TEMPLATES` | static table | AA system assembly rules (parts, count, launcher), declared statically in `CTLD_aasystem.lua`. Override it before CTLD init to add or replace systems. Each entry: `{ name, side, sectionName, parts = {{DCSTypename, desc, weight, launcher?, amount?, NoCrate?}}, repair = {desc, weight} }`. The deployable AA crates themselves are ordinary catalogue entries in `CTLD_config.yaml` (sections `SAM mid range` / `SAM long range`), not generated at runtime. |
 | `getInstance` | `() → CTLDCrateAssemblyManager` | Returns the singleton. |
-| `injectAACrates` | `(spawnableCrates)` | Static method. Populate `spawnableCrates` from `TEMPLATES`. Called automatically at init — only call manually if you add templates after init. |
 | `getTemplateByName` | `(name)` | Return the template table for `name`, or `nil`. |
 | `getTemplateForUnit` | `(unitName, repairFor)` | Return the template that contains `unitName` as a component, or `nil`. |
 | `spawnSystemAt` | `(templateName, point, coa, countryId)` | Spawn a complete AA system at an arbitrary point (bypasses the crate requirement — useful for scripted pre-placed systems). |

@@ -14,8 +14,11 @@ operate JTACs, and much more — all driven by an F10 menu and a modular Lua v2 
 ## Installation
 
 1. Download `CTLD.lua` from the [latest release](../../releases/latest).
-2. Add a **DO SCRIPT FILE** trigger in the DCS Mission Editor pointing to `CTLD.lua`.
-3. Optionally add a second trigger with your `CTLD_userConfig.lua` to override defaults.
+2. Add a **MISSION START → DO SCRIPT FILE** trigger in the DCS Mission Editor pointing to `CTLD.lua`.
+   CTLD runs on its built-in defaults — nothing else is required.
+3. To customise anything, download `ctld-tools.exe` from the same release, adjust the configuration in
+   your browser and let it inject a `CTLD_userConfig.lua` trigger **before** the `CTLD.lua` one — see
+   [Configure with `ctld-tools`](mission-maker/ctld-tools.md).
 
 ## Compatibility
 

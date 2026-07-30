@@ -62,9 +62,10 @@ descripteur :
 - `self._weightIndex[weight] = descriptor` — un index O(1) utilisé par toutes les méthodes
   `findDescriptorBy*` (crates simples uniquement ; les mixed sets n'ont pas de champ `weight`).
 
-Avant la boucle principale, `CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)` injecte
-les entrées de crates de pièces/réparation des systèmes AA afin qu'elles transitent par les
-mêmes passes. La transformation exécute ensuite trois passes par catégorie :
+Les entrées de crates de pièces/réparation des systèmes AA sont de simples entrées de catalogue dans
+`CTLD_config.yaml` (voir [Assemblage des systèmes AA](aa.md)) : elles transitent par les mêmes passes
+que n'importe quelle autre crate, rien ne les injecte à l'exécution. La transformation exécute trois
+passes par catégorie :
 
 1. **Séparation.** Chaque entrée avec un champ `weight` devient une crate simple (indexée dans un
    `catWeightIdx` propre à la catégorie et dans `self._weightIndex`) ; chaque entrée avec un champ
@@ -169,7 +170,7 @@ est fourni, les sous-menus load et pack du spawner de véhicules sont rafraîchi
 | --- | --- |
 | `spawnAs` (string, défaut `"GROUND"`) | Sélectionne la catégorie `addGroup` ou route vers `addStaticObject` |
 | `isJTAC` (boolean) | **Source de vérité pour le rôle JTAC.** Ajoute la route d'orbit à une définition d'unité aérienne et déclenche `startLase` en post-spawn. Le nom de type d'unité (`unit`) n'est jamais utilisé pour la détection JTAC dans la stack OOP. |
-| `specificParams` (table, air uniquement) | Réglage d'orbit passé à `startLase` / `deployAirJTAC` : `speed`, `alti`, `orbitRadiusNoLase`, `orbitRadiusOnLase` |
+| `specificParams` (table) | **Ignoré sur une crate.** La géométrie d'orbite des JTAC drones vient des réglages `JTAC_droneAltitude` / `JTAC_droneRadiusNoLase` / `JTAC_droneRadiusOnLase` / `JTAC_droneSpeed`. Une crate portant encore ce champ produit un `NOTICE` au démarrage nommant les crates concernées. (Sans rapport avec `specificParams.task` sur les templates `loadableGroups`, qui est bien actif — voir [Cycle de vie troupes + JTAC](troops-jtac.md).) |
 | `cratesRequired` (number) | Conditionne le unpack — le compte doit être atteint avant que le pipeline ne s'exécute |
 | `showSets` (boolean, défaut `true`) | Lorsque `false`, supprime l'entrée `singleTypeSet` « All crates » auto-générée même si `enableAllCrates` est activé |
 

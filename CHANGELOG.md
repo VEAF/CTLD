@@ -7,6 +7,53 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Docs — the configuration documentation describes the complete-snapshot model (release 2.0.0-rc2)
+
+The whole published configuration surface still taught two APIs deleted by
+`FEAT-CONFIG-YAML-COMPLETE`: the `ctld.yamlConfigDatas` scalar block and the `ctld.userSetup`
+callbacks (`addCrate` / `removeCrate` / `patchCrate` / `addTroopGroup` / `addTo` / `logDefaults`).
+Every snippet is rewritten as the YAML it really is, in the section it really lives in
+(`mm_facing` / `advanced`), with `ctld-tools` presented as the primary path. Audited by diffing every
+`| `key` | `value` |` row in `docs/` against `src/CTLD_config.yaml`, and every documented symbol
+against `src/`; the following were **wrong**, not merely dated:
+
+- **`transportPilotNames` was shown as a dictionary** (`["heliai_supply"] = true`) in the AI-transport
+  setup, while `CTLD_player.lua:316` walks it with `ipairs`. A Mission Maker copying that shape had
+  every AI transport silently ignored — the same failure mode `modTypes` had in `FIX-CATALOGUE-TRUTH`.
+- **`injectAACrates` was still documented as a live API** in `api-reference`, `subsystems/aa` and
+  `subsystems/crates`, including a four-step description of an injection that no longer happens. The
+  AA crates are ordinary catalogue entries in `CTLD_config.yaml`; `TEMPLATES` (the assembly rules)
+  is what survived, and it is now declared in `CTLD_aasystem.lua`, not "populated from
+  `CTLD_config.lua` at config load".
+- **`specificParams` on a crate was documented as live orbit tuning** passed to `startLase` — it is
+  ignored and produces a startup NOTICE.
+- **The legacy zone section named settings that do not exist.** `ctld.pickupZones` /
+  `ctld.dropOffZones` / `ctld.wpZones` / `ctld.logisticUnits` were presented as `ctld.*` globals; the
+  globals were removed and the engine reads the *settings* `troopZones` / `wpZones` / `logisticUnits`.
+  **`dropOffZones` has no equivalent at all in CTLD 2** — it exists in the legacy monolith and is
+  read there, so a v1 config carrying it loses its AI drop-off points. Now stated explicitly, with
+  `aiZones` + `isDropoff` as the replacement.
+- **`i18n_lang` was still documented as "edit the top of `src/CTLD_i18n.lua`"**, four months after it
+  became a real setting.
+- **`maxSlingloadSpeed` was still documented as `50`** in the crate catalogue (both languages), the
+  value corrected to `26` in this same `[Unreleased]` cycle. The unit is now spelled out with its
+  km/h and kt equivalents.
+- **`desc` was documented as needing a `ctld.tr(...)` wrapper** — in YAML it is plain text, and
+  `CTLDConfig.localiseI18n` translates every `desc`/`name` at load.
+- **The load order was presented backwards** on `docs/index` and `mission-maker/index` ("add
+  `CTLD.lua`, then add a *second* trigger with your `CTLD_userConfig.lua`"), when the config trigger
+  must come **first**. Both now start from "CTLD runs on its defaults" and route to `ctld-tools`.
+- **`architecture.fr` and `building-and-testing.fr` claimed `CTLD_userConfig.lua` is merged last**
+  into `CTLD.lua`. It is not in `listToMerge.txt` at all — it ships as a separate file. The EN pages
+  correctly said `CTLD_bootstrap.lua`; the FR pages had drifted.
+- `AIZones` (the dead capitalised spelling) removed from the two "where the rest is configured"
+  tables; the `aiZones` editor and the string-vs-numeric `coalition` trap are documented.
+- `mission-maker/index` gained the missing link to the `ctld-tools` page.
+
+Also in `src/`, comment-only: the `ctld.yamlConfigDatas` reference in `CTLD_config.lua`'s example
+block, and the `CTLD_userConfig.lua` template header, which stated the ticket-04 rule ("an element you
+omit is absent at runtime") that Addendum 1 superseded — a scalar now resolves to its default.
+
 ### Removed — runtime
 
 - **`CTLDCrateManager:dropCrate` and its `maxDropHeight` setting.** Unreachable: no F10 menu entry ever

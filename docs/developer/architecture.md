@@ -132,8 +132,13 @@ dev/CI time against a vendored datamine stock-type set (`tests/data/dcs_types.lu
 A scene or mission declares its mod types so validation stays strict on everything else:
 
 ```lua
-someScene.modTypes = { "Some_Mod_Type" }        -- on a scene model
-_cfg.settings["modTypes"] = { "Some_Mod_Type" } -- for a mission's own crate/troop/AA config
+someScene.modTypes = { "Some_Mod_Type" }   -- on a scene model
+```
+
+```yaml
+advanced:
+  modTypes:                                # for a mission's own crate/troop/AA config
+  - Some_Mod_Type
 ```
 
 > **Historical note (ADR 0007):** earlier versions probe-spawned a static/group per type at mission

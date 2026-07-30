@@ -3,7 +3,7 @@
 
 --[[
     CTLD.lua - Combined Transport and Logistics Dispatcher for DCS World
-    Version : 2.0.0-rc1
+    Version : 2.0.0-rc2
     Built   : 2026-07-30
     Source  : https://github.com/VEAF/CTLD
     Licence : MIT
@@ -56,7 +56,7 @@ end
 -- src version — do not edit source/ original
 ctld = ctld or {}
 
-ctld.VERSION = "2.0.0-rc1"
+ctld.VERSION = "2.0.0-rc2"
 
 CTLDConfig = {}
 CTLDConfig._instance = nil
@@ -345,7 +345,7 @@ end
 ------------------------------------------------------------------
 -- Example: At start of CTLD initialization : Load ctld user config from CTLD_userConfig.lua
 -- and set the ctld settings accordingly
--- ctld.yamlConfigDatas must be loaded beforehand by executing CTLD_userConfig.lua in the mission editor
+-- ctld.configUser must be loaded beforehand by executing CTLD_userConfig.lua in the mission editor
 -- with a trigger at START MISSION in "DO SCRIPT FILE" action
 ------------------------------------------------------------------
 

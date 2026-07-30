@@ -236,9 +236,8 @@ CTLDSceneManager.getInstance():registerSceneModel(myScene)
 
 | Method / Field | Signature | Description |
 | --- | --- | --- |
-| `TEMPLATES` | static table | Templates de systèmes AA, remplis depuis `CTLD_config.lua` au chargement de la config. Surchargez-le avant l'init de CTLD pour ajouter ou remplacer des systèmes. Chaque entrée : `{ name, side, sectionName, parts = {{DCSTypename, desc, weight, launcher?, amount?, NoCrate?}}, repair = {desc, weight} }`. |
+| `TEMPLATES` | static table | Règles d'assemblage des systèmes AA (pièces, count, launcher), déclarées statiquement dans `CTLD_aasystem.lua`. Surchargez-le avant l'init de CTLD pour ajouter ou remplacer des systèmes. Chaque entrée : `{ name, side, sectionName, parts = {{DCSTypename, desc, weight, launcher?, amount?, NoCrate?}}, repair = {desc, weight} }`. Les caisses AA déployables sont, elles, des entrées de catalogue ordinaires dans `CTLD_config.yaml` (sections `SAM mid range` / `SAM long range`), et non générées à l'exécution. |
 | `getInstance` | `() → CTLDCrateAssemblyManager` | Retourne le singleton. |
-| `injectAACrates` | `(spawnableCrates)` | Méthode statique. Remplit `spawnableCrates` à partir de `TEMPLATES`. Appelée automatiquement à l'init — à n'appeler manuellement que si vous ajoutez des templates après l'init. |
 | `getTemplateByName` | `(name)` | Retourne la table de template pour `name`, ou `nil`. |
 | `getTemplateForUnit` | `(unitName, repairFor)` | Retourne le template qui contient `unitName` comme composant, ou `nil`. |
 | `spawnSystemAt` | `(templateName, point, coa, countryId)` | Fait spawn un système AA complet à un point arbitraire (contourne l'exigence de crate — utile pour les systèmes pré-placés par script). |

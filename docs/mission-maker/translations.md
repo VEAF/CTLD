@@ -25,19 +25,22 @@ translation is missing.
 
 ## Choosing the language
 
-The active language is selected at the top of `src/CTLD_i18n.lua`. Uncomment the one line you
-want and leave the rest commented:
+The active language is the **`i18n_lang` setting** — set it like any other setting, in `ctld-tools`
+or by hand in your configuration snapshot:
 
-```lua
-ctld.i18n_lang = "en"
---ctld.i18n_lang = "fr"
---ctld.i18n_lang = "es"
---ctld.i18n_lang = "ko"
+```yaml
+mm_facing:
+  i18n_lang: fr
 ```
 
-Only one line should be active at a time; the default is `en`. This selector lives in its own
-file, separate from the main logic, so a non-developer translator can change it without touching
-any script.
+Valid values are `en` (the default), `fr`, `es` and `ko`. This is a mission-level choice: it applies
+to every player on the server.
+
+!!! note "The legacy selector still works"
+    Older missions selected the language by editing the top of `src/CTLD_i18n.lua`
+    (`ctld.i18n_lang = "fr"`), and that still works — CTLD reads the `i18n_lang` setting first, and
+    falls back to that module global, then to `en`. Prefer the setting: it needs no source edit and
+    survives a CTLD upgrade.
 
 ## How fallback works
 

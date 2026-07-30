@@ -188,8 +188,9 @@ Commands**. Packing it:
 When those crates are unpacked at a new location, the warehouse is restored to the captured levels
 instead of the defaults.
 
-```lua
-cfg.settings["enableFARPRepack"] = false  -- default: true
+```yaml
+mm_facing:
+  enableFARPRepack: false   # default: true
 ```
 
 **Scenes that support packing:** `Countryside FARP` (and the `Metal FARP` plugin).
@@ -271,13 +272,16 @@ immediately, its beacon is removed, and the `OnFOBDestroyed` event fires.
 | `fobDestructionThreshold` | `0.5` | Fraction of scene objects destroyed before the FOB is lost (0.0–1.0) |
 | `fobTroopPickupRadius` | `150` | Radius (m) within which troops can be picked up at a FOB |
 
-```lua
-cfg.settings["enabledFOBBuilding"]      = true
-cfg.settings["troopPickupAtFOB"]        = true
-cfg.settings["fobMinDistanceFromZones"] = 500
-cfg.settings["fobLogisticZoneRadius"]   = 150
-cfg.settings["fobDestructionThreshold"] = 0.5
-cfg.settings["fobTroopPickupRadius"]    = 150
+In `ctld-tools` these are the **FOB / FARP** family; by hand they all sit under `mm_facing`:
+
+```yaml
+mm_facing:
+  enabledFOBBuilding: true
+  troopPickupAtFOB: true
+  fobMinDistanceFromZones: 500
+  fobLogisticZoneRadius: 150
+  fobDestructionThreshold: 0.5
+  fobTroopPickupRadius: 150
 ```
 
 > The number of crates a FOB needs is **not** a global setting — it lives on the `FOB` scene's
