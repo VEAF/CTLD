@@ -767,9 +767,14 @@ tableFields:
     isJTAC:
       en: Mark this spawn as a JTAC unit
       fr: Marque ce spawn comme unité JTAC
+    # ctld-tools resolves AIR to AIRPLANE or HELICOPTER from the unit's category on save, so the
+    # YAML that reaches the engine carries the resolved value. SHIP, TRAIN and STATIC are NOT
+    # usable on a crate: buildGroupUnitDef (src/CTLD_utils.lua) does not handle statics, and an
+    # unknown value silently falls back to Group.Category.GROUND.
     spawnAs:
-      en: "Force spawn category: AIRPLANE, HELICOPTER, GROUND_UNIT, etc."
-      fr: "Force la catégorie de spawn : AIRPLANE, HELICOPTER, GROUND_UNIT, etc."
+      en: "What the crate unpacks into: GROUND (the default when absent) or AIR. DCS can only build ground units, statics, helicopters and drones from a raw definition — a manned aircraft will not spawn."
+      fr: "Ce que la caisse déballe : GROUND (valeur par défaut si absent) ou AIR. DCS ne sait construire que des unités au sol, des statiques, des hélicoptères et des drones à partir d'une définition brute — un avion piloté ne spawnera pas."
+      choices: [GROUND, AIR]
     specificParams:
       en: Drone JTAC orbit parameters (altitude, radii, speed) — only for Drone family
       fr: Paramètres d'orbite du JTAC drone (altitude, rayons, vitesse) — uniquement famille Drone
@@ -879,16 +884,43 @@ tableFields:
     side:
       en: "Coalition that can use this zone: 0 = both, 1 = RED, 2 = BLUE"
       fr: "Coalition autorisée à utiliser cette zone : 0 = les deux, 1 = RED, 2 = BLUE"
-  AIZones:
-    zoneName:
-      en: DCS trigger zone name for the AI zone (must exist in the mission editor)
-      fr: Nom de la zone de déclenchement DCS pour la zone IA (doit exister dans l'éditeur de mission)
-    mode:
-      en: "AI zone mode: supply, pickup, unload, etc."
-      fr: "Mode de la zone IA : supply, pickup, unload, etc."
-    side:
-      en: "Coalition that uses this AI zone: 0 = both, 1 = RED, 2 = BLUE"
-      fr: "Coalition qui utilise cette zone IA : 0 = les deux, 1 = RED, 2 = BLUE"
+  # Fields read by CTLDZoneManager:_loadAIZonesFromConfig (src/CTLD_zone.lua). The three enums
+  # below mirror its own VALID_COALITION / VALID_CARGO / VALID_DROP_MODE tables — take them from
+  # there, never retype them here.
+  aiZones:
+    dcsZoneName:
+      en: DCS trigger zone name; it must exist in the mission editor or the zone is skipped with a warning
+      fr: Nom de la zone de déclenchement DCS ; elle doit exister dans l'éditeur de mission, sinon la zone est ignorée avec un avertissement
+    coalition:
+      en: "Coalition using this zone — a word, not a number: RED, BLUE or NEUTRAL. Any other value means both coalitions."
+      fr: "Coalition qui utilise cette zone — un mot, pas un nombre : RED, BLUE ou NEUTRAL. Toute autre valeur signifie les deux coalitions."
+      choices: [RED, BLUE, NEUTRAL]
+    isPickup:
+      en: AI transports load cargo in this zone
+      fr: Les transports IA embarquent du fret dans cette zone
+    isDropoff:
+      en: AI transports deliver cargo to this zone
+      fr: Les transports IA livrent du fret dans cette zone
+    cargoType:
+      en: "What moves through this zone: T = troops, V = vehicles, TV = both. Defaults to T."
+      fr: "Ce qui transite par cette zone : T = troupes, V = véhicules, TV = les deux. Valeur par défaut T."
+      choices: [T, V, TV]
+    troopStock:
+      en: Available troops, as a template name mapped to a count. -1 means unlimited, and the special key All means every template without limit. Omit the table to leave stock unlimited.
+      fr: Troupes disponibles, sous forme d'un nom de modèle associé à un nombre. -1 signifie illimité, et la clé spéciale All désigne tous les modèles sans limite. Omettre la table pour ne pas limiter le stock.
+    vehicleStock:
+      en: Available vehicles, as a DCS unit type mapped to a count. Same conventions as troopStock.
+      fr: Véhicules disponibles, sous forme d'un type d'unité DCS associé à un nombre. Mêmes conventions que troopStock.
+    troopTemplates:
+      en: Restrict this zone to these loadableGroups names; leave it empty to allow all of them
+      fr: Restreint cette zone à ces noms de loadableGroups ; laisser vide pour tous les autoriser
+    vehicleTypes:
+      en: Restrict this zone to these DCS unit types; leave it empty to allow all of them
+      fr: Restreint cette zone à ces types d'unités DCS ; laisser vide pour tous les autoriser
+    aiDropMode:
+      en: "How the AI delivers: G = on the ground (it lands), P = by parachute, GP = either. Defaults to GP."
+      fr: "Mode de livraison de l'IA : G = au sol (elle atterrit), P = en parachute, GP = les deux. Valeur par défaut GP."
+      choices: [G, P, GP]
   groundVehicleWeights:
     unit:
       en: DCS unit type name (must match the DCS catalogue exactly)
@@ -1012,9 +1044,6 @@ maxSlingloadSpeed:
   description:
     en: "Ground speed above which a slung crate is lost, in metres per second — the engine compares it to the helicopter's own velocity. The default 26 m/s is about 50 kt / 94 km/h, in line with a UH-1H sling-load limit. Raise it for a faster airframe, but remember the unit: 50 here would mean 180 km/h."
     fr: "Vitesse au-delà de laquelle une caisse à l'élingue est perdue, en mètres par seconde — le moteur la compare à la vitesse de l'hélicoptère. Le défaut de 26 m/s vaut environ 50 kt / 94 km/h, cohérent avec la limite de sling-load d'un UH-1H. Augmentez-la pour un appareil plus rapide, mais attention à l'unité : 50 ici signifierait 180 km/h."
-maxDropHeight:
-  label: {en: Max drop height, fr: Hauteur max de largage}
-  unit: m
 maxTransportWeight:
   label: {en: Max transport weight, fr: Poids de transport max}
   unit: kg
@@ -1027,12 +1056,21 @@ spawnDistanceInCircle:
 hoverTime:
   label: {en: Hover time required, fr: Durée de stationnaire requise}
   unit: s
+# Two reference frames, deliberately: picking up measures against the object, which is the
+# clearance the pilot cares about; releasing a slingload has no object to measure from, so it
+# uses the terrain. The two never apply at the same moment (pickup vs release).
 minimumHoverHeight:
   label: {en: Minimum hover height, fr: Hauteur de stationnaire minimale}
   unit: m
+  description:
+    en: Lowest hover height to pick up a crate or a vehicle, measured above the object itself — not above the terrain.
+    fr: Hauteur de stationnaire minimale pour prendre une caisse ou un véhicule, mesurée au-dessus de l'objet lui-même — et non au-dessus du terrain.
 maximumHoverHeight:
   label: {en: Maximum hover height, fr: Hauteur de stationnaire maximale}
   unit: m
+  description:
+    en: Highest hover height to pick up a crate or a vehicle, measured above the object itself. The same value also caps a slingload release, but there it is measured above the terrain (AGL), since no object is involved.
+    fr: Hauteur de stationnaire maximale pour prendre une caisse ou un véhicule, mesurée au-dessus de l'objet lui-même. La même valeur limite aussi le relâchement d'une élingue, mais elle y est mesurée au-dessus du terrain (AGL), puisqu'aucun objet n'est en jeu.
 groundAglThreshold:
   label: {en: Ground contact AGL threshold, fr: Seuil AGL de contact au sol}
   unit: m
@@ -1064,8 +1102,8 @@ aiZones:
   label: {en: AI transport zones, fr: Zones de transport IA}
   group: zones
   description:
-    en: Zones where AI transports pick up or drop off. A list of records, each with dcsZoneName, coalition (RED/BLUE/NEUTRAL), isPickup, isDropoff, cargoType (T=troops, V=vehicles) and optional troopStock / vehicleStock tables mapping a template name to a count (-1 = unlimited, "All" = every template).
-    fr: Zones où les transports IA embarquent ou débarquent. Une liste d'enregistrements comportant dcsZoneName, coalition (RED/BLUE/NEUTRAL), isPickup, isDropoff, cargoType (T=troupes, V=véhicules) et, en option, des tables troopStock / vehicleStock associant un nom de modèle à un nombre (-1 = illimité, "All" = tous les modèles).
+    en: Zones where AI transports pick up or drop off. A list of records, each with dcsZoneName, coalition (RED/BLUE/NEUTRAL), isPickup, isDropoff, cargoType (T=troops, V=vehicles, TV=both) and aiDropMode (G=ground, P=parachute, GP=either), plus optional troopStock / vehicleStock tables mapping a name to a count (-1 = unlimited, All = every entry) and troopTemplates / vehicleTypes lists restricting what the zone handles.
+    fr: Zones où les transports IA embarquent ou débarquent. Une liste d'enregistrements comportant dcsZoneName, coalition (RED/BLUE/NEUTRAL), isPickup, isDropoff, cargoType (T=troupes, V=véhicules, TV=les deux) et aiDropMode (G=au sol, P=parachute, GP=les deux), plus, en option, des tables troopStock / vehicleStock associant un nom à un nombre (-1 = illimité, All = toutes les entrées) et des listes troopTemplates / vehicleTypes restreignant ce que la zone traite.
 JTAC_laseIntervalSeconds:
   label: {en: Lasing interval, fr: Intervalle de lasing}
   unit: s
@@ -1107,3 +1145,7 @@ smokeAutoResumeInterval:
   unit: s
 modTypes:
   label: {en: Mod unit types, fr: Types d'unités de mods}
+  group: general
+  description:
+    en: A list of DCS unit type names that come from mods rather than the base game. Listing a type here is what stops validation rejecting it as unknown to DCS, so add every modded unit your mission spawns. Example — [AH-64D_BLK_II, F-15ESE].
+    fr: Une liste de noms de types d'unités DCS provenant de mods et non du jeu de base. Y déclarer un type est ce qui empêche la validation de le rejeter comme inconnu de DCS ; ajoutez donc chaque unité moddée que votre mission fait apparaître. Exemple — [AH-64D_BLK_II, F-15ESE].

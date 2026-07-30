@@ -107,7 +107,6 @@ The manager mirrors the entity transitions and owns event publication:
 | `loadCrate(crateName, transport)` | `spawned`/`landed` → `loaded` (destroys the static) | `OnCrateLoaded`, `OnCrateCleared` |
 | `unloadCrate(crateName, position, method)` | `loaded` → `landed` (respawns the static) | `OnCrateUnloaded`, `OnCrateSpawned` |
 | `unpackCrate(crateName, unpacker)` | `spawned`/`landed` → `unpacked` (destroys + unregisters) | `OnCrateUnpacked`, `OnCrateCleared` |
-| `dropCrate(crateName, altitudeAGL)` | → `falling` | (drop/parachute events) |
 | `destroyCrate(crateName)` | destroy + unregister | `OnCrateCleared` |
 
 Loading and unloading both call `ctld.utils.updateTransportWeight` so the transport's mass reflects

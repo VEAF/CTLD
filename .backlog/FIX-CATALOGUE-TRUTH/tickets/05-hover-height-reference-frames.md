@@ -1,6 +1,6 @@
 # 05 — state the reference frame of the hover-height settings
 
-**Status:** ready
+**Status:** done
 
 Closes `dev/roadmap.md` item 5.
 

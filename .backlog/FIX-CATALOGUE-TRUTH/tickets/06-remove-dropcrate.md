@@ -1,8 +1,22 @@
 # 06 — remove `dropCrate` and `maxDropHeight`
 
-**Status:** ready
+**Status:** done
 
 Closes `dev/roadmap.md` item 4. **The only ticket in this lot that touches `src/`.**
+
+> **A consequence this ticket did not anticipate: `OnCrateDestroyed` lost its only publisher.**
+> `grep -rn OnCrateDestroyed src/` returns nothing else — `dropCrate` was it, and nothing in `src/`
+> subscribes either. Rather than delete the documented event, its `docs/developer/events.{md,fr.md}`
+> section now states plainly that it is **no longer emitted**, and why. A plugin in the `CTLD_plugins`
+> repo may already subscribe to it, and its author needs to know the handler will not fire — deleting
+> the section would have hidden that. Reopen if you would rather drop the event outright.
+>
+> **One more reference the ticket missed:** `docs/developer/subsystems/crates.{md,fr.md}` documented
+> `dropCrate(crateName, altitudeAGL)` in the state-transition table. Removed in both languages.
+>
+> **Two test fixes it caused:** the committed parity oracle (`tests/ci/data/config_defaults.json`) had
+> to be regenerated — the build's `merge` step does not do it — and `test_schema_coverage.py` listed
+> `AIZones` in its hardcoded expected-tables set (ticket 01's rename).
 
 ## Why
 

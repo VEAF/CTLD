@@ -225,7 +225,7 @@ Une crate est larguée ou déchargée (pas unpacked).
 | `descriptor` | table | |
 | `method` | string ou nil | `"dcs_native"` si natif, absent pour le slingload |
 
-**Published by** : `CTLDCrateManager:unloadCrate()`, `:dropCrate()`, `:cutSlingload()`, `:_checkNativeDCSCargo()`
+**Published by** : `CTLDCrateManager:unloadCrate()`, `:cutSlingload()`, `:_checkNativeDCSCargo()`
 
 #### `OnCrateLost`
 Une crate est détruite par slingload en survitesse ou par l'impact d'un cut-slingload.
@@ -277,7 +277,11 @@ Une crate est détruite à l'impact d'un largage en haute altitude (distinct de 
 | `coalition` | number | |
 | `reason` | string | `"drop_impact"` |
 
-**Published by** : `CTLDCrateManager:dropCrate()` (chemin d'impact)
+**Published by** : rien — **cet événement n'est plus émis.** Son seul émetteur était
+`CTLDCrateManager:dropCrate()`, une méthode inatteignable supprimée dans `FIX-CATALOGUE-TRUTH` : aucune
+entrée de menu ne l'appelait, et le largage en vol qu'elle implémentait est assuré par
+`parachuteCrates()`. Le nom et la charge utile de l'événement restent documentés ici afin qu'un plugin
+qui s'y abonne sache que son handler ne se déclenchera pas ; rien dans le moteur ne l'émet depuis.
 
 #### `OnCrateParachuting`
 Une crate est larguée en mode parachute-drop.

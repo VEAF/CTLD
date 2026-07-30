@@ -222,7 +222,7 @@ A crate is dropped or unloaded (not unpacked).
 | `descriptor` | table | |
 | `method` | string or nil | `"dcs_native"` if native, absent for slingload |
 
-**Published by**: `CTLDCrateManager:unloadCrate()`, `:dropCrate()`, `:cutSlingload()`, `:_checkNativeDCSCargo()`
+**Published by**: `CTLDCrateManager:unloadCrate()`, `:cutSlingload()`, `:_checkNativeDCSCargo()`
 
 #### `OnCrateLost`
 A crate is destroyed by overspeed slingload or cut-slingload impact.
@@ -274,7 +274,11 @@ A crate is destroyed on high-altitude drop impact (distinct from slingload loss)
 | `coalition` | number | |
 | `reason` | string | `"drop_impact"` |
 
-**Published by**: `CTLDCrateManager:dropCrate()` (impact path)
+**Published by**: nothing — **this event is no longer emitted.** Its only publisher was
+`CTLDCrateManager:dropCrate()`, an unreachable method removed in `FIX-CATALOGUE-TRUTH`: no menu entry
+called it, and the airborne drop it implemented is served by `parachuteCrates()`. The event name and
+payload are documented here so a plugin that subscribes to it knows its handler will not fire; nothing
+in the engine has published it since.
 
 #### `OnCrateParachuting`
 A crate is released in parachute-drop mode.

@@ -1,6 +1,6 @@
 # 02 — `spawnAs`: stop advertising an invalid value
 
-**Status:** ready
+**Status:** done
 
 ## Why
 

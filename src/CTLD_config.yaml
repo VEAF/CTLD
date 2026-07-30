@@ -959,10 +959,9 @@ advanced:
   groundAglThreshold: 5.0
   hoverTime: 10
   maxDistanceFromCrate: 5.5
-  maxDropHeight: 7.5
   maximumHoverHeight: 12.0
   minimumHoverHeight: 7.5
-  modTypes: {}
+  modTypes: []
   parachuteDescentRateCrates: 5
   parachuteDescentRateTroops: 5
   parachuteDescentRateVehicles: 8
@@ -980,15 +979,12 @@ advanced:
   spawnDistanceInCircle: 10
   spawnableCratesModels:
     load:
-      category: Cargos
       canCargo: true
       type: ammo_cargo
     sling:
-      category: Cargos
       canCargo: true
       shape_name: bw_container_cargo
       type: container_cargo
     dynamic:
-      category: Cargos
       canCargo: true
       type: ammo_cargo
