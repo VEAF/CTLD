@@ -14,9 +14,13 @@ Independent of 02 / 03 — different layer, can be built in parallel.
 > assertion now loads the default catalogue — the only genuinely complete subject — and the tiny fixture
 > became the vehicle for a new test asserting an incomplete catalogue *is* reported.
 >
-> **Not verified locally:** `test_web_app.py` cannot run on this machine — `fastapi` is declared but not
-> installed, and `poetry install` cannot reach pypi.org from this network. The other 124 tests pass, and
-> ruff check + format are clean. CI covers the web tests.
+> **Verified, including through the packaged exe.** `fastapi` and `httpx` were missing from the local
+> venv (`poetry install` cannot reach pypi.org, but `pip` has a working internal index), so they were
+> installed at their `poetry.lock` versions — **164 tests pass**, `test_web_app.py` included, and ruff
+> check + format are clean. The frontend and `ctld-tools.exe` then built with the CI recipe, and
+> `GET /api/validate` on the default catalogue, served by the exe, returns
+> `{"hasErrors":false,"findings":[]}` — the completeness rule produces no false positive on the real
+> shipped catalogue.
 
 ## Why
 

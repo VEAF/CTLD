@@ -12,11 +12,17 @@ parallel. Closes `dev/roadmap.md` items 2 and 3, which turn out to be one subjec
 > including three parachute-altitude divergences the roadmap never listed. Tool: a `validate`
 > completeness rule at `ERROR`, keyed off the default catalogue.
 >
-> **Verification.** 124 pytest tests + ruff clean. Lua: busted is not installed on this machine, so
-> the specs were mirrored through standalone Lua harnesses (13 tier assertions, plus a post-sweep
-> invariant proving every unguarded `ctld.gs()` resolves); `luacheck` reports 66 warnings before and
-> after, none introduced. `tests/test_web_app.py` could not run — `fastapi` is declared but not
-> installed and pypi.org is unreachable from this network. CI covers both.
+> **Verification.** **164 pytest tests** + ruff check/format clean, `test_web_app.py` included (its
+> `fastapi` / `httpx` were missing locally and were installed at their lock versions). The frontend and
+> `ctld-tools.exe` built with the CI recipe, and `GET /api/validate` on the default catalogue **served
+> by the exe** returns `{"hasErrors":false,"findings":[]}` — the completeness rule does not
+> false-positive on the real shipped catalogue.
+>
+> Lua remains the gap: `busted` and `luac5.1` are not installed on this machine, so the specs were
+> mirrored through standalone Lua harnesses (13 tier assertions, plus a post-sweep invariant proving
+> every unguarded `ctld.gs()` resolves under the default catalogue). `luacheck` reports 66 warnings
+> before and after, none introduced. **CI is still the first confirmation for the busted suite and the
+> Lua 5.1 syntax gate.**
 
 ## Why
 
