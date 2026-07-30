@@ -51,12 +51,26 @@ describe("CTLDConfig", function()
             assert.equals(25, cfg:getSetting("numberOfTroops"))
         end)
 
-        it("no merge: an element omitted from configUser is absent, not the default", function()
+        it("no merge on lists: a list omitted from configUser is absent, not the default", function()
             CTLDConfig._instance = nil
             ctld.configUser = "mm_facing:\n  numberOfTroops: 25\n"
             local cfg = CTLDConfig.get()
             cfg:load()
-            assert.is_nil(cfg:getSetting("hoverTime"))   -- omitted → absent (no fallback)
+            -- ADR 0011 point 1 stands for lists: omitting one is an intentional removal.
+            assert.is_nil(cfg:getSetting("aiZones"))
+            assert.is_nil(cfg:getSetting("spawnableCrates"))
+        end)
+
+        it("a parameter omitted from configUser resolves to the catalogue default", function()
+            CTLDConfig._instance = nil
+            ctld.configUser = "mm_facing:\n  numberOfTroops: 25\n"
+            local cfg = CTLDConfig.get()
+            cfg:load()
+            -- ADR 0011 Addendum 1: a scalar cannot be "removed" — the engine needs a value to
+            -- compute with, so an omission is an incomplete document, not a decision. It falls
+            -- back to the catalogue and is named in the startup report.
+            assert.equals(10, cfg:getSetting("hoverTime"))
+            assert.is_true(#cfg:getDefaultedParameters() > 0)
         end)
 
         it("a malformed configUser is a hard error", function()

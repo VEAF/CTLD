@@ -78,8 +78,8 @@ describe("CTLDi18n", function()
             assert.equals("table", type(result.untranslated))
         end)
 
-        it("en_version is '1.9'", function()
-            assert.equals("1.11", result.en_version)
+        it("en_version matches the dictionary version", function()
+            assert.equals("1.12", result.en_version)
         end)
 
     end)
@@ -212,9 +212,9 @@ describe("CTLDi18n", function()
             assert.is_false(result.version_match)
         end)
 
-        it("en_version is '1.9'", function()
+        it("en_version matches the dictionary version", function()
             local result = ctld.i18n_audit("fr")
-            assert.equals("1.11", result.en_version)
+            assert.equals("1.12", result.en_version)
         end)
 
         it("lang_version reflects mocked value '0.0'", function()

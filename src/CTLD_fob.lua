@@ -156,7 +156,7 @@ end
 
 --- True if position is closer than fobMinDistanceFromZones to any logistic zone.
 local function _isTooCloseToZone(position, coalitionId)
-    local minDist = ctld.gs("fobMinDistanceFromZones") or 500
+    local minDist = ctld.gs("fobMinDistanceFromZones")
     local zm      = CTLDZoneManager.getInstance()
     for _, zone in ipairs(zm:getLogisticZonesForCoalition(coalitionId)) do
         if ctld.utils.getDistance("_isTooCloseToZone", position, zone:getCenter()) < minDist then
@@ -228,7 +228,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player, sceneName)
 
     -- Guard: too close to another zone
     if _isTooCloseToZone(pos, coalitionId) then
-        local minDist = ctld.gs("fobMinDistanceFromZones") or 500
+        local minDist = ctld.gs("fobMinDistanceFromZones")
         trigger.action.outTextForGroup(gid,
             ctld.tr("FOB deployment blocked: move at least %1 m away from existing logistic zone.",
                 minDist), 20)
@@ -315,7 +315,7 @@ function CTLDFOBManager:_registerDeployedFOB(scene)
     self._fobs[fobId] = fob
 
     -- Register as logistic zone
-    local logRadius = ctld.gs("fobLogisticZoneRadius") or 150
+    local logRadius = ctld.gs("fobLogisticZoneRadius")
     CTLDZoneManager.getInstance():registerFOBAsLogistic(fobName, centroid, logRadius, coalitionId)
 
     -- Drop FOB beacon (infinite battery) 5 m toward helicopter from centroid.
@@ -379,7 +379,7 @@ function CTLDFOBManager:onDead(event)
     local fob = self._fobs[fobId]
     if not fob then return end
 
-    local threshold = ctld.gs("fobDestructionThreshold") or 0.5
+    local threshold = ctld.gs("fobDestructionThreshold")
     local integrity = fob:getIntegrityPercent()
 
     ctld.utils.log("INFO",
@@ -427,7 +427,7 @@ function CTLDFOBManager:_destroyFOB(fob, killerUnit, killerCoalition, integrityP
             killerCoalition    = killerCoalition,
             objectsDestroyed   = objectsDestroyed,
             objectsTotal       = objectsTotal,
-            destructionThreshold = ctld.gs("fobDestructionThreshold") or 0.5,
+            destructionThreshold = ctld.gs("fobDestructionThreshold"),
             integrityPercent   = integrityPercent or 0,
         },
         logisticZone = { name = fob.name, wasActive = true },
@@ -458,7 +458,7 @@ end
 -- @param coalitionId number
 -- @return boolean
 function CTLDFOBManager:isInFOBTroopZone(point, coalitionId)
-    local radius = ctld.gs("fobTroopPickupRadius") or 150
+    local radius = ctld.gs("fobTroopPickupRadius")
     for _, fob in pairs(self._fobs) do
         if fob.coalitionId == coalitionId and fob._troopPickup and fob:isAlive() then
             if ctld.utils.getDistance(point, fob.position) <= radius then
@@ -493,7 +493,7 @@ function CTLDFOBManager:listFOBs(transport)
     for _, fob in ipairs(fobs) do
         local lat, lon = coord.LOtoLL(fob.position)
         local latLon   = ctld.utils.tostringLL(
-            "CTLDFOBManager:listFOBs", lat, lon, 3, ctld.gs("location_DMS") or false)
+            "CTLDFOBManager:listFOBs", lat, lon, 3, ctld.gs("location_DMS"))
         local integrity = string.format("%.0f%%", fob:getIntegrityPercent() * 100)
         local line      = string.format("  %s — %s — %s", fob.name or fob.fobId, latLon, integrity)
         if fob.beacon then

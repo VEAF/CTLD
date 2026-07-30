@@ -145,7 +145,7 @@ function CtldScene:_runNextStep()
         local overrides = {}
         if desc and desc.formation and desc.formation.type == "circle" then
             local safeR = ctld.utils.getSecureDistanceFromUnit(self._unit:getName()) or 10
-            overrides.circleRadius = safeR + (ctld.gs("spawnDistanceInCircle") or 10)
+            overrides.circleRadius = safeR + (ctld.gs("spawnDistanceInCircle"))
         end
 
         if step.polar then
@@ -172,7 +172,7 @@ function CtldScene:_runNextStep()
             local safeDist = step.axis.safeDistance
                           or ctld.utils.getSecureDistanceFromUnit(self._unit:getName())
                           or 20
-            local spacing  = step.axis.spacing or (ctld.gs("crateSpacing") or 5)
+            local spacing  = step.axis.spacing or (ctld.gs("crateSpacing"))
             local result   = ctld.utils.getSpawnObjectPositions(self._unit, count, safeDist, spacing)
             for _, pos in ipairs(result.positions) do
                 local obj = CTLDObjectRegistry.spawnObject(

@@ -3,6 +3,7 @@
 ctld-tools embed     --yaml src/CTLD_config.yaml --out src/CTLD_config_default_yaml.lua
 ctld-tools gen       --yaml src/CTLD_config.yaml --out tests/ci/data/config_defaults.json
 ctld-tools validate  --yaml a-complete-config.yaml [--schema src/CTLD_config_schema.yaml]
+                     [--default src/CTLD_config.yaml]   # completeness; bundled one by default
 
 A bare invocation / double-click (no command) boots the local web app instead — the
 Mission-Maker surface, a thin wrapper over this package's library (catalog / schema /
@@ -62,15 +63,25 @@ def gen_cmd(
 def validate_cmd(
     yaml_path: Path = typer.Option(..., "--yaml", help="path to a complete config YAML to validate"),
     schema_path: Path = typer.Option(None, "--schema", help="path to CTLD_config_schema.yaml (enables choices checks)"),
+    default_path: Path = typer.Option(
+        None,
+        "--default",
+        help="path to the reference CTLD_config.yaml (enables the completeness check; bundled one by default)",
+    ),
 ) -> None:
     """Validate a complete config catalogue against the DCS types and schema."""
     from ctld_tools.catalog import Catalog
     from ctld_tools.schema import Schema
     from ctld_tools.validate import has_errors, validate
+    from ctld_tools.web import resources
 
     catalog = Catalog.load(yaml_path)
     schema = Schema.load(schema_path) if schema_path else Schema({})
-    findings = validate(catalog, schema)
+    # The completeness check needs a reference catalogue (ADR 0011 Addendum 1). Fall back to the
+    # bundled default so `validate --yaml x.yaml` checks completeness without extra ceremony.
+    reference = Path(default_path) if default_path else resources.default_catalog_path()
+    default = Catalog.load(reference) if reference.exists() else None
+    findings = validate(catalog, schema, default=default)
     for finding in findings:
         typer.echo(str(finding))
     if not findings:

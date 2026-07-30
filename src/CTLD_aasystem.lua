@@ -249,9 +249,9 @@ end
 -- @return number
 function CTLDCrateAssemblyManager:getAllowedCount(coalitionId)
     if coalitionId == coalition.side.BLUE then
-        return ctld.gs("AASystemLimitBLUE") or 20
+        return ctld.gs("AASystemLimitBLUE")
     end
-    return ctld.gs("AASystemLimitRED") or 20
+    return ctld.gs("AASystemLimitRED")
 end
 
 --- Find an AA system template by its display name.
@@ -297,7 +297,7 @@ function CTLDCrateAssemblyManager:spawnSystemAt(templateName, point, coa, countr
     end
 
     -- Build spawn positions (same circle pattern as _buildSpawnArrays)
-    local aaLaunchers = ctld.gs("aaLaunchers") or 3
+    local aaLaunchers = ctld.gs("aaLaunchers")
     local arcRad      = math.pi * 2
     local partCount   = #template.parts
     local positions, types, headings = {}, {}, {}
@@ -485,7 +485,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     local positions, types, headings = self:_buildSpawnArrays(template, systemParts, origin, heli)
 
     -- ---- Destroy consumed crates ----
-    local stacking = ctld.gs("AASystemCrateStacking") or false
+    local stacking = ctld.gs("AASystemCrateStacking")
     for _, part in ipairs(template.parts) do
         local sp = systemParts[part.DCSTypename]
         if not sp.NoCrate then
@@ -744,8 +744,8 @@ function CTLDCrateAssemblyManager:_buildSpawnArrays(template, systemParts, origi
     local types     = {}
     local headings  = {}
 
-    local aaLaunchers  = ctld.gs("aaLaunchers") or 3
-    local stacking     = ctld.gs("AASystemCrateStacking") or false
+    local aaLaunchers  = ctld.gs("aaLaunchers")
+    local stacking     = ctld.gs("AASystemCrateStacking")
     local arcRad       = math.pi * 2
     -- Distribute each template part across equal arc segments so parts
     -- don't pile up on each other.  Index tracks arc offset per call.

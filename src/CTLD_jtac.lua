@@ -478,19 +478,19 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
     if cfg and cfg.smokeEnabled ~= nil then
         smokeEnabled = cfg.smokeEnabled
     elseif coalitionId == coalition.side.RED then
-        smokeEnabled = ctld.gs("JTAC_smokeOn_RED") or false
+        smokeEnabled = ctld.gs("JTAC_smokeOn_RED")
     else
-        smokeEnabled = ctld.gs("JTAC_smokeOn_BLUE") or false
+        smokeEnabled = ctld.gs("JTAC_smokeOn_BLUE")
     end
     local smokeColor
     if cfg and cfg.smokeColor ~= nil then
         smokeColor = cfg.smokeColor
     elseif coalitionId == coalition.side.RED then
-        smokeColor = ctld.gs("JTAC_smokeColour_RED") or trigger.smokeColor.Red
+        smokeColor = ctld.gs("JTAC_smokeColour_RED")
     else
-        smokeColor = ctld.gs("JTAC_smokeColour_BLUE") or trigger.smokeColor.Red
+        smokeColor = ctld.gs("JTAC_smokeColour_BLUE")
     end
-    local lockMode = (cfg and cfg.lockMode) or ctld.gs("JTAC_lock") or "all"
+    local lockMode = (cfg and cfg.lockMode) or ctld.gs("JTAC_lock")
 
     local jtac = CTLDJTAC:new({
         groupName    = groupName,
@@ -644,11 +644,11 @@ function CTLDJTACManager:requestSmoke(groupName)
     if not jtac or not jtac.currentTarget then return end
 
     local targetPos = jtac.currentTarget.position
-    local margin    = ctld.gs("JTAC_smokeMarginOfError") or 50
+    local margin    = ctld.gs("JTAC_smokeMarginOfError")
     local smokePos  = {
-        x = targetPos.x + (ctld.gs("JTAC_smokeOffset_x") or 0) + math.random(-margin, margin),
-        y = targetPos.y + (ctld.gs("JTAC_smokeOffset_y") or 2),
-        z = targetPos.z + (ctld.gs("JTAC_smokeOffset_z") or 0) + math.random(-margin, margin),
+        x = targetPos.x + (ctld.gs("JTAC_smokeOffset_x")) + math.random(-margin, margin),
+        y = targetPos.y + (ctld.gs("JTAC_smokeOffset_y")),
+        z = targetPos.z + (ctld.gs("JTAC_smokeOffset_z")) + math.random(-margin, margin),
     }
 
     trigger.action.smoke(smokePos, jtac.smokeColor)
@@ -809,21 +809,21 @@ function CTLDJTACManager:startLaseTroopUnit(unitName, cfg)
     if cfg and cfg.smokeEnabled ~= nil then
         smokeEnabled = cfg.smokeEnabled
     elseif coalitionId == coalition.side.RED then
-        smokeEnabled = ctld.gs("JTAC_smokeOn_RED") or false
+        smokeEnabled = ctld.gs("JTAC_smokeOn_RED")
     else
-        smokeEnabled = ctld.gs("JTAC_smokeOn_BLUE") or false
+        smokeEnabled = ctld.gs("JTAC_smokeOn_BLUE")
     end
 
     local smokeColor
     if cfg and cfg.smokeColor ~= nil then
         smokeColor = cfg.smokeColor
     elseif coalitionId == coalition.side.RED then
-        smokeColor = ctld.gs("JTAC_smokeColour_RED") or trigger.smokeColor.Red
+        smokeColor = ctld.gs("JTAC_smokeColour_RED")
     else
-        smokeColor = ctld.gs("JTAC_smokeColour_BLUE") or trigger.smokeColor.Red
+        smokeColor = ctld.gs("JTAC_smokeColour_BLUE")
     end
 
-    local lockMode = (cfg and cfg.lockMode) or ctld.gs("JTAC_lock") or "all"
+    local lockMode = (cfg and cfg.lockMode) or ctld.gs("JTAC_lock")
 
     local jtac = CTLDJTAC:new({
         groupName    = unitName,   -- registry key (= unitName for troop JTACs)
@@ -1130,7 +1130,7 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
         if not targetUnit or not targetUnit:isExist() then return end
 
-        local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("JTAC_droneRadius") or 1000
+        local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("JTAC_droneRadius")
         self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), jtac.orbitParams, rOnLase)
         jtac.onTargetOrbit = true
         jtac:startOrbit(t)
@@ -1146,7 +1146,7 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         if jtac.orbitStartTime and (t - jtac.orbitStartTime) >= 60 then
             local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
             if targetUnit and targetUnit:isExist() then
-                local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("JTAC_droneRadius") or 1000
+                local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("JTAC_droneRadius")
                 self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), jtac.orbitParams, rOnLase)
                 jtac.orbitStartTime = t
             end
@@ -1171,7 +1171,7 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
     elseif not hasCurrent and not inOrbit and not jtac.initialRouteAssigned then
         -- Just spawned, initialPosition captured — assign initial looping route (once only)
         if jtac.initialPosition then
-            local rNoLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusNoLase or ctld.gs("JTAC_droneRadius") or 1000
+            local rNoLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusNoLase or ctld.gs("JTAC_droneRadius")
             self:_setOrbitRoute(dcsGroup, groupName, jtac.initialPosition, jtac.orbitParams, rNoLase)
             jtac.initialRouteAssigned = true
             jtac.onTargetOrbit        = false
@@ -1190,7 +1190,7 @@ end
 local ORBIT_ROUTE_PTS = 8   -- 8 waypoints = 45° segments, reasonable turn radius
 function CTLDJTACManager:_setOrbitRoute(dcsGroup, groupName, center, orbitParams, radius)
     local speedKmh = orbitParams and orbitParams.speed or 100
-    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("JTAC_droneAltitude") or 4000
+    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("JTAC_droneAltitude")
     local vec2     = ctld.utils.makeVec2FromVec3OrVec2("_setOrbitRoute", center)
     local cx, cz   = vec2.x, vec2.y
     local terrainH = land.getHeight({ x = cx, y = cz })
@@ -1284,7 +1284,7 @@ end
 function CTLDJTACManager:_setOrbitTask(dcsGroup, jtacUnit, center, orbitParams, _radius)
     local orbitPoint = ctld.utils.makeVec2FromVec3OrVec2("_setOrbitTask", center)
     local speedKmh = orbitParams and orbitParams.speed or 100
-    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("JTAC_droneAltitude") or 4000
+    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("JTAC_droneAltitude")
     local terrainH = land.getHeight({ x = orbitPoint.x, y = orbitPoint.y })
     local orbit = {
         id     = "Orbit",

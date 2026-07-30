@@ -276,12 +276,29 @@ def test_save_and_yaml_roundtrip(tmp_path):
 
 
 def test_validate_clean_and_bad_unit():
-    _load()
+    # The default catalogue is complete by definition, so it is the only clean subject: SAMPLE is a
+    # 3-setting snapshot and now reports every parameter it omits (ADR 0011 Addendum 1).
+    client.post("/api/catalog/load-default")
     assert client.get("/api/validate").json()["hasErrors"] is False
     _load(BAD_UNIT)
     bad = client.get("/api/validate").json()
     assert bad["hasErrors"] is True
     assert any("NotARealUnit" in f["message"] for f in bad["findings"])
+
+
+def test_validate_reports_an_incomplete_catalogue():
+    """A parameter cannot be removed by omission — an incomplete snapshot must not export.
+
+    ADR 0011 Addendum 1. The engine survives such a config (it falls back to the default and says so
+    on screen), but the tool refuses to bless it, because a Mission Maker who *does* use the tool
+    should be told before the mission ever runs.
+    """
+    _load()  # SAMPLE: configVersion + 3 settings, so most of the catalogue is absent
+    body = client.get("/api/validate").json()
+    assert body["hasErrors"] is True
+    missing = [f for f in body["findings"] if f["key"] == "validate.parameter.missing"]
+    assert len(missing) > 50, "a 3-setting snapshot omits most of the catalogue's parameters"
+    assert all(f["severity"] == "error" for f in missing)
 
 
 def test_dialog_returns_picked_path(monkeypatch):

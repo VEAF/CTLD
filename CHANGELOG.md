@@ -9,6 +9,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 ### Changed — runtime
 
+- **A setting now has exactly one default, in `src/CTLD_config.yaml`.** 114 fallbacks were deleted —
+  103 `ctld.gs("x") or <literal>` plus 11 that duplicated a code constant (`_ROLE_EQUIP_WEIGHTS`,
+  `trigger.smokeColor.Red`). With a missing parameter now resolving from the catalogue (see *Fixed*
+  below), each was a second default free to drift from the one it duplicates — and five had already
+  drifted: `maximumSearchDistance` (code `10000` vs catalogue `3000`, two sites),
+  `maximumDistanceLogistic` (`500` vs `200`), and, not previously reported,
+  `parachuteMinAltitudeCrates` / `…Troops` / `…Vehicles` (`30` / `50` / `30` in code vs `152` for all
+  three in the catalogue). **No in-game behaviour changes**: a catalogue is always loaded, so the
+  catalogue value always won and is what missions have been running on. The 46 `or {…}` guards on lists
+  are deliberately untouched — for a list, absent still means empty. A test fails if a scalar literal
+  fallback reappears.
 - **`maxSlingloadSpeed` default corrected from `50` to `26`.** The value is in **metres per second**:
   the engine compares it to the magnitude of `Unit:getVelocity()` (`CTLD_crate.lua:1100`), with no
   conversion anywhere in `src/`. So `50` meant ~180 km/h / 97 kt — nearly double a UH-1H's sling-load
@@ -20,6 +31,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   together.
 ### Fixed
 
+- **An incomplete mission config no longer crashes the mission.** Three settings were read with no
+  fallback and fed straight into arithmetic: `JTAC_searchIntervalSeconds` / `JTAC_laseIntervalSeconds`
+  into `t + interval` (`CTLD_jtac.lua:905`), and `slingCutDestroyHeight` into `agl > …`
+  (`CTLD_crate.lua:1503`). A config missing any of them errored on every JTAC tick, or on every
+  slingload release. This is reachable in practice — a config authored against an older catalogue, or
+  simply hand-edited, since the YAML is deliberately editable without the tool.
+  [ADR 0011](dev/adr/0011-complete-yaml-config-and-webapp-tooling.md) now distinguishes the two config
+  tiers (Addendum 1): a **parameter** (its default value is a scalar) always resolves — absent from the
+  mission snapshot it falls back to the CTLD default, and every such key is named once on screen in the
+  startup report, because a hand-written config never passes through `ctld-tools validate`. A **list**
+  keeps the original semantic: omitting it, or one of its elements, is an intentional removal. Nothing
+  is merged — a list is never combined with the default, and a mission running on the shipped defaults
+  parses nothing extra.
 - **A troop-group editor that corrupted the file it edited.** `jtac` was typed as a boolean in the web
   app while the catalogue ships counts (`jtac: 1`, `jtac: 2`): it rendered as a checkbox that no
   numeric value could tick — so "JTAC Group" and "JTAC Group 2" looked identical and "Single JTAC"
@@ -43,6 +67,21 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   arrays whose meaning is the index: named fields now (RED / BLUE coalition limits; DCS RGBA with a
   colour preview), with the format documented in the schema. Array length is preserved — the engine
   indexes these by position.
+
+### Tooling — config completeness is checked before export (FEAT-CONFIG-PARAM-SEMANTICS)
+
+- **`validate` now refuses an incomplete config.** A setting the config omits is reported as an
+  `ERROR`, which blocks export to the `.miz` — a setting cannot be removed by omission, because the
+  engine needs a value (ADR 0011 Addendum 1). Omitting a **list**, or one of its elements, stays a
+  legitimate removal and is not reported. The rule is keyed off the **default catalogue**, never the
+  schema: `i18n_lang` is schema-declared but deliberately absent from the catalogue, so a
+  schema-driven rule would fail every valid config.
+- `validate` gains `--default` (the reference catalogue); it falls back to the bundled one, so
+  `ctld-tools validate --yaml mine.yaml` checks completeness with no extra ceremony. The web app
+  passes the loaded default automatically, on both `/api/validate` and the `/api/inject` guard.
+- This is the design-time half of the pair. The runtime half is the on-screen startup notice, and it
+  exists because nothing obliges a Mission Maker to run the tool at all — a hand-written YAML never
+  reaches `validate`.
 
 ### Tooling — ctld-tools Mission-Maker UX pass (CTLD-TOOLS-MM-UX)
 

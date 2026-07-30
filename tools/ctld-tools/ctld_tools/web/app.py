@@ -240,7 +240,7 @@ def run_validate() -> dict[str, Any]:
         cat = session.catalog
     except LookupError as exc:
         raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
-    findings = validate(cat, session.schema)
+    findings = validate(cat, session.schema, default=session.default_catalog())
     return {
         "hasErrors": has_errors(findings),
         "findings": [{"severity": f.severity, "where": f.where, "key": f.key, "message": f.message} for f in findings],
@@ -268,7 +268,7 @@ def inject(req: InjectRequest) -> dict[str, str]:
         cat = session.catalog
     except LookupError as exc:
         raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
-    if has_errors(validate(cat, session.schema)):
+    if has_errors(validate(cat, session.schema, default=session.default_catalog())):
         raise HTTPException(status_code=422, detail="fix validation errors before injecting")
     inject_userconfig(req.miz, wrap(cat.dumps(), "configUser"), req.miz)
     return {"injected": req.miz}

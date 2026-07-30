@@ -277,8 +277,8 @@ end
 
 --- Start (or restart) radio transmissions for a beacon's three groups.
 function CTLDBeaconManager:_startTransmissions(beacon)
-    local soundNormal = "l10n/DEFAULT/" .. (ctld.gs("radioSound")    or "beacon.ogg")
-    local soundSilent = "l10n/DEFAULT/" .. (ctld.gs("radioSoundFC3") or "beaconsilent.ogg")
+    local soundNormal = "l10n/DEFAULT/" .. (ctld.gs("radioSound"))
+    local soundSilent = "l10n/DEFAULT/" .. (ctld.gs("radioSoundFC3"))
 
     local entries = {
         { groupName = beacon.vhfGroupName, freq = beacon.vhf, mode = 0, sound = soundNormal },
@@ -372,7 +372,7 @@ function CTLDBeaconManager:dropBeacon(transport, player, isFOB, overridePosition
         return nil
     end
 
-    local batteryMins = ctld.gs("deployedBeaconBattery") or 30
+    local batteryMins = ctld.gs("deployedBeaconBattery")
     local batteryEnd  = isFOB and -1 or (timer.getTime() + batteryMins * 60)
 
     local beacon = CTLDBeacon:new({
@@ -542,7 +542,7 @@ end
 -- ============================================================
 
 function CTLDBeaconManager:_scheduleRefresh()
-    local interval = ctld.gs("beaconRefreshInterval") or 60
+    local interval = ctld.gs("beaconRefreshInterval")
     local self_ref = self
     local function refresh(_, t)
         -- Guard B: stop zombie loop if this instance is no longer the singleton.
@@ -572,7 +572,7 @@ function CTLDBeaconManager:_refreshAll()
                 battery             = {
                     remainingTime    = beacon:batteryRemaining(),
                     percentRemaining = beacon.isFOB and 1.0 or
-                        beacon:batteryRemaining() / ((ctld.gs("deployedBeaconBattery") or 30) * 60),
+                        beacon:batteryRemaining() / ((ctld.gs("deployedBeaconBattery")) * 60),
                     infinite         = beacon.isFOB,
                 },
                 transmissionsActive = true,
@@ -596,7 +596,7 @@ function CTLDBeaconManager:_refreshAll()
                     frequencies   = { vhf=beacon.vhf, uhf=beacon.uhf, fm=beacon.fm },
                     battery       = {
                         remainingTime = beacon:batteryRemaining(),
-                        duration      = (ctld.gs("deployedBeaconBattery") or 30) * 60,
+                        duration      = (ctld.gs("deployedBeaconBattery")) * 60,
                         infinite      = beacon.isFOB,
                     },
                     unitsAlive    = alive,
@@ -631,7 +631,7 @@ end
 
 function CTLDBeaconManager:_drawBeaconIcon(beacon, markId)
     local pos    = beacon.position
-    local radius = ctld.gs("beaconIconRadius") or 25
+    local radius = ctld.gs("beaconIconRadius")
     local color  = ctld.gs("beaconIconColor")  or { 1.0, 0.5, 0.0, 1.0 }
     local fill   = { color[1], color[2], color[3], 0.2 }
     local p      = { x = pos.x, y = 0, z = pos.z }
@@ -646,7 +646,7 @@ function CTLDBeaconManager:_drawBeaconIcon(beacon, markId)
     local pText = { x = pos.x, y = 0, z = pos.z + radius + 10 }
     trigger.action.textToAll(-1, markId * 10 + 3, pText,
         { 1.0, 1.0, 1.0, 1.0 }, { 0.0, 0.0, 0.0, 0.7 },
-        ctld.gs("beaconTextSize") or 12, true,
+        ctld.gs("beaconTextSize"), true,
         beacon.name .. "\n" .. beacon:mgrsCoords())
 end
 
@@ -689,7 +689,7 @@ end
 -- ============================================================
 
 function CTLDBeaconManager:_beaconPayload(beacon)
-    local battMins = (ctld.gs("deployedBeaconBattery") or 30) * 60
+    local battMins = (ctld.gs("deployedBeaconBattery")) * 60
     return {
         beaconName  = beacon.beaconName,
         name        = beacon.name,
@@ -808,7 +808,7 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
         return nil
     end
 
-    local batteryMins = batteryLife or ctld.gs("deployedBeaconBattery") or 30
+    local batteryMins = batteryLife or ctld.gs("deployedBeaconBattery")
     local batteryEnd  = timer.getTime() + batteryMins * 60
 
     local beacon = CTLDBeacon:new({

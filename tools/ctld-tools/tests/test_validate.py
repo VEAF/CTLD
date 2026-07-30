@@ -88,3 +88,71 @@ def test_validates_the_real_catalogue_clean():
     # the shipped catalogue must be internally consistent (mixedSets resolve, weights unique)
     errors = [f for f in validate(c, s) if f.severity == ERROR and f.key == "validate.mixedset.dangling_weight"]
     assert errors == []
+
+
+# ── Completeness: parameters must all be present, lists may be removed ──────────────
+# ADR 0011 Addendum 1. Keyed off the reference catalogue, never the schema.
+
+REFERENCE = """\
+mm_facing:
+  slingLoad: false
+  hoverTime: 10
+  slingCutDestroyHeight: 40
+  aiZones: []
+  logisticUnits:
+  - depot
+advanced:
+  maxDropHeight: 7.5
+"""
+
+
+def test_completeness_is_skipped_without_a_reference():
+    """validate() stays a pure function: no reference, no completeness findings."""
+    assert validate(cat("mm_facing:\n  slingLoad: false\n"), EMPTY, TYPES) == []
+
+
+def test_complete_catalogue_has_no_completeness_error():
+    findings = validate(cat(REFERENCE), EMPTY, TYPES, default=cat(REFERENCE))
+    assert [f for f in findings if f.key == "validate.parameter.missing"] == []
+
+
+def test_missing_parameter_is_an_error():
+    incomplete = cat(REFERENCE.replace("  slingCutDestroyHeight: 40\n", ""))
+    findings = validate(incomplete, EMPTY, TYPES, default=cat(REFERENCE))
+    missing = [f for f in findings if f.key == "validate.parameter.missing"]
+    assert len(missing) == 1
+    assert missing[0].severity == ERROR
+    assert missing[0].params["name"] == "slingCutDestroyHeight"
+    assert has_errors(findings), "an incomplete config must not export"
+
+
+def test_missing_parameter_in_the_advanced_section_is_an_error():
+    incomplete = cat(REFERENCE.replace("  maxDropHeight: 7.5\n", ""))
+    findings = validate(incomplete, EMPTY, TYPES, default=cat(REFERENCE))
+    assert [f.params["name"] for f in findings if f.key == "validate.parameter.missing"] == ["maxDropHeight"]
+
+
+def test_removing_a_list_is_legitimate_not_an_error():
+    """A list default is a removable element (ADR 0011 point 1), so omitting it is deliberate."""
+    for removed in ("  aiZones: []\n", "  logisticUnits:\n  - depot\n"):
+        incomplete = cat(REFERENCE.replace(removed, ""))
+        findings = validate(incomplete, EMPTY, TYPES, default=cat(REFERENCE))
+        assert [f for f in findings if f.key == "validate.parameter.missing"] == [], removed
+
+
+def test_several_missing_parameters_are_reported_individually():
+    incomplete = cat(REFERENCE.replace("  slingLoad: false\n", "").replace("  hoverTime: 10\n", ""))
+    findings = validate(incomplete, EMPTY, TYPES, default=cat(REFERENCE))
+    names = sorted(f.params["name"] for f in findings if f.key == "validate.parameter.missing")
+    assert names == ["hoverTime", "slingLoad"]
+
+
+def test_missing_parameter_message_is_translated_in_both_languages():
+    incomplete = cat(REFERENCE.replace("  hoverTime: 10\n", ""))
+    seen = {}
+    for lang in ("en", "fr"):
+        with language(lang):
+            findings = validate(incomplete, EMPTY, TYPES, default=cat(REFERENCE))
+            seen[lang] = next(f.message for f in findings if f.key == "validate.parameter.missing")
+    assert "hoverTime" in seen["en"] and "hoverTime" in seen["fr"]
+    assert seen["en"] != seen["fr"], "the FR string must not fall back to EN"
