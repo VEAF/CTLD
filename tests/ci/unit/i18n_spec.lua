@@ -78,8 +78,13 @@ describe("CTLDi18n", function()
             assert.equals("table", type(result.untranslated))
         end)
 
-        it("en_version matches the dictionary version", function()
-            assert.equals("1.12", result.en_version)
+        -- Compared to the dictionary itself, never to a literal: the version moves every time a
+        -- lot adds an i18n key, and pinning it made an unrelated change fail this test three
+        -- times over. The contract worth asserting is that the audit reports the EN dictionary's
+        -- own version, not that the version happens to be some number today.
+        it("en_version is the EN dictionary's own version", function()
+            assert.equals(ctld.i18n["en"].translation_version, result.en_version)
+            assert.is_truthy(result.en_version:match("^%d+%.%d+$"))
         end)
 
     end)
@@ -212,9 +217,9 @@ describe("CTLDi18n", function()
             assert.is_false(result.version_match)
         end)
 
-        it("en_version matches the dictionary version", function()
+        it("en_version is the EN dictionary's own version, even when auditing FR", function()
             local result = ctld.i18n_audit("fr")
-            assert.equals("1.12", result.en_version)
+            assert.equals(ctld.i18n["en"].translation_version, result.en_version)
         end)
 
         it("lang_version reflects mocked value '0.0'", function()
