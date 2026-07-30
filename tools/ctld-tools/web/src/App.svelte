@@ -21,6 +21,8 @@
   import BrandMark from './lib/BrandMark.svelte'
   import CratesEditor from './lib/CratesEditor.svelte'
   import HelpPanel from './lib/HelpPanel.svelte'
+  import AiZonesEditor from './lib/AiZonesEditor.svelte'
+  import CrateModelsEditor from './lib/CrateModelsEditor.svelte'
   import JsonEditor from './lib/JsonEditor.svelte'
   import KeyValueEditor from './lib/KeyValueEditor.svelte'
   import PositionalEditor from './lib/PositionalEditor.svelte'
@@ -39,12 +41,13 @@
 
   const LANG_NAMES: Record<string, string> = { en: 'English', fr: 'Français' }
 
-  // Positional zone arrays only. `aiZones` is deliberately absent: its entries are named records
-  // (dcsZoneName / coalition / isPickup / troopStock …), so it falls through to the raw editor until
-  // it gets one of its own — a wrong editor would be worse than none. `AIZones` used to be here and
-  // was a dead key nothing read.
+  // Positional zone arrays only. `aiZones` has named records (dcsZoneName / coalition / isPickup /
+  // troopStock …), so it gets AiZonesEditor rather than this one — a positional editor would
+  // corrupt it. `AIZones` used to sit here and was a dead key nothing read.
   const ZONE_TYPES = ['troopZones', 'wpZones']
-  const STRING_LISTS = ['transportPilotNames', 'extractableGroups', 'logisticUnits']
+  // `modTypes` joins these now that the catalogue ships it as a list: the engine walks it with
+  // ipairs, and it used to ship as `{}`, which is why it fell through to the raw JSON editor.
+  const STRING_LISTS = ['transportPilotNames', 'extractableGroups', 'logisticUnits', 'modTypes']
 
   let schema = $state<SchemaInfo | null>(null)
   let snapshot = $state<Snapshot | null>(null)
@@ -52,7 +55,16 @@
   let error = $state<string | null>(null)
   let status = $state<string | null>(null)
   let findings = $state<Finding[]>([])
+
+  // loadableGroups names — what an AI zone's troopTemplates may restrict itself to.
+  const troopTemplateNames = $derived(
+    ((snapshot?.values?.loadableGroups as { name?: string }[] | undefined) ?? [])
+      .map((g) => g?.name)
+      .filter((n): n is string => typeof n === 'string'),
+  )
   let dcsTypes = $state<string[]>([])
+  // type → GROUND | AIRPLANE | HELICOPTER; resolves the `AIR` authoring choice on save.
+  let spawnAsByType = $state<Record<string, string>>({})
   let gap = $state<VersionGap | null>(null)
 
   let activeFamily = $state<string | null>(null)
@@ -135,7 +147,9 @@
       // Language first: everything rendered afterwards (including a boot failure) is translated.
       await initLanguage()
       schema = await getSchema(currentLanguage())
-      dcsTypes = (await getDcsTypes()).types
+      const dcs = await getDcsTypes()
+      dcsTypes = dcs.types
+      spawnAsByType = dcs.spawnAs
       defaults = (await getDefaults()).values
       // Boot straight into a usable state: an empty screen asking the user to "load the defaults"
       // is a question a first-time MM cannot answer.
@@ -481,6 +495,7 @@
                   <CratesEditor
                     crates={snapshot.values.spawnableCrates as Record<string, Record<string, unknown>[]>}
                     fields={schema?.tableFields?.spawnableCrates ?? {}}
+                    {spawnAsByType}
                     onchange={(v) => saveData('spawnableCrates', v)}
                   />
                 {:else if key === 'loadableGroups'}
@@ -503,7 +518,11 @@
                     onchange={(v) => saveData(key, v)}
                   />
                 {:else if STRING_LISTS.includes(key)}
-                  <StringListEditor items={snapshot.values[key] as string[]} onchange={(v) => saveData(key, v)} />
+                  <StringListEditor
+                    items={snapshot.values[key] as string[]}
+                    listId={key === 'modTypes' ? DCS_TYPES_LIST : undefined}
+                    onchange={(v) => saveData(key, v)}
+                  />
                 {:else if key === 'nbLimitSpawnedTroops'}
                   <PositionalEditor
                     value={snapshot.values[key] as unknown[]}
@@ -516,6 +535,18 @@
                     slots={colourSlots}
                     swatch
                     onchange={(v) => saveData(key, v)}
+                  />
+                {:else if key === 'aiZones'}
+                  <AiZonesEditor
+                    zones={snapshot.values.aiZones as Record<string, unknown>[]}
+                    fields={schema?.tableFields?.aiZones ?? {}}
+                    troopTemplates={troopTemplateNames}
+                    onchange={(v) => saveData('aiZones', v)}
+                  />
+                {:else if key === 'spawnableCratesModels'}
+                  <CrateModelsEditor
+                    models={snapshot.values.spawnableCratesModels as Record<string, Record<string, unknown>>}
+                    onchange={(v) => saveData('spawnableCratesModels', v)}
                   />
                 {:else if key === 'groundVehicleWeights'}
                   <KeyValueEditor

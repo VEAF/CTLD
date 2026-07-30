@@ -3,6 +3,7 @@
 
 import { t } from './i18n.svelte'
 import { humanize } from './labels'
+import type { TableField } from './api'
 import type { EditorType } from './model'
 
 export interface Field {
@@ -16,6 +17,16 @@ export interface Field {
 // derived from the field name. Each wording restates the field's own schema description
 // (`tableFields` in CTLD_config_schema.yaml) — e.g. `at` is "Number of anti-tank soldiers (RPG)".
 const LABELLED_FIELDS = new Set([
+  'vehicleTypes',
+  'vehicleStock',
+  'troopTemplates',
+  'troopStock',
+  'isPickup',
+  'isDropoff',
+  'dcsZoneName',
+  'coalition',
+  'cargoType',
+  'aiDropMode',
   'aa',
   'at',
   'canPickup',
@@ -25,11 +36,13 @@ const LABELLED_FIELDS = new Set([
   'groupSize',
   'iconId',
   'inf',
+  'isJTAC',
   'jtac',
   'mg',
   'mortar',
   'name',
   'side',
+  'spawnAs',
   'troopLimit',
   'unit',
   'weight',
@@ -62,9 +75,14 @@ export const TROOP_FIELDS: Omit<Field, 'tip'>[] = [
   { name: 'jtac', type: 'number' },
 ]
 
-// Merge a field spec with the tooltips for a table (schema.tableFields[table]).
-export function withTips(fields: Omit<Field, 'tip'>[], tips: Record<string, string | null> | undefined): Field[] {
-  return fields.map((f) => ({ ...f, tip: tips?.[f.name] ?? null }))
+// Merge a field spec with the schema metadata for a table (schema.tableFields[table]): the
+// tooltip, and the allowed values when the schema declares a closed set.
+export function withTips(fields: Omit<Field, 'tip'>[], meta: Record<string, TableField> | undefined): Field[] {
+  return fields.map((f) => ({
+    ...f,
+    tip: meta?.[f.name]?.tip ?? null,
+    choices: f.choices ?? meta?.[f.name]?.choices ?? undefined,
+  }))
 }
 
 // capabilitiesByType: type → record with boolean flags, numeric maxima, and two vehicle lists.

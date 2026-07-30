@@ -1,6 +1,19 @@
 # FEAT-EDITOR-COVERAGE — every complex config key gets a real editor
 
-**Status:** ready
+**Status:** done — all six tickets delivered.
+
+> **Delivered.** The datamine bundle now maps every type to its category (it was already in the
+> directory layout and being discarded), `/api/schema` serves a table field's `choices` beside its tip,
+> `CratesEditor` gained an `isJTAC` checkbox and a strict `GROUND`/`AIR` select whose `AIR` resolves to
+> AIRPLANE or HELICOPTER from the unit type, and `aiZones`, `spawnableCratesModels` and `modTypes` all
+> have real editors. No config key falls through to `JsonEditor` any more except by decision.
+>
+> **A bug the tests caught in the new editor**: `setStock` filtered empty keys, so a freshly added stock
+> row vanished before it could be named — you could never add one. The local model now keeps the empty
+> row and strips it on the way out, since an empty key would reach the engine as a template named "".
+>
+> **Verification.** 119 frontend tests (13 files) + 0 svelte-check errors + a clean `vite build`; 202
+> pytest tests + ruff clean. All run locally.
 
 Lot **D** of the post-review program (2026-07-30). **Depends on lot B** (`FIX-CATALOGUE-TRUTH`): the
 editors are schema-driven, so the schema must be correct before anything is built on it. Independent of

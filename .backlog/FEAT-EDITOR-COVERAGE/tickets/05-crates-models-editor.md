@@ -1,6 +1,6 @@
 # 05 — fixed-record editor for `spawnableCratesModels`
 
-**Status:** ready
+**Status:** done
 
 Depends on: lot B ticket 04 (the dead `category` field must be gone, or the editor would expose it).
 

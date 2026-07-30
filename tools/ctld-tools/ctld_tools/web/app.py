@@ -113,8 +113,18 @@ def get_schema(lang: str | None = None) -> dict[str, Any]:
         }
         for k in schema.keys()
     }
+    # A table field carries its help text and, when the value set is closed, its `choices`.
+    # The vocabulary lives in the schema so a Mission Maker editing the YAML by hand reads the
+    # same list the app offers — a literal in a Svelte component would help neither them nor a
+    # reviewer checking the UI against the engine.
     tables = {
-        table: {field: (meta or {}).get(language) or (meta or {}).get("en") for field, meta in fields.items()}
+        table: {
+            field: {
+                "tip": (meta or {}).get(language) or (meta or {}).get("en"),
+                "choices": (meta or {}).get("choices"),
+            }
+            for field, meta in fields.items()
+        }
         for table, fields in schema.table_fields().items()
     }
     families = {
@@ -148,11 +158,17 @@ def get_defaults() -> dict[str, Any]:
 
 
 @app.get("/api/dcs-types")
-def dcs_types() -> dict[str, list[str]]:
-    """The datamine DCS type-name set — source for the aircraft/unit pickers."""
-    from ctld_tools.datamine import known_dcs_types
+def dcs_types() -> dict[str, Any]:
+    """The datamine DCS type-name set, plus how each type must be spawned.
 
-    return {"types": sorted(known_dcs_types())}
+    `spawnAs` resolves the authoring convenience `AIR` to the `AIRPLANE` or `HELICOPTER` the
+    engine hands DCS. It is computed here rather than in the frontend so the datamine-category
+    mapping exists once, in Python, next to the data it reads.
+    """
+    from ctld_tools.datamine import known_dcs_types, spawn_category
+
+    types = sorted(known_dcs_types())
+    return {"types": types, "spawnAs": {name: spawn_category(name) for name in types}}
 
 
 @app.post("/api/catalog/load")

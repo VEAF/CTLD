@@ -1,6 +1,6 @@
 # 03 — `isJTAC` checkbox and a strict `spawnAs` dropdown in `CratesEditor`
 
-**Status:** ready
+**Status:** done
 
 Depends on: 01 (category data), 02 (`tableFields` carries `choices`), and lot B ticket 02 (the schema
 must stop advertising `GROUND_UNIT` and must declare the two values).
