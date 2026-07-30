@@ -2939,14 +2939,24 @@ the FOB scene model (<code>cratesRequired</code>, default 3), collected within 7
 <td>Fixed North/South offset (m) added before the random error</td>
 </tr>
 <tr>
-<td><code>JTAC_droneRadius</code></td>
+<td><code>JTAC_droneRadiusNoLase</code></td>
+<td><code>2000</code></td>
+<td>Orbit radius (m) while a drone JTAC is searching and not lasing</td>
+</tr>
+<tr>
+<td><code>JTAC_droneRadiusOnLase</code></td>
 <td><code>1000</code></td>
-<td>Fallback orbit radius (m) for drone JTACs when the crate has no <code>specificParams</code></td>
+<td>Orbit radius (m) once a drone JTAC is lasing a target — tighter, so it stays close to what it designates</td>
 </tr>
 <tr>
 <td><code>JTAC_droneAltitude</code></td>
-<td><code>4000</code></td>
-<td>Fallback orbit altitude AGL (m) for drone JTACs when the crate has no <code>specificParams</code></td>
+<td><code>3000</code></td>
+<td>Orbit altitude AGL (m) for drone JTACs, used for the spawn altitude too</td>
+</tr>
+<tr>
+<td><code>JTAC_droneSpeed</code></td>
+<td><code>150</code></td>
+<td>Orbit airspeed (km/h) for drone JTACs, used for the spawn speed too</td>
 </tr>
 </tbody>
 </table>

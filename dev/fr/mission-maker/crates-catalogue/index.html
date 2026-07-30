@@ -2341,11 +2341,6 @@ un sous-menu F10), et chaque section contient une liste de descripteurs de crate
 <td>Surcharge de catégorie de spawn pour les unités aériennes : <code>"AIRPLANE"</code> ou <code>"HELICOPTER"</code> (utilisé par les JTAC drones). Les véhicules terrestres n'ont besoin d'aucune surcharge.</td>
 </tr>
 <tr>
-<td><code>specificParams</code></td>
-<td>table</td>
-<td>Paramètres additionnels par unité (ex. <code>speed</code>, <code>alti</code>, rayons d'orbite d'un drone).</td>
-</tr>
-<tr>
 <td><code>mixedSet</code></td>
 <td>array</td>
 <td>Alternative à <code>weight</code> : une entrée dont la valeur est une liste de poids définit un <strong>jeu combiné</strong> — un seul item de menu qui fait spawner plusieurs types de crate différents d'un coup (voir plus bas).</td>
@@ -2711,7 +2706,6 @@ JTAC séparée. N'importe quelle unité (véhicule ou drone) peut être un JTAC 
 <span class="p">{</span>
 <span class="w">    </span><span class="nv">weight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1006.01</span><span class="p">,</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">tr</span><span class="p">(</span><span class="s2">&quot;MQ-9 Repear - JTAC&quot;</span><span class="p">),</span><span class="w"> </span><span class="nv">unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;MQ-9 Reaper&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">side</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
 <span class="w">    </span><span class="nv">isJTAC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nv">spawnAs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;AIRPLANE&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nv">specificParams</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">speed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span><span class="w"> </span><span class="nv">alti</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3000</span><span class="p">,</span><span class="w"> </span><span class="nv">orbitRadiusNoLase</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2000</span><span class="p">,</span><span class="w"> </span><span class="nv">orbitRadiusOnLase</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span><span class="w"> </span><span class="p">},</span>
 <span class="p">},</span>
 </code></pre></div>
 <p>Le sous-menu F10 <strong>Request JTAC Equipment</strong> est auto-peuplé à partir de chaque descripteur
@@ -2771,9 +2765,19 @@ Hummer (BLUE) et un SKP-11 (RED) dans <code>Support</code>, plus un MQ-9 Reaper 
 <td>Empêche plusieurs JTAC de lase la même cible simultanément.</td>
 </tr>
 <tr>
-<td><code>JTAC_droneRadius</code></td>
+<td><code>JTAC_droneRadiusNoLase</code></td>
+<td><code>2000</code></td>
+<td>Rayon d'orbite (m) en recherche.</td>
+</tr>
+<tr>
+<td><code>JTAC_droneRadiusOnLase</code></td>
 <td><code>1000</code></td>
-<td>Rayon d'orbite de repli (m) quand un descripteur de drone n'a pas de <code>specificParams</code>.</td>
+<td>Rayon d'orbite (m) en lasing.</td>
+</tr>
+<tr>
+<td><code>JTAC_droneSpeed</code></td>
+<td><code>150</code></td>
+<td>Vitesse d'orbite (km/h).</td>
 </tr>
 </tbody>
 </table>

@@ -2943,14 +2943,24 @@ provient du modèle de scène FOB (<code>cratesRequired</code>, défaut 3), coll
 <td>Offset Nord/Sud fixe (m) ajouté avant l'erreur aléatoire</td>
 </tr>
 <tr>
-<td><code>JTAC_droneRadius</code></td>
+<td><code>JTAC_droneRadiusNoLase</code></td>
+<td><code>2000</code></td>
+<td>Rayon d'orbite (m) tant qu'un JTAC drone cherche sans laser</td>
+</tr>
+<tr>
+<td><code>JTAC_droneRadiusOnLase</code></td>
 <td><code>1000</code></td>
-<td>Rayon d'orbite de repli (m) pour les JTAC drones quand la crate n'a pas de <code>specificParams</code></td>
+<td>Rayon d'orbite (m) une fois qu'un JTAC drone illumine une cible — plus serré, pour rester près de ce qu'il désigne</td>
 </tr>
 <tr>
 <td><code>JTAC_droneAltitude</code></td>
-<td><code>4000</code></td>
-<td>Altitude d'orbite de repli AGL (m) pour les JTAC drones quand la crate n'a pas de <code>specificParams</code></td>
+<td><code>3000</code></td>
+<td>Altitude d'orbite AGL (m) des JTAC drones, utilisée aussi pour l'altitude d'apparition</td>
+</tr>
+<tr>
+<td><code>JTAC_droneSpeed</code></td>
+<td><code>150</code></td>
+<td>Vitesse d'orbite (km/h) des JTAC drones, utilisée aussi pour la vitesse d'apparition</td>
 </tr>
 </tbody>
 </table>
