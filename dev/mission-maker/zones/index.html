@@ -2331,8 +2331,8 @@
 <p>CTLD zones are declared directly in the <strong>DCS Mission Editor</strong> by naming your trigger zones
 with a structured convention. For most zones no scripting is required: CTLD reads every trigger
 zone name at mission start, parses those that match a known prefix, and registers them
-automatically. AI transport zones are the one exception — they are declared in
-<code>CTLD_userConfig.lua</code> (see <a href="#ai-transport-zones-aiz">AI transport zones</a> below).</p>
+automatically. AI transport zones are the one exception — they are declared in your CTLD
+configuration (see <a href="#ai-transport-zones-aiz">AI transport zones</a> below).</p>
 <p>For how pilots actually <em>use</em> these zones from the cockpit, see the
 <a href="../../pilot/">Pilot guide</a>.</p>
 <h2 id="naming-convention">Naming convention<a class="headerlink" href="#naming-convention" title="Permanent link">&para;</a></h2>
@@ -2717,37 +2717,63 @@ it by name in the <code>aiZones</code> config array. Both pickup and drop-off fi
 </table>
 <p>A zone may be pickup only, drop-off only, or both.</p>
 <h3 id="config-declaration">Config declaration<a class="headerlink" href="#config-declaration" title="Permanent link">&para;</a></h3>
-<p>Zones are declared in <code>_cfg.settings["aiZones"]</code>, an array of entries:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;aiZones&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="c1">-- Troops-only pickup: two templates with per-template stock</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nv">dcsZoneName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_base&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;BLUE&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nv">isPickup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nv">cargoType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;T&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nv">troopStock</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Standard Group&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Anti Tank&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<p><code>aiZones</code> is a list of entries in your configuration. <code>ctld-tools</code> gives it a dedicated editor under
+the <strong>Zones</strong> family; in a hand-written snapshot it lives under <code>mm_facing</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">aiZones</span><span class="p">:</span>
+<span class="w">  </span><span class="c1"># Troops-only pickup: two templates with per-template stock</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dcsZoneName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my_base</span>
+<span class="w">    </span><span class="nt">coalition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BLUE</span>
+<span class="w">    </span><span class="nt">isPickup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">cargoType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">T</span>
+<span class="w">    </span><span class="nt">troopStock</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">Standard Group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="w">      </span><span class="nt">Anti Tank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 
-<span class="w">    </span><span class="c1">-- Troops-only pickup: every compatible template, unlimited</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nv">dcsZoneName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;depot_alpha&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;BLUE&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nv">isPickup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nv">cargoType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;T&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nv">troopStock</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">All</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="c1"># Troops-only pickup: every compatible template, unlimited</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dcsZoneName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">depot_alpha</span>
+<span class="w">    </span><span class="nt">coalition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BLUE</span>
+<span class="w">    </span><span class="nt">isPickup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">cargoType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">T</span>
+<span class="w">    </span><span class="nt">troopStock</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">All</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1</span>
 
-<span class="w">    </span><span class="c1">-- Vehicle-only pickup (vehicles must be physically in the zone)</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nv">dcsZoneName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;armor_depot&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;BLUE&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nv">isPickup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nv">cargoType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;V&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nv">vehicleStock</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Hummer&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;M1045 HMMWV TOW&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="c1"># Vehicle-only pickup (vehicles must be physically in the zone)</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dcsZoneName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">armor_depot</span>
+<span class="w">    </span><span class="nt">coalition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BLUE</span>
+<span class="w">    </span><span class="nt">isPickup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">cargoType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">V</span>
+<span class="w">    </span><span class="nt">vehicleStock</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">Hummer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">      </span><span class="nt">M1045 HMMWV TOW</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1</span>
 
-<span class="w">    </span><span class="c1">-- Troops + vehicle pickup</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nv">dcsZoneName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;hub_tv&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;BLUE&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nv">isPickup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nv">cargoType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;TV&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nv">troopStock</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">All</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="nv">vehicleStock</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Hummer&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="c1"># Troops + vehicle pickup</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dcsZoneName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hub_tv</span>
+<span class="w">    </span><span class="nt">coalition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BLUE</span>
+<span class="w">    </span><span class="nt">isPickup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">cargoType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TV</span>
+<span class="w">    </span><span class="nt">troopStock</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">All</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1</span>
+<span class="w">    </span><span class="nt">vehicleStock</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">Hummer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
 
-<span class="w">    </span><span class="c1">-- Ground-only drop-off</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nv">dcsZoneName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;lz_front&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;BLUE&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nv">isDropoff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nv">aiDropMode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;G&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="c1"># Ground-only drop-off</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dcsZoneName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lz_front</span>
+<span class="w">    </span><span class="nt">coalition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BLUE</span>
+<span class="w">    </span><span class="nt">isDropoff</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">aiDropMode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">G</span>
 
-<span class="w">    </span><span class="c1">-- Ground + parachute drop-off (default)</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nv">dcsZoneName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;lz_rear&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;BLUE&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nv">isDropoff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">},</span>
-<span class="p">}</span>
+<span class="w">  </span><span class="c1"># Ground + parachute drop-off (default)</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dcsZoneName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lz_rear</span>
+<span class="w">    </span><span class="nt">coalition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BLUE</span>
+<span class="w">    </span><span class="nt">isDropoff</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 </code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title"><code>coalition</code> here is a word, not a number</p>
+<p>Every other coalition field in the CTLD configuration is the numeric <code>side</code> (<code>1</code> = RED,
+<code>2</code> = BLUE). In an <code>aiZones</code> entry it is the string <code>RED</code>, <code>BLUE</code> or <code>NEUTRAL</code>. Writing a number
+here means "any coalition", silently.</p>
+</div>
 <h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2828,13 +2854,14 @@ stock replaced the old single-integer form.</p>
 <h3 id="ai-transport-setup">AI transport setup<a class="headerlink" href="#ai-transport-setup" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Create trigger zones in the ME (any name, any radius suitable for landing).</li>
-<li>Declare them in <code>_cfg.settings["aiZones"]</code> (above).</li>
-<li>Add each AI unit's <strong>exact DCS unit name</strong> to <code>transportPilotNames</code>:</li>
+<li>Declare them in <code>aiZones</code> (above).</li>
+<li>Add each AI unit's <strong>exact DCS unit name</strong> to <code>transportPilotNames</code>, which is a <strong>plain list</strong> of
+   names:</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;transportPilotNames&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="p">[</span><span class="s2">&quot;heliai_supply&quot;</span><span class="p">]</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="p">[</span><span class="s2">&quot;heliai_medevac&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">transportPilotNames</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">heliai_supply</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">heliai_medevac</span>
 </code></pre></div>
 <ol>
 <li>Route the AI unit so it lands inside the zones (waypoints with a "Landing" task).</li>
@@ -2860,34 +2887,49 @@ an instant pickup+drop-off loop).</p>
 <h2 id="legacy-zone-configuration">Legacy zone configuration<a class="headerlink" href="#legacy-zone-configuration" title="Permanent link">&para;</a></h2>
 <p>Missions built the classic CTLD v1 way — zone names listed in config tables rather than parsed
 from trigger names — are still supported. The <code>_</code> character <strong>is</strong> allowed in the names here,
-because these are plain DCS trigger (or unit) names, not parsed schemas. Declare them in
-<code>CTLD_userConfig.lua</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="c1">-- Pickup zones: { &quot;DCS zone name&quot;, &quot;smoke color&quot;, limit, &quot;active&quot;, side }</span>
-<span class="c1">-- smoke color : &quot;none&quot;|&quot;green&quot;|&quot;red&quot;|&quot;white&quot;|&quot;orange&quot;|&quot;blue&quot;</span>
-<span class="c1">-- limit       : -1 = unlimited, or any integer &gt;= 1</span>
-<span class="c1">-- active      : &quot;yes&quot; | &quot;no&quot;</span>
-<span class="c1">-- side        : 0 = both, 1 = RED, 2 = BLUE</span>
-<span class="nv">ctld</span><span class="p">.</span><span class="py">pickupZones</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;pickzone1&quot;</span><span class="p">,</span><span class="w">  </span><span class="s2">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;yes&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;pickzone2&quot;</span><span class="p">,</span><span class="w">  </span><span class="s2">&quot;red&quot;</span><span class="p">,</span><span class="w">  </span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;yes&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;USS Tarawa&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;yes&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">},</span><span class="w">  </span><span class="c1">-- a ship unit name is also accepted</span>
-<span class="p">}</span>
+because these are plain DCS trigger (or unit) names, not parsed schemas.</p>
+<p>These are ordinary configuration settings, and their entries are <strong>positional arrays</strong>: the meaning
+of a value comes from its place in the list. <code>ctld-tools</code> edits them as named fields under the
+<strong>Zones</strong> family, which is the safest way to touch them; written by hand they look like this:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="c1"># Troop pickup zones — v1 called this pickupZones.</span>
+<span class="w">  </span><span class="c1"># [ DCS zone name, smoke colour, limit, active, side ]</span>
+<span class="w">  </span><span class="c1">#   smoke colour : none | green | red | white | orange | blue</span>
+<span class="w">  </span><span class="c1">#   limit        : -1 = unlimited, or any integer &gt;= 1</span>
+<span class="w">  </span><span class="c1">#   active       : yes | no</span>
+<span class="w">  </span><span class="c1">#   side         : 0 = both, 1 = RED, 2 = BLUE</span>
+<span class="w">  </span><span class="nt">troopZones</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pickzone1</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">blue</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yes</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">USS Tarawa</span><span class="w">      </span><span class="c1"># a ship unit name is also accepted</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">blue</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yes</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 
-<span class="c1">-- Drop-off zones (AI auto-deploy points): { &quot;DCS zone name&quot;, &quot;smoke color&quot;, side }</span>
-<span class="nv">ctld</span><span class="p">.</span><span class="py">dropOffZones</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;dropzone1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;green&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;dropzone2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;none&quot;</span><span class="p">,</span><span class="w">  </span><span class="mi">0</span><span class="w"> </span><span class="p">},</span>
-<span class="p">}</span>
+<span class="w">  </span><span class="c1"># Waypoint zones (deployed troops march to the centre)</span>
+<span class="w">  </span><span class="c1"># [ DCS zone name, smoke colour, active, side ]</span>
+<span class="w">  </span><span class="nt">wpZones</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wpzone1</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">green</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yes</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 
-<span class="c1">-- Waypoint zones (deployed troops march to the centre): { &quot;DCS zone name&quot;, &quot;smoke color&quot;, &quot;active&quot;, side }</span>
-<span class="nv">ctld</span><span class="p">.</span><span class="py">wpZones</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;wpzone1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;green&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;yes&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">},</span>
-<span class="p">}</span>
-
-<span class="c1">-- Logistic units: unit or static names placed in the ME.</span>
-<span class="c1">-- If the named object is destroyed, its logistic zone is removed automatically.</span>
-<span class="nv">ctld</span><span class="p">.</span><span class="py">logisticUnits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;logistic1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;logistic2&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="c1"># Logistic units: unit or static names placed in the ME.</span>
+<span class="w">  </span><span class="c1"># If the named object is destroyed, its logistic zone is removed automatically.</span>
+<span class="w">  </span><span class="nt">logisticUnits</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logistic1</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logistic2</span>
 </code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title"><code>dropOffZones</code> is not read in CTLD 2.x</p>
+<p>v1's <code>dropOffZones</code> table (AI auto-deploy points) has no equivalent setting in CTLD 2. AI
+drop-off is configured with <a href="#ai-transport-zones-aiz">AI transport zones</a> — an <code>aiZones</code> entry
+with <code>isDropoff: true</code>. A v1 config carrying <code>dropOffZones</code> will have that table ignored.</p>
+</div>
 <blockquote>
 <p>Legacy zones and auto-discovered zones (TRZ / WPZ / LGZ) coexist without conflict: a zone already
 registered from trigger-name discovery is never overwritten by legacy config.</p>

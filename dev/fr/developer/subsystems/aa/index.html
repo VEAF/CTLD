@@ -1671,7 +1671,7 @@
   <a href="#crate-injection-into-spawnablecrates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Injection des crates dans spawnableCrates
+        Les crates AA dans spawnableCrates
       
     </span>
   </a>
@@ -2005,7 +2005,7 @@
   <a href="#crate-injection-into-spawnablecrates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Injection des crates dans spawnableCrates
+        Les crates AA dans spawnableCrates
       
     </span>
   </a>
@@ -2173,23 +2173,25 @@ si nécessaire. Chaque template décrit un système :</p>
 </table>
 <p><code>count</code> est le nombre de <strong>types de pièces uniques</strong> qui doivent être vivants pour que le système
 soit considéré comme complet ; il est vérifié par <code>countComplete()</code> et <code>_rearm()</code>.</p>
-<h2 id="crate-injection-into-spawnablecrates">Injection des crates dans <code>spawnableCrates</code><a class="headerlink" href="#crate-injection-into-spawnablecrates" title="Permanent link">&para;</a></h2>
-<p><code>CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)</code> est appelée par
-<code>CTLDCrateManager._processSpawnableCrates()</code> avant sa boucle principale — à ce moment,
-<code>CTLDConfig:load()</code> a déjà rempli <code>TEMPLATES</code>. Pour chaque template, par <code>sectionName</code> :</p>
+<h2 id="crate-injection-into-spawnablecrates">Les crates AA dans <code>spawnableCrates</code><a class="headerlink" href="#crate-injection-into-spawnablecrates" title="Permanent link">&para;</a></h2>
+<p>Les crates AA déployables sont des <strong>entrées de catalogue ordinaires</strong> dans <code>src/CTLD_config.yaml</code>,
+sous les sections <code>SAM mid range</code> et <code>SAM long range</code>. Elles ne sont plus générées à l'exécution :
+l'ancienne étape <code>CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)</code> a été supprimée et son
+résultat déplié une fois dans le YAML (comparé au golden de l'ancienne injection). Les crates
+transitent donc par les passes normales de <code>CTLDCrateManager._processSpawnableCrates()</code>, comme
+n'importe quelle autre crate.</p>
+<p>Chaque section contient donc, explicitement :</p>
 <ol>
-<li>crée la section si elle n'existe pas encore ;</li>
-<li>injecte une entrée de crate par pièce qui porte un <code>weight</code> (les pièces <code>NoCrate</code> avec un
-   poids obtiennent tout de même une entrée de menu mais ne sont pas comptées dans le set
-   auto-généré) ;</li>
-<li>auto-génère une entrée <code>mixedSet</code> <strong>All crates</strong> à partir de toutes les pièces non-<code>NoCrate</code>
-   lorsque <code>allCratesLabel</code> est défini et qu'il existe plus d'une pièce requise ;</li>
-<li>injecte l'entrée du crate de réparation, taguée avec le flag interne <code>_repairFor = tmpl.name</code>
+<li>une entrée de crate par pièce qui porte un <code>weight</code> (les pièces <code>NoCrate</code> avec un poids obtiennent
+   tout de même une entrée de menu mais ne sont pas comptées dans le set) ;</li>
+<li>une entrée <code>mixedSet</code> <strong>All crates</strong> listant les poids des pièces non-<code>NoCrate</code> ;</li>
+<li>l'entrée du crate de réparation, taguée avec le flag interne <code>_repairFor = &lt;nom du template&gt;</code>
    (ce n'est pas un type name DCS).</li>
 </ol>
-<p>Une section peut contenir à la fois des entrées de crate déclarées manuellement et des entrées AA
-injectées — c'est intentionnel. N'ajoutez <strong>pas</strong> d'entrées de pièces AA à <code>spawnableCrates</code> à la
-main, sans quoi elles apparaîtront en double.</p>
+<p><code>CTLDCrateAssemblyManager.TEMPLATES</code> porte toujours les <strong>règles d'assemblage</strong> dont le runtime a
+besoin — pièces, count, launcher — déclarées statiquement dans <code>CTLD_aasystem.lua</code>. Une section peut
+contenir à la fois des entrées AA et des entrées de crate ordinaires ; ce qui change, c'est
+seulement que plus rien n'injecte les entrées AA à votre insu.</p>
 <h2 id="assembly-rearm-and-repair">Assemblage, rearm et réparation<a class="headerlink" href="#assembly-rearm-and-repair" title="Permanent link">&para;</a></h2>
 <p>Le contrôleur de menu M7 appelle le point d'entrée unique avant de retomber sur un unpack
 standard :</p>

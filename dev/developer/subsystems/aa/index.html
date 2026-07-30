@@ -1668,10 +1668,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#crate-injection-into-spawnablecrates" class="md-nav__link">
+  <a href="#aa-crates-in-spawnablecrates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Crate injection into spawnableCrates
+        AA crates in spawnableCrates
       
     </span>
   </a>
@@ -2002,10 +2002,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#crate-injection-into-spawnablecrates" class="md-nav__link">
+  <a href="#aa-crates-in-spawnablecrates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Crate injection into spawnableCrates
+        AA crates in spawnableCrates
       
     </span>
   </a>
@@ -2172,23 +2172,23 @@ Each template describes one system:</p>
 </table>
 <p><code>count</code> is the number of <strong>unique part types</strong> that must be alive for the system to be
 considered complete; it is checked by <code>countComplete()</code> and <code>_rearm()</code>.</p>
-<h2 id="crate-injection-into-spawnablecrates">Crate injection into <code>spawnableCrates</code><a class="headerlink" href="#crate-injection-into-spawnablecrates" title="Permanent link">&para;</a></h2>
-<p><code>CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)</code> is called by
-<code>CTLDCrateManager._processSpawnableCrates()</code> before its main loop — at that point
-<code>CTLDConfig:load()</code> has already populated <code>TEMPLATES</code>. For each template it, per
-<code>sectionName</code>:</p>
+<h2 id="aa-crates-in-spawnablecrates">AA crates in <code>spawnableCrates</code><a class="headerlink" href="#aa-crates-in-spawnablecrates" title="Permanent link">&para;</a></h2>
+<p>The deployable AA crates are <strong>ordinary catalogue entries</strong> in <code>src/CTLD_config.yaml</code>, under the
+sections <code>SAM mid range</code> and <code>SAM long range</code>. They are not generated at runtime: the former
+<code>CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)</code> step was removed and its output expanded
+once into the YAML (golden-compared to the old injection), so the crates now flow through the normal
+<code>CTLDCrateManager._processSpawnableCrates()</code> passes like any other crate.</p>
+<p>Each section therefore contains, explicitly:</p>
 <ol>
-<li>creates the section if it does not exist yet;</li>
-<li>injects one crate entry per part that carries a <code>weight</code> (<code>NoCrate</code> parts with a weight
-   still get a menu entry but are not counted in the auto-generated set);</li>
-<li>auto-generates an <strong>All crates</strong> <code>mixedSet</code> entry from all non-<code>NoCrate</code> parts when
-   <code>allCratesLabel</code> is set and more than one required part exists;</li>
-<li>injects the repair crate entry, tagged with the internal flag <code>_repairFor = tmpl.name</code>
-   (this is not a DCS type name).</li>
+<li>one crate entry per part that carries a <code>weight</code> (<code>NoCrate</code> parts with a weight still get a menu
+   entry but are not counted in the set);</li>
+<li>an <strong>All crates</strong> <code>mixedSet</code> entry listing the non-<code>NoCrate</code> part weights;</li>
+<li>the repair crate entry, tagged with the internal flag <code>_repairFor = &lt;template name&gt;</code> (this is not
+   a DCS type name).</li>
 </ol>
-<p>A section may hold both manually declared crate entries and injected AA entries — this is
-intentional. Do <strong>not</strong> add AA part entries to <code>spawnableCrates</code> by hand or they will appear
-twice.</p>
+<p><code>CTLDCrateAssemblyManager.TEMPLATES</code> still holds the <strong>assembly rules</strong> the runtime needs — parts,
+count, launcher — declared statically in <code>CTLD_aasystem.lua</code>. A section may hold both AA entries and
+ordinary crate entries; what changed is only that nothing injects the AA ones behind your back.</p>
 <h2 id="assembly-rearm-and-repair">Assembly, rearm, and repair<a class="headerlink" href="#assembly-rearm-and-repair" title="Permanent link">&para;</a></h2>
 <p>The M7 menu controller calls the single entry point before falling through to a standard
 unpack:</p>

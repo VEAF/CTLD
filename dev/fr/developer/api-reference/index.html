@@ -2894,17 +2894,12 @@ scripting des troops IA.</em></p>
 <tr>
 <td><code>TEMPLATES</code></td>
 <td>static table</td>
-<td>Templates de systèmes AA, remplis depuis <code>CTLD_config.lua</code> au chargement de la config. Surchargez-le avant l'init de CTLD pour ajouter ou remplacer des systèmes. Chaque entrée : <code>{ name, side, sectionName, parts = {{DCSTypename, desc, weight, launcher?, amount?, NoCrate?}}, repair = {desc, weight} }</code>.</td>
+<td>Règles d'assemblage des systèmes AA (pièces, count, launcher), déclarées statiquement dans <code>CTLD_aasystem.lua</code>. Surchargez-le avant l'init de CTLD pour ajouter ou remplacer des systèmes. Chaque entrée : <code>{ name, side, sectionName, parts = {{DCSTypename, desc, weight, launcher?, amount?, NoCrate?}}, repair = {desc, weight} }</code>. Les caisses AA déployables sont, elles, des entrées de catalogue ordinaires dans <code>CTLD_config.yaml</code> (sections <code>SAM mid range</code> / <code>SAM long range</code>), et non générées à l'exécution.</td>
 </tr>
 <tr>
 <td><code>getInstance</code></td>
 <td><code>() → CTLDCrateAssemblyManager</code></td>
 <td>Retourne le singleton.</td>
-</tr>
-<tr>
-<td><code>injectAACrates</code></td>
-<td><code>(spawnableCrates)</code></td>
-<td>Méthode statique. Remplit <code>spawnableCrates</code> à partir de <code>TEMPLATES</code>. Appelée automatiquement à l'init — à n'appeler manuellement que si vous ajoutez des templates après l'init.</td>
 </tr>
 <tr>
 <td><code>getTemplateByName</code></td>

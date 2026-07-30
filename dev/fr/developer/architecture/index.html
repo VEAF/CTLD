@@ -2161,7 +2161,8 @@
   legacy/               Legacy v1 API wrappers (thin delegates, deprecated)
   CTLD_*.lua            Domain managers (config, i18n, utils, menu, zone, troop, crate,
                         vehicle, fob, aasystem, beacon, recon, jtac, player, core…)
-  CTLD_userConfig.lua   User configuration (merged last)
+  CTLD_bootstrap.lua    Engine bootstrap — ctld.initialize() + auto-start guard (merged last)
+  CTLD_userConfig.lua   Mission-config template — shipped as a separate file, NOT merged
 tools/
   build/                Build tooling: merge_CTLD.ps1, listToMerge.txt, generate_i18n_dicts.ps1
 tests/
@@ -2251,7 +2252,7 @@ ni d'entrée <code>_droppedTemplates</code> — <code>embarkFromField</code> uti
    <code>_instance</code>, <code>getInstance()</code>).</li>
 <li>Ajouter le nom de fichier à <code>tools/build/listToMerge.txt</code> dans l'ordre des dépendances (les
    fondations d'abord, puis les managers de domaine, puis les scenes, puis <code>CTLD_core.lua</code>, puis
-   <code>legacy/</code>, <code>CTLD_userConfig.lua</code> en dernier).</li>
+   <code>legacy/</code>, <code>CTLD_bootstrap.lua</code> en dernier).</li>
 <li>Ajouter la même entrée <code>dofile</code> à <code>tests/ci/helpers/loader.lua</code>.</li>
 <li>Écrire des specs busted dans <code>tests/ci/unit/mymodule_spec.lua</code> (test-first — voir
    <a href="../building-and-testing/">Build et tests</a>).</li>
@@ -2290,7 +2291,10 @@ au dev/CI contre un jeu datamine de types stock vendorisé (<code>tests/data/dcs
 </ul>
 <p>Une scène ou une mission déclare ses types mod pour que la validation reste stricte sur le reste :</p>
 <div class="highlight"><pre><span></span><code><span class="nv">someScene</span><span class="p">.</span><span class="py">modTypes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Some_Mod_Type&quot;</span><span class="w"> </span><span class="p">}</span><span class="w">         </span><span class="c1">-- sur un modèle de scène</span>
-<span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;modTypes&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Some_Mod_Type&quot;</span><span class="w"> </span><span class="p">}</span><span class="w">  </span><span class="c1">-- pour la config crate/troop/AA d&#39;une mission</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="nt">advanced</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">modTypes</span><span class="p">:</span><span class="w">                                </span><span class="c1"># pour la config crate/troop/AA d&#39;une mission</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Some_Mod_Type</span>
 </code></pre></div>
 <blockquote>
 <p><strong>Note historique (ADR 0007) :</strong> les versions antérieures spawnaient une sonde (static/group) par

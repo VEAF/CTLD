@@ -2276,8 +2276,9 @@
 <h1 id="crate-catalogue">Catalogue de caisses (crates)<a class="headerlink" href="#crate-catalogue" title="Permanent link">&para;</a></h1>
 <p>Cette page traite de <strong>ce que vous proposez aux pilotes de faire spawner</strong> : les crates, les
 véhicules complets, les systèmes AA et les unités JTAC qu'un mission maker définit dans la
-configuration. Tout ce qui est décrit ici est de la donnée que vous réglez une fois dans
-<code>CTLD_userConfig.lua</code> ; les pilotes la parcourent ensuite depuis le menu F10 à l'exécution.</p>
+configuration. Tout ce qui est décrit ici est de la donnée que vous réglez une fois dans votre
+configuration — le plus simplement dans <a href="../ctld-tools/"><code>ctld-tools</code></a> ; les pilotes la parcourent
+ensuite depuis le menu F10 à l'exécution.</p>
 <p>Les actions en cockpit — chargement, largage, unpack, requête, pack — sont décrites dans le guide
 Pilote : <a href="../../pilot/crates/">Crates</a>, <a href="../../pilot/vehicles/">Véhicules</a>, <a href="../../pilot/jtac/">JTAC</a>.
 Les limites de transport par aéronef (quel appareil peut soulever des crates ou des véhicules
@@ -2285,15 +2286,27 @@ complets, et combien) sont réglées dans <a href="../configuration/">Configurat
 <h2 id="spawnablecrates"><code>spawnableCrates</code><a class="headerlink" href="#spawnablecrates" title="Permanent link">&para;</a></h2>
 <p><code>spawnableCrates</code> est le catalogue maître. C'est une table de <strong>sections nommées</strong> (chacune devient
 un sous-menu F10), et chaque section contient une liste de descripteurs de crate :</p>
-<div class="highlight"><pre><span></span><code><span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;spawnableCrates&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="p">[</span><span class="s2">&quot;Combat Vehicles&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nv">weight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1000.01</span><span class="p">,</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">tr</span><span class="p">(</span><span class="s2">&quot;Humvee - MG&quot;</span><span class="p">),</span><span class="w">  </span><span class="nv">unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;M1043 HMMWV Armament&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">side</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nv">cratesRequired</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">},</span>
-<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nv">weight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1000.05</span><span class="p">,</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">tr</span><span class="p">(</span><span class="s2">&quot;Heavy Tank - Abrams&quot;</span><span class="p">),</span><span class="w"> </span><span class="nv">unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;M-1 Abrams&quot;</span><span class="p">,</span><span class="w">     </span><span class="nv">side</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nv">cratesRequired</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="p">[</span><span class="s2">&quot;Artillery&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nv">weight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1002.01</span><span class="p">,</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">tr</span><span class="p">(</span><span class="s2">&quot;MLRS&quot;</span><span class="p">),</span><span class="w"> </span><span class="nv">unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;MLRS&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">side</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nv">cratesRequired</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="p">}</span>
+<p>Dans <code>ctld-tools</code>, c'est la famille <strong>Caisses</strong>, éditée comme un tableau par section. Dans un
+instantané de configuration écrit à la main, elle vit sous <code>mm_facing</code> :</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">spawnableCrates</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">Combat Vehicles</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">M1043 HMMWV Armament</span>
+<span class="w">      </span><span class="nt">desc</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Humvee - MG</span>
+<span class="w">      </span><span class="nt">weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000.01</span>
+<span class="w">      </span><span class="nt">cratesRequired</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">      </span><span class="nt">side</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">M-1 Abrams</span>
+<span class="w">      </span><span class="nt">desc</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Heavy Tank - Abrams</span>
+<span class="w">      </span><span class="nt">weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000.05</span>
+<span class="w">      </span><span class="nt">cratesRequired</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+<span class="w">      </span><span class="nt">side</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">    </span><span class="nt">Artillery</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MLRS</span>
+<span class="w">      </span><span class="nt">desc</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MLRS</span>
+<span class="w">      </span><span class="nt">weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1002.01</span>
+<span class="w">      </span><span class="nt">cratesRequired</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">      </span><span class="nt">side</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 </code></pre></div>
 <h3 id="descriptor-fields">Champs du descripteur<a class="headerlink" href="#descriptor-fields" title="Permanent link">&para;</a></h3>
 <table>
@@ -2313,7 +2326,7 @@ un sous-menu F10), et chaque section contient une liste de descripteurs de crate
 <tr>
 <td><code>desc</code></td>
 <td>string</td>
-<td>Libellé du menu. À encadrer dans <code>ctld.tr(...)</code> pour la traduction.</td>
+<td>Libellé du menu, écrit en texte simple. CTLD passe chaque <code>desc</code> dans son traducteur au chargement : un libellé présent dans les dictionnaires s'affiche dans la langue du pilote — voir <a href="../translations/">Traductions</a>.</td>
 </tr>
 <tr>
 <td><code>unit</code></td>
@@ -2338,7 +2351,7 @@ un sous-menu F10), et chaque section contient une liste de descripteurs de crate
 <tr>
 <td><code>spawnAs</code></td>
 <td>string</td>
-<td>Surcharge de catégorie de spawn pour les unités aériennes : <code>"AIRPLANE"</code> ou <code>"HELICOPTER"</code> (utilisé par les JTAC drones). Les véhicules terrestres n'ont besoin d'aucune surcharge.</td>
+<td>Surcharge de catégorie de spawn pour les unités aériennes : <code>AIRPLANE</code> ou <code>HELICOPTER</code> (utilisé par les JTAC drones). Les véhicules terrestres n'ont besoin d'aucune surcharge. Dans <code>ctld-tools</code> vous choisissez <code>GROUND</code> ou <code>AIR</code> et l'outil écrit la bonne valeur, résolue depuis la catégorie DCS de l'unité.</td>
 </tr>
 <tr>
 <td><code>mixedSet</code></td>
@@ -2453,8 +2466,8 @@ voulez une apparence de cargo différente.</p>
 </tr>
 <tr>
 <td><code>maxSlingloadSpeed</code></td>
-<td><code>50</code></td>
-<td>Vitesse (m/s) au-delà de laquelle un crate en slingload est perdu.</td>
+<td><code>26</code></td>
+<td>Vitesse (<strong>m/s</strong>) au-delà de laquelle un crate en slingload est largué — ≈ 94 km/h / 50 kt. À augmenter si votre appareil supporte une limite plus élevée.</td>
 </tr>
 <tr>
 <td><code>crateSpacing</code></td>

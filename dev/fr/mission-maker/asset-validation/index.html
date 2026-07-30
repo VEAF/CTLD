@@ -2020,8 +2020,12 @@ systèmes AA, <code>loadableGroups</code>, objets de scènes — et affiche un m
 </ol>
 <h3 id="declaring-mod-types">Déclarer les types mod<a class="headerlink" href="#declaring-mod-types" title="Permanent link">&para;</a></h3>
 <p>Si votre config utilise légitimement le type DCS d'un mod, indiquez-le à CTLD pour que le compagnon
-ne le signale pas — listez le(s) nom(s) exact(s) dans le setting <code>modTypes</code> :</p>
-<div class="highlight"><pre><span></span><code><span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;modTypes&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Your_Mod_Type&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Another_Mod_Type&quot;</span><span class="w"> </span><span class="p">}</span>
+ne le signale pas — listez le(s) nom(s) exact(s) dans le setting <code>modTypes</code> (dans <code>ctld-tools</code>, c'est
+une liste éditable de noms de type DCS) :</p>
+<div class="highlight"><pre><span></span><code><span class="nt">advanced</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">modTypes</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Your_Mod_Type</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Another_Mod_Type</span>
 </code></pre></div>
 <p>Tous les <em>autres</em> types restent vérifiés, donc une vraie faute de frappe est toujours détectée. (Les
 scènes déclarent leurs propres types mod dans <code>modTypes</code> sur le modèle de scène — voir

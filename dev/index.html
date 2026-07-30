@@ -1989,8 +1989,11 @@ operate JTACs, and much more — all driven by an F10 menu and a modular Lua v2 
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Download <code>CTLD.lua</code> from the <a href="../../releases/latest">latest release</a>.</li>
-<li>Add a <strong>DO SCRIPT FILE</strong> trigger in the DCS Mission Editor pointing to <code>CTLD.lua</code>.</li>
-<li>Optionally add a second trigger with your <code>CTLD_userConfig.lua</code> to override defaults.</li>
+<li>Add a <strong>MISSION START → DO SCRIPT FILE</strong> trigger in the DCS Mission Editor pointing to <code>CTLD.lua</code>.
+   CTLD runs on its built-in defaults — nothing else is required.</li>
+<li>To customise anything, download <code>ctld-tools.exe</code> from the same release, adjust the configuration in
+   your browser and let it inject a <code>CTLD_userConfig.lua</code> trigger <strong>before</strong> the <code>CTLD.lua</code> one — see
+   <a href="mission-maker/ctld-tools/">Configure with <code>ctld-tools</code></a>.</li>
 </ol>
 <h2 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h2>
 <ul>

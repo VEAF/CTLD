@@ -2513,7 +2513,8 @@ Commands</strong>. Packing it:</p>
 </ol>
 <p>When those crates are unpacked at a new location, the warehouse is restored to the captured levels
 instead of the defaults.</p>
-<div class="highlight"><pre><span></span><code><span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;enableFARPRepack&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">  </span><span class="c1">-- default: true</span>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enableFARPRepack</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">   </span><span class="c1"># default: true</span>
 </code></pre></div>
 <p><strong>Scenes that support packing:</strong> <code>Countryside FARP</code> (and the <code>Metal FARP</code> plugin).</p>
 <p>To make a <strong>custom</strong> scene packable, add an <code>onRepack(scene, repackData)</code> hook that records what
@@ -2637,12 +2638,14 @@ rebuild. Pilots must deploy new FOB crates elsewhere to restore logistics in tha
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code><span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;enabledFOBBuilding&quot;</span><span class="p">]</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;troopPickupAtFOB&quot;</span><span class="p">]</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;fobMinDistanceFromZones&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span>
-<span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;fobLogisticZoneRadius&quot;</span><span class="p">]</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mi">150</span>
-<span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;fobDestructionThreshold&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span>
-<span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;fobTroopPickupRadius&quot;</span><span class="p">]</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="mi">150</span>
+<p>In <code>ctld-tools</code> these are the <strong>FOB / FARP</strong> family; by hand they all sit under <code>mm_facing</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabledFOBBuilding</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">troopPickupAtFOB</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">fobMinDistanceFromZones</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">500</span>
+<span class="w">  </span><span class="nt">fobLogisticZoneRadius</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">150</span>
+<span class="w">  </span><span class="nt">fobDestructionThreshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+<span class="w">  </span><span class="nt">fobTroopPickupRadius</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">150</span>
 </code></pre></div>
 <blockquote>
 <p>The number of crates a FOB needs is <strong>not</strong> a global setting — it lives on the <code>FOB</code> scene's

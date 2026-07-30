@@ -2893,17 +2893,12 @@ event.</em></p>
 <tr>
 <td><code>TEMPLATES</code></td>
 <td>static table</td>
-<td>AA system templates, populated from <code>CTLD_config.lua</code> at config load. Override it before CTLD init to add or replace systems. Each entry: <code>{ name, side, sectionName, parts = {{DCSTypename, desc, weight, launcher?, amount?, NoCrate?}}, repair = {desc, weight} }</code>.</td>
+<td>AA system assembly rules (parts, count, launcher), declared statically in <code>CTLD_aasystem.lua</code>. Override it before CTLD init to add or replace systems. Each entry: <code>{ name, side, sectionName, parts = {{DCSTypename, desc, weight, launcher?, amount?, NoCrate?}}, repair = {desc, weight} }</code>. The deployable AA crates themselves are ordinary catalogue entries in <code>CTLD_config.yaml</code> (sections <code>SAM mid range</code> / <code>SAM long range</code>), not generated at runtime.</td>
 </tr>
 <tr>
 <td><code>getInstance</code></td>
 <td><code>() → CTLDCrateAssemblyManager</code></td>
 <td>Returns the singleton.</td>
-</tr>
-<tr>
-<td><code>injectAACrates</code></td>
-<td><code>(spawnableCrates)</code></td>
-<td>Static method. Populate <code>spawnableCrates</code> from <code>TEMPLATES</code>. Called automatically at init — only call manually if you add templates after init.</td>
 </tr>
 <tr>
 <td><code>getTemplateByName</code></td>

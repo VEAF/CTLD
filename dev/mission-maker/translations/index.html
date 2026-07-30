@@ -2066,16 +2066,20 @@ what a mission maker needs.</p>
 <p>English is the reference: it always has every string, so it is used as the fallback whenever a
 translation is missing.</p>
 <h2 id="choosing-the-language">Choosing the language<a class="headerlink" href="#choosing-the-language" title="Permanent link">&para;</a></h2>
-<p>The active language is selected at the top of <code>src/CTLD_i18n.lua</code>. Uncomment the one line you
-want and leave the rest commented:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="py">i18n_lang</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;en&quot;</span>
-<span class="c1">--ctld.i18n_lang = &quot;fr&quot;</span>
-<span class="c1">--ctld.i18n_lang = &quot;es&quot;</span>
-<span class="c1">--ctld.i18n_lang = &quot;ko&quot;</span>
+<p>The active language is the <strong><code>i18n_lang</code> setting</strong> — set it like any other setting, in <code>ctld-tools</code>
+or by hand in your configuration snapshot:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">i18n_lang</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fr</span>
 </code></pre></div>
-<p>Only one line should be active at a time; the default is <code>en</code>. This selector lives in its own
-file, separate from the main logic, so a non-developer translator can change it without touching
-any script.</p>
+<p>Valid values are <code>en</code> (the default), <code>fr</code>, <code>es</code> and <code>ko</code>. This is a mission-level choice: it applies
+to every player on the server.</p>
+<div class="admonition note">
+<p class="admonition-title">The legacy selector still works</p>
+<p>Older missions selected the language by editing the top of <code>src/CTLD_i18n.lua</code>
+(<code>ctld.i18n_lang = "fr"</code>), and that still works — CTLD reads the <code>i18n_lang</code> setting first, and
+falls back to that module global, then to <code>en</code>. Prefer the setting: it needs no source edit and
+survives a CTLD upgrade.</p>
+</div>
 <h2 id="how-fallback-works">How fallback works<a class="headerlink" href="#how-fallback-works" title="Permanent link">&para;</a></h2>
 <p>You never have to worry about a blank or missing message. If a string is absent or empty in the
 active language, CTLD falls back automatically, in order:</p>

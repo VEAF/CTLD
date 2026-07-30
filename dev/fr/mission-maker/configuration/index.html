@@ -948,10 +948,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#two-ways-to-override" class="md-nav__link">
+  <a href="#what-the-snapshot-looks-like" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Deux façons de surcharger
+        À quoi ressemble l'instantané
       
     </span>
   </a>
@@ -2159,10 +2159,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#two-ways-to-override" class="md-nav__link">
+  <a href="#what-the-snapshot-looks-like" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Deux façons de surcharger
+        À quoi ressemble l'instantané
       
     </span>
   </a>
@@ -2396,16 +2396,31 @@
 <h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h1>
 <p>CTLD est livré avec des valeurs par défaut sensées pour chaque paramètre. Vous n'éditez jamais
 les fichiers source : toute la personnalisation vit dans un unique fichier,
-<strong><code>CTLD_userConfig.lua</code></strong>, que votre mission charge via un trigger <code>DO SCRIPT FILE</code>. Vous ne
-surchargez que ce que vous voulez modifier — tout ce que vous laissez tel quel conserve sa
-valeur par défaut.</p>
+<strong><code>CTLD_userConfig.lua</code></strong>, que votre mission charge via un trigger <code>DO SCRIPT FILE</code>.</p>
+<p>Ce fichier porte un <strong>instantané de configuration complet</strong> — toute la configuration de CTLD, et non
+une liste de modifications — et il <strong>remplace intégralement</strong> les valeurs par défaut intégrées. Vous
+partez donc toujours des valeurs par défaut courantes pour les ajuster, ce que <code>ctld-tools</code> fait
+précisément pour vous.</p>
+<div class="admonition tip">
+<p class="admonition-title">Recommandé : utiliser l'application <code>ctld-tools</code></p>
+<p>Plutôt que d'écrire l'instantané à la main, le flux recommandé est l'application <strong><code>ctld-tools</code></strong> :
+double-cliquez-la, éditez la configuration complète de CTLD dans votre navigateur via des
+formulaires, et injectez-la dans votre mission. Elle part des valeurs par défaut courantes, valide
+vos changements contre le vrai catalogue et la liste des types DCS, et détecte les erreurs avant
+DCS. <code>ctld-tools.exe</code> est attaché à chaque Release GitHub (pas besoin de Python) — voir
+<a href="../ctld-tools/">Configurer CTLD avec <code>ctld-tools</code></a>. L'écriture manuelle de l'instantané reste
+entièrement possible pour les utilisateurs avancés, et cette page documente chaque réglage qu'il
+contient.</p>
+</div>
 <p>Cette page couvre les <strong>réglages globaux</strong> et les <strong>capacités par appareil</strong>
 (<code>capabilitiesByType</code>). Les listes de zones, les définitions de crate, les scènes FOB, le
 minefield et les traductions ont chacun leur propre page — voir <a href="#where-the-rest-is-configured">Où le reste se configure</a>.</p>
 <h2 id="how-configuration-works">Comment fonctionne la configuration<a class="headerlink" href="#how-configuration-works" title="Permanent link">&para;</a></h2>
-<p>Au démarrage, <code>CTLDConfig</code> remplit chaque paramètre avec sa valeur par défaut. Votre
-<code>CTLD_userConfig.lua</code> applique ensuite vos surcharges par-dessus. Tout au long de la mission en
-cours, chaque paramètre est lu via un unique accesseur :</p>
+<p>Au démarrage, CTLD analyse <strong>un seul</strong> document de configuration : <code>ctld.configUser</code> si votre mission
+en fournit un, sinon les valeurs par défaut embarquées dans <code>CTLD.lua</code>. Les deux ne sont jamais
+fusionnés. Un <code>ctld.configUser</code> qui ne s'analyse pas est une erreur fatale plutôt qu'un retour
+silencieux aux défauts — une raison de plus de le produire avec <code>ctld-tools</code>, qui valide avant export.</p>
+<p>Tout au long de la mission en cours, chaque paramètre est lu via un unique accesseur :</p>
 <div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">gs</span><span class="p">(</span><span class="s2">&quot;parameterName&quot;</span><span class="p">)</span><span class="w">   </span><span class="c1">-- the only authorised read form</span>
 </code></pre></div>
 <h3 id="load-order-in-the-mission-editor">Ordre de chargement dans le Mission Editor<a class="headerlink" href="#load-order-in-the-mission-editor" title="Permanent link">&para;</a></h3>
@@ -2436,53 +2451,58 @@ trigger, avant <code>CTLD.lua</code> :</p>
 </tr>
 </tbody>
 </table>
-<p><code>CTLD_userConfig.lua</code> pose vos surcharges dans l'environnement global ; <code>CTLD.lua</code> les lit
-au démarrage et initialise CTLD automatiquement. (Si vous devez exécuter une configuration
-supplémentaire entre le chargement et le démarrage, positionnez <code>ctld.dontInitialize = true</code>
-avant le chargement de <code>CTLD.lua</code> et appelez <code>ctld.initialize()</code> vous-même.)</p>
-<h3 id="two-ways-to-override">Deux façons de surcharger<a class="headerlink" href="#two-ways-to-override" title="Permanent link">&para;</a></h3>
-<p>Les <strong>scalaires</strong> (booléens, nombres, chaînes) vont dans le bloc <code>ctld.yamlConfigDatas</code>, une
-ligne <code>ctld.parameterName: value</code> par valeur :</p>
-<div class="highlight"><pre><span></span><code><span class="c1">-- CTLD_userConfig.lua — only override what differs from the defaults.</span>
+<p><code>CTLD_userConfig.lua</code> pose <code>ctld.configUser</code> dans l'environnement global ; <code>CTLD.lua</code> l'analyse
+au démarrage et initialise CTLD automatiquement. L'action <strong>Injecter dans la mission…</strong> de
+<code>ctld-tools</code> écrit exactement ce trigger, à cette position, pour vous. (Si vous devez exécuter une
+configuration supplémentaire entre le chargement et le démarrage, positionnez
+<code>ctld.dontInitialize = true</code> avant le chargement de <code>CTLD.lua</code> et appelez <code>ctld.initialize()</code>
+vous-même.)</p>
+<h3 id="what-the-snapshot-looks-like">À quoi ressemble l'instantané<a class="headerlink" href="#what-the-snapshot-looks-like" title="Permanent link">&para;</a></h3>
+<p>L'instantané est du <strong>YAML dans une chaîne longue Lua</strong>, au même format que le
+<code>src/CTLD_config.yaml</code> de CTLD : une balise <code>configVersion</code>, puis les sections <code>mm_facing</code> et
+<code>advanced</code> qui portent chaque réglage et chaque table du catalogue. <code>mm_facing</code> regroupe ce qu'un
+concepteur de mission touche habituellement, <code>advanced</code> le reste ; le moteur fusionne les deux, la
+séparation n'existe que pour la lisibilité. Si vous écrivez un instantané à la main, recopiez la
+structure de <code>src/CTLD_config.yaml</code> (ou exportez-en un depuis <code>ctld-tools</code>) plutôt que d'inventer le
+placement.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- CTLD_userConfig.lua — a COMPLETE configuration snapshot, not a list of overrides.</span>
 <span class="nv">ctld</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ctld</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="p">{}</span>
-<span class="nv">ctld</span><span class="p">.</span><span class="py">yamlConfigDatas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">[[</span>
-
-<span class="s">ctld.enablePackingVehicles: true</span>
-<span class="s">ctld.maximumDistancePackableUnitsSearch: 350</span>
-<span class="s">ctld.numberOfTroops: 8</span>
-<span class="s">ctld.maximumDistanceLogistic: 300</span>
-<span class="s">ctld.slingLoad: true</span>
-
+<span class="nv">ctld</span><span class="p">.</span><span class="py">configUser</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">[[</span>
+<span class="s">configVersion: &quot;2.0.0&quot;</span>
+<span class="s">mm_facing:</span>
+<span class="s">  numberOfTroops: 8</span>
+<span class="s">  maximumDistanceLogistic: 300</span>
+<span class="s">  slingLoad: true</span>
+<span class="s">  spawnableCrates:</span>
+<span class="s">    # ... every crate section ...</span>
+<span class="s">  # ... every other mm_facing setting and table ...</span>
+<span class="s">advanced:</span>
+<span class="s">  maximumDistancePackableUnitsSearch: 350</span>
+<span class="s">  # ... every advanced setting ...</span>
 <span class="s">]]</span>
 </code></pre></div>
-<p>Les <strong>tables</strong> (catalogues de crate, groupes de troupes, listes de zones, capacités d'appareils…)
-se personnalisent depuis un ou plusieurs <strong>callbacks de configuration</strong> enregistrés dans
-<code>ctld.userSetup</code>. CTLD exécute chaque callback une fois à l'initialisation, après la mise en place
-des valeurs par défaut (et des crates AA auto-injectées) — vous modifiez donc le vrai catalogue de
-façon chirurgicale au lieu de le recopier et de le maintenir en entier :</p>
-<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="py">userSetup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ctld</span><span class="p">.</span><span class="py">userSetup</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="p">{}</span>
-<span class="nb">table.insert</span><span class="p">(</span><span class="nv">ctld</span><span class="p">.</span><span class="py">userSetup</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">cfg</span><span class="p">)</span>
-<span class="w">    </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">addCrate</span><span class="p">(</span><span class="s2">&quot;Support&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">weight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2000.01</span><span class="p">,</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Ural Ammo&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Ural-375&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">side</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">})</span>
-<span class="w">    </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">removeCrate</span><span class="p">(</span><span class="mf">1000.05</span><span class="p">)</span><span class="w">                         </span><span class="c1">-- retire une crate par défaut par son poids</span>
-<span class="w">    </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">patchCrate</span><span class="p">(</span><span class="mf">1000.02</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">cratesRequired</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">})</span><span class="w">  </span><span class="c1">-- change un champ, garde le reste</span>
-<span class="w">    </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">addTroopGroup</span><span class="p">({</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Recon Team&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">inf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nv">jtac</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">})</span>
-<span class="w">    </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">addTo</span><span class="p">(</span><span class="s2">&quot;transportPilotNames&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;helicargo_custom_1&quot;</span><span class="p">)</span>
-<span class="kr">end</span><span class="p">)</span>
-</code></pre></div>
-<p>Les helpers — <code>ctld.addCrate</code>, <code>ctld.removeCrate</code>, <code>ctld.patchCrate</code>, <code>ctld.addTroopGroup</code>,
-<code>ctld.removeTroopGroup</code>, <code>ctld.addTo</code> — opèrent sur la configuration vivante. Les dictionnaires
-sans helper (<code>capabilitiesByType</code>, <code>aiZones</code>, …) s'éditent directement sur l'argument <code>cfg</code>. Appelez
-<code>ctld.logDefaults("spawnableCrates")</code> depuis un trigger de mission pour écrire les valeurs par
-défaut courantes dans <code>CTLD.log</code>, et consultez <code>CTLD_userConfig.lua</code> pour le modèle complet documenté.</p>
-<div class="admonition tip">
-<p class="admonition-title">Recommandé : utiliser l'application <code>ctld-tools</code></p>
-<p>Plutôt que d'écrire du Lua à la main, le flux recommandé est l'application <strong><code>ctld-tools</code></strong> :
-double-cliquez-la, éditez la configuration complète de CTLD dans votre navigateur via des
-formulaires, et injectez-la dans votre mission. Elle valide vos changements contre le vrai
-catalogue et la liste des types DCS et détecte les erreurs avant DCS. <code>ctld-tools.exe</code> est attaché
-à chaque Release GitHub (pas besoin de Python) — voir
-<a href="../ctld-tools/">Configurer CTLD avec <code>ctld-tools</code></a>. L'édition manuelle du modèle Lua ci-dessous
-reste possible pour les utilisateurs avancés.</p>
+<p><code>configVersion</code> enregistre la version de configuration contre laquelle votre instantané a été écrit.
+Lors d'une mise à jour de CTLD, <code>ctld-tools</code> la lit et vous dit ce qui a changé — réglages apparus,
+réglages devenus inutiles, valeurs par défaut déplacées — sans jamais rien fusionner à votre insu.</p>
+<div class="admonition warning">
+<p class="admonition-title">Ce que signifie une omission</p>
+<p>Les deux natures de valeur ne se comportent pas pareil, et c'est volontaire :</p>
+<ul>
+<li>un <strong>réglage</strong> (une valeur unique — booléen, nombre, chaîne) que vous omettez retombe sur la
+  valeur par défaut de CTLD, car le moteur a besoin d'une valeur pour calculer. Chaque réglage
+  résolu de cette façon est nommé une fois dans le rapport de démarrage à l'écran : un instantané
+  écrit à la main qui a dérivé fonctionne quand même, et vous le dit.</li>
+<li>une <strong>liste</strong> (une section de caisses, un groupe de troupes, une entrée de zone, un nom de
+  pilote) que vous omettez est réellement absente. C'est ainsi qu'on en retire une — et c'est
+  pourquoi rien n'est fusionné.</li>
+</ul>
+<p>La validation de <code>ctld-tools</code> signale un réglage manquant comme une erreur et refuse d'injecter :
+un instantané produit par l'outil est donc toujours complet.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Passez à un niveau de crochets supérieur si nécessaire</p>
+<p>L'instantané se place entre <code>[[</code> et <code>]]</code>. Si votre texte contient un jour <code>]]</code>, utilisez
+<code>[==[ ... ]==]</code>.</p>
 </div>
 <h2 id="global-settings">Réglages globaux<a class="headerlink" href="#global-settings" title="Permanent link">&para;</a></h2>
 <h3 id="system">Système<a class="headerlink" href="#system" title="Permanent link">&para;</a></h3>
@@ -3045,33 +3065,49 @@ lors de leur activation.</p>
 <p><code>capabilitiesByType</code> est l'unique table qui définit chaque capacité par appareil. <strong>Seuls les
 appareils listés ici reçoivent les menus F10 de CTLD.</strong> Chaque clé est le <strong>nom de type DCS
 exact</strong> de l'appareil (mods inclus, ex. <code>"Hercules"</code>, <code>"76MD"</code>, <code>"UH-60L"</code>).</p>
-<div class="highlight"><pre><span></span><code><span class="c1">-- dans un callback ctld.userSetup :  table.insert(ctld.userSetup, function(cfg) ... end)</span>
-<span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;capabilitiesByType&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="p">[</span><span class="s2">&quot;UH-1H&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nv">cratesEnabled</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">   </span><span class="c1">-- can load/unpack crates</span>
-<span class="w">        </span><span class="nv">troopsEnabled</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">   </span><span class="c1">-- can load/deploy infantry</span>
-<span class="w">        </span><span class="nv">canParachuteDrop</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">   </span><span class="c1">-- enables Parachute F10 entries</span>
-<span class="w">        </span><span class="nv">canSlingload</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">   </span><span class="c1">-- enables hover-pickup + Slingload menus</span>
-<span class="w">        </span><span class="nv">canTransportWholeVehicle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">   </span><span class="c1">-- whole-vehicle transport</span>
-<span class="w">        </span><span class="nv">useNativeDcsCargoSystem</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">   </span><span class="c1">-- use the DCS native cargo system for crates</span>
-<span class="w">        </span><span class="nv">convertNativeLoadToCTLD</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">   </span><span class="c1">-- convert DCS-native cargo loads to CTLD-managed</span>
-<span class="w">        </span><span class="nv">maxTroopsOnboard</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w">      </span><span class="c1">-- max soldiers (overrides ctld.numberOfTroops)</span>
-<span class="w">        </span><span class="nv">maxCratesOnboard</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">      </span><span class="c1">-- max crates carried at once</span>
-<span class="w">        </span><span class="nv">maxWholeVehiclesOnboard</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">      </span><span class="c1">-- max whole vehicles carried at once</span>
-<span class="w">        </span><span class="nv">maxVehicleWeight</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="mi">1360</span><span class="p">,</span><span class="w">   </span><span class="c1">-- max whole-vehicle weight (kg) this aircraft can lift</span>
-<span class="w">        </span><span class="nv">loadableVehiclesRED</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;BRDM-2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;BTR_D&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">        </span><span class="nv">loadableVehiclesBLUE</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;M1045 HMMWV TOW&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;M1043 HMMWV Armament&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Hummer&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="p">[</span><span class="s2">&quot;C-130J-30&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nv">cratesEnabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nv">troopsEnabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nv">canParachuteDrop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nv">canSlingload</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">        </span><span class="nv">canTransportWholeVehicle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nv">useNativeDcsCargoSystem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nv">convertNativeLoadToCTLD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">        </span><span class="nv">maxTroopsOnboard</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w"> </span><span class="nv">maxCratesOnboard</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">22</span><span class="p">,</span><span class="w"> </span><span class="nv">maxWholeVehiclesOnboard</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">        </span><span class="nv">maxVehicleWeight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20000</span><span class="p">,</span>
-<span class="w">        </span><span class="nv">loadableVehiclesRED</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;BRDM-2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;BTR_D&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">        </span><span class="nv">loadableVehiclesBLUE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;M1045 HMMWV TOW&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;M1043 HMMWV Armament&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Hummer&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="c1">-- ... one entry per aircraft type</span>
-<span class="p">}</span>
+<p>Dans <code>ctld-tools</code>, c'est la famille <strong>Appareils</strong> : choisissez un type dans la liste DCS et
+remplissez le formulaire. Dans un instantané écrit à la main, cette table vit sous <code>mm_facing</code> :</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">capabilitiesByType</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">UH-1H</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">cratesEnabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">              </span><span class="c1"># can load/unpack crates</span>
+<span class="w">      </span><span class="nt">troopsEnabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">              </span><span class="c1"># can load/deploy infantry</span>
+<span class="w">      </span><span class="nt">canParachuteDrop</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">           </span><span class="c1"># enables Parachute F10 entries</span>
+<span class="w">      </span><span class="nt">canSlingload</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">               </span><span class="c1"># enables hover-pickup + Slingload menus</span>
+<span class="w">      </span><span class="nt">canTransportWholeVehicle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">   </span><span class="c1"># whole-vehicle transport</span>
+<span class="w">      </span><span class="nt">useNativeDcsCargoSystem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">    </span><span class="c1"># use the DCS native cargo system for crates</span>
+<span class="w">      </span><span class="nt">convertNativeLoadToCTLD</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">    </span><span class="c1"># convert DCS-native cargo loads to CTLD-managed</span>
+<span class="w">      </span><span class="nt">maxTroopsOnboard</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span><span class="w">              </span><span class="c1"># max soldiers (overrides numberOfTroops)</span>
+<span class="w">      </span><span class="nt">maxCratesOnboard</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">              </span><span class="c1"># max crates carried at once</span>
+<span class="w">      </span><span class="nt">maxWholeVehiclesOnboard</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">       </span><span class="c1"># max whole vehicles carried at once</span>
+<span class="w">      </span><span class="nt">maxVehicleWeight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1360</span><span class="w">           </span><span class="c1"># max whole-vehicle weight (kg) this aircraft can lift</span>
+<span class="w">      </span><span class="nt">loadableVehiclesRED</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BRDM-2</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BTR_D</span>
+<span class="w">      </span><span class="nt">loadableVehiclesBLUE</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">M1045 HMMWV TOW</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">M1043 HMMWV Armament</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Hummer</span>
+<span class="w">    </span><span class="nt">C-130J-30</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">cratesEnabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">troopsEnabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">canParachuteDrop</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">canSlingload</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="nt">canTransportWholeVehicle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">useNativeDcsCargoSystem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">convertNativeLoadToCTLD</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="nt">maxTroopsOnboard</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">      </span><span class="nt">maxCratesOnboard</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">22</span>
+<span class="w">      </span><span class="nt">maxWholeVehiclesOnboard</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">      </span><span class="nt">maxVehicleWeight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20000</span>
+<span class="w">      </span><span class="nt">loadableVehiclesRED</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BRDM-2</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BTR_D</span>
+<span class="w">      </span><span class="nt">loadableVehiclesBLUE</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">M1045 HMMWV TOW</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">M1043 HMMWV Armament</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Hummer</span>
+<span class="w">    </span><span class="c1"># ... one entry per aircraft type</span>
 </code></pre></div>
 <p><strong>Référence des champs :</strong></p>
 <table>
@@ -3158,10 +3194,13 @@ le véhicule comme unité en attente près du transport (au lieu d'une crate) ; 
 charge ensuite depuis le cockpit. Voir le <a href="../../pilot/">guide Pilote</a> pour le
 déroulement en cockpit.</p>
 </div>
-<p>Les appareils <strong>non</strong> listés dans <code>capabilitiesByType</code> ne reçoivent aucun menu CTLD. Affecter la
-table <code>capabilitiesByType</code> entière remplace celle intégrée, donc incluez chaque appareil que vous
-voulez rendre CTLD-capable — ou modifiez un seul champ pour conserver les défauts, p. ex.
-<code>cfg.settings["capabilitiesByType"]["Mi-8MT"].maxTroopsOnboard = 20</code>.</p>
+<p>Les appareils <strong>non</strong> listés dans <code>capabilitiesByType</code> ne reçoivent aucun menu CTLD. L'instantané
+étant complet, la table que vous livrez <em>est</em> la table utilisée par CTLD : incluez chaque appareil que
+vous voulez rendre CTLD-capable. Pour changer un seul champ sur un seul appareil — disons
+<code>maxTroopsOnboard</code> sur le <code>Mi-8MT</code> — partez de la table par défaut et modifiez ce champ sur place ;
+n'écrivez pas une table ne contenant que votre appareil, sinon tous les autres types perdent leurs
+menus. <code>ctld-tools</code> s'en charge : il part toujours de la table par défaut complète et marque les
+champs que vous avez modifiés.</p>
 <h2 id="access-control">Contrôle d'accès<a class="headerlink" href="#access-control" title="Permanent link">&para;</a></h2>
 <p>Deux paramètres décident quelles unités joueur reçoivent les menus F10 de CTLD.</p>
 <table>
@@ -3192,13 +3231,12 @@ Recommandé pour les serveurs multijoueurs ouverts.</p>
 <code>transportPilotNames</code> obtiennent les menus CTLD. Utilisez ceci pour restreindre CTLD à un
 ensemble fixe de slots nommés (ex. une escadrille de transport dédiée). Les appareils
 CTLD-capables <strong>non</strong> listés rejoignent la mission normalement mais n'ont aucun accès CTLD.</p>
-<div class="highlight"><pre><span></span><code><span class="c1">-- dans un callback ctld.userSetup :  table.insert(ctld.userSetup, function(cfg) ... end)</span>
-<span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;addPlayerAircraftByType&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
-<span class="nv">cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;transportPilotNames&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="s2">&quot;transport_slot_1&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;transport_slot_2&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;transport_slot_3&quot;</span><span class="p">,</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">addPlayerAircraftByType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">  </span><span class="nt">transportPilotNames</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transport_slot_1</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transport_slot_2</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transport_slot_3</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">AI transports</p>
@@ -3217,7 +3255,7 @@ d'auto-pickup / drop-off.</p>
 </thead>
 <tbody>
 <tr>
-<td>Zones de troop / logistique / extract / waypoint (<code>troopZones</code>, <code>AIZones</code>, <code>wpZones</code>…)</td>
+<td>Zones de troop / logistique / extract / waypoint (<code>troopZones</code>, <code>aiZones</code>, <code>wpZones</code>…)</td>
 <td><a href="../zones/">Zone setup</a></td>
 </tr>
 <tr>

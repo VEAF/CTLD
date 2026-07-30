@@ -1990,9 +1990,12 @@ moteur Lua v2 modulaire.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Téléchargez <code>CTLD.lua</code> depuis la <a href="../../releases/latest">dernière release</a>.</li>
-<li>Ajoutez un trigger <strong>DO SCRIPT FILE</strong> dans le Mission Editor de DCS pointant vers <code>CTLD.lua</code>.</li>
-<li>Optionnellement, ajoutez un second trigger chargeant votre <code>CTLD_userConfig.lua</code> pour surcharger
-   les valeurs par défaut.</li>
+<li>Ajoutez un trigger <strong>MISSION START → DO SCRIPT FILE</strong> dans le Mission Editor de DCS pointant vers
+   <code>CTLD.lua</code>. CTLD tourne sur ses valeurs par défaut intégrées — rien d'autre n'est nécessaire.</li>
+<li>Pour personnaliser quoi que ce soit, téléchargez <code>ctld-tools.exe</code> depuis la même release, ajustez la
+   configuration dans votre navigateur et laissez-le injecter un trigger <code>CTLD_userConfig.lua</code>
+   <strong>avant</strong> celui de <code>CTLD.lua</code> — voir
+   <a href="mission-maker/ctld-tools/">Configurer avec <code>ctld-tools</code></a>.</li>
 </ol>
 <h2 id="compatibility">Compatibilité<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h2>
 <ul>

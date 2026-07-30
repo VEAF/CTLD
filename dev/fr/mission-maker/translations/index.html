@@ -2067,16 +2067,20 @@ développeur. Cette page ne couvre que ce dont un mission maker a besoin.</p>
 <p>L'anglais est la référence : il contient toujours toutes les chaînes, il sert donc de repli
 chaque fois qu'une traduction manque.</p>
 <h2 id="choosing-the-language">Choisir la langue<a class="headerlink" href="#choosing-the-language" title="Permanent link">&para;</a></h2>
-<p>La langue active est sélectionnée en haut de <code>src/CTLD_i18n.lua</code>. Décommentez la seule ligne
-souhaitée et laissez les autres en commentaire :</p>
-<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="py">i18n_lang</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;en&quot;</span>
-<span class="c1">--ctld.i18n_lang = &quot;fr&quot;</span>
-<span class="c1">--ctld.i18n_lang = &quot;es&quot;</span>
-<span class="c1">--ctld.i18n_lang = &quot;ko&quot;</span>
+<p>La langue active est le <strong>réglage <code>i18n_lang</code></strong> — définissez-le comme n'importe quel autre réglage,
+dans <code>ctld-tools</code> ou à la main dans votre instantané de configuration :</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">i18n_lang</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fr</span>
 </code></pre></div>
-<p>Une seule ligne doit être active à la fois ; la valeur par défaut est <code>en</code>. Ce sélecteur vit
-dans son propre fichier, séparé de la logique principale, afin qu'un traducteur non développeur
-puisse le modifier sans toucher au moindre script.</p>
+<p>Les valeurs valides sont <code>en</code> (le défaut), <code>fr</code>, <code>es</code> et <code>ko</code>. C'est un choix au niveau de la
+mission : il s'applique à tous les joueurs du serveur.</p>
+<div class="admonition note">
+<p class="admonition-title">L'ancien sélecteur fonctionne toujours</p>
+<p>Les missions plus anciennes choisissaient la langue en éditant le haut de <code>src/CTLD_i18n.lua</code>
+(<code>ctld.i18n_lang = "fr"</code>), et cela fonctionne encore — CTLD lit d'abord le réglage <code>i18n_lang</code>,
+puis retombe sur cette variable globale du module, puis sur <code>en</code>. Préférez le réglage : il ne
+demande aucune modification de source et survit à une mise à jour de CTLD.</p>
+</div>
 <h2 id="how-fallback-works">Comment fonctionne le repli<a class="headerlink" href="#how-fallback-works" title="Permanent link">&para;</a></h2>
 <p>Vous n'avez jamais à vous soucier d'un message vide ou manquant. Si une chaîne est absente ou
 vide dans la langue active, CTLD bascule automatiquement, dans l'ordre :</p>

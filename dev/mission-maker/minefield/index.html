@@ -2122,8 +2122,9 @@ x    x    x    x    x        &lt;- odd row
    x    x    x    x          &lt;- even row
 </code></pre></div>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
-<p>Settings are read through <code>ctld.gs("paramName")</code> at runtime; you set them in
-<code>CTLD_userConfig.lua</code> under <code>_cfg.settings[...]</code>.</p>
+<p>Settings are read through <code>ctld.gs("paramName")</code> at runtime. Set them in <code>ctld-tools</code> (the <strong>Mines</strong>
+family) or, if you hand-write your configuration snapshot, in the section each one belongs to — see
+<a href="../configuration/">Configuration</a>.</p>
 <table>
 <thead>
 <tr>
@@ -2145,8 +2146,10 @@ x    x    x    x    x        &lt;- odd row
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code><span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;showMinefieldOnF10Map&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;demineRadius&quot;</span><span class="p">]</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="mi">150</span>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">showMinefieldOnF10Map</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">advanced</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">demineRadius</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">150</span>
 </code></pre></div>
 <h2 id="advanced-laying-a-minefield-from-a-script">Advanced: laying a minefield from a script<a class="headerlink" href="#advanced-laying-a-minefield-from-a-script" title="Permanent link">&para;</a></h2>
 <p>If you want to place minefields from your own mission logic (rather than by having a pilot

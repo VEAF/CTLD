@@ -2124,8 +2124,9 @@ x    x    x    x    x        &lt;- odd row
    x    x    x    x          &lt;- even row
 </code></pre></div>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
-<p>Les réglages sont lus via <code>ctld.gs("paramName")</code> à l'exécution ; vous les définissez dans
-<code>CTLD_userConfig.lua</code> sous <code>_cfg.settings[...]</code>.</p>
+<p>Les réglages sont lus via <code>ctld.gs("paramName")</code> à l'exécution. Définissez-les dans <code>ctld-tools</code>
+(famille <strong>Mines</strong>) ou, si vous écrivez votre instantané de configuration à la main, dans la section à
+laquelle chacun appartient — voir <a href="../configuration/">Configuration</a>.</p>
 <table>
 <thead>
 <tr>
@@ -2147,8 +2148,10 @@ x    x    x    x    x        &lt;- odd row
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code><span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;showMinefieldOnF10Map&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;demineRadius&quot;</span><span class="p">]</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="mi">150</span>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">showMinefieldOnF10Map</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">advanced</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">demineRadius</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">150</span>
 </code></pre></div>
 <h2 id="advanced-laying-a-minefield-from-a-script">Avancé : poser un minefield depuis un script<a class="headerlink" href="#advanced-laying-a-minefield-from-a-script" title="Permanent link">&para;</a></h2>
 <p>Si vous voulez placer des minefields depuis votre propre logique de mission (plutôt qu'en

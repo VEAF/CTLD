@@ -2205,9 +2205,10 @@ descripteur :</p>
 <li><code>self._weightIndex[weight] = descriptor</code> — un index O(1) utilisé par toutes les méthodes
   <code>findDescriptorBy*</code> (crates simples uniquement ; les mixed sets n'ont pas de champ <code>weight</code>).</li>
 </ul>
-<p>Avant la boucle principale, <code>CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)</code> injecte
-les entrées de crates de pièces/réparation des systèmes AA afin qu'elles transitent par les
-mêmes passes. La transformation exécute ensuite trois passes par catégorie :</p>
+<p>Les entrées de crates de pièces/réparation des systèmes AA sont de simples entrées de catalogue dans
+<code>CTLD_config.yaml</code> (voir <a href="../aa/">Assemblage des systèmes AA</a>) : elles transitent par les mêmes passes
+que n'importe quelle autre crate, rien ne les injecte à l'exécution. La transformation exécute trois
+passes par catégorie :</p>
 <ol>
 <li><strong>Séparation.</strong> Chaque entrée avec un champ <code>weight</code> devient une crate simple (indexée dans un
    <code>catWeightIdx</code> propre à la catégorie et dans <code>self._weightIndex</code>) ; chaque entrée avec un champ
@@ -2337,8 +2338,8 @@ est fourni, les sous-menus load et pack du spawner de véhicules sont rafraîchi
 <td><strong>Source de vérité pour le rôle JTAC.</strong> Ajoute la route d'orbit à une définition d'unité aérienne et déclenche <code>startLase</code> en post-spawn. Le nom de type d'unité (<code>unit</code>) n'est jamais utilisé pour la détection JTAC dans la stack OOP.</td>
 </tr>
 <tr>
-<td><code>specificParams</code> (table, air uniquement)</td>
-<td>Réglage d'orbit passé à <code>startLase</code> / <code>deployAirJTAC</code> : <code>speed</code>, <code>alti</code>, <code>orbitRadiusNoLase</code>, <code>orbitRadiusOnLase</code></td>
+<td><code>specificParams</code> (table)</td>
+<td><strong>Ignoré sur une crate.</strong> La géométrie d'orbite des JTAC drones vient des réglages <code>JTAC_droneAltitude</code> / <code>JTAC_droneRadiusNoLase</code> / <code>JTAC_droneRadiusOnLase</code> / <code>JTAC_droneSpeed</code>. Une crate portant encore ce champ produit un <code>NOTICE</code> au démarrage nommant les crates concernées. (Sans rapport avec <code>specificParams.task</code> sur les templates <code>loadableGroups</code>, qui est bien actif — voir <a href="../troops-jtac/">Cycle de vie troupes + JTAC</a>.)</td>
 </tr>
 <tr>
 <td><code>cratesRequired</code> (number)</td>

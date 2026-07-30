@@ -1967,13 +1967,16 @@ configurer dans l'éditeur de mission de DCS et le fichier <code>CTLD_userConfig
 <em>piloter</em> CTLD depuis le cockpit (le menu F10), consultez plutôt le <a href="../pilot/">Guide du pilote</a>.</p>
 <h2 id="getting-started">Pour commencer<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Ajoutez <code>CTLD.lua</code> à votre mission avec un déclencheur <strong>DO SCRIPT FILE</strong>.</li>
-<li>Ajoutez éventuellement un second déclencheur <strong>DO SCRIPT FILE</strong> qui charge votre
-   <code>CTLD_userConfig.lua</code> pour surcharger les valeurs par défaut.</li>
+<li>Ajoutez <code>CTLD.lua</code> à votre mission avec un déclencheur <strong>MISSION START → DO SCRIPT FILE</strong>. CTLD
+   tourne sur ses valeurs par défaut intégrées : cela suffit pour jouer.</li>
+<li>Pour personnaliser quoi que ce soit, produisez une configuration avec
+   <a href="ctld-tools/"><code>ctld-tools</code></a> et laissez-le injecter un déclencheur <code>CTLD_userConfig.lua</code> dans
+   votre mission — <strong>avant</strong> le déclencheur <code>CTLD.lua</code>.</li>
 <li>Configurez les éléments dont vous avez besoin à l'aide des pages ci-dessous.</li>
 </ol>
-<p>Tous les réglages sont lus via <code>ctld.gs("paramName")</code> à l'exécution ; vous les définissez dans
-<code>CTLD_userConfig.lua</code> (<code>_cfg.settings[...]</code>).</p>
+<p>Tous les réglages sont lus via <code>ctld.gs("paramName")</code> à l'exécution. Votre configuration est un
+<strong>instantané complet</strong> porté par <code>ctld.configUser</code> dans <code>CTLD_userConfig.lua</code>, et non une liste de
+surcharges — voir <a href="configuration/">Configuration</a>.</p>
 <h2 id="configuration-topics">Sujets de configuration<a class="headerlink" href="#configuration-topics" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1983,6 +1986,10 @@ configurer dans l'éditeur de mission de DCS et le fichier <code>CTLD_userConfig
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><a href="ctld-tools/">Configurer avec <code>ctld-tools</code></a></td>
+<td>La façon recommandée de configurer CTLD : une application locale, des formulaires au lieu de Lua, injection dans votre <code>.miz</code></td>
+</tr>
 <tr>
 <td><a href="configuration/">Configuration</a></td>
 <td>Réglages globaux et capacités par appareil (<code>capabilitiesByType</code>)</td>

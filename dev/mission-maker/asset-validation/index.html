@@ -2018,8 +2018,12 @@ after CTLD, it looks at everything your mission configures — <code>spawnableCr
 </ol>
 <h3 id="declaring-mod-types">Declaring mod types<a class="headerlink" href="#declaring-mod-types" title="Permanent link">&para;</a></h3>
 <p>If your config legitimately uses a mod's DCS type, tell CTLD so the companion does not flag it —
-list the exact type name(s) in the <code>modTypes</code> setting:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">_cfg</span><span class="p">.</span><span class="py">settings</span><span class="p">[</span><span class="s2">&quot;modTypes&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Your_Mod_Type&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Another_Mod_Type&quot;</span><span class="w"> </span><span class="p">}</span>
+list the exact type name(s) in the <code>modTypes</code> setting (in <code>ctld-tools</code>, it is an editable list of DCS
+type names):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">advanced</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">modTypes</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Your_Mod_Type</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Another_Mod_Type</span>
 </code></pre></div>
 <p>Every <em>other</em> type is still checked, so a real typo is still caught. (Scenes declare their own mod
 types in <code>modTypes</code> on the scene model — see <a href="../scenes-fob/">Scenes &amp; FOB</a>.)</p>

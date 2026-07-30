@@ -1967,13 +1967,16 @@ Mission Editor and the <code>CTLD_userConfig.lua</code> file. If you want to <em
 (the F10 menu), see the <a href="../pilot/">Pilot guide</a> instead.</p>
 <h2 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Add <code>CTLD.lua</code> to your mission with a <strong>DO SCRIPT FILE</strong> trigger.</li>
-<li>Optionally add a second <strong>DO SCRIPT FILE</strong> trigger loading your <code>CTLD_userConfig.lua</code> to
-   override defaults.</li>
+<li>Add <code>CTLD.lua</code> to your mission with a <strong>MISSION START → DO SCRIPT FILE</strong> trigger. CTLD runs on
+   its built-in defaults, so this alone is enough to play.</li>
+<li>To customise anything, produce a configuration with
+   <a href="ctld-tools/"><code>ctld-tools</code></a> and let it inject a <code>CTLD_userConfig.lua</code> trigger into your
+   mission — <strong>before</strong> the <code>CTLD.lua</code> trigger.</li>
 <li>Configure the pieces you need using the pages below.</li>
 </ol>
-<p>All settings are read through <code>ctld.gs("paramName")</code> at runtime; you set them in
-<code>CTLD_userConfig.lua</code> (<code>_cfg.settings[...]</code>).</p>
+<p>All settings are read through <code>ctld.gs("paramName")</code> at runtime. Your configuration is a <strong>complete
+snapshot</strong> carried by <code>ctld.configUser</code> in <code>CTLD_userConfig.lua</code>, not a list of overrides — see
+<a href="configuration/">Configuration</a>.</p>
 <h2 id="configuration-topics">Configuration topics<a class="headerlink" href="#configuration-topics" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1983,6 +1986,10 @@ Mission Editor and the <code>CTLD_userConfig.lua</code> file. If you want to <em
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><a href="ctld-tools/">Configure with <code>ctld-tools</code></a></td>
+<td>The recommended way to configure CTLD: a local app, forms instead of Lua, injection into your <code>.miz</code></td>
+</tr>
 <tr>
 <td><a href="configuration/">Configuration</a></td>
 <td>Global settings and per-aircraft capabilities (<code>capabilitiesByType</code>)</td>
