@@ -1,6 +1,6 @@
 # 01 — rewrite `tableFields.AIZones` → `tableFields.aiZones`
 
-**Status:** ready
+**Status:** done
 
 ## Why
 

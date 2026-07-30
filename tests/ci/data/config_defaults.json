@@ -380,7 +380,6 @@
     "logistic10"
   ],
   "maxDistanceFromCrate": 5.5,
-  "maxDropHeight": 7.5,
   "maxExtractDistance": 125,
   "maxSlingloadSpeed": 26,
   "maxTransportWeight": 0,
@@ -389,7 +388,7 @@
   "maximumHoverHeight": 12.0,
   "maximumSearchDistance": 3000,
   "minimumHoverHeight": 7.5,
-  "modTypes": {},
+  "modTypes": [],
   "nbLimitSpawnedTroops": [
     0,
     0
@@ -920,17 +919,14 @@
   "spawnableCratesModels": {
     "dynamic": {
       "canCargo": true,
-      "category": "Cargos",
       "type": "ammo_cargo"
     },
     "load": {
       "canCargo": true,
-      "category": "Cargos",
       "type": "ammo_cargo"
     },
     "sling": {
       "canCargo": true,
-      "category": "Cargos",
       "shape_name": "bw_container_cargo",
       "type": "container_cargo"
     }

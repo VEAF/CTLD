@@ -3725,10 +3725,9 @@ advanced:
   groundAglThreshold: 5.0
   hoverTime: 10
   maxDistanceFromCrate: 5.5
-  maxDropHeight: 7.5
   maximumHoverHeight: 12.0
   minimumHoverHeight: 7.5
-  modTypes: {}
+  modTypes: []
   parachuteDescentRateCrates: 5
   parachuteDescentRateTroops: 5
   parachuteDescentRateVehicles: 8
@@ -3746,16 +3745,13 @@ advanced:
   spawnDistanceInCircle: 10
   spawnableCratesModels:
     load:
-      category: Cargos
       canCargo: true
       type: ammo_cargo
     sling:
-      category: Cargos
       canCargo: true
       shape_name: bw_container_cargo
       type: container_cargo
     dynamic:
-      category: Cargos
       canCargo: true
       type: ammo_cargo
 ]]
@@ -13876,54 +13872,6 @@ function CTLDCrateManager:checkAssemblyReady(crate, radius)
         end
     end
     return false, assembled
-end
-
---- Drop a crate from a transport in flight.
--- Below maxDropHeight → crate lands safely.
--- Above maxDropHeight → crate is destroyed (impact damage).
--- Publishes OnCrateUnloaded (method="drop") on safe landing,
--- or OnCrateDestroyed (reason="drop_impact") on destruction.
--- @param crateName     string
--- @param altitudeAGL   number  metres above ground level at drop time
-function CTLDCrateManager:dropCrate(crateName, altitudeAGL)
-    local crate = self.crates[crateName]
-    if not crate then return end
-    if not crate:isLoaded() then
-        _log("CTLDCrateManager:dropCrate - crate not loaded: " .. tostring(crateName), "WARNING")
-        return
-    end
-
-    local maxDropHeight    = ctld.gs("maxDropHeight")
-    -- Capture transport name before state transition clears loadedBy (via land/drop)
-    local transportName    = crate.loadedBy and crate.loadedBy:getName()
-
-    if altitudeAGL <= maxDropHeight then
-        -- Safe drop: crate lands at current position
-        local pos = crate.position
-        crate:land(pos)
-        if transportName then ctld.utils.updateTransportWeight(transportName) end
-        self:_publish("OnCrateUnloaded", {
-            crate           = crate,
-            crateName       = crateName,
-            position        = pos,
-            coalition       = crate.coalition,
-            method          = "drop",
-            timestamp       = timer.getAbsTime(),
-        })
-    else
-        -- Too high: crate destroyed on impact
-        _log("CTLDCrateManager:dropCrate - destroyed on impact (alt=" .. tostring(altitudeAGL) .. "m): " .. crateName, "INFO")
-        crate:destroy()
-        self:_unregister(crateName)
-        if transportName then ctld.utils.updateTransportWeight(transportName) end
-        self:_publish("OnCrateDestroyed", {
-            crate     = crate,
-            crateName = crateName,
-            coalition = crate.coalition,
-            reason    = "drop_impact",
-            timestamp = timer.getAbsTime(),
-        })
-    end
 end
 
 --- S_EVENT_BIRTH handler: register cargo statics that spawn via late activation.

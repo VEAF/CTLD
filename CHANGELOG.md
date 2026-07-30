@@ -7,6 +7,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Removed — runtime
+
+- **`CTLDCrateManager:dropCrate` and its `maxDropHeight` setting.** Unreachable: no F10 menu entry ever
+  called it, it is absent from `legacy_api.lua`, and neither the method nor the setting exists in the
+  legacy monolith — it was introduced during the modernisation and never wired. The airborne drop it
+  implemented is served by `parachuteCrates`, which the flight-state-aware menu does offer, with a
+  configured descent rate, an intact landing and auto-unpack. **Side effect worth knowing:**
+  `OnCrateDestroyed` was published only by `dropCrate`, so that event is **no longer emitted at all**.
+  Its documentation section says so explicitly rather than disappearing, because a plugin may subscribe
+  to it and its author needs to know the handler will not fire.
+
 ### Changed — runtime
 
 - **A setting now has exactly one default, in `src/CTLD_config.yaml`.** 114 fallbacks were deleted —
@@ -31,6 +42,33 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   together.
 ### Fixed
 
+- **The schema and catalogue now describe what the engine actually reads.** Four blocks were teaching
+  Mission Makers something false, and one of them is why the AI-zones editor showed a raw JSON box:
+    - `tableFields.AIZones` described a **dead positional format** (`zoneName` / `mode` / `side`) that
+      the engine has never read, in `src/` or in the legacy monolith. PR #69 dropped the dead config
+      *key* but left the schema block. Rewritten as `tableFields.aiZones` with the ten fields
+      `_loadAIZonesFromConfig` really reads, and the three enums declared as machine-readable
+      `choices` — `RED/BLUE/NEUTRAL`, `T/V/TV`, `G/P/GP` — seeded from the engine's own `VALID_*`
+      tables. The `coalition` description now spells out that it is a **word, not a number**: every
+      other coalition field in the catalogue is the numeric `side`, and an editor reusing that widget
+      would silently write a value the engine reads as "both coalitions".
+    - `spawnAs` advertised **`GROUND_UNIT`**, a value in no lookup table — it worked only by falling
+      through `_SPAWN_CATEGORY_MAP`'s error path to `GROUND`. Replaced by `choices: [GROUND, AIR]`, with
+      the description stating that DCS can only build ground units, statics, helicopters and drones from
+      a raw definition.
+    - `modTypes` shipped as `{}` — a **map** — while the engine walks it with `ipairs`. Harmless while
+      empty, but a Mission Maker copying that shape had every entry silently ignored, and then saw their
+      modded units rejected as unknown to DCS with no way to see why. Now `[]`, with a description that
+      explains what the setting is for.
+    - `spawnableCratesModels[*].category` never reached DCS: `_spawnStatic` does not copy it, and
+      `dynAddStatic` forces `category = 'Cargos'` regardless. Removed from all three models. Parity
+      holds — the legacy monolith forced the same value at the same point.
+  A new `test_catalogue_truth.py` asserts each of these against the Lua that consumes it, so the
+  documentation cannot drift from the runtime again.
+- **`minimumHoverHeight` / `maximumHoverHeight` now state their reference frame.** Picking up a crate or
+  a vehicle measures height **above the object**; releasing a slingload measures it **above the terrain**,
+  because there is no object to measure from. That is deliberate, and the two never apply at the same
+  moment — pickup versus release — so this is a wording fix, not a behaviour change.
 - **An incomplete mission config no longer crashes the mission.** Three settings were read with no
   fallback and fed straight into arithmetic: `JTAC_searchIntervalSeconds` / `JTAC_laseIntervalSeconds`
   into `t + interval` (`CTLD_jtac.lua:905`), and `slingCutDestroyHeight` into `agl > …`

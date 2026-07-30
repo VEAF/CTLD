@@ -118,7 +118,6 @@ Le manager reflète les transitions de l'entité et détient la publication des 
 | `loadCrate(crateName, transport)` | `spawned`/`landed` → `loaded` (détruit le static) | `OnCrateLoaded`, `OnCrateCleared` |
 | `unloadCrate(crateName, position, method)` | `loaded` → `landed` (respawn le static) | `OnCrateUnloaded`, `OnCrateSpawned` |
 | `unpackCrate(crateName, unpacker)` | `spawned`/`landed` → `unpacked` (détruit + désenregistre) | `OnCrateUnpacked`, `OnCrateCleared` |
-| `dropCrate(crateName, altitudeAGL)` | → `falling` | (événements drop/parachute) |
 | `destroyCrate(crateName)` | détruit + désenregistre | `OnCrateCleared` |
 
 Le load et le unload appellent tous deux `ctld.utils.updateTransportWeight` pour que la masse du

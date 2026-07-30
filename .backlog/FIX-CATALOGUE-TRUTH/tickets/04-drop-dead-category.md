@@ -1,6 +1,6 @@
 # 04 — remove the inert `category` from `spawnableCratesModels`
 
-**Status:** ready
+**Status:** done
 
 ## Why
 

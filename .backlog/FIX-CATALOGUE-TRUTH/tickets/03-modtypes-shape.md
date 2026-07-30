@@ -1,6 +1,6 @@
 # 03 — `modTypes`: a list, and a schema entry that says what it is for
 
-**Status:** ready
+**Status:** done
 
 ## Why
 

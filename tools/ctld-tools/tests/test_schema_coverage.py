@@ -23,7 +23,9 @@ _EXPECTED_TABLES = {
     "capabilitiesByType",
     "troopZones",
     "wpZones",
-    "AIZones",
+    # Renamed in FIX-CATALOGUE-TRUTH: the `AIZones` block described a dead positional format the
+    # engine never read. The setting has always been `aiZones`.
+    "aiZones",
     "groundVehicleWeights",
 }
 

@@ -1,6 +1,23 @@
 # FIX-CATALOGUE-TRUTH — the schema and the catalogue describe what the engine actually reads
 
-**Status:** ready
+**Status:** done — merged (PR #72).
+
+> **Delivered.** All six tickets. `tableFields.aiZones` rewritten with the ten fields the engine reads
+> and the three enums declared as `choices` seeded from its own `VALID_*` tables; `GROUND_UNIT` purged
+> and `spawnAs` reduced to `choices: [GROUND, AIR]`; `modTypes` `{}` → `[]` with a real description and
+> a family; the inert `category` gone from all three crate models; both hover-height settings now state
+> their reference frame per use; `dropCrate` + `maxDropHeight` removed from the engine, catalogue,
+> schema, docs and tests.
+>
+> The whole `dev/roadmap.md` "Runtime anomalies" section is gone — every one of its five entries is now
+> resolved (1 in `FIX-CTLD-TOOLS-REVIEW`, 2 and 3 in `FEAT-CONFIG-PARAM-SEMANTICS`, 4 and 5 here). Lot A
+> had closed 2 and 3 without deleting them; that bookkeeping is caught up here.
+>
+> **Verification.** 186 pytest tests + ruff clean, including a new `test_catalogue_truth.py` whose 15
+> guards assert each block against the Lua that consumes it — the `aiZones` field set is compared to
+> `entry.<field>` reads in `_loadAIZonesFromConfig`, and each enum to the engine's own table, so the UI
+> cannot drift from the runtime. `luacheck` on `CTLD_crate.lua`: 5 warnings before and after. Lua unit
+> tests remain CI's job (busted is not installed locally).
 
 Lot **B** of the post-review program (2026-07-30). **Must ship before lot D** (`FEAT-EDITOR-COVERAGE`):
 the editors are schema-driven, so the schema has to be right before anything is built on it. Closes
