@@ -685,7 +685,7 @@ function CTLDZoneManager:_discoverLGZ()
                     name            = parsed.name,
                     coalition       = parsed.coalition,
                     center          = _buildCenter(zd),
-                    radius          = ctld.gs("dynamicZoneRadius") or 200,
+                    radius          = ctld.gs("dynamicZoneRadius"),
                     dcsZoneName     = name,
                     anchorUnitName  = anchorName,
                     active          = true,
@@ -856,7 +856,7 @@ function CTLDZoneManager:_loadLegacyZones()
                 local ship = Unit.getByName(zd[1])
                 if ship and ship:isExist() then
                     local pt = ship:getPoint()
-                    local r  = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+                    local r  = ctld.gs("maximumDistancePackableUnitsSearch")
                     self._troopZones[zd[1]] = CTLDTroopZone:new({
                         dcsName       = zd[1], zoneName = zd[1],
                         coalition     = coal,
@@ -894,7 +894,7 @@ function CTLDZoneManager:_loadLegacyZones()
     end
 
     -- logisticUnits → CTLDLogisticZone (dynamic, linked to unit/static)
-    local maxDist = ctld.gs("maximumDistanceLogistic") or 500
+    local maxDist = ctld.gs("maximumDistanceLogistic")
     local added, removed = {}, {}
     for _, unitName in pairs(ctld.gs("logisticUnits") or {}) do
         if not self._logisticZones[unitName] then
@@ -927,7 +927,7 @@ end
 -- ============================================================
 
 function CTLDZoneManager:_scheduleSmoke()
-    local interval = ctld.gs("smokeRefreshInterval") or 300
+    local interval = ctld.gs("smokeRefreshInterval")
     local self_ref = self
 
     local function refresh()

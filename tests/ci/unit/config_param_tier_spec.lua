@@ -79,6 +79,66 @@ describe("CTLDConfig parameter/list tiers (ADR 0011 addendum 1)", function()
         end)
     end)
 
+    -- ── Ticket 03: a parameter must have exactly one default, in the catalogue ──
+    describe("no parameter carries a duplicate default in code", function()
+
+        -- Repo root, resolved the way tests/ci/helpers/loader.lua does it.
+        local ROOT = debug.getinfo(1, "S").source
+                        :match("^@(.+)tests[\\/]ci[\\/]unit[\\/]") or ""
+
+        local function isScalarLiteral(lit)
+            return tonumber(lit) ~= nil or lit == "true" or lit == "false"
+                or lit:match('^"[^"]*"$') ~= nil
+        end
+
+        it("no ctld.gs() call is followed by a scalar literal fallback", function()
+            local list = io.open(ROOT .. "tools/build/listToMerge.txt", "r")
+            assert.is_not_nil(list, "listToMerge.txt not found")
+            local offenders = {}
+            for entry in list:lines() do
+                local rel = entry:match("^%s*([%w_/%.%-]+%.lua)%s*$")
+                local f = rel and io.open(ROOT .. "src/" .. rel, "r")
+                if f then
+                    local n = 0
+                    for line in f:lines() do
+                        n = n + 1
+                        for key, lit in line:gmatch('ctld%.gs%("([%w_]+)"%)%s+or%s+([^%s,)}]+)') do
+                            if isScalarLiteral(lit) then
+                                offenders[#offenders + 1] =
+                                    string.format("src/%s:%d  %s or %s", rel, n, key, lit)
+                            end
+                        end
+                    end
+                    f:close()
+                end
+            end
+            list:close()
+            -- A scalar default belongs in src/CTLD_config.yaml and nowhere else: the engine
+            -- resolves a missing parameter from there (ADR 0011 Addendum 1), so an `or <literal>`
+            -- is a second, silently divergent default. Two had already drifted.
+            assert.same({}, offenders)
+        end)
+
+        it("collection guards are untouched — a missing list still means empty", function()
+            local kept = 0
+            local list = assert(io.open(ROOT .. "tools/build/listToMerge.txt", "r"))
+            for entry in list:lines() do
+                local rel = entry:match("^%s*([%w_/%.%-]+%.lua)%s*$")
+                local f = rel and io.open(ROOT .. "src/" .. rel, "r")
+                if f then
+                    for line in f:lines() do
+                        for _ in line:gmatch('ctld%.gs%("[%w_]+"%)%s+or%s+{') do
+                            kept = kept + 1
+                        end
+                    end
+                    f:close()
+                end
+            end
+            list:close()
+            assert.is_true(kept > 0)
+        end)
+    end)
+
     describe("a complete config reports nothing", function()
 
         it("reports nothing when the snapshot is complete", function()

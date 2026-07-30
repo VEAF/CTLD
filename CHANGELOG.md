@@ -9,6 +9,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 ### Changed — runtime
 
+- **A setting now has exactly one default, in `src/CTLD_config.yaml`.** 114 fallbacks were deleted —
+  103 `ctld.gs("x") or <literal>` plus 11 that duplicated a code constant (`_ROLE_EQUIP_WEIGHTS`,
+  `trigger.smokeColor.Red`). With a missing parameter now resolving from the catalogue (see *Fixed*
+  below), each was a second default free to drift from the one it duplicates — and five had already
+  drifted: `maximumSearchDistance` (code `10000` vs catalogue `3000`, two sites),
+  `maximumDistanceLogistic` (`500` vs `200`), and, not previously reported,
+  `parachuteMinAltitudeCrates` / `…Troops` / `…Vehicles` (`30` / `50` / `30` in code vs `152` for all
+  three in the catalogue). **No in-game behaviour changes**: a catalogue is always loaded, so the
+  catalogue value always won and is what missions have been running on. The 46 `or {…}` guards on lists
+  are deliberately untouched — for a list, absent still means empty. A test fails if a scalar literal
+  fallback reappears.
 - **`maxSlingloadSpeed` default corrected from `50` to `26`.** The value is in **metres per second**:
   the engine compares it to the magnitude of `Unit:getVelocity()` (`CTLD_crate.lua:1100`), with no
   conversion anywhere in `src/`. So `50` meant ~180 km/h / 97 kt — nearly double a UH-1H's sling-load

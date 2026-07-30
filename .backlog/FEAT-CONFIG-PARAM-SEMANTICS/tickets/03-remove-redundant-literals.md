@@ -1,8 +1,29 @@
 # 03 — delete the ~100 redundant scalar `or <literal>` fallbacks
 
-**Status:** ready
+**Status:** done
 
 Depends on: 02 (the safety net must exist before the literals go).
+
+> **Delivered: 114 fallbacks removed** — 103 scalar literals (scripted) plus 11 that duplicated a code
+> constant (`_ROLE_EQUIP_WEIGHTS.*`, `trigger.smokeColor.Red`), removed by hand. 46 `or {…}` list guards
+> kept.
+>
+> **The audit the ticket asked for paid off twice.** Every key with a fallback turned out to exist in the
+> catalogue (0 absent), so the sweep could not turn a guard into a `nil`. And it found **three
+> divergences the roadmap never listed**: `parachuteMinAltitudeCrates` / `…Troops` / `…Vehicles`, code
+> `30` / `50` / `30` against `152` for all three in the catalogue. The schema documents 152 m AGL, and a
+> catalogue is always loaded, so 152 is what missions have been flying — dropping the literals changes
+> nothing in game.
+>
+> **One false positive caught only by hand review:** `CTLD_jtac.lua:203` reads
+> `code < ctld.gs("jtacLaserCodeMin") or code > ctld.gs("jtacLaserCodeMax")` — that `or` is the boolean
+> disjunction of two comparisons, not a fallback. A blind sweep would have broken the laser-code range
+> check. Any future sweep of this shape must review non-literal right-hand sides individually.
+>
+> **Not done, deliberately:** `CTLDTroopManager._ROLE_EQUIP_WEIGHTS` still exists and still duplicates
+> the six catalogue weights, because line 403 uses the whole table as a guard for an uninitialised
+> manager (`self._roleEquipWeights or …`). That is a code-path guard, not a config default, so it is out
+> of this ticket's scope — but it is the same duplication in a different dress and worth its own look.
 
 ## Why
 

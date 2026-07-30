@@ -25,6 +25,12 @@ because nothing forces an MM to run the tool at all.
   distinguish the two, so derive the tier from the default's value shape — same rule as the engine, so
   the two layers cannot disagree.
 - Add the EN + FR strings to `ctld_tools/data/locales/`.
+
+**Key off the default catalogue, never the schema.** `i18n_lang` is declared in
+`CTLD_config_schema.yaml` but deliberately **absent from the default catalogue** — the schema says so
+in a comment at [line 29](../../../src/CTLD_config_schema.yaml#L29): it is a bare `ctld.i18n_lang`
+global that lands in `settings` and wins through `ctld.gs()`. A completeness rule driven by the schema
+would demand it and fail every valid config. The engine has the same rule for the same reason.
 - Surface it in the web app's validation panel like any other error; no bespoke UI.
 
 ## Acceptance

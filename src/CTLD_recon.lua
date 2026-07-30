@@ -54,7 +54,7 @@ end
 --- Infantry icon: circle + horizontal + vertical cross (⊕).
 -- @param coalition number  player coalition (1=RED, 2=BLUE) — marks visible to this coalition only
 function CTLDReconRenderer.drawInfantryIcon(pos, markId, color, coalition)
-    local r    = 150 * (ctld.gs("reconIconScale") or 1.0)
+    local r    = 150 * (ctld.gs("reconIconScale"))
     local fill = { color[1], color[2], color[3], 0.3 }
     local p    = { x = pos.x, y = 0, z = pos.z }
     trigger.action.circleToAll(coalition, markId * 10 + 1, p, r, color, fill, 1, true, "Infantry")
@@ -68,7 +68,7 @@ end
 
 --- Vehicle icon: rectangle + diagonal (▭╱).
 function CTLDReconRenderer.drawVehicleIcon(pos, markId, color, coalition)
-    local s    = 150 * (ctld.gs("reconIconScale") or 1.0)
+    local s    = 150 * (ctld.gs("reconIconScale"))
     local hs   = s / 2
     local fill = { color[1], color[2], color[3], 0.3 }
     trigger.action.rectToAll(coalition, markId * 10 + 1,
@@ -85,7 +85,7 @@ end
 -- 3-slot budget: slot1=filled circle, slot2=left side, slot3=right side.
 -- The apex shape (^) makes it recognisable as a pointed/AA symbol on the fill background.
 function CTLDReconRenderer.drawAAIcon(pos, markId, color, coalition)
-    local s    = 150 * (ctld.gs("reconIconScale") or 1.0)
+    local s    = 150 * (ctld.gs("reconIconScale"))
     local hs   = s / 2
     local fill = { color[1], color[2], color[3], 0.3 }
     local apex = { x = pos.x,      y = 0, z = pos.z + hs }
@@ -100,7 +100,7 @@ end
 
 --- Aircraft icon: perpendicular cross (2 lines) + small center circle.
 function CTLDReconRenderer.drawAircraftIcon(pos, markId, color, coalition)
-    local s  = 150 * (ctld.gs("reconIconScale") or 1.0)
+    local s  = 150 * (ctld.gs("reconIconScale"))
     local hs = s / 2
     trigger.action.lineToAll(coalition, markId * 10 + 1,
         { x = pos.x,      y = 0, z = pos.z + hs },
@@ -117,7 +117,7 @@ end
 
 --- Helicopter icon: circle + H shape (2 vertical bars).
 function CTLDReconRenderer.drawHelicopterIcon(pos, markId, color, coalition)
-    local r    = 150 * (ctld.gs("reconIconScale") or 1.0)
+    local r    = 150 * (ctld.gs("reconIconScale"))
     local fill = { color[1], color[2], color[3], 0.3 }
     trigger.action.circleToAll(coalition, markId * 10 + 1,
         { x = pos.x, y = 0, z = pos.z }, r, color, fill, 1, true, "Helicopter")
@@ -133,8 +133,8 @@ end
 
 --- Ship icon: elongated rectangle + bow arrow (2 lines converging to point).
 function CTLDReconRenderer.drawShipIcon(pos, markId, color, coalition)
-    local sw   = 250 * (ctld.gs("reconIconScale") or 1.0)
-    local sh   = 100 * (ctld.gs("reconIconScale") or 1.0)
+    local sw   = 250 * (ctld.gs("reconIconScale"))
+    local sh   = 100 * (ctld.gs("reconIconScale"))
     local fill = { color[1], color[2], color[3], 0.3 }
     trigger.action.rectToAll(coalition, markId * 10 + 1,
         { x = pos.x - sw / 2, y = 0, z = pos.z - sh / 2 },
@@ -156,7 +156,7 @@ end
 -- Slot 2: horizontal bar at NORTH top of T  — constant x+0.25r, z varies E-W.
 -- Slot 3: vertical stem going SOUTH           — constant z=center, x from +0.25r to -0.45r.
 function CTLDReconRenderer.drawFarpIcon(pos, markId, color, coalition)
-    local r    = 150 * (ctld.gs("reconIconScale") or 1.0)
+    local r    = 150 * (ctld.gs("reconIconScale"))
     local fill = { color[1], color[2], color[3], 0.3 }
     -- Square background
     trigger.action.rectToAll(coalition, markId * 10 + 1,
@@ -460,7 +460,7 @@ function CTLDReconManager:_syncFarpMarks(playerUnit, player)
     local playerCoa = playerUnit:getCoalition()
     local enemySide = playerCoa == coalition.side.BLUE
                       and coalition.side.RED or coalition.side.BLUE
-    local radius    = ctld.gs("reconSearchRadius") or 5000
+    local radius    = ctld.gs("reconSearchRadius")
 
     if not self._farpMarks[player] then
         self._farpMarks[player] = {}
@@ -593,7 +593,7 @@ function CTLDReconManager:scan(playerUnit, player)
     local pos    = playerUnit:getPoint()
     local ground = land.getHeight({ x = pos.x, y = pos.z })
     local agl    = pos.y - ground
-    local minAlt = ctld.gs("reconMinAltitude") or 50
+    local minAlt = ctld.gs("reconMinAltitude")
     if agl < minAlt then
         trigger.action.outTextForGroup(ctld.utils.getGroupId(playerUnit),
             ctld.tr("Altitude too low for recon scan (min %1 m)", minAlt), 10)
@@ -618,7 +618,7 @@ function CTLDReconManager:scan(playerUnit, player)
             ctld.tr("RECON started. Activate layers to see targets."), 10)
     end
 
-    local radius  = ctld.gs("reconSearchRadius") or 5000
+    local radius  = ctld.gs("reconSearchRadius")
     -- Pass ALL layers (not just enabled) so _matchLayer can enforce priority correctly.
     local targets = self:_scanLOS(playerUnit, self:_getPlayerLayers(player), radius)
 
@@ -737,7 +737,7 @@ function CTLDReconManager:enableAutoRefresh(playerUnit, player, _fromScan)
     end
     if scan.autoRefresh then return end
 
-    local interval = ctld.gs("reconRefreshInterval") or 10
+    local interval = ctld.gs("reconRefreshInterval")
     scan.autoRefresh = true
 
     local self_ref = self
@@ -775,7 +775,7 @@ function CTLDReconManager:disableAutoRefresh(playerUnit, player)
     local scan = self._activeScans[player]
     if not scan or not scan.autoRefresh then return end
 
-    local interval = ctld.gs("reconRefreshInterval") or 10
+    local interval = ctld.gs("reconRefreshInterval")
     scan.autoRefresh = false
     if scan.refreshTimer then
         timer.removeFunction(scan.refreshTimer)
@@ -859,7 +859,7 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
         return
     end
 
-    local radius         = ctld.gs("reconSearchRadius") or 5000
+    local radius         = ctld.gs("reconSearchRadius")
     -- Use full layer list so _matchLayer enforces priority on disabled layers.
     local currentTargets = self:_scanLOS(playerUnit, self:_getPlayerLayers(playerName), radius)
 
@@ -935,7 +935,7 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
     self:_syncFarpMarks(playerUnit, playerName)
 
     -- Re-schedule next refresh
-    local interval = ctld.gs("reconRefreshInterval") or 10
+    local interval = ctld.gs("reconRefreshInterval")
     local self_ref = self
     local pName    = playerName
     local uNameRef = unitName

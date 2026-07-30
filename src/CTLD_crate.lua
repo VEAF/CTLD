@@ -237,7 +237,7 @@ end
 
 --- Periodic tick: re-trigger smokes whose interval has elapsed (per active player).
 function CTLDSmokeManager:_tick()
-    local interval = ctld.gs("smokeAutoResumeInterval") or 270
+    local interval = ctld.gs("smokeAutoResumeInterval")
     local now      = timer.getTime()
     for playerName, pState in pairs(self._players) do
         if pState.active then
@@ -976,7 +976,7 @@ function CTLDCrateManager:refreshPackEquiptSection(playerObj, overrideInAir, _no
                 local repackData = smgr:packScene(sc)
                 local required  = cd.cratesRequired or 1
                 local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
-                local spacing   = ctld.gs("crateSpacing") or 5
+                local spacing   = ctld.gs("crateSpacing")
                 local spawnInfo = ctld.utils.getSpawnObjectPositions(t, required, safeDist, spacing)
                 local modelKey  = mgr_c:_crateModelKey(t)
                 for i = 1, required do
@@ -1082,11 +1082,11 @@ function CTLDCrateManager:checkHoverStatus()
 
     if ctld.gs("enableHoverSlingload") ~= true then return end
 
-    local maxDist     = ctld.gs("maxDistanceFromCrate") or 5.5
-    local minH        = ctld.gs("minimumHoverHeight")   or 7.5
-    local maxH        = ctld.gs("maximumHoverHeight")   or 12.0
-    local hoverTime   = ctld.gs("hoverTime")            or 10
-    local maxSpeed    = ctld.gs("maxSlingloadSpeed")    or 26
+    local maxDist     = ctld.gs("maxDistanceFromCrate")
+    local minH        = ctld.gs("minimumHoverHeight")
+    local maxH        = ctld.gs("maximumHoverHeight")
+    local hoverTime   = ctld.gs("hoverTime")
+    local maxSpeed    = ctld.gs("maxSlingloadSpeed")
 
     local players = CTLDPlayerManager.getInstance()._players
 
@@ -1461,7 +1461,7 @@ function CTLDCrateManager:releaseSlingload(transport, playerObj)
     local pos      = transport:getPoint()
     local groundH  = land.getHeight({ x = pos.x, y = pos.z })
     local agl      = pos.y - groundH
-    local maxRelH  = ctld.gs("maximumHoverHeight") or 12.0
+    local maxRelH  = ctld.gs("maximumHoverHeight")
 
     if agl > maxRelH then
         trigger.action.outTextForGroup(playerObj.groupId,
@@ -2132,7 +2132,7 @@ function CTLDCrateManager:dropCrate(crateName, altitudeAGL)
         return
     end
 
-    local maxDropHeight    = ctld.gs("maxDropHeight") or 7.5
+    local maxDropHeight    = ctld.gs("maxDropHeight")
     -- Capture transport name before state transition clears loadedBy (via land/drop)
     local transportName    = crate.loadedBy and crate.loadedBy:getName()
 
@@ -2291,7 +2291,7 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
     local dropPos     = transport:getPoint()
     local groundUnder = land.getHeight({ x = dropPos.x, y = dropPos.z })
     local altAGL      = dropPos.y - groundUnder
-    local minAlt      = ctld.gs("parachuteMinAltitudeCrates") or 30
+    local minAlt      = ctld.gs("parachuteMinAltitudeCrates")
 
     if altAGL < minAlt then
         trigger.action.outTextForGroup(playerObj.groupId,
@@ -2300,7 +2300,7 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
         return
     end
 
-    local descentRate = ctld.gs("parachuteDescentRateCrates") or 5
+    local descentRate = ctld.gs("parachuteDescentRateCrates")
     local loaded      = {}
     for _, crate in pairs(self.crates) do
         if crate:isLoadedByCTLD() and crate.loadedBy == transport then
@@ -2482,7 +2482,7 @@ function CTLDCrateManager:_checkAutoUnpack(landedCrate)
     if _m and _m.crate and _m.crate.autoUnpack == false then return end
 
     local required = desc.cratesRequired or 1
-    local radius   = ctld.gs("autoUnpackRadiusParachute") or 1000
+    local radius   = ctld.gs("autoUnpackRadiusParachute")
     local refPos   = landedCrate.position
     if not refPos then return end
 
@@ -3036,7 +3036,7 @@ function CTLDCrateManager:buildSmokeSection(playerObj, menu)
 
     local function doToggleAutoResume(arg)
         local newState = smMgr:toggle(arg.unitName)
-        local interval = ctld.gs("smokeAutoResumeInterval") or 270
+        local interval = ctld.gs("smokeAutoResumeInterval")
         local msgKey   = newState
             and "Smoke auto-resume ON (%1s interval)"
             or  "Smoke auto-resume OFF"

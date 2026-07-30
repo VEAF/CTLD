@@ -1302,7 +1302,7 @@ function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
         }
     else
         -- Non-ground (AIRPLANE / HELICOPTER / SHIP / TRAIN)
-        local alt     = ctld.gs("JTAC_droneAltitude") or 4000
+        local alt     = ctld.gs("JTAC_droneAltitude")
         local speed   = 54 -- m/s (~105 kts)
         local uname   = gname .. "_1"
         local unitDef = {
@@ -1867,7 +1867,7 @@ function ctld.utils.initLog()
         end)
         ctld.__logFile = nil
     end
-    local path     = ctld.gs("ctldLogPath") or ""
+    local path     = ctld.gs("ctldLogPath")
     local filePath = path .. "CTLD.log"
     local ok, _    = pcall(function()
         local f, err = io.open(filePath, "w")
@@ -1902,7 +1902,7 @@ function ctld.utils.log(level, fmt, ...)
         end)
     end
     if ctld.gs("debugScreenLog") == true then
-        local duration = ctld.gs("debugScreenLogDuration") or 10
+        local duration = ctld.gs("debugScreenLogDuration")
         trigger.action.outText(msg, duration)
     end
 end
@@ -1912,7 +1912,7 @@ end
 function ctld.utils.reopenLogAppend()
     if ctld.__logFile ~= nil then return end -- already open
     if ctld.gs("debug") ~= true then return end
-    local path     = ctld.gs("ctldLogPath") or ""
+    local path     = ctld.gs("ctldLogPath")
     local filePath = path .. "CTLD.log"
     pcall(function()
         local f = io.open(filePath, "a")
@@ -1955,7 +1955,7 @@ end
 -- @param unit         DCS Unit object (requesting aircraft / scene trigger unit)
 -- @param n              Number of positions to compute
 -- @param safeDistance   Distance to first position in meters (varies by aircraft size)
--- @param spacing        Inter-position spacing in meters (default: ctld.gs("crateSpacing") or 5)
+-- @param spacing        Inter-position spacing in meters (default: ctld.gs("crateSpacing"))
 -- @param axisOffsetDeg  Fixed axis angle in degrees relative to unit heading (nil = random 0-360).
 --                       0 = straight ahead (12 o'clock), 180 = straight behind (6 o'clock).
 --                       Pass a fixed value to align multiple crates in a predictable line.
@@ -2083,7 +2083,7 @@ function ctld.utils.inAir(unit)
     if not unit:inAir() then return false end
 
     -- inAir()=true: validate with AGL + velocity to reject high-chassis aircraft at rest.
-    local aglThreshold = ctld.gs("groundAglThreshold") or 5.0
+    local aglThreshold = ctld.gs("groundAglThreshold")
     local pos = unit:getPoint()
     local agl = pos.y - land.getHeight({ x = pos.x, y = pos.z })
     if agl < aglThreshold then
@@ -2113,9 +2113,9 @@ function ctld.utils.calcDropPosition(transport, descentRate)
     if dropAltAGL < 0 then dropAltAGL = 0 end
     local descentTime   = (descentRate and descentRate > 0) and (dropAltAGL / descentRate) or 0
 
-    local inertiaFactor = ctld.gs and ctld.gs("parachuteInertiaFactor") or 0.3
-    local driftMin      = ctld.gs and ctld.gs("parachuteLateralDriftMin") or 10
-    local driftMax      = ctld.gs and ctld.gs("parachuteLateralDriftMax") or 80
+    local inertiaFactor = ctld.gs and ctld.gs("parachuteInertiaFactor")
+    local driftMin      = ctld.gs and ctld.gs("parachuteLateralDriftMin")
+    local driftMax      = ctld.gs and ctld.gs("parachuteLateralDriftMax")
 
     local inertiaX      = (velocity.x or 0) * inertiaFactor * descentTime
     local inertiaZ      = (velocity.z or 0) * inertiaFactor * descentTime

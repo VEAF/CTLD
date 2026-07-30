@@ -386,7 +386,7 @@ function mineFieldScene:refreshDemineSection(playerObj)
     if unit:inAir() then return end
 
     local pt     = unit:getPoint()
-    local radius = ctld.gs("demineRadius") or 150
+    local radius = ctld.gs("demineRadius")
 
     for idx, s in ipairs(mineFieldScene._sets) do
         -- Count alive mines in this set.

@@ -379,16 +379,16 @@ end
 -- Reads weight config keys and caches runtime values on the instance.
 -- Called once at init() after config is loaded.
 function CTLDTroopManager:_initWeightConfig()
-    self._soldierWeight = ctld.gs("SOLDIER_WEIGHT") or 80
-    self._kitWeight     = ctld.gs("KIT_WEIGHT")     or 20
+    self._soldierWeight = ctld.gs("SOLDIER_WEIGHT")
+    self._kitWeight     = ctld.gs("KIT_WEIGHT")
     self._roleEquipWeights = {
-        inf    = ctld.gs("RIFLE_WEIGHT")   or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.inf,
-        mg     = ctld.gs("MG_WEIGHT")      or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.mg,
-        at     = ctld.gs("RPG_WEIGHT")     or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.at,
-        aa     = ctld.gs("MANPAD_WEIGHT")  or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.aa,
-        mortar = ctld.gs("MORTAR_WEIGHT")  or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.mortar,
-        jtac   = (ctld.gs("JTAC_WEIGHT") or 15) + (ctld.gs("RIFLE_WEIGHT") or 5),
-        civ    = ctld.gs("CIV_WEIGHT")     or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.civ,
+        inf    = ctld.gs("RIFLE_WEIGHT"),
+        mg     = ctld.gs("MG_WEIGHT"),
+        at     = ctld.gs("RPG_WEIGHT"),
+        aa     = ctld.gs("MANPAD_WEIGHT"),
+        mortar = ctld.gs("MORTAR_WEIGHT"),
+        jtac   = (ctld.gs("JTAC_WEIGHT")) + (ctld.gs("RIFLE_WEIGHT")),
+        civ    = ctld.gs("CIV_WEIGHT"),
     }
 end
 
@@ -401,7 +401,7 @@ function CTLDTroopManager:_weightForGroup(template)
     local sw    = self._soldierWeight   or 80
     local kit   = self._kitWeight       or 20
     local equip = self._roleEquipWeights or CTLDTroopManager._ROLE_EQUIP_WEIGHTS
-    local civW  = ctld.gs("CIV_WEIGHT") or CTLDTroopManager._ROLE_EQUIP_WEIGHTS.civ
+    local civW  = ctld.gs("CIV_WEIGHT")
     local total = 0
 
     local function addRoleWeight(role, n)
@@ -772,7 +772,7 @@ function CTLDTroopManager:disembark(unit)
     if not canFastRope and not onGround then
         trigger.action.outTextForGroup(ctld.utils.getGroupId(unit),
             ctld.tr("Too high or too fast to drop troops! Hover below %1 ft or land.",
-                math.floor((ctld.gs("fastRopeMaximumHeight") or 18.28) * 3.2808399)), 10)
+                math.floor((ctld.gs("fastRopeMaximumHeight")) * 3.2808399)), 10)
         return false
     end
 
@@ -792,7 +792,7 @@ function CTLDTroopManager:disembark(unit)
         -- This guarantees the closest unit in the circle stays at least safeR (≥10m)
         -- from the transport, and successive disembark calls do not spawn on top of each other.
         local safeR     = ctld.utils.getSecureDistanceFromUnit(unitName) or 10
-        local spreadR   = ctld.gs("spawnDistanceInCircle") or 10
+        local spreadR   = ctld.gs("spawnDistanceInCircle")
         local randAngle = math.random() * 2 * math.pi
         local centerDist = safeR + spreadR
         local spawnX    = pt.x + math.sin(randAngle) * centerDist
@@ -1211,7 +1211,7 @@ end
 function CTLDTroopManager:_transportLimit(typeName)
     local caps = (ctld.gs("capabilitiesByType") or {})[typeName]
     if caps and caps.maxTroopsOnboard then return caps.maxTroopsOnboard end
-    return ctld.gs("numberOfTroops") or 10
+    return ctld.gs("numberOfTroops")
 end
 
 -- Returns the total number of troops currently onboard unitName (sum across all groups).
@@ -1237,7 +1237,7 @@ function CTLDTroopManager:_canEmbark(typeName, unitName, newTotal, newWeight)
         return false, ctld.tr("Group too large for this aircraft (%1/%2 troops).", current, limit)
     end
     if newWeight and newWeight > 0 then
-        local maxW = ctld.gs("maxTransportWeight") or 0
+        local maxW = ctld.gs("maxTransportWeight")
         if maxW > 0 then
             local currentW = self:getWeight(unitName)
             if currentW + newWeight > maxW then
@@ -1257,7 +1257,7 @@ end
 -- Returns true if fast-rope conditions are met.
 function CTLDTroopManager:_safeToFastRope(unit)
     if not ctld.gs("enableFastRopeInsertion") then return false end
-    local maxH   = (ctld.gs("fastRopeMaximumHeight") or 18.28) + 3.0
+    local maxH   = (ctld.gs("fastRopeMaximumHeight")) + 3.0
     local pt     = unit:getPoint()
     local gndH   = land.getHeight({ x = pt.x, y = pt.z })  -- vec2: y = world-Z
     local altAGL = pt.y - gndH
@@ -1281,7 +1281,7 @@ end
 -- Returns { groupName, group, distM } for the nearest dropped group within maxExtractDistance, or nil.
 function CTLDTroopManager:_findNearestDropped(unit, coalition)
     local pt      = unit:getPoint()
-    local maxDist = ctld.gs("maxExtractDistance") or 125
+    local maxDist = ctld.gs("maxExtractDistance")
     local best, bestDist = nil, maxDist
 
     for _, name in ipairs(self._droppedGroups[coalition]) do
@@ -1405,7 +1405,7 @@ end
 -- @return table  array of { groupName, group, distM }
 function CTLDTroopManager:_findAllNearbyDropped(unit, coalition)
     local pt      = unit:getPoint()
-    local maxDist = ctld.gs("maxExtractDistance") or 125
+    local maxDist = ctld.gs("maxExtractDistance")
     local found   = {}
     for _, name in ipairs(self._droppedGroups[coalition]) do
         local g = Group.getByName(name)
@@ -1518,7 +1518,7 @@ function CTLDTroopManager:_assignPostSpawnTask(grpName, spawnPt, coalitionId, sp
             world.searchObjects(
                 Object.Category.UNIT,
                 { id = world.VolumeType.SPHERE,
-                  params = { point = arg.spawnPt, radius = ctld.gs("maximumSearchDistance") or 10000 } },
+                  params = { point = arg.spawnPt, radius = ctld.gs("maximumSearchDistance") } },
                 function(unit, _)
                     if not unit:isExist() or unit:getLife() <= 1 then return true end
                     if unit:getCoalition() ~= enemyCoa then return true end
@@ -1543,7 +1543,7 @@ function CTLDTroopManager:_assignPostSpawnTask(grpName, spawnPt, coalitionId, sp
             else
                 ctld.utils.log("WARN",
                     "_assignPostSpawnTask: '%s' AttackNearestEnemyOnLos → no target in LOS (radius=%.0f)",
-                    arg.grpName, ctld.gs("maximumSearchDistance") or 10000)
+                    arg.grpName, ctld.gs("maximumSearchDistance"))
             end
         end
 
@@ -1578,7 +1578,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     local dropPos     = transport:getPoint()
     local groundUnder = land.getHeight({ x = dropPos.x, y = dropPos.z })
     local altAGL      = dropPos.y - groundUnder
-    local minAlt      = ctld.gs("parachuteMinAltitudeTroops") or 50
+    local minAlt      = ctld.gs("parachuteMinAltitudeTroops")
 
     if altAGL < minAlt then
         trigger.action.outTextForGroup(playerObj.groupId,
@@ -1594,7 +1594,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
         return
     end
 
-    local descentRate = ctld.gs("parachuteDescentRateTroops") or 5
+    local descentRate = ctld.gs("parachuteDescentRateTroops")
     local unitDefs    = {}
     local landPositions = {}
 

@@ -979,7 +979,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
     local dropPos     = transport:getPoint()
     local groundUnder = land.getHeight({ x = dropPos.x, y = dropPos.z })
     local altAGL      = dropPos.y - groundUnder
-    local minAlt      = ctld.gs("parachuteMinAltitudeVehicles") or 30
+    local minAlt      = ctld.gs("parachuteMinAltitudeVehicles")
 
     if altAGL < minAlt then
         trigger.action.outTextForGroup(playerObj.groupId,
@@ -1006,7 +1006,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
         return
     end
 
-    local descentRate = ctld.gs("parachuteDescentRateVehicles") or 8
+    local descentRate = ctld.gs("parachuteDescentRateVehicles")
     local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
 
     -- Announce drop to the player group
@@ -1123,7 +1123,7 @@ end
 -- @param position vec3
 function CTLDVehicleSpawner:_refreshNearbyPackPlayers(position)
     if not position then return end
-    local maxDist = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+    local maxDist = ctld.gs("maximumDistancePackableUnitsSearch")
     local pm      = CTLDPlayerManager.getInstance()
     for unitName in pairs(pm._players) do
         local unit = Unit.getByName(unitName)
@@ -1173,7 +1173,7 @@ function CTLDVehicleSpawner:_checkVehicleHoverHint()
     local now      = timer.getTime()
     local cooldown = 30
     local minH     = 3.0
-    local maxH     = ctld.gs("maximumHoverHeight") or 12.0
+    local maxH     = ctld.gs("maximumHoverHeight")
     local maxDist  = 5.0  -- tight horizontal window for hover detection (m)
     local players  = CTLDPlayerManager.getInstance()._players
 
@@ -1211,7 +1211,7 @@ end
 -- @param transport DCS Unit
 -- @return table  array of { unitName (string), descriptor (table) }
 function CTLDVehicleSpawner:findPackableVehicles(transport)
-    local maxDist = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+    local maxDist = ctld.gs("maximumDistancePackableUnitsSearch")
     local tPos    = transport:getPoint()
     local result  = {}
 
@@ -1371,7 +1371,7 @@ function CTLDVehicleSpawner:findLoadableVehicles(transport)
     local caps      = (ctld.gs("capabilitiesByType") or {})[tTypeName]
     if not (caps and caps.canTransportWholeVehicle) then return {} end
 
-    local maxDist = ctld.gs("maximumDistancePackableUnitsSearch") or 200
+    local maxDist = ctld.gs("maximumDistancePackableUnitsSearch")
     local tPos    = transport:getPoint()
     local result  = {}
     for id, veh in pairs(self._vehicles) do
