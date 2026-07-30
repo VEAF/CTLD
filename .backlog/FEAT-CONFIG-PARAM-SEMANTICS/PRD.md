@@ -1,6 +1,6 @@
 # FEAT-CONFIG-PARAM-SEMANTICS — parameters are always complete, lists are removable
 
-**Status:** done — all four tickets delivered, pending PR to `develop`.
+**Status:** done — merged (PR #71).
 
 Lot **A** of the post-review program (2026-07-30). Independent of lots B / C / D — can ship in
 parallel. Closes `dev/roadmap.md` items 2 and 3, which turn out to be one subject.
