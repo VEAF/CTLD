@@ -20,6 +20,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   together.
 ### Fixed
 
+- **An incomplete mission config no longer crashes the mission.** Three settings were read with no
+  fallback and fed straight into arithmetic: `JTAC_searchIntervalSeconds` / `JTAC_laseIntervalSeconds`
+  into `t + interval` (`CTLD_jtac.lua:905`), and `slingCutDestroyHeight` into `agl > …`
+  (`CTLD_crate.lua:1503`). A config missing any of them errored on every JTAC tick, or on every
+  slingload release. This is reachable in practice — a config authored against an older catalogue, or
+  simply hand-edited, since the YAML is deliberately editable without the tool.
+  [ADR 0011](dev/adr/0011-complete-yaml-config-and-webapp-tooling.md) now distinguishes the two config
+  tiers (Addendum 1): a **parameter** (its default value is a scalar) always resolves — absent from the
+  mission snapshot it falls back to the CTLD default, and every such key is named once on screen in the
+  startup report, because a hand-written config never passes through `ctld-tools validate`. A **list**
+  keeps the original semantic: omitting it, or one of its elements, is an intentional removal. Nothing
+  is merged — a list is never combined with the default, and a mission running on the shipped defaults
+  parses nothing extra.
 - **A troop-group editor that corrupted the file it edited.** `jtac` was typed as a boolean in the web
   app while the catalogue ships counts (`jtac: 1`, `jtac: 2`): it rendered as a checkbox that no
   numeric value could tick — so "JTAC Group" and "JTAC Group 2" looked identical and "Single JTAC"

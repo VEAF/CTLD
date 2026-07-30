@@ -14,6 +14,17 @@ function ctld.initialize()
     CTLDConfig.get():load()
     ctld.utils.initLog()
 
+    -- ADR 0011 Addendum 1: the mission snapshot may omit parameters — hand-edited YAML, or a
+    -- config authored against an older catalogue. They resolved to the CTLD default; say so on
+    -- screen, because nothing obliges a Mission Maker to run ctld-tools, so a hand-written
+    -- config never meets `validate` and this is the only signal its author will get.
+    local _defaulted = CTLDConfig.get():getDefaultedParameters()
+    if #_defaulted > 0 then
+        ctld.startupReport.add("NOTICE", "config", ctld.tr(
+            "%1 setting(s) absent from the mission config — CTLD default used: %2",
+            #_defaulted, table.concat(_defaulted, ", ")))
+    end
+
     -- Boot all domain managers first so they can register their menu sections.
     -- Order matters: PlayerManager must be up before any other manager calls
     -- registerMenuSection(), and _scanExistingPlayers() must run last so all

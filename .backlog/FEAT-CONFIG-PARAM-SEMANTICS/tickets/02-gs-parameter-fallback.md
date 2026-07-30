@@ -1,8 +1,19 @@
 # 02 — `ctld.gs()` resolves a missing parameter from the default, and says so
 
-**Status:** ready
+**Status:** done
 
 Depends on: 01 (the semantic must be written down first).
+
+> **Deviation from this ticket as written: the resolution is eager, not lazy.** The ticket asked for a
+> lazy parse on first miss *and* a startup NOTICE. Those are incompatible — knowing whether a snapshot
+> is complete requires parsing the default, and a miss on `slingCutDestroyHeight` only happens at the
+> first slingload release, long after the report is flushed. Eager wins: the NOTICE is the whole point
+> of the net for a hand-written config, so it must be complete and land before the mission starts. Cost
+> is one extra `parseYAML` at init, **only when a `configUser` is present**.
+>
+> Reporting lives in `CTLD_bootstrap.lua`, not in `CTLD_config.lua`: the config module is merged first
+> precisely so it has no dependencies, and `ctld.startupReport` does not exist yet when it loads.
+> `load()` computes the list, bootstrap reports it.
 
 ## Why
 

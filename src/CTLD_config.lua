@@ -17,6 +17,25 @@ function CTLDConfig.get()
     return CTLDConfig._instance
 end
 
+--- Merge the readability sections (mm_facing / advanced) into one flat map, plus any
+-- top-level keys outside the sections (e.g. configVersion).
+-- @param parsed table  the parseYAML result
+-- @return table        flat key → value map
+function CTLDConfig.flatten(parsed)
+    local flat = {}
+    for _, section in ipairs({ "mm_facing", "advanced" }) do
+        for k, v in pairs(parsed[section] or {}) do
+            flat[k] = v
+        end
+    end
+    for k, v in pairs(parsed) do
+        if k ~= "mm_facing" and k ~= "advanced" then
+            flat[k] = v
+        end
+    end
+    return flat
+end
+
 -- Load settings from the text file
 function CTLDConfig:load()
     if self.isLoaded then
@@ -32,20 +51,7 @@ function CTLDConfig:load()
     -- ****************************************************************
     local usingUser = ctld.configUser ~= nil
     local parsed = CTLDConfig.parseYAML(ctld.configUser or ctld.configDefault or "")
-
-    -- Merge the readability sections (mm_facing / advanced) into one flat map, plus any
-    -- top-level keys outside the sections (e.g. configVersion).
-    local flat = {}
-    for _, section in ipairs({ "mm_facing", "advanced" }) do
-        for k, v in pairs(parsed[section] or {}) do
-            flat[k] = v
-        end
-    end
-    for k, v in pairs(parsed) do
-        if k ~= "mm_facing" and k ~= "advanced" then
-            flat[k] = v
-        end
-    end
+    local flat = CTLDConfig.flatten(parsed)
 
     -- A configUser that parses to nothing is malformed. ctld-tools validates the
     -- snapshot before use, so this is a hard error — no silent fallback to defaults.
@@ -60,6 +66,24 @@ function CTLDConfig:load()
 
     for k, v in pairs(flat) do
         self.settings[k] = v
+    end
+
+    -- ADR 0011 Addendum 1 — two config tiers. A *parameter* (its default value is a scalar)
+    -- must always resolve: omitting it is an incomplete document, not a removal, because the
+    -- engine needs a value to compute with. A *list* (table default) keeps ADR 0011 point 1:
+    -- omitting it is an intentional removal and it stays absent.
+    -- Only a user snapshot can be incomplete, so the default catalogue is parsed a second time
+    -- in that case only — a mission running on the defaults pays nothing.
+    self._defaults        = nil
+    self._defaultedParams = {}
+    if usingUser and ctld.configDefault then
+        self._defaults = CTLDConfig.flatten(CTLDConfig.parseYAML(ctld.configDefault))
+        for k, v in pairs(self._defaults) do
+            if type(v) ~= "table" and flat[k] == nil then
+                self._defaultedParams[#self._defaultedParams + 1] = k
+            end
+        end
+        table.sort(self._defaultedParams)
     end
 
     return true, "CTLDConfig: loaded (" .. (usingUser and "user" or "default") .. " config)."
@@ -80,7 +104,21 @@ end
 
 -- Retrieve a specific setting
 function CTLDConfig:getSetting(key)
-    return self.settings[key]
+    local v = self.settings[key]
+    if v ~= nil then return v end
+    -- A parameter the snapshot omitted resolves to its catalogue default (ADR 0011 Addendum 1).
+    -- A list default stays nil: for a list, absent means removed.
+    local d = self._defaults and self._defaults[key]
+    if d ~= nil and type(d) ~= "table" then return d end
+    return nil
+end
+
+--- Parameters the loaded snapshot omitted, resolved from the default catalogue.
+-- Sorted; empty when the snapshot is complete, or when the default catalogue is the winner.
+-- Reported once on screen at startup by CTLD_bootstrap (ADR 0011 Addendum 1).
+-- @return table  array of setting names
+function CTLDConfig:getDefaultedParameters()
+    return self._defaultedParams or {}
 end
 
 -- Retrieve a specific setting

@@ -15,7 +15,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.11"
+ctld.i18n["en"].translation_version = "1.12"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -552,3 +552,6 @@ ctld.i18n["en"]["%1 successfully deployed a full %2 in the field.\n\nAA Active S
 ctld.i18n["en"]["AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3"] = "AI deployed a full %1.\n\nAA Active System limit: %2\nActive: %3"
 ctld.i18n["en"]["Cannot deploy %1: AA system limit reached (%2/%3)"] = "Cannot deploy %1: AA system limit reached (%2/%3)"
 ctld.i18n["en"]["Cannot repair %1. No damaged %1 within %2m"] = "Cannot repair %1. No damaged %1 within %2m"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+ctld.i18n["en"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = "%1 setting(s) absent from the mission config — CTLD default used: %2"
