@@ -3931,7 +3931,7 @@ them by their exact names.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Published by</strong>: <code>CTLDCrateManager:unloadCrate()</code>, <code>:dropCrate()</code>, <code>:cutSlingload()</code>, <code>:_checkNativeDCSCargo()</code></p>
+<p><strong>Published by</strong>: <code>CTLDCrateManager:unloadCrate()</code>, <code>:cutSlingload()</code>, <code>:_checkNativeDCSCargo()</code></p>
 <h4 id="oncratelost"><code>OnCrateLost</code><a class="headerlink" href="#oncratelost" title="Permanent link">&para;</a></h4>
 <p>A crate is destroyed by overspeed slingload or cut-slingload impact.</p>
 <table>
@@ -4087,7 +4087,11 @@ them by their exact names.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Published by</strong>: <code>CTLDCrateManager:dropCrate()</code> (impact path)</p>
+<p><strong>Published by</strong>: nothing — <strong>this event is no longer emitted.</strong> Its only publisher was
+<code>CTLDCrateManager:dropCrate()</code>, an unreachable method removed in <code>FIX-CATALOGUE-TRUTH</code>: no menu entry
+called it, and the airborne drop it implemented is served by <code>parachuteCrates()</code>. The event name and
+payload are documented here so a plugin that subscribes to it knows its handler will not fire; nothing
+in the engine has published it since.</p>
 <h4 id="oncrateparachuting"><code>OnCrateParachuting</code><a class="headerlink" href="#oncrateparachuting" title="Permanent link">&para;</a></h4>
 <p>A crate is released in parachute-drop mode.</p>
 <table>

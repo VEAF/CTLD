@@ -3934,7 +3934,7 @@ abonnez-vous à eux par leurs noms exacts.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Published by</strong> : <code>CTLDCrateManager:unloadCrate()</code>, <code>:dropCrate()</code>, <code>:cutSlingload()</code>, <code>:_checkNativeDCSCargo()</code></p>
+<p><strong>Published by</strong> : <code>CTLDCrateManager:unloadCrate()</code>, <code>:cutSlingload()</code>, <code>:_checkNativeDCSCargo()</code></p>
 <h4 id="oncratelost"><code>OnCrateLost</code><a class="headerlink" href="#oncratelost" title="Permanent link">&para;</a></h4>
 <p>Une crate est détruite par slingload en survitesse ou par l'impact d'un cut-slingload.</p>
 <table>
@@ -4090,7 +4090,11 @@ abonnez-vous à eux par leurs noms exacts.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Published by</strong> : <code>CTLDCrateManager:dropCrate()</code> (chemin d'impact)</p>
+<p><strong>Published by</strong> : rien — <strong>cet événement n'est plus émis.</strong> Son seul émetteur était
+<code>CTLDCrateManager:dropCrate()</code>, une méthode inatteignable supprimée dans <code>FIX-CATALOGUE-TRUTH</code> : aucune
+entrée de menu ne l'appelait, et le largage en vol qu'elle implémentait est assuré par
+<code>parachuteCrates()</code>. Le nom et la charge utile de l'événement restent documentés ici afin qu'un plugin
+qui s'y abonne sache que son handler ne se déclenchera pas ; rien dans le moteur ne l'émet depuis.</p>
 <h4 id="oncrateparachuting"><code>OnCrateParachuting</code><a class="headerlink" href="#oncrateparachuting" title="Permanent link">&para;</a></h4>
 <p>Une crate est larguée en mode parachute-drop.</p>
 <table>
