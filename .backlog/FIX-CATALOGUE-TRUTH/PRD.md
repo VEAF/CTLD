@@ -1,6 +1,6 @@
 # FIX-CATALOGUE-TRUTH — the schema and the catalogue describe what the engine actually reads
 
-**Status:** done — all six tickets delivered.
+**Status:** done — merged (PR #72).
 
 > **Delivered.** All six tickets. `tableFields.aiZones` rewritten with the ten fields the engine reads
 > and the three enums declared as `choices` seeded from its own `VALID_*` tables; `GROUND_UNIT` purged
