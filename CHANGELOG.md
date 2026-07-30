@@ -50,6 +50,14 @@ against `src/`; the following were **wrong**, not merely dated:
   tables; the `aiZones` editor and the string-vs-numeric `coalition` trap are documented.
 - `mission-maker/index` gained the missing link to the `ctld-tools` page.
 
+Follow-up after rc2 was tagged: the **download link on both home pages was broken twice over**. It
+pointed at `../../releases/latest`, a GitHub-relative path that only resolves when the markdown is
+read on github.com — from the published site (`site_url: https://veaf.github.io/CTLD/`) it escapes the
+repo entirely, which is what mkdocs' "unrecognized relative link" INFO was reporting. And
+`/releases/latest` excludes pre-releases, so with `2.0.0-rc1` and `2.0.0-rc2` the only releases in the
+repo, the GitHub form 404s as well. Now an absolute link to the releases **index**, which lists
+pre-releases and therefore works before 2.0.0 stable exists.
+
 Also in `src/`, comment-only: the `ctld.yamlConfigDatas` reference in `CTLD_config.lua`'s example
 block, and the `CTLD_userConfig.lua` template header, which stated the ticket-04 rule ("an element you
 omit is absent at runtime") that Addendum 1 superseded — a scalar now resolves to its default.

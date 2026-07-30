@@ -14,7 +14,7 @@ moteur Lua v2 modulaire.
 
 ## Installation
 
-1. Téléchargez `CTLD.lua` depuis la [dernière release](../../releases/latest).
+1. Téléchargez `CTLD.lua` depuis la [page des releases](https://github.com/VEAF/CTLD/releases).
 2. Ajoutez un trigger **MISSION START → DO SCRIPT FILE** dans le Mission Editor de DCS pointant vers
    `CTLD.lua`. CTLD tourne sur ses valeurs par défaut intégrées — rien d'autre n'est nécessaire.
 3. Pour personnaliser quoi que ce soit, téléchargez `ctld-tools.exe` depuis la même release, ajustez la
