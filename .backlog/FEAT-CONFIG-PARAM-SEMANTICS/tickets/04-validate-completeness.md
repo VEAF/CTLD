@@ -1,0 +1,42 @@
+# 04 — `validate`: a missing parameter is an ERROR
+
+**Status:** ready
+
+Independent of 02 / 03 — different layer, can be built in parallel.
+
+## Why
+
+`validate` checks crate weights, unknown DCS unit types and schema `choices`. It never checks that
+the document is **complete**, so a config authored against an older catalogue exports cleanly and
+then relies on the engine's net. The tool should catch it first, at design time, where the MM can act
+on it — `version-gap` already detects the version lag and offers re-migration.
+
+`ERROR` is the right severity: errors block export (`has_errors()` — [validate.py:10](../../../tools/ctld-tools/ctld_tools/validate.py#L10)),
+and an incomplete document is not something to bless. The engine still survives it (ticket 02),
+because nothing forces an MM to run the tool at all.
+
+## What changes
+
+- New rule in `tools/ctld-tools/ctld_tools/validate.py`: for every key in the **default** catalogue
+  whose value is a scalar, the catalogue under validation must have it. Missing → one `Finding` per
+  key, severity `ERROR`, new i18n key (e.g. `validate.parameter.missing`).
+- The classifier lives with the rule: scalar default → parameter. `Catalog.keys()` is one flat
+  namespace ([catalog.py:68](../../../tools/ctld-tools/ctld_tools/catalog.py#L68)) and does not
+  distinguish the two, so derive the tier from the default's value shape — same rule as the engine, so
+  the two layers cannot disagree.
+- Add the EN + FR strings to `ctld_tools/data/locales/`.
+- Surface it in the web app's validation panel like any other error; no bespoke UI.
+
+## Acceptance
+
+- A catalogue missing one scalar key → one ERROR naming that key; export blocked.
+- A catalogue missing `spawnableCrates` entirely → **no** finding. Removing a list is legitimate.
+- A complete catalogue → no new findings.
+- The tool's classifier and the engine's agree on every key of the shipped catalogue.
+
+## Tests
+
+- pytest: missing scalar → ERROR; missing collection → clean; complete → clean.
+- pytest: a parity test asserting the tool's parameter set equals the engine's, computed from the
+  same default catalogue, so the two tiers cannot drift.
+- pytest: EN/FR locale parity for the new key (the existing `i18n.parity` guard should cover it).
