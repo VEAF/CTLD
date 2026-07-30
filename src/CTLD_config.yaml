@@ -451,22 +451,12 @@ mm_facing:
       unit: MQ-9 Reaper
       desc: MQ-9 Repear - JTAC
       weight: 1006.01
-      specificParams:
-        orbitRadiusOnLase: 1000
-        alti: 3000
-        orbitRadiusNoLase: 2000
-        speed: 150
       isJTAC: true
       side: 2
     - spawnAs: AIRPLANE
       unit: RQ-1A Predator
       desc: RQ-1A Predator - JTAC
       weight: 1006.11
-      specificParams:
-        orbitRadiusOnLase: 1000
-        alti: 3000
-        orbitRadiusNoLase: 2000
-        speed: 150
       isJTAC: true
       side: 1
     SAM mid range:
@@ -910,10 +900,12 @@ mm_facing:
 advanced:
   CIV_WEIGHT: 2
   JTAC_WEIGHT: 15
-  JTAC_droneAltitude: 4000
+  JTAC_droneAltitude: 3000
   jtacLaserCodeMax: 1688
   jtacLaserCodeMin: 1111
-  JTAC_droneRadius: 1000
+  JTAC_droneRadiusNoLase: 2000
+  JTAC_droneRadiusOnLase: 1000
+  JTAC_droneSpeed: 150
   JTAC_laseIntervalSeconds: 15
   JTAC_laseSpotCorrections: true
   JTAC_searchIntervalSeconds: 10

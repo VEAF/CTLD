@@ -9,8 +9,10 @@
   "JTAC_allow9Line": true,
   "JTAC_allowSmokeRequest": true,
   "JTAC_allowStandbyMode": true,
-  "JTAC_droneAltitude": 4000,
-  "JTAC_droneRadius": 1000,
+  "JTAC_droneAltitude": 3000,
+  "JTAC_droneRadiusNoLase": 2000,
+  "JTAC_droneRadiusOnLase": 1000,
+  "JTAC_droneSpeed": 150,
   "JTAC_dropEnabled": true,
   "JTAC_jtacStatusF10": true,
   "JTAC_laseIntervalSeconds": 15,
@@ -513,12 +515,6 @@
         "isJTAC": true,
         "side": 2,
         "spawnAs": "AIRPLANE",
-        "specificParams": {
-          "alti": 3000,
-          "orbitRadiusNoLase": 2000,
-          "orbitRadiusOnLase": 1000,
-          "speed": 150
-        },
         "unit": "MQ-9 Reaper",
         "weight": 1006.01
       },
@@ -527,12 +523,6 @@
         "isJTAC": true,
         "side": 1,
         "spawnAs": "AIRPLANE",
-        "specificParams": {
-          "alti": 3000,
-          "orbitRadiusNoLase": 2000,
-          "orbitRadiusOnLase": 1000,
-          "speed": 150
-        },
         "unit": "RQ-1A Predator",
         "weight": 1006.11
       }

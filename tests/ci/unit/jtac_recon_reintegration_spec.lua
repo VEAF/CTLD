@@ -43,12 +43,19 @@ describe("JTAC + recon relic re-integration", function()
             return nil
         end
 
-        it("JTAC_droneRadius default is 1000 m", function()
-            assert.equals(1000, ctld.gs("JTAC_droneRadius"))
+        -- FEAT-JTAC-DRONE-GLOBALS: the single JTAC_droneRadius became two — a wider radius while
+        -- searching and a tighter one while lasing — and every default was rebased onto the value
+        -- the drones carried per-crate, so the orbit itself is unchanged.
+        it("JTAC_droneRadiusNoLase default is 2000 m", function()
+            assert.equals(2000, ctld.gs("JTAC_droneRadiusNoLase"))
         end)
 
-        it("JTAC_droneAltitude default is 4000 m", function()
-            assert.equals(4000, ctld.gs("JTAC_droneAltitude"))
+        it("JTAC_droneRadiusOnLase default is 1000 m", function()
+            assert.equals(1000, ctld.gs("JTAC_droneRadiusOnLase"))
+        end)
+
+        it("JTAC_droneAltitude default is 3000 m", function()
+            assert.equals(3000, ctld.gs("JTAC_droneAltitude"))
         end)
 
         it("BLUE JTAC drone is the MQ-9 Reaper (side 2), flagged isJTAC", function()

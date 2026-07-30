@@ -88,8 +88,8 @@ function CTLDJTAC:init(data)
     self.laserSpot      = nil
     self.irSpot         = nil
 
-    -- Flying JTACs only: orbit params from crate specificParams + spawn position
-    self.orbitParams          = data.orbitParams or nil  -- { speed, alti, orbitRadiusNoLase, orbitRadiusOnLase }
+    -- Flying JTACs only: spawn position, captured so the orbit can be rebuilt on target loss.
+    -- Orbit geometry itself comes from the JTAC_drone* settings, not from the crate.
     self.initialPosition      = nil   -- captured at T+2s after spawn
     self.initialRoute         = nil   -- waypoint table built by _setOrbitRoute; replayed on target loss
     self.initialRouteAssigned = false -- true once _setOrbitRoute has been called; prevents re-assignment on every tick
@@ -501,7 +501,6 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
         smokeEnabled = smokeEnabled,
         smokeColor   = smokeColor,
         lockMode     = lockMode,
-        orbitParams  = cfg and cfg.orbitParams,
     })
 
     self.jtacs[groupName] = jtac
@@ -723,7 +722,7 @@ function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryI
             "CTLDJTACManager:deployAirJTAC — spawnFromDescriptor failed: " .. errStr)
         return false
     end
-    self:startLase(gname, nil, nil, nil, nil, nil, descriptor.specificParams)
+    self:startLase(gname)
     ctld.utils.log("INFO",
         string.format("CTLDJTACManager:deployAirJTAC — spawned %s as %s spawnAs=%s",
             gname, descriptor.unit, desc.spawnAs))
@@ -738,9 +737,8 @@ end
 -- @param lock       string   "all" | "vehicle" | "troop" (nil = "all")
 -- @param colour     number   trigger.smokeColor.* (nil = Red)
 -- @param radio      table    { freq, mod, name } (nil = auto)
--- @param orbitParams table   { speed, alti, orbitRadiusNoLase, orbitRadiusOnLase } (nil = config defaults)
 -- @return CTLDJTAC|nil
-function CTLDJTACManager:autoLase(groupName, laserCode, smoke, lock, colour, radio, orbitParams)
+function CTLDJTACManager:autoLase(groupName, laserCode, smoke, lock, colour, radio)
     if self.jtacs[groupName] then
         ctld.utils.log("WARN", "CTLDJTACManager:autoLase — JTAC already active: %s", groupName)
         return self.jtacs[groupName]
@@ -751,7 +749,6 @@ function CTLDJTACManager:autoLase(groupName, laserCode, smoke, lock, colour, rad
         lockMode     = (lock == "vehicle" or lock == "troop") and lock or "all",
         smokeColor   = colour or trigger.smokeColor.Red,
         radio        = radio,
-        orbitParams  = orbitParams,
     }
     return self:spawnJTAC(groupName, cfg, nil)
 end
@@ -763,14 +760,13 @@ end
 -- @param lock       string
 -- @param colour     number
 -- @param radio      table
--- @param orbitParams table  { speed, alti, orbitRadiusNoLase, orbitRadiusOnLase } (nil = config defaults)
-function CTLDJTACManager:startLase(groupName, laserCode, smoke, lock, colour, radio, orbitParams)
+function CTLDJTACManager:startLase(groupName, laserCode, smoke, lock, colour, radio)
     timer.scheduleFunction(
         function(args, t)
             CTLDJTACManager.getInstance():autoLase(
-                args[1], args[2], args[3], args[4], args[5], args[6], args[7])
+                args[1], args[2], args[3], args[4], args[5], args[6])
         end,
-        { groupName, laserCode, smoke, lock, colour, radio, orbitParams },
+        { groupName, laserCode, smoke, lock, colour, radio },
         timer.getTime() + 1
     )
 end
@@ -1130,8 +1126,8 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
         if not targetUnit or not targetUnit:isExist() then return end
 
-        local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("JTAC_droneRadius")
-        self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), jtac.orbitParams, rOnLase)
+        local rOnLase = ctld.gs("JTAC_droneRadiusOnLase")
+        self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), rOnLase)
         jtac.onTargetOrbit = true
         jtac:startOrbit(t)
 
@@ -1146,8 +1142,8 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         if jtac.orbitStartTime and (t - jtac.orbitStartTime) >= 60 then
             local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
             if targetUnit and targetUnit:isExist() then
-                local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("JTAC_droneRadius")
-                self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), jtac.orbitParams, rOnLase)
+                local rOnLase = ctld.gs("JTAC_droneRadiusOnLase")
+                self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), rOnLase)
                 jtac.orbitStartTime = t
             end
         end
@@ -1171,8 +1167,8 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
     elseif not hasCurrent and not inOrbit and not jtac.initialRouteAssigned then
         -- Just spawned, initialPosition captured — assign initial looping route (once only)
         if jtac.initialPosition then
-            local rNoLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusNoLase or ctld.gs("JTAC_droneRadius")
-            self:_setOrbitRoute(dcsGroup, groupName, jtac.initialPosition, jtac.orbitParams, rNoLase)
+            local rNoLase = ctld.gs("JTAC_droneRadiusNoLase")
+            self:_setOrbitRoute(dcsGroup, groupName, jtac.initialPosition, rNoLase)
             jtac.initialRouteAssigned = true
             jtac.onTargetOrbit        = false
             -- state stays IDLE: drone is "on route", not orbiting a target
@@ -1185,12 +1181,11 @@ end
 -- @param dcsGroup    DCS Group
 -- @param groupName   string
 -- @param center      vec3 or vec2  orbit center (= initialPosition)
--- @param orbitParams table or nil
 -- @param radius      number meters (informational — DCS turn physics control effective radius)
 local ORBIT_ROUTE_PTS = 8   -- 8 waypoints = 45° segments, reasonable turn radius
-function CTLDJTACManager:_setOrbitRoute(dcsGroup, groupName, center, orbitParams, radius)
-    local speedKmh = orbitParams and orbitParams.speed or 100
-    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("JTAC_droneAltitude")
+function CTLDJTACManager:_setOrbitRoute(dcsGroup, groupName, center, radius)
+    local speedKmh = ctld.gs("JTAC_droneSpeed")
+    local altiAGL  = ctld.gs("JTAC_droneAltitude")
     local vec2     = ctld.utils.makeVec2FromVec3OrVec2("_setOrbitRoute", center)
     local cx, cz   = vec2.x, vec2.y
     local terrainH = land.getHeight({ x = cx, y = cz })
@@ -1279,12 +1274,11 @@ end
 -- @param dcsGroup    DCS Group
 -- @param jtacUnit    DCS Unit  (used for popTask on the unit controller)
 -- @param center      vec3 or vec2  orbit center (target position)
--- @param orbitParams table or nil  { speed(km/h), alti(m AGL) }
 -- @param _radius     number  unused (DCS Circle radius is speed-controlled)
-function CTLDJTACManager:_setOrbitTask(dcsGroup, jtacUnit, center, orbitParams, _radius)
+function CTLDJTACManager:_setOrbitTask(dcsGroup, jtacUnit, center, _radius)
     local orbitPoint = ctld.utils.makeVec2FromVec3OrVec2("_setOrbitTask", center)
-    local speedKmh = orbitParams and orbitParams.speed or 100
-    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("JTAC_droneAltitude")
+    local speedKmh = ctld.gs("JTAC_droneSpeed")
+    local altiAGL  = ctld.gs("JTAC_droneAltitude")
     local terrainH = land.getHeight({ x = orbitPoint.x, y = orbitPoint.y })
     local orbit = {
         id     = "Orbit",

@@ -435,6 +435,12 @@ function CTLDCrateManager:_processSpawnableCrates()
     self._weightIndex     = {}
     local warnings        = {}
 
+    -- Crates still carrying the retired per-crate orbit block (FEAT-JTAC-DRONE-GLOBALS). The
+    -- engine ignores it now: orbit geometry comes from the JTAC_drone* settings. Neither
+    -- ctld-tools validate nor version-gap can see a field nested inside a crate entry, and a
+    -- hand-written YAML meets neither, so the startup report is the only signal its author gets.
+    local staleSpecificParams = {}
+
     for category, entries in pairs(spawnableCrates) do
         local singleCrates  = {}
         local mixedSets     = {}
@@ -442,6 +448,9 @@ function CTLDCrateManager:_processSpawnableCrates()
 
         -- Pass 1: separate entries by type
         for _, entry in ipairs(entries) do
+            if entry.specificParams ~= nil then
+                staleSpecificParams[#staleSpecificParams + 1] = tostring(entry.desc or entry.unit or "?")
+            end
             if entry.weight then
                 table.insert(singleCrates, entry)
                 catWeightIdx[entry.weight]    = entry
@@ -499,6 +508,17 @@ function CTLDCrateManager:_processSpawnableCrates()
             singleCrates = processedSingle,
             mixedSets    = processedMixed,
         }
+    end
+
+    -- One message, not one per crate.
+    if #staleSpecificParams > 0 and ctld.startupReport then
+        table.sort(staleSpecificParams)
+        -- One string literal, never a concatenation: generate_i18n_dicts.ps1 scans for the literal
+        -- inside ctld.tr(), so a concatenated key would be harvested half-truncated and could never
+        -- be translated.
+        ctld.startupReport.add("NOTICE", "config", ctld.tr(
+            "specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings",
+            table.concat(staleSpecificParams, ", ")))
     end
 
     -- Auto-inject all scene crates registered so far (scenes loaded before CTLDCoreManager init).
@@ -2208,7 +2228,7 @@ end
 -- @param gname  string spawned DCS group name
 function CTLDCrateManager:_dispatchPostSpawn(desc, gname)
     if desc.isJTAC then
-        CTLDJTACManager.getInstance():startLase(gname, nil, nil, nil, nil, nil, desc.specificParams)
+        CTLDJTACManager.getInstance():startLase(gname)
         -- Register in CTLDVehicleSpawner so load/unload can suspend/resume JTAC lasing.
         CTLDVehicleSpawner.getInstance():registerJTACVehicle(gname, desc.unit, nil, nil)
     elseif (desc.spawnAs == nil or desc.spawnAs == "GROUND") and desc.unit then

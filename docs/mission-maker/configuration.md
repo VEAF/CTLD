@@ -209,8 +209,10 @@ randomised 90–120 % of `SOLDIER_WEIGHT`, plus kit and role-specific gear.
 | `JTAC_smokeOffset_x` | `0.0` | Fixed East/West offset (m) added before the random error |
 | `JTAC_smokeOffset_y` | `2.0` | Fixed vertical offset (m) — keeps smoke visible above terrain |
 | `JTAC_smokeOffset_z` | `0.0` | Fixed North/South offset (m) added before the random error |
-| `JTAC_droneRadius` | `1000` | Fallback orbit radius (m) for drone JTACs when the crate has no `specificParams` |
-| `JTAC_droneAltitude` | `4000` | Fallback orbit altitude AGL (m) for drone JTACs when the crate has no `specificParams` |
+| `JTAC_droneRadiusNoLase` | `2000` | Orbit radius (m) while a drone JTAC is searching and not lasing |
+| `JTAC_droneRadiusOnLase` | `1000` | Orbit radius (m) once a drone JTAC is lasing a target — tighter, so it stays close to what it designates |
+| `JTAC_droneAltitude` | `3000` | Orbit altitude AGL (m) for drone JTACs, used for the spawn altitude too |
+| `JTAC_droneSpeed` | `150` | Orbit airspeed (km/h) for drone JTACs, used for the spawn speed too |
 
 #### Pre-placed JTAC groups (auto-detection)
 

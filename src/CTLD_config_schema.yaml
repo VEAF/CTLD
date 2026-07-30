@@ -286,15 +286,29 @@ JTAC_droneAltitude:
   label: {en: Drone JTAC orbit altitude, fr: Altitude d'orbite des JTAC drones}
   unit: m
   description:
-    en: Fallback orbit altitude AGL (m) for drone JTACs when the crate has no specificParams
-    fr: Altitude d'orbite de repli AGL (m) pour les JTAC drones quand la crate n'a pas de specificParams
-JTAC_droneRadius:
+    en: Orbit altitude in metres above ground level for drone JTACs. Used for the spawn altitude and for the orbit itself, so a drone flies at one height throughout.
+    fr: Altitude d'orbite en mètres au-dessus du sol pour les JTAC drones. Utilisée à la fois pour l'altitude d'apparition et pour l'orbite, de sorte qu'un drone vole à une seule hauteur du début à la fin.
+JTAC_droneRadiusNoLase:
   group: jtac
-  label: {en: Drone JTAC orbit radius, fr: Rayon d'orbite des JTAC drones}
+  label: {en: Drone JTAC orbit radius when searching, fr: Rayon d'orbite des JTAC drones en recherche}
   unit: m
   description:
-    en: Fallback orbit radius (m) for drone JTACs when the crate has no specificParams
-    fr: Rayon d'orbite de repli (m) pour les JTAC drones quand la crate n'a pas de specificParams
+    en: Orbit radius in metres while the drone is searching and not lasing. Wider than the lasing radius, so the drone covers more ground before it finds a target.
+    fr: Rayon d'orbite en mètres tant que le drone cherche sans laser. Plus large que le rayon de lasing, afin que le drone couvre plus de terrain avant de trouver une cible.
+JTAC_droneRadiusOnLase:
+  group: jtac
+  label: {en: Drone JTAC orbit radius when lasing, fr: Rayon d'orbite des JTAC drones en lasing}
+  unit: m
+  description:
+    en: Orbit radius in metres once the drone is lasing a target. Tighter than the search radius, so the drone stays close to what it is designating.
+    fr: Rayon d'orbite en mètres une fois que le drone illumine une cible. Plus serré que le rayon de recherche, afin que le drone reste près de ce qu'il désigne.
+JTAC_droneSpeed:
+  group: jtac
+  label: {en: Drone JTAC orbit speed, fr: Vitesse d'orbite des JTAC drones}
+  unit: km/h
+  description:
+    en: Orbit airspeed in kilometres per hour for drone JTACs. Used for the spawn speed and for the orbit itself.
+    fr: Vitesse d'orbite en kilomètres par heure pour les JTAC drones. Utilisée à la fois pour la vitesse d'apparition et pour l'orbite.
 JTAC_laseSpotCorrections:
   group: jtac
   label: {en: Lead moving targets when lasing, fr: Anticiper les cibles mobiles au lasing}
@@ -775,21 +789,6 @@ tableFields:
       en: "What the crate unpacks into: GROUND (the default when absent) or AIR. DCS can only build ground units, statics, helicopters and drones from a raw definition — a manned aircraft will not spawn."
       fr: "Ce que la caisse déballe : GROUND (valeur par défaut si absent) ou AIR. DCS ne sait construire que des unités au sol, des statiques, des hélicoptères et des drones à partir d'une définition brute — un avion piloté ne spawnera pas."
       choices: [GROUND, AIR]
-    specificParams:
-      en: Drone JTAC orbit parameters (altitude, radii, speed) — only for Drone family
-      fr: Paramètres d'orbite du JTAC drone (altitude, rayons, vitesse) — uniquement famille Drone
-    specificParams.alti:
-      en: Orbit altitude AGL (m)
-      fr: Altitude d'orbite AGL (m)
-    specificParams.orbitRadiusNoLase:
-      en: Orbit radius when not lasing (m)
-      fr: Rayon d'orbite sans lasing (m)
-    specificParams.orbitRadiusOnLase:
-      en: Orbit radius when lasing (m)
-      fr: Rayon d'orbite en lasing (m)
-    specificParams.speed:
-      en: Orbit airspeed (km/h)
-      fr: Vitesse d'orbite (km/h)
   loadableGroups:
     name:
       en: Display name shown in the F10 boarding menu

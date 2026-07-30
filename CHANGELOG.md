@@ -20,6 +20,21 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Changed — runtime
 
+- **Drone JTAC orbit geometry is now four settings instead of a per-crate block.** `specificParams`
+  is removed from the crate schema, the catalogue and the engine; orbit altitude, both radii and speed
+  come from `JTAC_droneAltitude`, the new `JTAC_droneRadiusNoLase` / `JTAC_droneRadiusOnLase` /
+  `JTAC_droneSpeed`, and the single `JTAC_droneRadius` is retired — one key could not express both the
+  searching radius and the tighter lasing radius, and that distinction is deliberate.
+  **Every default was rebased onto the value the two shipped drones actually used** (3000 m, 2000 m,
+  1000 m, 150 km/h), so the orbit itself is unchanged.
+  **Two in-flight changes, both of them alignments:** a drone now *spawns* at 3000 m instead of 4000 m,
+  and at 150 km/h instead of a hardcoded 54 m/s (≈194 km/h). Before, it was born high and fast and then
+  changed altitude and speed a couple of seconds later when the orbit route was applied; now it flies at
+  one height and one speed throughout. A config still carrying `specificParams` on a crate produces a
+  startup **NOTICE** naming the crates and the settings that replace it — neither `validate` nor
+  `version-gap` can see a field nested inside a crate entry, so the runtime report is the only signal.
+  **Not touched:** `specificParams.task` on `loadableGroups` templates. That is Feature I's post-spawn
+  troop routing, a different feature that happens to share the field name.
 - **A setting now has exactly one default, in `src/CTLD_config.yaml`.** 114 fallbacks were deleted —
   103 `ctld.gs("x") or <literal>` plus 11 that duplicated a code constant (`_ROLE_EQUIP_WEIGHTS`,
   `trigger.smokeColor.Red`). With a missing parameter now resolving from the catalogue (see *Fixed*
