@@ -2,8 +2,20 @@
 
 CTLD ships with sensible defaults for every parameter. You never edit the source files:
 all customisation lives in a single file, **`CTLD_userConfig.lua`**, which your mission
-loads with a `DO SCRIPT FILE` trigger. You only override what you want to change — anything
-you leave alone keeps its default value.
+loads with a `DO SCRIPT FILE` trigger.
+
+That file carries a **complete configuration snapshot** — the whole of CTLD's configuration, not a
+list of changes — and it **fully replaces** the built-in defaults. So you always start from the
+current defaults and adjust from there, which is exactly what `ctld-tools` does for you.
+
+!!! tip "Recommended: use the `ctld-tools` app"
+    Rather than hand-writing the snapshot, the recommended flow is the **`ctld-tools`** app:
+    double-click it, edit CTLD's complete configuration in your browser through forms, and inject it
+    into your mission. It starts from the current defaults, validates your changes against the real
+    catalogue and the DCS type list, and catches mistakes before DCS. `ctld-tools.exe` is attached to
+    each GitHub Release (no Python needed) — see
+    [Configuring CTLD with `ctld-tools`](ctld-tools.md). Hand-writing the snapshot stays fully
+    supported for power users, and this page documents every setting it contains.
 
 This page covers the **global settings** and the **per-aircraft capabilities**
 (`capabilitiesByType`). Zone lists, crate definitions, FOB scenes, the minefield and
@@ -11,9 +23,12 @@ translations each have their own page — see [Where the rest is configured](#wh
 
 ## How configuration works
 
-At startup, `CTLDConfig` populates every parameter with its default. Your
-`CTLD_userConfig.lua` then applies your overrides on top. Throughout the running mission,
-every parameter is read through a single accessor:
+At startup CTLD parses **one** configuration document: `ctld.configUser` if your mission provides
+one, otherwise the defaults embedded in `CTLD.lua`. The two are never merged. A `ctld.configUser`
+that fails to parse is a hard error rather than a silent fallback — one more reason to produce it
+with `ctld-tools`, which validates before export.
+
+Throughout the running mission, every parameter is read through a single accessor:
 
 ```lua
 ctld.gs("parameterName")   -- the only authorised read form
@@ -29,59 +44,59 @@ want to customise, add `CTLD_userConfig.lua` as the **first** trigger, before `C
 | 1 | DO SCRIPT FILE | `CTLD_userConfig.lua` | Optional — only if customising |
 | 2 | DO SCRIPT FILE | `CTLD.lua` | Always |
 
-`CTLD_userConfig.lua` sets your overrides in the global environment; `CTLD.lua` reads them
-during init and auto-starts CTLD. (If you need to run extra setup between loading and
+`CTLD_userConfig.lua` sets `ctld.configUser` in the global environment; `CTLD.lua` parses it
+during init and auto-starts CTLD. `ctld-tools`' **Inject into mission…** writes exactly this
+trigger, in this position, for you. (If you need to run extra setup between loading and
 starting, set `ctld.dontInitialize = true` before `CTLD.lua` loads and call
 `ctld.initialize()` yourself.)
 
-### Two ways to override
+### What the snapshot looks like
 
-**Scalars** (booleans, numbers, strings) go in the `ctld.yamlConfigDatas` block, one
-`ctld.parameterName: value` line each:
+The snapshot is **YAML inside a Lua long string**, in the same format as CTLD's own
+`src/CTLD_config.yaml`: a `configVersion` tag, then the `mm_facing` and `advanced` sections holding
+every setting and every catalogue table. `mm_facing` groups what a Mission Maker normally touches,
+`advanced` the rest; the engine merges the two, so the split is only there for readability. If you
+hand-write a snapshot, copy the layout from `src/CTLD_config.yaml` (or export one from `ctld-tools`)
+rather than inventing the placement.
 
 ```lua
--- CTLD_userConfig.lua — only override what differs from the defaults.
+-- CTLD_userConfig.lua — a COMPLETE configuration snapshot, not a list of overrides.
 ctld = ctld or {}
-ctld.yamlConfigDatas = [[
-
-ctld.enablePackingVehicles: true
-ctld.maximumDistancePackableUnitsSearch: 350
-ctld.numberOfTroops: 8
-ctld.maximumDistanceLogistic: 300
-ctld.slingLoad: true
-
+ctld.configUser = [[
+configVersion: "2.0.0"
+mm_facing:
+  numberOfTroops: 8
+  maximumDistanceLogistic: 300
+  slingLoad: true
+  spawnableCrates:
+    # ... every crate section ...
+  # ... every other mm_facing setting and table ...
+advanced:
+  maximumDistancePackableUnitsSearch: 350
+  # ... every advanced setting ...
 ]]
 ```
 
-**Tables** (crate catalogues, troop groups, zone lists, aircraft capabilities…) are customised
-from one or more **setup callbacks** registered in `ctld.userSetup`. CTLD runs each callback once
-during initialization, after the factory defaults (and the auto-injected AA-system crates) are in
-place — so you patch the real catalogue surgically instead of copy-pasting and owning it wholesale:
+`configVersion` records the configuration version your snapshot was authored against. When you
+upgrade CTLD, `ctld-tools` reads it and tells you what changed — settings added, settings no longer
+used, defaults that moved — without ever merging anything behind your back.
 
-```lua
-ctld.userSetup = ctld.userSetup or {}
-table.insert(ctld.userSetup, function(cfg)
-    ctld.addCrate("Support", { weight = 2000.01, desc = "Ural Ammo", unit = "Ural-375", side = 1 })
-    ctld.removeCrate(1000.05)                         -- drop a default crate by weight
-    ctld.patchCrate(1000.02, { cratesRequired = 3 })  -- change one field, keep the rest
-    ctld.addTroopGroup({ name = "Recon Team", inf = 3, jtac = 1 })
-    ctld.addTo("transportPilotNames", "helicargo_custom_1")
-end)
-```
+!!! warning "What omission means"
+    The two kinds of value behave differently, on purpose:
 
-The helpers — `ctld.addCrate`, `ctld.removeCrate`, `ctld.patchCrate`, `ctld.addTroopGroup`,
-`ctld.removeTroopGroup`, `ctld.addTo` — operate on the live config. Dictionaries without a helper
-(`capabilitiesByType`, `aiZones`, …) are edited directly on the `cfg` argument. Call
-`ctld.logDefaults("spawnableCrates")` from a mission trigger to dump the current defaults to
-`CTLD.log`, and see `CTLD_userConfig.lua` for the fully documented template.
+    - a **setting** (a single value — a boolean, a number, a string) you leave out falls back to
+      CTLD's default, because the engine needs a value to compute with. Every setting resolved this
+      way is named once in the startup report on screen, so a hand-written snapshot that drifted
+      still runs and still tells you.
+    - a **list** (a crate section, a troop group, a zone entry, a pilot name) you leave out is
+      genuinely absent. That is how you remove one — and it is why nothing is merged.
 
-!!! tip "Recommended: use the `ctld-tools` app"
-    Rather than hand-writing Lua, the recommended flow is the **`ctld-tools`** app: double-click it,
-    edit CTLD's complete configuration in your browser through forms, and inject it into your
-    mission. It validates your changes against the real catalogue and the DCS type list and catches
-    mistakes before DCS. `ctld-tools.exe` is attached to each GitHub Release (no Python needed) — see
-    [Configuring CTLD with `ctld-tools`](ctld-tools.md). Hand-editing the Lua template below stays
-    supported for power users.
+    `ctld-tools`' validation reports a missing setting as an error and refuses to inject, so a
+    snapshot produced by the tool is always complete.
+
+!!! note "Use a higher bracket level if needed"
+    The snapshot sits between `[[` and `]]`. If your own text ever contains `]]`, switch to
+    `[==[ ... ]==]`.
 
 ## Global settings
 
@@ -252,34 +267,51 @@ See [Minefield](minefield.md) for deployment.
 aircraft listed here receive CTLD F10 menus.** Each key is the **exact DCS type name** of the
 aircraft (mods included, e.g. `"Hercules"`, `"76MD"`, `"UH-60L"`).
 
-```lua
--- inside a ctld.userSetup callback:  table.insert(ctld.userSetup, function(cfg) ... end)
-cfg.settings["capabilitiesByType"] = {
-    ["UH-1H"] = {
-        cratesEnabled            = true,   -- can load/unpack crates
-        troopsEnabled            = true,   -- can load/deploy infantry
-        canParachuteDrop         = true,   -- enables Parachute F10 entries
-        canSlingload             = true,   -- enables hover-pickup + Slingload menus
-        canTransportWholeVehicle = true,   -- whole-vehicle transport
-        useNativeDcsCargoSystem  = true,   -- use the DCS native cargo system for crates
-        convertNativeLoadToCTLD  = true,   -- convert DCS-native cargo loads to CTLD-managed
-        maxTroopsOnboard         = 8,      -- max soldiers (overrides ctld.numberOfTroops)
-        maxCratesOnboard         = 1,      -- max crates carried at once
-        maxWholeVehiclesOnboard  = 1,      -- max whole vehicles carried at once
-        maxVehicleWeight         = 1360,   -- max whole-vehicle weight (kg) this aircraft can lift
-        loadableVehiclesRED      = { "BRDM-2", "BTR_D" },
-        loadableVehiclesBLUE     = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
-    },
-    ["C-130J-30"] = {
-        cratesEnabled = true, troopsEnabled = true, canParachuteDrop = true, canSlingload = false,
-        canTransportWholeVehicle = true, useNativeDcsCargoSystem = true, convertNativeLoadToCTLD = false,
-        maxTroopsOnboard = 80, maxCratesOnboard = 22, maxWholeVehiclesOnboard = 2,
-        maxVehicleWeight = 20000,
-        loadableVehiclesRED  = { "BRDM-2", "BTR_D" },
-        loadableVehiclesBLUE = { "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" },
-    },
-    -- ... one entry per aircraft type
-}
+In `ctld-tools`, this is the **Aircraft** family: pick a type from the DCS list and fill the form.
+In a hand-written snapshot it lives under `mm_facing`:
+
+```yaml
+mm_facing:
+  capabilitiesByType:
+    UH-1H:
+      cratesEnabled: true              # can load/unpack crates
+      troopsEnabled: true              # can load/deploy infantry
+      canParachuteDrop: true           # enables Parachute F10 entries
+      canSlingload: true               # enables hover-pickup + Slingload menus
+      canTransportWholeVehicle: true   # whole-vehicle transport
+      useNativeDcsCargoSystem: true    # use the DCS native cargo system for crates
+      convertNativeLoadToCTLD: true    # convert DCS-native cargo loads to CTLD-managed
+      maxTroopsOnboard: 8              # max soldiers (overrides numberOfTroops)
+      maxCratesOnboard: 1              # max crates carried at once
+      maxWholeVehiclesOnboard: 1       # max whole vehicles carried at once
+      maxVehicleWeight: 1360           # max whole-vehicle weight (kg) this aircraft can lift
+      loadableVehiclesRED:
+      - BRDM-2
+      - BTR_D
+      loadableVehiclesBLUE:
+      - M1045 HMMWV TOW
+      - M1043 HMMWV Armament
+      - Hummer
+    C-130J-30:
+      cratesEnabled: true
+      troopsEnabled: true
+      canParachuteDrop: true
+      canSlingload: false
+      canTransportWholeVehicle: true
+      useNativeDcsCargoSystem: true
+      convertNativeLoadToCTLD: false
+      maxTroopsOnboard: 80
+      maxCratesOnboard: 22
+      maxWholeVehiclesOnboard: 2
+      maxVehicleWeight: 20000
+      loadableVehiclesRED:
+      - BRDM-2
+      - BTR_D
+      loadableVehiclesBLUE:
+      - M1045 HMMWV TOW
+      - M1043 HMMWV Armament
+      - Hummer
+    # ... one entry per aircraft type
 ```
 
 **Field reference:**
@@ -306,10 +338,12 @@ cfg.settings["capabilitiesByType"] = {
     vehicle as a waiting unit near the transport (instead of a crate); the pilot then loads
     it from the cockpit. See the [Pilot guide](../pilot/index.md) for the in-cockpit flow.
 
-Aircraft **not** listed in `capabilitiesByType` receive no CTLD menus. Assigning the whole
-`capabilitiesByType` table replaces the built-in one entirely, so include every aircraft you
-want CTLD-capable — or patch a single field to keep the defaults, e.g.
-`cfg.settings["capabilitiesByType"]["Mi-8MT"].maxTroopsOnboard = 20`.
+Aircraft **not** listed in `capabilitiesByType` receive no CTLD menus. Because the snapshot is
+complete, the table you ship *is* the table CTLD uses: include every aircraft you want CTLD-capable.
+To change one field on one aircraft — say `maxTroopsOnboard` on the `Mi-8MT` — start from the default
+table and edit that field in place; do not write a table holding only your aircraft, or every other
+type loses its menus. `ctld-tools` does this for you: it always starts from the full default table
+and marks the fields you changed.
 
 ## Access control
 
@@ -329,14 +363,13 @@ multiplayer servers.
 (e.g. a dedicated transport squadron). CTLD-capable aircraft **not** in the list join the
 mission normally but have no CTLD access.
 
-```lua
--- inside a ctld.userSetup callback:  table.insert(ctld.userSetup, function(cfg) ... end)
-cfg.settings["addPlayerAircraftByType"] = false
-cfg.settings["transportPilotNames"] = {
-    "transport_slot_1",
-    "transport_slot_2",
-    "transport_slot_3",
-}
+```yaml
+mm_facing:
+  addPlayerAircraftByType: false
+  transportPilotNames:
+  - transport_slot_1
+  - transport_slot_2
+  - transport_slot_3
 ```
 
 !!! note "AI transports"
@@ -349,7 +382,7 @@ Configuration that is not global lives on dedicated pages:
 
 | Topic | Page |
 |---|---|
-| Troop / logistics / extract / waypoint zones (`troopZones`, `AIZones`, `wpZones`…) | [Zone setup](zones.md) |
+| Troop / logistics / extract / waypoint zones (`troopZones`, `aiZones`, `wpZones`…) | [Zone setup](zones.md) |
 | FOB building and scene deployment | [Scenes & FOB](scenes-fob.md) |
 | `spawnableCrates`, crate descriptors and AA templates | [Crate catalogue](crates-catalogue.md) |
 | Minefield deployment | [Minefield](minefield.md) |

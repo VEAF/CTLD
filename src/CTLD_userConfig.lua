@@ -6,12 +6,17 @@
 --   this file BEFORE the CTLD.lua trigger. This file is optional: if omitted, CTLD
 --   starts with its built-in factory defaults.
 --
--- MODEL (ADR 0011)
+-- MODEL (ADR 0011 + Addendum 1)
 --   Provide a COMPLETE configuration snapshot as a YAML string in ctld.configUser.
---   It fully REPLACES the engine defaults — there is no merge. An element you omit is
---   absent at runtime (not defaulted). A malformed snapshot is a hard error, so
---   generate and edit it with the CTLD config tool: it starts from the current
---   defaults (so nothing is lost by accident) and validates before export.
+--   It fully REPLACES the engine defaults — there is no merge. A malformed snapshot is
+--   a hard error, so generate and edit it with the CTLD config tool: it starts from the
+--   current defaults (so nothing is lost by accident) and validates before export.
+--
+--   Omission is not uniform, by design:
+--     * a SETTING (scalar default) you omit resolves to the CTLD default — the engine
+--       needs a value — and every such key is named once in the on-screen startup report.
+--     * a LIST (table default: a crate section, a troop group, a zone, a pilot name) you
+--       omit is genuinely absent. That is how you remove one.
 --
 --   The YAML is the same format as the engine's CTLD_config.yaml: a configVersion tag,
 --   the mm_facing / advanced sections, and the spawnableCrates / loadableGroups / zones

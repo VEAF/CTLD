@@ -53,24 +53,27 @@ Champs d'une pièce :
 `count` est le nombre de **types de pièces uniques** qui doivent être vivants pour que le système
 soit considéré comme complet ; il est vérifié par `countComplete()` et `_rearm()`.
 
-## Injection des crates dans `spawnableCrates` { #crate-injection-into-spawnablecrates }
+## Les crates AA dans `spawnableCrates` { #crate-injection-into-spawnablecrates }
 
-`CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)` est appelée par
-`CTLDCrateManager._processSpawnableCrates()` avant sa boucle principale — à ce moment,
-`CTLDConfig:load()` a déjà rempli `TEMPLATES`. Pour chaque template, par `sectionName` :
+Les crates AA déployables sont des **entrées de catalogue ordinaires** dans `src/CTLD_config.yaml`,
+sous les sections `SAM mid range` et `SAM long range`. Elles ne sont plus générées à l'exécution :
+l'ancienne étape `CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)` a été supprimée et son
+résultat déplié une fois dans le YAML (comparé au golden de l'ancienne injection). Les crates
+transitent donc par les passes normales de `CTLDCrateManager._processSpawnableCrates()`, comme
+n'importe quelle autre crate.
 
-1. crée la section si elle n'existe pas encore ;
-2. injecte une entrée de crate par pièce qui porte un `weight` (les pièces `NoCrate` avec un
-   poids obtiennent tout de même une entrée de menu mais ne sont pas comptées dans le set
-   auto-généré) ;
-3. auto-génère une entrée `mixedSet` **All crates** à partir de toutes les pièces non-`NoCrate`
-   lorsque `allCratesLabel` est défini et qu'il existe plus d'une pièce requise ;
-4. injecte l'entrée du crate de réparation, taguée avec le flag interne `_repairFor = tmpl.name`
+Chaque section contient donc, explicitement :
+
+1. une entrée de crate par pièce qui porte un `weight` (les pièces `NoCrate` avec un poids obtiennent
+   tout de même une entrée de menu mais ne sont pas comptées dans le set) ;
+2. une entrée `mixedSet` **All crates** listant les poids des pièces non-`NoCrate` ;
+3. l'entrée du crate de réparation, taguée avec le flag interne `_repairFor = <nom du template>`
    (ce n'est pas un type name DCS).
 
-Une section peut contenir à la fois des entrées de crate déclarées manuellement et des entrées AA
-injectées — c'est intentionnel. N'ajoutez **pas** d'entrées de pièces AA à `spawnableCrates` à la
-main, sans quoi elles apparaîtront en double.
+`CTLDCrateAssemblyManager.TEMPLATES` porte toujours les **règles d'assemblage** dont le runtime a
+besoin — pièces, count, launcher — déclarées statiquement dans `CTLD_aasystem.lua`. Une section peut
+contenir à la fois des entrées AA et des entrées de crate ordinaires ; ce qui change, c'est
+seulement que plus rien n'injecte les entrées AA à votre insu.
 
 ## Assemblage, rearm et réparation { #assembly-rearm-and-repair }
 

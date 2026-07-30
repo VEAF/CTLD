@@ -52,24 +52,25 @@ Part fields:
 `count` is the number of **unique part types** that must be alive for the system to be
 considered complete; it is checked by `countComplete()` and `_rearm()`.
 
-## Crate injection into `spawnableCrates`
+## AA crates in `spawnableCrates`
 
-`CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)` is called by
-`CTLDCrateManager._processSpawnableCrates()` before its main loop — at that point
-`CTLDConfig:load()` has already populated `TEMPLATES`. For each template it, per
-`sectionName`:
+The deployable AA crates are **ordinary catalogue entries** in `src/CTLD_config.yaml`, under the
+sections `SAM mid range` and `SAM long range`. They are not generated at runtime: the former
+`CTLDCrateAssemblyManager.injectAACrates(spawnableCrates)` step was removed and its output expanded
+once into the YAML (golden-compared to the old injection), so the crates now flow through the normal
+`CTLDCrateManager._processSpawnableCrates()` passes like any other crate.
 
-1. creates the section if it does not exist yet;
-2. injects one crate entry per part that carries a `weight` (`NoCrate` parts with a weight
-   still get a menu entry but are not counted in the auto-generated set);
-3. auto-generates an **All crates** `mixedSet` entry from all non-`NoCrate` parts when
-   `allCratesLabel` is set and more than one required part exists;
-4. injects the repair crate entry, tagged with the internal flag `_repairFor = tmpl.name`
-   (this is not a DCS type name).
+Each section therefore contains, explicitly:
 
-A section may hold both manually declared crate entries and injected AA entries — this is
-intentional. Do **not** add AA part entries to `spawnableCrates` by hand or they will appear
-twice.
+1. one crate entry per part that carries a `weight` (`NoCrate` parts with a weight still get a menu
+   entry but are not counted in the set);
+2. an **All crates** `mixedSet` entry listing the non-`NoCrate` part weights;
+3. the repair crate entry, tagged with the internal flag `_repairFor = <template name>` (this is not
+   a DCS type name).
+
+`CTLDCrateAssemblyManager.TEMPLATES` still holds the **assembly rules** the runtime needs — parts,
+count, launcher — declared statically in `CTLD_aasystem.lua`. A section may hold both AA entries and
+ordinary crate entries; what changed is only that nothing injects the AA ones behind your back.
 
 ## Assembly, rearm, and repair
 

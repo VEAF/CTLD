@@ -201,8 +201,9 @@ FARP déployée qui supporte le pack obtient une entrée **Pack Equipt → Pack 
 Lorsque ces crates sont déballées à un nouvel emplacement, le warehouse est restauré aux niveaux
 capturés au lieu des valeurs par défaut.
 
-```lua
-cfg.settings["enableFARPRepack"] = false  -- default: true
+```yaml
+mm_facing:
+  enableFARPRepack: false   # default: true
 ```
 
 **Scenes qui supportent le pack :** `Countryside FARP` (et le plugin `Metal FARP`).
@@ -286,13 +287,17 @@ désenregistrée immédiatement, sa balise est retirée et l'événement `OnFOBD
 | `fobDestructionThreshold` | `0.5` | Fraction des objets de scene détruits avant que le FOB ne soit perdu (0.0–1.0) |
 | `fobTroopPickupRadius` | `150` | Rayon (m) à l'intérieur duquel les troupes peuvent être récupérées à un FOB |
 
-```lua
-cfg.settings["enabledFOBBuilding"]      = true
-cfg.settings["troopPickupAtFOB"]        = true
-cfg.settings["fobMinDistanceFromZones"] = 500
-cfg.settings["fobLogisticZoneRadius"]   = 150
-cfg.settings["fobDestructionThreshold"] = 0.5
-cfg.settings["fobTroopPickupRadius"]    = 150
+Dans `ctld-tools`, c'est la famille **FOB / FARP** ; à la main, ces réglages vivent tous sous
+`mm_facing` :
+
+```yaml
+mm_facing:
+  enabledFOBBuilding: true
+  troopPickupAtFOB: true
+  fobMinDistanceFromZones: 500
+  fobLogisticZoneRadius: 150
+  fobDestructionThreshold: 0.5
+  fobTroopPickupRadius: 150
 ```
 
 > Le nombre de crates dont un FOB a besoin n'est **pas** un réglage global — il vit sur le champ

@@ -1,8 +1,9 @@
 # Crate catalogue
 
 This page is about **what you offer pilots to spawn**: the crates, whole vehicles, AA systems,
-and JTAC units a mission maker defines in configuration. Everything here is data you set once in
-`CTLD_userConfig.lua`; pilots then browse it from the F10 menu at runtime.
+and JTAC units a mission maker defines in configuration. Everything here is data you set once in your
+configuration — most easily in [`ctld-tools`](ctld-tools.md); pilots then browse it from the F10 menu
+at runtime.
 
 The in-cockpit actions — loading, dropping, unpacking, requesting, packing — live in the Pilot
 guide: [Crates](../pilot/crates.md), [Vehicles](../pilot/vehicles.md), [JTAC](../pilot/jtac.md).
@@ -14,16 +15,29 @@ in [Configuration](configuration.md) via `capabilitiesByType`.
 `spawnableCrates` is the master catalogue. It is a table of **named sections** (each becomes an F10
 submenu), and each section holds a list of crate descriptors:
 
-```lua
-_cfg.settings["spawnableCrates"] = {
-    ["Combat Vehicles"] = {
-        { weight = 1000.01, desc = ctld.tr("Humvee - MG"),  unit = "M1043 HMMWV Armament", side = 2, cratesRequired = 3 },
-        { weight = 1000.05, desc = ctld.tr("Heavy Tank - Abrams"), unit = "M-1 Abrams",     side = 2, cratesRequired = 4 },
-    },
-    ["Artillery"] = {
-        { weight = 1002.01, desc = ctld.tr("MLRS"), unit = "MLRS", side = 2, cratesRequired = 3 },
-    },
-}
+In `ctld-tools` this is the **Crates** family, edited as a table per section. In a hand-written
+configuration snapshot it lives under `mm_facing`:
+
+```yaml
+mm_facing:
+  spawnableCrates:
+    Combat Vehicles:
+    - unit: M1043 HMMWV Armament
+      desc: Humvee - MG
+      weight: 1000.01
+      cratesRequired: 3
+      side: 2
+    - unit: M-1 Abrams
+      desc: Heavy Tank - Abrams
+      weight: 1000.05
+      cratesRequired: 4
+      side: 2
+    Artillery:
+    - unit: MLRS
+      desc: MLRS
+      weight: 1002.01
+      cratesRequired: 3
+      side: 2
 ```
 
 ### Descriptor fields
@@ -31,12 +45,12 @@ _cfg.settings["spawnableCrates"] = {
 | Field | Type | Meaning |
 |---|---|---|
 | `weight` | number | **Unique** crate weight (kg). Dual role: the DCS slingload mass *and* the lookup key CTLD uses to resolve which unit to spawn at unpack. Two crates must never share a weight. |
-| `desc` | string | Menu label. Wrap in `ctld.tr(...)` for translation. |
+| `desc` | string | Menu label, written as plain text. CTLD passes every `desc` through its translator at load, so a label that exists in the dictionaries appears in the pilot's language — see [Translations](translations.md). |
 | `unit` | string | DCS **type name** of the unit spawned when the crate set is unpacked (e.g. `"M-1 Abrams"`). Verify against the [datamine dataset](https://github.com/Quaggles/dcs-lua-datamine). |
 | `side` | number | Coalition the crate is offered to: `2` = BLUE, `1` = RED. Omit to offer to both. |
 | `cratesRequired` | number | How many crates of this type must sit within 300 m of each other to unpack (default `1`). |
 | `isJTAC` | bool | Marks the unit as a JTAC — see [JTAC units](#jtac-units) below. |
-| `spawnAs` | string | Spawn category override for air units: `"AIRPLANE"` or `"HELICOPTER"` (used by drone JTACs). Ground vehicles need no override. |
+| `spawnAs` | string | Spawn category override for air units: `AIRPLANE` or `HELICOPTER` (used by drone JTACs). Ground vehicles need no override. In `ctld-tools` you choose `GROUND` or `AIR` and the tool writes the right one, resolved from the unit's DCS category. |
 | `mixedSet` | array | Alternative to `weight`: an entry whose value is a list of weights defines a **combined set** — one menu item that spawns several different crate types at once (see below). |
 
 ### Single crates vs sets
@@ -78,7 +92,7 @@ You rarely need to touch it; leave the defaults unless you want a different carg
 | `hoverTime` | `10` | Seconds to hold a hover to hook a crate. |
 | `minimumHoverHeight` / `maximumHoverHeight` | `7.5` / `12.0` | Hover window (m) for pickup. |
 | `maxDistanceFromCrate` | `5.5` | Max horizontal distance (m) to a crate during hover pickup. |
-| `maxSlingloadSpeed` | `50` | Speed (m/s) above which a slingloaded crate is lost. |
+| `maxSlingloadSpeed` | `26` | Speed (**m/s**) above which a slingloaded crate is cut loose — ≈ 94 km/h / 50 kt. Raise it if your airframe warrants a higher limit. |
 | `crateSpacing` | `5` | Spacing (m) between crates spawned in a set. |
 
 ## Whole-vehicle transport

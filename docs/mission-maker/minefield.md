@@ -36,17 +36,20 @@ x    x    x    x    x        <- odd row
 
 ## Configuration
 
-Settings are read through `ctld.gs("paramName")` at runtime; you set them in
-`CTLD_userConfig.lua` under `_cfg.settings[...]`.
+Settings are read through `ctld.gs("paramName")` at runtime. Set them in `ctld-tools` (the **Mines**
+family) or, if you hand-write your configuration snapshot, in the section each one belongs to — see
+[Configuration](configuration.md).
 
 | Setting | Default | Description |
 | --- | --- | --- |
 | `showMinefieldOnF10Map` | `true` | Draw a bounding quad on the F10 map when a minefield is deployed. Set `false` to keep the field hidden. |
 | `demineRadius` | `150` | Maximum distance in metres from a landed player to a minefield centre for that field's **Clear Mine Field** entry to appear in the F10 menu. |
 
-```lua
-_cfg.settings["showMinefieldOnF10Map"] = true
-_cfg.settings["demineRadius"]          = 150
+```yaml
+mm_facing:
+  showMinefieldOnF10Map: true
+advanced:
+  demineRadius: 150
 ```
 
 ## Advanced: laying a minefield from a script

@@ -127,17 +127,17 @@ enforced by CI is `luac5.1 -p` in the `lua-lint` job.
 CTLD writes a runtime log to `CTLD.log`. File logging is **gated on the `debug` setting** — it is
 off by default and only opens the file when `debug` is true (and the DCS install is not sanitized).
 
-Configuration is read-only at runtime and is always read through `ctld.gs("param")`; to enable
-debug output you set the values in `CTLD_userConfig.lua` (the `.miz`-side config file):
+Configuration is read-only at runtime and is always read through `ctld.gs("param")`; to enable debug
+output you set these values in the configuration snapshot your mission carries — `ctld.configUser` in
+`CTLD_userConfig.lua`, most easily produced with `ctld-tools`. All four live in the `advanced`
+section:
 
-```lua
--- In CTLD_userConfig.lua
-local _cfg = CTLDConfig.get()
-
-_cfg.settings["debug"]                  = true   -- opens CTLD.log and enables verbose logging
-_cfg.settings["ctldLogPath"]            = ""     -- path override; empty = DCS Saved Games folder
-_cfg.settings["debugScreenLog"]         = true   -- also echo each log line on screen via outText
-_cfg.settings["debugScreenLogDuration"] = 10     -- on-screen display duration (seconds)
+```yaml
+advanced:
+  debug: true                  # opens CTLD.log and enables verbose logging
+  ctldLogPath: ""              # path override; empty = DCS Saved Games folder
+  debugScreenLog: true         # also echo each log line on screen via outText
+  debugScreenLogDuration: 10   # on-screen display duration (seconds)
 ```
 
 Notes:

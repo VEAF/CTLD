@@ -10,7 +10,8 @@ src/                    Source modules (pure Lua 5.1, one class per file)
   legacy/               Legacy v1 API wrappers (thin delegates, deprecated)
   CTLD_*.lua            Domain managers (config, i18n, utils, menu, zone, troop, crate,
                         vehicle, fob, aasystem, beacon, recon, jtac, player, core…)
-  CTLD_userConfig.lua   User configuration (merged last)
+  CTLD_bootstrap.lua    Engine bootstrap — ctld.initialize() + auto-start guard (merged last)
+  CTLD_userConfig.lua   Mission-config template — shipped as a separate file, NOT merged
 tools/
   build/                Build tooling: merge_CTLD.ps1, listToMerge.txt, generate_i18n_dicts.ps1
 tests/
@@ -85,7 +86,7 @@ ni d'entrée `_droppedTemplates` — `embarkFromField` utilise un repli à 130 k
    `_instance`, `getInstance()`).
 2. Ajouter le nom de fichier à `tools/build/listToMerge.txt` dans l'ordre des dépendances (les
    fondations d'abord, puis les managers de domaine, puis les scenes, puis `CTLD_core.lua`, puis
-   `legacy/`, `CTLD_userConfig.lua` en dernier).
+   `legacy/`, `CTLD_bootstrap.lua` en dernier).
 3. Ajouter la même entrée `dofile` à `tests/ci/helpers/loader.lua`.
 4. Écrire des specs busted dans `tests/ci/unit/mymodule_spec.lua` (test-first — voir
    [Build et tests](building-and-testing.md)).
@@ -136,7 +137,12 @@ Une scène ou une mission déclare ses types mod pour que la validation reste st
 
 ```lua
 someScene.modTypes = { "Some_Mod_Type" }         -- sur un modèle de scène
-_cfg.settings["modTypes"] = { "Some_Mod_Type" }  -- pour la config crate/troop/AA d'une mission
+```
+
+```yaml
+advanced:
+  modTypes:                                # pour la config crate/troop/AA d'une mission
+  - Some_Mod_Type
 ```
 
 > **Note historique (ADR 0007) :** les versions antérieures spawnaient une sonde (static/group) par

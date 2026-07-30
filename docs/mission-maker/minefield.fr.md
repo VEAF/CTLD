@@ -38,17 +38,20 @@ x    x    x    x    x        <- odd row
 
 ## Configuration
 
-Les réglages sont lus via `ctld.gs("paramName")` à l'exécution ; vous les définissez dans
-`CTLD_userConfig.lua` sous `_cfg.settings[...]`.
+Les réglages sont lus via `ctld.gs("paramName")` à l'exécution. Définissez-les dans `ctld-tools`
+(famille **Mines**) ou, si vous écrivez votre instantané de configuration à la main, dans la section à
+laquelle chacun appartient — voir [Configuration](configuration.md).
 
 | Réglage | Défaut | Description |
 | --- | --- | --- |
 | `showMinefieldOnF10Map` | `true` | Trace un quadrilatère englobant sur la carte F10 lorsqu'un minefield est déployé. Mettre à `false` pour garder le champ caché. |
 | `demineRadius` | `150` | Distance maximale en mètres entre un joueur posé et le centre d'un minefield pour que l'entrée **Clear Mine Field** de ce champ apparaisse dans le menu F10. |
 
-```lua
-_cfg.settings["showMinefieldOnF10Map"] = true
-_cfg.settings["demineRadius"]          = 150
+```yaml
+mm_facing:
+  showMinefieldOnF10Map: true
+advanced:
+  demineRadius: 150
 ```
 
 ## Avancé : poser un minefield depuis un script { #advanced-laying-a-minefield-from-a-script }

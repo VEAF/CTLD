@@ -3,8 +3,8 @@
 CTLD zones are declared directly in the **DCS Mission Editor** by naming your trigger zones
 with a structured convention. For most zones no scripting is required: CTLD reads every trigger
 zone name at mission start, parses those that match a known prefix, and registers them
-automatically. AI transport zones are the one exception — they are declared in
-`CTLD_userConfig.lua` (see [AI transport zones](#ai-transport-zones-aiz) below).
+automatically. AI transport zones are the one exception — they are declared in your CTLD
+configuration (see [AI transport zones](#ai-transport-zones-aiz) below).
 
 For how pilots actually *use* these zones from the cockpit, see the
 [Pilot guide](../pilot/index.md).
@@ -213,39 +213,64 @@ A zone may be pickup only, drop-off only, or both.
 
 ### Config declaration
 
-Zones are declared in `_cfg.settings["aiZones"]`, an array of entries:
+`aiZones` is a list of entries in your configuration. `ctld-tools` gives it a dedicated editor under
+the **Zones** family; in a hand-written snapshot it lives under `mm_facing`:
 
-```lua
-_cfg.settings["aiZones"] = {
-    -- Troops-only pickup: two templates with per-template stock
-    { dcsZoneName = "my_base", coalition = "BLUE",
-      isPickup = true, cargoType = "T",
-      troopStock = { ["Standard Group"] = 5, ["Anti Tank"] = 2 } },
+```yaml
+mm_facing:
+  aiZones:
+  # Troops-only pickup: two templates with per-template stock
+  - dcsZoneName: my_base
+    coalition: BLUE
+    isPickup: true
+    cargoType: T
+    troopStock:
+      Standard Group: 5
+      Anti Tank: 2
 
-    -- Troops-only pickup: every compatible template, unlimited
-    { dcsZoneName = "depot_alpha", coalition = "BLUE",
-      isPickup = true, cargoType = "T",
-      troopStock = { All = -1 } },
+  # Troops-only pickup: every compatible template, unlimited
+  - dcsZoneName: depot_alpha
+    coalition: BLUE
+    isPickup: true
+    cargoType: T
+    troopStock:
+      All: -1
 
-    -- Vehicle-only pickup (vehicles must be physically in the zone)
-    { dcsZoneName = "armor_depot", coalition = "BLUE",
-      isPickup = true, cargoType = "V",
-      vehicleStock = { ["Hummer"] = 3, ["M1045 HMMWV TOW"] = -1 } },
+  # Vehicle-only pickup (vehicles must be physically in the zone)
+  - dcsZoneName: armor_depot
+    coalition: BLUE
+    isPickup: true
+    cargoType: V
+    vehicleStock:
+      Hummer: 3
+      M1045 HMMWV TOW: -1
 
-    -- Troops + vehicle pickup
-    { dcsZoneName = "hub_tv", coalition = "BLUE",
-      isPickup = true, cargoType = "TV",
-      troopStock = { All = -1 }, vehicleStock = { ["Hummer"] = 5 } },
+  # Troops + vehicle pickup
+  - dcsZoneName: hub_tv
+    coalition: BLUE
+    isPickup: true
+    cargoType: TV
+    troopStock:
+      All: -1
+    vehicleStock:
+      Hummer: 5
 
-    -- Ground-only drop-off
-    { dcsZoneName = "lz_front", coalition = "BLUE",
-      isDropoff = true, aiDropMode = "G" },
+  # Ground-only drop-off
+  - dcsZoneName: lz_front
+    coalition: BLUE
+    isDropoff: true
+    aiDropMode: G
 
-    -- Ground + parachute drop-off (default)
-    { dcsZoneName = "lz_rear", coalition = "BLUE",
-      isDropoff = true },
-}
+  # Ground + parachute drop-off (default)
+  - dcsZoneName: lz_rear
+    coalition: BLUE
+    isDropoff: true
 ```
+
+!!! warning "`coalition` here is a word, not a number"
+    Every other coalition field in the CTLD configuration is the numeric `side` (`1` = RED,
+    `2` = BLUE). In an `aiZones` entry it is the string `RED`, `BLUE` or `NEUTRAL`. Writing a number
+    here means "any coalition", silently.
 
 ### Parameters
 
@@ -268,14 +293,15 @@ _cfg.settings["aiZones"] = {
 ### AI transport setup
 
 1. Create trigger zones in the ME (any name, any radius suitable for landing).
-2. Declare them in `_cfg.settings["aiZones"]` (above).
-3. Add each AI unit's **exact DCS unit name** to `transportPilotNames`:
+2. Declare them in `aiZones` (above).
+3. Add each AI unit's **exact DCS unit name** to `transportPilotNames`, which is a **plain list** of
+   names:
 
-   ```lua
-   _cfg.settings["transportPilotNames"] = {
-       ["heliai_supply"]  = true,
-       ["heliai_medevac"] = true,
-   }
+   ```yaml
+   mm_facing:
+     transportPilotNames:
+     - heliai_supply
+     - heliai_medevac
    ```
 
 4. Route the AI unit so it lands inside the zones (waypoints with a "Landing" task).
@@ -305,36 +331,51 @@ an instant pickup+drop-off loop).
 
 Missions built the classic CTLD v1 way — zone names listed in config tables rather than parsed
 from trigger names — are still supported. The `_` character **is** allowed in the names here,
-because these are plain DCS trigger (or unit) names, not parsed schemas. Declare them in
-`CTLD_userConfig.lua`:
+because these are plain DCS trigger (or unit) names, not parsed schemas.
 
-```lua
--- Pickup zones: { "DCS zone name", "smoke color", limit, "active", side }
--- smoke color : "none"|"green"|"red"|"white"|"orange"|"blue"
--- limit       : -1 = unlimited, or any integer >= 1
--- active      : "yes" | "no"
--- side        : 0 = both, 1 = RED, 2 = BLUE
-ctld.pickupZones = {
-    { "pickzone1",  "blue", -1, "yes", 0 },
-    { "pickzone2",  "red",  -1, "yes", 2 },
-    { "USS Tarawa", "blue", 10, "yes", 2 },  -- a ship unit name is also accepted
-}
+These are ordinary configuration settings, and their entries are **positional arrays**: the meaning
+of a value comes from its place in the list. `ctld-tools` edits them as named fields under the
+**Zones** family, which is the safest way to touch them; written by hand they look like this:
 
--- Drop-off zones (AI auto-deploy points): { "DCS zone name", "smoke color", side }
-ctld.dropOffZones = {
-    { "dropzone1", "green", 2 },
-    { "dropzone2", "none",  0 },
-}
+```yaml
+mm_facing:
+  # Troop pickup zones — v1 called this pickupZones.
+  # [ DCS zone name, smoke colour, limit, active, side ]
+  #   smoke colour : none | green | red | white | orange | blue
+  #   limit        : -1 = unlimited, or any integer >= 1
+  #   active       : yes | no
+  #   side         : 0 = both, 1 = RED, 2 = BLUE
+  troopZones:
+  - - pickzone1
+    - blue
+    - -1
+    - yes
+    - 0
+  - - USS Tarawa      # a ship unit name is also accepted
+    - blue
+    - 10
+    - yes
+    - 2
 
--- Waypoint zones (deployed troops march to the centre): { "DCS zone name", "smoke color", "active", side }
-ctld.wpZones = {
-    { "wpzone1", "green", "yes", 2 },
-}
+  # Waypoint zones (deployed troops march to the centre)
+  # [ DCS zone name, smoke colour, active, side ]
+  wpZones:
+  - - wpzone1
+    - green
+    - yes
+    - 2
 
--- Logistic units: unit or static names placed in the ME.
--- If the named object is destroyed, its logistic zone is removed automatically.
-ctld.logisticUnits = { "logistic1", "logistic2" }
+  # Logistic units: unit or static names placed in the ME.
+  # If the named object is destroyed, its logistic zone is removed automatically.
+  logisticUnits:
+  - logistic1
+  - logistic2
 ```
+
+!!! warning "`dropOffZones` is not read in CTLD 2.x"
+    v1's `dropOffZones` table (AI auto-deploy points) has no equivalent setting in CTLD 2. AI
+    drop-off is configured with [AI transport zones](#ai-transport-zones-aiz) — an `aiZones` entry
+    with `isDropoff: true`. A v1 config carrying `dropOffZones` will have that table ignored.
 
 > Legacy zones and auto-discovered zones (TRZ / WPZ / LGZ) coexist without conflict: a zone already
 > registered from trigger-name discovery is never overwritten by legacy config.

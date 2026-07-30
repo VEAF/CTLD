@@ -30,7 +30,7 @@ DCS — le script s'interrompt si un BOM est détecté). Le build :
 - échoue avec un code de sortie non nul si aucun fichier n'a été fusionné ou si un BOM s'est glissé.
 
 L'ordre dans `listToMerge.txt` fait foi (les fondations d'abord, puis les managers de domaine, puis
-les scenes, puis `CTLD_core.lua`, `legacy/`, et `CTLD_userConfig.lua` en dernier). Voir
+les scenes, puis `CTLD_core.lua`, `legacy/`, et `CTLD_bootstrap.lua` en dernier). Voir
 [Architecture](architecture.md) pour la justification et pour savoir comment insérer un nouveau
 module dans la liste.
 
@@ -135,17 +135,16 @@ au paramètre `debug`** — elle est désactivée par défaut et n'ouvre le fich
 vaut true (et que l'installation DCS n'est pas sanitizée).
 
 La configuration est en lecture seule à l'exécution et est toujours lue via `ctld.gs("param")` ; pour
-activer la sortie de debug, vous fixez les valeurs dans `CTLD_userConfig.lua` (le fichier de
-configuration côté `.miz`) :
+activer la sortie de debug, vous fixez ces valeurs dans l'instantané de configuration porté par votre
+mission — `ctld.configUser` dans `CTLD_userConfig.lua`, produit le plus simplement avec `ctld-tools`.
+Les quatre vivent dans la section `advanced` :
 
-```lua
--- In CTLD_userConfig.lua
-local _cfg = CTLDConfig.get()
-
-_cfg.settings["debug"]                  = true   -- opens CTLD.log and enables verbose logging
-_cfg.settings["ctldLogPath"]            = ""     -- path override; empty = DCS Saved Games folder
-_cfg.settings["debugScreenLog"]         = true   -- also echo each log line on screen via outText
-_cfg.settings["debugScreenLogDuration"] = 10     -- on-screen display duration (seconds)
+```yaml
+advanced:
+  debug: true                  # opens CTLD.log and enables verbose logging
+  ctldLogPath: ""              # path override; empty = DCS Saved Games folder
+  debugScreenLog: true         # also echo each log line on screen via outText
+  debugScreenLogDuration: 10   # on-screen display duration (seconds)
 ```
 
 Notes :

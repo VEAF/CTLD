@@ -28,10 +28,14 @@ C'est une simple lecture : **aucun objet n'est spawné, aucun event n'est émis.
 ### Déclarer les types mod { #declaring-mod-types }
 
 Si votre config utilise légitimement le type DCS d'un mod, indiquez-le à CTLD pour que le compagnon
-ne le signale pas — listez le(s) nom(s) exact(s) dans le setting `modTypes` :
+ne le signale pas — listez le(s) nom(s) exact(s) dans le setting `modTypes` (dans `ctld-tools`, c'est
+une liste éditable de noms de type DCS) :
 
-```lua
-_cfg.settings["modTypes"] = { "Your_Mod_Type", "Another_Mod_Type" }
+```yaml
+advanced:
+  modTypes:
+  - Your_Mod_Type
+  - Another_Mod_Type
 ```
 
 Tous les *autres* types restent vérifiés, donc une vraie faute de frappe est toujours détectée. (Les

@@ -26,10 +26,14 @@ It is a pure lookup: **no objects are spawned, no events are fired.**
 ### Declaring mod types
 
 If your config legitimately uses a mod's DCS type, tell CTLD so the companion does not flag it —
-list the exact type name(s) in the `modTypes` setting:
+list the exact type name(s) in the `modTypes` setting (in `ctld-tools`, it is an editable list of DCS
+type names):
 
-```lua
-_cfg.settings["modTypes"] = { "Your_Mod_Type", "Another_Mod_Type" }
+```yaml
+advanced:
+  modTypes:
+  - Your_Mod_Type
+  - Another_Mod_Type
 ```
 
 Every *other* type is still checked, so a real typo is still caught. (Scenes declare their own mod

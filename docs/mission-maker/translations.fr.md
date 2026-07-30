@@ -26,19 +26,22 @@ chaque fois qu'une traduction manque.
 
 ## Choisir la langue { #choosing-the-language }
 
-La langue active est sélectionnée en haut de `src/CTLD_i18n.lua`. Décommentez la seule ligne
-souhaitée et laissez les autres en commentaire :
+La langue active est le **réglage `i18n_lang`** — définissez-le comme n'importe quel autre réglage,
+dans `ctld-tools` ou à la main dans votre instantané de configuration :
 
-```lua
-ctld.i18n_lang = "en"
---ctld.i18n_lang = "fr"
---ctld.i18n_lang = "es"
---ctld.i18n_lang = "ko"
+```yaml
+mm_facing:
+  i18n_lang: fr
 ```
 
-Une seule ligne doit être active à la fois ; la valeur par défaut est `en`. Ce sélecteur vit
-dans son propre fichier, séparé de la logique principale, afin qu'un traducteur non développeur
-puisse le modifier sans toucher au moindre script.
+Les valeurs valides sont `en` (le défaut), `fr`, `es` et `ko`. C'est un choix au niveau de la
+mission : il s'applique à tous les joueurs du serveur.
+
+!!! note "L'ancien sélecteur fonctionne toujours"
+    Les missions plus anciennes choisissaient la langue en éditant le haut de `src/CTLD_i18n.lua`
+    (`ctld.i18n_lang = "fr"`), et cela fonctionne encore — CTLD lit d'abord le réglage `i18n_lang`,
+    puis retombe sur cette variable globale du module, puis sur `en`. Préférez le réglage : il ne
+    demande aucune modification de source et survit à une mise à jour de CTLD.
 
 ## Comment fonctionne le repli { #how-fallback-works }
 
