@@ -1,6 +1,6 @@
 # FEAT-EDITOR-COVERAGE — every complex config key gets a real editor
 
-**Status:** done — all six tickets delivered.
+**Status:** done — merged (PR #74).
 
 > **Delivered.** The datamine bundle now maps every type to its category (it was already in the
 > directory layout and being discarded), `/api/schema` serves a table field's `choices` beside its tip,
