@@ -623,7 +623,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.12"
+ctld.i18n["en"].translation_version = "1.14"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -1164,6 +1164,11 @@ ctld.i18n["en"]["Cannot repair %1. No damaged %1 within %2m"] = "Cannot repair %
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 ctld.i18n["en"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = "%1 setting(s) absent from the mission config — CTLD default used: %2"
 
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+ctld.i18n["en"]["specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"] = "specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"
+
 -- End : CTLD_i18n_en.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_fr.lua
@@ -1178,7 +1183,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.12"
+ctld.i18n["fr"].translation_version = "1.14"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -1759,6 +1764,11 @@ ctld.i18n["fr"]["Cannot repair %1. No damaged %1 within %2m"]                   
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 ctld.i18n["fr"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = "%1 réglage(s) absent(s) de la config de la mission — valeur par défaut CTLD utilisée : %2"
 
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+ctld.i18n["fr"]["specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"] = "specificParams est ignoré sur les caisses (%1) — l'altitude, les rayons et la vitesse d'orbite des drones viennent désormais des réglages JTAC_drone*"
+
 -- End : CTLD_i18n_fr.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_es.lua
@@ -1774,7 +1784,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.12"
+ctld.i18n["es"].translation_version = "1.14"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -2324,6 +2334,11 @@ ctld.i18n["es"]["Ships"] = ""
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 ctld.i18n["es"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = ""
 
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+ctld.i18n["es"]["specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"] = ""
+
 -- End : CTLD_i18n_es.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_ko.lua
@@ -2339,7 +2354,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.12"
+ctld.i18n["ko"].translation_version = "1.14"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -2757,6 +2772,11 @@ ctld.i18n["ko"]["Ships"] = ""
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 ctld.i18n["ko"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = ""
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+ctld.i18n["ko"]["specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"] = ""
 
 -- End : CTLD_i18n_ko.lua
 -- ====================================================================================================
@@ -3217,22 +3237,12 @@ mm_facing:
       unit: MQ-9 Reaper
       desc: MQ-9 Repear - JTAC
       weight: 1006.01
-      specificParams:
-        orbitRadiusOnLase: 1000
-        alti: 3000
-        orbitRadiusNoLase: 2000
-        speed: 150
       isJTAC: true
       side: 2
     - spawnAs: AIRPLANE
       unit: RQ-1A Predator
       desc: RQ-1A Predator - JTAC
       weight: 1006.11
-      specificParams:
-        orbitRadiusOnLase: 1000
-        alti: 3000
-        orbitRadiusNoLase: 2000
-        speed: 150
       isJTAC: true
       side: 1
     SAM mid range:
@@ -3676,10 +3686,12 @@ mm_facing:
 advanced:
   CIV_WEIGHT: 2
   JTAC_WEIGHT: 15
-  JTAC_droneAltitude: 4000
+  JTAC_droneAltitude: 3000
   jtacLaserCodeMax: 1688
   jtacLaserCodeMin: 1111
-  JTAC_droneRadius: 1000
+  JTAC_droneRadiusNoLase: 2000
+  JTAC_droneRadiusOnLase: 1000
+  JTAC_droneSpeed: 150
   JTAC_laseIntervalSeconds: 15
   JTAC_laseSpotCorrections: true
   JTAC_searchIntervalSeconds: 10
@@ -5064,7 +5076,10 @@ function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
     else
         -- Non-ground (AIRPLANE / HELICOPTER / SHIP / TRAIN)
         local alt     = ctld.gs("JTAC_droneAltitude")
-        local speed   = 54 -- m/s (~105 kts)
+        -- Same setting as the orbit route, so a drone spawns at the speed it will fly at. It used
+        -- to be 54 m/s here against the orbit's own value, so the drone changed speed a couple of
+        -- seconds after spawning — the same mismatch the altitude had.
+        local speed   = ctld.utils.kmphToMps("ctld.utils.buildGroupUnitDef()", ctld.gs("JTAC_droneSpeed"))
         local uname   = gname .. "_1"
         local unitDef = {
             ["name"]          = gname,
@@ -12192,6 +12207,12 @@ function CTLDCrateManager:_processSpawnableCrates()
     self._weightIndex     = {}
     local warnings        = {}
 
+    -- Crates still carrying the retired per-crate orbit block (FEAT-JTAC-DRONE-GLOBALS). The
+    -- engine ignores it now: orbit geometry comes from the JTAC_drone* settings. Neither
+    -- ctld-tools validate nor version-gap can see a field nested inside a crate entry, and a
+    -- hand-written YAML meets neither, so the startup report is the only signal its author gets.
+    local staleSpecificParams = {}
+
     for category, entries in pairs(spawnableCrates) do
         local singleCrates  = {}
         local mixedSets     = {}
@@ -12199,6 +12220,9 @@ function CTLDCrateManager:_processSpawnableCrates()
 
         -- Pass 1: separate entries by type
         for _, entry in ipairs(entries) do
+            if entry.specificParams ~= nil then
+                staleSpecificParams[#staleSpecificParams + 1] = tostring(entry.desc or entry.unit or "?")
+            end
             if entry.weight then
                 table.insert(singleCrates, entry)
                 catWeightIdx[entry.weight]    = entry
@@ -12256,6 +12280,17 @@ function CTLDCrateManager:_processSpawnableCrates()
             singleCrates = processedSingle,
             mixedSets    = processedMixed,
         }
+    end
+
+    -- One message, not one per crate.
+    if #staleSpecificParams > 0 and ctld.startupReport then
+        table.sort(staleSpecificParams)
+        -- One string literal, never a concatenation: generate_i18n_dicts.ps1 scans for the literal
+        -- inside ctld.tr(), so a concatenated key would be harvested half-truncated and could never
+        -- be translated.
+        ctld.startupReport.add("NOTICE", "config", ctld.tr(
+            "specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings",
+            table.concat(staleSpecificParams, ", ")))
     end
 
     -- Auto-inject all scene crates registered so far (scenes loaded before CTLDCoreManager init).
@@ -13965,7 +14000,7 @@ end
 -- @param gname  string spawned DCS group name
 function CTLDCrateManager:_dispatchPostSpawn(desc, gname)
     if desc.isJTAC then
-        CTLDJTACManager.getInstance():startLase(gname, nil, nil, nil, nil, nil, desc.specificParams)
+        CTLDJTACManager.getInstance():startLase(gname)
         -- Register in CTLDVehicleSpawner so load/unload can suspend/resume JTAC lasing.
         CTLDVehicleSpawner.getInstance():registerJTACVehicle(gname, desc.unit, nil, nil)
     elseif (desc.spawnAs == nil or desc.spawnAs == "GROUND") and desc.unit then
@@ -19914,8 +19949,8 @@ function CTLDJTAC:init(data)
     self.laserSpot      = nil
     self.irSpot         = nil
 
-    -- Flying JTACs only: orbit params from crate specificParams + spawn position
-    self.orbitParams          = data.orbitParams or nil  -- { speed, alti, orbitRadiusNoLase, orbitRadiusOnLase }
+    -- Flying JTACs only: spawn position, captured so the orbit can be rebuilt on target loss.
+    -- Orbit geometry itself comes from the JTAC_drone* settings, not from the crate.
     self.initialPosition      = nil   -- captured at T+2s after spawn
     self.initialRoute         = nil   -- waypoint table built by _setOrbitRoute; replayed on target loss
     self.initialRouteAssigned = false -- true once _setOrbitRoute has been called; prevents re-assignment on every tick
@@ -20327,7 +20362,6 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
         smokeEnabled = smokeEnabled,
         smokeColor   = smokeColor,
         lockMode     = lockMode,
-        orbitParams  = cfg and cfg.orbitParams,
     })
 
     self.jtacs[groupName] = jtac
@@ -20549,7 +20583,7 @@ function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryI
             "CTLDJTACManager:deployAirJTAC — spawnFromDescriptor failed: " .. errStr)
         return false
     end
-    self:startLase(gname, nil, nil, nil, nil, nil, descriptor.specificParams)
+    self:startLase(gname)
     ctld.utils.log("INFO",
         string.format("CTLDJTACManager:deployAirJTAC — spawned %s as %s spawnAs=%s",
             gname, descriptor.unit, desc.spawnAs))
@@ -20564,9 +20598,8 @@ end
 -- @param lock       string   "all" | "vehicle" | "troop" (nil = "all")
 -- @param colour     number   trigger.smokeColor.* (nil = Red)
 -- @param radio      table    { freq, mod, name } (nil = auto)
--- @param orbitParams table   { speed, alti, orbitRadiusNoLase, orbitRadiusOnLase } (nil = config defaults)
 -- @return CTLDJTAC|nil
-function CTLDJTACManager:autoLase(groupName, laserCode, smoke, lock, colour, radio, orbitParams)
+function CTLDJTACManager:autoLase(groupName, laserCode, smoke, lock, colour, radio)
     if self.jtacs[groupName] then
         ctld.utils.log("WARN", "CTLDJTACManager:autoLase — JTAC already active: %s", groupName)
         return self.jtacs[groupName]
@@ -20577,7 +20610,6 @@ function CTLDJTACManager:autoLase(groupName, laserCode, smoke, lock, colour, rad
         lockMode     = (lock == "vehicle" or lock == "troop") and lock or "all",
         smokeColor   = colour or trigger.smokeColor.Red,
         radio        = radio,
-        orbitParams  = orbitParams,
     }
     return self:spawnJTAC(groupName, cfg, nil)
 end
@@ -20589,14 +20621,13 @@ end
 -- @param lock       string
 -- @param colour     number
 -- @param radio      table
--- @param orbitParams table  { speed, alti, orbitRadiusNoLase, orbitRadiusOnLase } (nil = config defaults)
-function CTLDJTACManager:startLase(groupName, laserCode, smoke, lock, colour, radio, orbitParams)
+function CTLDJTACManager:startLase(groupName, laserCode, smoke, lock, colour, radio)
     timer.scheduleFunction(
         function(args, t)
             CTLDJTACManager.getInstance():autoLase(
-                args[1], args[2], args[3], args[4], args[5], args[6], args[7])
+                args[1], args[2], args[3], args[4], args[5], args[6])
         end,
-        { groupName, laserCode, smoke, lock, colour, radio, orbitParams },
+        { groupName, laserCode, smoke, lock, colour, radio },
         timer.getTime() + 1
     )
 end
@@ -20956,8 +20987,8 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
         if not targetUnit or not targetUnit:isExist() then return end
 
-        local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("JTAC_droneRadius")
-        self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), jtac.orbitParams, rOnLase)
+        local rOnLase = ctld.gs("JTAC_droneRadiusOnLase")
+        self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), rOnLase)
         jtac.onTargetOrbit = true
         jtac:startOrbit(t)
 
@@ -20972,8 +21003,8 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
         if jtac.orbitStartTime and (t - jtac.orbitStartTime) >= 60 then
             local targetUnit = Unit.getByName(jtac.currentTarget.unitName)
             if targetUnit and targetUnit:isExist() then
-                local rOnLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusOnLase or ctld.gs("JTAC_droneRadius")
-                self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), jtac.orbitParams, rOnLase)
+                local rOnLase = ctld.gs("JTAC_droneRadiusOnLase")
+                self:_setOrbitTask(dcsGroup, jtacUnit, targetUnit:getPoint(), rOnLase)
                 jtac.orbitStartTime = t
             end
         end
@@ -20997,8 +21028,8 @@ function CTLDJTACManager:_updateOrbit(groupName, jtac, t)
     elseif not hasCurrent and not inOrbit and not jtac.initialRouteAssigned then
         -- Just spawned, initialPosition captured — assign initial looping route (once only)
         if jtac.initialPosition then
-            local rNoLase = jtac.orbitParams and jtac.orbitParams.orbitRadiusNoLase or ctld.gs("JTAC_droneRadius")
-            self:_setOrbitRoute(dcsGroup, groupName, jtac.initialPosition, jtac.orbitParams, rNoLase)
+            local rNoLase = ctld.gs("JTAC_droneRadiusNoLase")
+            self:_setOrbitRoute(dcsGroup, groupName, jtac.initialPosition, rNoLase)
             jtac.initialRouteAssigned = true
             jtac.onTargetOrbit        = false
             -- state stays IDLE: drone is "on route", not orbiting a target
@@ -21011,12 +21042,11 @@ end
 -- @param dcsGroup    DCS Group
 -- @param groupName   string
 -- @param center      vec3 or vec2  orbit center (= initialPosition)
--- @param orbitParams table or nil
 -- @param radius      number meters (informational — DCS turn physics control effective radius)
 local ORBIT_ROUTE_PTS = 8   -- 8 waypoints = 45° segments, reasonable turn radius
-function CTLDJTACManager:_setOrbitRoute(dcsGroup, groupName, center, orbitParams, radius)
-    local speedKmh = orbitParams and orbitParams.speed or 100
-    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("JTAC_droneAltitude")
+function CTLDJTACManager:_setOrbitRoute(dcsGroup, groupName, center, radius)
+    local speedKmh = ctld.gs("JTAC_droneSpeed")
+    local altiAGL  = ctld.gs("JTAC_droneAltitude")
     local vec2     = ctld.utils.makeVec2FromVec3OrVec2("_setOrbitRoute", center)
     local cx, cz   = vec2.x, vec2.y
     local terrainH = land.getHeight({ x = cx, y = cz })
@@ -21105,12 +21135,11 @@ end
 -- @param dcsGroup    DCS Group
 -- @param jtacUnit    DCS Unit  (used for popTask on the unit controller)
 -- @param center      vec3 or vec2  orbit center (target position)
--- @param orbitParams table or nil  { speed(km/h), alti(m AGL) }
 -- @param _radius     number  unused (DCS Circle radius is speed-controlled)
-function CTLDJTACManager:_setOrbitTask(dcsGroup, jtacUnit, center, orbitParams, _radius)
+function CTLDJTACManager:_setOrbitTask(dcsGroup, jtacUnit, center, _radius)
     local orbitPoint = ctld.utils.makeVec2FromVec3OrVec2("_setOrbitTask", center)
-    local speedKmh = orbitParams and orbitParams.speed or 100
-    local altiAGL  = orbitParams and orbitParams.alti  or ctld.gs("JTAC_droneAltitude")
+    local speedKmh = ctld.gs("JTAC_droneSpeed")
+    local altiAGL  = ctld.gs("JTAC_droneAltitude")
     local terrainH = land.getHeight({ x = orbitPoint.x, y = orbitPoint.y })
     local orbit = {
         id     = "Orbit",

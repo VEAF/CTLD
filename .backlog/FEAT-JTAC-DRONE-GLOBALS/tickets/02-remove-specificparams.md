@@ -1,6 +1,6 @@
 # 02 — remove `specificParams` from the crate surface
 
-**Status:** ready
+**Status:** done
 
 Depends on: 01. The globals must exist and be rebased first, or this ticket changes how the drones fly.
 

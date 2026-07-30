@@ -1,8 +1,16 @@
 # 03 — startup NOTICE when a config still carries `specificParams`
 
-**Status:** ready
+**Status:** done
 
 Depends on: 02.
+
+> **An i18n trap worth recording.** The message was first written as a concatenation of two string
+> literals to keep the line short. `generate_i18n_dicts.ps1` harvests the literal inside `ctld.tr()`,
+> so it captured only the first half — the key in the dictionaries would never have matched the key
+> the runtime looks up, and FR/ES/KO could never have translated it. **A `ctld.tr()` argument must be
+> a single string literal, never a concatenation.** Rewritten as one line, and the truncated artefact
+> removed from all four dictionaries rather than left as a `-- STALE:` comment for a key that never
+> shipped.
 
 ## Why
 

@@ -163,3 +163,62 @@ def test_dropcrate_and_its_setting_are_gone():
 def test_maxdropheight_is_gone_from_the_catalogue_and_schema(catalogue, schema):
     assert "maxDropHeight" not in catalogue
     assert "maxDropHeight" not in schema
+
+
+# ── Drone orbit is governed by settings, not by a per-crate block ───────────────
+# FEAT-JTAC-DRONE-GLOBALS. The four globals were rebased onto the values the two shipped drones
+# used, so removing `specificParams` changes only what we chose to change.
+
+
+@pytest.mark.parametrize(
+    ("key", "value"),
+    [
+        ("JTAC_droneAltitude", 3000),  # was 4000 against a per-crate 3000
+        ("JTAC_droneRadiusNoLase", 2000),
+        ("JTAC_droneRadiusOnLase", 1000),
+        ("JTAC_droneSpeed", 150),
+    ],
+)
+def test_drone_global_carries_the_value_it_replaced(catalogue, key, value):
+    assert catalogue[key] == value
+
+
+def test_the_single_radius_setting_is_retired(catalogue, schema):
+    """One key could not express both the searching and the lasing radius."""
+    assert "JTAC_droneRadius" not in catalogue
+    assert "JTAC_droneRadius" not in schema
+
+
+def test_no_crate_carries_specificparams(catalogue):
+    for section, entries in (catalogue.get("spawnableCrates") or {}).items():
+        for entry in entries or []:
+            assert "specificParams" not in entry, f"{section}: {entry.get('desc')}"
+
+
+def test_specificparams_is_gone_from_the_crate_schema(schema):
+    assert not [f for f in schema["tableFields"]["spawnableCrates"] if f.startswith("specificParams")]
+
+
+def test_the_troop_path_keeps_specificparams(catalogue):
+    """`specificParams.task` on loadableGroups is Feature I — a different feature sharing the name.
+
+    Only the crate block was retired. This guards the boundary: nothing here should have reached
+    CTLD_troop.lua.
+    """
+    troop_lua = (SRC / "CTLD_troop.lua").read_text(encoding="utf-8")
+    assert "_assignPostSpawnTask" in troop_lua
+    assert "specificParams" in troop_lua
+
+
+def test_spawn_and_orbit_read_the_same_altitude_setting():
+    """They used to disagree: born at JTAC_droneAltitude, orbiting at the per-crate value."""
+    utils_lua = (SRC / "CTLD_utils.lua").read_text(encoding="utf-8")
+    jtac_lua = (SRC / "CTLD_jtac.lua").read_text(encoding="utf-8")
+    assert 'ctld.gs("JTAC_droneAltitude")' in utils_lua  # buildGroupUnitDef, spawn
+    assert jtac_lua.count('ctld.gs("JTAC_droneAltitude")') == 2  # _setOrbitRoute + _setOrbitTask
+    assert 'ctld.gs("JTAC_droneSpeed")' in utils_lua  # spawn speed, was hardcoded 54 m/s
+
+
+def test_the_orbit_no_longer_threads_a_per_crate_params_table():
+    jtac_lua = (SRC / "CTLD_jtac.lua").read_text(encoding="utf-8")
+    assert "orbitParams" not in jtac_lua

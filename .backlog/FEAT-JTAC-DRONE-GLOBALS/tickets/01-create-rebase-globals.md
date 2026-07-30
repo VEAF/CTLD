@@ -1,6 +1,15 @@
 # 01 — four JTAC drone globals, rebased on today's values
 
-**Status:** ready
+**Status:** done
+
+> **This ticket contradicted itself, and the contradiction was resolved in favour of the alignment.**
+> It demanded that the drones fly "exactly as before" *and* that the hardcoded `speed = 54` m/s in
+> `buildGroupUnitDef` be replaced by `JTAC_droneSpeed`. Those cannot both hold: 150 km/h is 41.7 m/s.
+>
+> The spawn speed was transient — the orbit route overrode it a couple of seconds after spawn — so
+> unifying it is the same fix as the altitude, which this lot already celebrates. Both spawn values now
+> match the orbit, and both changes are announced in `CHANGELOG.md`. "Exactly as before" is honoured
+> where it matters: **the orbit itself is unchanged.**
 
 ## Why
 

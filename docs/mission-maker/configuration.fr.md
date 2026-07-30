@@ -213,8 +213,10 @@ aléatoire de 90–120 % de `SOLDIER_WEIGHT`, plus l'équipement et le matériel
 | `JTAC_smokeOffset_x` | `0.0` | Offset Est/Ouest fixe (m) ajouté avant l'erreur aléatoire |
 | `JTAC_smokeOffset_y` | `2.0` | Offset vertical fixe (m) — garde la smoke visible au-dessus du terrain |
 | `JTAC_smokeOffset_z` | `0.0` | Offset Nord/Sud fixe (m) ajouté avant l'erreur aléatoire |
-| `JTAC_droneRadius` | `1000` | Rayon d'orbite de repli (m) pour les JTAC drones quand la crate n'a pas de `specificParams` |
-| `JTAC_droneAltitude` | `4000` | Altitude d'orbite de repli AGL (m) pour les JTAC drones quand la crate n'a pas de `specificParams` |
+| `JTAC_droneRadiusNoLase` | `2000` | Rayon d'orbite (m) tant qu'un JTAC drone cherche sans laser |
+| `JTAC_droneRadiusOnLase` | `1000` | Rayon d'orbite (m) une fois qu'un JTAC drone illumine une cible — plus serré, pour rester près de ce qu'il désigne |
+| `JTAC_droneAltitude` | `3000` | Altitude d'orbite AGL (m) des JTAC drones, utilisée aussi pour l'altitude d'apparition |
+| `JTAC_droneSpeed` | `150` | Vitesse d'orbite (km/h) des JTAC drones, utilisée aussi pour la vitesse d'apparition |
 
 #### Groupes JTAC pré-placés (auto-détection) { #pre-placed-jtac-groups-auto-detection }
 

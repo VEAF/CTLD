@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.12"
+ctld.i18n["fr"].translation_version = "1.14"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -589,3 +589,8 @@ ctld.i18n["fr"]["Cannot repair %1. No damaged %1 within %2m"]                   
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 ctld.i18n["fr"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = "%1 réglage(s) absent(s) de la config de la mission — valeur par défaut CTLD utilisée : %2"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+ctld.i18n["fr"]["specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"] = "specificParams est ignoré sur les caisses (%1) — l'altitude, les rayons et la vitesse d'orbite des drones viennent désormais des réglages JTAC_drone*"

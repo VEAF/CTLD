@@ -1,6 +1,21 @@
 # FEAT-JTAC-DRONE-GLOBALS — drone orbit parameters become global settings
 
-**Status:** ready
+**Status:** done — all three tickets delivered.
+
+> **Delivered.** The four globals rebased on the drones' own values (3000 m, 2000 m, 1000 m, 150 km/h),
+> `JTAC_droneRadius` retired, `specificParams` gone from the schema, the catalogue and the engine — the
+> `orbitParams` plumbing threaded through `autoLase` / `startLase` / `_setOrbitRoute` / `_setOrbitTask`
+> is removed entirely — plus a startup NOTICE naming stale crates and their replacement settings.
+>
+> **Two in-flight changes, both alignments** (announced in `CHANGELOG.md`): a drone now spawns at 3000 m
+> rather than 4000, and at 150 km/h rather than a hardcoded 54 m/s. It used to be born high and fast and
+> then change altitude *and* speed when the orbit route landed. The orbit itself is unchanged.
+>
+> **Verification.** 191 pytest tests + ruff clean; `test_catalogue_truth.py` gains seven guards pinning
+> each global to the value it replaced and asserting the crate surface is clear while the troop path is
+> not. `luacheck` on the three changed Lua files: 28 warnings before and after. A new
+> `tests/ci/unit/jtac_drone_globals_spec.lua` covers the runtime — spawn/orbit agreement and the NOTICE —
+> and is CI's to run, since busted is not installed locally.
 
 Lot **C** of the post-review program (2026-07-30). Independent of lots A / B / D — can ship in parallel.
 

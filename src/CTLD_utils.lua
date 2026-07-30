@@ -1303,7 +1303,10 @@ function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
     else
         -- Non-ground (AIRPLANE / HELICOPTER / SHIP / TRAIN)
         local alt     = ctld.gs("JTAC_droneAltitude")
-        local speed   = 54 -- m/s (~105 kts)
+        -- Same setting as the orbit route, so a drone spawns at the speed it will fly at. It used
+        -- to be 54 m/s here against the orbit's own value, so the drone changed speed a couple of
+        -- seconds after spawning — the same mismatch the altitude had.
+        local speed   = ctld.utils.kmphToMps("ctld.utils.buildGroupUnitDef()", ctld.gs("JTAC_droneSpeed"))
         local uname   = gname .. "_1"
         local unitDef = {
             ["name"]          = gname,

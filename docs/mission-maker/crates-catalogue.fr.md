@@ -38,7 +38,6 @@ _cfg.settings["spawnableCrates"] = {
 | `cratesRequired` | number | Combien de crates de ce type doivent se trouver dans un rayon de 300 m les uns des autres pour l'unpack (défaut `1`). |
 | `isJTAC` | bool | Marque l'unité comme un JTAC — voir [unités JTAC](#jtac-units) plus bas. |
 | `spawnAs` | string | Surcharge de catégorie de spawn pour les unités aériennes : `"AIRPLANE"` ou `"HELICOPTER"` (utilisé par les JTAC drones). Les véhicules terrestres n'ont besoin d'aucune surcharge. |
-| `specificParams` | table | Paramètres additionnels par unité (ex. `speed`, `alti`, rayons d'orbite d'un drone). |
 | `mixedSet` | array | Alternative à `weight` : une entrée dont la valeur est une liste de poids définit un **jeu combiné** — un seul item de menu qui fait spawner plusieurs types de crate différents d'un coup (voir plus bas). |
 
 ### Crates simples vs jeux { #single-crates-vs-sets }
@@ -198,7 +197,6 @@ JTAC séparée. N'importe quelle unité (véhicule ou drone) peut être un JTAC 
 {
     weight = 1006.01, desc = ctld.tr("MQ-9 Repear - JTAC"), unit = "MQ-9 Reaper", side = 2,
     isJTAC = true, spawnAs = "AIRPLANE",
-    specificParams = { speed = 150, alti = 3000, orbitRadiusNoLase = 2000, orbitRadiusOnLase = 1000 },
 },
 ```
 
@@ -221,7 +219,9 @@ Hummer (BLUE) et un SKP-11 (RED) dans `Support`, plus un MQ-9 Reaper (BLUE) et u
 | `JTAC_allowStandbyMode` | `true` | Autorise les pilotes à activer/désactiver le laser. |
 | `JTAC_allow9Line` | `true` | Active l'affichage de la requête CAS 9-line. |
 | `JTAC_targetDeconfliction` | `true` | Empêche plusieurs JTAC de lase la même cible simultanément. |
-| `JTAC_droneRadius` | `1000` | Rayon d'orbite de repli (m) quand un descripteur de drone n'a pas de `specificParams`. |
+| `JTAC_droneRadiusNoLase` | `2000` | Rayon d'orbite (m) en recherche. |
+| `JTAC_droneRadiusOnLase` | `1000` | Rayon d'orbite (m) en lasing. |
+| `JTAC_droneSpeed` | `150` | Vitesse d'orbite (km/h). |
 
 Une fois un JTAC déployé, tout ce qui concerne son **utilisation** — auto-lasing, codes laser,
 fumigène, 9-line — est couvert dans le [guide JTAC Pilote](../pilot/jtac.md).

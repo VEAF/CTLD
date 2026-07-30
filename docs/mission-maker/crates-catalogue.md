@@ -37,7 +37,6 @@ _cfg.settings["spawnableCrates"] = {
 | `cratesRequired` | number | How many crates of this type must sit within 300 m of each other to unpack (default `1`). |
 | `isJTAC` | bool | Marks the unit as a JTAC — see [JTAC units](#jtac-units) below. |
 | `spawnAs` | string | Spawn category override for air units: `"AIRPLANE"` or `"HELICOPTER"` (used by drone JTACs). Ground vehicles need no override. |
-| `specificParams` | table | Extra per-unit parameters (e.g. drone `speed`, `alti`, orbit radii). |
 | `mixedSet` | array | Alternative to `weight`: an entry whose value is a list of weights defines a **combined set** — one menu item that spawns several different crate types at once (see below). |
 
 ### Single crates vs sets
@@ -194,7 +193,6 @@ list. Any unit (vehicle or drone) can be a JTAC:
 {
     weight = 1006.01, desc = ctld.tr("MQ-9 Repear - JTAC"), unit = "MQ-9 Reaper", side = 2,
     isJTAC = true, spawnAs = "AIRPLANE",
-    specificParams = { speed = 150, alti = 3000, orbitRadiusNoLase = 2000, orbitRadiusOnLase = 1000 },
 },
 ```
 
@@ -216,7 +214,9 @@ Reaper (BLUE) and RQ-1A Predator (RED) in `Drone`.
 | `JTAC_allowStandbyMode` | `true` | Allow pilots to toggle the laser on/off. |
 | `JTAC_allow9Line` | `true` | Enable the 9-line CAS request display. |
 | `JTAC_targetDeconfliction` | `true` | Prevent multiple JTACs from lasing the same target simultaneously. |
-| `JTAC_droneRadius` | `1000` | Fallback orbit radius (m) when a drone descriptor has no `specificParams`. |
+| `JTAC_droneRadiusNoLase` | `2000` | Orbit radius (m) while searching. |
+| `JTAC_droneRadiusOnLase` | `1000` | Orbit radius (m) while lasing. |
+| `JTAC_droneSpeed` | `150` | Orbit airspeed (km/h). |
 
 Once a JTAC is deployed, everything about **operating** it — auto-lasing, laser codes, smoke,
 9-line — is covered in the [Pilot JTAC guide](../pilot/jtac.md).

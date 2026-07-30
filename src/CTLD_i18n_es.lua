@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.12"
+ctld.i18n["es"].translation_version = "1.14"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -559,3 +559,8 @@ ctld.i18n["es"]["Ships"] = ""
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 ctld.i18n["es"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = ""
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
+ctld.i18n["es"]["specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"] = ""
