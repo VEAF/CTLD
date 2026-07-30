@@ -121,6 +121,30 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   colour preview), with the format documented in the schema. Array length is preserved — the engine
   indexes these by position.
 
+### Tooling — every complex config key gets a real editor (FEAT-EDITOR-COVERAGE)
+
+- **`aiZones` has an editor.** It used to fall through to a raw JSON box, because its entries are
+  *named records* and the positional zone editor would have corrupted them. The new editor respects the
+  two traps the data carries: **`coalition` is a string** here (`RED` / `BLUE` / `NEUTRAL`) where every
+  other coalition field in the catalogue is the numeric `side` — writing a number would be read by the
+  engine as "any coalition", silently — and the **stock tables carry two magic values**, the key `All`
+  and the count `-1`, now offered as a placeholder and a checkbox rather than left as lore.
+- **`spawnableCratesModels` has an editor**: three fixed rows, one per transport mode, with no add or
+  remove control because no row can be added or removed. Clearing the optional shape name omits the key
+  instead of writing an empty string, which would have changed the DCS static definition.
+- **`isJTAC` and a strict `spawnAs` dropdown on every crate.** The engine has always lased any crate
+  flagged `isJTAC`, ground or air — only the editor was short. The two ship together because they
+  determine each other. The dropdown offers `GROUND` and `AIR` only; **`AIR` is an authoring convenience**
+  the tool resolves to `AIRPLANE` or `HELICOPTER` from the unit's datamine category, so the YAML keeps
+  carrying what the engine expects and a Mission Maker never has to know which of the two an airframe is.
+- **`modTypes` is editable as a list** of DCS type names, with the datamine autocomplete.
+- **Every closed value set now comes from the schema, never from a component.** `/api/schema` widened so
+  a table field carries its `choices` alongside its help text — a value list living only in the frontend
+  would help users of the app and nobody editing the YAML by hand.
+- The vendored datamine bundle now maps each type to its category, which is what makes the `AIR`
+  resolution possible. The category was already in the datamine's directory layout and was being
+  discarded.
+
 ### Tooling — config completeness is checked before export (FEAT-CONFIG-PARAM-SEMANTICS)
 
 - **`validate` now refuses an incomplete config.** A setting the config omits is reported as an

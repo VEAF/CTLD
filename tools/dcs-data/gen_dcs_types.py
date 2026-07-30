@@ -60,13 +60,29 @@ def clone_units(dest: Path, ref: str = DATAMINE_REF) -> Path:
     return dest / UNITS_PATH
 
 
-def collect_type_names(units_dir: Path) -> list[str]:
-    # The unit files are <Category>/<Type>/<TypeName>.lua; some categories also dump
-    # numeric-indexed helper files (0.lua, 1.lua, ...) that are not spawn type ids.
-    # Drop purely-numeric basenames; keep everything else (inclusive by design — a
-    # lenient allow-set must not miss real types).
-    names = {p.stem for p in units_dir.rglob("*.lua") if not p.stem.isdigit()}
-    return sorted(names)
+def collect_types(units_dir: Path) -> dict[str, str]:
+    """Map each spawn type id to its datamine category.
+
+    The unit files are <Category>/<Type>/<TypeName>.lua, so the category is the first path
+    component. It used to be discarded; ctld-tools needs it to resolve the `spawnAs: AIR`
+    authoring convenience to the AIRPLANE or HELICOPTER the engine expects at spawn.
+
+    Some categories also dump numeric-indexed helper files (0.lua, 1.lua, ...) that are not
+    spawn type ids. Drop purely-numeric basenames; keep everything else (inclusive by design — a
+    lenient allow-set must not miss real types).
+    """
+    out: dict[str, str] = {}
+    for path in sorted(units_dir.rglob("*.lua")):
+        if path.stem.isdigit():
+            continue
+        parts = path.relative_to(units_dir).parts
+        category = parts[0] if len(parts) > 1 else ""
+        previous = out.get(path.stem)
+        if previous is not None and previous != category:
+            # A type id under two categories makes the spawn-category lookup ambiguous.
+            print(f"WARNING: {path.stem!r} in both {previous!r} and {category!r}", file=sys.stderr)
+        out[path.stem] = category
+    return out
 
 
 def render_lua(names: list[str], ref: str) -> str:
@@ -90,7 +106,8 @@ def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         dest = Path(tmp)
         units_dir = clone_units(dest)
-        names = collect_type_names(units_dir)
+        types = collect_types(units_dir)
+    names = sorted(types)
     if not names:
         print("ERROR: no type names collected", file=sys.stderr)
         return 1
@@ -98,8 +115,17 @@ def main() -> int:
     _OUT.write_text(render_lua(names, DATAMINE_REF), encoding="utf-8", newline="\n")
     print(f"Wrote {_OUT.relative_to(_REPO_ROOT)} ({len(names)} types, ref {DATAMINE_REF[:8]})")
     _JSON_OUT.parent.mkdir(parents=True, exist_ok=True)
-    _JSON_OUT.write_text(json.dumps(names, ensure_ascii=False, indent=0), encoding="utf-8", newline="\n")
-    print(f"Wrote {_JSON_OUT.relative_to(_REPO_ROOT)} ({len(names)} types)")
+    # A mapping, not a list: the category is what resolves the `spawnAs: AIR` authoring
+    # convenience to the AIRPLANE or HELICOPTER the engine expects.
+    _JSON_OUT.write_text(
+        json.dumps(dict(sorted(types.items())), ensure_ascii=False, indent=0),
+        encoding="utf-8",
+        newline="\n",
+    )
+    print(
+        f"Wrote {_JSON_OUT.relative_to(_REPO_ROOT)} "
+        f"({len(names)} types, {len(set(types.values()))} categories)"
+    )
     return 0
 
 

@@ -1,6 +1,6 @@
 # 04 — `AiZonesEditor.svelte`
 
-**Status:** ready
+**Status:** done
 
 Depends on: 02 (`tableFields` carries `choices`) and lot B ticket 01 (`tableFields.aiZones` must describe
 the real fields and declare the three enums — both the editor's help text and its selects come from there).

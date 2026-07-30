@@ -14,7 +14,13 @@ const SCHEMA = {
     crates: { label: 'Crates', unit: null, description: 'Spawning and unpacking supply crates.', order: 30 },
     aircraft: { label: 'Aircraft', unit: null, description: 'Which airframes carry what.', order: 20 },
   },
-  tableFields: { spawnableCrates: { desc: 'Display name', unit: 'DCS type', weight_kg: 'mass' } },
+  tableFields: {
+    spawnableCrates: {
+      desc: { tip: 'Display name' },
+      unit: { tip: 'DCS type' },
+      weight_kg: { tip: 'mass' },
+    },
+  },
   zoneFields: {},
 }
 

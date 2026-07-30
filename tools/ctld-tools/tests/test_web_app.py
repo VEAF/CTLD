@@ -49,7 +49,10 @@ def test_schema_endpoint_exposes_families_and_keys():
 def test_schema_endpoint_exposes_table_fields():
     body = client.get("/api/schema").json()
     crates = body["tableFields"]["spawnableCrates"]
-    assert crates["desc"] and crates["weight_kg"]  # field descriptions present
+    assert crates["desc"]["tip"] and crates["weight_kg"]["tip"]  # field descriptions present
+    # A closed vocabulary reaches the UI as `choices`, so a select cannot invent a value.
+    assert crates["spawnAs"]["choices"] == ["GROUND", "AIR"]
+    assert crates["desc"]["choices"] is None  # free text stays free
 
 
 def test_resources_frozen_path(monkeypatch, tmp_path):
@@ -82,7 +85,7 @@ def test_schema_endpoint_translates_with_lang():
     # Setting descriptions and table field headings follow the same language.
     en = client.get("/api/schema?lang=en").json()
     assert fr["keys"]["enableCrates"]["description"] != en["keys"]["enableCrates"]["description"]
-    assert "DCS" in fr["tableFields"]["spawnableCrates"]["unit"]
+    assert "DCS" in fr["tableFields"]["spawnableCrates"]["unit"]["tip"]
 
 
 def test_schema_endpoint_labels_every_setting():

@@ -7,7 +7,7 @@ function setup() {
   const crates = {
     Support: [{ desc: 'Ammo', unit: 'Ural-375', weight: 1001.01, cratesRequired: 1 }],
   }
-  render(CratesEditor, { crates, fields: { desc: 'Display name' }, onchange })
+  render(CratesEditor, { crates, fields: { desc: { tip: 'Display name' } }, onchange })
   return { onchange }
 }
 
@@ -54,4 +54,71 @@ test('labels the crate fields in words, not schema keys', () => {
   expect(screen.getByText('DCS unit type')).toBeInTheDocument()
   expect(screen.getByText('Weight (kg)')).toBeInTheDocument()
   expect(screen.getByText('Coalition')).toBeInTheDocument()
+})
+
+// ── isJTAC + spawnAs (FEAT-EDITOR-COVERAGE ticket 03) ─────────────────────────
+// The engine lases any isJTAC descriptor regardless of spawnAs, and the catalogue already ships
+// two ground JTACs — only the editor was short. The two ship together because they determine each
+// other: flagging an aircraft type as a JTAC without being able to set spawnAs gives a broken
+// ground spawn with no message.
+
+const JTAC_FIELDS = {
+  desc: { tip: 'Display name' },
+  spawnAs: { tip: 'Unpacks as', choices: ['GROUND', 'AIR'] },
+  isJTAC: { tip: 'Mark as JTAC' },
+}
+const SPAWN_AS_BY_TYPE = {
+  'MQ-9 Reaper': 'AIRPLANE',
+  'UH-1H': 'HELICOPTER',
+  Hummer: 'GROUND',
+}
+
+function renderJtacCrates(crate: Record<string, unknown>) {
+  const onchange = vi.fn()
+  render(CratesEditor, {
+    crates: { Support: [{ desc: 'C', unit: crate.unit ?? 'Hummer', weight: 1, ...crate }] },
+    fields: JTAC_FIELDS,
+    spawnAsByType: SPAWN_AS_BY_TYPE,
+    onchange,
+  })
+  return onchange
+}
+
+test('the spawnAs select offers exactly the schema choices, not a literal', () => {
+  renderJtacCrates({})
+  const select = screen.getByLabelText(/Unpacks as/i) as HTMLSelectElement
+  expect([...select.options].map((o) => o.value)).toEqual(['GROUND', 'AIR'])
+})
+
+test('AIR resolves to HELICOPTER or AIRPLANE from the unit type', async () => {
+  const onchange = renderJtacCrates({ unit: 'UH-1H' })
+  await fireEvent.change(screen.getByLabelText(/Unpacks as/i), { target: { value: 'AIR' } })
+  expect(onchange.mock.lastCall![0].Support[0].spawnAs).toBe('HELICOPTER')
+
+  const onchange2 = renderJtacCrates({ unit: 'MQ-9 Reaper' })
+  await fireEvent.change(screen.getAllByLabelText(/Unpacks as/i)[1], { target: { value: 'AIR' } })
+  expect(onchange2.mock.lastCall![0].Support[0].spawnAs).toBe('AIRPLANE')
+})
+
+test('a stored AIRPLANE reads back as AIR, so a round-trip does not drift', () => {
+  renderJtacCrates({ unit: 'MQ-9 Reaper', spawnAs: 'AIRPLANE' })
+  expect((screen.getByLabelText(/Unpacks as/i) as HTMLSelectElement).value).toBe('AIR')
+})
+
+test('GROUND is written as an absent key, matching how the catalogue ships', async () => {
+  const onchange = renderJtacCrates({ unit: 'MQ-9 Reaper', spawnAs: 'AIRPLANE' })
+  await fireEvent.change(screen.getByLabelText(/Unpacks as/i), { target: { value: 'GROUND' } })
+  expect(onchange.mock.lastCall![0].Support[0].spawnAs).toBeUndefined()
+})
+
+test('isJTAC toggles on any crate, ground included', async () => {
+  const onchange = renderJtacCrates({ unit: 'Hummer' })
+  await fireEvent.click(screen.getByLabelText(/JTAC/i))
+  expect(onchange.mock.lastCall![0].Support[0].isJTAC).toBe(true)
+})
+
+test('unticking isJTAC removes the key rather than writing false', async () => {
+  const onchange = renderJtacCrates({ unit: 'Hummer', isJTAC: true })
+  await fireEvent.click(screen.getByLabelText(/JTAC/i))
+  expect(onchange.mock.lastCall![0].Support[0].isJTAC).toBeUndefined()
 })

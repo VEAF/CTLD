@@ -42,7 +42,10 @@ describe('FR catalog', () => {
   it('actually differs from EN (no untranslated leftovers)', () => {
     // A handful of strings are legitimately identical across the two languages. Each one is listed
     // deliberately, so a genuinely untranslated string cannot slip in unnoticed:
-    //   web.field.jtac            — an acronym
+    //   web.aizone.add_restriction — "restriction" is spelled the same
+    //   web.field.coalition       — likewise "Coalition"
+    //   web.field.isJTAC          — an acronym
+    //   web.field.jtac            — likewise
     //   web.field.side            — "Coalition" is spelled the same
     //   web.header.config         — likewise "Configuration"
     //   web.help.validation_title — likewise "Validation"
@@ -50,6 +53,9 @@ describe('FR catalog', () => {
     const identical = Object.keys(en).filter((key) => en[key] === fr[key])
     expect(identical).toEqual(
       [
+        'web.aizone.add_restriction',
+        'web.field.coalition',
+        'web.field.isJTAC',
         'web.field.jtac',
         'web.field.side',
         'web.header.config',

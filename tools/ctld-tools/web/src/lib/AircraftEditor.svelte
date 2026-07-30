@@ -2,6 +2,7 @@
   // Editor for capabilitiesByType: aircraft type → capabilities record (bool flags,
   // numeric maxima, two loadable-vehicle string lists). Add a type via a datamine picker.
   import StringListEditor from './StringListEditor.svelte'
+  import type { TableField } from './api'
   import { t } from './i18n.svelte'
   import { AIRCRAFT_BOOLS, AIRCRAFT_NUMS, blankAircraft, DCS_TYPES_LIST, fieldLabel } from './tables'
 
@@ -13,7 +14,7 @@
     onchange,
   }: {
     capabilities: Record<string, Rec>
-    fields: Record<string, string | null>
+    fields: Record<string, TableField>
     onchange: (v: Record<string, Rec>) => void
   } = $props()
 
@@ -48,7 +49,7 @@
     delete model[type]
     commit()
   }
-  const tip = (f: string) => fields?.[f] ?? undefined
+  const tip = (f: string) => fields?.[f]?.tip ?? undefined
 </script>
 
 <div class="add-type">

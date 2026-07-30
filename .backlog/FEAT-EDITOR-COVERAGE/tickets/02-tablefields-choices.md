@@ -1,6 +1,6 @@
 # 02 — `tableFields` entries carry `choices`, and the API surfaces them
 
-**Status:** ready
+**Status:** done
 
 Prerequisite for tickets 03 (`spawnAs`) and 04 (`aiZones` enums). Lot B authors the YAML side; this
 ticket makes it reach the UI.

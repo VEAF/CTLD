@@ -1,6 +1,6 @@
 # 01 — carry the unit category in `dcs_types.json`
 
-**Status:** ready
+**Status:** done
 
 First ticket: ticket 02's `AIR` resolution depends on it.
 

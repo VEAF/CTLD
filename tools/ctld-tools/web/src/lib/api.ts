@@ -31,12 +31,19 @@ export interface FamilyMeta {
   order: number
 }
 
+/** Help text for one field of a structured table, plus its allowed values when the set is closed. */
+export interface TableField {
+  tip: string | null
+  /** From the schema's `choices:`; present only for a closed vocabulary (e.g. spawnAs, aiZones enums). */
+  choices?: string[] | null
+}
+
 export interface SchemaInfo {
   families: string[]
   /** Per-family label / description / navigation order, from the schema's `families:` section. */
   familyMeta: Record<string, FamilyMeta>
   keys: Record<string, SchemaKey>
-  tableFields: Record<string, Record<string, string | null>>
+  tableFields: Record<string, Record<string, TableField>>
   zoneFields: Record<string, ZoneField[]>
 }
 
@@ -99,7 +106,9 @@ export const getDefaults = () => fetch('/api/defaults').then((r) => json<{ value
 export const putSetting = (key: string, value: unknown) =>
   put('/api/catalog/setting', { key, value }).then((r) => json<{ key: string; value: unknown }>(r))
 export const getValidate = () => fetch('/api/validate').then((r) => json<ValidateResult>(r))
-export const getDcsTypes = () => fetch('/api/dcs-types').then((r) => json<{ types: string[] }>(r))
+/** `spawnAs` maps every known type to GROUND / AIRPLANE / HELICOPTER — see /api/dcs-types. */
+export const getDcsTypes = () =>
+  fetch('/api/dcs-types').then((r) => json<{ types: string[]; spawnAs: Record<string, string> }>(r))
 export const openDialog = (kind: 'open' | 'save' | 'miz') =>
   fetch(`/api/dialog/${kind}`).then((r) => json<{ path: string | null }>(r))
 export const injectMiz = (miz: string) => post('/api/inject', { miz }).then((r) => json<{ injected: string }>(r))

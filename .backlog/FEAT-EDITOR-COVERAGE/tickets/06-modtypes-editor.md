@@ -1,6 +1,6 @@
 # 06 — dispatch `modTypes` to `StringListEditor`
 
-**Status:** ready
+**Status:** done
 
 Depends on: lot B ticket 03 (the catalogue value must be `[]`, not `{}`).
 

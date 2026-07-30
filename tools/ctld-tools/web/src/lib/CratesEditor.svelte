@@ -1,6 +1,7 @@
 <script lang="ts">
   // Editor for spawnableCrates: { section → [crate entry, …] }. Owns a local editable
   // copy and emits the whole structure on every change (single-user, coarse-grained PUT).
+  import type { TableField } from './api'
   import { t } from './i18n.svelte'
   import { DCS_TYPES_LIST, fieldLabel } from './tables'
 
@@ -9,10 +10,13 @@
   let {
     crates,
     fields,
+    spawnAsByType = {},
     onchange,
   }: {
     crates: Record<string, Crate[]>
-    fields: Record<string, string | null>
+    fields: Record<string, TableField>
+    /** type name → GROUND | AIRPLANE | HELICOPTER, from /api/dcs-types. */
+    spawnAsByType?: Record<string, string>
     onchange: (v: Record<string, Crate[]>) => void
   } = $props()
 
@@ -39,8 +43,33 @@
     commit()
   }
 
-  const tip = (field: string) => fields?.[field] ?? undefined
+  const tip = (field: string) => fields?.[field]?.tip ?? undefined
   const num = (v: unknown) => (v === undefined || v === null || v === '' ? undefined : Number(v))
+
+  // `spawnAs` is authored as GROUND or AIR — the schema's `choices`. AIR is a convenience: DCS
+  // needs the exact Group.Category, so it is resolved to AIRPLANE or HELICOPTER from the unit's
+  // datamine category on the way out, and folded back to AIR on the way in. The catalogue
+  // therefore keeps carrying what the engine expects, and the Mission Maker never has to know
+  // which of the two a given airframe is.
+  const AIR_VALUES = new Set(['AIRPLANE', 'HELICOPTER'])
+  const spawnChoices = $derived(fields?.spawnAs?.choices ?? ['GROUND', 'AIR'])
+
+  /** The stored value shown as one of the authoring choices. */
+  function displayedSpawnAs(crate: Crate): string {
+    return AIR_VALUES.has(String(crate.spawnAs ?? '')) ? 'AIR' : 'GROUND'
+  }
+
+  /** Resolve an authoring choice to what the engine reads, from the crate's unit type. */
+  function setSpawnAs(section: string, i: number, choice: string, unit: unknown) {
+    if (choice !== 'AIR') {
+      // GROUND is the engine's default when the key is absent; omitting it keeps the catalogue
+      // as terse as it ships.
+      setField(section, i, 'spawnAs', undefined)
+      return
+    }
+    const resolved = spawnAsByType[String(unit ?? '')]
+    setField(section, i, 'spawnAs', AIR_VALUES.has(resolved) ? resolved : 'AIRPLANE')
+  }
 </script>
 
 {#snippet removeButton(section: string, i: number, label: string)}
@@ -68,6 +97,14 @@
               <option value="1">RED</option>
               <option value="2">BLUE</option>
             </select>
+          </label>
+          <label title={tip('spawnAs')}>{fieldLabel('spawnAs')}
+            <select value={displayedSpawnAs(crate)} onchange={(e) => setSpawnAs(section, i, e.currentTarget.value, crate.unit)}>
+              {#each spawnChoices as choice (choice)}<option value={choice}>{choice}</option>{/each}
+            </select>
+          </label>
+          <label class="flag" title={tip('isJTAC')}>{fieldLabel('isJTAC')}
+            <input type="checkbox" checked={crate.isJTAC === true} onchange={(e) => setField(section, i, 'isJTAC', e.currentTarget.checked || undefined)} />
           </label>
         {/if}
         {@render removeButton(section, i, String(crate.desc || t('web.table.this_crate')))}
