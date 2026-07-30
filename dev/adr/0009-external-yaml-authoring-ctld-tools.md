@@ -1,7 +1,10 @@
 # ADR 0009 — External YAML authoring for CTLD configuration (ctld-tools)
 
 ## Status
-Accepted (CTLD-TOOLS-CONFIG, 2026-07-20).
+Accepted (CTLD-TOOLS-CONFIG, 2026-07-20). **Points 2 & 3 superseded by
+[ADR 0011](0011-complete-yaml-config-and-webapp-tooling.md) (2026-07-24)** — the ops/diff config model and
+the Textual TUI are retired. **Point 1** (a standalone, offline `ctld-tools` distributed to MMs) and
+**point 4** (`.miz` trigger injection) stand, as does the YAML-as-single-source-of-truth intent.
 
 ## Implementation notes (as delivered — refinements to the original proposal)
 

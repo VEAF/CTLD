@@ -1,6 +1,11 @@
 # 01 — ADR 0011 addendum: the two config tiers
 
-**Status:** ready
+**Status:** done
+
+> Delivered as `Addendum 1` in ADR 0011, cross-linked from the Status line and from point 1.
+> The acceptance check on neighbouring ADRs found a real gap: **0008 and 0009 both still read
+> "Accepted"** despite 0011 declaring them superseded. Both Status lines now say so — 0008 entirely,
+> 0009 for points 2 & 3 only.
 
 ## Why
 

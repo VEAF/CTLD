@@ -1,7 +1,12 @@
 # ADR 0008 — userConfig API and AA injection relocated to bootstrap
 
 ## Status
-Accepted
+**Superseded entirely by [ADR 0011](0011-complete-yaml-config-and-webapp-tooling.md) (2026-07-24).**
+The `ctld.userSetup` API and `src/CTLD_userSetup.lua` described below are removed; the config is now one
+complete YAML document resolved by a plain `or`. Kept for the historical record — do not implement from
+this document.
+
+Originally: Accepted
 
 ## Context
 

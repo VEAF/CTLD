@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (2026-07-24). **Supersedes ADR 0008 entirely and ADR 0009 points 2 & 3.**
+Accepted (2026-07-24). **Amended 2026-07-30 — see [Addendum 1](#addendum-1--the-two-config-tiers-2026-07-30).**
+**Supersedes ADR 0008 entirely and ADR 0009 points 2 & 3.**
 
 Point 1 of ADR 0009 (a standalone, offline `ctld-tools` distributed to MMs) and point 4 (`.miz`
 trigger injection) stand. The YAML-as-single-source-of-truth *intent* of ADR 0009 stands; what
@@ -34,7 +35,8 @@ replace both the TUI and the tkinter GUI with a **local web app**.
 1. **The config is one complete YAML document, not a diff.** The engine ships its default catalogue
    as YAML embedded verbatim into the deliverable (the `configDefault` string). A mission may supply
    a **complete** `configUser` YAML — a full snapshot, not a set of operations. **A missing element
-   means intentional removal.**
+   means intentional removal.** — *Amended: this holds for lists, not for scalar parameters. See
+   [Addendum 1](#addendum-1--the-two-config-tiers-2026-07-30).*
 
 2. **Loading is a straight `or`, never a merge.** At init CTLD resolves `configUser or configDefault`
    and parses the winner into the settings table. The runtime never deep-merges user over default;
@@ -140,3 +142,58 @@ replace both the TUI and the tkinter GUI with a **local web app**.
 - **Superseded lots**: `FEAT-USERCONFIG-API`, `CTLD-TOOLS-CONFIG`, `CTLD-TOOLS-USERCONFIG`,
   `CTLD-TOOLS-TUI`, `CTLD-TOOLS-TUI-POLISH`, `TUI-EDIT-MODE-UX`, and FullGas's `UX-CTLD-TOOLS-V2`
   contributed the groundwork but their diff/TUI/tkinter surfaces are retired here.
+
+## Addendum 1 — the two config tiers (2026-07-30)
+
+Point 1 above says "a missing element means intentional removal" without distinguishing the two kinds
+of thing the config holds. For a list that sentence is exactly right. For a scalar it has no meaning —
+the engine needs a number to compute with — and the code proves it: three settings are read with no
+fallback and fed straight into arithmetic or a comparison, so an incomplete document **crashes the
+mission** instead of expressing a removal.
+
+| Setting | Site | Failure |
+|---|---|---|
+| `JTAC_searchIntervalSeconds`, `JTAC_laseIntervalSeconds` | `CTLD_jtac.lua:905-906`, then `t + searchInterval` | error on every JTAC tick |
+| `slingCutDestroyHeight` | `CTLD_crate.lua:1503`, `agl > ctld.gs(...)` | error on every slingload release |
+
+This is reachable through a path the project already tools for — a `configUser` authored against an
+older catalogue, to which the engine has since added keys, which is precisely what the version-gap
+detection of point 5 exists to find. It is also reachable because **nothing obliges a Mission Maker to
+use ctld-tools**: point 3 deliberately makes the YAML hand-editable, so a config may never meet
+`validate` at all.
+
+### The two tiers
+
+- **Parameter** — a key whose default value is a **scalar**. It must be present. If it is absent the
+  engine resolves it from `configDefault` and reports it. **Never a removal**: "no value" is not a
+  state the engine can compute with.
+- **List** — a key whose default value is a **list or a map**. Omitting the key, or omitting one of its
+  elements, is an intentional removal. Unchanged from point 1.
+
+The tier is **derived, not declared** — read from the shape of the default value. No new metadata to
+maintain, and no drift surface between the engine and the tool, which apply the same rule to the same
+document.
+
+### This does not reopen the rejected deep-merge
+
+The considered alternative "runtime deep-merge `configDefault ⊕ configUser`" stays rejected, and its
+stated objection is why: merging *"makes element removal require explicit remove-ops again"*. That is an
+argument about **lists**, and lists keep point 1's semantic untouched. Nothing is merged here — a
+parameter absent from the winning document resolves to one value from the default, and no list is ever
+combined with another. Point 2's "never a merge" holds for every list; it gains an exception for scalars,
+where there was never anything to merge.
+
+### Enforced at two layers
+
+Because a hand-written config never meets the tool, one layer is not enough:
+
+- **Design time** — `validate` reports a missing parameter as an `ERROR`, which blocks export.
+- **Runtime** — the engine defaults it and emits a startup **NOTICE**, on screen rather than log-only:
+  for a hand-written config that is the only signal its author will ever get.
+
+A corollary: with the default reachable at runtime, per-site `or <literal>` fallbacks on parameters
+become duplicate defaults and are deleted. Two had already drifted from the catalogue
+(`maximumSearchDistance` 3000 vs 10000, `maximumDistanceLogistic` 200 vs 500). The `or {…}` guards on
+lists stay — for a list, absent still means empty.
+
+Implemented by lot `FEAT-CONFIG-PARAM-SEMANTICS`.
