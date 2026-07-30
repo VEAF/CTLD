@@ -1,6 +1,6 @@
 # FEAT-JTAC-DRONE-GLOBALS — drone orbit parameters become global settings
 
-**Status:** done — all three tickets delivered.
+**Status:** done — merged (PR #73).
 
 > **Delivered.** The four globals rebased on the drones' own values (3000 m, 2000 m, 1000 m, 150 km/h),
 > `JTAC_droneRadius` retired, `specificParams` gone from the schema, the catalogue and the engine — the
