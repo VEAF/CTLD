@@ -163,6 +163,61 @@ mm_facing:
       maxTroopsOnboard: 30
       useNativeDcsCargoSystem: false
       canTransportWholeVehicle: true
+    SA342L:
+      convertNativeLoadToCTLD: false
+      cratesEnabled: false
+      troopsEnabled: true
+      canSlingload: false
+      maxCratesOnboard: 0
+      maxWholeVehiclesOnboard: 0
+      canParachuteDrop: false
+      maxTroopsOnboard: 1
+      useNativeDcsCargoSystem: false
+      canTransportWholeVehicle: false
+    SA342M:
+      convertNativeLoadToCTLD: false
+      cratesEnabled: false
+      troopsEnabled: true
+      canSlingload: false
+      maxCratesOnboard: 0
+      maxWholeVehiclesOnboard: 0
+      canParachuteDrop: false
+      maxTroopsOnboard: 1
+      useNativeDcsCargoSystem: false
+      canTransportWholeVehicle: false
+    SA342Minigun:
+      convertNativeLoadToCTLD: false
+      cratesEnabled: false
+      troopsEnabled: true
+      canSlingload: false
+      maxCratesOnboard: 0
+      maxWholeVehiclesOnboard: 0
+      canParachuteDrop: false
+      maxTroopsOnboard: 1
+      useNativeDcsCargoSystem: false
+      canTransportWholeVehicle: false
+    SA342Mistral:
+      convertNativeLoadToCTLD: false
+      cratesEnabled: false
+      troopsEnabled: true
+      canSlingload: false
+      maxCratesOnboard: 0
+      maxWholeVehiclesOnboard: 0
+      canParachuteDrop: false
+      maxTroopsOnboard: 1
+      useNativeDcsCargoSystem: false
+      canTransportWholeVehicle: false
+    Yak-52:
+      convertNativeLoadToCTLD: false
+      cratesEnabled: false
+      troopsEnabled: true
+      canSlingload: false
+      maxCratesOnboard: 0
+      maxWholeVehiclesOnboard: 0
+      canParachuteDrop: false
+      maxTroopsOnboard: 1
+      useNativeDcsCargoSystem: false
+      canTransportWholeVehicle: false
   disableAllSmoke: false
   dynamicZoneRadius: 200
   enableAllCrates: true

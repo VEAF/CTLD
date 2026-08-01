@@ -270,9 +270,19 @@ Voir [Minefield](minefield.md) pour le déploiement.
 
 ## Capacités par appareil { #per-aircraft-capabilities }
 
-`capabilitiesByType` est l'unique table qui définit chaque capacité par appareil. **Seuls les
-appareils listés ici reçoivent les menus F10 de CTLD.** Chaque clé est le **nom de type DCS
-exact** de l'appareil (mods inclus, ex. `"Hercules"`, `"76MD"`, `"UH-60L"`).
+`capabilitiesByType` est l'unique table qui définit chaque capacité par appareil. **Un appareil
+listé ici est un transport ; un appareil absent conserve les parties de CTLD qui ne transportent
+rien.** Chaque clé est le **nom de type DCS exact** de l'appareil (mods inclus, ex. `"Hercules"`,
+`"76MD"`, `"UH-60L"`).
+
+| Avec une entrée | Sans entrée |
+| --- | --- |
+| caisses, troupes, beacons, fumigènes | — |
+| menu `CTLD`, **Check Cargo**, **RECON**, statut **JTAC** | identiques, inchangés |
+
+Un pilote aux commandes d'un appareil que vous avez oublié de lister a donc bien un menu CTLD —
+il ne transporte simplement rien. C'est le symptôme à chercher quand quelqu'un signale « le menu
+est là mais il est vide ».
 
 Dans `ctld-tools`, c'est la famille **Appareils** : choisissez un type dans la liste DCS et
 remplissez le formulaire. Dans un instantané écrit à la main, cette table vit sous `mm_facing` :

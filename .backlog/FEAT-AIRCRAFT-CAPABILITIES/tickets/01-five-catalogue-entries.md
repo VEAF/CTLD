@@ -1,6 +1,6 @@
 # 01 — five capability entries: four Gazelles and the Yak-52
 
-**Status:** todo
+**Status:** done
 
 No dependency.
 

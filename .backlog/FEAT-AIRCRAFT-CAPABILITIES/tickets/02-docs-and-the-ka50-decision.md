@@ -1,6 +1,6 @@
 # 02 — correct what "no entry" means, and record the Ka-50 decision
 
-**Status:** todo
+**Status:** done
 
 Depends on: 01 (ships with it; same PR).
 
