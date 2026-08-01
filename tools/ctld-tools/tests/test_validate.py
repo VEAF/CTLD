@@ -106,6 +106,34 @@ def test_unknown_type_in_a_type_list_is_an_error():
     assert has_errors(findings), "a type nothing can ever match must not export"
 
 
+def test_a_modded_crate_unit_is_accepted_when_declared_in_modtypes():
+    """The schema promises that listing a type in modTypes stops validation rejecting it."""
+    c = cat(BASE.replace("unit: Ural-375", "unit: AH-64D_MOD") + "advanced:\n  modTypes:\n  - AH-64D_MOD\n")
+    assert [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.crate.unknown_unit"] == []
+
+
+def test_an_undeclared_modded_crate_unit_still_fails():
+    c = cat(BASE.replace("unit: Ural-375", "unit: AH-64D_MOD"))
+    findings = validate(c, EMPTY, TYPES)
+    assert [f.params["unit"] for f in findings if f.key == "validate.crate.unknown_unit"] == ["AH-64D_MOD"]
+    assert has_errors(findings)
+
+
+def test_one_rule_is_not_stricter_than_another():
+    """A crate unit and a type-list entry are judged by the same known-type set."""
+    c = cat(
+        BASE.replace("unit: Ural-375", "unit: AH-64D_MOD")
+        + "  logisticUnitTypes:\n  - AH-64D_MOD\nadvanced:\n  modTypes:\n  - AH-64D_MOD\n"
+    )
+    assert validate(c, EMPTY, TYPES) == []
+
+
+def test_modtypes_itself_is_not_validated_against_the_datamine():
+    """Declaring a type is the whole point; demanding it be known would be circular."""
+    c = cat("advanced:\n  modTypes:\n  - SomethingNoDatamineKnows\n")
+    assert validate(c, EMPTY, TYPES) == []
+
+
 def test_a_modded_type_is_accepted_when_declared_in_modtypes():
     c = cat("mm_facing:\n  logisticUnitTypes:\n  - SuperCarrierMod\nadvanced:\n  modTypes:\n  - SuperCarrierMod\n")
     assert [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.type_list.unknown_type"] == []

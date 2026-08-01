@@ -1,6 +1,6 @@
 # 01 — one known-type set, honoured by every type-aware rule
 
-**Status:** todo
+**Status:** done
 
 No dependency.
 
