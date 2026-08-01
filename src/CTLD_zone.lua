@@ -477,6 +477,7 @@ function CTLDZoneManager:init()
     self:_loadAIZonesFromConfig()
     self:_discoverWPZ()
     self:_discoverLGZ()
+    self:_discoverLogisticUnitTypes()
     self:_loadLegacyZones()
     self:_scheduleSmoke()
 
@@ -536,6 +537,45 @@ function CTLDZoneManager:_count(tbl)
     local n = 0
     for _ in pairs(tbl) do n = n + 1 end
     return n
+end
+
+--- Build a lookup set from a config list of DCS type names.
+-- Returns nil when the list is absent or holds no usable name, so the caller can skip the
+-- mission scan entirely — an empty list means "this discovery is off", not "match nothing".
+local function _typeNameSet(list)
+    if type(list) ~= "table" then return nil end
+    local set, n = {}, 0
+    for _, typeName in ipairs(list) do
+        if type(typeName) == "string" and typeName ~= "" then
+            set[typeName] = true
+            n = n + 1
+        end
+    end
+    if n == 0 then return nil end
+    return set
+end
+
+--- Call fn(unit) for every live unit of the mission, all coalitions.
+-- API note: coalition.getGroups() may return destroyed groups (DCS bug) → filtered by isExist().
+local function _forEachMissionUnit(fn)
+    local sides = { coalition.side.RED, coalition.side.BLUE, coalition.side.NEUTRAL }
+    for _, side in ipairs(sides) do
+        for _, grp in ipairs(coalition.getGroups(side) or {}) do
+            for _, u in ipairs(grp:getUnits() or {}) do
+                if u:isExist() then fn(u) end
+            end
+        end
+    end
+end
+
+--- Call fn(static) for every live static object of the mission, all coalitions.
+local function _forEachMissionStatic(fn)
+    local sides = { coalition.side.RED, coalition.side.BLUE, coalition.side.NEUTRAL }
+    for _, side in ipairs(sides) do
+        for _, obj in ipairs(coalition.getStaticObjects(side) or {}) do
+            if obj:isExist() then fn(obj) end
+        end
+    end
 end
 
 -- ============================================================
@@ -709,6 +749,47 @@ function CTLDZoneManager:_discoverLGZ()
                     parsed.name, parsed.coalition)
             end
         end
+    end
+end
+
+--- Register every mission unit and static whose DCS type is listed in `logisticUnitTypes`.
+-- A catalogue of types, not a manifest: a listed type absent from the mission is normal and
+-- silent, unlike `logisticUnits`, which WARNs on a name it cannot resolve. Zones are anchored
+-- to the object (`linkedUnit`), so a carrier carries its logistic point with it.
+-- Runs after LGZ discovery and before the legacy `logisticUnits` list; a name already
+-- registered by either wins — discovery never overwrites.
+function CTLDZoneManager:_discoverLogisticUnitTypes()
+    local wanted = _typeNameSet(ctld.gs("logisticUnitTypes"))
+    if not wanted then return end
+
+    local radius = ctld.gs("maximumDistanceLogistic")
+    local added  = {}
+
+    local function register(obj)
+        if not wanted[obj:getTypeName()] then return end
+        local name = obj:getName()
+        if self._logisticZones[name] then return end
+        local coal = obj:getCoalition()
+        self._logisticZones[name] = CTLDLogisticZone:new({
+            name       = name,
+            coalition  = coal,
+            center     = obj:getPoint(),
+            radius     = radius,
+            linkedUnit = obj,
+            active     = true,
+        })
+        added[#added + 1] = { unitName = name, coalition = coal }
+        ctld.utils.log("INFO", "CTLDZoneManager: logistic unit '%s' (type '%s')",
+            name, obj:getTypeName())
+    end
+
+    _forEachMissionUnit(register)
+    _forEachMissionStatic(register)
+
+    ctld.utils.log("INFO",
+        "CTLDZoneManager: logisticUnitTypes — %d object(s) registered", #added)
+    if #added > 0 then
+        self:_publishLogisticZoneUpdated(added, {})
     end
 end
 

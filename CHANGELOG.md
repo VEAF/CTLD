@@ -28,6 +28,25 @@ was missed. Nothing for a mission maker to change — the old behaviour was the 
   `maximumDistancePackableUnitsSearch` — a second, separate deviation. Fixing the anchor while
   keeping a different radius would only have traded one for the other.
 
+### Added — a logistic point can be declared by unit type (FEAT-VMCT-INTEGRATION ticket 01)
+
+New setting **`logisticUnitTypes`**: a list of DCS type names. Every mission unit **and static**
+whose type is listed becomes a logistic zone anchored to that object, so a carrier keeps its
+logistic point as it steams. Empty by default — an existing config behaves exactly as before.
+
+Until now the only way to say "every carrier is a logistic point" was to name each unit in
+`logisticUnits`, a per-mission list that cannot be shared, cannot survive a copy-paste, and
+silently misses any unit added later. The two settings differ on purpose: `logisticUnits` names
+objects and WARNs when one is missing; `logisticUnitTypes` is a catalogue of types and stays
+silent for a type the mission does not hold.
+
+A name that matches no DCS type would produce no error at all in game — just a zone that never
+appears — so `ctld-tools validate` now rejects it (`modTypes` still declares a modded type), and
+`CTLDTypeCollector` reports it in the offline type lint.
+
+Documentation note: the developer zone reference stated the `logisticUnits` radius default as
+500 m; `maximumDistanceLogistic` is **200 m**. Corrected in both languages.
+
 ### Docs — the configuration documentation describes the complete-snapshot model (release 2.0.0-rc2)
 
 The whole published configuration surface still taught two APIs deleted by

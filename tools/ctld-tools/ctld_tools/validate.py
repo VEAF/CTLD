@@ -82,6 +82,25 @@ def _validate_crates(catalog: Catalog, types: set[str], out: list[Finding]) -> N
                 out.append(Finding(ERROR, where, "validate.mixedset.dangling_weight", {"weight": w}))
 
 
+# Settings holding a plain list of DCS type names, checked against the datamine. Unlike a
+# crate `unit`, a name here is never spawned — it is matched against `getTypeName()` at init,
+# so a typo produces no error at all, just a zone that never appears. This check is the only
+# thing that catches it (the busted type lint is lenient by design and does not fail).
+_TYPE_LIST_SETTINGS = ("logisticUnitTypes",)
+
+
+def _validate_type_lists(catalog: Catalog, types: set[str], out: list[Finding]) -> None:
+    # A modded type is unknown to the datamine by definition; `modTypes` is where the mission
+    # maker declares it, exactly as the schema promises.
+    known = types | {t for t in (catalog.get("modTypes") or []) if isinstance(t, str)}
+    for key in _TYPE_LIST_SETTINGS:
+        for name in catalog.get(key) or []:
+            if name not in known:
+                out.append(
+                    Finding(ERROR, f"settings.{key}", "validate.type_list.unknown_type", {"name": key, "type": name})
+                )
+
+
 def _validate_choices(catalog: Catalog, schema: Schema, out: list[Finding]) -> None:
     for key in catalog.keys():
         choices = schema.choices(key)
@@ -135,6 +154,7 @@ def validate(
     resolved: set[str] = set(known_dcs_types()) if types is None else set(types)
     out: list[Finding] = []
     _validate_crates(catalog, resolved, out)
+    _validate_type_lists(catalog, resolved, out)
     _validate_choices(catalog, schema, out)
     if default is not None:
         _validate_completeness(catalog, default, out)

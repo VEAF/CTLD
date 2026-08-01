@@ -23,6 +23,7 @@ state and geometry tests.
 | LGZ | `LGZ_` DCS trigger zone | `CTLDLogisticZone` | Crate / vehicle logistic services |
 | AIZ | `aiZones` config table | `CTLDTroopZone` (`isAIPickup` / `isAIDropoff`) | AI-transport-only pickup / dropoff (Feature S/T) |
 | Legacy | `troopZones` / `wpZones` / `logisticUnits` config | `CTLDTroopZone` / `CTLDLogisticZone` | Backward-compat for the old PKZ/IAZ/WPZ/EXZ conventions |
+| Type discovery | `logisticUnitTypes` config | `CTLDLogisticZone` | Every mission object of a listed DCS type, anchored to it |
 | EXZ (dynamic) | `createExtractZone()` at runtime | `CTLDTroopZone` | Extract zone created from a mission `DO SCRIPT` |
 
 TRZ, WPZ and LGZ are discovered by scanning `env.mission.triggers.zones` at init. AIZ zones
@@ -147,9 +148,12 @@ following phases **in this order**:
    (`isWaypoint = true`).
 5. `_discoverLGZ()` — trigger zones starting with `LGZ_` become `CTLDLogisticZone` objects
    (radius from `dynamicZoneRadius`, default 200 m).
-6. `_loadLegacyZones()` — backward-compat pass over the `troopZones`, `wpZones` and
+6. `_discoverLogisticUnitTypes()` — every mission unit **and static** whose `getTypeName()` is
+   listed in `logisticUnitTypes` becomes a `CTLDLogisticZone` anchored to it (`linkedUnit`,
+   radius from `maximumDistanceLogistic`). Skipped entirely when the list is empty.
+7. `_loadLegacyZones()` — backward-compat pass over the `troopZones`, `wpZones` and
    `logisticUnits` config tables.
-7. `_scheduleSmoke()` — starts the recurring smoke refresh loop.
+8. `_scheduleSmoke()` — starts the recurring smoke refresh loop.
 
 Finally `init()` publishes an initial `OnLogisticZoneUpdated` and logs the zone counts. Each
 discovery phase guards on `if not self._troopZones[name]` / `_logisticZones[name]`, so the
@@ -165,7 +169,9 @@ precedence order above is what makes modern definitions win over legacy ones.
   `<zoneName>_count`, mirroring `pickCurrentStock` to that DCS flag.
 - `logisticUnits` entries resolve via `StaticObject.getByName` or `Unit.getByName` and become
   **dynamic** logistic zones linked to that object (radius from `maximumDistanceLogistic`,
-  default 500 m).
+  default 200 m). An entry that resolves to nothing is a WARN — it names one object, so its
+  absence is a mistake. `logisticUnitTypes` is the type-keyed counterpart and stays silent for a
+  type the mission does not hold.
 
 ## `CTLDTroopZone`
 

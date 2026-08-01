@@ -156,6 +156,11 @@ function CTLDTypeCollector.collect()
         end
     end
 
+    -- 8. logisticUnitTypes — DCS type names discovered as logistic zones at init.
+    for _, tn in ipairs(ctld.gs("logisticUnitTypes") or {}) do
+        add(tn, "logisticUnitTypes")
+    end
+
     -- Declared non-stock types: scene model.modTypes ∪ the mission-maker config whitelist.
     local extras = {}
     if sm and type(sm._models) == "table" then

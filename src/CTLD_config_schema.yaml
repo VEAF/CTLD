@@ -1079,6 +1079,12 @@ spawnableCratesModels:
   label: {en: Crate 3D models, fr: Modèles 3D des caisses}
 logisticUnits:
   label: {en: Logistic units, fr: Unités logistiques}
+logisticUnitTypes:
+  label: {en: Logistic unit types, fr: Types d'unités logistiques}
+  group: fob
+  description:
+    en: 'A list of DCS type names — every mission unit or static of a listed type becomes a logistic zone, without naming it in logisticUnits. The zone follows the object, so a carrier keeps its logistic point as it steams. A listed type absent from the mission is not an error: this is a catalogue of types, not a list of units. Example — [Stennis, CVN_71, FARP Ammo Dump Coating].'
+    fr: "Une liste de noms de types DCS — chaque unité ou objet statique de la mission dont le type est listé devient une zone logistique, sans avoir à le nommer dans logisticUnits. La zone suit l'objet : un porte-avions conserve donc son point logistique en route. Un type listé absent de la mission n'est pas une erreur : c'est un catalogue de types, pas une liste d'unités. Exemple — [Stennis, CVN_71, FARP Ammo Dump Coating]."
 groundVehicleWeights:
   label: {en: Ground vehicle weights, fr: Poids des véhicules terrestres}
 loadableGroups:
