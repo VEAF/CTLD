@@ -7,6 +7,21 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Tooling — the unit suite runs locally without busted
+
+`tools/lua-test/` replays all of `tests/ci/unit/` with a plain **Lua 5.1** interpreter — the
+version DCS runs — in about a second, for developers who cannot install `busted` (luarocks needs
+Lua ≤ 5.4, which a Windows box often cannot provide). `run_specs.ps1` finds the interpreter,
+accepts a name filter, and refuses anything newer than 5.1 rather than reporting failures DCS
+would never see.
+
+It is a pre-commit check, not a second gate: it implements only the busted subset the specs use,
+so a spec reaching for `spy` / `mock` / `stub` fails there and passes in CI. A bundled minimal
+JSON decoder stands in for the `dkjson` rock so `config_spec` runs too — that is the spec
+comparing `parseYAML` to the committed defaults oracle, i.e. the one that catches a setting added
+to `CTLD_config.yaml` without regenerating `tests/ci/data/config_defaults.json`. Skipping it
+locally would hide exactly the failure it exists to catch.
+
 ### Added — a beacon can be created by a caller that is not a pilot (FEAT-VMCT-INTEGRATION ticket 03)
 
 New public API **`CTLDBeaconManager:createAtPoint(point, coalitionId, countryId, opts)`** and

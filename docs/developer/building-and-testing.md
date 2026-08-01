@@ -73,6 +73,22 @@ busted tests/ci/functional/
 busted tests/ci/functional/troop_manager_spec.lua
 ```
 
+### When busted will not install
+
+`luarocks` needs Lua ≤ 5.4, which a Windows box often cannot provide. `tools/lua-test/` replays
+the whole `tests/ci/unit/` suite with a plain **Lua 5.1** interpreter — the version DCS runs — in
+about a second:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\lua-test\run_specs.ps1          # everything
+powershell -ExecutionPolicy Bypass -File tools\lua-test\run_specs.ps1 beacon   # name filter
+```
+
+It is a fast pre-commit check, **not** a second gate: it implements only the busted subset the
+specs use, so a spec reaching for `spy` / `mock` / `stub` fails there and passes in CI. See
+[`tools/lua-test/README.md`](https://github.com/VEAF/CTLD/blob/develop/tools/lua-test/README.md)
+for the exact surface and its limits. CI's busted + luacheck remain the authority.
+
 The `.busted` config (repo root) sets `pattern = "_spec"` and names a `helper` loaded before every
 spec: `tests/ci/helpers/init.lua`. That helper does two things, in order:
 
