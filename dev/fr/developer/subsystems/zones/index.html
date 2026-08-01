@@ -2817,9 +2817,11 @@ les legacy.</p>
 <h3 id="legacy-fallback-details">Détails du fallback legacy<a class="headerlink" href="#legacy-fallback-details" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Les entrées <code>troopZones</code> prennent en charge à la fois les zones de trigger DCS et les <strong>noms
-  d'unités de navire</strong> — si <code>trigger.misc.getZone</code> échoue, le loader se rabat sur
-  <code>Unit.getByName</code>, capturant la position du navire à l'init comme point de pickup mobile. Les
-  troop zones legacy dérivent automatiquement un <code>stockFlagName</code> de la forme <code>&lt;zoneName&gt;_count</code>,
+  d'unités de navire</strong> — si <code>trigger.misc.getZone</code> échoue, le loader se rabat sur <code>Unit.getByName</code>
+  et passe le navire comme <code>linkedUnit</code> de la zone, avec le rayon de <strong>200 m</strong> codé en dur en v1.
+  La zone suit le navire : son centre est résolu à chaque <code>getCenter()</code>, et le point capturé à
+  l'init n'est que la dernière position connue, utilisée une fois le navire disparu. Les troop
+  zones legacy dérivent automatiquement un <code>stockFlagName</code> de la forme <code>&lt;zoneName&gt;_count</code>,
   reflétant <code>pickCurrentStock</code> vers ce flag DCS.</li>
 <li>Les entrées <code>logisticUnits</code> sont résolues via <code>StaticObject.getByName</code> ou <code>Unit.getByName</code> et
   deviennent des logistic zones <strong>dynamiques</strong> liées à cet objet (rayon issu de
@@ -2870,7 +2872,9 @@ rôle <code>isWaypoint</code> / <code>isDropoff</code> / <code>isAIPickup</code>
 <p><code>zone:isInZone(point)</code> teste les zones polygonales (<code>verticies</code> avec ≥3 sommets) via un
 ray-cast de Jordan sur le static privé <code>CTLDTroopZone._raycast</code>, sinon se rabat sur un test de
 rayon circulaire. À noter que <code>verticies[i].x/.y</code> sont des coordonnées de fichier de mission où
-le <code>Y</code> de mission égale le <code>Z</code> monde. <code>zone:getCenter()</code> retourne le <code>center</code> stocké.</p>
+le <code>Y</code> de mission égale le <code>Z</code> monde. <code>zone:getCenter()</code> résout le centre live dans le même ordre
+que <code>CTLDLogisticZone</code> : <code>linkedUnit</code> (zone portée par un navire) → <code>trigger.misc.getZone(dcsName)</code>
+(Moving Zone) → le <code>center</code> stocké.</p>
 <h3 id="stock-management">Gestion du stock<a class="headerlink" href="#stock-management" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nv">zone</span><span class="p">:</span><span class="nf">consumeStock</span><span class="p">(</span><span class="nv">n</span><span class="p">)</span><span class="w">   </span><span class="c1">-- décrémente pickCurrentStock de n ; true en cas de succès, illimité toujours true</span>
 <span class="nv">zone</span><span class="p">:</span><span class="nf">restoreStock</span><span class="p">(</span><span class="nv">n</span><span class="p">)</span><span class="w">   </span><span class="c1">-- restaure jusqu&#39;à pickMaxStock ; no-op pour les zones illimitées ou sans pickup</span>

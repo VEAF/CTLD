@@ -2812,9 +2812,11 @@ precedence order above is what makes modern definitions win over legacy ones.</p
 <h3 id="legacy-fallback-details">Legacy fallback details<a class="headerlink" href="#legacy-fallback-details" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>troopZones</code> entries support both DCS trigger zones and <strong>ship unit names</strong> — if
-  <code>trigger.misc.getZone</code> misses, the loader falls back to <code>Unit.getByName</code>, snapshotting the
-  ship's position at init as a mobile pickup point. Legacy troop zones auto-derive a
-  <code>stockFlagName</code> of <code>&lt;zoneName&gt;_count</code>, mirroring <code>pickCurrentStock</code> to that DCS flag.</li>
+  <code>trigger.misc.getZone</code> misses, the loader falls back to <code>Unit.getByName</code> and passes the ship as
+  the zone's <code>linkedUnit</code>, with v1's hardcoded <strong>200 m</strong> radius. The zone rides the ship: its
+  centre is resolved on every <code>getCenter()</code>, and the point captured at init is only the last-known
+  value used once the ship is gone. Legacy troop zones auto-derive a <code>stockFlagName</code> of
+  <code>&lt;zoneName&gt;_count</code>, mirroring <code>pickCurrentStock</code> to that DCS flag.</li>
 <li><code>logisticUnits</code> entries resolve via <code>StaticObject.getByName</code> or <code>Unit.getByName</code> and become
   <strong>dynamic</strong> logistic zones linked to that object (radius from <code>maximumDistanceLogistic</code>,
   default 500 m).</li>
@@ -2864,7 +2866,9 @@ precedence order above is what makes modern definitions win over legacy ones.</p
 <p><code>zone:isInZone(point)</code> tests polygonal zones (<code>verticies</code> with ≥3 corners) via a Jordan
 ray-cast on the private static <code>CTLDTroopZone._raycast</code>, otherwise falls back to a circular
 radius test. Note that <code>verticies[i].x/.y</code> are mission-file coordinates where mission <code>Y</code>
-equals world <code>Z</code>. <code>zone:getCenter()</code> returns the stored <code>center</code>.</p>
+equals world <code>Z</code>. <code>zone:getCenter()</code> resolves the live centre in the same order as
+<code>CTLDLogisticZone</code>: <code>linkedUnit</code> (a ship-backed zone) → <code>trigger.misc.getZone(dcsName)</code> (a Moving
+Zone) → the stored <code>center</code>.</p>
 <h3 id="stock-management">Stock management<a class="headerlink" href="#stock-management" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nv">zone</span><span class="p">:</span><span class="nf">consumeStock</span><span class="p">(</span><span class="nv">n</span><span class="p">)</span><span class="w">   </span><span class="c1">-- decrement pickCurrentStock by n; true on success, unlimited always true</span>
 <span class="nv">zone</span><span class="p">:</span><span class="nf">restoreStock</span><span class="p">(</span><span class="nv">n</span><span class="p">)</span><span class="w">   </span><span class="c1">-- restore up to pickMaxStock; no-op for unlimited or non-pickup zones</span>
