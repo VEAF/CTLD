@@ -126,6 +126,36 @@ TRZ  _  fob  _  N   _  20     _  defend  _  50
 See [Troop transport](../pilot/troop-transport.md) for the pilot-side workflow (boarding,
 deploying, extracting).
 
+### Pickup points on ships
+
+A pickup point can sit on a **ship** instead of a trigger zone. The zone rides the vessel, so
+troops still board after the carrier has moved. Two settings, in [Configuration](configuration.md):
+
+| Setting | What it names | Use it when |
+| --- | --- | --- |
+| `troopZones` | a **unit name**, when no trigger zone carries that name | you want *this* ship, with your own stock and smoke settings |
+| `troopZoneShipTypes` | DCS **type** names | you want *every* carrier to be a pickup point, without naming them |
+
+```yaml
+  # Every Nimitz- and Stennis-class carrier and every Tarawa in the mission
+  # becomes an unlimited troop pickup point — no unit name anywhere.
+  troopZoneShipTypes:
+  - CVN_71
+  - Stennis
+  - LHA_Tarawa
+```
+
+A ship-backed zone always uses a **200 m** radius, whichever setting created it. Discovered zones
+have **unlimited** stock and no smoke; if you need a limit, a smoke colour or a coalition of your
+own, name that ship in `troopZones` — an explicitly configured zone of the same name always wins.
+A listed type no ship matches is not an error: it is a catalogue of types, reusable across
+missions.
+
+!!! tip "Use the type name, not the name shown in the editor"
+    Both settings match the DCS **type id**, which is not always what the Mission Editor displays.
+    `ctld-tools validate` rejects a name that matches no known DCS type, so a typo is caught before
+    the mission ever runs.
+
 ---
 
 ## Waypoint zones (WPZ)

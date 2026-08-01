@@ -749,6 +749,7 @@ mm_facing:
   - transport24
   - transport25
   troopPickupAtFOB: true
+  troopZoneShipTypes: []
   troopZones:
   - - pickzone1
     - blue

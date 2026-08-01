@@ -27,6 +27,105 @@ local function missionHolds(units, statics)
     end
 end
 
+describe("CTLDZoneManager:_discoverTroopZoneShipTypes", function()
+
+    local zm, origGs, origGetGroups, origGetStatics, origGetZone, settings
+
+    before_each(function()
+        zm = setmetatable({ _troopZones = {}, _logisticZones = {} }, CTLDZoneManager)
+        origGs         = ctld.gs
+        origGetGroups  = coalition.getGroups
+        origGetStatics = coalition.getStaticObjects
+        origGetZone    = trigger.misc.getZone
+        settings = { troopZoneShipTypes = {} }
+        ctld.gs = function(key)
+            if settings[key] ~= nil then return settings[key] end
+            return origGs and origGs(key)
+        end
+        trigger.misc.getZone = function() return nil end
+    end)
+
+    after_each(function()
+        ctld.gs                    = origGs
+        coalition.getGroups        = origGetGroups
+        coalition.getStaticObjects = origGetStatics
+        trigger.misc.getZone       = origGetZone
+    end)
+
+    it("turns every ship of a listed type into a pickup zone, and nothing else", function()
+        settings.troopZoneShipTypes = { "CVN_71" }
+        missionHolds({
+            fakeObject("CVN-71", "CVN_71", { x = 10, y = 0, z = 20 }),
+            fakeObject("Escort", "PERRY",  { x = 30, y = 0, z = 40 }),
+        })
+
+        zm:_discoverTroopZoneShipTypes()
+
+        local zone = zm._troopZones["CVN-71"]
+        assert.is_not_nil(zone)
+        assert.is_nil(zm._troopZones["Escort"])
+        assert.is_true(zone:hasPickup())
+        assert.is_true(zone.active)
+    end)
+
+    it("gives it unlimited stock and the ship-zone radius the named path uses", function()
+        settings.troopZoneShipTypes = { "CVN_71" }
+        missionHolds({ fakeObject("CVN-71", "CVN_71", nil, coalition.side.RED) })
+
+        zm:_discoverTroopZoneShipTypes()
+        local zone = zm._troopZones["CVN-71"]
+
+        assert.equals(0, zone.pickMaxStock)          -- 0 = unlimited
+        assert.is_true(zone:consumeStock(50))        -- never runs out
+        assert.equals(200, zone.radius)
+        assert.equals(coalition.side.RED, zone.coalition)
+    end)
+
+    it("anchors the zone to the ship, reusing the parity fix rather than a second mechanism", function()
+        settings.troopZoneShipTypes = { "CVN_71" }
+        local carrier = fakeObject("CVN-71", "CVN_71", { x = 10, y = 0, z = 20 })
+        missionHolds({ carrier })
+
+        zm:_discoverTroopZoneShipTypes()
+        local zone = zm._troopZones["CVN-71"]
+        assert.equals(10, zone:getCenter().x)
+        assert.is_true(zone:isDynamic())
+
+        carrier._point = { x = 9000, y = 0, z = 20 }
+        assert.equals(9000, zone:getCenter().x)
+        assert.is_true(zone:isInZone({ x = 9100, y = 0, z = 20 }))
+    end)
+
+    it("never overwrites a zone already registered under the same name", function()
+        settings.troopZoneShipTypes = { "CVN_71" }
+        missionHolds({ fakeObject("CVN-71", "CVN_71") })
+        local existing = CTLDTroopZone:new({
+            dcsName = "CVN-71", zoneName = "CVN-71",
+            coalition = coalition.side.BLUE,
+            center = { x = 1, y = 0, z = 1 }, radius = 999, pickMaxStock = 5,
+        })
+        zm._troopZones["CVN-71"] = existing
+
+        zm:_discoverTroopZoneShipTypes()
+
+        assert.equals(existing, zm._troopZones["CVN-71"])
+        assert.equals(5, zm._troopZones["CVN-71"].pickMaxStock)
+    end)
+
+    it("registers nothing when the setting is empty or absent", function()
+        missionHolds({ fakeObject("CVN-71", "CVN_71") })
+
+        settings.troopZoneShipTypes = {}
+        zm:_discoverTroopZoneShipTypes()
+        assert.is_nil(zm._troopZones["CVN-71"])
+
+        settings.troopZoneShipTypes = nil
+        zm:_discoverTroopZoneShipTypes()
+        assert.is_nil(zm._troopZones["CVN-71"])
+    end)
+
+end)
+
 describe("CTLDZoneManager:_discoverLogisticUnitTypes", function()
 
     local zm, origGs, origGetGroups, origGetStatics, settings

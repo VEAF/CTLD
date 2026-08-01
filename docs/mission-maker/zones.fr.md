@@ -129,6 +129,38 @@ TRZ  _  fob  _  N   _  20     _  defend  _  50
 Voir [Transport de troupes](../pilot/troop-transport.md) pour le workflow côté pilote
 (embarquement, déploiement, extraction).
 
+### Points d'embarquement sur les navires { #pickup-points-on-ships }
+
+Un point d'embarquement peut se trouver sur un **navire** plutôt que sur une trigger zone. La zone
+suit le bâtiment : les troupes embarquent donc encore après que le porte-avions a fait route. Deux
+paramètres, dans [Configuration](configuration.md) :
+
+| Paramètre | Ce qu'il nomme | À utiliser quand |
+| --- | --- | --- |
+| `troopZones` | un **nom d'unité**, quand aucune trigger zone ne porte ce nom | vous voulez *ce* navire, avec vos propres réglages de stock et de fumigène |
+| `troopZoneShipTypes` | des noms de **type** DCS | vous voulez que *chaque* porte-avions soit un point d'embarquement, sans les nommer |
+
+```yaml
+  # Chaque porte-avions de classe Nimitz et Stennis et chaque Tarawa de la mission
+  # devient un point d'embarquement illimité — aucun nom d'unité nulle part.
+  troopZoneShipTypes:
+  - CVN_71
+  - Stennis
+  - LHA_Tarawa
+```
+
+Une zone portée par un navire utilise toujours un rayon de **200 m**, quel que soit le paramètre
+qui l'a créée. Les zones découvertes ont un stock **illimité** et pas de fumigène ; s'il vous faut
+une limite, une couleur de fumigène ou une coalition à vous, nommez ce navire dans `troopZones` —
+une zone explicitement configurée du même nom l'emporte toujours. Un type listé auquel aucun navire
+ne correspond n'est pas une erreur : c'est un catalogue de types, réutilisable d'une mission à
+l'autre.
+
+!!! tip "Utilisez le nom de type, pas le nom affiché dans l'éditeur"
+    Les deux paramètres comparent l'**identifiant de type** DCS, qui n'est pas toujours ce
+    qu'affiche l'éditeur de mission. `ctld-tools validate` rejette un nom qui ne correspond à aucun
+    type DCS connu : une faute de frappe est donc détectée avant même que la mission tourne.
+
 ---
 
 ## Zones de waypoint (WPZ) { #waypoint-zones-wpz }

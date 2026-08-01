@@ -1,6 +1,6 @@
 # 01 — logistic zones discovered by unit type
 
-**Status:** todo
+**Status:** done
 
 ## Why
 

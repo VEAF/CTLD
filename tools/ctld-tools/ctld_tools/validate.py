@@ -86,7 +86,7 @@ def _validate_crates(catalog: Catalog, types: set[str], out: list[Finding]) -> N
 # crate `unit`, a name here is never spawned — it is matched against `getTypeName()` at init,
 # so a typo produces no error at all, just a zone that never appears. This check is the only
 # thing that catches it (the busted type lint is lenient by design and does not fail).
-_TYPE_LIST_SETTINGS = ("logisticUnitTypes",)
+_TYPE_LIST_SETTINGS = ("logisticUnitTypes", "troopZoneShipTypes")
 
 
 def _validate_type_lists(catalog: Catalog, types: set[str], out: list[Finding]) -> None:

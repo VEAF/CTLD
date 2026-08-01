@@ -111,6 +111,12 @@ def test_a_modded_type_is_accepted_when_declared_in_modtypes():
     assert [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.type_list.unknown_type"] == []
 
 
+def test_every_type_list_setting_is_checked_not_just_the_first():
+    c = cat("mm_facing:\n  troopZoneShipTypes:\n  - NotAShip\n")
+    findings = [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.type_list.unknown_type"]
+    assert [f.params["name"] for f in findings] == ["troopZoneShipTypes"]
+
+
 def test_an_empty_type_list_reports_nothing():
     assert validate(cat("mm_facing:\n  logisticUnitTypes: []\n"), EMPTY, TYPES) == []
 

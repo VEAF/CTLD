@@ -53,6 +53,19 @@ was missed. Nothing for a mission maker to change — the old behaviour was the 
   `maximumDistancePackableUnitsSearch` — a second, separate deviation. Fixing the anchor while
   keeping a different radius would only have traded one for the other.
 
+### Added — troop pickup points on ships, declared by type (FEAT-VMCT-INTEGRATION ticket 02)
+
+New setting **`troopZoneShipTypes`**, the sibling of `logisticUnitTypes` for the troop side: a
+list of DCS type names, empty by default. Every mission ship of a listed type becomes a troop
+pickup point with unlimited stock, anchored to the vessel — no unit name anywhere.
+
+It reuses the anchoring restored by `FIX-SHIP-ZONE-ANCHOR-PARITY` and that fix's 200 m radius
+rather than introducing a second mechanism, so a discovered zone and a `troopZones` entry naming
+the same ship behave identically. An explicitly configured zone of the same name always wins;
+discovered zones carry no smoke and no stock limit, which is what naming the ship in `troopZones`
+is for. Type names are checked in the same two places as ticket 01 — the offline `CTLDTypeCollector`
+lint and the blocking `ctld-tools validate`.
+
 ### Added — a logistic point can be declared by unit type (FEAT-VMCT-INTEGRATION ticket 01)
 
 New setting **`logisticUnitTypes`**: a list of DCS type names. Every mission unit **and static**

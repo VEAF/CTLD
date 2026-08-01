@@ -1101,6 +1101,12 @@ dynamicZoneRadius:
   unit: m
 troopZones:
   label: {en: Troop pickup zones, fr: Zones d'embarquement de troupes}
+troopZoneShipTypes:
+  label: {en: Troop pickup ship types, fr: Types de navires d'embarquement}
+  group: zones
+  description:
+    en: 'A list of DCS type names — every mission ship of a listed type becomes a troop pickup point with unlimited stock, without naming it in troopZones. The zone rides the ship (200 m radius), so troops can still board after the carrier has moved. A listed type absent from the mission is not an error: this is a catalogue of types, not a list of units. Example — [CVN_71, Stennis, LHA_Tarawa].'
+    fr: "Une liste de noms de types DCS — chaque navire de la mission dont le type est listé devient un point d'embarquement de troupes à stock illimité, sans avoir à le nommer dans troopZones. La zone suit le navire (rayon de 200 m) : les troupes peuvent donc encore embarquer après que le porte-avions a fait route. Un type listé absent de la mission n'est pas une erreur : c'est un catalogue de types, pas une liste d'unités. Exemple — [CVN_71, Stennis, LHA_Tarawa]."
 wpZones:
   label: {en: Waypoint zones, fr: Zones de waypoint}
 aiZones:

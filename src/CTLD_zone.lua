@@ -477,6 +477,7 @@ function CTLDZoneManager:init()
     self:_loadAIZonesFromConfig()
     self:_discoverWPZ()
     self:_discoverLGZ()
+    self:_discoverTroopZoneShipTypes()
     self:_discoverLogisticUnitTypes()
     self:_loadLegacyZones()
     self:_scheduleSmoke()
@@ -791,6 +792,38 @@ function CTLDZoneManager:_discoverLogisticUnitTypes()
     if #added > 0 then
         self:_publishLogisticZoneUpdated(added, {})
     end
+end
+
+--- Register every mission unit whose DCS type is listed in `troopZoneShipTypes` as a troop
+-- pickup zone anchored to that unit. The type-keyed sibling of a `troopZones` entry naming a
+-- ship: unlimited stock, active, coalition read off the object, and the same `_SHIP_ZONE_RADIUS`
+-- the named path uses, so the two cannot drift apart.
+-- Runs before `_loadLegacyZones`; a zone already registered under that name wins.
+function CTLDZoneManager:_discoverTroopZoneShipTypes()
+    local wanted = _typeNameSet(ctld.gs("troopZoneShipTypes"))
+    if not wanted then return end
+
+    local count = 0
+    _forEachMissionUnit(function(unit)
+        if not wanted[unit:getTypeName()] then return end
+        local name = unit:getName()
+        if self._troopZones[name] then return end
+        self._troopZones[name] = CTLDTroopZone:new({
+            dcsName       = name, zoneName = name,
+            coalition     = unit:getCoalition(),
+            center        = unit:getPoint(),
+            radius        = _SHIP_ZONE_RADIUS,
+            linkedUnit    = unit,
+            pickMaxStock  = 0,          -- 0 = unlimited
+            active        = true,
+        })
+        count = count + 1
+        ctld.utils.log("INFO", "CTLDZoneManager: troop pickup ship '%s' (type '%s')",
+            name, unit:getTypeName())
+    end)
+
+    ctld.utils.log("INFO",
+        "CTLDZoneManager: troopZoneShipTypes — %d ship(s) registered", count)
 end
 
 --- Feature S/T: Load AI zones from cfg.settings["aiZones"] config table.
