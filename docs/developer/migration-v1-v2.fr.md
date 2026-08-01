@@ -211,6 +211,34 @@ ed:subscribe("OnTroopsDeployed", function(evt)
 end)
 ```
 
+## Quels appareils sont des transports { #which-aircraft-are-transports }
+
+La v2 tranche à partir de `capabilitiesByType` seule : un appareil qui y a une entrée est un
+transport, un appareil absent conserve le menu CTLD mais rien de ce qui transporte — voir
+[Configuration](../mission-maker/configuration.fr.md#per-aircraft-capabilities).
+
+CTLD 2 livre les entrées des variantes de Gazelle (`SA342L`, `SA342M`, `SA342Minigun`,
+`SA342Mistral`) et du `Yak-52`, conformes à ce que la v1 déclarait pour eux : un soldat, pas de
+caisse. Avec cette limite, le menu d'embarquement ne propose qu'un template d'un seul homme —
+`Single JTAC` dans le catalogue standard — ce qu'un appareil léger d'observation insère
+réellement.
+
+!!! warning "Le Ka-50 est délibérément absent"
+    La v1 laissait un `Ka-50` élinguer des caisses et embarquer `numberOfTroops` soldats. Ce
+    n'était pas une décision : il n'avait pas non plus d'entrée dans les tables de la v1, et
+    `ctld.getUnitActions` / `ctld.getTransportLimit` retombaient sur `{crates = true, troops = true}`
+    et sur la limite globale
+    ([CTLD.lua:11088-11102](https://github.com/VEAF/CTLD/blob/master/migration/source/CTLD.lua#L11088)).
+
+    CTLD 2 ne reprend pas ce comportement. Un hélicoptère d'attaque monoplace n'est pas un
+    transport, et lui donner une entrée dont tous les champs de transport valent `false`
+    n'ajouterait qu'une seule chose — la pose d'une balise radio — tout en annonçant un transport
+    qui n'en est pas un. Le recon et le statut JTAC, les raisons qu'on avance d'ordinaire pour le
+    lister, fonctionnent sans aucune entrée.
+
+    Si votre mission veut un Ka-50 poseur de balises, ajoutez l'entrée vous-même : c'est de la
+    configuration, pas du comportement moteur.
+
 ## Pack de véhicule (nouveau en v2) { #pack-vehicle-new-in-v2 }
 
 La v1 n'avait aucun chemin fonctionnel de pack de véhicule. La v2 l'ajoute sur `CTLDVehicleSpawner`,

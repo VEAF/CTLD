@@ -263,9 +263,18 @@ See [Minefield](minefield.md) for deployment.
 
 ## Per-aircraft capabilities
 
-`capabilitiesByType` is the single table that defines every per-aircraft capability. **Only
-aircraft listed here receive CTLD F10 menus.** Each key is the **exact DCS type name** of the
-aircraft (mods included, e.g. `"Hercules"`, `"76MD"`, `"UH-60L"`).
+`capabilitiesByType` is the single table that defines every per-aircraft capability. **An aircraft
+listed here is a transport; one that is not keeps only the parts of CTLD that carry nothing.** Each
+key is the **exact DCS type name** of the aircraft (mods included, e.g. `"Hercules"`, `"76MD"`,
+`"UH-60L"`).
+
+| With an entry | Without one |
+| --- | --- |
+| crates, troops, beacons, smoke | — |
+| `CTLD` menu, **Check Cargo**, **RECON**, **JTAC** status | the same, unchanged |
+
+So a pilot flying an aircraft you forgot to list still gets a CTLD menu — it just does no
+transporting. That is the symptom to look for when someone reports "the menu is there but empty".
 
 In `ctld-tools`, this is the **Aircraft** family: pick a type from the DCS list and fill the form.
 In a hand-written snapshot it lives under `mm_facing`:

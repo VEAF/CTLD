@@ -7,6 +7,29 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Added — capability entries for the Gazelles and the Yak-52 (FEAT-AIRCRAFT-CAPABILITIES)
+
+`capabilitiesByType` held nine aircraft. Five **stock DCS modules** were absent — `SA342L`,
+`SA342M`, `SA342Minigun`, `SA342Mistral`, `Yak-52` — so their pilots got no crates, no troops, no
+beacons and no smoke. They now carry what v1 declared for them: **one soldier, no crates**, and
+nothing else (no slingload, no whole vehicle, no parachute drop, no native DCS cargo).
+
+With a one-soldier limit the embark menu offers exactly one stock template, `Single JTAC`, because
+it filters templates on `total <= maxTroopsOnboard`. That is the light-scout insertion these
+airframes actually fly; a mission wanting more can raise the limit or add a smaller template.
+
+**The `Ka-50` is deliberately left out**, and this is a departure from v1 worth stating. v1 let it
+sling crates and carry `numberOfTroops` soldiers — not by decision but by absence: it had no entry
+in v1's tables either, and `getUnitActions` / `getTransportLimit` fell through to their defaults. An
+entry with every transport field `false` would add exactly one capability, dropping a radio beacon,
+while advertising a transport that is not one; recon and JTAC status already work with no entry at
+all. The migration guide records the reasoning, and a mission that wants it can add the entry.
+
+Documentation correction, both languages: the configuration page claimed that **only** listed
+aircraft receive CTLD F10 menus. They do get a menu — the root, `Check Cargo`, `RECON` and JTAC
+status are ungated; what an unlisted aircraft loses is the transport half. "The menu is there but
+empty" is now a documented symptom with a named cause.
+
 ### Fixed — a v1 config's `dropOffZones` no longer disappears in silence (FIX-DROPOFFZONES-PARITY)
 
 `dropOffZones` is a v1 setting the legacy monolith really reads: an AI transport carrying troops or

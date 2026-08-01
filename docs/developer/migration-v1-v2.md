@@ -205,6 +205,31 @@ ed:subscribe("OnTroopsDeployed", function(evt)
 end)
 ```
 
+## Which aircraft are transports
+
+v2 decides from `capabilitiesByType` alone: an aircraft with an entry is a transport, one without
+keeps the CTLD menu but none of its carrying — see
+[Configuration](../mission-maker/configuration.md#per-aircraft-capabilities).
+
+CTLD 2 ships entries for the Gazelle variants (`SA342L`, `SA342M`, `SA342Minigun`, `SA342Mistral`)
+and the `Yak-52`, matching what v1 declared for them: one soldier, no crates. With that limit, the
+embark menu offers only a template of one — `Single JTAC` in the stock catalogue — which is what a
+light scout realistically inserts.
+
+!!! warning "The Ka-50 is deliberately absent"
+    v1 let a `Ka-50` sling crates and carry `numberOfTroops` soldiers. That was not a decision: it
+    had no entry in v1's own tables either, and `ctld.getUnitActions` / `ctld.getTransportLimit`
+    fell through to `{crates = true, troops = true}` and the global troop limit
+    ([CTLD.lua:11088-11102](https://github.com/VEAF/CTLD/blob/master/migration/source/CTLD.lua#L11088)).
+
+    CTLD 2 does not carry that over. A single-seat attack helicopter is not a transport, and giving
+    it an entry with every transport field set to `false` would add exactly one thing — the ability
+    to drop a radio beacon — while advertising a transport that is not one. Recon and JTAC status,
+    the reasons usually given for listing it, work without any entry.
+
+    If your mission wants a beacon-dropping Ka-50, add the entry yourself: it is configuration, not
+    engine behaviour.
+
 ## Pack vehicle (new in v2)
 
 v1 had no working pack-vehicle path. v2 adds it on `CTLDVehicleSpawner`, driven from the F10 menu

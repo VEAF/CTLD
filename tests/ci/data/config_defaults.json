@@ -169,6 +169,54 @@
       "troopsEnabled": true,
       "useNativeDcsCargoSystem": true
     },
+    "SA342L": {
+      "canParachuteDrop": false,
+      "canSlingload": false,
+      "canTransportWholeVehicle": false,
+      "convertNativeLoadToCTLD": false,
+      "cratesEnabled": false,
+      "maxCratesOnboard": 0,
+      "maxTroopsOnboard": 1,
+      "maxWholeVehiclesOnboard": 0,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": false
+    },
+    "SA342M": {
+      "canParachuteDrop": false,
+      "canSlingload": false,
+      "canTransportWholeVehicle": false,
+      "convertNativeLoadToCTLD": false,
+      "cratesEnabled": false,
+      "maxCratesOnboard": 0,
+      "maxTroopsOnboard": 1,
+      "maxWholeVehiclesOnboard": 0,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": false
+    },
+    "SA342Minigun": {
+      "canParachuteDrop": false,
+      "canSlingload": false,
+      "canTransportWholeVehicle": false,
+      "convertNativeLoadToCTLD": false,
+      "cratesEnabled": false,
+      "maxCratesOnboard": 0,
+      "maxTroopsOnboard": 1,
+      "maxWholeVehiclesOnboard": 0,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": false
+    },
+    "SA342Mistral": {
+      "canParachuteDrop": false,
+      "canSlingload": false,
+      "canTransportWholeVehicle": false,
+      "convertNativeLoadToCTLD": false,
+      "cratesEnabled": false,
+      "maxCratesOnboard": 0,
+      "maxTroopsOnboard": 1,
+      "maxWholeVehiclesOnboard": 0,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": false
+    },
     "SK-60": {
       "canParachuteDrop": false,
       "canSlingload": false,
@@ -211,6 +259,18 @@
       "cratesEnabled": true,
       "maxCratesOnboard": 1,
       "maxTroopsOnboard": 12,
+      "maxWholeVehiclesOnboard": 0,
+      "troopsEnabled": true,
+      "useNativeDcsCargoSystem": false
+    },
+    "Yak-52": {
+      "canParachuteDrop": false,
+      "canSlingload": false,
+      "canTransportWholeVehicle": false,
+      "convertNativeLoadToCTLD": false,
+      "cratesEnabled": false,
+      "maxCratesOnboard": 0,
+      "maxTroopsOnboard": 1,
       "maxWholeVehiclesOnboard": 0,
       "troopsEnabled": true,
       "useNativeDcsCargoSystem": false
