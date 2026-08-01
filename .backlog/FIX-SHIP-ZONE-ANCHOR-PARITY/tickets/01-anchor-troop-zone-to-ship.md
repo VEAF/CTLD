@@ -1,6 +1,6 @@
 # 01 — anchor a ship-backed troop zone to its ship
 
-**Status:** todo
+**Status:** done
 
 See the PRD for the v1 reference behaviour and the two call sites.
 

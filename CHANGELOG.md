@@ -7,6 +7,27 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Fixed — a troop pickup zone backed by a ship no longer stays behind (FIX-SHIP-ZONE-ANCHOR-PARITY)
+
+A `troopZones` entry whose name matches no trigger zone falls back to a unit lookup — the
+documented way to make a carrier a pickup point. CTLD 2 snapshotted the ship's position at init,
+so the carrier steamed away and its pickup point stayed in the water, silently.
+
+This was an **undeclared parity deviation**, not a design choice: v1 (`ctld.inPickupZone`)
+re-resolves the position on **every** check — `trigger.misc.getZone(name)` first, and when that
+misses, `getTransportUnit(name):getPoint()`. `FEAT-MOVING-ZONE` established the same principle for
+CTLD 2 (a zone resolves its position lazily) and unified `getCenter()` across zone types; this path
+was missed. Nothing for a mission maker to change — the old behaviour was the bug.
+
+- `CTLDTroopZone:getCenter()` gains the `linkedUnit` branch it lacked, in `CTLDLogisticZone`'s
+  order: linked unit → trigger zone → stored centre. `isDynamic()` / `isAlive()` follow.
+- `_loadLegacyZones` passes the resolved ship as `linkedUnit` instead of freezing its point. The
+  captured point survives as the last-known position, so a sunk carrier leaves the zone where it
+  went down rather than erroring.
+- The radius of a ship-backed zone is **200 m**, v1's hardcoded value, replacing
+  `maximumDistancePackableUnitsSearch` — a second, separate deviation. Fixing the anchor while
+  keeping a different radius would only have traded one for the other.
+
 ### Docs — the configuration documentation describes the complete-snapshot model (release 2.0.0-rc2)
 
 The whole published configuration surface still taught two APIs deleted by
