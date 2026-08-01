@@ -1,6 +1,6 @@
 # 01 — report an AI zone dropped because its name is taken
 
-**Status:** todo
+**Status:** done
 
 No dependency.
 

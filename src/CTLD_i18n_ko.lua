@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.15"
+ctld.i18n["ko"].translation_version = "1.16"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -436,3 +436,6 @@ ctld.i18n["ko"]["specificParams is ignored on crates (%1) — drone orbit altitu
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
 ctld.i18n["ko"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"] = ""
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
+ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry ignored"] = ""

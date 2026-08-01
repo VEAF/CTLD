@@ -855,8 +855,21 @@ function CTLDZoneManager:_loadAIZonesFromConfig()
         return { isAll = isAll, init = init, current = current }
     end
 
-    for _, entry in ipairs(entries) do
+    for i, entry in ipairs(entries) do
         local dzn = entry.dcsZoneName
+        -- The name is already a registered troop zone: the discovered zone wins, as everywhere
+        -- else in this manager, and the AI entry is lost. Report it rather than drop it in
+        -- silence — it is reachable by accident, because `_discoverTRZ` registers a zone under
+        -- its *parsed* name, so `TRZ_dropzone1_B_0_nil_0` occupies the key `dropzone1` and an
+        -- entry pointing at a genuinely different ME zone called `dropzone1` collides with it.
+        -- Reported here rather than in `_validateZoneNames`, which runs before any discovery and
+        -- would have to predict what discovery will claim: at this point `_troopZones` is fact.
+        if dzn and not skip[dzn] and self._troopZones[dzn] then
+            local holder = self._troopZones[dzn]
+            ctld.startupReport.add("ERROR", "ZoneManager", ctld.tr(
+                "  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry ignored",
+                i, dzn, tostring(holder.dcsName or holder.zoneName)))
+        end
         if dzn and not skip[dzn] and not self._troopZones[dzn] then
             local trig = trigger.misc.getZone(dzn)
             if not trig then

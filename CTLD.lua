@@ -642,7 +642,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.15"
+ctld.i18n["en"].translation_version = "1.16"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -1191,6 +1191,9 @@ ctld.i18n["en"]["specificParams is ignored on crates (%1) — drone orbit altitu
 --- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
 ctld.i18n["en"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"] = "dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"
 
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
+ctld.i18n["en"]["  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry ignored"] = "  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry ignored"
+
 -- End : CTLD_i18n_en.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_fr.lua
@@ -1205,7 +1208,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.15"
+ctld.i18n["fr"].translation_version = "1.16"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -1794,6 +1797,9 @@ ctld.i18n["fr"]["specificParams is ignored on crates (%1) — drone orbit altitu
 --- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
 ctld.i18n["fr"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"] = "dropOffZones n'est pas lu par CTLD 2 — déclarez chaque point de dépose IA comme une entrée aiZones avec isDropoff: true"
 
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
+ctld.i18n["fr"]["  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry ignored"] = "  AIZ[%1] ERREUR '%2' : nom déjà pris par la zone '%3' — entrée ignorée"
+
 -- End : CTLD_i18n_fr.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_es.lua
@@ -1809,7 +1815,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.15"
+ctld.i18n["es"].translation_version = "1.16"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -2367,6 +2373,9 @@ ctld.i18n["es"]["specificParams is ignored on crates (%1) — drone orbit altitu
 --- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
 ctld.i18n["es"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"] = ""
 
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
+ctld.i18n["es"]["  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry ignored"] = ""
+
 -- End : CTLD_i18n_es.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_ko.lua
@@ -2382,7 +2391,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.15"
+ctld.i18n["ko"].translation_version = "1.16"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -2808,6 +2817,9 @@ ctld.i18n["ko"]["specificParams is ignored on crates (%1) — drone orbit altitu
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
 ctld.i18n["ko"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"] = ""
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
+ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry ignored"] = ""
 
 -- End : CTLD_i18n_ko.lua
 -- ====================================================================================================
@@ -8798,8 +8810,21 @@ function CTLDZoneManager:_loadAIZonesFromConfig()
         return { isAll = isAll, init = init, current = current }
     end
 
-    for _, entry in ipairs(entries) do
+    for i, entry in ipairs(entries) do
         local dzn = entry.dcsZoneName
+        -- The name is already a registered troop zone: the discovered zone wins, as everywhere
+        -- else in this manager, and the AI entry is lost. Report it rather than drop it in
+        -- silence — it is reachable by accident, because `_discoverTRZ` registers a zone under
+        -- its *parsed* name, so `TRZ_dropzone1_B_0_nil_0` occupies the key `dropzone1` and an
+        -- entry pointing at a genuinely different ME zone called `dropzone1` collides with it.
+        -- Reported here rather than in `_validateZoneNames`, which runs before any discovery and
+        -- would have to predict what discovery will claim: at this point `_troopZones` is fact.
+        if dzn and not skip[dzn] and self._troopZones[dzn] then
+            local holder = self._troopZones[dzn]
+            ctld.startupReport.add("ERROR", "ZoneManager", ctld.tr(
+                "  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry ignored",
+                i, dzn, tostring(holder.dcsName or holder.zoneName)))
+        end
         if dzn and not skip[dzn] and not self._troopZones[dzn] then
             local trig = trigger.misc.getZone(dzn)
             if not trig then
