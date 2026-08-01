@@ -1925,6 +1925,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#which-aircraft-are-transports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which aircraft are transports
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pack-vehicle-new-in-v2" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2160,6 +2171,17 @@
     <span class="md-ellipsis">
       
         Complete migration example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#which-aircraft-are-transports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which aircraft are transports
       
     </span>
   </a>
@@ -2490,6 +2512,27 @@ catalogue and payload shapes.</p>
 <span class="w">    </span><span class="nv">trigger</span><span class="p">.</span><span class="py">action</span><span class="p">.</span><span class="nf">outText</span><span class="p">(</span><span class="s2">&quot;Troops landed!&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span>
 <span class="kr">end</span><span class="p">)</span>
 </code></pre></div>
+<h2 id="which-aircraft-are-transports">Which aircraft are transports<a class="headerlink" href="#which-aircraft-are-transports" title="Permanent link">&para;</a></h2>
+<p>v2 decides from <code>capabilitiesByType</code> alone: an aircraft with an entry is a transport, one without
+keeps the CTLD menu but none of its carrying — see
+<a href="../../mission-maker/configuration/#per-aircraft-capabilities">Configuration</a>.</p>
+<p>CTLD 2 ships entries for the Gazelle variants (<code>SA342L</code>, <code>SA342M</code>, <code>SA342Minigun</code>, <code>SA342Mistral</code>)
+and the <code>Yak-52</code>, matching what v1 declared for them: one soldier, no crates. With that limit, the
+embark menu offers only a template of one — <code>Single JTAC</code> in the stock catalogue — which is what a
+light scout realistically inserts.</p>
+<div class="admonition warning">
+<p class="admonition-title">The Ka-50 is deliberately absent</p>
+<p>v1 let a <code>Ka-50</code> sling crates and carry <code>numberOfTroops</code> soldiers. That was not a decision: it
+had no entry in v1's own tables either, and <code>ctld.getUnitActions</code> / <code>ctld.getTransportLimit</code>
+fell through to <code>{crates = true, troops = true}</code> and the global troop limit
+(<a href="https://github.com/VEAF/CTLD/blob/master/migration/source/CTLD.lua#L11088">CTLD.lua:11088-11102</a>).</p>
+<p>CTLD 2 does not carry that over. A single-seat attack helicopter is not a transport, and giving
+it an entry with every transport field set to <code>false</code> would add exactly one thing — the ability
+to drop a radio beacon — while advertising a transport that is not one. Recon and JTAC status,
+the reasons usually given for listing it, work without any entry.</p>
+<p>If your mission wants a beacon-dropping Ka-50, add the entry yourself: it is configuration, not
+engine behaviour.</p>
+</div>
 <h2 id="pack-vehicle-new-in-v2">Pack vehicle (new in v2)<a class="headerlink" href="#pack-vehicle-new-in-v2" title="Permanent link">&para;</a></h2>
 <p>v1 had no working pack-vehicle path. v2 adds it on <code>CTLDVehicleSpawner</code>, driven from the F10 menu
 but also callable directly:</p>

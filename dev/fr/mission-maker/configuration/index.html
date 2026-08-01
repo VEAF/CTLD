@@ -3062,9 +3062,31 @@ lors de leur activation.</p>
 </table>
 <p>Voir <a href="../minefield/">Minefield</a> pour le déploiement.</p>
 <h2 id="per-aircraft-capabilities">Capacités par appareil<a class="headerlink" href="#per-aircraft-capabilities" title="Permanent link">&para;</a></h2>
-<p><code>capabilitiesByType</code> est l'unique table qui définit chaque capacité par appareil. <strong>Seuls les
-appareils listés ici reçoivent les menus F10 de CTLD.</strong> Chaque clé est le <strong>nom de type DCS
-exact</strong> de l'appareil (mods inclus, ex. <code>"Hercules"</code>, <code>"76MD"</code>, <code>"UH-60L"</code>).</p>
+<p><code>capabilitiesByType</code> est l'unique table qui définit chaque capacité par appareil. <strong>Un appareil
+listé ici est un transport ; un appareil absent conserve les parties de CTLD qui ne transportent
+rien.</strong> Chaque clé est le <strong>nom de type DCS exact</strong> de l'appareil (mods inclus, ex. <code>"Hercules"</code>,
+<code>"76MD"</code>, <code>"UH-60L"</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Avec une entrée</th>
+<th>Sans entrée</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>caisses, troupes, beacons, fumigènes</td>
+<td>—</td>
+</tr>
+<tr>
+<td>menu <code>CTLD</code>, <strong>Check Cargo</strong>, <strong>RECON</strong>, statut <strong>JTAC</strong></td>
+<td>identiques, inchangés</td>
+</tr>
+</tbody>
+</table>
+<p>Un pilote aux commandes d'un appareil que vous avez oublié de lister a donc bien un menu CTLD —
+il ne transporte simplement rien. C'est le symptôme à chercher quand quelqu'un signale « le menu
+est là mais il est vide ».</p>
 <p>Dans <code>ctld-tools</code>, c'est la famille <strong>Appareils</strong> : choisissez un type dans la liste DCS et
 remplissez le formulaire. Dans un instantané écrit à la main, cette table vit sous <code>mm_facing</code> :</p>
 <div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
