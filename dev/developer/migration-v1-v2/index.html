@@ -1845,6 +1845,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Zones — CTLDZoneManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dropoffzones-is-gone-use-an-aizones-entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dropOffZones is gone — use an aiZones entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2069,6 +2086,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Zones — CTLDZoneManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dropoffzones-is-gone-use-an-aizones-entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dropOffZones is gone — use an aiZones entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -2310,6 +2344,48 @@ map to same-named v2 methods. Pickup activation is now a single toggle,
 <code>setTroopZoneActive(name, active)</code>, and the count helpers were moved to <code>CTLDTroopManager</code> as
 <code>startGroupCountWatcher</code> / <code>startUnitCountWatcher</code>.</p>
 </blockquote>
+<h4 id="dropoffzones-is-gone-use-an-aizones-entry"><code>dropOffZones</code> is gone — use an <code>aiZones</code> entry<a class="headerlink" href="#dropoffzones-is-gone-use-an-aizones-entry" title="Permanent link">&para;</a></h4>
+<p><strong>v1.</strong> <code>dropOffZones</code> listed <code>{ zoneName, smokeColour, side }</code> records and did two things: an <strong>AI
+transport</strong> carrying troops or a vehicle auto-unloaded when it landed inside one, and the zone was
+<strong>smoked</strong> in its colour on the periodic refresh.</p>
+<p><strong>v2 reads nothing under that key.</strong> A migrated mission whose AI transports stopped unloading is
+looking at this. CTLD 2 says so at mission start, once, in the startup report:</p>
+<div class="highlight"><pre><span></span><code>[NOTICE] config: dropOffZones is not read by CTLD 2 — declare each AI drop-off point
+as an aiZones entry with isDropoff: true
+</code></pre></div>
+<p>The replacement is richer: an <code>aiZones</code> entry drops <strong>troops, virtual vehicles and physical
+vehicles</strong>, and <code>aiDropMode</code> chooses how — <code>G</code> on the ground only, <code>P</code> by parachute only, <code>GP</code>
+either.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># v1</span>
+<span class="c1">#   dropOffZones:</span>
+<span class="c1">#     - [dropzone1, green, 2]     # BLUE, smoked green</span>
+<span class="c1">#     - [dropzone2, red,   1]     # RED,  smoked red</span>
+
+<span class="c1"># v2 — same two zones, in mm_facing:</span>
+<span class="nt">aiZones</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dcsZoneName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dropzone1</span>
+<span class="w">    </span><span class="nt">coalition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BLUE</span>
+<span class="w">    </span><span class="nt">isPickup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">    </span><span class="nt">isDropoff</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">aiDropMode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GP</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dcsZoneName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dropzone2</span>
+<span class="w">    </span><span class="nt">coalition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RED</span>
+<span class="w">    </span><span class="nt">isPickup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">    </span><span class="nt">isDropoff</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">aiDropMode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GP</span>
+</code></pre></div>
+<p>The trigger zones keep their Mission Editor names; only the declaration moves.</p>
+<div class="admonition info">
+<p class="admonition-title">An AI zone is not smoked — deliberately</p>
+<p>The v1 colour has no equivalent, and that is a decision, not an oversight: an AI drop-off zone
+exists for AI routing, and no pilot needs to find it on the map. If you do want the spot marked,
+place a second, inert troop zone over it (<code>TRZ_&lt;name&gt;_&lt;side&gt;_0_nil_0</code>) — it is smoked in the
+coalition colour from <code>troopZoneSmokeColor</code>.</p>
+<p><strong>Give it a different logical name.</strong> A TRZ is registered under its parsed name (<code>TRZ_dropzone1_B_0_nil_0</code>
+registers as <code>dropzone1</code>), and an <code>aiZones</code> entry whose <code>dcsZoneName</code> is already a known troop
+zone is skipped — so naming the marker after the AI zone silently disables the AI zone. Call the
+marker <code>TRZ_dropmarker1_B_0_nil_0</code> and both work.</p>
+</div>
 <h3 id="crates-ctldcratemanager">Crates — <code>CTLDCrateManager</code><a class="headerlink" href="#crates-ctldcratemanager" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

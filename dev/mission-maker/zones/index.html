@@ -3060,7 +3060,11 @@ of a value comes from its place in the list. <code>ctld-tools</code> edits them 
 <p class="admonition-title"><code>dropOffZones</code> is not read in CTLD 2.x</p>
 <p>v1's <code>dropOffZones</code> table (AI auto-deploy points) has no equivalent setting in CTLD 2. AI
 drop-off is configured with <a href="#ai-transport-zones-aiz">AI transport zones</a> — an <code>aiZones</code> entry
-with <code>isDropoff: true</code>. A v1 config carrying <code>dropOffZones</code> will have that table ignored.</p>
+with <code>isDropoff: true</code>. A v1 config carrying <code>dropOffZones</code> will have that table ignored — CTLD
+says so once at mission start, in the startup report. The v1 smoke colour has no equivalent: an
+AI zone is deliberately unmarked. See
+<a href="../../developer/migration-v1-v2/#dropoffzones-is-gone-use-an-aizones-entry">Migration v1 → v2</a>
+for the before-and-after example and the way to mark the spot anyway.</p>
 </div>
 <blockquote>
 <p>Legacy zones and auto-discovered zones (TRZ / WPZ / LGZ) coexist without conflict: a zone already

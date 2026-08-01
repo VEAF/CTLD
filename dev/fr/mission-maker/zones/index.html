@@ -3078,7 +3078,11 @@ la main, ils ressemblent à ceci :</p>
 <p>La table <code>dropOffZones</code> de la v1 (points de déploiement automatique de l'IA) n'a pas de réglage
 équivalent dans CTLD 2. Le drop-off IA se configure avec les
 <a href="#ai-transport-zones-aiz">zones de transport IA</a> — une entrée <code>aiZones</code> avec <code>isDropoff: true</code>.
-Une config v1 portant <code>dropOffZones</code> verra cette table ignorée.</p>
+Une config v1 portant <code>dropOffZones</code> verra cette table ignorée — CTLD le signale une fois au
+démarrage de la mission, dans le rapport de démarrage. La couleur de fumigène de la v1 n'a pas
+d'équivalent : une zone IA n'est délibérément pas marquée. Voir
+<a href="../../developer/migration-v1-v2/#dropoffzones-is-gone-use-an-aizones-entry">Migration v1 → v2</a>
+pour l'exemple avant/après et la façon de marquer quand même l'endroit.</p>
 </div>
 <blockquote>
 <p>Les zones héritées et les zones auto-découvertes (TRZ / WPZ / LGZ) coexistent sans conflit : une
