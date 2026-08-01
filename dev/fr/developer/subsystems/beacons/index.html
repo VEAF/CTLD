@@ -2348,16 +2348,31 @@ active    → _refreshAll() runs every beaconRefreshInterval seconds
 destroyed → battery depleted OR fewer than 3 units alive → cleanup + free frequencies
 removed   → manual removal by a player within 500m
 </code></pre></div>
-<p><strong>Chemins de largage.</strong> <code>dropBeacon(transport, player, isFOB, overridePosition)</code> est le chemin de
-transport : lorsque l'appareil est au sol, il décale le point de spawn derrière l'appareil (cap + π,
-en utilisant la largeur de la bounding-box plus 5 m, avec repli sur 20 m) afin que l'unité au sol ne
-soit pas spawnée à l'intérieur de la boîte de collision de l'appareil ; en vol, il spawne à la
-position de l'appareil. <code>createAtZone(zoneName, coalitionStr, batteryLife, name)</code> est le chemin
-legacy/mission-maker (sans transport) : il résout une trigger zone DCS, mappe <code>"red"</code>/<code>"blue"</code> vers
-une coalition et un pays (<code>RUSSIA</code>/<code>USA</code>), et suit sinon le même flux de spawn.</p>
+<p><strong>Chemins de création.</strong> Les trois passent par <strong><code>createAtPoint(point, coalitionId, countryId, opts)</code></strong>,
+qui porte le spawn, l'attribution des fréquences, la batterie et les couches de carte — et rien de ce
+qui s'adresse à un pilote. <code>opts</code> transporte <code>name</code>, <code>batteryMinutes</code> (<code>-1</code> = n'expire jamais) et
+<code>isFOB</code>. Il retourne le <code>CTLDBeacon</code>, dont les champs <code>vhf</code> / <code>uhf</code> / <code>fm</code> sont ce qu'un script relit.</p>
+<ul>
+<li><code>dropBeacon(transport, player, isFOB, overridePosition)</code> — le chemin de transport : lorsque
+  l'appareil est au sol, il décale le point de spawn derrière l'appareil (cap + π, en utilisant la
+  largeur de la bounding-box plus 5 m, avec repli sur 20 m) afin que l'unité au sol ne soit pas
+  spawnée à l'intérieur de la boîte de collision de l'appareil ; en vol, il spawne à la position de
+  l'appareil. Il annonce ensuite à la coalition et publie <code>OnBeaconDropped</code>.</li>
+<li><code>createAtZone(zoneName, coalitionStr, batteryLife, name)</code> — le chemin mission-maker : il résout
+  une trigger zone DCS, mappe <code>"red"</code>/<code>"blue"</code> vers une coalition et un pays (<code>RUSSIA</code>/<code>USA</code>), et
+  annonce / publie comme un largage par <code>"MissionMaker"</code>.</li>
+<li><code>createAtPoint</code> lui-même — le chemin scripté, pour un appelant qui n'est <strong>pas un pilote dans un
+  cockpit</strong> : un script qui construit une FARP ou une FOB n'a ni transport ni joueur. Il est
+  silencieux par conception (aucun message de coalition, aucun <code>OnBeaconDropped</code> — le champ <code>player</code>
+  de cette charge utile n'aurait aucun sens), et il ne respecte <strong>pas</strong> <code>enabledRadioBeaconDrop</code>, qui
+  ne gouverne que l'action F10 du pilote. La boucle de rafraîchissement, normalement démarrée par
+  <code>init()</code> quand ce réglage est actif, est démarrée à la demande ici pour qu'un beacon scripté
+  émette et expire quand même.</li>
+</ul>
 <p><strong>Retrait manuel.</strong> <code>removeClosestBeacon(transport, player)</code> trouve le beacon de même coalition le
 plus proche dans un rayon de <code>BEACON_REMOVAL_RADIUS</code> (500 m) ; si aucun n'est à portée, il rapporte
-<code>"No Radio Beacons within 500m."</code>.</p>
+<code>"No Radio Beacons within 500m."</code>. <strong><code>removeBeacon(name)</code></strong> en est le pendant scripté — nom affiché
+ou clé interne, sans distance ni message — et retourne <code>true</code> quand il en a retiré un.</p>
 <p><strong>Listage.</strong> <code>listBeacons(transport)</code> affiche les beacons actifs de la coalition (nom + <code>freqText()</code>)
 au groupe demandeur.</p>
 <h3 id="battery-and-refresh">Batterie et rafraîchissement<a class="headerlink" href="#battery-and-refresh" title="Permanent link">&para;</a></h3>

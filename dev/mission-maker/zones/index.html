@@ -1047,6 +1047,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#pickup-points-on-ships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pickup points on ships
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1074,6 +1085,17 @@
   
     <nav class="md-nav" aria-label="Logistic zones (LGZ)">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logistic-zones-carried-by-a-unit-or-a-static" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logistic zones carried by a unit or a static
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#logistic-zones-created-at-runtime" class="md-nav__link">
@@ -2169,6 +2191,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#pickup-points-on-ships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pickup points on ships
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2196,6 +2229,17 @@
   
     <nav class="md-nav" aria-label="Logistic zones (LGZ)">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logistic-zones-carried-by-a-unit-or-a-static" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logistic zones carried by a unit or a static
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#logistic-zones-created-at-runtime" class="md-nav__link">
@@ -2605,6 +2649,48 @@ setting (see <a href="../configuration/">Configuration</a>), not per zone name.<
 </blockquote>
 <p>See <a href="../../pilot/troop-transport/">Troop transport</a> for the pilot-side workflow (boarding,
 deploying, extracting).</p>
+<h3 id="pickup-points-on-ships">Pickup points on ships<a class="headerlink" href="#pickup-points-on-ships" title="Permanent link">&para;</a></h3>
+<p>A pickup point can sit on a <strong>ship</strong> instead of a trigger zone. The zone rides the vessel, so
+troops still board after the carrier has moved. Two settings, in <a href="../configuration/">Configuration</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>What it names</th>
+<th>Use it when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>troopZones</code></td>
+<td>a <strong>unit name</strong>, when no trigger zone carries that name</td>
+<td>you want <em>this</em> ship, with your own stock and smoke settings</td>
+</tr>
+<tr>
+<td><code>troopZoneShipTypes</code></td>
+<td>DCS <strong>type</strong> names</td>
+<td>you want <em>every</em> carrier to be a pickup point, without naming them</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="c1"># Every Nimitz- and Stennis-class carrier and every Tarawa in the mission</span>
+<span class="w">  </span><span class="c1"># becomes an unlimited troop pickup point — no unit name anywhere.</span>
+<span class="w">  </span><span class="nt">troopZoneShipTypes</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CVN_71</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Stennis</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LHA_Tarawa</span>
+</code></pre></div>
+<p>A ship-backed zone always uses a <strong>200 m</strong> radius, whichever setting created it. Discovered zones
+have <strong>unlimited</strong> stock and no smoke; if you need a limit, a smoke colour or a coalition of your
+own, name that ship in <code>troopZones</code> — an explicitly configured zone of the same name always wins.
+A listed type no ship matches is not an error: it is a catalogue of types, reusable across
+missions.</p>
+<div class="admonition tip">
+<p class="admonition-title">Use the type name, not the name shown in the editor</p>
+<p>Both settings match the DCS <strong>type id</strong>, which is not always what the Mission Editor displays.
+<code>ctld-tools validate</code> rejects a name that matches no known DCS type, so a typo is caught before
+the mission ever runs.</p>
+</div>
 <hr />
 <h2 id="waypoint-zones-wpz">Waypoint zones (WPZ)<a class="headerlink" href="#waypoint-zones-wpz" title="Permanent link">&para;</a></h2>
 <p>When troops are deployed (fast-rope or ground drop) at a point that falls <strong>inside</strong> an active
@@ -2668,6 +2754,52 @@ it globally.</p>
 </blockquote>
 <p>See <a href="../crates-catalogue/">Crate catalogue</a> for what can be spawned, and
 <a href="../../pilot/crates/">Crates</a> for the pilot workflow.</p>
+<h3 id="logistic-zones-carried-by-a-unit-or-a-static">Logistic zones carried by a unit or a static<a class="headerlink" href="#logistic-zones-carried-by-a-unit-or-a-static" title="Permanent link">&para;</a></h3>
+<p>A logistic zone can also be attached to a mission <strong>object</strong> rather than a trigger zone. The zone
+follows the object, so a carrier keeps its logistic point as it steams, and it disappears when the
+object is destroyed. Two settings do this, in <a href="../configuration/">Configuration</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>What it names</th>
+<th>Use it when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>logisticUnits</code></td>
+<td>unit / static <strong>names</strong> placed in the ME</td>
+<td>you want <em>this</em> specific object to be a logistic point</td>
+</tr>
+<tr>
+<td><code>logisticUnitTypes</code></td>
+<td>DCS <strong>type</strong> names</td>
+<td>you want <em>every</em> carrier, or <em>every</em> ammo dump, without naming them</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="c1"># Every Stennis-class carrier and every FARP ammo dump in the mission</span>
+<span class="w">  </span><span class="c1"># becomes a logistic point — no unit name anywhere.</span>
+<span class="w">  </span><span class="nt">logisticUnitTypes</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Stennis</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CVN_71</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">FARP Ammo Dump Coating</span>
+</code></pre></div>
+<p>A type listed here that no mission object matches is <strong>not</strong> an error: this is a catalogue of
+types, reusable from mission to mission, not a list of the units a given mission holds. A name in
+<code>logisticUnits</code> behaves the other way round — it names one object, so a missing one is logged as a
+warning.</p>
+<p>Both use the <code>maximumDistanceLogistic</code> radius (default 200 m). When a zone already exists under
+that object's name — from an <code>LGZ_</code> trigger zone or from <code>logisticUnits</code> — it is kept as it is:
+type discovery never overwrites.</p>
+<div class="admonition tip">
+<p class="admonition-title">Use the type name, not the name shown in the editor</p>
+<p><code>logisticUnitTypes</code> matches the DCS <strong>type id</strong>, which is not always what the Mission Editor
+displays. The FARP ammo dump is the classic trap: the editor calls it <em>FARP Ammo Storage</em>, but
+its type id is <code>FARP Ammo Dump Coating</code>. <code>ctld-tools validate</code> rejects a name that matches no
+known DCS type, so a typo is caught before the mission ever runs.</p>
+</div>
 <h3 id="logistic-zones-created-at-runtime">Logistic zones created at runtime<a class="headerlink" href="#logistic-zones-created-at-runtime" title="Permanent link">&para;</a></h3>
 <p>The only way to add a new logistic zone during a live mission is to <strong>deploy a FOB</strong>. When the
 FOB build completes, CTLD automatically registers a circular logistic zone centred on the FOB

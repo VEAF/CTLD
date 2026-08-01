@@ -1047,6 +1047,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#pickup-points-on-ships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Points d'embarquement sur les navires
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1074,6 +1085,17 @@
   
     <nav class="md-nav" aria-label="Zones logistiques (LGZ)">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logistic-zones-carried-by-a-unit-or-a-static" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zones logistiques portées par une unité ou un statique
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#logistic-zones-created-at-runtime" class="md-nav__link">
@@ -2169,6 +2191,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#pickup-points-on-ships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Points d'embarquement sur les navires
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2196,6 +2229,17 @@
   
     <nav class="md-nav" aria-label="Zones logistiques (LGZ)">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logistic-zones-carried-by-a-unit-or-a-static" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zones logistiques portées par une unité ou un statique
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#logistic-zones-created-at-runtime" class="md-nav__link">
@@ -2608,6 +2652,50 @@ non par nom de zone.</p>
 </blockquote>
 <p>Voir <a href="../../pilot/troop-transport/">Transport de troupes</a> pour le workflow côté pilote
 (embarquement, déploiement, extraction).</p>
+<h3 id="pickup-points-on-ships">Points d'embarquement sur les navires<a class="headerlink" href="#pickup-points-on-ships" title="Permanent link">&para;</a></h3>
+<p>Un point d'embarquement peut se trouver sur un <strong>navire</strong> plutôt que sur une trigger zone. La zone
+suit le bâtiment : les troupes embarquent donc encore après que le porte-avions a fait route. Deux
+paramètres, dans <a href="../configuration/">Configuration</a> :</p>
+<table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Ce qu'il nomme</th>
+<th>À utiliser quand</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>troopZones</code></td>
+<td>un <strong>nom d'unité</strong>, quand aucune trigger zone ne porte ce nom</td>
+<td>vous voulez <em>ce</em> navire, avec vos propres réglages de stock et de fumigène</td>
+</tr>
+<tr>
+<td><code>troopZoneShipTypes</code></td>
+<td>des noms de <strong>type</strong> DCS</td>
+<td>vous voulez que <em>chaque</em> porte-avions soit un point d'embarquement, sans les nommer</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="c1"># Chaque porte-avions de classe Nimitz et Stennis et chaque Tarawa de la mission</span>
+<span class="w">  </span><span class="c1"># devient un point d&#39;embarquement illimité — aucun nom d&#39;unité nulle part.</span>
+<span class="w">  </span><span class="nt">troopZoneShipTypes</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CVN_71</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Stennis</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LHA_Tarawa</span>
+</code></pre></div>
+<p>Une zone portée par un navire utilise toujours un rayon de <strong>200 m</strong>, quel que soit le paramètre
+qui l'a créée. Les zones découvertes ont un stock <strong>illimité</strong> et pas de fumigène ; s'il vous faut
+une limite, une couleur de fumigène ou une coalition à vous, nommez ce navire dans <code>troopZones</code> —
+une zone explicitement configurée du même nom l'emporte toujours. Un type listé auquel aucun navire
+ne correspond n'est pas une erreur : c'est un catalogue de types, réutilisable d'une mission à
+l'autre.</p>
+<div class="admonition tip">
+<p class="admonition-title">Utilisez le nom de type, pas le nom affiché dans l'éditeur</p>
+<p>Les deux paramètres comparent l'<strong>identifiant de type</strong> DCS, qui n'est pas toujours ce
+qu'affiche l'éditeur de mission. <code>ctld-tools validate</code> rejette un nom qui ne correspond à aucun
+type DCS connu : une faute de frappe est donc détectée avant même que la mission tourne.</p>
+</div>
 <hr />
 <h2 id="waypoint-zones-wpz">Zones de waypoint (WPZ)<a class="headerlink" href="#waypoint-zones-wpz" title="Permanent link">&para;</a></h2>
 <p>Quand des troupes sont déployées (fast-rope ou dépose au sol) en un point qui tombe <strong>à
@@ -2673,6 +2761,54 @@ l'éditeur n'est <strong>pas</strong> utilisé pour les LGZ. Réglez <code>dynam
 </blockquote>
 <p>Voir <a href="../crates-catalogue/">Catalogue des crates</a> pour ce qui peut être spawné, et
 <a href="../../pilot/crates/">Crates</a> pour le workflow du pilote.</p>
+<h3 id="logistic-zones-carried-by-a-unit-or-a-static">Zones logistiques portées par une unité ou un statique<a class="headerlink" href="#logistic-zones-carried-by-a-unit-or-a-static" title="Permanent link">&para;</a></h3>
+<p>Une zone logistique peut aussi être attachée à un <strong>objet</strong> de la mission plutôt qu'à une trigger
+zone. La zone suit l'objet — un porte-avions conserve donc son point logistique en route — et
+disparaît quand l'objet est détruit. Deux paramètres le permettent, dans
+<a href="../configuration/">Configuration</a> :</p>
+<table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Ce qu'il nomme</th>
+<th>À utiliser quand</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>logisticUnits</code></td>
+<td>des <strong>noms</strong> d'unité / de statique placés dans le ME</td>
+<td>vous voulez que <em>cet</em> objet précis soit un point logistique</td>
+</tr>
+<tr>
+<td><code>logisticUnitTypes</code></td>
+<td>des noms de <strong>type</strong> DCS</td>
+<td>vous voulez que <em>chaque</em> porte-avions, ou <em>chaque</em> dépôt de munitions, en soit un, sans les nommer</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="c1"># Chaque porte-avions de classe Stennis et chaque dépôt de munitions FARP</span>
+<span class="w">  </span><span class="c1"># de la mission devient un point logistique — aucun nom d&#39;unité nulle part.</span>
+<span class="w">  </span><span class="nt">logisticUnitTypes</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Stennis</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CVN_71</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">FARP Ammo Dump Coating</span>
+</code></pre></div>
+<p>Un type listé ici auquel aucun objet de la mission ne correspond n'est <strong>pas</strong> une erreur : c'est
+un catalogue de types, réutilisable d'une mission à l'autre, pas la liste des unités que contient
+une mission donnée. Un nom dans <code>logisticUnits</code> fonctionne à l'inverse — il désigne un objet
+précis, donc son absence est signalée par un avertissement.</p>
+<p>Les deux utilisent le rayon <code>maximumDistanceLogistic</code> (défaut 200 m). Quand une zone existe déjà
+sous le nom de cet objet — via une trigger zone <code>LGZ_</code> ou via <code>logisticUnits</code> — elle est conservée
+telle quelle : la découverte par type n'écrase jamais.</p>
+<div class="admonition tip">
+<p class="admonition-title">Utilisez le nom de type, pas le nom affiché dans l'éditeur</p>
+<p><code>logisticUnitTypes</code> compare l'<strong>identifiant de type</strong> DCS, qui n'est pas toujours ce
+qu'affiche l'éditeur de mission. Le dépôt de munitions FARP est le piège classique :
+l'éditeur l'appelle <em>FARP Ammo Storage</em>, mais son identifiant de type est
+<code>FARP Ammo Dump Coating</code>. <code>ctld-tools validate</code> rejette un nom qui ne correspond à aucun type
+DCS connu : une faute de frappe est donc détectée avant même que la mission tourne.</p>
+</div>
 <h3 id="logistic-zones-created-at-runtime">Zones logistiques créées à l'exécution<a class="headerlink" href="#logistic-zones-created-at-runtime" title="Permanent link">&para;</a></h3>
 <p>La seule façon d'ajouter une nouvelle zone logistique pendant une mission en cours est de
 <strong>déployer une FOB</strong>. Quand la construction de la FOB est terminée, CTLD enregistre

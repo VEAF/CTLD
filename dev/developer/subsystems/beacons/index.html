@@ -2345,16 +2345,30 @@ active    → _refreshAll() runs every beaconRefreshInterval seconds
 destroyed → battery depleted OR fewer than 3 units alive → cleanup + free frequencies
 removed   → manual removal by a player within 500m
 </code></pre></div>
-<p><strong>Drop paths.</strong> <code>dropBeacon(transport, player, isFOB, overridePosition)</code> is the transport path:
-when the aircraft is on the ground it offsets the spawn point behind the aircraft (heading + π,
-using the bounding-box width plus 5 m, falling back to 20 m) so the ground unit is not spawned
-inside the aircraft's collision box; airborne, it spawns at the aircraft position.
-<code>createAtZone(zoneName, coalitionStr, batteryLife, name)</code> is the legacy/mission-maker path
-(no transport): it resolves a DCS trigger zone, maps <code>"red"</code>/<code>"blue"</code> to a coalition and country
-(<code>RUSSIA</code>/<code>USA</code>), and otherwise follows the same spawn flow.</p>
+<p><strong>Creation paths.</strong> All three go through <strong><code>createAtPoint(point, coalitionId, countryId, opts)</code></strong>,
+which owns the spawn, the frequency assignment, the battery and the map layers — and nothing that
+addresses a pilot. <code>opts</code> carries <code>name</code>, <code>batteryMinutes</code> (<code>-1</code> = never expires) and <code>isFOB</code>. It
+returns the <code>CTLDBeacon</code>, whose <code>vhf</code> / <code>uhf</code> / <code>fm</code> fields are what a script reads back.</p>
+<ul>
+<li><code>dropBeacon(transport, player, isFOB, overridePosition)</code> — the transport path: when the aircraft
+  is on the ground it offsets the spawn point behind the aircraft (heading + π, using the
+  bounding-box width plus 5 m, falling back to 20 m) so the ground unit is not spawned inside the
+  aircraft's collision box; airborne, it spawns at the aircraft position. It then announces to the
+  coalition and publishes <code>OnBeaconDropped</code>.</li>
+<li><code>createAtZone(zoneName, coalitionStr, batteryLife, name)</code> — the mission-maker path: resolves a
+  DCS trigger zone, maps <code>"red"</code>/<code>"blue"</code> to a coalition and country (<code>RUSSIA</code>/<code>USA</code>), and
+  announces / publishes as a drop by <code>"MissionMaker"</code>.</li>
+<li><code>createAtPoint</code> itself — the scripted path, for a caller that is <strong>not a pilot in a cockpit</strong>: a
+  script building a FARP or a FOB has no transport and no player. It is silent by design (no
+  coalition message, no <code>OnBeaconDropped</code> — that payload's <code>player</code> field would be meaningless),
+  and it does <strong>not</strong> honour <code>enabledRadioBeaconDrop</code>, which gates the pilot's F10 action only.
+  The refresh loop, normally started by <code>init()</code> when that setting is on, is started on demand
+  here so a scripted beacon still transmits and still expires.</li>
+</ul>
 <p><strong>Manual removal.</strong> <code>removeClosestBeacon(transport, player)</code> finds the nearest same-coalition
 beacon within <code>BEACON_REMOVAL_RADIUS</code> (500 m); if none is in range it reports
-<code>"No Radio Beacons within 500m."</code>.</p>
+<code>"No Radio Beacons within 500m."</code>. <strong><code>removeBeacon(name)</code></strong> is its scripted counterpart — display
+name or internal key, no distance, no message — returning <code>true</code> when it removed one.</p>
 <p><strong>Listing.</strong> <code>listBeacons(transport)</code> prints the coalition's active beacons (name + <code>freqText()</code>)
 to the requesting group.</p>
 <h3 id="battery-and-refresh">Battery and refresh<a class="headerlink" href="#battery-and-refresh" title="Permanent link">&para;</a></h3>

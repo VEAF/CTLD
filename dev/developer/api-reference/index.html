@@ -2674,9 +2674,19 @@ event.</em></p>
 <td>Returns the singleton.</td>
 </tr>
 <tr>
+<td><code>createAtPoint</code></td>
+<td><code>(point, coalitionId, countryId, opts) → CTLDBeacon\|nil</code></td>
+<td>Spawn a beacon at an arbitrary point, with <strong>no transport and no player</strong>. <code>opts</code>: <code>{ name, batteryMinutes (-1 = never expires), isFOB }</code>. The returned beacon's <code>vhf</code> / <code>uhf</code> / <code>fm</code> fields (Hz) are the caller's answer — <code>beacon:freqText()</code> formats them. Announces nothing and publishes no event; <code>enabledRadioBeaconDrop</code> does not apply (it gates the pilot's menu action).</td>
+</tr>
+<tr>
+<td><code>removeBeacon</code></td>
+<td><code>(name) → boolean</code></td>
+<td>Remove a beacon by display name or internal key. Silent, like <code>createAtPoint</code>.</td>
+</tr>
+<tr>
 <td><code>createAtZone</code></td>
 <td><code>(zoneName, coalitionStr, batteryLife, name)</code></td>
-<td>Spawn a beacon at a named trigger zone. <code>coalitionStr</code>: <code>"blue"</code> / <code>"red"</code>. <code>batteryLife</code>: minutes. <code>name</code> (optional): label shown in the F10 list.</td>
+<td>Spawn a beacon at a named trigger zone. <code>coalitionStr</code>: <code>"blue"</code> / <code>"red"</code>. <code>batteryLife</code>: minutes. <code>name</code> (optional): label shown in the F10 list. Announces to the coalition and publishes <code>OnBeaconDropped</code>.</td>
 </tr>
 <tr>
 <td><code>getBeaconsForCoalition</code></td>
@@ -2690,6 +2700,17 @@ event.</em></p>
 </tr>
 </tbody>
 </table>
+<div class="highlight"><pre><span></span><code><span class="c1">-- A scripted FARP places its own beacon and shows pilots the three frequencies.</span>
+<span class="kd">local</span><span class="w"> </span><span class="nv">mgr</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="nv">CTLDBeaconManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">()</span>
+<span class="kd">local</span><span class="w"> </span><span class="nv">beacon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">mgr</span><span class="p">:</span><span class="nf">createAtPoint</span><span class="p">({</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">12000</span><span class="p">,</span><span class="w"> </span><span class="nv">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nv">z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">4500</span><span class="w"> </span><span class="p">},</span>
+<span class="w">                                 </span><span class="nv">coalition</span><span class="p">.</span><span class="py">side</span><span class="p">.</span><span class="py">BLUE</span><span class="p">,</span><span class="w"> </span><span class="nv">country</span><span class="p">.</span><span class="py">id</span><span class="p">.</span><span class="py">USA</span><span class="p">,</span>
+<span class="w">                                 </span><span class="p">{</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;FARP Alpha NDB&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">batteryMinutes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="p">})</span>
+<span class="nv">trigger</span><span class="p">.</span><span class="py">action</span><span class="p">.</span><span class="nf">outTextForCoalition</span><span class="p">(</span><span class="nv">coalition</span><span class="p">.</span><span class="py">side</span><span class="p">.</span><span class="py">BLUE</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;FARP Alpha NDB: &quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">beacon</span><span class="p">:</span><span class="nf">freqText</span><span class="p">(),</span><span class="w"> </span><span class="mi">20</span><span class="p">)</span>
+
+<span class="c1">-- …and removes it when the FARP dies.</span>
+<span class="nv">mgr</span><span class="p">:</span><span class="nf">removeBeacon</span><span class="p">(</span><span class="s2">&quot;FARP Alpha NDB&quot;</span><span class="p">)</span>
+</code></pre></div>
 <h2 id="ctldjtacmanager">CTLDJTACManager<a class="headerlink" href="#ctldjtacmanager" title="Permanent link">&para;</a></h2>
 <p><em>Manages JTAC auto-lase, spot corrections, orbit, smoke, 9-line, multi-JTAC deconfliction.</em></p>
 <table>

@@ -2519,6 +2519,12 @@ de simples types <code>class()</code> instanciés via <code>:new(data)</code>.</
 <td>Rétrocompatibilité avec les anciennes conventions PKZ/IAZ/WPZ/EXZ</td>
 </tr>
 <tr>
+<td>Découverte par type</td>
+<td>config <code>logisticUnitTypes</code> / <code>troopZoneShipTypes</code></td>
+<td><code>CTLDLogisticZone</code> / <code>CTLDTroopZone</code></td>
+<td>Chaque objet de la mission d'un type DCS listé, ancré à cet objet</td>
+</tr>
+<tr>
 <td>EXZ (dynamique)</td>
 <td><code>createExtractZone()</code> à l'exécution</td>
 <td><code>CTLDTroopZone</code></td>
@@ -2806,6 +2812,13 @@ les phases suivantes <strong>dans cet ordre</strong> :</p>
    zones (<code>isWaypoint = true</code>).</li>
 <li><code>_discoverLGZ()</code> — les zones de trigger commençant par <code>LGZ_</code> deviennent des objets
    <code>CTLDLogisticZone</code> (rayon issu de <code>dynamicZoneRadius</code>, défaut 200 m).</li>
+<li><code>_discoverTroopZoneShipTypes()</code> — chaque <strong>unité</strong> de la mission dont le <code>getTypeName()</code>
+   figure dans <code>troopZoneShipTypes</code> devient une <code>CTLDTroopZone</code> ancrée à cette unité
+   (<code>linkedUnit</code>, rayon de 200 m, stock illimité).</li>
+<li><code>_discoverLogisticUnitTypes()</code> — chaque unité <strong>et statique</strong> de la mission dont le
+   <code>getTypeName()</code> figure dans <code>logisticUnitTypes</code> devient une <code>CTLDLogisticZone</code> ancrée à cet
+   objet (<code>linkedUnit</code>, rayon issu de <code>maximumDistanceLogistic</code>). Les deux sont entièrement
+   sautées quand leur liste est vide.</li>
 <li><code>_loadLegacyZones()</code> — passe de rétrocompatibilité sur les tables de config <code>troopZones</code>,
    <code>wpZones</code> et <code>logisticUnits</code>.</li>
 <li><code>_scheduleSmoke()</code> — démarre la boucle récurrente de rafraîchissement du smoke.</li>
@@ -2825,7 +2838,9 @@ les legacy.</p>
   reflétant <code>pickCurrentStock</code> vers ce flag DCS.</li>
 <li>Les entrées <code>logisticUnits</code> sont résolues via <code>StaticObject.getByName</code> ou <code>Unit.getByName</code> et
   deviennent des logistic zones <strong>dynamiques</strong> liées à cet objet (rayon issu de
-  <code>maximumDistanceLogistic</code>, défaut 500 m).</li>
+  <code>maximumDistanceLogistic</code>, défaut 200 m). Une entrée qui ne résout rien produit un WARN — elle
+  désigne un objet précis, donc son absence est une erreur. <code>logisticUnitTypes</code> en est le pendant
+  par type et reste silencieux pour un type que la mission ne contient pas.</li>
 </ul>
 <h2 id="ctldtroopzone"><code>CTLDTroopZone</code><a class="headerlink" href="#ctldtroopzone" title="Permanent link">&para;</a></h2>
 <p>Construite à partir d'une table <code>data</code>. Requis : <code>dcsName</code>, <code>zoneName</code>, <code>coalition</code>, <code>center</code>

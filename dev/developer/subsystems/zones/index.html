@@ -2518,6 +2518,12 @@ state and geometry tests.</p>
 <td>Backward-compat for the old PKZ/IAZ/WPZ/EXZ conventions</td>
 </tr>
 <tr>
+<td>Type discovery</td>
+<td><code>logisticUnitTypes</code> / <code>troopZoneShipTypes</code> config</td>
+<td><code>CTLDLogisticZone</code> / <code>CTLDTroopZone</code></td>
+<td>Every mission object of a listed DCS type, anchored to it</td>
+</tr>
+<tr>
 <td>EXZ (dynamic)</td>
 <td><code>createExtractZone()</code> at runtime</td>
 <td><code>CTLDTroopZone</code></td>
@@ -2802,6 +2808,12 @@ following phases <strong>in this order</strong>:</p>
    (<code>isWaypoint = true</code>).</li>
 <li><code>_discoverLGZ()</code> — trigger zones starting with <code>LGZ_</code> become <code>CTLDLogisticZone</code> objects
    (radius from <code>dynamicZoneRadius</code>, default 200 m).</li>
+<li><code>_discoverTroopZoneShipTypes()</code> — every mission <strong>unit</strong> whose <code>getTypeName()</code> is listed in
+   <code>troopZoneShipTypes</code> becomes a <code>CTLDTroopZone</code> anchored to it (<code>linkedUnit</code>, 200 m radius,
+   unlimited stock).</li>
+<li><code>_discoverLogisticUnitTypes()</code> — every mission unit <strong>and static</strong> whose <code>getTypeName()</code> is
+   listed in <code>logisticUnitTypes</code> becomes a <code>CTLDLogisticZone</code> anchored to it (<code>linkedUnit</code>,
+   radius from <code>maximumDistanceLogistic</code>). Both are skipped entirely when their list is empty.</li>
 <li><code>_loadLegacyZones()</code> — backward-compat pass over the <code>troopZones</code>, <code>wpZones</code> and
    <code>logisticUnits</code> config tables.</li>
 <li><code>_scheduleSmoke()</code> — starts the recurring smoke refresh loop.</li>
@@ -2819,7 +2831,9 @@ precedence order above is what makes modern definitions win over legacy ones.</p
   <code>&lt;zoneName&gt;_count</code>, mirroring <code>pickCurrentStock</code> to that DCS flag.</li>
 <li><code>logisticUnits</code> entries resolve via <code>StaticObject.getByName</code> or <code>Unit.getByName</code> and become
   <strong>dynamic</strong> logistic zones linked to that object (radius from <code>maximumDistanceLogistic</code>,
-  default 500 m).</li>
+  default 200 m). An entry that resolves to nothing is a WARN — it names one object, so its
+  absence is a mistake. <code>logisticUnitTypes</code> is the type-keyed counterpart and stays silent for a
+  type the mission does not hold.</li>
 </ul>
 <h2 id="ctldtroopzone"><code>CTLDTroopZone</code><a class="headerlink" href="#ctldtroopzone" title="Permanent link">&para;</a></h2>
 <p>Constructed from a <code>data</code> table. Required: <code>dcsName</code>, <code>zoneName</code>, <code>coalition</code>, <code>center</code>
