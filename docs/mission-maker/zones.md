@@ -126,6 +126,36 @@ TRZ  _  fob  _  N   _  20     _  defend  _  50
 See [Troop transport](../pilot/troop-transport.md) for the pilot-side workflow (boarding,
 deploying, extracting).
 
+### Pickup points on ships
+
+A pickup point can sit on a **ship** instead of a trigger zone. The zone rides the vessel, so
+troops still board after the carrier has moved. Two settings, in [Configuration](configuration.md):
+
+| Setting | What it names | Use it when |
+| --- | --- | --- |
+| `troopZones` | a **unit name**, when no trigger zone carries that name | you want *this* ship, with your own stock and smoke settings |
+| `troopZoneShipTypes` | DCS **type** names | you want *every* carrier to be a pickup point, without naming them |
+
+```yaml
+  # Every Nimitz- and Stennis-class carrier and every Tarawa in the mission
+  # becomes an unlimited troop pickup point — no unit name anywhere.
+  troopZoneShipTypes:
+  - CVN_71
+  - Stennis
+  - LHA_Tarawa
+```
+
+A ship-backed zone always uses a **200 m** radius, whichever setting created it. Discovered zones
+have **unlimited** stock and no smoke; if you need a limit, a smoke colour or a coalition of your
+own, name that ship in `troopZones` — an explicitly configured zone of the same name always wins.
+A listed type no ship matches is not an error: it is a catalogue of types, reusable across
+missions.
+
+!!! tip "Use the type name, not the name shown in the editor"
+    Both settings match the DCS **type id**, which is not always what the Mission Editor displays.
+    `ctld-tools validate` rejects a name that matches no known DCS type, so a typo is caught before
+    the mission ever runs.
+
 ---
 
 ## Waypoint zones (WPZ)
@@ -167,6 +197,41 @@ menu. A pilot must be inside a logistic zone to use these services.
 
 See [Crate catalogue](crates-catalogue.md) for what can be spawned, and
 [Crates](../pilot/crates.md) for the pilot workflow.
+
+### Logistic zones carried by a unit or a static
+
+A logistic zone can also be attached to a mission **object** rather than a trigger zone. The zone
+follows the object, so a carrier keeps its logistic point as it steams, and it disappears when the
+object is destroyed. Two settings do this, in [Configuration](configuration.md):
+
+| Setting | What it names | Use it when |
+| --- | --- | --- |
+| `logisticUnits` | unit / static **names** placed in the ME | you want *this* specific object to be a logistic point |
+| `logisticUnitTypes` | DCS **type** names | you want *every* carrier, or *every* ammo dump, without naming them |
+
+```yaml
+  # Every Stennis-class carrier and every FARP ammo dump in the mission
+  # becomes a logistic point — no unit name anywhere.
+  logisticUnitTypes:
+  - Stennis
+  - CVN_71
+  - FARP Ammo Dump Coating
+```
+
+A type listed here that no mission object matches is **not** an error: this is a catalogue of
+types, reusable from mission to mission, not a list of the units a given mission holds. A name in
+`logisticUnits` behaves the other way round — it names one object, so a missing one is logged as a
+warning.
+
+Both use the `maximumDistanceLogistic` radius (default 200 m). When a zone already exists under
+that object's name — from an `LGZ_` trigger zone or from `logisticUnits` — it is kept as it is:
+type discovery never overwrites.
+
+!!! tip "Use the type name, not the name shown in the editor"
+    `logisticUnitTypes` matches the DCS **type id**, which is not always what the Mission Editor
+    displays. The FARP ammo dump is the classic trap: the editor calls it *FARP Ammo Storage*, but
+    its type id is `FARP Ammo Dump Coating`. `ctld-tools validate` rejects a name that matches no
+    known DCS type, so a typo is caught before the mission ever runs.
 
 ### Logistic zones created at runtime
 

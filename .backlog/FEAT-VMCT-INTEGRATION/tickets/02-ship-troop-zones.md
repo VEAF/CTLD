@@ -1,6 +1,6 @@
 # 02 — troop pickup zones on ships, without naming each ship
 
-**Status:** todo
+**Status:** done
 
 Sibling of 01, same shape, different zone family. Read 01 first.
 

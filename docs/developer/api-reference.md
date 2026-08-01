@@ -155,9 +155,24 @@ Full event catalogue: [Events](events.md).
 | Method | Signature | Description |
 | --- | --- | --- |
 | `getInstance` | `() → CTLDBeaconManager` | Returns the singleton. |
-| `createAtZone` | `(zoneName, coalitionStr, batteryLife, name)` | Spawn a beacon at a named trigger zone. `coalitionStr`: `"blue"` / `"red"`. `batteryLife`: minutes. `name` (optional): label shown in the F10 list. |
+| `createAtPoint` | `(point, coalitionId, countryId, opts) → CTLDBeacon\|nil` | Spawn a beacon at an arbitrary point, with **no transport and no player**. `opts`: `{ name, batteryMinutes (-1 = never expires), isFOB }`. The returned beacon's `vhf` / `uhf` / `fm` fields (Hz) are the caller's answer — `beacon:freqText()` formats them. Announces nothing and publishes no event; `enabledRadioBeaconDrop` does not apply (it gates the pilot's menu action). |
+| `removeBeacon` | `(name) → boolean` | Remove a beacon by display name or internal key. Silent, like `createAtPoint`. |
+| `createAtZone` | `(zoneName, coalitionStr, batteryLife, name)` | Spawn a beacon at a named trigger zone. `coalitionStr`: `"blue"` / `"red"`. `batteryLife`: minutes. `name` (optional): label shown in the F10 list. Announces to the coalition and publishes `OnBeaconDropped`. |
 | `getBeaconsForCoalition` | `(coalitionId)` | Return an array of active beacon data tables for a coalition. |
 | `getBeacon` | `(beaconName)` | Return the beacon data table by internal name, or `nil`. |
+
+```lua
+-- A scripted FARP places its own beacon and shows pilots the three frequencies.
+local mgr    = CTLDBeaconManager.getInstance()
+local beacon = mgr:createAtPoint({ x = 12000, y = 0, z = -4500 },
+                                 coalition.side.BLUE, country.id.USA,
+                                 { name = "FARP Alpha NDB", batteryMinutes = -1 })
+trigger.action.outTextForCoalition(coalition.side.BLUE,
+    "FARP Alpha NDB: " .. beacon:freqText(), 20)
+
+-- …and removes it when the FARP dies.
+mgr:removeBeacon("FARP Alpha NDB")
+```
 
 ## CTLDJTACManager
 

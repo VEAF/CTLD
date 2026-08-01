@@ -91,6 +91,7 @@
   "validate.mixedset.dangling_weight": "mixedSet references weight {weight} but no crate in the section has it",
   "validate.parameter.missing": "setting '{name}' is absent — a complete config must carry every setting. A list may be removed by omitting it; a setting may not, because the engine needs a value.",
   "validate.setting.bad_choice": "setting '{name}' = {value} is not one of: {choices}",
+  "validate.type_list.unknown_type": "'{name}' lists '{type}', which is not a known DCS type — nothing in the mission will ever match it. Add it to modTypes if it comes from a mod.",
   "validate.setting.unknown": "unknown setting '{name}' — it will have no effect in game",
   "validate.setting.unknown_hint": "unknown setting '{name}' — did you mean '{suggestion}'?",
   "validate.troop.missing_name": "missing 'name'",

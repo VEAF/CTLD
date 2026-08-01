@@ -276,6 +276,7 @@ mm_facing:
   - logistic8
   - logistic9
   - logistic10
+  logisticUnitTypes: []
   maxExtractDistance: 125
   maxSlingloadSpeed: 26
   maxTransportWeight: 0
@@ -748,6 +749,7 @@ mm_facing:
   - transport24
   - transport25
   troopPickupAtFOB: true
+  troopZoneShipTypes: []
   troopZones:
   - - pickzone1
     - blue

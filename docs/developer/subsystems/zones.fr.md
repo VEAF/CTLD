@@ -24,6 +24,7 @@ de simples types `class()` instanciés via `:new(data)`.
 | LGZ | zone de trigger DCS `LGZ_` | `CTLDLogisticZone` | Services logistiques crate / véhicule |
 | AIZ | table de config `aiZones` | `CTLDTroopZone` (`isAIPickup` / `isAIDropoff`) | Pickup / dropoff réservé au transport IA (Feature S/T) |
 | Legacy | config `troopZones` / `wpZones` / `logisticUnits` | `CTLDTroopZone` / `CTLDLogisticZone` | Rétrocompatibilité avec les anciennes conventions PKZ/IAZ/WPZ/EXZ |
+| Découverte par type | config `logisticUnitTypes` / `troopZoneShipTypes` | `CTLDLogisticZone` / `CTLDTroopZone` | Chaque objet de la mission d'un type DCS listé, ancré à cet objet |
 | EXZ (dynamique) | `createExtractZone()` à l'exécution | `CTLDTroopZone` | Extract zone créée depuis un `DO SCRIPT` de mission |
 
 Les zones TRZ, WPZ et LGZ sont découvertes en parcourant `env.mission.triggers.zones` à
@@ -151,9 +152,16 @@ les phases suivantes **dans cet ordre** :
    zones (`isWaypoint = true`).
 5. `_discoverLGZ()` — les zones de trigger commençant par `LGZ_` deviennent des objets
    `CTLDLogisticZone` (rayon issu de `dynamicZoneRadius`, défaut 200 m).
-6. `_loadLegacyZones()` — passe de rétrocompatibilité sur les tables de config `troopZones`,
+6. `_discoverTroopZoneShipTypes()` — chaque **unité** de la mission dont le `getTypeName()`
+   figure dans `troopZoneShipTypes` devient une `CTLDTroopZone` ancrée à cette unité
+   (`linkedUnit`, rayon de 200 m, stock illimité).
+7. `_discoverLogisticUnitTypes()` — chaque unité **et statique** de la mission dont le
+   `getTypeName()` figure dans `logisticUnitTypes` devient une `CTLDLogisticZone` ancrée à cet
+   objet (`linkedUnit`, rayon issu de `maximumDistanceLogistic`). Les deux sont entièrement
+   sautées quand leur liste est vide.
+8. `_loadLegacyZones()` — passe de rétrocompatibilité sur les tables de config `troopZones`,
    `wpZones` et `logisticUnits`.
-7. `_scheduleSmoke()` — démarre la boucle récurrente de rafraîchissement du smoke.
+9. `_scheduleSmoke()` — démarre la boucle récurrente de rafraîchissement du smoke.
 
 Enfin, `init()` publie un `OnLogisticZoneUpdated` initial et logge le nombre de zones. Chaque
 phase de découverte se protège par `if not self._troopZones[name]` / `_logisticZones[name]`,
@@ -171,7 +179,9 @@ les legacy.
   reflétant `pickCurrentStock` vers ce flag DCS.
 - Les entrées `logisticUnits` sont résolues via `StaticObject.getByName` ou `Unit.getByName` et
   deviennent des logistic zones **dynamiques** liées à cet objet (rayon issu de
-  `maximumDistanceLogistic`, défaut 500 m).
+  `maximumDistanceLogistic`, défaut 200 m). Une entrée qui ne résout rien produit un WARN — elle
+  désigne un objet précis, donc son absence est une erreur. `logisticUnitTypes` en est le pendant
+  par type et reste silencieux pour un type que la mission ne contient pas.
 
 ## `CTLDTroopZone`
 

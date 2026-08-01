@@ -1,6 +1,6 @@
 # 03 — public beacon API for a caller that is not a pilot
 
-**Status:** todo
+**Status:** done
 
 ## Why
 

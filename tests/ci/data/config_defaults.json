@@ -369,6 +369,7 @@
     }
   ],
   "location_DMS": false,
+  "logisticUnitTypes": [],
   "logisticUnits": [
     "logistic1",
     "logistic2",
@@ -1032,6 +1033,7 @@
     "transport25"
   ],
   "troopPickupAtFOB": true,
+  "troopZoneShipTypes": [],
   "troopZones": [
     [
       "pickzone1",

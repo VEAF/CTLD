@@ -90,6 +90,49 @@ def test_validates_the_real_catalogue_clean():
     assert errors == []
 
 
+# ── Type lists: a name that matches no DCS type can never match a mission object ────
+
+
+def test_known_type_in_a_type_list_is_ok():
+    assert validate(cat("mm_facing:\n  logisticUnitTypes:\n  - Ural-375\n"), EMPTY, TYPES) == []
+
+
+def test_unknown_type_in_a_type_list_is_an_error():
+    findings = validate(cat("mm_facing:\n  logisticUnitTypes:\n  - Stennnis\n"), EMPTY, TYPES)
+    unknown = [f for f in findings if f.key == "validate.type_list.unknown_type"]
+    assert len(unknown) == 1
+    assert unknown[0].severity == ERROR
+    assert unknown[0].params == {"name": "logisticUnitTypes", "type": "Stennnis"}
+    assert has_errors(findings), "a type nothing can ever match must not export"
+
+
+def test_a_modded_type_is_accepted_when_declared_in_modtypes():
+    c = cat("mm_facing:\n  logisticUnitTypes:\n  - SuperCarrierMod\nadvanced:\n  modTypes:\n  - SuperCarrierMod\n")
+    assert [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.type_list.unknown_type"] == []
+
+
+def test_every_type_list_setting_is_checked_not_just_the_first():
+    c = cat("mm_facing:\n  troopZoneShipTypes:\n  - NotAShip\n")
+    findings = [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.type_list.unknown_type"]
+    assert [f.params["name"] for f in findings] == ["troopZoneShipTypes"]
+
+
+def test_an_empty_type_list_reports_nothing():
+    assert validate(cat("mm_facing:\n  logisticUnitTypes: []\n"), EMPTY, TYPES) == []
+
+
+def test_type_list_message_is_translated_in_both_languages():
+    c = cat("mm_facing:\n  logisticUnitTypes:\n  - Stennnis\n")
+    seen = {}
+    for lang in ("en", "fr"):
+        with language(lang):
+            seen[lang] = next(
+                f.message for f in validate(c, EMPTY, TYPES) if f.key == "validate.type_list.unknown_type"
+            )
+    assert "Stennnis" in seen["en"] and "Stennnis" in seen["fr"]
+    assert seen["en"] != seen["fr"], "the FR string must not fall back to EN"
+
+
 # ── Completeness: parameters must all be present, lists may be removed ──────────────
 # ADR 0011 Addendum 1. Keyed off the reference catalogue, never the schema.
 

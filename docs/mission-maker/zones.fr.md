@@ -129,6 +129,38 @@ TRZ  _  fob  _  N   _  20     _  defend  _  50
 Voir [Transport de troupes](../pilot/troop-transport.md) pour le workflow côté pilote
 (embarquement, déploiement, extraction).
 
+### Points d'embarquement sur les navires { #pickup-points-on-ships }
+
+Un point d'embarquement peut se trouver sur un **navire** plutôt que sur une trigger zone. La zone
+suit le bâtiment : les troupes embarquent donc encore après que le porte-avions a fait route. Deux
+paramètres, dans [Configuration](configuration.md) :
+
+| Paramètre | Ce qu'il nomme | À utiliser quand |
+| --- | --- | --- |
+| `troopZones` | un **nom d'unité**, quand aucune trigger zone ne porte ce nom | vous voulez *ce* navire, avec vos propres réglages de stock et de fumigène |
+| `troopZoneShipTypes` | des noms de **type** DCS | vous voulez que *chaque* porte-avions soit un point d'embarquement, sans les nommer |
+
+```yaml
+  # Chaque porte-avions de classe Nimitz et Stennis et chaque Tarawa de la mission
+  # devient un point d'embarquement illimité — aucun nom d'unité nulle part.
+  troopZoneShipTypes:
+  - CVN_71
+  - Stennis
+  - LHA_Tarawa
+```
+
+Une zone portée par un navire utilise toujours un rayon de **200 m**, quel que soit le paramètre
+qui l'a créée. Les zones découvertes ont un stock **illimité** et pas de fumigène ; s'il vous faut
+une limite, une couleur de fumigène ou une coalition à vous, nommez ce navire dans `troopZones` —
+une zone explicitement configurée du même nom l'emporte toujours. Un type listé auquel aucun navire
+ne correspond n'est pas une erreur : c'est un catalogue de types, réutilisable d'une mission à
+l'autre.
+
+!!! tip "Utilisez le nom de type, pas le nom affiché dans l'éditeur"
+    Les deux paramètres comparent l'**identifiant de type** DCS, qui n'est pas toujours ce
+    qu'affiche l'éditeur de mission. `ctld-tools validate` rejette un nom qui ne correspond à aucun
+    type DCS connu : une faute de frappe est donc détectée avant même que la mission tourne.
+
 ---
 
 ## Zones de waypoint (WPZ) { #waypoint-zones-wpz }
@@ -172,6 +204,43 @@ utiliser ces services.
 
 Voir [Catalogue des crates](crates-catalogue.md) pour ce qui peut être spawné, et
 [Crates](../pilot/crates.md) pour le workflow du pilote.
+
+### Zones logistiques portées par une unité ou un statique { #logistic-zones-carried-by-a-unit-or-a-static }
+
+Une zone logistique peut aussi être attachée à un **objet** de la mission plutôt qu'à une trigger
+zone. La zone suit l'objet — un porte-avions conserve donc son point logistique en route — et
+disparaît quand l'objet est détruit. Deux paramètres le permettent, dans
+[Configuration](configuration.md) :
+
+| Paramètre | Ce qu'il nomme | À utiliser quand |
+| --- | --- | --- |
+| `logisticUnits` | des **noms** d'unité / de statique placés dans le ME | vous voulez que *cet* objet précis soit un point logistique |
+| `logisticUnitTypes` | des noms de **type** DCS | vous voulez que *chaque* porte-avions, ou *chaque* dépôt de munitions, en soit un, sans les nommer |
+
+```yaml
+  # Chaque porte-avions de classe Stennis et chaque dépôt de munitions FARP
+  # de la mission devient un point logistique — aucun nom d'unité nulle part.
+  logisticUnitTypes:
+  - Stennis
+  - CVN_71
+  - FARP Ammo Dump Coating
+```
+
+Un type listé ici auquel aucun objet de la mission ne correspond n'est **pas** une erreur : c'est
+un catalogue de types, réutilisable d'une mission à l'autre, pas la liste des unités que contient
+une mission donnée. Un nom dans `logisticUnits` fonctionne à l'inverse — il désigne un objet
+précis, donc son absence est signalée par un avertissement.
+
+Les deux utilisent le rayon `maximumDistanceLogistic` (défaut 200 m). Quand une zone existe déjà
+sous le nom de cet objet — via une trigger zone `LGZ_` ou via `logisticUnits` — elle est conservée
+telle quelle : la découverte par type n'écrase jamais.
+
+!!! tip "Utilisez le nom de type, pas le nom affiché dans l'éditeur"
+    `logisticUnitTypes` compare l'**identifiant de type** DCS, qui n'est pas toujours ce
+    qu'affiche l'éditeur de mission. Le dépôt de munitions FARP est le piège classique :
+    l'éditeur l'appelle *FARP Ammo Storage*, mais son identifiant de type est
+    `FARP Ammo Dump Coating`. `ctld-tools validate` rejette un nom qui ne correspond à aucun type
+    DCS connu : une faute de frappe est donc détectée avant même que la mission tourne.
 
 ### Zones logistiques créées à l'exécution { #logistic-zones-created-at-runtime }
 
