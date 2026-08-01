@@ -7,6 +7,24 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Fixed — `validate` accepts the modded types `modTypes` exists to declare (FIX-VALIDATE-MODTYPES)
+
+The `modTypes` setting has one job, and the schema states it: listing a type there "is what stops
+validation rejecting it as unknown to DCS". `ctld-tools validate` did not honour it — crate units
+were compared against the datamine alone, so **a modded crate was an ERROR that blocked export**,
+precisely what declaring it was supposed to prevent. The Lua type lint had it right all along,
+excusing the same declaration, so the two layers disagreed and the blocking one was wrong.
+
+The known-type set is now resolved **once**, in `validate()`, as the datamine union the catalogue's
+`modTypes`, and handed to every type-aware rule — instead of each rule deciding for itself, which is
+how the inconsistency arose (`FEAT-VMCT-INTEGRATION` added a correct local union for its new type
+lists rather than widen the bug, and said so at the time).
+
+Recorded while fixing: the tool stays knowingly narrower than the Lua lint, which also excuses each
+scene's `modTypes`. A scene's crates are injected at runtime and never appear in a config, so the
+gap is theoretical — the assumption is written in the module docstring, where it will be found if it
+ever stops holding.
+
 ### Added — capability entries for the Gazelles and the Yak-52 (FEAT-AIRCRAFT-CAPABILITIES)
 
 `capabilitiesByType` held nine aircraft. Five **stock DCS modules** were absent — `SA342L`,

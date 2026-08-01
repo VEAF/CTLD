@@ -1,12 +1,24 @@
 """Validate a complete config catalogue (the ADR-0011 model, not a diff).
 
 Checks the whole `Catalog`:
-  - every crate `unit` is a known DCS type (datamine),
+  - every crate `unit` is a known DCS type (datamine ∪ `modTypes`),
+  - every DCS type name in a type-list setting is known, same set,
   - crate `weight`s are globally unique (the weight is the crate lookup key),
   - every AA `mixedSet` weight resolves to a crate in its section (the invariant the
     runtime injection loop used to guarantee — now static data),
   - settings with a schema `choices` enum hold an allowed value,
   - every *parameter* is present (ADR 0011 Addendum 1) — see `_validate_completeness`.
+
+**The known-type set is resolved once, in `validate()`, and every type-aware rule gets the same
+one.** It is the datamine set (or whatever the caller injects) union the catalogue's `modTypes`,
+because that setting exists for exactly this: a modded type is unknown to the datamine by
+definition, and the schema promises that declaring it there stops validation rejecting it.
+
+Narrower than the Lua lint, knowingly: `CTLDTypeCollector.collect()` excuses `modTypes` **∪ every
+scene model's** `modTypes`, and this tool never sees the scene models. It does not matter, because a
+scene's crates are injected at runtime by `_injectSceneCrate` and never appear in the YAML — the
+shipped catalogue validates clean, which is the evidence. Should scene crates ever be authored into
+a config, this is the assumption that breaks.
 
 Produces `Finding`s (errors block export; warnings do not), each an i18n key + params.
 """
@@ -90,12 +102,9 @@ _TYPE_LIST_SETTINGS = ("logisticUnitTypes", "troopZoneShipTypes")
 
 
 def _validate_type_lists(catalog: Catalog, types: set[str], out: list[Finding]) -> None:
-    # A modded type is unknown to the datamine by definition; `modTypes` is where the mission
-    # maker declares it, exactly as the schema promises.
-    known = types | {t for t in (catalog.get("modTypes") or []) if isinstance(t, str)}
     for key in _TYPE_LIST_SETTINGS:
         for name in catalog.get(key) or []:
-            if name not in known:
+            if name not in types:
                 out.append(
                     Finding(ERROR, f"settings.{key}", "validate.type_list.unknown_type", {"name": key, "type": name})
                 )
@@ -150,8 +159,13 @@ def validate(
 
     `default` is the reference catalogue the completeness check compares against; injected
     like `types` so this stays a pure function. When omitted the check is skipped.
+
+    The known-type set is the datamine (or the injected `types`) **union the catalogue's
+    `modTypes`**, resolved here so every type-aware rule judges by the same standard — see the
+    module docstring for why the union belongs at this level and not inside each rule.
     """
     resolved: set[str] = set(known_dcs_types()) if types is None else set(types)
+    resolved |= {t for t in (catalog.get("modTypes") or []) if isinstance(t, str)}
     out: list[Finding] = []
     _validate_crates(catalog, resolved, out)
     _validate_type_lists(catalog, resolved, out)
