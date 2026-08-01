@@ -1,6 +1,6 @@
 # 02 — say it in the zone documentation, not only at runtime
 
-**Status:** todo
+**Status:** done
 
 Depends on: 01 (the message it documents).
 

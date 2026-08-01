@@ -168,6 +168,15 @@ phase de découverte se protège par `if not self._troopZones[name]` / `_logisti
 donc l'ordre de priorité ci-dessus est ce qui fait que les définitions modernes l'emportent sur
 les legacy.
 
+Le perdant de cette course n'est pas toujours évident, car la clé est le nom **enregistré**, pas
+le nom dans l'éditeur de mission : une zone `TRZ_` s'enregistre sous son nom analysé, donc
+`TRZ_dropzone1_B_0_nil_0` occupe `dropzone1`, et une entrée `aiZones` portant sur une autre zone
+réellement nommée `dropzone1` entre en collision avec elle. `_loadAIZonesFromConfig` signale ce cas
+au rapport de démarrage sous la forme
+`AIZ[i] ERROR '<nom>': name already taken by zone '<détenteur>' — entry ignored`, au point du skip
+plutôt que dans `_validateZoneNames`, qui s'exécute avant la découverte et devrait donc prédire ce
+que celle-ci va réclamer.
+
 ### Détails du fallback legacy { #legacy-fallback-details }
 
 - Les entrées `troopZones` prennent en charge à la fois les zones de trigger DCS et les **noms

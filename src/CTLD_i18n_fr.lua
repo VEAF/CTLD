@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.15"
+ctld.i18n["fr"].translation_version = "1.16"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -597,3 +597,6 @@ ctld.i18n["fr"]["specificParams is ignored on crates (%1) — drone orbit altitu
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
 ctld.i18n["fr"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"] = "dropOffZones n'est pas lu par CTLD 2 — déclarez chaque point de dépose IA comme une entrée aiZones avec isDropoff: true"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
+ctld.i18n["fr"]["  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry ignored"] = "  AIZ[%1] ERREUR '%2' : nom déjà pris par la zone '%3' — entrée ignorée"

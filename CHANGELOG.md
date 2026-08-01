@@ -7,6 +7,29 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Fixed — an AI zone dropped for a name clash now says so (FIX-AIZONE-NAME-COLLISION)
+
+`_loadAIZonesFromConfig` skips any entry whose `dcsZoneName` is already a registered troop zone.
+The skip is right — a discovered zone wins, as everywhere else in the manager — but it was
+**completely silent**: the mission maker got an AI zone that did nothing, and nothing said why.
+
+It is reachable by accident, because the key is the *registered* name, not the Mission Editor one:
+a `TRZ_` zone registers under its parsed name, so `TRZ_dropzone1_B_0_nil_0` occupies `dropzone1`
+and an `aiZones` entry pointing at a genuinely different ME zone called `dropzone1` collides with
+it. The obvious way in is the workaround `FIX-DROPOFFZONES-PARITY` documents — superimposing an
+inert `TRZ_` marker on an AI drop-off zone, which is never smoked — where naming the marker after
+the AI zone silently disabled it.
+
+The startup report now carries `AIZ[i] ERROR '<name>': name already taken by zone '<holder>' —
+entry ignored`, matching the four `entry ignored` messages `_validateZoneNames` already emits. It
+is reported at the skip site rather than in `_validateZoneNames`, which runs *before* discovery and
+would have to predict what discovery is going to claim — and would be wrong about `WPZ_`, which is
+discovered after the AI zones and loses the race rather than winning it.
+
+Documented where zones are named, not only in a migration note: the zone pages now state that
+`TRZ_`, `WPZ_`, AI zones and the legacy `troopZones` share **one** name space, that a `TRZ_` zone
+occupies its parsed name, and that the registration order is `TRZ_` → AI → `WPZ_` → legacy.
+
 ### Fixed — `validate` accepts the modded types `modTypes` exists to declare (FIX-VALIDATE-MODTYPES)
 
 The `modTypes` setting has one job, and the schema states it: listing a type there "is what stops

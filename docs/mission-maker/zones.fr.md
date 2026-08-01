@@ -51,6 +51,24 @@ déclaré entièrement en configuration ; voir [Zones de transport IA](#ai-trans
 > **Unicité :** deux zones du même préfixe ne peuvent pas partager le même `name`. Un nom de zone
 > déjà enregistré n'est jamais écrasé par un suivant.
 
+!!! warning "Un seul espace de noms pour tous les types de zones"
+    Les troop zones partagent un **unique** espace de noms — `TRZ_`, `WPZ_`, les zones IA et la
+    table héritée `troopZones` s'y enregistrent toutes, et la première enregistrée l'emporte. Ce
+    qui rend le piège facile : une zone `TRZ_` s'enregistre sous son nom **analysé** —
+    `TRZ_dropzone1_B_0_nil_0` occupe le nom `dropzone1`.
+
+    Une entrée `aiZones` dont le `dcsZoneName` vaut `dropzone1` — pointant pourtant vers une zone
+    de l'éditeur de mission bel et bien différente — entre donc en collision avec cette TRZ et
+    **est ignorée**. CTLD le signale au démarrage de la mission :
+
+    ```
+    [ERROR] ZoneManager:   AIZ[1] ERROR 'dropzone1': name already taken by zone
+    'TRZ_dropzone1_B_0_nil_0' — entry ignored
+    ```
+
+    La correction est toujours la même : donner deux noms différents aux deux zones. L'ordre
+    d'enregistrement est `TRZ_` → zones IA → `WPZ_` → tables héritées.
+
 ---
 
 ## Zones de troupes (TRZ) { #troop-zones-trz }
