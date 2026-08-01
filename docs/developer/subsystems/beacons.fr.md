@@ -94,17 +94,31 @@ destroyed → battery depleted OR fewer than 3 units alive → cleanup + free fr
 removed   → manual removal by a player within 500m
 ```
 
-**Chemins de largage.** `dropBeacon(transport, player, isFOB, overridePosition)` est le chemin de
-transport : lorsque l'appareil est au sol, il décale le point de spawn derrière l'appareil (cap + π,
-en utilisant la largeur de la bounding-box plus 5 m, avec repli sur 20 m) afin que l'unité au sol ne
-soit pas spawnée à l'intérieur de la boîte de collision de l'appareil ; en vol, il spawne à la
-position de l'appareil. `createAtZone(zoneName, coalitionStr, batteryLife, name)` est le chemin
-legacy/mission-maker (sans transport) : il résout une trigger zone DCS, mappe `"red"`/`"blue"` vers
-une coalition et un pays (`RUSSIA`/`USA`), et suit sinon le même flux de spawn.
+**Chemins de création.** Les trois passent par **`createAtPoint(point, coalitionId, countryId, opts)`**,
+qui porte le spawn, l'attribution des fréquences, la batterie et les couches de carte — et rien de ce
+qui s'adresse à un pilote. `opts` transporte `name`, `batteryMinutes` (`-1` = n'expire jamais) et
+`isFOB`. Il retourne le `CTLDBeacon`, dont les champs `vhf` / `uhf` / `fm` sont ce qu'un script relit.
+
+- `dropBeacon(transport, player, isFOB, overridePosition)` — le chemin de transport : lorsque
+  l'appareil est au sol, il décale le point de spawn derrière l'appareil (cap + π, en utilisant la
+  largeur de la bounding-box plus 5 m, avec repli sur 20 m) afin que l'unité au sol ne soit pas
+  spawnée à l'intérieur de la boîte de collision de l'appareil ; en vol, il spawne à la position de
+  l'appareil. Il annonce ensuite à la coalition et publie `OnBeaconDropped`.
+- `createAtZone(zoneName, coalitionStr, batteryLife, name)` — le chemin mission-maker : il résout
+  une trigger zone DCS, mappe `"red"`/`"blue"` vers une coalition et un pays (`RUSSIA`/`USA`), et
+  annonce / publie comme un largage par `"MissionMaker"`.
+- `createAtPoint` lui-même — le chemin scripté, pour un appelant qui n'est **pas un pilote dans un
+  cockpit** : un script qui construit une FARP ou une FOB n'a ni transport ni joueur. Il est
+  silencieux par conception (aucun message de coalition, aucun `OnBeaconDropped` — le champ `player`
+  de cette charge utile n'aurait aucun sens), et il ne respecte **pas** `enabledRadioBeaconDrop`, qui
+  ne gouverne que l'action F10 du pilote. La boucle de rafraîchissement, normalement démarrée par
+  `init()` quand ce réglage est actif, est démarrée à la demande ici pour qu'un beacon scripté
+  émette et expire quand même.
 
 **Retrait manuel.** `removeClosestBeacon(transport, player)` trouve le beacon de même coalition le
 plus proche dans un rayon de `BEACON_REMOVAL_RADIUS` (500 m) ; si aucun n'est à portée, il rapporte
-`"No Radio Beacons within 500m."`.
+`"No Radio Beacons within 500m."`. **`removeBeacon(name)`** en est le pendant scripté — nom affiché
+ou clé interne, sans distance ni message — et retourne `true` quand il en a retiré un.
 
 **Listage.** `listBeacons(transport)` affiche les beacons actifs de la coalition (nom + `freqText()`)
 au groupe demandeur.

@@ -316,6 +316,85 @@ end
 -- Public actions
 -- ============================================================
 
+--- Create a radio beacon at an arbitrary point — no transport, no player.
+-- The scripted counterpart of dropBeacon, and the shared engine underneath it: same spawn,
+-- same frequency pool, same battery and map layers. What it deliberately leaves out is the
+-- pilot-facing half — the coalition-wide message and the `OnBeaconDropped` event, whose
+-- payload carries a `player` field that would be meaningless here. A script that wants an
+-- event of its own is a separate `OnBeaconCreated`, not added until something asks for it.
+--
+-- `enabledRadioBeaconDrop` is deliberately NOT honoured: that setting gates the pilot's F10
+-- action, and a beacon placed by a mission's own logic is not a player drop. The asymmetry
+-- with dropBeacon is intentional and will otherwise read as a bug.
+--
+-- @param point       vec3   spawn position (used as given — no bounding-box offset)
+-- @param coalitionId number
+-- @param countryId   number
+-- @param opts        table|nil {
+--                      name           = string  display name (default "Beacon #N"),
+--                      batteryMinutes = number  -1 = never expires (default: the
+--                                               `deployedBeaconBattery` setting),
+--                      isFOB          = bool    never expires, as for a FOB beacon }
+-- @return CTLDBeacon or nil on spawn failure. Its `vhf` / `uhf` / `fm` fields (Hz) are the
+--         caller's answer; `beacon:freqText()` formats them.
+function CTLDBeaconManager:createAtPoint(point, coalitionId, countryId, opts)
+    opts = opts or {}
+
+    local freqs = self:_assignFrequencies()
+
+    self._beaconCount = self._beaconCount + 1
+    local displayName = opts.name or ("Beacon #" .. self._beaconCount)
+    local freqText    = string.format("%.2f kHz - %.2f / %.2f MHz",
+        freqs.vhf / 1000, freqs.uhf / 1000000, freqs.fm / 1000000)
+
+    local vhfGroup = self:_spawnBeaconUnit(point, countryId, displayName .. " VHF " .. freqText)
+    local uhfGroup = self:_spawnBeaconUnit(point, countryId, displayName .. " UHF " .. freqText)
+    local fmGroup  = self:_spawnBeaconUnit(point, countryId, displayName .. " FM "  .. freqText)
+
+    if not (vhfGroup and uhfGroup and fmGroup) then
+        ctld.utils.log("ERROR", "CTLDBeaconManager:createAtPoint — spawn failed for '%s'", displayName)
+        return nil
+    end
+
+    local batteryMins = opts.batteryMinutes or ctld.gs("deployedBeaconBattery")
+    local infinite    = opts.isFOB or batteryMins == -1
+    local batteryEnd  = infinite and -1 or (timer.getTime() + batteryMins * 60)
+
+    local beacon = CTLDBeacon:new({
+        beaconName    = vhfGroup:getName(),
+        name          = displayName,
+        coalitionId   = coalitionId,
+        position      = point,
+        vhfGroupName  = vhfGroup:getName(),
+        uhfGroupName  = uhfGroup:getName(),
+        fmGroupName   = fmGroup:getName(),
+        vhf           = freqs.vhf,
+        uhf           = freqs.uhf,
+        fm            = freqs.fm,
+        batteryEndTime= batteryEnd,
+        spawnTime     = timer.getAbsTime(),
+        isFOB         = infinite,
+    })
+
+    self._beacons[beacon.beaconName] = beacon
+    -- Delay transmissions by 1s: DCS coalition.addGroup leaves units uninitialized for ~1s;
+    -- calling radioTransmission immediately yields an invalid position (0,0,0 or stale).
+    local bname = beacon.beaconName
+    timer.scheduleFunction(function()
+        local b = CTLDBeaconManager.getInstance()._beacons[bname]
+        if b then CTLDBeaconManager.getInstance():_startTransmissions(b) end
+    end, nil, timer.getTime() + 1)
+
+    -- The refresh loop is what keeps transmissions alive and expires a flat battery. init()
+    -- only starts it when the pilot action is enabled, so a scripted beacon must ask for it.
+    self:_scheduleRefresh()
+
+    -- Update active layers
+    self:_addBeaconToLayers(beacon)
+
+    return beacon
+end
+
 --- Drop a radio beacon at position, spawned by transport.
 -- @param transport  Unit   DCS transport unit
 -- @param player     string playerName
@@ -356,56 +435,12 @@ function CTLDBeaconManager:dropBeacon(transport, player, isFOB, overridePosition
         end
     end
 
-    local freqs = self:_assignFrequencies()
-
-    self._beaconCount = self._beaconCount + 1
-    local displayName = "Beacon #" .. self._beaconCount
-    local freqText    = string.format("%.2f kHz - %.2f / %.2f MHz",
-        freqs.vhf / 1000, freqs.uhf / 1000000, freqs.fm / 1000000)
-
-    local vhfGroup = self:_spawnBeaconUnit(point, countryId, displayName .. " VHF " .. freqText)
-    local uhfGroup = self:_spawnBeaconUnit(point, countryId, displayName .. " UHF " .. freqText)
-    local fmGroup  = self:_spawnBeaconUnit(point, countryId, displayName .. " FM "  .. freqText)
-
-    if not (vhfGroup and uhfGroup and fmGroup) then
-        ctld.utils.log("ERROR", "CTLDBeaconManager:dropBeacon — spawn failed for '%s'", displayName)
-        return nil
-    end
-
-    local batteryMins = ctld.gs("deployedBeaconBattery")
-    local batteryEnd  = isFOB and -1 or (timer.getTime() + batteryMins * 60)
-
-    local beacon = CTLDBeacon:new({
-        beaconName    = vhfGroup:getName(),
-        name          = displayName,
-        coalitionId   = coalitionId,
-        position      = point,
-        vhfGroupName  = vhfGroup:getName(),
-        uhfGroupName  = uhfGroup:getName(),
-        fmGroupName   = fmGroup:getName(),
-        vhf           = freqs.vhf,
-        uhf           = freqs.uhf,
-        fm            = freqs.fm,
-        batteryEndTime= batteryEnd,
-        spawnTime     = timer.getAbsTime(),
-        isFOB         = isFOB or false,
-    })
-
-    self._beacons[beacon.beaconName] = beacon
-    -- Delay transmissions by 1s: DCS coalition.addGroup leaves units uninitialized for ~1s;
-    -- calling radioTransmission immediately yields an invalid position (0,0,0 or stale).
-    local bname = beacon.beaconName
-    timer.scheduleFunction(function()
-        local b = CTLDBeaconManager.getInstance()._beacons[bname]
-        if b then CTLDBeaconManager.getInstance():_startTransmissions(b) end
-    end, nil, timer.getTime() + 1)
+    local beacon = self:createAtPoint(point, coalitionId, countryId, { isFOB = isFOB or false })
+    if not beacon then return nil end
 
     -- Notify coalition
     trigger.action.outTextForCoalition(coalitionId,
-        ctld.tr("Navigation beacon deployed - %1", freqText), 20)
-
-    -- Update active layers
-    self:_addBeaconToLayers(beacon)
+        ctld.tr("Navigation beacon deployed - %1", beacon:freqText()), 20)
 
     EventDispatcher.getInstance():publish("OnBeaconDropped", {
         player     = player,
@@ -416,6 +451,32 @@ function CTLDBeaconManager:dropBeacon(transport, player, isFOB, overridePosition
     })
 
     return beacon
+end
+
+--- Remove a beacon by name — the scripted counterpart of removeClosestBeacon, which needs a
+-- transport to measure a distance from and a player to talk to. Silent for the same reason
+-- createAtPoint is: no coalition message, no player-shaped event. The caller knows.
+-- @param name string  the beacon's display name (`opts.name`, or "Beacon #N"), or its
+--                     internal `beaconName` key
+-- @return boolean  true if a beacon was found and removed
+function CTLDBeaconManager:removeBeacon(name)
+    local beacon = self._beacons[name]
+    if not beacon then
+        for _, b in pairs(self._beacons) do
+            if b.name == name then beacon = b; break end
+        end
+    end
+    if not beacon then
+        ctld.utils.log("WARN", "CTLDBeaconManager:removeBeacon — no beacon named '%s'", tostring(name))
+        return false
+    end
+
+    self:_destroyBeaconUnits(beacon)
+    self:_freeFrequencies(beacon)
+    self:_removeBeaconFromLayers(beacon)
+    self._beacons[beacon.beaconName] = nil
+    ctld.utils.log("INFO", "CTLDBeaconManager: beacon '%s' removed by script", beacon.name)
+    return true
 end
 
 --- Remove the closest beacon to transport (manual removal).
@@ -541,7 +602,12 @@ end
 -- Refresh schedule
 -- ============================================================
 
+-- Idempotent: init() calls it when the pilot action is enabled, createAtPoint calls it for a
+-- scripted beacon placed in a mission where that action is off. Two loops would double every
+-- transmission refresh.
 function CTLDBeaconManager:_scheduleRefresh()
+    if self._refreshScheduled then return end
+    self._refreshScheduled = true
     local interval = ctld.gs("beaconRefreshInterval")
     local self_ref = self
     local function refresh(_, t)
@@ -791,52 +857,17 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     local coalitionId = (coalitionStr == "red") and coalition.side.RED or coalition.side.BLUE
     local countryId   = (coalitionId == coalition.side.RED) and country.id.RUSSIA or country.id.USA
 
-    local freqs = self:_assignFrequencies()
-    self._beaconCount = self._beaconCount + 1
+    if name == "" then name = nil end
 
-    if not name or name == "" then name = "Beacon #" .. self._beaconCount end
-
-    local freqText = string.format("%.2f kHz - %.2f / %.2f MHz",
-        freqs.vhf / 1000, freqs.uhf / 1000000, freqs.fm / 1000000)
-
-    local vhfGroup = self:_spawnBeaconUnit(pt, countryId, name .. " VHF " .. freqText)
-    local uhfGroup = self:_spawnBeaconUnit(pt, countryId, name .. " UHF " .. freqText)
-    local fmGroup  = self:_spawnBeaconUnit(pt, countryId, name .. " FM "  .. freqText)
-
-    if not (vhfGroup and uhfGroup and fmGroup) then
-        ctld.utils.log("ERROR", "CTLDBeaconManager:createAtZone — spawn failed for '%s'", name)
-        return nil
-    end
-
-    local batteryMins = batteryLife or ctld.gs("deployedBeaconBattery")
-    local batteryEnd  = timer.getTime() + batteryMins * 60
-
-    local beacon = CTLDBeacon:new({
-        beaconName     = vhfGroup:getName(),
+    local beacon = self:createAtPoint(pt, coalitionId, countryId, {
         name           = name,
-        coalitionId    = coalitionId,
-        position       = pt,
-        vhfGroupName   = vhfGroup:getName(),
-        uhfGroupName   = uhfGroup:getName(),
-        fmGroupName    = fmGroup:getName(),
-        vhf            = freqs.vhf,
-        uhf            = freqs.uhf,
-        fm             = freqs.fm,
-        batteryEndTime = batteryEnd,
-        spawnTime      = timer.getAbsTime(),
-        isFOB          = false,
+        batteryMinutes = batteryLife,
     })
-
-    self._beacons[beacon.beaconName] = beacon
-    local bname2 = beacon.beaconName
-    timer.scheduleFunction(function()
-        local b = CTLDBeaconManager.getInstance()._beacons[bname2]
-        if b then CTLDBeaconManager.getInstance():_startTransmissions(b) end
-    end, nil, timer.getTime() + 1)
-    self:_addBeaconToLayers(beacon)
+    if not beacon then return nil end
+    name = beacon.name
 
     trigger.action.outTextForCoalition(coalitionId,
-        name .. "\n" .. freqText, 20)
+        name .. "\n" .. beacon:freqText(), 20)
 
     EventDispatcher.getInstance():publish("OnBeaconDropped", {
         player     = "MissionMaker",

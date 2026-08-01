@@ -7,6 +7,31 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Added — a beacon can be created by a caller that is not a pilot (FEAT-VMCT-INTEGRATION ticket 03)
+
+New public API **`CTLDBeaconManager:createAtPoint(point, coalitionId, countryId, opts)`** and
+**`:removeBeacon(name)`**. Until now every way into the beacon subsystem went through
+`dropBeacon(transport, player, …)`, which reads the coalition and the country off the transport
+and publishes an event carrying a `player` — so a script building a FARP or a FOB could not place
+a beacon at all, even though `dropBeacon` already accepted an `overridePosition` and an `isFOB`.
+
+`createAtPoint` returns the `CTLDBeacon`, whose `vhf` / `uhf` / `fm` fields are the caller's answer
+(`beacon:freqText()` formats them). `opts` carries `name`, `batteryMinutes` (`-1` = never expires)
+and `isFOB`.
+
+- **`dropBeacon` and `createAtZone` now delegate to it**, so spawn, frequency assignment, battery
+  and map layers exist once instead of three times. Their pilot-facing behaviour is unchanged —
+  same offset behind a grounded aircraft, same coalition message, same `OnBeaconDropped`.
+- **`createAtPoint` is silent**: no coalition message and no `OnBeaconDropped`, whose payload's
+  `player` field would be meaningless. A dedicated `OnBeaconCreated` is not added until something
+  needs it.
+- **`enabledRadioBeaconDrop` does not gate it** — that setting governs the pilot's F10 action, and
+  a beacon placed by a mission's own logic is not a player drop. The refresh loop, which `init()`
+  only starts when that setting is on, is now started on demand so a scripted beacon still
+  transmits and still expires on its battery.
+- Side effect of the shared engine: `createAtZone(..., batteryLife = -1, ...)` now means "never
+  expires" instead of producing a beacon whose battery was already flat.
+
 ### Fixed — a troop pickup zone backed by a ship no longer stays behind (FIX-SHIP-ZONE-ANCHOR-PARITY)
 
 A `troopZones` entry whose name matches no trigger zone falls back to a unit lookup — the

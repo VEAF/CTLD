@@ -156,9 +156,24 @@ scripting des troops IA.*
 | Method | Signature | Description |
 | --- | --- | --- |
 | `getInstance` | `() → CTLDBeaconManager` | Retourne le singleton. |
-| `createAtZone` | `(zoneName, coalitionStr, batteryLife, name)` | Fait spawn un beacon dans une zone de trigger nommée. `coalitionStr` : `"blue"` / `"red"`. `batteryLife` : minutes. `name` (optionnel) : libellé affiché dans la liste F10. |
+| `createAtPoint` | `(point, coalitionId, countryId, opts) → CTLDBeacon\|nil` | Fait spawn un beacon en un point quelconque, **sans transport ni joueur**. `opts` : `{ name, batteryMinutes (-1 = n'expire jamais), isFOB }`. Les champs `vhf` / `uhf` / `fm` (Hz) du beacon retourné sont la réponse pour l'appelant — `beacon:freqText()` les met en forme. N'annonce rien et ne publie aucun événement ; `enabledRadioBeaconDrop` ne s'applique pas (ce réglage gouverne l'action du menu pilote). |
+| `removeBeacon` | `(name) → boolean` | Retire un beacon par son nom affiché ou par sa clé interne. Silencieux, comme `createAtPoint`. |
+| `createAtZone` | `(zoneName, coalitionStr, batteryLife, name)` | Fait spawn un beacon dans une zone de trigger nommée. `coalitionStr` : `"blue"` / `"red"`. `batteryLife` : minutes. `name` (optionnel) : libellé affiché dans la liste F10. Annonce à la coalition et publie `OnBeaconDropped`. |
 | `getBeaconsForCoalition` | `(coalitionId)` | Retourne un tableau des données de beacons actifs pour une coalition. |
 | `getBeacon` | `(beaconName)` | Retourne la table de données du beacon par son nom interne, ou `nil`. |
+
+```lua
+-- Une FARP scriptée place son propre beacon et affiche ses trois fréquences aux pilotes.
+local mgr    = CTLDBeaconManager.getInstance()
+local beacon = mgr:createAtPoint({ x = 12000, y = 0, z = -4500 },
+                                 coalition.side.BLUE, country.id.USA,
+                                 { name = "FARP Alpha NDB", batteryMinutes = -1 })
+trigger.action.outTextForCoalition(coalition.side.BLUE,
+    "FARP Alpha NDB: " .. beacon:freqText(), 20)
+
+-- …et le retire quand la FARP disparaît.
+mgr:removeBeacon("FARP Alpha NDB")
+```
 
 ## CTLDJTACManager
 

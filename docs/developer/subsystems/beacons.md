@@ -91,17 +91,30 @@ destroyed → battery depleted OR fewer than 3 units alive → cleanup + free fr
 removed   → manual removal by a player within 500m
 ```
 
-**Drop paths.** `dropBeacon(transport, player, isFOB, overridePosition)` is the transport path:
-when the aircraft is on the ground it offsets the spawn point behind the aircraft (heading + π,
-using the bounding-box width plus 5 m, falling back to 20 m) so the ground unit is not spawned
-inside the aircraft's collision box; airborne, it spawns at the aircraft position.
-`createAtZone(zoneName, coalitionStr, batteryLife, name)` is the legacy/mission-maker path
-(no transport): it resolves a DCS trigger zone, maps `"red"`/`"blue"` to a coalition and country
-(`RUSSIA`/`USA`), and otherwise follows the same spawn flow.
+**Creation paths.** All three go through **`createAtPoint(point, coalitionId, countryId, opts)`**,
+which owns the spawn, the frequency assignment, the battery and the map layers — and nothing that
+addresses a pilot. `opts` carries `name`, `batteryMinutes` (`-1` = never expires) and `isFOB`. It
+returns the `CTLDBeacon`, whose `vhf` / `uhf` / `fm` fields are what a script reads back.
+
+- `dropBeacon(transport, player, isFOB, overridePosition)` — the transport path: when the aircraft
+  is on the ground it offsets the spawn point behind the aircraft (heading + π, using the
+  bounding-box width plus 5 m, falling back to 20 m) so the ground unit is not spawned inside the
+  aircraft's collision box; airborne, it spawns at the aircraft position. It then announces to the
+  coalition and publishes `OnBeaconDropped`.
+- `createAtZone(zoneName, coalitionStr, batteryLife, name)` — the mission-maker path: resolves a
+  DCS trigger zone, maps `"red"`/`"blue"` to a coalition and country (`RUSSIA`/`USA`), and
+  announces / publishes as a drop by `"MissionMaker"`.
+- `createAtPoint` itself — the scripted path, for a caller that is **not a pilot in a cockpit**: a
+  script building a FARP or a FOB has no transport and no player. It is silent by design (no
+  coalition message, no `OnBeaconDropped` — that payload's `player` field would be meaningless),
+  and it does **not** honour `enabledRadioBeaconDrop`, which gates the pilot's F10 action only.
+  The refresh loop, normally started by `init()` when that setting is on, is started on demand
+  here so a scripted beacon still transmits and still expires.
 
 **Manual removal.** `removeClosestBeacon(transport, player)` finds the nearest same-coalition
 beacon within `BEACON_REMOVAL_RADIUS` (500 m); if none is in range it reports
-`"No Radio Beacons within 500m."`.
+`"No Radio Beacons within 500m."`. **`removeBeacon(name)`** is its scripted counterpart — display
+name or internal key, no distance, no message — returning `true` when it removed one.
 
 **Listing.** `listBeacons(transport)` prints the coalition's active beacons (name + `freqText()`)
 to the requesting group.
