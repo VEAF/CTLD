@@ -126,7 +126,9 @@ def test_type_list_message_is_translated_in_both_languages():
     seen = {}
     for lang in ("en", "fr"):
         with language(lang):
-            seen[lang] = next(f.message for f in validate(c, EMPTY, TYPES) if f.key == "validate.type_list.unknown_type")
+            seen[lang] = next(
+                f.message for f in validate(c, EMPTY, TYPES) if f.key == "validate.type_list.unknown_type"
+            )
     assert "Stennnis" in seen["en"] and "Stennnis" in seen["fr"]
     assert seen["en"] != seen["fr"], "the FR string must not fall back to EN"
 
