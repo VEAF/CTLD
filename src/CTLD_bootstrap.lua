@@ -25,6 +25,10 @@ function ctld.initialize()
             #_defaulted, table.concat(_defaulted, ", ")))
     end
 
+    -- A v1 config keeps settings CTLD 2 no longer reads; say so once, on screen, for the same
+    -- reason as above — the mission that carries them is precisely the one that never meets the tool.
+    CTLDConfig.get():reportRetiredSettings()
+
     -- Boot all domain managers first so they can register their menu sections.
     -- Order matters: PlayerManager must be up before any other manager calls
     -- registerMenuSection(), and _scanExistingPlayers() must run last so all

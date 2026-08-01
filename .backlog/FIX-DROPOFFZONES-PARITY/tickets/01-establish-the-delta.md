@@ -1,6 +1,11 @@
 # 01 — establish the delta, and settle the smoke question
 
-**Status:** todo
+**Status:** done — findings folded into the PRD (see "What CTLD 2 covers" and "The smoke question,
+answered"). In short: an AI zone is never smoked (no `smoke` passed, none in the schema,
+`troopZoneSmokeColor` read only by `_discoverTRZ`); a superimposed inert TRZ is a working workaround
+**provided its logical name differs**, because a name collision makes `_loadAIZonesFromConfig` drop the
+AI entry silently; and the AI drop-off path unloads virtual vehicles, physical vehicles and troops
+gated by `aiDropMode` only — `aiCargoType` filters the pickup path, so the v1 behaviour is covered.
 
 No dependency. Blocks 02 and 03.
 

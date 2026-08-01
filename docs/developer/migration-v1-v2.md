@@ -73,6 +73,57 @@ Two zone operations have no v1 predecessor and are only reachable through the v2
 > `setTroopZoneActive(name, active)`, and the count helpers were moved to `CTLDTroopManager` as
 > `startGroupCountWatcher` / `startUnitCountWatcher`.
 
+#### `dropOffZones` is gone — use an `aiZones` entry
+
+**v1.** `dropOffZones` listed `{ zoneName, smokeColour, side }` records and did two things: an **AI
+transport** carrying troops or a vehicle auto-unloaded when it landed inside one, and the zone was
+**smoked** in its colour on the periodic refresh.
+
+**v2 reads nothing under that key.** A migrated mission whose AI transports stopped unloading is
+looking at this. CTLD 2 says so at mission start, once, in the startup report:
+
+```
+[NOTICE] config: dropOffZones is not read by CTLD 2 — declare each AI drop-off point
+as an aiZones entry with isDropoff: true
+```
+
+The replacement is richer: an `aiZones` entry drops **troops, virtual vehicles and physical
+vehicles**, and `aiDropMode` chooses how — `G` on the ground only, `P` by parachute only, `GP`
+either.
+
+```yaml
+# v1
+#   dropOffZones:
+#     - [dropzone1, green, 2]     # BLUE, smoked green
+#     - [dropzone2, red,   1]     # RED,  smoked red
+
+# v2 — same two zones, in mm_facing:
+aiZones:
+  - dcsZoneName: dropzone1
+    coalition: BLUE
+    isPickup: false
+    isDropoff: true
+    aiDropMode: GP
+  - dcsZoneName: dropzone2
+    coalition: RED
+    isPickup: false
+    isDropoff: true
+    aiDropMode: GP
+```
+
+The trigger zones keep their Mission Editor names; only the declaration moves.
+
+!!! info "An AI zone is not smoked — deliberately"
+    The v1 colour has no equivalent, and that is a decision, not an oversight: an AI drop-off zone
+    exists for AI routing, and no pilot needs to find it on the map. If you do want the spot marked,
+    place a second, inert troop zone over it (`TRZ_<name>_<side>_0_nil_0`) — it is smoked in the
+    coalition colour from `troopZoneSmokeColor`.
+
+    **Give it a different logical name.** A TRZ is registered under its parsed name (`TRZ_dropzone1_B_0_nil_0`
+    registers as `dropzone1`), and an `aiZones` entry whose `dcsZoneName` is already a known troop
+    zone is skipped — so naming the marker after the AI zone silently disables the AI zone. Call the
+    marker `TRZ_dropmarker1_B_0_nil_0` and both work.
+
 ### Crates — `CTLDCrateManager`
 
 | v1 call | v2 equivalent |

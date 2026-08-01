@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.14"
+ctld.i18n["fr"].translation_version = "1.15"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -594,3 +594,6 @@ ctld.i18n["fr"]["%1 setting(s) absent from the mission config — CTLD default u
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 ctld.i18n["fr"]["specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"] = "specificParams est ignoré sur les caisses (%1) — l'altitude, les rayons et la vitesse d'orbite des drones viennent désormais des réglages JTAC_drone*"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
+ctld.i18n["fr"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"] = "dropOffZones n'est pas lu par CTLD 2 — déclarez chaque point de dépose IA comme une entrée aiZones avec isDropoff: true"

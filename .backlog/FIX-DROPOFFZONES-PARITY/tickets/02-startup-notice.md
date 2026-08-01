@@ -1,6 +1,6 @@
 # 02 — startup NOTICE when a config carries `dropOffZones`
 
-**Status:** todo
+**Status:** done
 
 Depends on: 01.
 

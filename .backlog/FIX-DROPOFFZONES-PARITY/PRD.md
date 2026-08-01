@@ -33,14 +33,33 @@ So the setting carries **two distinct features**, and CTLD 2 covers them unequal
 `aiDropMode` (`G` / `P` / `GP`) on top — strictly richer than the v1 behaviour. The replacement exists
 and is documented; what is missing is any bridge from the old spelling to the new one.
 
-**The smoke marking is, to confirm, not replaced.** `aiZones` has no smoke field in the schema, and the
-`CTLDTroopZone` built by `_loadAIZonesFromConfig` does not appear to pass one — `CTLDTroopZone:new`
-defaults `smoke` to `-1` when absent ([CTLD_zone.lua:95](../../src/CTLD_zone.lua#L95)), and `-1` is what
-`_scheduleSmoke` skips ([CTLD_zone.lua:943](../../src/CTLD_zone.lua#L943)). **Verify this on the tail of
-the constructor call ([CTLD_zone.lua:752](../../src/CTLD_zone.lua#L752) onward) before designing around
-it** — the reading was interrupted and is the one open fact in this PRD. If it holds, a v1 mission that
-smoked its drop-off zones loses that marking with no equivalent, whereas TRZ / WPZ / legacy
-`troopZones` all keep theirs.
+**The smoke marking is not replaced — established, ticket 01.** The `CTLDTroopZone:new` call in
+`_loadAIZonesFromConfig` passes ten fields and **no `smoke`**, so the constructor's default of `-1`
+applies, and `-1` is exactly what `_scheduleSmoke` skips (`zone.smoke >= 0`). The schema's `aiZones`
+entry has no smoke field either (ten fields, none of them smoke). The global `troopZoneSmokeColor`
+setting is read in **one** place, `_discoverTRZ`, so it does not reach an AI zone. **An AI zone is
+never marked, by any route that goes through the AI zone itself.**
+
+Two findings that came with it:
+
+- **A superimposed TRZ is a real workaround, with a trap.** A mission maker can put a second, inert
+  trigger zone over the AI zone (`TRZ_<name>_<side>_0_nil_0`) and get the coalition smoke from
+  `troopZoneSmokeColor`. But `_discoverTRZ` registers a TRZ under its **parsed** name, and
+  `_loadAIZonesFromConfig` — which runs after it — skips any entry whose `dcsZoneName` is already a
+  known troop zone. So naming the marker `TRZ_dropzone1_B_0_nil_0` next to an AI zone whose
+  `dcsZoneName` is `dropzone1` **silently drops the AI entry**: same internal key, first one wins.
+  The workaround only works with a different logical name. Nothing warns about this today —
+  `_validateZoneNames` checks AIZ entries thoroughly but never against the TRZ/WPZ names, and it runs
+  before discovery anyway.
+- **Same exclusivity with the legacy `troopZones`.** That pass runs *after* the AI one and guards on
+  `not self._troopZones[name]`, so listing the AI zone's name there to obtain smoke does nothing at
+  all — the legacy entry is dropped, silently.
+
+**The AI drop-off itself is a superset of v1 — established, ticket 01, though not for the reason this
+PRD first assumed.** `onAILand` unloads a virtual vehicle, a physical vehicle *and* troops in a
+drop-off zone, gated by `aiDropMode` (`G`/`GP`) and **not** by `aiCargoType` — that setting filters the
+*pickup* path only. So a v2 AI drop-off zone unloads at least what v1 unloaded, whatever the entry's
+`cargoType` says.
 
 ## The question this lot answers
 
@@ -70,6 +89,20 @@ nothing is merged, nothing is inferred. Rejected unless David wants the convenie
 
 **Recommendation: A**, with the smoke question split out so it can be judged as a feature rather than as
 migration debt.
+
+### The smoke question, answered
+
+**No new `smoke` field on `aiZones`.** The capability is not missing — a superimposed inert TRZ marks
+the spot with the coalition colour — only the convenience is, and buying that convenience costs a
+schema field, a runtime branch, an editor and a `version-gap` entry for a zone whose whole purpose is
+AI routing. An AI drop-off zone is not a place a pilot needs to find. The migration guide states this
+as a decision and documents the TRZ workaround **with its naming trap**, rather than leaving the next
+reader to re-litigate it.
+
+What the reading did turn up is worth its own ticket, and it is not about smoke: **an AI entry whose
+`dcsZoneName` collides with a discovered TRZ/WPZ name is dropped without a word.** That is the same
+silent-failure class this lot exists to remove. Deliberately kept out of this lot — it touches
+`_validateZoneNames` and the startup report, and it deserves to be judged on its own.
 
 ## Definition of done
 

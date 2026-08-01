@@ -167,6 +167,25 @@ function CTLDConfig:getSetting(key)
     return nil
 end
 
+--- Report settings the engine no longer reads, one NOTICE each.
+-- Called by ctld.initialize(); kept separate so a spec can drive it without booting the engine.
+--
+-- `dropOffZones` is the whole list, on purpose. A v1 mission keeps the key, CTLD 2 reads nothing,
+-- and its AI transports simply stop unloading — with no error, no warning and no log line. Nothing
+-- else catches it: `validate` checks unit types, crate weights, mixedSets and schema choices, never
+-- unknown keys, and a hand-written mission config never passes through ctld-tools at all. So this
+-- NOTICE is the only signal its author will get, which is why it is a NOTICE (on screen) and not an
+-- INFO (log only). A general "unknown top-level key" report is a different feature — it needs a rule
+-- for keys a mission may legitimately carry — and belongs in its own lot.
+function CTLDConfig:reportRetiredSettings()
+    if self.settings["dropOffZones"] ~= nil and ctld.startupReport then
+        -- One string literal, never a concatenation: generate_i18n_dicts.ps1 scans for the literal
+        -- inside ctld.tr(), so a built-up string is harvested truncated and can never be translated.
+        ctld.startupReport.add("NOTICE", "config", ctld.tr(
+            "dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"))
+    end
+end
+
 --- Parameters the loaded snapshot omitted, resolved from the default catalogue.
 -- Sorted; empty when the snapshot is complete, or when the default catalogue is the winner.
 -- Reported once on screen at startup by CTLD_bootstrap (ADR 0011 Addendum 1).
@@ -623,7 +642,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.14"
+ctld.i18n["en"].translation_version = "1.15"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -1169,6 +1188,9 @@ ctld.i18n["en"]["%1 setting(s) absent from the mission config — CTLD default u
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 ctld.i18n["en"]["specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"] = "specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"
 
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
+ctld.i18n["en"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"] = "dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"
+
 -- End : CTLD_i18n_en.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_fr.lua
@@ -1183,7 +1205,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.14"
+ctld.i18n["fr"].translation_version = "1.15"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -1769,6 +1791,9 @@ ctld.i18n["fr"]["%1 setting(s) absent from the mission config — CTLD default u
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 ctld.i18n["fr"]["specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"] = "specificParams est ignoré sur les caisses (%1) — l'altitude, les rayons et la vitesse d'orbite des drones viennent désormais des réglages JTAC_drone*"
 
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
+ctld.i18n["fr"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"] = "dropOffZones n'est pas lu par CTLD 2 — déclarez chaque point de dépose IA comme une entrée aiZones avec isDropoff: true"
+
 -- End : CTLD_i18n_fr.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_es.lua
@@ -1784,7 +1809,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.14"
+ctld.i18n["es"].translation_version = "1.15"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -2339,6 +2364,9 @@ ctld.i18n["es"]["%1 setting(s) absent from the mission config — CTLD default u
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 ctld.i18n["es"]["specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"] = ""
 
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
+ctld.i18n["es"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"] = ""
+
 -- End : CTLD_i18n_es.lua
 -- ====================================================================================================
 -- Start : CTLD_i18n_ko.lua
@@ -2354,7 +2382,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.14"
+ctld.i18n["ko"].translation_version = "1.15"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -2777,6 +2805,9 @@ ctld.i18n["ko"]["%1 setting(s) absent from the mission config — CTLD default u
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 ctld.i18n["ko"]["specificParams is ignored on crates (%1) — drone orbit altitude, radii and speed now come from the JTAC_drone* settings"] = ""
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
+ctld.i18n["ko"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"] = ""
 
 -- End : CTLD_i18n_ko.lua
 -- ====================================================================================================
@@ -25204,6 +25235,10 @@ function ctld.initialize()
             "%1 setting(s) absent from the mission config — CTLD default used: %2",
             #_defaulted, table.concat(_defaulted, ", ")))
     end
+
+    -- A v1 config keeps settings CTLD 2 no longer reads; say so once, on screen, for the same
+    -- reason as above — the mission that carries them is precisely the one that never meets the tool.
+    CTLDConfig.get():reportRetiredSettings()
 
     -- Boot all domain managers first so they can register their menu sections.
     -- Order matters: PlayerManager must be up before any other manager calls
