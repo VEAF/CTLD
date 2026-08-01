@@ -1777,6 +1777,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Exécuter les tests (busted, sans DCS)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-busted-will-not-install" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quand busted refuse de s'installer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1997,6 +2014,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Exécuter les tests (busted, sans DCS)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-busted-will-not-install" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quand busted refuse de s'installer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2112,6 +2146,18 @@ busted<span class="w"> </span>tests/ci/functional/
 <span class="c1"># Exécuter une seule spec</span>
 busted<span class="w"> </span>tests/ci/functional/troop_manager_spec.lua
 </code></pre></div>
+<h3 id="when-busted-will-not-install">Quand busted refuse de s'installer<a class="headerlink" href="#when-busted-will-not-install" title="Permanent link">&para;</a></h3>
+<p><code>luarocks</code> exige Lua ≤ 5.4, ce qu'un poste Windows ne fournit pas toujours. <code>tools/lua-test/</code>
+rejoue toute la suite <code>tests/ci/unit/</code> avec un interpréteur <strong>Lua 5.1</strong> ordinaire — la version que
+DCS exécute — en une seconde environ :</p>
+<div class="highlight"><pre><span></span><code><span class="n">powershell</span> <span class="n">-ExecutionPolicy</span> <span class="n">Bypass</span> <span class="o">-File</span> <span class="n">tools</span><span class="p">\</span><span class="n">lua-test</span><span class="p">\</span><span class="n">run_specs</span><span class="p">.</span><span class="n">ps1</span>          <span class="c"># tout</span>
+<span class="n">powershell</span> <span class="n">-ExecutionPolicy</span> <span class="n">Bypass</span> <span class="o">-File</span> <span class="n">tools</span><span class="p">\</span><span class="n">lua-test</span><span class="p">\</span><span class="n">run_specs</span><span class="p">.</span><span class="n">ps1</span> <span class="n">beacon</span>   <span class="c"># filtre par nom</span>
+</code></pre></div>
+<p>C'est une vérification rapide avant commit, <strong>pas</strong> un second gate : il n'implémente que le
+sous-ensemble de busted utilisé par les specs, donc une spec faisant appel à <code>spy</code> / <code>mock</code> /
+<code>stub</code> y échoue et passe en CI. Voir
+<a href="https://github.com/VEAF/CTLD/blob/develop/tools/lua-test/README.md"><code>tools/lua-test/README.md</code></a>
+pour la surface exacte et ses limites. busted + luacheck en CI restent l'autorité.</p>
 <p>La configuration <code>.busted</code> (racine du dépôt) définit <code>pattern = "_spec"</code> et nomme un <code>helper</code> chargé
 avant chaque spec : <code>tests/ci/helpers/init.lua</code>. Ce helper fait deux choses, dans l'ordre :</p>
 <ol>
