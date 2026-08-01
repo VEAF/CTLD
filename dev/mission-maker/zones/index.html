@@ -2456,6 +2456,21 @@ with <code>stock = 0</code> and an objective flag), described under <a href="#tr
 <p><strong>Uniqueness:</strong> two zones of the same prefix cannot share the same <code>name</code>. A zone name already
 registered is never overwritten by a later one.</p>
 </blockquote>
+<div class="admonition warning">
+<p class="admonition-title">One name space for every kind of zone</p>
+<p>Troop zones share a <strong>single</strong> name space — <code>TRZ_</code>, <code>WPZ_</code>, AI zones and the legacy
+<code>troopZones</code> all register into it, and the first one registered wins. What makes this easy to
+trip over is that a <code>TRZ_</code> zone registers under its <strong>parsed</strong> name: <code>TRZ_dropzone1_B_0_nil_0</code>
+occupies the name <code>dropzone1</code>.</p>
+<p>So an <code>aiZones</code> entry whose <code>dcsZoneName</code> is <code>dropzone1</code> — pointing at a genuinely different
+Mission Editor zone — collides with that TRZ and <strong>is dropped</strong>. CTLD reports it at mission
+start:</p>
+<div class="highlight"><pre><span></span><code>[ERROR] ZoneManager:   AIZ[1] ERROR &#39;dropzone1&#39;: name already taken by zone
+&#39;TRZ_dropzone1_B_0_nil_0&#39; — entry ignored
+</code></pre></div>
+<p>The fix is always the same: give the two zones different names. Registration order is
+<code>TRZ_</code> → AI zones → <code>WPZ_</code> → legacy tables.</p>
+</div>
 <hr />
 <h2 id="troop-zones-trz">Troop zones (TRZ)<a class="headerlink" href="#troop-zones-trz" title="Permanent link">&para;</a></h2>
 <p>A troop zone provides <strong>player pickup</strong> and/or an <strong>extract objective</strong>.</p>

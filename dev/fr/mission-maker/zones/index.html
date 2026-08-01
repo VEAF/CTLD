@@ -2458,6 +2458,21 @@ TRZ</strong> (une zone de troupes avec <code>stock = 0</code> et un flag d'objec
 <p><strong>Unicité :</strong> deux zones du même préfixe ne peuvent pas partager le même <code>name</code>. Un nom de zone
 déjà enregistré n'est jamais écrasé par un suivant.</p>
 </blockquote>
+<div class="admonition warning">
+<p class="admonition-title">Un seul espace de noms pour tous les types de zones</p>
+<p>Les troop zones partagent un <strong>unique</strong> espace de noms — <code>TRZ_</code>, <code>WPZ_</code>, les zones IA et la
+table héritée <code>troopZones</code> s'y enregistrent toutes, et la première enregistrée l'emporte. Ce
+qui rend le piège facile : une zone <code>TRZ_</code> s'enregistre sous son nom <strong>analysé</strong> —
+<code>TRZ_dropzone1_B_0_nil_0</code> occupe le nom <code>dropzone1</code>.</p>
+<p>Une entrée <code>aiZones</code> dont le <code>dcsZoneName</code> vaut <code>dropzone1</code> — pointant pourtant vers une zone
+de l'éditeur de mission bel et bien différente — entre donc en collision avec cette TRZ et
+<strong>est ignorée</strong>. CTLD le signale au démarrage de la mission :</p>
+<div class="highlight"><pre><span></span><code>[ERROR] ZoneManager:   AIZ[1] ERROR &#39;dropzone1&#39;: name already taken by zone
+&#39;TRZ_dropzone1_B_0_nil_0&#39; — entry ignored
+</code></pre></div>
+<p>La correction est toujours la même : donner deux noms différents aux deux zones. L'ordre
+d'enregistrement est <code>TRZ_</code> → zones IA → <code>WPZ_</code> → tables héritées.</p>
+</div>
 <hr />
 <h2 id="troop-zones-trz">Zones de troupes (TRZ)<a class="headerlink" href="#troop-zones-trz" title="Permanent link">&para;</a></h2>
 <p>Une zone de troupes fournit un <strong>pickup joueur</strong> et/ou un <strong>objectif d'extract</strong>.</p>

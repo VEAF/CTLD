@@ -2821,6 +2821,13 @@ following phases <strong>in this order</strong>:</p>
 <p>Finally <code>init()</code> publishes an initial <code>OnLogisticZoneUpdated</code> and logs the zone counts. Each
 discovery phase guards on <code>if not self._troopZones[name]</code> / <code>_logisticZones[name]</code>, so the
 precedence order above is what makes modern definitions win over legacy ones.</p>
+<p>The loser of that race is not always obvious, because the key is the <strong>registered</strong> name, not the
+Mission Editor name: a <code>TRZ_</code> zone registers under its parsed name, so <code>TRZ_dropzone1_B_0_nil_0</code>
+occupies <code>dropzone1</code> and an <code>aiZones</code> entry on a different ME zone genuinely called <code>dropzone1</code>
+collides with it. <code>_loadAIZonesFromConfig</code> reports that case to the startup report as
+<code>AIZ[i] ERROR '&lt;name&gt;': name already taken by zone '&lt;holder&gt;' — entry ignored</code>, at the skip site
+rather than in <code>_validateZoneNames</code>, which runs before discovery and would have to predict what
+discovery is going to claim.</p>
 <h3 id="legacy-fallback-details">Legacy fallback details<a class="headerlink" href="#legacy-fallback-details" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>troopZones</code> entries support both DCS trigger zones and <strong>ship unit names</strong> — if
