@@ -7,6 +7,35 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Fixed — a v1 config's `dropOffZones` no longer disappears in silence (FIX-DROPOFFZONES-PARITY)
+
+`dropOffZones` is a v1 setting the legacy monolith really reads: an AI transport carrying troops or
+a vehicle auto-unloaded when it landed inside one, and the zone was smoked on the periodic refresh.
+**Nothing in `src/` reads it.** A mission migrating from v1 therefore lost that behaviour with no
+error, no warning and no log line — its AI transports simply stopped unloading.
+
+Nothing else caught it either: `validate` checks unit types, crate weights, mixedSets and schema
+choices, never unknown keys, and a hand-written mission config never passes through `ctld-tools` at
+all. So the fix is the missing signal, not a second implementation:
+
+- **One startup NOTICE**, on screen, naming the replacement — an `aiZones` entry with
+  `isDropoff: true`. One message for the key, not one per zone.
+- **The v1 → v2 migration guide gains a `dropOffZones` section** (EN + FR), which had zero mentions
+  of it: what it did, what replaces it, and a before-and-after example. A `ctld-tools` test reads
+  that example out of the guide and validates it, so the documentation cannot drift from the engine.
+
+The setting is **not** reimplemented: `aiZones` supersedes it — and is richer, since a drop-off
+unloads troops, virtual vehicles and physical vehicles, with `aiDropMode` choosing ground,
+parachute or either. A second spelling for one concept is what the last four lots removed.
+
+**The v1 smoke colour has no equivalent, and that is now a recorded decision.** An AI zone is never
+marked: `_loadAIZonesFromConfig` passes no `smoke`, the schema has no such field, and the global
+`troopZoneSmokeColor` is read only by `_discoverTRZ`. Rather than add a field to `aiZones`, the
+guide documents the workaround — a superimposed inert `TRZ_` zone, smoked in the coalition colour —
+together with its trap: give the marker a **different** logical name, because an `aiZones` entry
+whose `dcsZoneName` matches an already-discovered troop zone is skipped, which would silently
+disable the AI zone.
+
 ### Tooling — the unit suite runs locally without busted
 
 `tools/lua-test/` replays all of `tests/ci/unit/` with a plain **Lua 5.1** interpreter — the

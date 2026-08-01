@@ -440,7 +440,11 @@ mm_facing:
 !!! warning "`dropOffZones` is not read in CTLD 2.x"
     v1's `dropOffZones` table (AI auto-deploy points) has no equivalent setting in CTLD 2. AI
     drop-off is configured with [AI transport zones](#ai-transport-zones-aiz) — an `aiZones` entry
-    with `isDropoff: true`. A v1 config carrying `dropOffZones` will have that table ignored.
+    with `isDropoff: true`. A v1 config carrying `dropOffZones` will have that table ignored — CTLD
+    says so once at mission start, in the startup report. The v1 smoke colour has no equivalent: an
+    AI zone is deliberately unmarked. See
+    [Migration v1 → v2](../developer/migration-v1-v2.md#dropoffzones-is-gone-use-an-aizones-entry)
+    for the before-and-after example and the way to mark the spot anyway.
 
 > Legacy zones and auto-discovered zones (TRZ / WPZ / LGZ) coexist without conflict: a zone already
 > registered from trigger-name discovery is never overwritten by legacy config.

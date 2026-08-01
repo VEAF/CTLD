@@ -75,6 +75,61 @@ Deux opérations de zone n'ont pas de prédécesseur v1 et ne sont accessibles q
 > unique, `setTroopZoneActive(name, active)`, et les helpers de comptage ont été déplacés vers
 > `CTLDTroopManager` sous les noms `startGroupCountWatcher` / `startUnitCountWatcher`.
 
+#### `dropOffZones` a disparu — utilisez une entrée `aiZones` { #dropoffzones-is-gone-use-an-aizones-entry }
+
+**En v1.** `dropOffZones` listait des enregistrements `{ nom de zone, couleur de fumigène, camp }` et
+faisait deux choses : un **transport IA** chargé de troupes ou d'un véhicule se déchargeait
+automatiquement en atterrissant à l'intérieur, et la zone était **fumigénée** dans sa couleur au
+rafraîchissement périodique.
+
+**La v2 ne lit rien sous cette clé.** Une mission migrée dont les transports IA ont cessé de se
+décharger a exactement ce problème. CTLD 2 le signale une fois au démarrage, dans le rapport de
+démarrage :
+
+```
+[NOTICE] config: dropOffZones n'est pas lu par CTLD 2 — déclarez chaque point de dépose IA
+comme une entrée aiZones avec isDropoff: true
+```
+
+Le remplacement est plus riche : une entrée `aiZones` dépose **troupes, véhicules virtuels et
+véhicules physiques**, et `aiDropMode` choisit comment — `G` au sol uniquement, `P` en parachute
+uniquement, `GP` les deux.
+
+```yaml
+# v1
+#   dropOffZones:
+#     - [dropzone1, green, 2]     # BLEU, fumigène vert
+#     - [dropzone2, red,   1]     # ROUGE, fumigène rouge
+
+# v2 — les deux mêmes zones, dans mm_facing :
+aiZones:
+  - dcsZoneName: dropzone1
+    coalition: BLUE
+    isPickup: false
+    isDropoff: true
+    aiDropMode: GP
+  - dcsZoneName: dropzone2
+    coalition: RED
+    isPickup: false
+    isDropoff: true
+    aiDropMode: GP
+```
+
+Les trigger zones gardent leurs noms dans l'éditeur de mission ; seule la déclaration change.
+
+!!! info "Une zone IA n'est pas fumigénée — délibérément"
+    La couleur de la v1 n'a pas d'équivalent, et c'est une décision, pas un oubli : une zone de
+    dépose IA existe pour le routage de l'IA, et aucun pilote n'a besoin de la trouver sur la carte.
+    Si vous voulez malgré tout marquer l'endroit, posez par-dessus une seconde troop zone inerte
+    (`TRZ_<nom>_<camp>_0_nil_0`) — elle est fumigénée dans la couleur de coalition issue de
+    `troopZoneSmokeColor`.
+
+    **Donnez-lui un nom logique différent.** Une TRZ est enregistrée sous son nom analysé
+    (`TRZ_dropzone1_B_0_nil_0` s'enregistre sous `dropzone1`), et une entrée `aiZones` dont le
+    `dcsZoneName` correspond à une troop zone déjà connue est ignorée — nommer le marqueur d'après la
+    zone IA désactive donc silencieusement cette dernière. Appelez le marqueur
+    `TRZ_dropmarker1_B_0_nil_0` et les deux fonctionnent.
+
 ### Crates — `CTLDCrateManager`
 
 | Appel v1 | Équivalent v2 |

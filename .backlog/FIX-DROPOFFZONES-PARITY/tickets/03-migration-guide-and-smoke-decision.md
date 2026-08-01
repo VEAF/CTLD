@@ -1,6 +1,6 @@
 # 03 — migration guide, and the smoke decision recorded
 
-**Status:** todo
+**Status:** done
 
 Depends on: 01 (its finding decides half of this ticket).
 

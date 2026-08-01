@@ -113,6 +113,25 @@ function CTLDConfig:getSetting(key)
     return nil
 end
 
+--- Report settings the engine no longer reads, one NOTICE each.
+-- Called by ctld.initialize(); kept separate so a spec can drive it without booting the engine.
+--
+-- `dropOffZones` is the whole list, on purpose. A v1 mission keeps the key, CTLD 2 reads nothing,
+-- and its AI transports simply stop unloading — with no error, no warning and no log line. Nothing
+-- else catches it: `validate` checks unit types, crate weights, mixedSets and schema choices, never
+-- unknown keys, and a hand-written mission config never passes through ctld-tools at all. So this
+-- NOTICE is the only signal its author will get, which is why it is a NOTICE (on screen) and not an
+-- INFO (log only). A general "unknown top-level key" report is a different feature — it needs a rule
+-- for keys a mission may legitimately carry — and belongs in its own lot.
+function CTLDConfig:reportRetiredSettings()
+    if self.settings["dropOffZones"] ~= nil and ctld.startupReport then
+        -- One string literal, never a concatenation: generate_i18n_dicts.ps1 scans for the literal
+        -- inside ctld.tr(), so a built-up string is harvested truncated and can never be translated.
+        ctld.startupReport.add("NOTICE", "config", ctld.tr(
+            "dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"))
+    end
+end
+
 --- Parameters the loaded snapshot omitted, resolved from the default catalogue.
 -- Sorted; empty when the snapshot is complete, or when the default catalogue is the winner.
 -- Reported once on screen at startup by CTLD_bootstrap (ADR 0011 Addendum 1).
