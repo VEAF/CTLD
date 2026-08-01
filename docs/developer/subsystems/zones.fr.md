@@ -163,9 +163,11 @@ les legacy.
 ### Détails du fallback legacy { #legacy-fallback-details }
 
 - Les entrées `troopZones` prennent en charge à la fois les zones de trigger DCS et les **noms
-  d'unités de navire** — si `trigger.misc.getZone` échoue, le loader se rabat sur
-  `Unit.getByName`, capturant la position du navire à l'init comme point de pickup mobile. Les
-  troop zones legacy dérivent automatiquement un `stockFlagName` de la forme `<zoneName>_count`,
+  d'unités de navire** — si `trigger.misc.getZone` échoue, le loader se rabat sur `Unit.getByName`
+  et passe le navire comme `linkedUnit` de la zone, avec le rayon de **200 m** codé en dur en v1.
+  La zone suit le navire : son centre est résolu à chaque `getCenter()`, et le point capturé à
+  l'init n'est que la dernière position connue, utilisée une fois le navire disparu. Les troop
+  zones legacy dérivent automatiquement un `stockFlagName` de la forme `<zoneName>_count`,
   reflétant `pickCurrentStock` vers ce flag DCS.
 - Les entrées `logisticUnits` sont résolues via `StaticObject.getByName` ou `Unit.getByName` et
   deviennent des logistic zones **dynamiques** liées à cet objet (rayon issu de
@@ -195,7 +197,9 @@ rôle `isWaypoint` / `isDropoff` / `isAIPickup` / `isAIDropoff`, et les champs I
 `zone:isInZone(point)` teste les zones polygonales (`verticies` avec ≥3 sommets) via un
 ray-cast de Jordan sur le static privé `CTLDTroopZone._raycast`, sinon se rabat sur un test de
 rayon circulaire. À noter que `verticies[i].x/.y` sont des coordonnées de fichier de mission où
-le `Y` de mission égale le `Z` monde. `zone:getCenter()` retourne le `center` stocké.
+le `Y` de mission égale le `Z` monde. `zone:getCenter()` résout le centre live dans le même ordre
+que `CTLDLogisticZone` : `linkedUnit` (zone portée par un navire) → `trigger.misc.getZone(dcsName)`
+(Moving Zone) → le `center` stocké.
 
 ### Gestion du stock { #stock-management }
 

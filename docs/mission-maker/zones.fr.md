@@ -364,7 +364,7 @@ mm_facing:
     - -1
     - yes
     - 0
-  - - USS Tarawa      # un nom d'unité de navire est également accepté
+  - - USS Tarawa      # un nom d'unité de navire est aussi accepté — la zone suit le navire
     - blue
     - 10
     - yes

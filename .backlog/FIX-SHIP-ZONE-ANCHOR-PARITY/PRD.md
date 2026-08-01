@@ -1,6 +1,9 @@
 # FIX-SHIP-ZONE-ANCHOR-PARITY — a troop zone carried by a ship is frozen at init
 
-**Status:** open.
+**Status:** done — the radius question is answered: **200 m**, v1's hardcoded value, as a named
+constant in `CTLD_zone.lua`. `maximumDistancePackableUnitsSearch` governs a different search and
+was never v1's value here, so keeping it would have been a second deviation, not a deliberate one.
+No migration note: nothing for a mission maker to do.
 
 Opened 2026-08-01, found while auditing the CTLD 2 ↔ VMCT integration
 (`FEAT-VMCT-INTEGRATION` ticket 02). Independent of that lot: the defect exists for any mission whose

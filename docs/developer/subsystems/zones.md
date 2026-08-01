@@ -158,9 +158,11 @@ precedence order above is what makes modern definitions win over legacy ones.
 ### Legacy fallback details
 
 - `troopZones` entries support both DCS trigger zones and **ship unit names** — if
-  `trigger.misc.getZone` misses, the loader falls back to `Unit.getByName`, snapshotting the
-  ship's position at init as a mobile pickup point. Legacy troop zones auto-derive a
-  `stockFlagName` of `<zoneName>_count`, mirroring `pickCurrentStock` to that DCS flag.
+  `trigger.misc.getZone` misses, the loader falls back to `Unit.getByName` and passes the ship as
+  the zone's `linkedUnit`, with v1's hardcoded **200 m** radius. The zone rides the ship: its
+  centre is resolved on every `getCenter()`, and the point captured at init is only the last-known
+  value used once the ship is gone. Legacy troop zones auto-derive a `stockFlagName` of
+  `<zoneName>_count`, mirroring `pickCurrentStock` to that DCS flag.
 - `logisticUnits` entries resolve via `StaticObject.getByName` or `Unit.getByName` and become
   **dynamic** logistic zones linked to that object (radius from `maximumDistanceLogistic`,
   default 500 m).
@@ -189,7 +191,9 @@ Constructed from a `data` table. Required: `dcsName`, `zoneName`, `coalition`, `
 `zone:isInZone(point)` tests polygonal zones (`verticies` with ≥3 corners) via a Jordan
 ray-cast on the private static `CTLDTroopZone._raycast`, otherwise falls back to a circular
 radius test. Note that `verticies[i].x/.y` are mission-file coordinates where mission `Y`
-equals world `Z`. `zone:getCenter()` returns the stored `center`.
+equals world `Z`. `zone:getCenter()` resolves the live centre in the same order as
+`CTLDLogisticZone`: `linkedUnit` (a ship-backed zone) → `trigger.misc.getZone(dcsName)` (a Moving
+Zone) → the stored `center`.
 
 ### Stock management
 

@@ -351,7 +351,7 @@ mm_facing:
     - -1
     - yes
     - 0
-  - - USS Tarawa      # a ship unit name is also accepted
+  - - USS Tarawa      # a ship unit name is also accepted — the zone rides the ship
     - blue
     - 10
     - yes
