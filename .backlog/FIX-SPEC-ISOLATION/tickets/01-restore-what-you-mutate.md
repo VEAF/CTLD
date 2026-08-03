@@ -1,6 +1,8 @@
 # 01 — a spec that mutates a shared setting restores it
 
-**Status:** todo
+**Status:** done — reverse-order run went from **29 failures to 0**, and the starting point turned out
+to be worse than the PRD's count suggested: three distinct leaks, only one of which was a plain
+missing `after_each`.
 
 ## What changes
 
@@ -39,3 +41,26 @@ point is known.
 ## Tests
 
 The suite is the test. State in the PR which order(s) were run and the counts.
+
+
+## What was actually found
+
+1. **`troop_manager_spec` left `capabilitiesByType` absent** — the 29 failures, all in specs that read
+   it (`_detectCapabilities`, the F10 menu gating). Fixed with `ctldTestSettings.borrow`.
+2. **`jtac_drone_globals_spec` restored the setting but not the singleton.** It called
+   `_processSpawnableCrates()` with fake crates: the manager kept a catalogue built from them, so
+   every later spec asking for a descriptor got nothing. Restoring a setting is not enough once
+   something has consumed it.
+3. **A bug in the local runner itself**: it ran `after_each` in registration order, outermost first.
+   Busted runs them innermost first, and nested borrow/restore only nests correctly that way round —
+   the inner restore was landing last and re-applying the inner fixture's value. Fixed in
+   `tools/lua-test/run_specs.lua`; the reverse run is what exposed it.
+4. `type_collector_spec` wrote `modTypes = nil` to clean up, deleting a key the catalogue ships as
+   `[]`. Harmless today, same class, now borrowed.
+
+## The decision the ticket asked for
+
+**FullGas's defensive `before_each` in `aircraft_capabilities_spec` stays.** Not as a patch over the
+leak — that is fixed at the source — but because the spec genuinely needs a `CTLDTroopManager` built
+from the real catalogue, and saying so in the spec is how the next reader knows the test depends on
+it. A spec that states its own preconditions does not care what ran before it.

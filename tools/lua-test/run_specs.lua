@@ -79,9 +79,12 @@ insulate = function(_, fn) if type(_) == "function" then _() else fn() end end
 
 function it(name, fn)
     local full = title() .. " :: " .. name
+    -- Outermost `before_each` first, innermost `after_each` first — busted's order, and the only one
+    -- that lets nested setup nest: an inner block that borrows shared state must give it back before
+    -- the outer block gives back what *it* borrowed, or the inner restore lands last and wins.
     for _, f in ipairs(beforeEach) do f() end
     local ok, err = pcall(fn)
-    for _, f in ipairs(afterEach) do f() end
+    for i = #afterEach, 1, -1 do afterEach[i]() end
     if ok then
         passed = passed + 1
     else

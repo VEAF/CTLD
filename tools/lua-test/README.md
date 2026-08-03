@@ -48,24 +48,32 @@ poetry -C tools/ctld-tools run ctld-tools gen --yaml src/CTLD_config.yaml --out 
 Skipping it locally would hide exactly the failure it is there to catch, which is why the
 decoder is bundled rather than the spec skipped.
 
-## The one gap worth knowing: spec order
+## Spec order, and how to check it
 
 This runner executes the files **in the order you pass them**, and `run_specs.ps1` sorts them by
 name. Busted does not: it walks `tests/ci/` and takes whatever order the filesystem gives, which on
-Linux is a directory hash — arbitrary, and not stable between runs.
+Linux is a directory hash — arbitrary, and not stable between runs. So a fixed local order cannot,
+on its own, tell you a spec is isolated.
 
-That difference matters because several specs mutate shared state and never restore it
-(`CTLDConfig.get().settings[...] = …` with no `after_each`). Whether a spec sees the real
-`loadableGroups` or an emptied one therefore depends on what ran before it — deterministic here,
-arbitrary in CI. **A green run locally does not prove a spec is isolated.**
+Since the runner takes its file list as arguments, **run it backwards** and compare:
 
-It has already bitten once: `aircraft_capabilities_spec` read `CTLDTroopManager._templates` and
-passed locally (it sorts before `troop_manager_spec`, which empties `loadableGroups`) while failing
-in CI, where the order was reversed.
+```bash
+lua tools/lua-test/run_specs.lua ./ $(ls tests/ci/unit/*.lua | sort -r)
+```
 
-So: if a spec you wrote depends on shared state — a singleton, a setting, a template list — reset it
-in the spec rather than trusting the order. A green run here means "no logic error"; only CI can tell
-you "no order dependency".
+Forward and reverse must agree. They do today (1064 / 1064) — `FIX-SPEC-ISOLATION` closed a gap where
+**29 tests failed in reverse**, all of them reading `capabilitiesByType` after `troop_manager_spec`
+had set it to nil and walked away. Use `tests/ci/helpers/settings.lua` (`ctldTestSettings.borrow`) to
+change a setting for the duration of a spec; it gives the previous value back, absent keys included.
+
+Two traps that cost real time, worth knowing before you write the next fixture:
+
+- **Restoring a setting is not enough if a singleton already consumed it.** `_processSpawnableCrates`
+  stores what it read on `CTLDCrateManager`, so putting the setting back left the manager holding a
+  catalogue built from test data. Drop the instance too.
+- **`after_each` runs innermost-first** (busted's order, and this runner's since the same lot). Nested
+  borrow/restore only nests correctly that way round — the inner block must give shared state back
+  before the outer one restores what *it* borrowed.
 
 ## Checking the harness itself
 

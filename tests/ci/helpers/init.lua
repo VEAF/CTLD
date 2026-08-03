@@ -19,3 +19,8 @@ dofile(_thisFile .. "tests/ci/helpers/dcs_stubs.lua")
 
 -- Load all CTLD modules
 dofile(_thisFile .. "tests/ci/helpers/loader.lua")
+
+-- Borrow-and-restore for the live settings table, as a global so a spec needs no path juggling
+-- (specs run with different working directories under busted and under tools/lua-test).
+-- See the helper's header for why this exists: FIX-SPEC-ISOLATION.
+ctldTestSettings = dofile(_thisFile .. "tests/ci/helpers/settings.lua")
