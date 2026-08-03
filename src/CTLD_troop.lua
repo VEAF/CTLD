@@ -770,9 +770,21 @@ function CTLDTroopManager:disembark(unit)
     local onGround    = not self:_isInAir(unit)
 
     if not canFastRope and not onGround then
-        trigger.action.outTextForGroup(ctld.utils.getGroupId(unit),
-            ctld.tr("Too high or too fast to drop troops! Hover below %1 ft or land.",
-                math.floor((ctld.gs("fastRopeMaximumHeight")) * 3.2808399)), 10)
+        local maxH   = ctld.gs("fastRopeMaximumHeight")
+        local pt2    = unit:getPoint()
+        local altAGL = pt2.y - land.getHeight({ x = pt2.x, y = pt2.z })
+        local vel2   = unit:getVelocity()
+        local speed2 = math.sqrt(vel2.x^2 + vel2.y^2 + vel2.z^2)
+        local gid    = ctld.utils.getGroupId(unit)
+        if altAGL > maxH + 3.0 then
+            trigger.action.outTextForGroup(gid,
+                ctld.tr("Too high to fast-rope! Descend below %1 ft.",
+                    math.floor(maxH * 3.2808399)), 10)
+        end
+        if speed2 >= 2.2 then
+            trigger.action.outTextForGroup(gid,
+                ctld.tr("Too fast to fast-rope! Slow down and hover."), 10)
+        end
         return false
     end
 
@@ -1934,6 +1946,41 @@ function CTLDTroopManager:refreshMenuSection(playerObj, overrideInAir)
             end,
             { unitName = playerObj.unitName }, { order = 30 })
 
+    end
+
+    -- "Disembark Troops" — in-flight fast-rope, if feature enabled and troops onboard
+    if unit and inAir and hasTroops and ctld.gs("enableFastRopeInsertion") then
+        local inTransitList = self._inTransit[playerObj.unitName]
+        if inTransitList and #inTransitList > 1 then
+            local disembarkSub = ctld.tr("Disembark Troops")
+            menu:addSubMenu({ root, troopSub }, disembarkSub, { order = 10 })
+            menu:addCommand({ root, troopSub, disembarkSub }, ctld.tr("Disembark All"),
+                function(arg)
+                    local u = Unit.getByName(arg.unitName)
+                    if not u then return end
+                    CTLDTroopManager.getInstance():disembarkAll(u)
+                end,
+                { unitName = playerObj.unitName })
+            for i, grp in ipairs(inTransitList) do
+                local capturedIdx = i
+                menu:addCommand({ root, troopSub, disembarkSub },
+                    string.format("[%d] %s", i, grp.templateName),
+                    function(arg)
+                        local u = Unit.getByName(arg.unitName)
+                        if not u then return end
+                        CTLDTroopManager.getInstance():disembarkIndex(u, arg.idx)
+                    end,
+                    { unitName = playerObj.unitName, idx = capturedIdx })
+            end
+        else
+            menu:addCommand({ root, troopSub }, ctld.tr("Disembark Troops"),
+                function(arg)
+                    local u = Unit.getByName(arg.unitName)
+                    if not u then return end
+                    CTLDTroopManager.getInstance():_menuDisembark(u)
+                end,
+                { unitName = playerObj.unitName }, { order = 10 })
+        end
     end
 
     -- "Parachute Troops" — in-flight only, if capable and troops onboard

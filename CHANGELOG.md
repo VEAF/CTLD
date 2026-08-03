@@ -7,6 +7,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+
+### Changed — "Disembark Troops" now visible in flight when fast-rope is enabled (UX-FASTROPE-INFLIGHT)
+
+The F10 menu entry "Disembark Troops" was only rendered when the helicopter was on the ground,
+making the fast-rope feature (deploy troops from a low hover without landing) impossible to trigger
+from the menu in flight. The entry now appears in flight whenever `enableFastRopeInsertion = true`
+and troops are onboard. Clicking it while the conditions are not met (too high or too fast) now
+shows two distinct messages — one for altitude, one for speed — instead of a single combined message.
+
 ### Fixed — an AI zone dropped for a name clash now says so (FIX-AIZONE-NAME-COLLISION)
 
 `_loadAIZonesFromConfig` skips any entry whose `dcsZoneName` is already a registered troop zone.

@@ -553,16 +553,18 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
             assert.is_false(has(menu(), troopPath("Parachute Troops")))
         end)
 
-        it("no override (nil) falls back to live _isInAir()=true → flight menu", function()
+        it("no override (nil) falls back to live _isInAir()=true → flight menu (Disembark present via fast-rope)", function()
             tm:refreshMenuSection(playerObj)
-            assert.is_false(has(menu(), troopPath("Disembark Troops")))
+            -- UX-FASTROPE-INFLIGHT: Disembark now visible in flight when enableFastRopeInsertion=true
+            assert.is_true(has(menu(), troopPath("Disembark Troops")))
             assert.is_true(has(menu(), troopPath("Parachute Troops")))
         end)
 
-        it("overrideInAir=true forces flight menu even if _isInAir() would say ground", function()
+        it("overrideInAir=true forces flight menu even if _isInAir() would say ground (Disembark present via fast-rope)", function()
             tm._isInAir = function() return false end
             tm:refreshMenuSection(playerObj, true)
-            assert.is_false(has(menu(), troopPath("Disembark Troops")))
+            -- UX-FASTROPE-INFLIGHT: Disembark now visible in flight when enableFastRopeInsertion=true
+            assert.is_true(has(menu(), troopPath("Disembark Troops")))
             assert.is_true(has(menu(), troopPath("Parachute Troops")))
         end)
     end)
