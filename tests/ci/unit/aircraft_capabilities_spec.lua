@@ -76,24 +76,34 @@ describe("capabilitiesByType — the light transports", function()
         assert.is_false(kaVehicles)
     end)
 
-    it("only offers a one-soldier template to a one-soldier aircraft", function()
-        -- The embark menu filters templates on `tmpl.total <= limit`, so the limit is a real
-        -- gate, not a label: at 1, the stock catalogue offers exactly "Single JTAC".
-        local tm    = CTLDTroopManager.getInstance()
-        local limit = tm:_transportLimit("SA342M")
-        assert.equals(1, limit)
+    describe("template filtering via CTLDTroopManager", function()
 
-        local fits = {}
-        for _, tmpl in ipairs(tm._templates) do
-            if tmpl.total <= limit then fits[#fits + 1] = tmpl.name end
-        end
-        assert.equals(1, #fits)
-        assert.equals("Single JTAC", fits[1])
-    end)
+        before_each(function()
+            -- Reset singleton so _registerTemplates runs against the real default loadableGroups.
+            -- Without this, a prior test that cleared loadableGroups leaves _templates empty.
+            CTLDTroopManager._instance = nil
+        end)
 
-    it("falls back to numberOfTroops for an aircraft with no entry", function()
-        local tm = CTLDTroopManager.getInstance()
-        assert.equals(ctld.gs("numberOfTroops"), tm:_transportLimit("Ka-50"))
+        it("only offers a one-soldier template to a one-soldier aircraft", function()
+            -- The embark menu filters templates on `tmpl.total <= limit`, so the limit is a real
+            -- gate, not a label: at 1, the stock catalogue offers exactly "Single JTAC".
+            local tm    = CTLDTroopManager.getInstance()
+            local limit = tm:_transportLimit("SA342M")
+            assert.equals(1, limit)
+
+            local fits = {}
+            for _, tmpl in ipairs(tm._templates) do
+                if tmpl.total <= limit then fits[#fits + 1] = tmpl.name end
+            end
+            assert.equals(1, #fits)
+            assert.equals("Single JTAC", fits[1])
+        end)
+
+        it("falls back to numberOfTroops for an aircraft with no entry", function()
+            local tm = CTLDTroopManager.getInstance()
+            assert.equals(ctld.gs("numberOfTroops"), tm:_transportLimit("Ka-50"))
+        end)
+
     end)
 
 end)
