@@ -48,6 +48,25 @@ poetry -C tools/ctld-tools run ctld-tools gen --yaml src/CTLD_config.yaml --out 
 Skipping it locally would hide exactly the failure it is there to catch, which is why the
 decoder is bundled rather than the spec skipped.
 
+## The one gap worth knowing: spec order
+
+This runner executes the files **in the order you pass them**, and `run_specs.ps1` sorts them by
+name. Busted does not: it walks `tests/ci/` and takes whatever order the filesystem gives, which on
+Linux is a directory hash — arbitrary, and not stable between runs.
+
+That difference matters because several specs mutate shared state and never restore it
+(`CTLDConfig.get().settings[...] = …` with no `after_each`). Whether a spec sees the real
+`loadableGroups` or an emptied one therefore depends on what ran before it — deterministic here,
+arbitrary in CI. **A green run locally does not prove a spec is isolated.**
+
+It has already bitten once: `aircraft_capabilities_spec` read `CTLDTroopManager._templates` and
+passed locally (it sorts before `troop_manager_spec`, which empties `loadableGroups`) while failing
+in CI, where the order was reversed.
+
+So: if a spec you wrote depends on shared state — a singleton, a setting, a template list — reset it
+in the spec rather than trusting the order. A green run here means "no logic error"; only CI can tell
+you "no order dependency".
+
 ## Checking the harness itself
 
 A green run only means something if the harness can go red. Delete a key from
