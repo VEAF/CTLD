@@ -36,6 +36,28 @@ operations or push without an explicit go.
    and config/menu changes that affect them. **Filter out internal noise** (refactors, CI/tooling,
    test moves, backlog bookkeeping). Propose the draft and **wait for validation**.
 
+   **The notes always open with an installation section, before anything else.** A release page lists
+   several assets and a newcomer arriving from a forum link has to guess which one matters — the
+   answer is `ctld-tools.exe` and nothing else. Two rules when adapting the template below: **name
+   the exe as the only file needed** (the other assets belong to the manual path, one sentence
+   lower), and **link, never duplicate** — the getting-started page is the long form, and a section
+   that grows past a handful of lines becomes a second copy that will contradict the first.
+
+   ```markdown
+   ## Installation
+
+   1. Téléchargez **`ctld-tools.exe`** ci-dessous — c'est le seul fichier dont vous avez besoin.
+   2. Lancez-le : l'outil s'ouvre dans votre navigateur, en local, sans installation.
+   3. Ouvrez votre `.miz`, réglez ce que vous voulez, puis **« Installer dans la mission »** : l'outil
+      y écrit CTLD, les sons des balises et votre configuration.
+
+   Vous préférez tout faire à la main ? Les fichiers sont aussi attachés à cette release — voir la
+   [documentation](https://veaf.github.io/CTLD/).
+   ```
+
+   Once versioned documentation is published (`FEAT-TOOL-VERSION-AND-DOCS`), point that link at the
+   released version rather than the site root.
+
 4. **Apply** (after validation):
    - Write `RELEASE_NOTES.md`.
    - **CHANGELOG** — conditional on rc vs stable:

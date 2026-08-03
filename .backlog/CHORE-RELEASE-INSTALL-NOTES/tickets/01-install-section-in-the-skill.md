@@ -1,6 +1,6 @@
 # 01 — the release skill requires an installation section
 
-**Status:** todo
+**Status:** done
 
 Depends on: `FEAT-ONE-CLICK-INSTALL` (the journey it describes must exist).
 

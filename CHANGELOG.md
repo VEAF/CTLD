@@ -7,6 +7,20 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Tooling — every release will say how to install CTLD (CHORE-RELEASE-INSTALL-NOTES)
+
+A release page lists several assets and says nothing about what to do with them; someone arriving
+from a forum link has to guess which file matters. The `release` skill now requires the notes to
+**open** with an installation section — download `ctld-tools.exe`, run it, install into your `.miz` —
+and carries the wording as a template so a release cannot ship without it by forgetting to think
+about it.
+
+Two rules travel with the template: the exe is named as the **only** file needed, the other assets
+belonging to the manual path one sentence lower; and it links to the documentation rather than
+duplicating it, since a section that grows becomes a second copy that will contradict the first.
+
+Written last of the three install lots, on purpose: it describes the journey the other two built.
+
 ### Added — one button installs CTLD into a mission (FEAT-ONE-CLICK-INSTALL ticket 04)
 
 **Download `ctld-tools.exe`, run it, pick your `.miz`.** That is now the whole installation: the

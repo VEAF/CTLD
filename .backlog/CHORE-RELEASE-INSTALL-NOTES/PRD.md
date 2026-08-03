@@ -1,6 +1,6 @@
 # CHORE-RELEASE-INSTALL-NOTES — every release says how to install CTLD
 
-**Status:** open.
+**Status:** done — the skill now requires the section, with the wording as a template. It could only be written once `FEAT-ONE-CLICK-INSTALL` made the journey real.
 
 Opened 2026-08-01. **Deliberately last** of the three install lots: it documents the journey
 `FEAT-ONE-CLICK-INSTALL` builds, and a notice written before the journey exists is a notice that is
