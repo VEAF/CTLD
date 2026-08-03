@@ -7,6 +7,28 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Tooling — the tool installs CTLD into a mission, not just its configuration (FEAT-ONE-CLICK-INSTALL ticket 02)
+
+`ctld_tools.install.install()` writes everything a mission needs into the `.miz`: the engine, both
+beacon sounds, the configuration, and the two MISSION START triggers that load them —
+**configuration first**, because the engine reads `ctld.configUser` as it loads.
+
+The plumbing was read out of VMCT's mission builder rather than guessed at, and it settled the
+question the ticket left open. A **script** needs an entry in `l10n/DEFAULT/mapResource` mapping a
+resource *key* to its file name, because `DO SCRIPT FILE` names a key and never a path. A **sound**
+needs no entry at all: the engine plays it by name through `radioTransmission`, so presence in
+`l10n/DEFAULT/` is the whole requirement.
+
+Re-installing replaces: triggers (matched by comment), resource-map entries and files are all
+overwritten, and a `.miz` installed twice holds one member per name — a zip may legally carry
+duplicates and DCS reads whichever it finds first, which would make a re-install look like a no-op.
+A mission's own resource map survives: we add our two keys, we do not own the file.
+
+The trigger machinery `inject_userconfig` had is now shared (`rebuild_triggers`), and the inline path
+stays for the missions rc1–rc3 injected in that shape.
+
+Not wired to the tool's button yet — that is ticket 04, with the documentation.
+
 ### Tooling — the exe carries the engine and the beacon sounds (FEAT-ONE-CLICK-INSTALL ticket 01)
 
 Groundwork for the new install journey — download `ctld-tools.exe`, run it, done. The exe now bundles

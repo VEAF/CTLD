@@ -1,6 +1,6 @@
 # 02 — write the engine, the sounds and the config into the `.miz`
 
-**Status:** todo
+**Status:** done
 
 Depends on: 01.
 
