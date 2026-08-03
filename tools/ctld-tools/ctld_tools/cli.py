@@ -70,10 +70,10 @@ def validate_cmd(
     ),
 ) -> None:
     """Validate a complete config catalogue against the DCS types and schema."""
+    from ctld_tools import resources
     from ctld_tools.catalog import Catalog
     from ctld_tools.schema import Schema
     from ctld_tools.validate import has_errors, validate
-    from ctld_tools.web import resources
 
     catalog = Catalog.load(yaml_path)
     schema = Schema.load(schema_path) if schema_path else Schema({})
@@ -87,6 +87,32 @@ def validate_cmd(
     if not findings:
         typer.echo("validate: OK")
     if has_errors(findings):
+        raise typer.Exit(1)
+
+
+@app.command("payloads")
+def payloads_cmd() -> None:
+    """List the payloads this build carries: the catalogue, the schema, the engine, the sounds.
+
+    A diagnostic, and the release's guard: the exe installs these into a mission, so a bundle that
+    lost an `--add-data` entry must fail here rather than in DCS. Exits non-zero if any is missing.
+    """
+    from ctld_tools import resources
+
+    entries = [
+        ("catalogue", resources.default_catalog_path()),
+        ("schema", resources.schema_path()),
+        ("engine", resources.engine_path()),
+        *[("sound", p) for p in resources.sound_paths()],
+    ]
+    missing = False
+    for label, path in entries:
+        if path.is_file():
+            typer.echo(f"{label:10} {path.name:28} {path.stat().st_size:>9} bytes")
+        else:
+            typer.echo(f"{label:10} {path.name:28} MISSING ({path})")
+            missing = True
+    if missing:
         raise typer.Exit(1)
 
 

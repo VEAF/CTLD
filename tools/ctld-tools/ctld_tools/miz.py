@@ -6,8 +6,13 @@ the same key, mirrored in `trigrules` (editor form). The index appears **inside*
 compiled action/func strings, so shifting triggers means rewriting those `[idx]`
 references — the approach used by VMCT's mission builder, recreated here.
 
-We insert a single inline `a_do_script` trigger at rank 1 (so it runs before other
-triggers), idempotently (re-injection replaces the previous one, matched by comment).
+`rebuild_triggers` is the shared machinery: it puts n triggers at ranks 1..n, renumbers
+everything else after them, and drops what a previous run of ours left (matched by the
+trigrules comment) so re-running replaces rather than accumulates.
+
+Two callers: `inject_userconfig` here — configuration only, inline, the shape rc1–rc3
+missions carry — and `ctld_tools.install`, which writes the engine, the sounds and the
+configuration as files and loads them by resource key.
 """
 
 from __future__ import annotations
@@ -88,49 +93,69 @@ def _rewrite_indices(cats: dict, old_id: int, new_id: int) -> dict:
     }
 
 
-def inject_userconfig(miz_path: str | Path, userconfig_lua: str, out_path: str | Path) -> None:
-    """Inject `userconfig_lua` as a MISSION START inline-script trigger at rank 1.
+def rebuild_triggers(mission: dict, ours: list[tuple[dict, dict]], markers: set[str]) -> bool:
+    """Put `ours` at ranks 1..n and renumber every other trigger after them.
 
-    Idempotent: a previously injected trigger (matched by comment == MARKER) is removed
-    first, so re-running updates rather than duplicates.
+    `ours` is a list of `(trig_categories, trigrule)` pairs, in the order they must run — DCS
+    executes by rank, so the caller's order is the mission's order. `markers` are the trigrules
+    comments a previous run of ours would have left: those triggers are dropped first, which is what
+    makes re-installing replace instead of accumulate.
+
+    The `funcStartup` of our own triggers is written here, because it names its own index and only
+    this function knows what that index will be.
+
+    Returns True when a previous injection was found and replaced.
     """
-    mission = read_mission(miz_path)
     trig = mission.get("trig") or {}
     trigrules = mission.get("trigrules") or {}
+    n = len(ours)
 
-    # 1. Drop any previously injected trigger (idempotence), by its trigrules comment.
-    stale_ids = {int(k) for k, r in trigrules.items() if isinstance(r, dict) and r.get("comment") == MARKER}
+    stale_ids = {int(k) for k, r in trigrules.items() if isinstance(r, dict) and r.get("comment") in markers}
 
-    # 2. Pivot trig, drop stale, renumber survivors starting at 2 (rank 1 is ours),
-    #    rewriting the in-code [idx] references.
+    # Pivot trig, drop stale, renumber survivors after our block, rewriting in-code [idx] refs.
     pivoted = {tid: cats for tid, cats in _pivot(trig).items() if tid not in stale_ids}
     renumbered: dict[int, dict] = {}
-    for new_id, old_id in enumerate(sorted(pivoted), start=2):
+    for new_id, old_id in enumerate(sorted(pivoted), start=n + 1):
         renumbered[new_id] = _rewrite_indices(pivoted[old_id].copy(), old_id, new_id)
 
-    # 3. Our new trigger at id 1.
-    escaped = _escape_lua_string(userconfig_lua)
-    renumbered[1] = {
-        "actions": f'a_do_script("{escaped}");',
-        "conditions": "return(true)",
-        "funcStartup": "if mission.trig.conditions[1]() then mission.trig.actions[1]() end",
-        "flag": True,
-    }
+    for rank, (cats, _rule) in enumerate(ours, start=1):
+        entry = dict(cats)
+        entry["funcStartup"] = f"if mission.trig.conditions[{rank}]() then mission.trig.actions[{rank}]() end"
+        renumbered[rank] = entry
     mission["trig"] = _unpivot(dict(sorted(renumbered.items())))
 
-    # 4. trigrules: drop stale, renumber survivors from 2, insert ours at 1.
     survivors = [r for k, r in sorted(trigrules.items(), key=lambda kv: int(kv[0])) if int(k) not in stale_ids]
-    new_rules: dict[int, dict] = {
-        1: {
-            "rules": [],
-            "eventlist": "",
-            "actions": [{"predicate": "a_do_script", "text": userconfig_lua}],
-            "predicate": "triggerStart",
-            "comment": MARKER,
-        }
-    }
-    for i, rule in enumerate(survivors, start=2):
+    new_rules: dict[int, dict] = {rank: rule for rank, (_cats, rule) in enumerate(ours, start=1)}
+    for i, rule in enumerate(survivors, start=n + 1):
         new_rules[i] = rule
     mission["trigrules"] = new_rules
 
+    return bool(stale_ids)
+
+
+def inject_userconfig(miz_path: str | Path, userconfig_lua: str, out_path: str | Path) -> None:
+    """Inject `userconfig_lua` as a MISSION START inline-script trigger at rank 1.
+
+    The pre-FEAT-ONE-CLICK-INSTALL path: configuration only, inline. Kept because missions injected
+    by rc1–rc3 carry this shape and `install()` must be able to recognise it. New installs go
+    through `ctld_tools.install.install()`, which writes files instead.
+    """
+    mission = read_mission(miz_path)
+    escaped = _escape_lua_string(userconfig_lua)
+    rebuild_triggers(
+        mission,
+        ours=[
+            (
+                {"actions": f'a_do_script("{escaped}");', "conditions": "return(true)", "flag": True},
+                {
+                    "rules": [],
+                    "eventlist": "",
+                    "actions": [{"predicate": "a_do_script", "text": userconfig_lua}],
+                    "predicate": "triggerStart",
+                    "comment": MARKER,
+                },
+            )
+        ],
+        markers={MARKER},
+    )
     write_miz(mission, miz_path, out_path)

@@ -61,12 +61,43 @@ def _plain(v: Any) -> Any:
     return v
 
 
+def _settable_but_uncatalogued() -> dict[str, Any]:
+    """Settings the schema declares with a default that the **engine catalogue** does not carry.
+
+    Exactly one today, `i18n_lang`: the engine reads it through `ctld.gs("i18n_lang")` with a
+    fallback, so setting it works — but it is deliberately absent from the catalogue, and the app
+    lists *catalogue* keys. The TUI listed schema keys and offered it; the web app lost it in the
+    move. Surfaced here rather than added to the catalogue, which would make it a **parameter**
+    under ADR 0011 Addendum 1: the completeness rule would then demand it of every snapshot, and
+    every configuration written for rc1–rc3 would report a missing setting at mission start.
+
+    Keyed off the **default** catalogue, never the open one, for two reasons: it is a property of the
+    engine rather than of the document being edited, and `/api/defaults` must answer before anything
+    is loaded — the UI fetches it while booting.
+    """
+    reference = session.default_catalog()
+    schema = session.schema
+    out: dict[str, Any] = {}
+    for key in schema.keys():
+        if reference.has(key):
+            continue
+        default = schema.default(key)
+        if default is not None:
+            out[key] = default
+    return out
+
+
 def _snapshot() -> dict[str, Any]:
     cat = session.catalog
+    # Offer the uncatalogued settings the open document has not set yet; once the Mission Maker sets
+    # one it lives in their catalogue, and adding it here again would list it twice.
+    extra = {k: v for k, v in _settable_but_uncatalogued().items() if not cat.has(k)}
+    values = {k: _plain(cat.get(k)) for k in cat.keys()}
+    values.update(extra)
     return {
         "path": str(session.path) if session.path else None,
-        "keys": cat.keys(),
-        "values": {k: _plain(cat.get(k)) for k in cat.keys()},
+        "keys": [*cat.keys(), *extra],
+        "values": values,
     }
 
 
@@ -152,9 +183,15 @@ def get_defaults() -> dict[str, Any]:
 
     Lets the UI mark a setting as changed from the default and offer a one-click reset — editing is
     otherwise a one-way door, which makes a non-technical MM afraid to touch anything.
+
+    Includes the schema-declared defaults of settings the catalogue does not carry (see
+    `_settable_but_uncatalogued`): without them the UI compares a value against nothing and marks the
+    setting permanently modified.
     """
     cat = session.default_catalog()
-    return {"values": {k: _plain(cat.get(k)) for k in cat.keys()}}
+    values = {k: _plain(cat.get(k)) for k in cat.keys()}
+    values.update(_settable_but_uncatalogued())
+    return {"values": values}
 
 
 @app.get("/api/dcs-types")
@@ -221,8 +258,14 @@ def put_setting(req: SettingRequest) -> dict[str, Any]:
     if cat.has(req.key):
         cat.set(req.key, req.value)
     else:
+        # A setting the schema marks `standard:` is Mission-Maker-facing, so it belongs in
+        # mm_facing — the sections are a readability split, and putting `i18n_lang` under
+        # `advanced` would file the interface language with the internals.
+        section = req.section
+        if section == "advanced" and session.schema.standard(req.key):
+            section = "mm_facing"
         try:
-            cat.add_setting(req.key, req.value, section=req.section)
+            cat.add_setting(req.key, req.value, section=section)
         except ValueError as exc:  # bad section
             raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"key": req.key, "value": _plain(cat.get(req.key))}
@@ -275,10 +318,16 @@ def dialog(kind: str) -> dict[str, str | None]:
 
 
 @app.post("/api/inject")
-def inject(req: InjectRequest) -> dict[str, str]:
-    """Export the current catalogue as ctld.configUser and inject it into a .miz (idempotent)."""
+def inject(req: InjectRequest) -> dict[str, Any]:
+    """Install CTLD into a `.miz`: the engine, the beacon sounds, the configuration, the triggers.
+
+    Named `/api/inject` for continuity, but it stopped being configuration-only with
+    FEAT-ONE-CLICK-INSTALL — a Mission Maker now needs nothing but this tool. Returns what was
+    written so the UI can say so without reopening the archive: claiming "installed" and leaving the
+    user to verify in the Mission Editor is how the old five-step journey started.
+    """
     from ctld_tools.embed import wrap
-    from ctld_tools.miz import inject_userconfig
+    from ctld_tools.install import install
 
     try:
         cat = session.catalog
@@ -286,8 +335,21 @@ def inject(req: InjectRequest) -> dict[str, str]:
         raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
     if has_errors(validate(cat, session.schema, default=session.default_catalog())):
         raise HTTPException(status_code=422, detail="fix validation errors before injecting")
-    inject_userconfig(req.miz, wrap(cat.dumps(), "configUser"), req.miz)
-    return {"injected": req.miz}
+    try:
+        report = install(req.miz, wrap(cat.dumps(), "configUser"), req.miz)
+    except FileNotFoundError as exc:  # a checkout with no built engine, or a missing .miz
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    changed = sum(1 for k in cat.keys() if cat.get(k) != session.default_catalog().get(k))
+    return {
+        "injected": req.miz,
+        "mission": report.miz,
+        "engineVersion": report.engine_version,
+        "files": report.files,
+        "triggers": report.triggers,
+        "replacedPrevious": report.replaced_previous,
+        "changedSettings": changed,
+    }
 
 
 @app.get("/api/version-gap")

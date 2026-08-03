@@ -16,6 +16,8 @@ def test_explicit_command_runs_cli():
     assert resolve_action(["validate", "--yaml", "x"]) == "cli"
     assert resolve_action(["embed"]) == "cli"
     assert resolve_action(["serve"]) == "cli"  # explicit serve goes through Typer
+    # The release smoke-check runs `ctld-tools.exe payloads`; routed to serve it would hang the job.
+    assert resolve_action(["payloads"]) == "cli"
 
 
 def test_help_goes_to_cli():

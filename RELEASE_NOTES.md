@@ -1,25 +1,23 @@
-# CTLD 2.0.0-rc3 — version candidate
+# CTLD 2.0.0-rc3 — release candidate
 
-CTLD 2.0 est une **réécriture complète** du script CTLD v1 : le code monolithique devient un
-ensemble de modules Lua **testables** (architecture orientée objet Manager/Entité), couvert par une
-intégration continue — build unique, plus de 1 100 tests unitaires et fonctionnels, plus des tests
-d'intégration en DCS réel.
+CTLD 2.0 is a **complete rewrite** of the CTLD v1 script: the monolith becomes a set of **testable**
+Lua modules (Manager/Entity object design), covered by continuous integration — one build, more than
+1,100 unit and functional tests, plus integration tests in a live DCS.
 
-Cette **rc3** fait parler CTLD. La plupart de ce qu'elle apporte tient en une idée : ce qui était
-**silencieux ou inaccessible** devient dit ou appelable. Un point logistique se déclare par type
-d'appareil au lieu d'être nommé unité par unité, une balise se pose depuis un script sans qu'un
-pilote soit aux commandes, une zone d'embarquement posée sur un porte-avions suit enfin le
-porte-avions — et trois situations qui vous étaient cachées sont désormais annoncées au démarrage.
+This **rc3** makes CTLD speak up. Most of what it brings comes down to one idea: what used to be
+**silent or unreachable** is now said or callable. A logistic point is declared by aircraft type
+instead of unit by unit, a beacon can be placed from a script with no pilot in a cockpit, a troop
+pickup zone sitting on a carrier finally follows the carrier — and three situations that used to be
+hidden from you are announced at mission start.
 
-Elle ajoute aussi les **Gazelle et le Yak-52**, absents du catalogue depuis le début.
+It also adds the **Gazelles and the Yak-52**, missing from the catalogue since the beginning.
 
-## Nouveautés
+## What's new
 
-- **Déclarez vos points logistiques par type d'appareil.** Le nouveau réglage `logisticUnitTypes`
-  prend des noms de types DCS : chaque unité **et chaque objet statique** de la mission dont le type
-  y figure devient un point logistique, sans que vous ayez à le nommer. La zone suit l'objet, donc un
-  porte-avions garde son point logistique en route. Plus besoin de recopier dix noms d'unités d'une
-  mission à l'autre :
+- **Declare your logistic points by aircraft type.** The new `logisticUnitTypes` setting takes DCS
+  type names: every unit **and every static** in the mission whose type is listed becomes a logistic
+  point, without you naming it. The zone follows the object, so a carrier keeps its logistic point
+  under way. No more copying ten unit names from one mission to the next:
 
   ```yaml
   logisticUnitTypes:
@@ -28,15 +26,15 @@ Elle ajoute aussi les **Gazelle et le Yak-52**, absents du catalogue depuis le d
   - FARP Ammo Dump Coating
   ```
 
-  Un type listé qu'aucun objet de la mission ne porte n'est pas une erreur : c'est un catalogue,
-  réutilisable tel quel d'une mission à l'autre.
+  A listed type that no object in the mission carries is not an error: this is a catalogue, reusable
+  as it is from mission to mission.
 
-- **Idem pour les points d'embarquement sur navire**, avec `troopZoneShipTypes`. Chaque navire du
-  type listé devient un point d'embarquement à stock illimité, ancré au bâtiment.
+- **Same for ship pickup points**, with `troopZoneShipTypes`. Every ship of a listed type becomes a
+  troop pickup point with unlimited stock, anchored to the vessel.
 
-- **Une balise radio peut être posée par un script.** Jusqu'ici, tout passait par le menu F10 d'un
-  pilote : une FARP construite par script ne pouvait pas porter de balise. `createAtPoint()` la pose
-  en un point quelconque et rend ses trois fréquences ; `removeBeacon()` la retire par son nom :
+- **A radio beacon can be placed by a script.** Until now everything went through a pilot's F10 menu:
+  a FARP built by a script could not carry a beacon. `createAtPoint()` places one at any point and
+  returns its three frequencies; `removeBeacon()` removes it by name:
 
   ```lua
   local beacon = CTLDBeaconManager.getInstance():createAtPoint(
@@ -45,68 +43,62 @@ Elle ajoute aussi les **Gazelle et le Yak-52**, absents du catalogue depuis le d
   -- beacon:freqText() → "245.00 kHz - 350.50 / 45.20 MHz"
   ```
 
-- **Cinq appareils de plus.** Les quatre **Gazelle** (`SA342L`, `SA342M`, `SA342Minigun`,
-  `SA342Mistral`) et le **Yak-52** ont enfin leurs capacités déclarées : un soldat, pas de caisse —
-  ce que la v1 leur donnait. Leurs pilotes récupèrent le transport de troupes, les balises et les
-  fumigènes.
+- **Five more aircraft.** The four **Gazelles** (`SA342L`, `SA342M`, `SA342Minigun`, `SA342Mistral`)
+  and the **Yak-52** finally have their capabilities declared: one soldier, no crates — what v1 gave
+  them. Their pilots get troop transport, beacons and smoke back.
 
-## Changements importants pour les concepteurs de mission
+## Important for mission makers
 
-⚠️ **Le Ka-50 n'est plus un transport.** En v1, il élinguait des caisses et embarquait des soldats —
-non par choix, mais parce qu'il ne figurait dans aucune des deux tables de capacités et héritait des
-valeurs par défaut. CTLD 2 ne reprend pas ce comportement : un hélicoptère d'attaque monoplace n'est
-pas un transport. Ses pilotes gardent le menu CTLD, le RECON et le statut JTAC ; ils perdent les
-caisses, les troupes et les balises. **Si votre mission en avait besoin, ajoutez l'entrée
-vous-même** — c'est de la configuration, pas du comportement moteur, et le guide de migration
-explique comment.
+⚠️ **The Ka-50 is no longer a transport.** In v1 it slung crates and carried soldiers — not by choice,
+but because it appeared in neither capability table and inherited the defaults. CTLD 2 does not carry
+that over: a single-seat attack helicopter is not a transport. Its pilots keep the CTLD menu, RECON
+and JTAC status; they lose crates, troops and beacons. **If your mission needed it, add the entry
+yourself** — that is configuration, not engine behaviour, and the migration guide explains how.
 
-- **Une zone d'embarquement posée sur un navire utilise un rayon de 200 m**, la valeur de la v1, au
-  lieu de suivre le réglage `maximumDistancePackableUnitsSearch`. Sans effet si vous n'aviez pas
-  modifié ce réglage.
+- **A troop pickup zone on a ship uses a 200 m radius**, v1's value, instead of following the
+  `maximumDistancePackableUnitsSearch` setting. No effect unless you had changed that setting.
 
-- **Pour les auteurs de scripts** : `createAtZone(..., batteryLife = -1, ...)` signifie désormais
-  « n'expire jamais ». Auparavant, cette valeur produisait une balise dont la batterie était déjà à
-  plat.
+- **For script authors**: `createAtZone(..., batteryLife = -1, ...)` now means "never expires".
+  Previously that value produced a beacon whose battery was already flat.
 
-- **Trois situations qui vous étaient cachées sont désormais annoncées au démarrage**, dans le
-  rapport CTLD :
-    - une configuration v1 qui porte encore `dropOffZones` — ce réglage n'est pas lu par CTLD 2, et
-      le message vous indique son remplaçant (une entrée `aiZones` avec `isDropoff: true`) ;
-    - une zone IA ignorée parce que son nom est déjà pris par une autre zone ;
-    - un nom de type DCS que rien dans la mission ne pourra faire correspondre, refusé par
-      `ctld-tools` avant même que la mission tourne.
+- **Three situations that used to be hidden from you are now announced at mission start**, in the
+  CTLD report:
+    - a v1 configuration still carrying `dropOffZones` — CTLD 2 does not read that setting, and the
+      message names its replacement (an `aiZones` entry with `isDropoff: true`);
+    - an AI zone ignored because its name is already taken by another zone;
+    - a DCS type name that nothing in the mission could ever match, rejected by `ctld-tools` before
+      the mission even runs.
 
-## Corrections visibles en jeu
+## Fixes you will see in game
 
-- **Une zone d'embarquement portée par un navire suit enfin son navire.** Elle était figée à la
-  position du bâtiment au démarrage de la mission : un porte-avions appareillait et laissait son
-  point d'embarquement au milieu de l'eau, sans le moindre message. La v1 recalculait la position à
-  chaque vérification ; ce comportement est rétabli. Rien à changer dans vos missions.
+- **A troop pickup zone carried by a ship finally follows its ship.** It was frozen at the vessel's
+  position at mission start: a carrier got under way and left its pickup point in the middle of the
+  water, without a single message. v1 recomputed the position on every check; that behaviour is
+  restored. Nothing to change in your missions.
 
-- **Une entrée `aiZones` ignorée le dit.** Quand son nom est déjà utilisé par une autre zone, elle
-  était écartée en silence et vous obteniez une zone IA qui ne faisait rien. Le piège est facile à
-  tendre : une zone `TRZ_dropzone1_B_0_nil_0` occupe le nom `dropzone1`, donc une zone IA appelée
-  `dropzone1` — même s'il s'agit d'une zone de l'éditeur bel et bien différente — entrait en
-  collision avec elle. La correction tient dans deux noms distincts.
+- **An ignored `aiZones` entry now says so.** When its name was already used by another zone it was
+  dropped in silence, and you got an AI zone that did nothing. The trap is easy to fall into: a
+  `TRZ_dropzone1_B_0_nil_0` zone occupies the name `dropzone1`, so an AI zone called `dropzone1` —
+  even though it points at a genuinely different editor zone — collided with it. The fix is two
+  distinct names.
 
-- **`ctld-tools` accepte les unités moddées que vous déclarez.** Le réglage `modTypes` existe
-  précisément pour cela, mais l'outil rejetait quand même une caisse moddée et bloquait l'export.
+- **`ctld-tools` accepts the modded units you declare.** The `modTypes` setting exists precisely for
+  that, but the tool still rejected a modded crate and blocked the export.
 
 ## Documentation
 
-- Le **guide de migration v1 → v2** gagne deux sections : ce que devient `dropOffZones` (avec un
-  exemple avant/après), et quels appareils sont des transports — dont l'explication du cas Ka-50.
-- La page **Zones** énonce une règle qui n'était écrite nulle part : `TRZ_`, `WPZ_`, les zones IA et
-  la table héritée `troopZones` partagent **un seul** espace de noms, et la première zone
-  enregistrée l'emporte.
-- La page **Configuration** ne prétend plus qu'un appareil absent du catalogue n'a aucun menu CTLD :
-  il en a un, il ne transporte simplement rien. « Le menu est là mais il est vide » a maintenant une
-  cause documentée.
+- The **v1 → v2 migration guide** gains two sections: what becomes of `dropOffZones` (with a
+  before-and-after example), and which aircraft are transports — including the Ka-50 explanation.
+- The **Zones** page states a rule that was written nowhere: `TRZ_`, `WPZ_`, AI zones and the legacy
+  `troopZones` table share **one** name space, and the first zone registered wins.
+- The **Configuration** page no longer claims that an aircraft absent from the catalogue has no CTLD
+  menu at all: it has one, it simply carries nothing. "The menu is there but empty" now has a
+  documented cause.
 
-## Contributeurs
+## Contributors
 
-**FullGas** (développeur principal), **Zip** (assistance technique) — VEAF.
+**FullGas** (lead developer), **Zip** (technical support) — VEAF.
 
-Cette rc3 vient de l'audit d'intégration mené pour brancher les **VEAF Mission Creation Tools** sur
-CTLD 2 : quatre manques y ont été trouvés, tous corrigés ici, et trois autres défauts ont été
-découverts en chemin.
+This rc3 comes out of the integration audit run to move the **VEAF Mission Creation Tools** onto
+CTLD 2: four gaps were found there, all fixed here, and three more defects were discovered along the
+way.

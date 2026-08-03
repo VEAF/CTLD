@@ -6,12 +6,28 @@ Mission Editor and the `CTLD_userConfig.lua` file. If you want to *operate* CTLD
 
 ## Getting started
 
-1. Add `CTLD.lua` to your mission with a **MISSION START → DO SCRIPT FILE** trigger. CTLD runs on
-   its built-in defaults, so this alone is enough to play.
-2. To customise anything, produce a configuration with
-   [`ctld-tools`](ctld-tools.md) and let it inject a `CTLD_userConfig.lua` trigger into your
-   mission — **before** the `CTLD.lua` trigger.
-3. Configure the pieces you need using the pages below.
+**Download `ctld-tools.exe` from the [latest release](https://github.com/VEAF/CTLD/releases) and run
+it.** That is the whole installation: the tool carries CTLD and its beacon sounds, and writes
+everything into your mission.
+
+1. **Run the tool.** It opens in your browser, locally — no installation, no account, nothing to
+   configure first.
+2. **Open your `.miz`** — or start from the CTLD defaults if you are configuring before you have a
+   mission. Opening a mission that already has CTLD brings its configuration back, ready to edit.
+3. **Adjust what you need** (the pages below describe each area), then **Install into mission…**
+
+The tool writes four things into the `.miz`: `CTLD.lua`, the two beacon sound files, your
+configuration, and the two MISSION START triggers that load them in the right order. It reports what
+it wrote, and re-installing replaces rather than duplicates.
+
+??? note "Installing by hand"
+    Everything the tool writes is also attached to each release, if you prefer doing it yourself:
+
+    1. add `CTLD.lua` to the mission with a **MISSION START → DO SCRIPT FILE** trigger — on its own,
+       CTLD runs on its built-in defaults, which is enough to play;
+    2. add `beacon.ogg` and `beaconsilent.ogg` to the mission, or **beacons will be silent**;
+    3. to customise anything, add your `CTLD_userConfig.lua` as a second `DO SCRIPT FILE` trigger,
+       **before** the `CTLD.lua` one — the engine reads the configuration as it loads.
 
 All settings are read through `ctld.gs("paramName")` at runtime. Your configuration is a **complete
 snapshot** carried by `ctld.configUser` in `CTLD_userConfig.lua`, not a list of overrides — see

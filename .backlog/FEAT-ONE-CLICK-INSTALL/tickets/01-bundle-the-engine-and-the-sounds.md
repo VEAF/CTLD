@@ -1,6 +1,6 @@
 # 01 — the exe carries `CTLD.lua` and the two `.ogg`
 
-**Status:** todo
+**Status:** done
 
 No dependency. Blocks 02.
 

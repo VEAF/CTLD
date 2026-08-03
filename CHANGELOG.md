@@ -7,6 +7,112 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Tooling — every release will say how to install CTLD (CHORE-RELEASE-INSTALL-NOTES)
+
+A release page lists several assets and says nothing about what to do with them; someone arriving
+from a forum link has to guess which file matters. The `release` skill now requires the notes to
+**open** with an installation section — download `ctld-tools.exe`, run it, install into your `.miz` —
+and carries the wording as a template so a release cannot ship without it by forgetting to think
+about it.
+
+Two rules travel with the template: the exe is named as the **only** file needed, the other assets
+belonging to the manual path one sentence lower; and it links to the documentation rather than
+duplicating it, since a section that grows becomes a second copy that will contradict the first.
+
+Written last of the three install lots, on purpose: it describes the journey the other two built.
+
+### Added — one button installs CTLD into a mission (FEAT-ONE-CLICK-INSTALL ticket 04)
+
+**Download `ctld-tools.exe`, run it, pick your `.miz`.** That is now the whole installation: the
+tool carries the engine and the beacon sounds, and writes them, the configuration and the two
+MISSION START triggers into the mission. What used to be five manual steps — fetch `CTLD.lua`, fetch
+two `.ogg` from the repository, drop them in the archive, add a trigger, then run the tool for the
+configuration — is one action.
+
+The action is called **Install into mission…** rather than *Inject the configuration*, because it
+does more than it used to and a Mission Maker who reads "configuration" will not believe their engine
+got installed. It reports what landed in the archive — engine version, files, triggers, how many
+settings differ from the defaults, and whether a previous install was replaced — so the result is
+verifiable without opening the `.miz`.
+
+The mission-maker guide leads with that journey in both languages. The manual path is documented too,
+as the alternative rather than the default, and it is the one that keeps the warning about adding the
+`.ogg` by hand — a requirement that had been stated on the `radioSound` setting, where someone using
+the tool had no way to know it no longer applied to them.
+
+### Fixed — CTLD's interface language can be set from the tool (FIX-TOOL-I18N-LANG)
+
+Reported by **FullGas**: there was no way to choose CTLD's language in `ctld-tools`. Neither the
+engine nor the schema was at fault — `CTLD_i18n` resolves it through `ctld.gs("i18n_lang")`, and the
+schema declares it with `default: en` and `choices: [en, fr, es, ko]`. The app never showed it because
+it lists **catalogue** keys, and this is the only setting of ~150 deliberately absent from the
+catalogue: a scalar there would make it a *parameter* under ADR 0011 Addendum 1, so the completeness
+rule would demand it and every configuration written for rc1–rc3 would report a missing setting at
+mission start.
+
+A regression from the TUI → web app move: the TUI listed schema keys, and the schema comment still
+says its default is there to "surface it in the TUI picker". Fixed by offering the settings the schema
+declares with a default that the catalogue does not carry — exactly one today — rather than by
+cataloguing this one. Setting it writes it to `mm_facing`, where a Mission-Maker-facing setting
+belongs.
+
+### Tooling — the tool opens a mission and edits the configuration it carries (FEAT-ONE-CLICK-INSTALL ticket 03)
+
+Once a mission is installed, the `.miz` is where its configuration lives. `ctld-tools` can now read
+it back: opening a `.miz` works like opening a `.yaml`, and the tool remembers which mission it came
+from.
+
+**Both storage shapes are read**, which matters more than it sounds. Missions installed by rc1–rc3
+carry the whole snapshot inside a trigger, not as a file; without that path a Mission Maker opening
+last month's mission would be told there is no configuration in it — while their settings sit right
+there, unreachable — and would have to redo them by hand.
+
+The extraction is the inverse of the embed, deliberately: `wrap` picks the Lua long-bracket level
+from the content (`[[`, `[=[`, `[==[`…), so a fixed pattern would read `[[` correctly and then
+truncate a `[==[` snapshot at the first `]]` inside its own YAML. Pinned by tests on the payloads
+that break a naive regex — `]]`, `]==]`, `]=]` and `--` inside the configuration.
+
+A mission with no CTLD configuration is not an error: it is what a first install looks like.
+
+### Tooling — the tool installs CTLD into a mission, not just its configuration (FEAT-ONE-CLICK-INSTALL ticket 02)
+
+`ctld_tools.install.install()` writes everything a mission needs into the `.miz`: the engine, both
+beacon sounds, the configuration, and the two MISSION START triggers that load them —
+**configuration first**, because the engine reads `ctld.configUser` as it loads.
+
+The plumbing was read out of VMCT's mission builder rather than guessed at, and it settled the
+question the ticket left open. A **script** needs an entry in `l10n/DEFAULT/mapResource` mapping a
+resource *key* to its file name, because `DO SCRIPT FILE` names a key and never a path. A **sound**
+needs no entry at all: the engine plays it by name through `radioTransmission`, so presence in
+`l10n/DEFAULT/` is the whole requirement.
+
+Re-installing replaces: triggers (matched by comment), resource-map entries and files are all
+overwritten, and a `.miz` installed twice holds one member per name — a zip may legally carry
+duplicates and DCS reads whichever it finds first, which would make a re-install look like a no-op.
+A mission's own resource map survives: we add our two keys, we do not own the file.
+
+The trigger machinery `inject_userconfig` had is now shared (`rebuild_triggers`), and the inline path
+stays for the missions rc1–rc3 injected in that shape.
+
+Not wired to the tool's button yet — that is ticket 04, with the documentation.
+
+### Tooling — the exe carries the engine and the beacon sounds (FEAT-ONE-CLICK-INSTALL ticket 01)
+
+Groundwork for the new install journey — download `ctld-tools.exe`, run it, done. The exe now bundles
+`CTLD.lua` and both `.ogg` alongside the catalogue and the schema it already carried (three more
+`--add-data` entries; the exe grows about 7%). Bundled rather than downloaded on purpose: an exe then
+installs the engine of *its own* release and nothing else, and it works with no network.
+
+**`beacon.ogg` and `beaconsilent.ogg` are now release assets.** They were repo-only, under `assets/`,
+while the documentation states a mission needs them or its beacons are silent — so the manual install
+could not be completed from the release page alone. That gap is closed for the manual path too,
+independently of the tool.
+
+One resolver for all four payloads (`ctld_tools/resources.py`, moved out of `ctld_tools/web/` since
+the CLI was already importing it from there), and a new `ctld-tools payloads` command that lists them
+with their sizes and exits non-zero if one is missing. The release smoke-check runs it: a bundle that
+silently loses an `--add-data` entry now fails the release instead of shipping and surfacing in DCS.
+
 
 ### Changed — "Disembark Troops" now visible in flight when fast-rope is enabled (UX-FASTROPE-INFLIGHT)
 

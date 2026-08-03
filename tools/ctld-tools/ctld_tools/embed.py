@@ -35,3 +35,26 @@ def wrap_file(yaml_path: str | Path, out_path: str | Path, var: str = "configDef
     """Read a config YAML and write the wrapped Lua string module."""
     yaml_text = Path(yaml_path).read_text(encoding="utf-8")
     Path(out_path).write_text(wrap(yaml_text, var), encoding="utf-8", newline="\n")
+
+
+def unwrap(lua_text: str, var: str = "configUser") -> str | None:
+    """The YAML inside a `ctld.<var> = [==[ … ]==]` module, or None if there is none.
+
+    The inverse of `wrap`, and it has to be: the bracket level is chosen from the content, so a
+    fixed pattern would read `[[` correctly and truncate a `[==[` snapshot at the first `]]`
+    appearing inside its own YAML. Finding the opening delimiter first, then its exact match, is
+    what makes it safe.
+    """
+    import re
+
+    opening = re.search(rf"ctld\.{re.escape(var)}\s*=\s*\[(=*)\[", lua_text)
+    if not opening:
+        return None
+    eq = opening.group(1)
+    body = lua_text[opening.end() :]
+    end = body.find(f"]{eq}]")
+    if end == -1:
+        return None
+    # `wrap` writes a newline right after the opening delimiter; drop it, keep everything else
+    # verbatim — trailing blank lines included, since the YAML is the payload, not a document.
+    return body[:end].lstrip("\n")

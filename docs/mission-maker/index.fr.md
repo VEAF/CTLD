@@ -6,12 +6,32 @@ configurer dans l'éditeur de mission de DCS et le fichier `CTLD_userConfig.lua`
 
 ## Pour commencer { #getting-started }
 
-1. Ajoutez `CTLD.lua` à votre mission avec un déclencheur **MISSION START → DO SCRIPT FILE**. CTLD
-   tourne sur ses valeurs par défaut intégrées : cela suffit pour jouer.
-2. Pour personnaliser quoi que ce soit, produisez une configuration avec
-   [`ctld-tools`](ctld-tools.fr.md) et laissez-le injecter un déclencheur `CTLD_userConfig.lua` dans
-   votre mission — **avant** le déclencheur `CTLD.lua`.
-3. Configurez les éléments dont vous avez besoin à l'aide des pages ci-dessous.
+**Téléchargez `ctld-tools.exe` depuis la [dernière release](https://github.com/VEAF/CTLD/releases) et
+lancez-le.** C'est toute l'installation : l'outil porte CTLD et les sons de ses balises, et écrit
+l'ensemble dans votre mission.
+
+1. **Lancez l'outil.** Il s'ouvre dans votre navigateur, en local — sans installation, sans compte,
+   sans rien à configurer au préalable.
+2. **Ouvrez votre `.miz`** — ou partez des défauts CTLD si vous configurez avant d'avoir une mission.
+   Ouvrir une mission qui contient déjà CTLD en récupère la configuration, prête à être modifiée.
+3. **Ajustez ce dont vous avez besoin** (les pages ci-dessous décrivent chaque domaine), puis
+   **« Installer dans la mission… »**
+
+L'outil écrit quatre choses dans le `.miz` : `CTLD.lua`, les deux fichiers son des balises, votre
+configuration, et les deux déclencheurs MISSION START qui les chargent dans le bon ordre. Il indique
+ce qu'il a écrit, et réinstaller remplace au lieu de dupliquer.
+
+??? note "Installer à la main"
+    Tout ce que l'outil écrit est également attaché à chaque release, si vous préférez le faire
+    vous-même :
+
+    1. ajoutez `CTLD.lua` à la mission avec un déclencheur **MISSION START → DO SCRIPT FILE** — seul,
+       CTLD tourne sur ses valeurs par défaut intégrées, ce qui suffit pour jouer ;
+    2. ajoutez `beacon.ogg` et `beaconsilent.ogg` à la mission, sinon **les balises resteront
+       muettes** ;
+    3. pour personnaliser quoi que ce soit, ajoutez votre `CTLD_userConfig.lua` comme second
+       déclencheur `DO SCRIPT FILE`, **avant** celui de `CTLD.lua` — le moteur lit la configuration
+       au chargement.
 
 Tous les réglages sont lus via `ctld.gs("paramName")` à l'exécution. Votre configuration est un
 **instantané complet** porté par `ctld.configUser` dans `CTLD_userConfig.lua`, et non une liste de

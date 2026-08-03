@@ -58,7 +58,7 @@ def test_schema_endpoint_exposes_table_fields():
 def test_resources_frozen_path(monkeypatch, tmp_path):
     import sys
 
-    from ctld_tools.web import resources
+    from ctld_tools import resources
 
     monkeypatch.delenv("CTLD_TOOLS_SRC", raising=False)
     monkeypatch.setattr(sys, "frozen", True, raising=False)
@@ -167,7 +167,7 @@ def test_i18n_endpoint_serves_the_web_catalog():
     body = client.get("/api/i18n?lang=en").json()
     assert body["lang"] == "en"
     assert "en" in body["available"] and "fr" in body["available"]
-    assert body["strings"]["web.action.inject"] == "Inject into mission…"
+    assert body["strings"]["web.action.inject"] == "Install into mission…"
     # The retired TUI's strings are not the web app's business.
     assert not [k for k in body["strings"] if not k.startswith("web.")]
 
@@ -175,7 +175,7 @@ def test_i18n_endpoint_serves_the_web_catalog():
 def test_i18n_endpoint_translates():
     fr = client.get("/api/i18n?lang=fr").json()
     assert fr["lang"] == "fr"
-    assert fr["strings"]["web.action.inject"] == "Injecter dans la mission…"
+    assert fr["strings"]["web.action.inject"] == "Installer dans la mission…"
 
 
 def test_i18n_endpoint_covers_the_same_keys_in_every_language():
@@ -186,7 +186,7 @@ def test_i18n_endpoint_covers_the_same_keys_in_every_language():
 
 def test_i18n_endpoint_unknown_lang_falls_back_to_en():
     body = client.get("/api/i18n?lang=zz").json()
-    assert body["strings"]["web.action.inject"] == "Inject into mission…"
+    assert body["strings"]["web.action.inject"] == "Install into mission…"
 
 
 def test_defaults_endpoint_mirrors_the_default_catalogue():
@@ -325,11 +325,24 @@ def test_inject_into_miz(tmp_path):
     miz = tmp_path / "out.miz"
     shutil.copy(src_miz, miz)
     client.post("/api/catalog/load-default")  # clean catalogue, no validation errors
-    assert client.post("/api/inject", json={"miz": str(miz)}).json() == {"injected": str(miz)}
+    result = client.post("/api/inject", json={"miz": str(miz)}).json()
+    assert result["injected"] == str(miz)
+    # The install writes more than the configuration now (FEAT-ONE-CLICK-INSTALL): the report is
+    # what the UI shows, so it is part of the contract.
+    assert result["files"] == ["CTLD.lua", "CTLD_userConfig.lua", "beacon.ogg", "beaconsilent.ogg"]
+    assert result["triggers"] == ["configuration", "engine"]
+    assert result["engineVersion"] and result["engineVersion"][0].isdigit()
+    assert result["replacedPrevious"] is False
     mission = read_mission(miz)
-    injected = mission["trig"]["actions"][1]
-    assert "ctld.configUser" in injected
+    # The configuration is a *file* now, loaded by resource key — not a Lua string inside the
+    # trigger. What the trigger carries is the key; the YAML is in the archive.
+    assert "getValueResourceByKey" in mission["trig"]["actions"][1]
     assert mission["trigrules"][1]["comment"] == MARKER
+
+    import zipfile
+
+    with zipfile.ZipFile(miz) as z:
+        assert "ctld.configUser" in z.read("l10n/DEFAULT/CTLD_userConfig.lua").decode("utf-8")
 
 
 def test_inject_blocked_by_validation_errors():
@@ -361,3 +374,54 @@ def test_troop_groups_hold_counts_not_flags():
                 assert isinstance(value, str), group
             else:
                 assert isinstance(value, int) and not isinstance(value, bool), (field, value, group)
+
+
+# ── i18n_lang: settable, but not in the catalogue (FIX-TOOL-I18N-LANG) ───────────────
+# FullGas reported it: the CTLD interface language could not be set from the tool. The engine reads
+# it through ctld.gs with a fallback, and the schema declares it with a default and four choices —
+# but the app lists *catalogue* keys, and this one is deliberately not in the catalogue. The TUI
+# listed schema keys and offered it; the web app lost it in the move.
+
+
+def test_the_ctld_interface_language_is_offered():
+    client.post("/api/catalog/load-default")
+    snap = client.get("/api/catalog").json()
+
+    assert "i18n_lang" in snap["keys"]
+    assert snap["values"]["i18n_lang"] == "en"
+
+
+def test_it_is_not_marked_as_changed_before_it_is_touched():
+    """Its default has to come back from /api/defaults too, or the UI flags it permanently."""
+    client.post("/api/catalog/load-default")
+    snap = client.get("/api/catalog").json()
+    defaults = client.get("/api/defaults").json()["values"]
+
+    assert defaults["i18n_lang"] == snap["values"]["i18n_lang"]
+
+
+def test_the_schema_offers_the_four_languages():
+    schema = client.get("/api/schema").json()
+    assert schema["keys"]["i18n_lang"]["choices"] == ["en", "fr", "es", "ko"]
+    assert schema["keys"]["i18n_lang"]["standard"] is True
+
+
+def test_setting_it_writes_it_into_the_mission_facing_section():
+    """`standard:` settings belong in mm_facing; the interface language is not an internal."""
+    client.post("/api/catalog/load-default")
+    client.put("/api/catalog/setting", json={"key": "i18n_lang", "value": "fr"})
+
+    snap = client.get("/api/catalog").json()
+    assert snap["values"]["i18n_lang"] == "fr"
+    assert snap["keys"].count("i18n_lang") == 1, "must not appear twice once catalogued"
+
+    yaml_text = client.get("/api/catalog/yaml").json()["yaml"]
+    mm_facing = yaml_text.split("advanced:")[0]
+    assert "i18n_lang: fr" in mm_facing
+
+
+def test_it_stays_out_of_the_completeness_check():
+    """Adding it to the catalogue would demand it of every rc1–rc3 config. It must not be demanded."""
+    client.post("/api/catalog/load-default")
+    findings = client.get("/api/validate").json()["findings"]
+    assert not [f for f in findings if "i18n_lang" in str(f)]

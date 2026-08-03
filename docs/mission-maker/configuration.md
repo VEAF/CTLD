@@ -191,8 +191,8 @@ randomised 90–120 % of `SOLDIER_WEIGHT`, plus kit and role-specific gear.
 |---|---|---|
 | `enabledRadioBeaconDrop` | `true` | Allow beacon deployment |
 | `deployedBeaconBattery` | `30` | Beacon battery life (minutes) |
-| `radioSound` | `"beacon.ogg"` | Beacon sound file — **must** be added to the mission `.miz`, or beacons will not work |
-| `radioSoundFC3` | `"beaconsilent.ogg"` | Silent beacon file for FC3 aircraft |
+| `radioSound` | `"beacon.ogg"` | Beacon sound file — the tool puts it in the `.miz`; if you install by hand, add it yourself or beacons stay silent |
+| `radioSoundFC3` | `"beaconsilent.ogg"` | Silent beacon file for FC3 aircraft, same rule |
 
 ### AA systems
 
