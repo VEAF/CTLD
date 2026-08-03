@@ -7,6 +7,23 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Tooling — the exe carries the engine and the beacon sounds (FEAT-ONE-CLICK-INSTALL ticket 01)
+
+Groundwork for the new install journey — download `ctld-tools.exe`, run it, done. The exe now bundles
+`CTLD.lua` and both `.ogg` alongside the catalogue and the schema it already carried (three more
+`--add-data` entries; the exe grows about 7%). Bundled rather than downloaded on purpose: an exe then
+installs the engine of *its own* release and nothing else, and it works with no network.
+
+**`beacon.ogg` and `beaconsilent.ogg` are now release assets.** They were repo-only, under `assets/`,
+while the documentation states a mission needs them or its beacons are silent — so the manual install
+could not be completed from the release page alone. That gap is closed for the manual path too,
+independently of the tool.
+
+One resolver for all four payloads (`ctld_tools/resources.py`, moved out of `ctld_tools/web/` since
+the CLI was already importing it from there), and a new `ctld-tools payloads` command that lists them
+with their sizes and exits non-zero if one is missing. The release smoke-check runs it: a bundle that
+silently loses an `--add-data` entry now fails the release instead of shipping and surfacing in DCS.
+
 
 ### Changed — "Disembark Troops" now visible in flight when fast-rope is enabled (UX-FASTROPE-INFLIGHT)
 

@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from ctld_tools import resources
 from ctld_tools.catalog import Catalog
 from ctld_tools.schema import Schema
-from ctld_tools.web import resources
 
 
 class Session:

@@ -58,7 +58,7 @@ def test_schema_endpoint_exposes_table_fields():
 def test_resources_frozen_path(monkeypatch, tmp_path):
     import sys
 
-    from ctld_tools.web import resources
+    from ctld_tools import resources
 
     monkeypatch.delenv("CTLD_TOOLS_SRC", raising=False)
     monkeypatch.setattr(sys, "frozen", True, raising=False)

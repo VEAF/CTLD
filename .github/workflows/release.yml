@@ -56,8 +56,13 @@ jobs:
           # rc-suffixed versions publish as a GitHub pre-release (not the default "Latest").
           pre=()
           [ "${{ steps.ver.outputs.prerelease }}" = "true" ] && pre=(--prerelease)
+          # assets/*.ogg ship as release assets too: the engine plays them through
+          # radioTransmission, so a mission without them has silent beacons. They used to be
+          # repo-only, which made the manual install impossible to finish from the release page
+          # alone (FEAT-ONE-CLICK-INSTALL). The exe bundles them as well, for the tool path.
           gh release create "${{ github.ref_name }}" \
             CTLD.lua dist/CTLD_userConfig.lua dist/CTLD_asset_check.lua \
+            assets/beacon.ogg assets/beaconsilent.ogg \
             --title "CTLD v${{ steps.ver.outputs.version }}" \
             "${notes[@]}" "${pre[@]}"
 
@@ -114,6 +119,9 @@ jobs:
             --collect-submodules uvicorn \
             --add-data "../../src/CTLD_config.yaml;ctld_data" \
             --add-data "../../src/CTLD_config_schema.yaml;ctld_data" \
+            --add-data "../../CTLD.lua;ctld_data" \
+            --add-data "../../assets/beacon.ogg;ctld_data" \
+            --add-data "../../assets/beaconsilent.ogg;ctld_data" \
             ctld_tools/__main__.py
 
       - name: Smoke-check the exe (CLI commands present)
@@ -124,6 +132,15 @@ jobs:
           for cmd in embed validate gen; do
             echo "$help" | grep -q " $cmd " || { echo "::error::$cmd command missing from exe"; exit 1; }
           done
+
+      # A bundle that silently loses an --add-data entry must fail the release, not ship: the exe
+      # installs these payloads into a mission, and a missing one only surfaces in DCS.
+      - name: Smoke-check the exe (bundled engine + beacon sounds)
+        working-directory: tools/ctld-tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./dist/ctld-tools.exe payloads
 
       # The CLI check above passes even if the bundled web app is missing or broken, which is what a
       # Mission Maker actually double-clicks. So boot the real thing and pull every kind of resource
