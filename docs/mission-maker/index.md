@@ -12,13 +12,21 @@ everything into your mission.
 
 1. **Run the tool.** It opens in your browser, locally — no installation, no account, nothing to
    configure first.
-2. **Open your `.miz`** — or start from the CTLD defaults if you are configuring before you have a
-   mission. Opening a mission that already has CTLD brings its configuration back, ready to edit.
+2. **Open config or mission…** and pick your `.miz` — or start from the CTLD defaults if you are
+   configuring before you have a mission. Opening a mission that already has CTLD brings its
+   configuration back, ready to edit: that is how you resume work on a mission you set up weeks ago,
+   with no side file to keep.
 3. **Adjust what you need** (the pages below describe each area), then **Install into mission…**
 
 The tool writes four things into the `.miz`: `CTLD.lua`, the two beacon sound files, your
-configuration, and the two MISSION START triggers that load them in the right order. It reports what
-it wrote, and re-installing replaces rather than duplicates.
+configuration, and the MISSION START triggers that load them in the right order. It reports what it
+wrote, and re-installing replaces rather than duplicates.
+
+!!! info "Why a trigger plays the beacon sounds at mission start"
+    One of those triggers plays both `.ogg` files at mission start. It is not there for you to hear:
+    the Mission Editor discards any file no trigger refers to when it saves a mission, and without it
+    your beacons would fall silent the next time you opened the mission in the editor. It runs before
+    anyone is in a cockpit, so nobody hears it.
 
 ??? note "Installing by hand"
     Everything the tool writes is also attached to each release, if you prefer doing it yourself:

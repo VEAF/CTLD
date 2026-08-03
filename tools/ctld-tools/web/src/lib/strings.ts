@@ -26,7 +26,7 @@ export const EN_STRINGS: Record<string, string> = {
 
   // ── actions ─────────────────────────────────────────────────────
   'web.action.load_defaults': 'Start from CTLD defaults',
-  'web.action.open': 'Open a config file…',
+  'web.action.open': 'Open config or mission…',
   'web.action.save': 'Save as…',
   'web.action.inject': 'Install into mission…',
   'web.action.reset': 'Reset to default',

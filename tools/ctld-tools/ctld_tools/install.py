@@ -12,10 +12,18 @@ mission builder (`mission_builder_worker.py`) rather than guessed at:
 - the trigger action is `a_do_script_file(getValueResourceByKey("<key>"))` — `DO SCRIPT FILE` names
   a key, never a path.
 
-**Sounds are different, and it matters**: `.ogg` files need *no* resource key. The engine plays them
-by name through `trigger.action.radioTransmission("l10n/DEFAULT/beacon.ogg", …)`, so presence in
-`l10n/DEFAULT/` is the whole requirement — VMCT's own code says the same, and warns that a sound
-sitting anywhere else in the mission (`kneeboard/beacon.ogg`) is invisible to the scripts.
+**Sounds need the same plumbing, for a different reason.** At *runtime* an `.ogg` needs no resource
+key: the engine plays it by name through `trigger.action.radioTransmission("l10n/DEFAULT/beacon.ogg",
+…)`, so presence in `l10n/DEFAULT/` is enough — and VMCT warns that a sound sitting anywhere else in
+the mission (`kneeboard/beacon.ogg`) is invisible to the scripts. But a file no trigger refers to is
+an **orphan**: open the mission in the Mission Editor, save it, and the editor rewrites the archive
+from its own model and drops it. The beacons then go silent with nothing to show why, which is the
+exact failure this whole module exists to prevent.
+
+So each sound also gets a resource key plus a MISSION START `a_out_sound` action referencing it —
+the "sound preload" idiom of the VEAF mission set (646 occurrences across 491 missions, including
+this repo's own `missions/Test_CTLDNEXT_01.miz`, whose `ResKey_Action_10/11` are exactly this).
+Playing at rank 3 of mission start is inaudible in practice: nobody has slotted into a cockpit yet.
 
 Order is not cosmetic: the configuration trigger must precede the engine trigger, because the engine
 reads `ctld.configUser` as it loads.
@@ -46,9 +54,14 @@ CONFIG_FILE = "CTLD_userConfig.lua"
 ENGINE_KEY = "CTLD_MapKey_Engine"
 CONFIG_KEY = "CTLD_MapKey_UserConfig"
 
+#: One resource key per beacon sound, keyed by file name. Present so the Mission Editor keeps the
+#: files (see the module docstring): a sound no trigger refers to is dropped on the next save.
+SOUND_KEYS = {name: f"CTLD_MapKey_Sound_{name.split('.')[0]}" for name in resources.SOUND_NAMES}
+
 #: Trigger comments — how a re-install recognises what a previous run put there.
 CONFIG_MARKER = MARKER
 ENGINE_MARKER = "CTLD engine (ctld-tools)"
+SOUNDS_MARKER = "CTLD beacon sounds (ctld-tools)"
 
 
 @dataclass
@@ -144,6 +157,34 @@ def _script_trigger(key: str, comment: str) -> dict:
     }
 
 
+def _sound_trigger(keys: list[str], comment: str) -> dict:
+    """A MISSION START trigger playing each sound once, so the editor keeps the files.
+
+    The point is the *reference*, not the playback: `mapResource` plus a trigger action is what makes
+    the Mission Editor treat an `.ogg` as part of the mission instead of an orphan to drop on save.
+
+    Shape copied verbatim from real missions rather than guessed — `a_out_sound(resource, delay)`,
+    which plays to everyone. The per-coalition variant is `a_out_sound_s("<side>", resource, delay)`,
+    but `coalitionlist` only ever takes `blue` or `red` (checked across 491 VEAF missions: 1557 and
+    1353 uses, no neutral value anywhere), so "play it to a coalition nobody is in" cannot be
+    expressed generically — which side is empty depends on the mission.
+    """
+    return {
+        "trig": {
+            "actions": "".join(f'a_out_sound(getValueResourceByKey("{key}"), 0);' for key in keys),
+            "conditions": "return(true)",
+            "flag": True,
+        },
+        "rule": {
+            "rules": [],
+            "eventlist": "",
+            "actions": [{"predicate": "a_out_sound", "file": key, "start_delay": 0} for key in keys],
+            "predicate": "triggerStart",
+            "comment": comment,
+        },
+    }
+
+
 def install(miz_path: str | Path, userconfig_lua: str, out_path: str | Path | None = None) -> InstallReport:
     """Write the engine, the sounds, the configuration and their triggers into a `.miz`.
 
@@ -161,16 +202,25 @@ def install(miz_path: str | Path, userconfig_lua: str, out_path: str | Path | No
 
     config = _script_trigger(CONFIG_KEY, CONFIG_MARKER)
     engine_trigger = _script_trigger(ENGINE_KEY, ENGINE_MARKER)
+    sound_keys = [SOUND_KEYS[name] for name in sorted(sounds)]
+    sounds_trigger = _sound_trigger(sound_keys, SOUNDS_MARKER)
 
-    # Configuration first: the engine reads ctld.configUser while loading.
+    # Configuration first: the engine reads ctld.configUser while loading. The sounds last: their
+    # trigger exists to hold a reference, and nothing depends on when it runs.
     replaced = rebuild_triggers(
         mission,
-        ours=[(config["trig"], config["rule"]), (engine_trigger["trig"], engine_trigger["rule"])],
-        markers={CONFIG_MARKER, ENGINE_MARKER},
+        ours=[
+            (config["trig"], config["rule"]),
+            (engine_trigger["trig"], engine_trigger["rule"]),
+            (sounds_trigger["trig"], sounds_trigger["rule"]),
+        ],
+        markers={CONFIG_MARKER, ENGINE_MARKER, SOUNDS_MARKER},
     )
 
     map_resource[CONFIG_KEY] = CONFIG_FILE
     map_resource[ENGINE_KEY] = ENGINE_FILE
+    for name in sorted(sounds):
+        map_resource[SOUND_KEYS[name]] = name
 
     payload: dict[str, bytes] = {
         f"{L10N}/{ENGINE_FILE}": engine,
@@ -186,7 +236,7 @@ def install(miz_path: str | Path, userconfig_lua: str, out_path: str | Path | No
         miz=out_path.name,
         engine_version=engine_version(engine),
         files=[ENGINE_FILE, CONFIG_FILE, *sorted(sounds)],
-        triggers=["configuration", "engine"],
+        triggers=["configuration", "engine", "sounds"],
         replaced_previous=replaced,
     )
 

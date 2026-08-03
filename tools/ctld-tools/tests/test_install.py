@@ -1,8 +1,9 @@
 """Installing CTLD into a `.miz`: engine, sounds, configuration, triggers — idempotently.
 
-FEAT-ONE-CLICK-INSTALL ticket 02. The plumbing under test was read out of VMCT's mission builder:
-a script needs a `mapResource` entry and is loaded by resource **key**, while a `.ogg` needs no
-entry at all and is found by name in `l10n/DEFAULT/`.
+FEAT-ONE-CLICK-INSTALL ticket 02, plus FIX-INSTALL-SOUND-ORPHANS. The plumbing under test was read
+out of VMCT's mission builder: a script needs a `mapResource` entry and is loaded by resource **key**.
+A `.ogg` needs no key to be *played* — the engine passes a name to `radioTransmission` — but it needs
+one to *survive*: the Mission Editor drops files no trigger refers to when it saves the mission.
 """
 
 from __future__ import annotations
@@ -23,6 +24,8 @@ from ctld_tools.install import (
     ENGINE_MARKER,
     L10N,
     MAP_RESOURCE,
+    SOUND_KEYS,
+    SOUNDS_MARKER,
     engine_version,
     install,
     read_config,
@@ -64,13 +67,16 @@ def test_the_engine_is_the_bundled_one_byte_for_byte(tmp_path):
         assert z.read(f"{L10N}/{ENGINE_FILE}") == resources.read_engine()
 
 
-def test_scripts_get_a_resource_key_and_sounds_do_not(tmp_path):
-    """A .ogg is played by name; only scripts are loaded through getValueResourceByKey.
+def test_every_payload_gets_a_resource_key(tmp_path):
+    """Scripts *and* sounds get a key of ours — reported by David: the sounds vanished.
 
-    Careful with the assertion: a mission may already map its sounds — the test mission carries
-    `ResKey_Action_10 = "beacon.ogg"`, put there by a DCS sound action. That is the *editor's* key
-    for its own trigger, unrelated to how CTLD reads the file. What must hold is that **we** add no
-    key for a sound, so compare the map before and after.
+    A `.ogg` needs no key to be *played* (the engine passes a name to `radioTransmission`), which is
+    why the first version of this installer added none. But an unreferenced file is an orphan the
+    Mission Editor drops when it saves the mission, and beacons then go silent with nothing to show
+    why. The key, plus the preload trigger below, is what makes the file part of the mission.
+
+    The test mission already maps `beacon.ogg` under the editor's own `ResKey_Action_10`; ours is a
+    separate, stably-named key, so compare what the install *added*.
     """
     out = tmp_path / "out.miz"
     before = map_resource(MIZ)
@@ -81,7 +87,60 @@ def test_scripts_get_a_resource_key_and_sounds_do_not(tmp_path):
     assert resmap[ENGINE_KEY] == ENGINE_FILE
 
     added = {k: v for k, v in resmap.items() if k not in before}
-    assert added == {CONFIG_KEY: CONFIG_FILE, ENGINE_KEY: ENGINE_FILE}, "only scripts get a key"
+    assert added == {
+        CONFIG_KEY: CONFIG_FILE,
+        ENGINE_KEY: ENGINE_FILE,
+        SOUND_KEYS["beacon.ogg"]: "beacon.ogg",
+        SOUND_KEYS["beaconsilent.ogg"]: "beaconsilent.ogg",
+    }
+
+
+def test_a_mission_start_trigger_references_each_sound(tmp_path):
+    """The reference is the point: without it the editor treats the .ogg as an orphan.
+
+    Shape copied from real missions (`a_out_sound(getValueResourceByKey(key), 0)`), and asserted in
+    both places DCS keeps a trigger — a `trig`/`trigrules` mismatch makes the editor rewrite one.
+    """
+    out = tmp_path / "out.miz"
+    install(MIZ, CONFIG, out)
+    m = read_mission(out)
+
+    assert m["trigrules"][3]["comment"] == SOUNDS_MARKER
+    assert m["trigrules"][3]["predicate"] == "triggerStart"
+
+    compiled = m["trig"]["actions"][3]
+    editor = m["trigrules"][3]["actions"]
+    for rank, name in enumerate(("beacon.ogg", "beaconsilent.ogg"), start=1):
+        key = SOUND_KEYS[name]
+        assert f'a_out_sound(getValueResourceByKey("{key}"), 0);' in compiled
+        assert editor[rank] == {"predicate": "a_out_sound", "file": key, "start_delay": 0}
+
+
+def test_installing_into_a_mission_with_no_sounds_writes_them(tmp_path):
+    """The reported case: a mission that never carried a beacon sound.
+
+    Built by stripping the test mission, because that is what a Mission Maker starts from — the
+    fixture mission happens to carry both sounds already, which would hide a regression here.
+    """
+    bare = tmp_path / "bare.miz"
+    with zipfile.ZipFile(MIZ) as zin, zipfile.ZipFile(bare, "w", zipfile.ZIP_DEFLATED) as zout:
+        for item in zin.infolist():
+            if item.filename.endswith(".ogg"):
+                continue
+            data = zin.read(item.filename)
+            if item.filename == MAP_RESOURCE:
+                kept = [line for line in data.decode("utf-8").splitlines() if ".ogg" not in line]
+                data = "\n".join(kept).encode("utf-8")
+            zout.writestr(item, data)
+
+    out = tmp_path / "out.miz"
+    install(bare, CONFIG, out)
+
+    entries = names(out)
+    resmap = map_resource(out)
+    for name in ("beacon.ogg", "beaconsilent.ogg"):
+        assert f"{L10N}/{name}" in entries
+        assert resmap[SOUND_KEYS[name]] == name
 
 
 def test_configuration_runs_before_the_engine(tmp_path):
@@ -118,7 +177,8 @@ def test_existing_triggers_survive_with_rewritten_indices(tmp_path):
     install(MIZ, CONFIG, out)
     m = read_mission(out)
 
-    assert len(m["trig"]["actions"]) == n0 + 2
+    # Three of ours: configuration, engine, sound preload.
+    assert len(m["trig"]["actions"]) == n0 + 3
     for key, val in m["trig"]["func"].items():
         if isinstance(val, str) and "conditions[" in val:
             assert f"conditions[{key}]" in val
@@ -192,7 +252,7 @@ def test_the_report_says_what_was_written(tmp_path):
 
     assert report.miz == "out.miz"
     assert report.files == [ENGINE_FILE, CONFIG_FILE, "beacon.ogg", "beaconsilent.ogg"]
-    assert report.triggers == ["configuration", "engine"]
+    assert report.triggers == ["configuration", "engine", "sounds"]
     assert report.engine_version == engine_version(resources.read_engine())
     assert report.engine_version and report.engine_version[0].isdigit()
 

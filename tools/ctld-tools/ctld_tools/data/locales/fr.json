@@ -100,7 +100,7 @@
   "web.action.clear_search": "Effacer la recherche",
   "web.action.inject": "Installer dans la mission…",
   "web.action.load_defaults": "Partir des défauts CTLD",
-  "web.action.open": "Ouvrir un fichier de config…",
+  "web.action.open": "Ouvrir une config ou une mission…",
   "web.action.reset": "Revenir au défaut",
   "web.action.save": "Enregistrer sous…",
   "web.aizone.add_restriction": "+ restriction",

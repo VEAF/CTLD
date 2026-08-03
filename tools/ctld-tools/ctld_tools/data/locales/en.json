@@ -100,7 +100,7 @@
   "web.action.clear_search": "Clear search",
   "web.action.inject": "Install into mission…",
   "web.action.load_defaults": "Start from CTLD defaults",
-  "web.action.open": "Open a config file…",
+  "web.action.open": "Open config or mission…",
   "web.action.reset": "Reset to default",
   "web.action.save": "Save as…",
   "web.aizone.add_restriction": "+ restriction",
