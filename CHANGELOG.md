@@ -7,6 +7,24 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Tooling — installed beacon sounds survive the Mission Editor, and a mission can be opened (FIX-INSTALL-SOUND-ORPHANS)
+
+Two defects reported by **Zip** while using the `2.0.0-rc4` exe on a real mission. In both cases the
+capability shipped and the mission never saw it.
+
+- **The beacon sounds vanished.** The installer wrote both `.ogg` files into `l10n/DEFAULT/` and
+  declared neither, because a `.ogg` needs no resource key to be *played* — the engine passes a name
+  to `radioTransmission`. It needs one to *survive*: the Mission Editor rebuilds the archive from its
+  own model when it saves and drops any file no trigger refers to, leaving silent beacons and nothing
+  to explain them. Each sound now gets a stable resource key and a MISSION START `a_out_sound`
+  reference — the preload idiom of the VEAF mission set (646 occurrences across 491 missions,
+  including this repo's own test mission), copied verbatim rather than invented. It runs before anyone
+  is in a cockpit, so nobody hears it.
+- **No way to open a `.miz`.** Reading a configuration back out of a mission shipped in rc4, but the
+  open dialog filtered on `*.yaml *.yml` and the button read "Open a config **file**…", so no mission
+  was ever listed — reachable only by switching the picker to "All files", which nothing announced.
+  The dialog now defaults to a filter covering both, and the button says **Open config or mission…**
+
 ### Tooling — the unit suite no longer depends on the order its specs run in (FIX-SPEC-ISOLATION)
 
 Running `tests/ci/unit/` in reverse filename order failed **29 tests**; it now passes in both

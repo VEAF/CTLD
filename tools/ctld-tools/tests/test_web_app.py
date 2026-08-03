@@ -315,6 +315,25 @@ def test_dialog_unknown_kind_is_404():
     assert client.get("/api/dialog/nope").status_code == 404
 
 
+def test_open_dialog_offers_missions(monkeypatch):
+    """Reported by David: "how do I load my config from a .miz? there's no button!"
+
+    `Session.load_path` has read a `.miz` since rc4, but the open dialog filtered on `*.yaml *.yml`,
+    so no mission was listed and the capability was unreachable without switching to "All files".
+    The dialog itself is interactive and never runs in CI, hence this check on the filter it passes.
+    """
+    from ctld_tools.web import dialogs
+
+    captured: dict[str, object] = {}
+    monkeypatch.setattr(dialogs, "_ask", lambda kind, **kw: captured.update(kind=kind, **kw))
+    dialogs.open_config()
+
+    assert captured["kind"] == "askopenfilename"
+    patterns = [pattern for _label, pattern in captured["filetypes"]]
+    assert "*.miz" in patterns[0], "the default filter must list missions"
+    assert any("*.yaml" in p for p in patterns), "and still list plain YAML"
+
+
 def test_inject_into_miz(tmp_path):
     import shutil
     from pathlib import Path
@@ -330,7 +349,7 @@ def test_inject_into_miz(tmp_path):
     # The install writes more than the configuration now (FEAT-ONE-CLICK-INSTALL): the report is
     # what the UI shows, so it is part of the contract.
     assert result["files"] == ["CTLD.lua", "CTLD_userConfig.lua", "beacon.ogg", "beaconsilent.ogg"]
-    assert result["triggers"] == ["configuration", "engine"]
+    assert result["triggers"] == ["configuration", "engine", "sounds"]
     assert result["engineVersion"] and result["engineVersion"][0].isdigit()
     assert result["replacedPrevious"] is False
     mission = read_mission(miz)

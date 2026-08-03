@@ -12,14 +12,23 @@ l'ensemble dans votre mission.
 
 1. **Lancez l'outil.** Il s'ouvre dans votre navigateur, en local — sans installation, sans compte,
    sans rien à configurer au préalable.
-2. **Ouvrez votre `.miz`** — ou partez des défauts CTLD si vous configurez avant d'avoir une mission.
-   Ouvrir une mission qui contient déjà CTLD en récupère la configuration, prête à être modifiée.
+2. **« Ouvrir une config ou une mission… »** et choisissez votre `.miz` — ou partez des défauts CTLD
+   si vous configurez avant d'avoir une mission. Ouvrir une mission qui contient déjà CTLD en
+   récupère la configuration, prête à être modifiée : c'est ainsi que vous reprenez une mission
+   préparée il y a des semaines, sans fichier annexe à conserver.
 3. **Ajustez ce dont vous avez besoin** (les pages ci-dessous décrivent chaque domaine), puis
    **« Installer dans la mission… »**
 
 L'outil écrit quatre choses dans le `.miz` : `CTLD.lua`, les deux fichiers son des balises, votre
-configuration, et les deux déclencheurs MISSION START qui les chargent dans le bon ordre. Il indique
+configuration, et les déclencheurs MISSION START qui les chargent dans le bon ordre. Il indique
 ce qu'il a écrit, et réinstaller remplace au lieu de dupliquer.
+
+!!! info "Pourquoi un déclencheur joue les sons des balises au démarrage"
+    L'un de ces déclencheurs joue les deux fichiers `.ogg` au démarrage de la mission. Il n'est pas là
+    pour être entendu : l'éditeur de mission supprime tout fichier auquel aucun déclencheur ne fait
+    référence lorsqu'il enregistre une mission, et sans lui vos balises deviendraient muettes dès que
+    vous rouvririez la mission dans l'éditeur. Il s'exécute avant que quiconque soit en cockpit,
+    personne ne l'entend donc.
 
 ??? note "Installer à la main"
     Tout ce que l'outil écrit est également attaché à chaque release, si vous préférez le faire

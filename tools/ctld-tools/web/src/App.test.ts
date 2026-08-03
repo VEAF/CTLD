@@ -260,6 +260,6 @@ test('opening a file warns before discarding unsaved changes', async () => {
   await fireEvent.change(field, { target: { value: '12' } })
   await screen.findByText('Unsaved changes')
 
-  await fireEvent.click(screen.getByRole('button', { name: 'Open a config file…' }))
+  await fireEvent.click(screen.getByRole('button', { name: 'Open config or mission…' }))
   expect(confirm).toHaveBeenCalled()
 })
