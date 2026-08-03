@@ -425,3 +425,27 @@ def test_it_stays_out_of_the_completeness_check():
     client.post("/api/catalog/load-default")
     findings = client.get("/api/validate").json()["findings"]
     assert not [f for f in findings if "i18n_lang" in str(f)]
+
+
+# ── /api/version (FEAT-TOOL-VERSION-AND-DOCS) ────────────────────────────────────────
+
+
+def test_version_endpoint_reports_ctld_and_its_docs_version():
+    body = client.get("/api/version").json()
+    from ctld_tools import resources
+
+    assert body["ctld"] == resources.ctld_version()
+    assert body["docs"] == resources.docs_version()
+
+
+def test_version_endpoint_needs_no_catalogue():
+    """The frontend reads it while booting, before anything is loaded."""
+    session._catalog = None
+    assert client.get("/api/version").status_code == 200
+
+
+def test_the_api_declares_the_ctld_version_not_a_literal():
+    from ctld_tools import resources
+    from ctld_tools.web.app import app as fastapi_app
+
+    assert fastapi_app.version == resources.ctld_version()

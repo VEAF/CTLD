@@ -18,6 +18,7 @@ configuring offline is the normal case, not the edge one.
 from __future__ import annotations
 
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -93,3 +94,54 @@ def read_sounds() -> dict[str, bytes]:
             raise FileNotFoundError(f"beacon sound not found at {path}")
         out[path.name] = path.read_bytes()
     return out
+
+
+#: `ctld.VERSION = "x.y.z[-rcN]"` — the same pattern `merge_CTLD.ps1` uses to stamp the build, kept
+#: loose on purpose so a pre-release suffix survives.
+_VERSION_RE = re.compile(rb'ctld\.VERSION\s*=\s*"([^"]+)"')
+
+UNKNOWN_VERSION = "unknown"
+
+
+def version_from(source: bytes | str) -> str | None:
+    """The `ctld.VERSION` declared in a chunk of Lua, or None."""
+    data = source.encode("utf-8") if isinstance(source, str) else source
+    match = _VERSION_RE.search(data)
+    return match.group(1).decode("utf-8") if match else None
+
+
+def ctld_version() -> str:
+    """The CTLD version this build belongs to.
+
+    **One source of truth: `ctld.VERSION`.** Not a number in `pyproject.toml` maintained by hand —
+    that is how the packaging version drifted to `0.1.0` and stayed there while CTLD reached 2.0.0.
+    The tool ships with an engine, so it reads the version out of it; from a source checkout with no
+    built engine it falls back to `src/CTLD_config.lua`, which is where the build reads it too.
+    """
+    engine = engine_path()
+    if engine.is_file():
+        found = version_from(engine.read_bytes())
+        if found:
+            return found
+    config = src_dir() / "CTLD_config.lua"
+    if config.is_file():
+        found = version_from(config.read_bytes())
+        if found:
+            return found
+    # A checkout with neither is possible (someone running the tool from a partial tree); say so
+    # rather than invent a number that would end up in an install report.
+    return UNKNOWN_VERSION
+
+
+def docs_version(version: str | None = None) -> str:
+    """The documentation version to link to for `version` (default: this build's).
+
+    A pre-release has no published documentation of its own — `mike deploy` only runs for a tag, and
+    the notes for an rc are the `dev` pages. So any `-rc` maps to `dev`, and a stable maps to itself.
+    The rule needs no maintenance: the day a stable is tagged and its documentation published, the
+    link follows without a code change.
+    """
+    resolved = version or ctld_version()
+    if resolved == UNKNOWN_VERSION or "-" in resolved:
+        return "dev"
+    return resolved

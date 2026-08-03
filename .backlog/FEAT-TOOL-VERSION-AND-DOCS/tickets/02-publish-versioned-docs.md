@@ -1,6 +1,6 @@
 # 02 — publish the documentation per version, on the tag
 
-**Status:** todo
+**Status:** done
 
 Depends on: 01 (they must agree on the version string).
 

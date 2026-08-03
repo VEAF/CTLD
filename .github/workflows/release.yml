@@ -132,6 +132,12 @@ jobs:
           for cmd in embed validate gen; do
             echo "$help" | grep -q " $cmd " || { echo "::error::$cmd command missing from exe"; exit 1; }
           done
+          # --version must print the release's version and exit. Routed to `serve` by mistake it
+          # would hang this job instead of failing it, so assert the value, not just the exit code.
+          printed="$(./dist/ctld-tools.exe --version)"
+          expected="${GITHUB_REF_NAME#published-v}"
+          [ "$printed" = "$expected" ] || {
+            echo "::error::--version printed '$printed', expected '$expected'"; exit 1; }
 
       # A bundle that silently loses an --add-data entry must fail the release, not ship: the exe
       # installs these payloads into a mission, and a missing one only surfaces in DCS.

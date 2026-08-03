@@ -74,3 +74,44 @@ def test_the_src_override_still_only_moves_the_catalogue(monkeypatch, tmp_path):
     monkeypatch.setenv("CTLD_TOOLS_SRC", str(tmp_path))
     assert resources.src_dir() == tmp_path
     assert resources.engine_path() == REPO / "CTLD.lua"
+
+
+# ── One version, read from ctld.VERSION (FEAT-TOOL-VERSION-AND-DOCS ticket 01) ───────
+
+
+def test_the_tool_reports_the_engine_version():
+    """One source of truth. pyproject's own number drifted to 0.1.0 and stayed; this cannot."""
+    declared = resources.version_from((REPO / "src" / "CTLD_config.lua").read_bytes())
+    assert declared, "src/CTLD_config.lua must declare ctld.VERSION"
+    assert resources.ctld_version() == declared
+
+
+def test_a_prerelease_suffix_survives():
+    assert resources.version_from('ctld.VERSION = "2.0.0-rc3"') == "2.0.0-rc3"
+    assert resources.version_from('ctld.VERSION = "2.1.0"') == "2.1.0"
+
+
+def test_lua_without_a_version_reads_as_none():
+    assert resources.version_from("-- nothing here") is None
+
+
+def test_no_version_anywhere_is_reported_not_invented(monkeypatch, tmp_path):
+    """A partial tree must not yield a number that would end up in an install report."""
+    monkeypatch.setattr(resources, "engine_path", lambda: tmp_path / "CTLD.lua")
+    monkeypatch.setattr(resources, "src_dir", lambda: tmp_path)
+    assert resources.ctld_version() == resources.UNKNOWN_VERSION
+
+
+def test_a_prerelease_points_at_the_dev_documentation():
+    """`mike deploy` only runs on a tag, so an rc has no pages of its own — `dev` is the honest link."""
+    assert resources.docs_version("2.0.0-rc3") == "dev"
+    assert resources.docs_version("2.1.0-rc1") == "dev"
+
+
+def test_a_stable_points_at_its_own_documentation():
+    assert resources.docs_version("2.0.0") == "2.0.0"
+    assert resources.docs_version("2.1.3") == "2.1.3"
+
+
+def test_an_unknown_version_falls_back_to_dev():
+    assert resources.docs_version(resources.UNKNOWN_VERSION) == "dev"

@@ -1,8 +1,15 @@
 name: Docs
 
 # Build and publish the mkdocs site to the repo's gh-pages branch via mike.
-#   develop -> version/alias "dev"      (site default)
-#   master  -> version/alias "latest"
+#   develop            -> version/alias "dev"   (site default)
+#   master             -> version/alias "latest"
+#   published-vX.Y.Z   -> that exact version, and "latest" when it is a stable
+#   published-vX.Y.Z-rcN -> that exact version, and NOT "latest"
+#
+# The tag jobs are what give the tool a versioned page to link to
+# (FEAT-TOOL-VERSION-AND-DOCS). A pre-release deliberately does not move `latest`, the same
+# discipline `release.yml` applies to the `published-latest` download pointer: an rc must not
+# become what a newcomer reads by default.
 on:
   push:
     branches: [develop, master]
@@ -10,7 +17,15 @@ on:
       - 'docs/**'
       - 'mkdocs.yml'
       - '.github/workflows/docs.yml'
+    tags:
+      - 'published-v*'
   workflow_dispatch:
+
+# mike rewrites gh-pages. A tag push and a develop push can land together (a release PR merges,
+# then the tag goes up), and two concurrent rewrites lose one of the two deployments.
+concurrency:
+  group: docs-gh-pages
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -46,3 +61,18 @@ jobs:
         run: |
           mike deploy --push --update-aliases latest
           mike set-default --push latest
+
+      - name: Deploy (tag -> that version, and latest when stable)
+        if: startsWith(github.ref, 'refs/tags/published-v')
+        run: |
+          version="${GITHUB_REF_NAME#published-v}"
+          # A semver pre-release suffix (a '-' in the version) marks an rc: publish the pages under
+          # their own version but leave `latest` where it is. Same test release.yml uses.
+          if [[ "$version" == *-* ]]; then
+            echo "pre-release $version — publishing the version, not touching latest"
+            mike deploy --push "$version"
+          else
+            echo "stable $version — publishing the version and moving latest"
+            mike deploy --push --update-aliases "$version" latest
+          fi
+        shell: bash

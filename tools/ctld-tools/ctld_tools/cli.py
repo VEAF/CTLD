@@ -25,9 +25,24 @@ app = typer.Typer(
 )
 
 
+def _version_callback(value: bool) -> None:
+    if value:
+        from ctld_tools import resources
+
+        typer.echo(resources.ctld_version())
+        raise typer.Exit()
+
+
 @app.callback(help=t("app.description"))
 def _root(
     lang: str = typer.Option(None, "--lang", help=t("help.lang")),
+    version: bool = typer.Option(
+        False,
+        "--version",
+        callback=_version_callback,
+        is_eager=True,
+        help="print the CTLD version this build belongs to",
+    ),
 ) -> None:
     # Root options shared by every command; --lang forces the output language.
     if lang:
@@ -105,6 +120,9 @@ def payloads_cmd() -> None:
         ("engine", resources.engine_path()),
         *[("sound", p) for p in resources.sound_paths()],
     ]
+    from ctld_tools import resources as _res
+
+    typer.echo(f"CTLD {_res.ctld_version()}  (docs: {_res.docs_version()})")
     missing = False
     for label, path in entries:
         if path.is_file():

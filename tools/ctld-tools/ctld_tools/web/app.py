@@ -13,11 +13,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from ctld_tools import resources
 from ctld_tools.validate import has_errors, validate
 from ctld_tools.versiongap import version_gap
 from ctld_tools.web.state import session
 
-app = FastAPI(title="ctld-tools", version="2.0")
+# The API's version is CTLD's — one source of truth (ctld.VERSION), never a literal here.
+app = FastAPI(title="ctld-tools", version=resources.ctld_version())
 
 # The web UI's slice of the i18n catalog (`tui.*` belongs to the retired TUI).
 _WEB_PREFIX = "web."
@@ -105,6 +107,16 @@ def _snapshot() -> dict[str, Any]:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/version")
+def get_version() -> dict[str, str]:
+    """The CTLD version this build belongs to, and the documentation version to link to.
+
+    `docs` is resolved here rather than in the frontend so the rule — a pre-release points at `dev`,
+    a stable at itself — exists once, next to the version it derives from.
+    """
+    return {"ctld": resources.ctld_version(), "docs": resources.docs_version()}
 
 
 @app.get("/api/i18n")

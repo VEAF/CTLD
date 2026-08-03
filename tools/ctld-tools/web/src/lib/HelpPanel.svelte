@@ -5,7 +5,7 @@
   // read from the schema and the catalogue currently open. That means it cannot go stale — add a
   // setting or a family to the schema and the help describes it without anyone editing prose. It also
   // doubles as an inventory: "what is actually in the config I have open?"
-  import type { SchemaInfo, Snapshot } from './api'
+  import type { SchemaInfo, Snapshot, ToolVersion } from './api'
   import { familyDescription, familyLabel } from './families'
   import { t } from './i18n.svelte'
   import { settingLabel } from './labels'
@@ -15,13 +15,19 @@
     families,
     schema,
     snapshot,
+    version,
     onclose,
   }: {
     families: Family[]
     schema: SchemaInfo | null
     snapshot: Snapshot | null
+    version: ToolVersion | null
     onclose: () => void
   } = $props()
+
+  // The documentation version comes from the backend (a pre-release points at `dev`, a stable at
+  // itself), so the rule lives next to the version it derives from rather than in two places.
+  const docsBase = $derived(`https://veaf.github.io/CTLD/${version?.docs ?? 'dev'}`)
 
   const settingCount = $derived(families.reduce((n, f) => n + f.standard.length + f.advanced.length, 0))
 
@@ -128,6 +134,20 @@
     <section class="rule">
       <h3>{t('web.help.snapshot_title')}</h3>
       <p>{t('web.help.snapshot_body')}</p>
+    </section>
+
+    <section>
+      <h3>{t('web.help.docs_title')}</h3>
+      <p>{t('web.help.docs_body')}</p>
+      <ul class="links">
+        <li><a href={`${docsBase}/mission-maker/`} target="_blank" rel="noreferrer">{t('web.help.docs_start')}</a></li>
+        <li><a href={`${docsBase}/mission-maker/configuration/`} target="_blank" rel="noreferrer">{t('web.help.docs_settings')}</a></li>
+        <li><a href={`${docsBase}/mission-maker/zones/`} target="_blank" rel="noreferrer">{t('web.help.docs_zones')}</a></li>
+        <li><a href={`${docsBase}/developer/migration-v1-v2/`} target="_blank" rel="noreferrer">{t('web.help.docs_migration')}</a></li>
+      </ul>
+      {#if version}
+        <p class="version">{t('web.help.version', { version: version.ctld })}</p>
+      {/if}
     </section>
 
     <div class="actions"><button class="primary" onclick={onclose}>{t('web.help.close')}</button></div>
@@ -247,6 +267,17 @@
     text-align: right;
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
+  }
+  .links {
+    margin: 0.3rem 0 0;
+    padding-left: 1.1rem;
+    line-height: 1.7;
+  }
+  /* The version is what a Mission Maker quotes when reporting a problem: readable, not decorative. */
+  .version {
+    margin-top: 0.8rem;
+    color: var(--ink-dim);
+    font-family: var(--font-mono);
   }
   /* The complete-snapshot rule is the one thing that bites people; give it a frame. */
   .rule {

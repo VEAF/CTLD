@@ -1,6 +1,6 @@
 # 03 — a help panel worth pressing, with a version-aware link
 
-**Status:** todo
+**Status:** done
 
 Depends on: 01 (the version), 02 (what the link can point at).
 

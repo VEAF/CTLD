@@ -124,6 +124,10 @@ export type InstallResult = {
 
 export const injectMiz = (miz: string) =>
   post('/api/inject', { miz }).then((r) => json<InstallResult>(r))
+/** The CTLD version this build belongs to, and the docs version to link to (`dev` for an rc). */
+export type ToolVersion = { ctld: string; docs: string }
+
+export const getVersion = () => fetch('/api/version').then((r) => json<ToolVersion>(r))
 export const getVersionGap = () => fetch('/api/version-gap').then((r) => json<VersionGap>(r))
 export const getCatalog = () => fetch('/api/catalog').then((r) => json<Snapshot>(r))
 export const loadDefault = () => post('/api/catalog/load-default').then((r) => json<Snapshot>(r))

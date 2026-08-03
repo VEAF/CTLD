@@ -63,6 +63,14 @@ export const EN_STRINGS: Record<string, string> = {
   'web.validation.lamp_ok': 'VALID',
   'web.validation.lamp_error': 'CHECK',
 
+  'web.help.docs_title': 'Full documentation',
+  'web.help.docs_body': 'The pages for this version of CTLD, in your browser.',
+  'web.help.docs_start': 'Getting started',
+  'web.help.docs_settings': 'Every setting, explained',
+  'web.help.docs_zones': 'Zone setup',
+  'web.help.docs_migration': 'Coming from CTLD v1',
+  'web.help.version': 'CTLD {version}',
+
   // ── outcomes ────────────────────────────────────────────────────
   'web.outcome.injected':
     'Installed into {miz}: CTLD {version}, the beacon sounds and your configuration ({changed} setting(s) changed). Two MISSION START triggers were written — configuration, then engine.',

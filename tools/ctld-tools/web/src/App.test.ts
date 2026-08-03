@@ -67,6 +67,7 @@ beforeEach(() => {
     if (url.endsWith('/api/dialog/open')) return Promise.resolve(jsonResponse({ path: '/cfg.yaml' }))
     if (url.endsWith('/api/dialog/save')) return Promise.resolve(jsonResponse({ path: '/out.yaml' }))
     if (url.endsWith('/api/dialog/miz')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
+    if (url.endsWith('/api/version')) return Promise.resolve(jsonResponse({ ctld: '2.0.0-rc3', docs: 'dev' }))
     if (url.endsWith('/api/inject'))
       return Promise.resolve(
         jsonResponse({
