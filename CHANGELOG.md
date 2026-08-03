@@ -7,6 +7,41 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Added — one button installs CTLD into a mission (FEAT-ONE-CLICK-INSTALL ticket 04)
+
+**Download `ctld-tools.exe`, run it, pick your `.miz`.** That is now the whole installation: the
+tool carries the engine and the beacon sounds, and writes them, the configuration and the two
+MISSION START triggers into the mission. What used to be five manual steps — fetch `CTLD.lua`, fetch
+two `.ogg` from the repository, drop them in the archive, add a trigger, then run the tool for the
+configuration — is one action.
+
+The action is called **Install into mission…** rather than *Inject the configuration*, because it
+does more than it used to and a Mission Maker who reads "configuration" will not believe their engine
+got installed. It reports what landed in the archive — engine version, files, triggers, how many
+settings differ from the defaults, and whether a previous install was replaced — so the result is
+verifiable without opening the `.miz`.
+
+The mission-maker guide leads with that journey in both languages. The manual path is documented too,
+as the alternative rather than the default, and it is the one that keeps the warning about adding the
+`.ogg` by hand — a requirement that had been stated on the `radioSound` setting, where someone using
+the tool had no way to know it no longer applied to them.
+
+### Fixed — CTLD's interface language can be set from the tool (FIX-TOOL-I18N-LANG)
+
+Reported by **FullGas**: there was no way to choose CTLD's language in `ctld-tools`. Neither the
+engine nor the schema was at fault — `CTLD_i18n` resolves it through `ctld.gs("i18n_lang")`, and the
+schema declares it with `default: en` and `choices: [en, fr, es, ko]`. The app never showed it because
+it lists **catalogue** keys, and this is the only setting of ~150 deliberately absent from the
+catalogue: a scalar there would make it a *parameter* under ADR 0011 Addendum 1, so the completeness
+rule would demand it and every configuration written for rc1–rc3 would report a missing setting at
+mission start.
+
+A regression from the TUI → web app move: the TUI listed schema keys, and the schema comment still
+says its default is there to "surface it in the TUI picker". Fixed by offering the settings the schema
+declares with a default that the catalogue does not carry — exactly one today — rather than by
+cataloguing this one. Setting it writes it to `mm_facing`, where a Mission-Maker-facing setting
+belongs.
+
 ### Tooling — the tool opens a mission and edits the configuration it carries (FEAT-ONE-CLICK-INSTALL ticket 03)
 
 Once a mission is installed, the `.miz` is where its configuration lives. `ctld-tools` can now read

@@ -111,7 +111,19 @@ export const getDcsTypes = () =>
   fetch('/api/dcs-types').then((r) => json<{ types: string[]; spawnAs: Record<string, string> }>(r))
 export const openDialog = (kind: 'open' | 'save' | 'miz') =>
   fetch(`/api/dialog/${kind}`).then((r) => json<{ path: string | null }>(r))
-export const injectMiz = (miz: string) => post('/api/inject', { miz }).then((r) => json<{ injected: string }>(r))
+/** What an install wrote, so the UI can report it without reopening the archive. */
+export type InstallResult = {
+  injected: string
+  mission: string
+  engineVersion: string | null
+  files: string[]
+  triggers: string[]
+  replacedPrevious: boolean
+  changedSettings: number
+}
+
+export const injectMiz = (miz: string) =>
+  post('/api/inject', { miz }).then((r) => json<InstallResult>(r))
 export const getVersionGap = () => fetch('/api/version-gap').then((r) => json<VersionGap>(r))
 export const getCatalog = () => fetch('/api/catalog').then((r) => json<Snapshot>(r))
 export const loadDefault = () => post('/api/catalog/load-default').then((r) => json<Snapshot>(r))

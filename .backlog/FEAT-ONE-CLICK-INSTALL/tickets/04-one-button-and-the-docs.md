@@ -1,6 +1,6 @@
 # 04 — one button in the tool, and the documentation to match
 
-**Status:** todo
+**Status:** done
 
 Depends on: 02, 03.
 

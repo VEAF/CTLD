@@ -278,7 +278,14 @@
       const r = await injectMiz(path)
       error = null
       injected = true
-      status = t('web.outcome.injected', { miz: r.injected })
+      // Report what actually landed in the archive: an install that only says "done" is what sent
+      // Mission Makers checking in the Mission Editor in the first place.
+      status =
+        t('web.outcome.injected', {
+          miz: r.mission,
+          version: r.engineVersion ?? '?',
+          changed: r.changedSettings,
+        }) + (r.replacedPrevious ? ' ' + t('web.outcome.installed_replaced') : '')
     } catch (e) {
       status = null
       error = hasErrors ? t('web.outcome.inject_blocked') : String(e)
