@@ -67,7 +67,18 @@ beforeEach(() => {
     if (url.endsWith('/api/dialog/open')) return Promise.resolve(jsonResponse({ path: '/cfg.yaml' }))
     if (url.endsWith('/api/dialog/save')) return Promise.resolve(jsonResponse({ path: '/out.yaml' }))
     if (url.endsWith('/api/dialog/miz')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
-    if (url.endsWith('/api/inject')) return Promise.resolve(jsonResponse({ injected: '/m.miz' }))
+    if (url.endsWith('/api/inject'))
+      return Promise.resolve(
+        jsonResponse({
+          injected: '/m.miz',
+          mission: 'm.miz',
+          engineVersion: '2.0.0-rc3',
+          files: ['CTLD.lua', 'CTLD_userConfig.lua', 'beacon.ogg', 'beaconsilent.ogg'],
+          triggers: ['configuration', 'engine'],
+          replacedPrevious: false,
+          changedSettings: 3,
+        }),
+      )
     if (url.endsWith('/api/catalog/setting') && init?.method === 'PUT') {
       return Promise.resolve(jsonResponse(JSON.parse(String(init.body)))) // echo {key, value}
     }
@@ -186,14 +197,18 @@ test('injection is blocked while the config has errors', async () => {
   findings = [{ severity: 'error', where: 'settings', key: 'aaRearmDistance', message: 'must be positive' }]
   render(App)
   await screen.findByText(/1 problem to fix before injecting/)
-  expect(screen.getByRole('button', { name: /Inject into mission/ })).toBeDisabled()
+  expect(screen.getByRole('button', { name: /Install into mission/ })).toBeDisabled()
 })
 
-test('injecting reports success and what happens next', async () => {
+test('installing reports what landed in the mission', async () => {
+  // The report is the whole point: an install that only says "done" sends the Mission Maker
+  // checking in the Mission Editor, which is the journey this replaced.
   render(App)
-  await fireEvent.click(await screen.findByRole('button', { name: /Inject into mission/ }))
-  expect(await screen.findByText(/Injected into \/m\.miz/)).toBeInTheDocument()
-  expect(screen.getByText(/applied when the mission starts/)).toBeInTheDocument()
+  await fireEvent.click(await screen.findByRole('button', { name: /Install into mission/ }))
+  expect(await screen.findByText(/Installed into m\.miz/)).toBeInTheDocument()
+  expect(screen.getByText(/CTLD 2\.0\.0-rc3/)).toBeInTheDocument()
+  expect(screen.getByText(/3 setting\(s\) changed/)).toBeInTheDocument()
+  expect(screen.getByText(/configuration, then engine/)).toBeInTheDocument()
 })
 
 test('switching language translates the chrome and re-fetches the schema', async () => {

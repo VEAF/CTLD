@@ -7,7 +7,7 @@
 // translations on top (see `i18n.svelte.ts`).
 //
 // Voice: say what the control does, from the Mission Maker's side of the screen. No file-format
-// vocabulary where an intent will do — "Inject into mission", not "Inject to .miz".
+// vocabulary where an intent will do — "Install into mission", not "Inject to .miz".
 
 export const EN_STRINGS: Record<string, string> = {
   // ── chrome ──────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ export const EN_STRINGS: Record<string, string> = {
   'web.action.load_defaults': 'Start from CTLD defaults',
   'web.action.open': 'Open a config file…',
   'web.action.save': 'Save as…',
-  'web.action.inject': 'Inject into mission…',
+  'web.action.inject': 'Install into mission…',
   'web.action.reset': 'Reset to default',
   'web.action.clear_search': 'Clear search',
 
@@ -37,8 +37,8 @@ export const EN_STRINGS: Record<string, string> = {
   'web.step.load_hint': 'defaults or your config file',
   'web.step.adjust': 'Adjust',
   'web.step.adjust_hint': 'tune what your mission needs',
-  'web.step.inject': 'Inject',
-  'web.step.inject_hint': 'write it into your .miz',
+  'web.step.inject': 'Install',
+  'web.step.inject_hint': 'write CTLD and your settings into your .miz',
 
   // ── content panel ───────────────────────────────────────────────
   'web.search.placeholder': 'Search all settings by name or description…',
@@ -65,7 +65,8 @@ export const EN_STRINGS: Record<string, string> = {
 
   // ── outcomes ────────────────────────────────────────────────────
   'web.outcome.injected':
-    'Injected into {miz}. The configuration is applied when the mission starts — no further step needed.',
+    'Installed into {miz}: CTLD {version}, the beacon sounds and your configuration ({changed} setting(s) changed). Two MISSION START triggers were written — configuration, then engine.',
+  'web.outcome.installed_replaced': 'A previous CTLD install was replaced.',
   'web.outcome.saved_to': 'Saved to {path}',
   'web.outcome.inject_blocked': 'Fix the problems listed below, then inject again.',
   'web.outcome.boot_failed':
