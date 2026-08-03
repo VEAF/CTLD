@@ -63,8 +63,11 @@ def resolve_action(argv: list[str]) -> str:
         if skip:
             skip = False
             continue
-        if arg in ("--help", "-h"):
-            return "cli"  # let Typer print help
+        # Flags that ask a question and exit. Without them here, an argv of nothing-but-options
+        # looks like a bare double-click and boots the web app: `--version` would hang a terminal
+        # (and a release smoke-check) instead of printing one line.
+        if arg in ("--help", "-h", "--version"):
+            return "cli"
         if arg == _LANG_OPT:
             skip = True  # drop the value-taking global option + its value
             continue

@@ -50,6 +50,7 @@ describe('FR catalog', () => {
     //   web.header.config         — likewise "Configuration"
     //   web.help.validation_title — likewise "Validation"
     //   web.help.data_sections    — "{n} sections" is identical in both
+    //   web.help.version          — "CTLD {version}" is a product name and a number
     const identical = Object.keys(en).filter((key) => en[key] === fr[key])
     expect(identical).toEqual(
       [
@@ -61,6 +62,7 @@ describe('FR catalog', () => {
         'web.header.config',
         'web.help.data_sections',
         'web.help.validation_title',
+        'web.help.version',
       ].sort(),
     )
   })

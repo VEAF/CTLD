@@ -104,11 +104,12 @@ class InstallReport:
 
 
 def engine_version(engine: bytes) -> str | None:
-    """Read `ctld.VERSION` out of the engine source, or None if it is not there."""
-    import re
+    """The `ctld.VERSION` of the engine being installed.
 
-    match = re.search(rb'ctld\.VERSION\s*=\s*"([^"]+)"', engine)
-    return match.group(1).decode("utf-8") if match else None
+    Reads the bytes actually written into the mission rather than asking `resources.ctld_version()`:
+    the report must describe what landed, not what the tool believes it carries.
+    """
+    return resources.version_from(engine)
 
 
 def _read_map_resource(miz_path: Path) -> dict:

@@ -1,6 +1,6 @@
 # 01 — the tool reports the CTLD version, from one source
 
-**Status:** todo
+**Status:** done
 
 No dependency. Blocks 02 and 03.
 

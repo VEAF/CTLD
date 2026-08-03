@@ -5,6 +5,7 @@
     getDefaults,
     getSchema,
     getValidate,
+    getVersion,
     getVersionGap,
     injectMiz,
     loadDefault,
@@ -15,6 +16,7 @@
     type Finding,
     type SchemaInfo,
     type Snapshot,
+    type ToolVersion,
     type VersionGap,
   } from './lib/api'
   import AircraftEditor from './lib/AircraftEditor.svelte'
@@ -76,6 +78,8 @@
   let dirty = $state(false)
   let justSaved = $state(false)
   let injected = $state(false)
+  // Read once at boot: the help panel shows it, and its docs link depends on it.
+  let version = $state<ToolVersion | null>(null)
   let helpOpen = $state(false)
 
   const families = $derived<Family[]>(snapshot && schema ? classify(snapshot, schema) : [])
@@ -151,6 +155,9 @@
       dcsTypes = dcs.types
       spawnAsByType = dcs.spawnAs
       defaults = (await getDefaults()).values
+      // Not vital: the help panel hides the version and falls back to the `dev` docs. A tool that
+      // refuses to start because it could not name itself would be worse than one that says less.
+      version = await getVersion().catch(() => null)
       // Boot straight into a usable state: an empty screen asking the user to "load the defaults"
       // is a question a first-time MM cannot answer.
       await run(loadDefault, true)
@@ -391,7 +398,7 @@
 {/if}
 
 {#if helpOpen}
-  <HelpPanel {families} {schema} {snapshot} onclose={() => (helpOpen = false)} />
+  <HelpPanel {families} {schema} {snapshot} {version} onclose={() => (helpOpen = false)} />
 {/if}
 
 <div class="body">

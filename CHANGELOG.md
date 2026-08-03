@@ -7,6 +7,30 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Tooling — the tool knows its version and links the matching documentation (FEAT-TOOL-VERSION-AND-DOCS)
+
+**One source of truth.** `ctld-tools` reports `ctld.VERSION` — read from the engine it bundles, or
+from `src/CTLD_config.lua` in a checkout — instead of a number maintained by hand. `pyproject.toml`
+still said `0.1.0` and the API declared `version="2.0"` as a literal, while CTLD was at 2.0.0-rc3.
+`ctld-tools --version` prints it, `payloads` shows it, `/api/version` serves it, and the release
+smoke-check asserts the exe prints the version being released.
+
+**The documentation is now published per version.** A `published-v*` tag deploys that version's pages
+with `mike`: a **stable** also moves the `latest` alias, a **pre-release does not** — the same
+discipline `release.yml` applies to the `published-latest` download pointer, for the same reason (an
+rc must not become what a newcomer reads by default). The two deploy paths are serialised, because
+`mike` rewrites `gh-pages` and a tag push can land while a `develop` push is still writing.
+
+**The help panel links to the documentation of the version you are running**, deep-linked to the
+pages that matter — getting started, every setting, zones, and the v1 migration guide — and shows the
+CTLD version, which is what a Mission Maker quotes when reporting a problem. Until a stable is
+tagged, any `-rc` resolves to the `dev` pages: honest today, correct by itself the day versioned
+documentation exists, with no code change.
+
+If the version cannot be read the tool still starts: the panel hides it and the links fall back to
+`dev`. A tool that refused to boot because it could not name itself would be worse than one that says
+less.
+
 ### Tooling — every release will say how to install CTLD (CHORE-RELEASE-INSTALL-NOTES)
 
 A release page lists several assets and says nothing about what to do with them; someone arriving
