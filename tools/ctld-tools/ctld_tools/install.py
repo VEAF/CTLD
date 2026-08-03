@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from ctld_tools import resources
+from ctld_tools.embed import unwrap
 from ctld_tools.miz import MARKER, read_mission, rebuild_triggers
 from ctld_tools.vendor import luadata
 
@@ -48,6 +49,47 @@ CONFIG_KEY = "CTLD_MapKey_UserConfig"
 #: Trigger comments — how a re-install recognises what a previous run put there.
 CONFIG_MARKER = MARKER
 ENGINE_MARKER = "CTLD engine (ctld-tools)"
+
+
+@dataclass
+class FoundConfig:
+    """A configuration read back out of a mission, and which shape it was stored in.
+
+    `shape` is `"file"` for an install by this tool, `"inline"` for one by rc1–rc3 — the tool used to
+    write the whole snapshot into a trigger. Worth surfacing: an inline mission is about to be
+    upgraded to the file shape the next time it is installed.
+    """
+
+    yaml: str
+    shape: str
+
+
+def read_config(miz_path: str | Path) -> FoundConfig | None:
+    """The CTLD configuration a mission carries, or None when it has none.
+
+    Reads both shapes. The file shape is a zip member; the inline shape is the snapshot the old
+    injector wrote into a trigger, which is why this looks in `trigrules` — the editor form keeps the
+    script's **text**, unescaped, while `trig` holds it escaped inside compiled Lua.
+    """
+    miz_path = Path(miz_path)
+
+    with zipfile.ZipFile(miz_path) as z:
+        if f"{L10N}/{CONFIG_FILE}" in z.namelist():
+            lua = z.read(f"{L10N}/{CONFIG_FILE}").decode("utf-8")
+            yaml = unwrap(lua, "configUser")
+            if yaml is not None:
+                return FoundConfig(yaml=yaml, shape="file")
+
+    mission = read_mission(miz_path)
+    for rule in (mission.get("trigrules") or {}).values():
+        if not isinstance(rule, dict) or rule.get("comment") != CONFIG_MARKER:
+            continue
+        for action in (rule.get("actions") or {}).values():
+            if isinstance(action, dict) and isinstance(action.get("text"), str):
+                yaml = unwrap(action["text"], "configUser")
+                if yaml is not None:
+                    return FoundConfig(yaml=yaml, shape="inline")
+    return None
 
 
 @dataclass

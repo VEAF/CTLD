@@ -1,6 +1,6 @@
 # 03 — open a `.miz` and edit the configuration it carries
 
-**Status:** todo
+**Status:** done
 
 Depends on: 02 (it reads what 02 writes).
 

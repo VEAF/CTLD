@@ -7,6 +7,24 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Tooling — the tool opens a mission and edits the configuration it carries (FEAT-ONE-CLICK-INSTALL ticket 03)
+
+Once a mission is installed, the `.miz` is where its configuration lives. `ctld-tools` can now read
+it back: opening a `.miz` works like opening a `.yaml`, and the tool remembers which mission it came
+from.
+
+**Both storage shapes are read**, which matters more than it sounds. Missions installed by rc1–rc3
+carry the whole snapshot inside a trigger, not as a file; without that path a Mission Maker opening
+last month's mission would be told there is no configuration in it — while their settings sit right
+there, unreachable — and would have to redo them by hand.
+
+The extraction is the inverse of the embed, deliberately: `wrap` picks the Lua long-bracket level
+from the content (`[[`, `[=[`, `[==[`…), so a fixed pattern would read `[[` correctly and then
+truncate a `[==[` snapshot at the first `]]` inside its own YAML. Pinned by tests on the payloads
+that break a naive regex — `]]`, `]==]`, `]=]` and `--` inside the configuration.
+
+A mission with no CTLD configuration is not an error: it is what a first install looks like.
+
 ### Tooling — the tool installs CTLD into a mission, not just its configuration (FEAT-ONE-CLICK-INSTALL ticket 02)
 
 `ctld_tools.install.install()` writes everything a mission needs into the `.miz`: the engine, both

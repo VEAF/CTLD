@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from ctld_tools import resources
+from ctld_tools.embed import wrap
 from ctld_tools.install import (
     CONFIG_FILE,
     CONFIG_KEY,
@@ -24,8 +25,9 @@ from ctld_tools.install import (
     MAP_RESOURCE,
     engine_version,
     install,
+    read_config,
 )
-from ctld_tools.miz import read_mission
+from ctld_tools.miz import inject_userconfig, read_mission
 from ctld_tools.vendor import luadata
 
 REPO = Path(__file__).resolve().parents[3]
@@ -202,3 +204,89 @@ def test_installing_in_place_is_allowed(tmp_path):
     install(target, CONFIG)
 
     assert f"{L10N}/{ENGINE_FILE}" in names(target)
+
+
+# ── Reading a configuration back out of a mission (ticket 03) ────────────────────────
+# Two storage shapes exist in the wild: the file this tool writes now, and the inline trigger
+# rc1–rc3 wrote. Both must be readable, or a mission configured last month can only be redone
+# from scratch — its settings are in the file, just unreachable.
+
+
+def test_reads_back_the_configuration_it_installed(tmp_path):
+    out = tmp_path / "out.miz"
+    yaml = "mm_facing:\n  slingLoad: true\n  numberOfTroops: 8\n"
+    install(MIZ, wrap(yaml, "configUser"), out)
+
+    found = read_config(out)
+    assert found is not None
+    assert found.shape == "file"
+    assert found.yaml == yaml
+
+
+def test_reads_back_a_configuration_injected_by_rc1_to_rc3(tmp_path):
+    """The old injector wrote the snapshot into a trigger; those missions must still open."""
+    out = tmp_path / "old.miz"
+    yaml = "mm_facing:\n  slingLoad: false\n"
+    inject_userconfig(MIZ, wrap(yaml, "configUser"), out)
+
+    found = read_config(out)
+    assert found is not None
+    assert found.shape == "inline"
+    assert found.yaml == yaml
+
+
+def test_a_mission_with_no_ctld_config_reads_as_nothing():
+    """Not an error: that is what a first install looks like."""
+    assert read_config(MIZ) is None
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        "mm_facing:\n  note: 'closing ]] inside'\n",
+        "mm_facing:\n  note: 'and ]==] too'\n",
+        "mm_facing:\n  note: '-- looks like a comment'\n",
+        "mm_facing:\n  note: 'a ]=] and a ]] and a ]===]'\n",
+    ],
+)
+def test_the_yaml_survives_delimiters_that_break_a_naive_regex(tmp_path, payload):
+    """`wrap` picks the bracket level from the content, so `unwrap` must find the matching one."""
+    out = tmp_path / "brackets.miz"
+    install(MIZ, wrap(payload, "configUser"), out)
+
+    found = read_config(out)
+    assert found is not None and found.yaml == payload
+
+
+def test_round_trip_install_read_install_is_stable(tmp_path):
+    first, second = tmp_path / "a.miz", tmp_path / "b.miz"
+    yaml = "mm_facing:\n  slingLoad: true\n"
+    install(MIZ, wrap(yaml, "configUser"), first)
+
+    found = read_config(first)
+    assert found is not None
+    install(first, wrap(found.yaml, "configUser"), second)
+
+    assert read_config(second) == found
+
+
+def test_the_session_opens_a_miz_like_a_yaml(tmp_path):
+    """The tool's "open" path accepts a mission, and remembers which one."""
+    from ctld_tools.web.state import Session
+
+    out = tmp_path / "session.miz"
+    install(MIZ, wrap("mm_facing:\n  numberOfTroops: 12\n", "configUser"), out)
+
+    session = Session()
+    session.load_path(out)
+
+    assert session.catalog.get("numberOfTroops") == 12
+    assert session.mission_path == out
+    assert session.config_shape == "file"
+
+
+def test_opening_a_mission_without_a_configuration_says_so(tmp_path):
+    from ctld_tools.web.state import Session
+
+    with pytest.raises(ValueError, match="no CTLD configuration"):
+        Session().load_path(MIZ)
