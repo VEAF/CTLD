@@ -36,6 +36,10 @@ operations or push without an explicit go.
    and config/menu changes that affect them. **Filter out internal noise** (refactors, CI/tooling,
    test moves, backlog bookkeeping). Propose the draft and **wait for validation**.
 
+   **In English.** Release notes are a published deliverable and follow the repo rule (`CLAUDE.md`:
+   deliverables in English). rc1 to rc3 shipped in French; that was a mistake, not a precedent — do
+   not copy the previous file's language, and do not mix the two within a sentence.
+
    **The notes always open with an installation section, before anything else.** A release page lists
    several assets and a newcomer arriving from a forum link has to guess which one matters — the
    answer is `ctld-tools.exe` and nothing else. Two rules when adapting the template below: **name
@@ -46,12 +50,12 @@ operations or push without an explicit go.
    ```markdown
    ## Installation
 
-   1. Téléchargez **`ctld-tools.exe`** ci-dessous — c'est le seul fichier dont vous avez besoin.
-   2. Lancez-le : l'outil s'ouvre dans votre navigateur, en local, sans installation.
-   3. Ouvrez votre `.miz`, réglez ce que vous voulez, puis **« Installer dans la mission »** : l'outil
-      y écrit CTLD, les sons des balises et votre configuration.
+   1. Download **`ctld-tools.exe`** below — it is the only file you need.
+   2. Run it: the tool opens in your browser, locally, with nothing to install.
+   3. Open your `.miz`, adjust what you want, then **Install into mission**: the tool writes CTLD,
+      the beacon sounds and your configuration into it.
 
-   Vous préférez tout faire à la main ? Les fichiers sont aussi attachés à cette release — voir la
+   Prefer doing it by hand? The files are attached to this release too — see the
    [documentation](https://veaf.github.io/CTLD/).
    ```
 
