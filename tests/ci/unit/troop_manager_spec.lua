@@ -113,12 +113,23 @@ end)
 -- ─────────────────────────────────────────────────────────────
 describe("CTLDTroopManager", function()
 
-    -- Reset singleton before each test
+    -- Reset singleton before each test, and *borrow* the settings this spec overwrites: they live
+    -- in the table the whole suite shares, and leaving capabilitiesByType nil behind used to fail
+    -- 29 tests in the specs that ran after this one (FIX-SPEC-ISOLATION).
+    local borrowed
+
     before_each(function()
         CTLDTroopManager._instance = nil
         -- Clear loadableGroups so init doesn't create unexpected templates
-        CTLDConfig.get().settings["loadableGroups"] = {}
-        CTLDConfig.get().settings["capabilitiesByType"] = nil
+        borrowed = ctldTestSettings.borrow({
+            loadableGroups     = {},
+            capabilitiesByType = ctldTestSettings.ABSENT,
+        })
+    end)
+
+    after_each(function()
+        borrowed:restore()
+        CTLDTroopManager._instance = nil
     end)
 
     -- ── Singleton (U-036) ─────────────────────────────────────
@@ -280,12 +291,17 @@ describe("CTLDTroopManager", function()
     describe("_transportLimit (U-038)", function()
 
         local mgr
+        local limitSettings
 
         before_each(function()
-            CTLDConfig.get().settings["numberOfTroops"]      = 10
-            CTLDConfig.get().settings["capabilitiesByType"]  = nil
+            limitSettings = ctldTestSettings.borrow({
+                numberOfTroops     = 10,
+                capabilitiesByType = ctldTestSettings.ABSENT,
+            })
             mgr = CTLDTroopManager.getInstance()
         end)
+
+        after_each(function() limitSettings:restore() end)
 
         it("default fallback == numberOfTroops", function()
             assert.equals(10, mgr:_transportLimit("UH-1H"))

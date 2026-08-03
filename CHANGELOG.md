@@ -7,6 +7,28 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Tooling — the unit suite no longer depends on the order its specs run in (FIX-SPEC-ISOLATION)
+
+Running `tests/ci/unit/` in reverse filename order failed **29 tests**; it now passes in both
+directions (1064 / 1064). That mattered because busted takes the order the filesystem gives — a
+directory hash on Linux, not stable between runs — so "which spec ran first" was luck, and a suite
+that is green today could fail tomorrow without a line changing.
+
+Three distinct leaks, only one of which was a missing `after_each`:
+
+- `troop_manager_spec` set `capabilitiesByType` to nil and walked away — all 29 failures were specs
+  reading it afterwards. New helper `tests/ci/helpers/settings.lua`: `borrow` a setting for the
+  duration of a spec and get the previous value back, absent keys included.
+- `jtac_drone_globals_spec` **did** restore its setting, but had already fed it to
+  `_processSpawnableCrates`, leaving `CTLDCrateManager` holding a catalogue built from test data.
+  Restoring a value is not enough once a singleton has consumed it.
+- The local runner (`tools/lua-test/`) ran `after_each` outermost-first, where busted runs it
+  innermost-first. Nested borrow/restore only nests correctly that way round, and the reverse run is
+  what exposed it — a bug in the tool that checks the tests.
+
+The runner's README now carries the reverse-order command as the way to check isolation, and both
+traps above, since neither is guessable from the symptom.
+
 ### Tooling — the tool knows its version and links the matching documentation (FEAT-TOOL-VERSION-AND-DOCS)
 
 **One source of truth.** `ctld-tools` reports `ctld.VERSION` — read from the engine it bundles, or

@@ -56,9 +56,13 @@ describe("CTLDTypeCollector.collect", function()
     end)
 
     it("folds the config modTypes whitelist into extras", function()
-        CTLDConfig.get().settings["modTypes"] = { "TC_Cfg_Mod_Type" }
+        -- Borrow rather than set-then-nil: the catalogue ships `modTypes: []`, so writing nil at the
+        -- end deletes a key that was there. Harmless today — nothing downstream distinguishes an
+        -- empty list from an absent one — but it is the same leak as the others, spelled quietly
+        -- (FIX-SPEC-ISOLATION).
+        local borrowed = ctldTestSettings.borrow({ modTypes = { "TC_Cfg_Mod_Type" } })
         assert.is_true(CTLDTypeCollector.collect().extras["TC_Cfg_Mod_Type"] == true)
-        CTLDConfig.get().settings["modTypes"] = nil
+        borrowed:restore()
     end)
 
     it("collects DCS typeNames from aiZones vehicleStock", function()

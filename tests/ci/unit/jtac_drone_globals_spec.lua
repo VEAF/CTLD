@@ -64,12 +64,17 @@ describe("JTAC drone orbit settings", function()
             ctld.startupReport.add = origAdd
         end)
 
+        -- Restoring the setting is not enough: `_processSpawnableCrates` stores what it read on the
+        -- singleton, so the manager keeps a catalogue built from these fake crates and every spec
+        -- that asks it for a descriptor afterwards gets nothing. Drop the instance so the next
+        -- caller rebuilds it from the real catalogue (FIX-SPEC-ISOLATION).
         local function processWith(crates)
             local cm = CTLDCrateManager.getInstance()
             local orig = CTLDConfig.get().settings.spawnableCrates
             CTLDConfig.get().settings.spawnableCrates = crates
             cm:_processSpawnableCrates()
             CTLDConfig.get().settings.spawnableCrates = orig
+            CTLDCrateManager._instance = nil
         end
 
         it("emits one NOTICE naming every stale crate, not one message per crate", function()
