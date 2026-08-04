@@ -587,3 +587,130 @@ describe("CTLDCrateManager _processSpawnableCrates startup report (STARTUP-REPOR
     end)
 
 end)
+
+-- ─────────────────────────────────────────────────────────────
+describe("CTLDCrateManager crate-count suffix (UX-FOB-ALLCRATES-CRATE-COUNT)", function()
+    -- Ticket 02: every singleCrate desc must end with " (xN)" where N = cratesRequired.
+
+    local cm
+
+    before_each(function()
+        CTLDConfig._instance       = nil
+        CTLDCrateManager._instance = nil
+        ctld.configUser            = nil
+        CTLDConfig.get():load()
+        cm = CTLDCrateManager.getInstance()
+    end)
+
+    after_each(function()
+        CTLDCrateManager._instance = nil
+        CTLDConfig._instance       = nil
+        CTLDConfig.get():load()
+    end)
+
+    -- ── _processSpawnableCrates path ──────────────────────────
+    describe("_processSpawnableCrates", function()
+
+        local function injectSection(entries)
+            local cfg = CTLDConfig.get()
+            cfg.settings["spawnableCrates"]["_TestSuffix"] = entries
+            cm:_processSpawnableCrates(cfg.settings["spawnableCrates"])
+        end
+
+        local function findDesc(unit)
+            for _, catData in pairs(cm._processedCrates) do
+                for _, entry in ipairs(catData.singleCrates or {}) do
+                    local sc = entry.singleCrate
+                    if sc and sc.unit == unit then return sc.desc end
+                end
+            end
+        end
+
+        it("cratesRequired=1 appends ' (x1)' to desc", function()
+            injectSection({
+                { weight = 8800.01, desc = "Test Single", unit = "TestUnit1", cratesRequired = 1 },
+            })
+            local d = findDesc("TestUnit1")
+            assert.is_not_nil(d)
+            assert.is_true(d:sub(-5) == " (x1)", "desc='" .. tostring(d) .. "'")
+        end)
+
+        it("cratesRequired=3 appends ' (x3)' to desc", function()
+            injectSection({
+                { weight = 8800.02, desc = "Test Triple", unit = "TestUnit3", cratesRequired = 3 },
+            })
+            local d = findDesc("TestUnit3")
+            assert.is_not_nil(d)
+            assert.is_true(d:sub(-5) == " (x3)", "desc='" .. tostring(d) .. "'")
+        end)
+
+        it("absent cratesRequired defaults to ' (x1)'", function()
+            injectSection({
+                { weight = 8800.03, desc = "Test Default", unit = "TestUnitDef" },
+            })
+            local d = findDesc("TestUnitDef")
+            assert.is_not_nil(d)
+            assert.is_true(d:sub(-5) == " (x1)", "desc='" .. tostring(d) .. "'")
+        end)
+
+    end)
+
+    -- ── _injectSceneCrate path ────────────────────────────────
+    describe("_injectSceneCrate", function()
+
+        local function injectScene(cratesRequired, showSets)
+            cm:_injectSceneCrate("TestScene", {
+                crate = {
+                    weight         = 8900.01,
+                    i18nKey        = "Test Scene Crate",
+                    cratesRequired = cratesRequired,
+                    side           = nil,
+                    showSets       = showSets,
+                },
+            })
+        end
+
+        local function findInjected()
+            for _, catData in pairs(cm._processedCrates) do
+                for _, entry in ipairs(catData.singleCrates or {}) do
+                    if entry.singleCrate and entry.singleCrate.unit == "TestScene" then
+                        return entry
+                    end
+                end
+            end
+        end
+
+        it("cratesRequired=1 appends ' (x1)' to desc", function()
+            injectScene(1, nil)
+            local entry = findInjected()
+            assert.is_not_nil(entry)
+            local d = entry.singleCrate.desc
+            assert.is_true(d:sub(-5) == " (x1)", "desc='" .. tostring(d) .. "'")
+        end)
+
+        it("cratesRequired=3 appends ' (x3)' to desc", function()
+            injectScene(3, nil)
+            local entry = findInjected()
+            assert.is_not_nil(entry)
+            local d = entry.singleCrate.desc
+            assert.is_true(d:sub(-5) == " (x3)", "desc='" .. tostring(d) .. "'")
+        end)
+
+        it("cratesRequired=3 with showSets=nil generates singleTypeSet (FOB All crates)", function()
+            injectScene(3, nil)
+            local entry = findInjected()
+            assert.is_not_nil(entry)
+            assert.is_not_nil(entry.singleTypeSet)
+            assert.equals(3, #entry.singleTypeSet.multiple)
+        end)
+
+        it("cratesRequired=3 with showSets=false does NOT generate singleTypeSet", function()
+            injectScene(3, false)
+            local entry = findInjected()
+            assert.is_not_nil(entry)
+            assert.is_nil(entry.singleTypeSet)
+        end)
+
+    end)
+
+end)

@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — FOB "All crates" and crate-count indicator in Request Equipment (UX-FOB-ALLCRATES-CRATE-COUNT)
+
+- **FOB scene now exposes an "All crates" entry** in Request Equipment. The `showSets = false`
+  flag was removed from `fobScene.crate`; with `cratesRequired = 3` and `enableAllCrates = true`
+  (default), the auto-generated "FOB Crate (x3) - All crates" entry now appears, letting the
+  pilot request all 3 crates in one click — consistent with every other multi-crate equipment.
+- **Every Request Equipment entry now shows `(xN)`** where N is the number of crates required.
+  The suffix is always displayed (including `(x1)` for single-crate items) so pilots can plan
+  their sortie without consulting external documentation.
+
 ### Fixed — AA system unpack bugs: stale menu and overlapping units (FIX-AASYSTEM-UNPACK-BUGS)
 
 - **F10 unpack menu now refreshes after assembly.** `_assemble()` previously called `CTLDCrate:destroy()` directly,

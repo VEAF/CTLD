@@ -121,7 +121,6 @@ fobScene.crate = {
     deployKey      = "Build FOB",
     cratesRequired = 3,
     side           = nil,
-    showSets       = false,
     -- fobCompatible: marks this scene as a FOB-type deployment.
     -- CTLDFOBManager._collectFOBCrates() collects any crate whose scene model
     -- has fobCompatible=true, so future FOB variants are recognised automatically.
