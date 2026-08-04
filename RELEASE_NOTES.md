@@ -1,4 +1,4 @@
-# CTLD 2.0.0-rc5 — release candidate
+# CTLD 2.0.0-rc6 — release candidate
 
 ## Installation
 
@@ -7,38 +7,46 @@
 3. Open your `.miz`, adjust what you want, then **Install into mission**: the tool writes CTLD, the
    beacon sounds and your configuration into it.
 
+**Windows blocks it on the first run?** The tool is not code-signed, so SmartScreen stops it: click
+**More info** → **Run anyway**. If the file came through a browser you may also need right-click →
+**Properties** → tick **Unblock** → **OK**.
+
 Prefer doing it by hand? The files are attached to this release too — see the
-[documentation](https://veaf.github.io/CTLD/).
+[documentation](https://veaf.github.io/CTLD/2.0.0-rc6/mission-maker/).
 
 ---
 
-**If you installed CTLD with rc4, re-install with this version.** The engine is unchanged; the
-installer was not. rc4 wrote the beacon sound files into your mission without registering them, and
-the Mission Editor deletes files it sees as unreferenced the next time it saves — so a mission
-installed with rc4 can lose its beacon sounds, and the beacons then go quiet with nothing to explain
-it. Re-installing over rc4's work fixes it in place.
+**If you installed a mission with rc5, re-install it with this version.** rc5's installer made your
+beacon sounds play out loud at mission start — a beacon tone every connected player heard. The engine
+is unchanged; re-installing over rc5's work fixes it in place.
 
 ## What's fixed
 
-- **The beacon sounds stay in the mission.** They now get a registration entry and a mission-start
-  trigger that references them, which is what tells the Mission Editor they belong to the mission.
-  That trigger plays both sounds at mission start; it runs before anyone is in a cockpit, so nobody
-  hears it.
+- **The beacon sounds no longer play out loud at mission start.** rc5 added a trigger referencing the
+  two sound files, which is what stops the Mission Editor from deleting them — but it played them to
+  everyone. The trigger now addresses a country your mission does not use, so the files stay
+  registered and nobody hears a thing. This is the same technique the manual instructions have always
+  described, now done for you.
 
-- **You can open a mission from the tool.** Reading your configuration back out of a `.miz` shipped
-  in rc4, but the file picker only listed `.yaml` files and the button read "Open a config file…", so
-  there was no way in unless you knew to switch the picker to "All files". The button is now
-  **Open config or mission…** and missions are listed by default.
+## Also in this release
+
+- **The documentation says what to do when Windows blocks the tool.** `ctld-tools.exe` is not
+  code-signed, so Windows stops it on a first run behind a screen that reads like a virus warning. The
+  way past it is now written down — in the release page above, in the README, and in the mission maker
+  guide.
+
+- **The README matches the tool again.** It still described configuring CTLD by hand-editing Lua
+  tables, a model replaced some time ago, and its installation section predated `ctld-tools`
+  entirely. It is now a short entry point that links the published guides.
 
 ## Nothing to change in your configuration
 
-No setting added, renamed or removed, and the engine is rc4's apart from its version stamp. If you
-install by hand nothing changes for you either — but the same Mission Editor behaviour applies: a
-sound no trigger references can be dropped when the mission is saved.
+No setting added, renamed or removed. The engine is rc5's apart from its version stamp — everything
+in this release is in the tool and the documentation.
 
 ## Contributors
 
 **FullGas** (lead developer), **Zip** (technical support) — VEAF.
 
-Both fixes in this release come from Zip using rc4 on a real mission, and the diagnosis of the sound
-problem is his.
+The sound fix is Zip's: he specified the right technique from the start, and this release is what it
+should have been in rc5.

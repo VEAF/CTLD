@@ -2,7 +2,7 @@
 -- src version — do not edit source/ original
 ctld = ctld or {}
 
-ctld.VERSION = "2.0.0-rc5"
+ctld.VERSION = "2.0.0-rc6"
 
 CTLDConfig = {}
 CTLDConfig._instance = nil
