@@ -351,6 +351,29 @@ describe("CTLDCrateAssemblyManager _buildSpawnArrays geometry", function()
 
 end)
 
+-- Shared helper: fetch the S-300 template and build a systemParts stub for it.
+-- Used by the geometry and the menu-refresh describe blocks below.
+local function s300TemplateAndParts()
+    local tmpl = nil
+    for _, t in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
+        if t.name == "S-300 AA System" then tmpl = t; break end
+    end
+    assert.is_not_nil(tmpl, "S-300 template not found")
+    local systemParts = {}
+    for _, part in ipairs(tmpl.parts) do
+        systemParts[part.DCSTypename] = {
+            desc     = part.desc,
+            launcher = part.launcher,
+            amount   = part.amount,
+            NoCrate  = part.NoCrate,
+            found    = 1,
+            required = 1,
+            crates   = {},
+        }
+    end
+    return tmpl, systemParts
+end
+
 -- ─────────────────────────────────────────────────────────────
 describe("CTLDCrateAssemblyManager _buildSpawnArrays geometry — S-300", function()
     -- Regression: S-300 TEL D (NoCrate, amount=2) used to overlap with Big Bird SR
@@ -364,29 +387,8 @@ describe("CTLDCrateAssemblyManager _buildSpawnArrays geometry — S-300", functi
         m = CTLDCrateAssemblyManager.getInstance()
     end)
 
-    local function buildS300Parts()
-        local tmpl = nil
-        for _, t in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
-            if t.name == "S-300 AA System" then tmpl = t; break end
-        end
-        assert.is_not_nil(tmpl, "S-300 template not found")
-        local systemParts = {}
-        for _, part in ipairs(tmpl.parts) do
-            systemParts[part.DCSTypename] = {
-                desc     = part.desc,
-                launcher = part.launcher,
-                amount   = part.amount,
-                NoCrate  = part.NoCrate,
-                found    = 1,
-                required = 1,
-                crates   = {},
-            }
-        end
-        return tmpl, systemParts
-    end
-
     it("all S-300 spawn positions are pairwise-distinct (no part overlaps)", function()
-        local tmpl, systemParts = buildS300Parts()
+        local tmpl, systemParts = s300TemplateAndParts()
         local origin = { x = 1000, y = 0, z = 2000 }
         local positions = m:_buildSpawnArrays(tmpl, systemParts, origin, {})
 
@@ -409,7 +411,7 @@ describe("CTLDCrateAssemblyManager _assemble publishes OnCrateCleared per consum
     -- so OnCrateCleared was never published and the F10 unpack menu never refreshed.
     -- FIX-AASYSTEM-UNPACK-BUGS ticket 02.
 
-    local m, origPublish
+    local m, ed, origPublish
     local published
 
     local function makeFakeHeli()
@@ -431,9 +433,9 @@ describe("CTLDCrateAssemblyManager _assemble publishes OnCrateCleared per consum
         EventDispatcher._instance          = nil
         published = {}
 
-        m = CTLDCrateAssemblyManager.getInstance()
+        m  = CTLDCrateAssemblyManager.getInstance()
+        ed = EventDispatcher.getInstance()
 
-        local ed = EventDispatcher.getInstance()
         origPublish = ed.publish
         ed.publish = function(self, eventName, payload)
             if eventName == "OnCrateCleared" then
@@ -452,17 +454,13 @@ describe("CTLDCrateAssemblyManager _assemble publishes OnCrateCleared per consum
     end)
 
     after_each(function()
-        EventDispatcher.getInstance().publish = origPublish
-        CTLDCrateManager._instance           = nil
-        CTLDCrateAssemblyManager._instance   = nil
+        ed.publish                         = origPublish
+        CTLDCrateManager._instance         = nil
+        CTLDCrateAssemblyManager._instance = nil
     end)
 
     it("publishes OnCrateCleared once per consumed S-300 crate (5 non-NoCrate parts)", function()
-        local tmpl = nil
-        for _, t in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
-            if t.name == "S-300 AA System" then tmpl = t; break end
-        end
-        assert.is_not_nil(tmpl)
+        local tmpl = s300TemplateAndParts()
 
         -- Register one fake crate per non-NoCrate part inside CTLDCrateManager
         local origin = { x = 1000, y = 0, z = 2000 }
