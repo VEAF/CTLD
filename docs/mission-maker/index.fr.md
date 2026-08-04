@@ -11,7 +11,8 @@ lancez-le.** C'est toute l'installation : l'outil porte CTLD et les sons de ses 
 l'ensemble dans votre mission.
 
 1. **Lancez l'outil.** Il s'ouvre dans votre navigateur, en local — sans installation, sans compte,
-   sans rien à configurer au préalable.
+   sans rien à configurer au préalable. Si Windows le bloque au premier lancement, voir
+   [ci-dessous](#windows-dit-quil-a-bloque-lapplication).
 2. **« Ouvrir une config ou une mission… »** et choisissez votre `.miz` — ou partez des défauts CTLD
    si vous configurez avant d'avoir une mission. Ouvrir une mission qui contient déjà CTLD en
    récupère la configuration, prête à être modifiée : c'est ainsi que vous reprenez une mission
@@ -29,6 +30,24 @@ ce qu'il a écrit, et réinstaller remplace au lieu de dupliquer.
     référence lorsqu'il enregistre une mission, et sans lui vos balises deviendraient muettes dès que
     vous rouvririez la mission dans l'éditeur. Il s'exécute avant que quiconque soit en cockpit,
     personne ne l'entend donc.
+
+### Windows dit qu'il a bloqué l'application
+
+`ctld-tools.exe` n'est pas signé numériquement — un certificat coûte de l'argent qu'un projet
+communautaire n'a pas de raison de dépenser —, donc Windows le considère comme venant d'un éditeur
+inconnu. Le téléchargement n'a rien d'anormal ; il faut simplement le dire une fois :
+
+- **« Windows a protégé votre ordinateur »** (la fenêtre bleue SmartScreen) → cliquez sur
+  **Informations complémentaires**, puis sur **Exécuter quand même**.
+- **Propriétés → Débloquer.** Si le fichier est arrivé par un navigateur, Windows le marque comme
+  téléchargé depuis Internet. Clic droit sur `ctld-tools.exe` → **Propriétés** → cochez **Débloquer**
+  en bas de l'onglet Général → **OK**, puis lancez-le.
+- **Votre antivirus l'a mis en quarantaine.** Les exécutables en un seul fichier produits par
+  PyInstaller sont un faux positif courant. Restaurez le fichier et ajoutez-lui une exclusion si votre
+  antivirus insiste.
+
+Chaque version est construite par un workflow GitHub public à partir des sources du tag : vous pouvez
+vérifier d'où vient l'exécutable avant de le lancer.
 
 ??? note "Installer à la main"
     Tout ce que l'outil écrit est également attaché à chaque release, si vous préférez le faire

@@ -20,10 +20,11 @@ an **orphan**: open the mission in the Mission Editor, save it, and the editor r
 from its own model and drops it. The beacons then go silent with nothing to show why, which is the
 exact failure this whole module exists to prevent.
 
-So each sound also gets a resource key plus a MISSION START `a_out_sound` action referencing it —
-the "sound preload" idiom of the VEAF mission set (646 occurrences across 491 missions, including
-this repo's own `missions/Test_CTLDNEXT_01.miz`, whose `ResKey_Action_10/11` are exactly this).
-Playing at rank 3 of mission start is inaudible in practice: nobody has slotted into a cockpit yet.
+So each sound also gets a resource key plus a MISSION START action referencing it — the "sound
+preload" idiom, which this repo's README already documents for a hand-made install: *"pick an unused
+country like Australia so no player hears them at mission start"*. That is exactly what `_sound_trigger`
+does, through `a_out_sound_c(<country>, …)` — 1274 such actions across 491 real VEAF missions. The
+country is chosen per mission, among those the mission does not declare, so the sound reaches nobody.
 
 Order is not cosmetic: the configuration trigger must precede the engine trigger, because the engine
 reads `ctld.configUser` as it loads.
@@ -157,28 +158,69 @@ def _script_trigger(key: str, comment: str) -> dict:
     }
 
 
-def _sound_trigger(keys: list[str], comment: str) -> dict:
-    """A MISSION START trigger playing each sound once, so the editor keeps the files.
+#: Countries to address the preload trigger to, most preferred first, used only when the mission has
+#: no unit of that country. Peru is the VEAF mission set's de-facto choice for a sound nobody should
+#: hear (363 of the 1274 `a_out_sound_c` uses across 491 missions); Australia is the one this repo's
+#: README names. Ids from the DCS datamine country table, not from memory.
+SILENT_COUNTRIES = (89, 21)
+
+
+def _mission_countries(mission: dict) -> set[int]:
+    """Every country id the mission declares, across all coalitions.
+
+    `country` comes back as a Lua table, which luadata renders as a list or a dict depending on
+    whether its keys are contiguous — both shapes occur, so both are read.
+    """
+    found: set[int] = set()
+    for side in (mission.get("coalition") or {}).values():
+        countries = (side or {}).get("country")
+        entries = countries.values() if isinstance(countries, dict) else (countries or [])
+        for entry in entries:
+            if isinstance(entry, dict) and isinstance(entry.get("id"), int):
+                found.add(entry["id"])
+    return found
+
+
+def _silent_country(mission: dict) -> int:
+    """A country id this mission does not use, so the preload plays to nobody.
+
+    Picking a fixed country would be a bet: address the sound to one that *is* in the mission and its
+    players hear a beacon tone at mission start. So the mission is read first, and the id is chosen
+    among those it does not declare — the preferred two first, then any free id.
+    """
+    used = _mission_countries(mission)
+    for candidate in SILENT_COUNTRIES:
+        if candidate not in used:
+            return candidate
+    # 92 countries in the datamine table; a mission using every one of them is not a real case, but
+    # returning a used id silently would be, so fall back to the last one rather than to nothing.
+    return next((cid for cid in range(92) if cid not in used), SILENT_COUNTRIES[0])
+
+
+def _sound_trigger(keys: list[str], comment: str, country: int) -> dict:
+    """A MISSION START trigger playing each sound to a country the mission does not use.
 
     The point is the *reference*, not the playback: `mapResource` plus a trigger action is what makes
     the Mission Editor treat an `.ogg` as part of the mission instead of an orphan to drop on save.
+    Addressing it to an empty country is what keeps it silent — the idiom this repo's README already
+    documents for a hand-made install ("pick an unused country like Australia so no player hears them
+    at mission start"), and which 1274 `a_out_sound_c` actions across 491 real missions use.
 
-    Shape copied verbatim from real missions rather than guessed — `a_out_sound(resource, delay)`,
-    which plays to everyone. The per-coalition variant is `a_out_sound_s("<side>", resource, delay)`,
-    but `coalitionlist` only ever takes `blue` or `red` (checked across 491 VEAF missions: 1557 and
-    1353 uses, no neutral value anywhere), so "play it to a coalition nobody is in" cannot be
-    expressed generically — which side is empty depends on the mission.
+    Shape copied from those missions rather than guessed: `a_out_sound_c(<country>, resource, delay)`
+    compiled, `countrylist` in the editor form.
     """
     return {
         "trig": {
-            "actions": "".join(f'a_out_sound(getValueResourceByKey("{key}"), 0);' for key in keys),
+            "actions": "".join(f'a_out_sound_c({country}, getValueResourceByKey("{key}"), 0);' for key in keys),
             "conditions": "return(true)",
             "flag": True,
         },
         "rule": {
             "rules": [],
             "eventlist": "",
-            "actions": [{"predicate": "a_out_sound", "file": key, "start_delay": 0} for key in keys],
+            "actions": [
+                {"predicate": "a_out_sound_c", "countrylist": country, "file": key, "start_delay": 0} for key in keys
+            ],
             "predicate": "triggerStart",
             "comment": comment,
         },
@@ -203,7 +245,7 @@ def install(miz_path: str | Path, userconfig_lua: str, out_path: str | Path | No
     config = _script_trigger(CONFIG_KEY, CONFIG_MARKER)
     engine_trigger = _script_trigger(ENGINE_KEY, ENGINE_MARKER)
     sound_keys = [SOUND_KEYS[name] for name in sorted(sounds)]
-    sounds_trigger = _sound_trigger(sound_keys, SOUNDS_MARKER)
+    sounds_trigger = _sound_trigger(sound_keys, SOUNDS_MARKER, _silent_country(mission))
 
     # Configuration first: the engine reads ctld.configUser while loading. The sounds last: their
     # trigger exists to hold a reference, and nothing depends on when it runs.

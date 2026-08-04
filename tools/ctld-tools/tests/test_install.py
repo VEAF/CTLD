@@ -24,8 +24,11 @@ from ctld_tools.install import (
     ENGINE_MARKER,
     L10N,
     MAP_RESOURCE,
+    SILENT_COUNTRIES,
     SOUND_KEYS,
     SOUNDS_MARKER,
+    _mission_countries,
+    _silent_country,
     engine_version,
     install,
     read_config,
@@ -98,8 +101,9 @@ def test_every_payload_gets_a_resource_key(tmp_path):
 def test_a_mission_start_trigger_references_each_sound(tmp_path):
     """The reference is the point: without it the editor treats the .ogg as an orphan.
 
-    Shape copied from real missions (`a_out_sound(getValueResourceByKey(key), 0)`), and asserted in
-    both places DCS keeps a trigger — a `trig`/`trigrules` mismatch makes the editor rewrite one.
+    Shape copied from real missions (`a_out_sound_c(<country>, getValueResourceByKey(key), 0)`), and
+    asserted in both places DCS keeps a trigger — a `trig`/`trigrules` mismatch makes the editor
+    rewrite one from the other.
     """
     out = tmp_path / "out.miz"
     install(MIZ, CONFIG, out)
@@ -108,12 +112,44 @@ def test_a_mission_start_trigger_references_each_sound(tmp_path):
     assert m["trigrules"][3]["comment"] == SOUNDS_MARKER
     assert m["trigrules"][3]["predicate"] == "triggerStart"
 
+    country = _silent_country(m)
     compiled = m["trig"]["actions"][3]
     editor = m["trigrules"][3]["actions"]
     for rank, name in enumerate(("beacon.ogg", "beaconsilent.ogg"), start=1):
         key = SOUND_KEYS[name]
-        assert f'a_out_sound(getValueResourceByKey("{key}"), 0);' in compiled
-        assert editor[rank] == {"predicate": "a_out_sound", "file": key, "start_delay": 0}
+        assert f'a_out_sound_c({country}, getValueResourceByKey("{key}"), 0);' in compiled
+        assert editor[rank] == {
+            "predicate": "a_out_sound_c",
+            "countrylist": country,
+            "file": key,
+            "start_delay": 0,
+        }
+
+
+def test_the_preload_plays_to_a_country_the_mission_does_not_use(tmp_path):
+    """Otherwise players hear a beacon tone at mission start — the reason for the whole idiom.
+
+    The README states the rule for a hand-made install ("pick an unused country"); picking a fixed one
+    in code would be a bet against the mission, so the mission is read and an absent id chosen.
+    """
+    out = tmp_path / "out.miz"
+    install(MIZ, CONFIG, out)
+    m = read_mission(out)
+
+    used = _mission_countries(m)
+    assert used, "the fixture mission declares countries, or this test proves nothing"
+    assert _silent_country(m) not in used
+
+
+def test_a_taken_preferred_country_is_skipped():
+    """Peru first, Australia next, then any free id — never one the mission actually uses."""
+    assert _silent_country({}) == SILENT_COUNTRIES[0]
+
+    def mission_with(*ids):
+        return {"coalition": {"blue": {"country": [{"id": i, "name": str(i)} for i in ids]}}}
+
+    assert _silent_country(mission_with(89)) == SILENT_COUNTRIES[1]
+    assert _silent_country(mission_with(89, 21)) not in (89, 21)
 
 
 def test_installing_into_a_mission_with_no_sounds_writes_them(tmp_path):
