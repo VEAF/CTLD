@@ -905,6 +905,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Pour commencer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#windows-dit-quil-a-bloque-lapplication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Windows dit qu'il a bloqué l'application
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1928,6 +1945,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Pour commencer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#windows-dit-quil-a-bloque-lapplication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Windows dit qu'il a bloqué l'application
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1971,7 +2005,8 @@ lancez-le.</strong> C'est toute l'installation : l'outil porte CTLD et les sons 
 l'ensemble dans votre mission.</p>
 <ol>
 <li><strong>Lancez l'outil.</strong> Il s'ouvre dans votre navigateur, en local — sans installation, sans compte,
-   sans rien à configurer au préalable.</li>
+   sans rien à configurer au préalable. Si Windows le bloque au premier lancement, voir
+   <a href="#windows-dit-quil-a-bloque-lapplication">ci-dessous</a>.</li>
 <li><strong>« Ouvrir une config ou une mission… »</strong> et choisissez votre <code>.miz</code> — ou partez des défauts CTLD
    si vous configurez avant d'avoir une mission. Ouvrir une mission qui contient déjà CTLD en
    récupère la configuration, prête à être modifiée : c'est ainsi que vous reprenez une mission
@@ -1990,6 +2025,22 @@ référence lorsqu'il enregistre une mission, et sans lui vos balises deviendrai
 vous rouvririez la mission dans l'éditeur. Il s'exécute avant que quiconque soit en cockpit,
 personne ne l'entend donc.</p>
 </div>
+<h3 id="windows-dit-quil-a-bloque-lapplication">Windows dit qu'il a bloqué l'application<a class="headerlink" href="#windows-dit-quil-a-bloque-lapplication" title="Permanent link">&para;</a></h3>
+<p><code>ctld-tools.exe</code> n'est pas signé numériquement — un certificat coûte de l'argent qu'un projet
+communautaire n'a pas de raison de dépenser —, donc Windows le considère comme venant d'un éditeur
+inconnu. Le téléchargement n'a rien d'anormal ; il faut simplement le dire une fois :</p>
+<ul>
+<li><strong>« Windows a protégé votre ordinateur »</strong> (la fenêtre bleue SmartScreen) → cliquez sur
+  <strong>Informations complémentaires</strong>, puis sur <strong>Exécuter quand même</strong>.</li>
+<li><strong>Propriétés → Débloquer.</strong> Si le fichier est arrivé par un navigateur, Windows le marque comme
+  téléchargé depuis Internet. Clic droit sur <code>ctld-tools.exe</code> → <strong>Propriétés</strong> → cochez <strong>Débloquer</strong>
+  en bas de l'onglet Général → <strong>OK</strong>, puis lancez-le.</li>
+<li><strong>Votre antivirus l'a mis en quarantaine.</strong> Les exécutables en un seul fichier produits par
+  PyInstaller sont un faux positif courant. Restaurez le fichier et ajoutez-lui une exclusion si votre
+  antivirus insiste.</li>
+</ul>
+<p>Chaque version est construite par un workflow GitHub public à partir des sources du tag : vous pouvez
+vérifier d'où vient l'exécutable avant de le lancer.</p>
 <p>??? note "Installer à la main"
     Tout ce que l'outil écrit est également attaché à chaque release, si vous préférez le faire
     vous-même :</p>

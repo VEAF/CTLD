@@ -905,6 +905,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Getting started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#windows-says-it-blocked-the-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Windows says it blocked the app
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1928,6 +1945,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Getting started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#windows-says-it-blocked-the-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Windows says it blocked the app
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1971,7 +2005,7 @@ it.</strong> That is the whole installation: the tool carries CTLD and its beaco
 everything into your mission.</p>
 <ol>
 <li><strong>Run the tool.</strong> It opens in your browser, locally — no installation, no account, nothing to
-   configure first.</li>
+   configure first. If Windows blocks it on first launch, see <a href="#windows-says-it-blocked-the-app">below</a>.</li>
 <li><strong>Open config or mission…</strong> and pick your <code>.miz</code> — or start from the CTLD defaults if you are
    configuring before you have a mission. Opening a mission that already has CTLD brings its
    configuration back, ready to edit: that is how you resume work on a mission you set up weeks ago,
@@ -1988,6 +2022,21 @@ the Mission Editor discards any file no trigger refers to when it saves a missio
 your beacons would fall silent the next time you opened the mission in the editor. It runs before
 anyone is in a cockpit, so nobody hears it.</p>
 </div>
+<h3 id="windows-says-it-blocked-the-app">Windows says it blocked the app<a class="headerlink" href="#windows-says-it-blocked-the-app" title="Permanent link">&para;</a></h3>
+<p><code>ctld-tools.exe</code> is not code-signed — a certificate costs money a community project has no reason to
+spend — so Windows treats it as coming from an unknown publisher. Nothing is wrong with the download;
+you have to say so once:</p>
+<ul>
+<li><strong>"Windows protected your PC"</strong> (the blue SmartScreen window) → click <strong>More info</strong>, then
+  <strong>Run anyway</strong>.</li>
+<li><strong>Properties → Unblock.</strong> If the file came through a browser, Windows tags it as downloaded from the
+  internet. Right-click <code>ctld-tools.exe</code> → <strong>Properties</strong> → tick <strong>Unblock</strong> at the bottom of the
+  General tab → <strong>OK</strong>, then run it.</li>
+<li><strong>Your antivirus quarantined it.</strong> Single-file executables built with PyInstaller are a common false
+  positive. Restore the file, and add an exclusion for it if your antivirus insists.</li>
+</ul>
+<p>Every release is built by a public GitHub workflow from the tagged source, so you can check where the
+executable comes from before running it.</p>
 <p>??? note "Installing by hand"
     Everything the tool writes is also attached to each release, if you prefer doing it yourself:</p>
 <pre><code>1. add `CTLD.lua` to the mission with a **MISSION START → DO SCRIPT FILE** trigger — on its own,
