@@ -7,6 +7,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+
+### Fixed — AA system unpack bugs: stale menu and overlapping units (FIX-AASYSTEM-UNPACK-BUGS)
+
+- **F10 unpack menu now refreshes after assembly.** `_assemble()` previously called `CTLDCrate:destroy()` directly,
+  bypassing `CTLDCrateManager`, so `OnCrateCleared` was never published and the unpack submenu stayed visible for
+  nearby pilots even after the system had spawned. Crates are now consumed via `CTLDCrateManager:destroyCrate()`,
+  which publishes the event and triggers the existing `_refreshNearbyPlayers` mechanism.
+- **AA system parts no longer overlap when spawned.** For template parts with `amount > 2`, the arc-step formula
+  distributed units across the full circle instead of within their reserved arc segment, causing the S-300 TEL D
+  (NoCrate, amount=2) to spawn on top of the Big Bird SR. The step is now `arcSegment / partAmount` where
+  `arcSegment = 2π / partCount`.
+
 ### Tooling — the sound preload is silent, and the README matches the product (FIX-PRELOAD-AND-INSTALL-DOCS)
 
 - **The beacon-sound preload no longer plays to everyone.** The trigger `FIX-INSTALL-SOUND-ORPHANS`

@@ -17891,7 +17891,10 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     local positions, types, headings = self:_buildSpawnArrays(template, systemParts, origin, heli)
 
     -- ---- Destroy consumed crates ----
+    -- Use CTLDCrateManager:destroyCrate() so that OnCrateCleared is published for
+    -- each consumed crate and the F10 unpack menu refreshes for nearby pilots.
     local stacking = ctld.gs("AASystemCrateStacking")
+    local cm = CTLDCrateManager.getInstance()
     for _, part in ipairs(template.parts) do
         local sp = systemParts[part.DCSTypename]
         if not sp.NoCrate then
@@ -17902,7 +17905,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
             local deleted   = 0
             for _, c in ipairs(sp.crates) do
                 if deleted >= toDelete then break end
-                c:destroy()
+                cm:destroyCrate(c.crateName)
                 deleted = deleted + 1
             end
         end
@@ -18189,9 +18192,10 @@ function CTLDCrateAssemblyManager:_buildSpawnArrays(template, systemParts, origi
             table.insert(types,     part.DCSTypename)
             table.insert(headings,  angle)
         else
-            local step = arcRad / partAmount
+            local arcSegment = arcRad / partCount
+            local step       = arcSegment / partAmount
             for i = 1, partAmount do
-                local angle = ((step * (i - 1)) + arcBase) % arcRad
+                local angle = (arcBase + step * (i - 1)) % arcRad
                 local px = origin.x + math.cos(angle) * _SPAWN_RADIUS
                 local pz = origin.z + math.sin(angle) * _SPAWN_RADIUS
                 local py = land.getHeight({ x = px, y = pz })
