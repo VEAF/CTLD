@@ -351,6 +351,151 @@ describe("CTLDCrateAssemblyManager _buildSpawnArrays geometry", function()
 
 end)
 
+-- Shared helper: fetch the S-300 template and build a systemParts stub for it.
+-- Used by the geometry and the menu-refresh describe blocks below.
+local function s300TemplateAndParts()
+    local tmpl = nil
+    for _, t in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
+        if t.name == "S-300 AA System" then tmpl = t; break end
+    end
+    assert.is_not_nil(tmpl, "S-300 template not found")
+    local systemParts = {}
+    for _, part in ipairs(tmpl.parts) do
+        systemParts[part.DCSTypename] = {
+            desc     = part.desc,
+            launcher = part.launcher,
+            amount   = part.amount,
+            NoCrate  = part.NoCrate,
+            found    = 1,
+            required = 1,
+            crates   = {},
+        }
+    end
+    return tmpl, systemParts
+end
+
+-- ─────────────────────────────────────────────────────────────
+describe("CTLDCrateAssemblyManager _buildSpawnArrays geometry — S-300", function()
+    -- Regression: S-300 TEL D (NoCrate, amount=2) used to overlap with Big Bird SR
+    -- at 240 degrees because step was arcRad/partAmount instead of arcSegment/partAmount.
+    -- FIX-AASYSTEM-UNPACK-BUGS ticket 01.
+
+    local m
+
+    before_each(function()
+        CTLDCrateAssemblyManager._instance = nil
+        m = CTLDCrateAssemblyManager.getInstance()
+    end)
+
+    it("all S-300 spawn positions are pairwise-distinct (no part overlaps)", function()
+        local tmpl, systemParts = s300TemplateAndParts()
+        local origin = { x = 1000, y = 0, z = 2000 }
+        local positions = m:_buildSpawnArrays(tmpl, systemParts, origin, {})
+
+        for i = 1, #positions do
+            for j = i + 1, #positions do
+                local dx = positions[i].x - positions[j].x
+                local dz = positions[i].z - positions[j].z
+                local dist = math.sqrt(dx * dx + dz * dz)
+                assert.is_true(dist >= 1.0,
+                    string.format("positions[%d] and [%d] overlap (dist=%.4f m)", i, j, dist))
+            end
+        end
+    end)
+
+end)
+
+-- ─────────────────────────────────────────────────────────────
+describe("CTLDCrateAssemblyManager _assemble publishes OnCrateCleared per consumed crate", function()
+    -- Regression: _assemble() called c:destroy() directly, bypassing CTLDCrateManager,
+    -- so OnCrateCleared was never published and the F10 unpack menu never refreshed.
+    -- FIX-AASYSTEM-UNPACK-BUGS ticket 02.
+
+    local m, ed, origPublish
+    local published
+
+    local function makeFakeHeli()
+        return {
+            getPoint     = function() return { x = 1000, y = 0, z = 2000 } end,
+            getPosition  = function()
+                return { x = { x = 1, y = 0, z = 0 }, p = { x = 1000, y = 0, z = 2000 } }
+            end,
+            getCoalition = function() return coalition.side.BLUE end,
+            getCountry   = function() return country.id.USA end,
+            getName      = function() return "test_heli" end,
+            getGroup     = function() return { getID = function() return 1 end } end,
+        }
+    end
+
+    before_each(function()
+        CTLDCrateAssemblyManager._instance = nil
+        CTLDCrateManager._instance         = nil
+        EventDispatcher._instance          = nil
+        published = {}
+
+        m  = CTLDCrateAssemblyManager.getInstance()
+        ed = EventDispatcher.getInstance()
+
+        origPublish = ed.publish
+        ed.publish = function(self, eventName, payload)
+            if eventName == "OnCrateCleared" then
+                published[#published + 1] = eventName
+            end
+            return origPublish(self, eventName, payload)
+        end
+
+        -- Stub _spawnGroup so the test does not need DCS dynAdd
+        m._spawnGroup = function(self, positions, types, headings, countryId)
+            return {
+                getName  = function() return "test_aa_group" end,
+                getUnits = function() return {} end,
+            }
+        end
+    end)
+
+    after_each(function()
+        ed.publish                         = origPublish
+        CTLDCrateManager._instance         = nil
+        CTLDCrateAssemblyManager._instance = nil
+    end)
+
+    it("publishes OnCrateCleared once per consumed S-300 crate (5 non-NoCrate parts)", function()
+        local tmpl = s300TemplateAndParts()
+
+        -- Register one fake crate per non-NoCrate part inside CTLDCrateManager
+        local origin = { x = 1000, y = 0, z = 2000 }
+        local cm = CTLDCrateManager.getInstance()
+        local allCrates = {}
+        local idx = 0
+        local clickedCrate = nil
+        for _, part in ipairs(tmpl.parts) do
+            if not part.NoCrate then
+                idx = idx + 1
+                local name = "test_crate_" .. idx
+                local fakeCrate = {
+                    crateName  = name,
+                    position   = { x = origin.x + idx, y = 0, z = origin.z + idx },
+                    coalition  = coalition.side.BLUE,
+                    descriptor = { unit = part.DCSTypename, cratesRequired = 1 },
+                    isOnGround = function() return true end,
+                    destroy    = function() end,
+                }
+                cm.crates[name] = fakeCrate
+                allCrates[name] = fakeCrate
+                -- Use the track radar (2nd non-NoCrate part) as the clicked crate
+                -- to avoid the launcher rearm detour
+                if idx == 2 then clickedCrate = fakeCrate end
+            end
+        end
+
+        m:_assemble(makeFakeHeli(), clickedCrate, allCrates, tmpl, 500)
+
+        assert.equals(5, #published,
+            "Expected OnCrateCleared to fire once per consumed crate (5 non-NoCrate parts)")
+    end)
+
+end)
+
 -- ─────────────────────────────────────────────────────────────
 -- AA crates are baked into the YAML catalogue (FEAT-CONFIG-YAML-COMPLETE t05):
 -- they are present in spawnableCrates at load, with no runtime injectAACrates step.

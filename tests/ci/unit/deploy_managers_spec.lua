@@ -63,20 +63,30 @@ describe("CTLDCrateAssemblyManager assembly + repair", function()
 
     -- Duck-typed CTLDCrate stand-in (same shape the manager consumes: descriptor,
     -- position, isOnGround, destroy). Tracks how many times it was destroyed.
+    -- The crate is also registered in CTLDCrateManager so that _assemble() can
+    -- reach it via CTLDCrateManager:destroyCrate(c.crateName).
+    local _crateIdx = 0
     local function aaCrate(unitName, repairFor)
+        _crateIdx = _crateIdx + 1
+        local name = "aa_test_crate_" .. _crateIdx
         local c = {
+            crateName      = name,
             descriptor     = { unit = unitName, _repairFor = repairFor, cratesRequired = 1 },
             position       = { x = 100, y = 0, z = 0 },
+            coalition      = coalition.side.BLUE,
             destroyedCount = 0,
         }
         function c:isOnGround() return true end
         function c:destroy() self.destroyedCount = self.destroyedCount + 1 end
+        CTLDCrateManager.getInstance().crates[name] = c
         return c
     end
 
     before_each(function()
         aam = CTLDCrateAssemblyManager.getInstance()
         aam._completeSystems = {}
+        _crateIdx = 0
+        CTLDCrateManager._instance = nil
 
         spawnedGroups = {}
         origDynAdd    = ctld.utils.dynAdd
@@ -113,6 +123,7 @@ describe("CTLDCrateAssemblyManager assembly + repair", function()
         ctld.utils.dynAdd              = origDynAdd
         Group.getByName                = origGetByName
         ctld.utils.getHeadingInRadians = origHeading
+        CTLDCrateManager._instance     = nil
     end)
 
     -- ── F-021 : complete assembly ─────────────────────────────────────────────
