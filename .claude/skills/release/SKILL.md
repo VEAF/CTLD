@@ -47,6 +47,17 @@ operations or push without an explicit go.
    lower), and **link, never duplicate** — the getting-started page is the long form, and a section
    that grows past a handful of lines becomes a second copy that will contradict the first.
 
+   **The installation section also says what to do when Windows blocks the exe.** It is unsigned, so
+   SmartScreen stops it on a first run — for a Mission Maker who has never seen this, "Windows
+   protected your PC" reads as "this download is dangerous" and the release ends there. Three lines,
+   no more; the mission-maker guide holds the long form.
+
+   **Link the documentation of the version being released**, not the site root:
+   `https://veaf.github.io/CTLD/<version>/mission-maker/` — every tag publishes its own copy
+   (`FEAT-TOOL-VERSION-AND-DOCS`), so a reader landing on an old release page gets the pages that
+   match it. There is deliberately **no `latest` alias yet**: it is created by the first *stable*
+   release, and linking `/latest/` before that would be a dead link.
+
    ```markdown
    ## Installation
 
@@ -55,12 +66,13 @@ operations or push without an explicit go.
    3. Open your `.miz`, adjust what you want, then **Install into mission**: the tool writes CTLD,
       the beacon sounds and your configuration into it.
 
-   Prefer doing it by hand? The files are attached to this release too — see the
-   [documentation](https://veaf.github.io/CTLD/).
-   ```
+   **Windows blocks it on the first run?** The tool is not code-signed, so SmartScreen stops it:
+   click **More info** → **Run anyway**. If the file came through a browser you may also need
+   right-click → **Properties** → tick **Unblock** → **OK**.
 
-   Once versioned documentation is published (`FEAT-TOOL-VERSION-AND-DOCS`), point that link at the
-   released version rather than the site root.
+   Prefer doing it by hand? The files are attached to this release too — see the
+   [documentation](https://veaf.github.io/CTLD/<version>/mission-maker/).
+   ```
 
 4. **Apply** (after validation):
    - Write `RELEASE_NOTES.md`.

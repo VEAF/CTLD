@@ -7,6 +7,23 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ---
 
 ## [Unreleased]
+### Tooling — the sound preload is silent, and the README matches the product (FIX-PRELOAD-AND-INSTALL-DOCS)
+
+- **The beacon-sound preload no longer plays to everyone.** The trigger `FIX-INSTALL-SOUND-ORPHANS`
+  added used `a_out_sound`, so every player connected at mission start heard a beacon tone. It now
+  uses `a_out_sound_c` addressed to a country the **mission does not declare** — the idiom this
+  repository's README has always documented for a hand-made install ("pick an unused country like
+  Australia so no player hears them"), and which 1274 actions across 491 real missions use. The
+  country is chosen per mission rather than fixed, because addressing it to one the mission *does*
+  use brings the noise straight back.
+- **Windows unblock instructions**, in the README, the mission-maker guide (EN + FR) and the release
+  skill: `ctld-tools.exe` is unsigned, so SmartScreen stops it on a first run and the way past it
+  (**More info** → **Run anyway**, or **Properties** → **Unblock**) is not discoverable.
+- **The README is back in sync.** It documented `ctld.yamlConfigDatas` — a name absent from the whole
+  repository — and `_cfg.settings[...]`, the configuration model ADR 0011 replaced, and its
+  installation section predated `ctld-tools` entirely. Rewritten as an entry point that links the
+  published guides instead of duplicating them.
+
 ### Tooling — installed beacon sounds survive the Mission Editor, and a mission can be opened (FIX-INSTALL-SOUND-ORPHANS)
 
 Two defects reported by **Zip** while using the `2.0.0-rc4` exe on a real mission. In both cases the

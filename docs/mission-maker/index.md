@@ -11,7 +11,7 @@ it.** That is the whole installation: the tool carries CTLD and its beacon sound
 everything into your mission.
 
 1. **Run the tool.** It opens in your browser, locally — no installation, no account, nothing to
-   configure first.
+   configure first. If Windows blocks it on first launch, see [below](#windows-says-it-blocked-the-app).
 2. **Open config or mission…** and pick your `.miz` — or start from the CTLD defaults if you are
    configuring before you have a mission. Opening a mission that already has CTLD brings its
    configuration back, ready to edit: that is how you resume work on a mission you set up weeks ago,
@@ -27,6 +27,23 @@ wrote, and re-installing replaces rather than duplicates.
     the Mission Editor discards any file no trigger refers to when it saves a mission, and without it
     your beacons would fall silent the next time you opened the mission in the editor. It runs before
     anyone is in a cockpit, so nobody hears it.
+
+### Windows says it blocked the app
+
+`ctld-tools.exe` is not code-signed — a certificate costs money a community project has no reason to
+spend — so Windows treats it as coming from an unknown publisher. Nothing is wrong with the download;
+you have to say so once:
+
+- **"Windows protected your PC"** (the blue SmartScreen window) → click **More info**, then
+  **Run anyway**.
+- **Properties → Unblock.** If the file came through a browser, Windows tags it as downloaded from the
+  internet. Right-click `ctld-tools.exe` → **Properties** → tick **Unblock** at the bottom of the
+  General tab → **OK**, then run it.
+- **Your antivirus quarantined it.** Single-file executables built with PyInstaller are a common false
+  positive. Restore the file, and add an exclusion for it if your antivirus insists.
+
+Every release is built by a public GitHub workflow from the tagged source, so you can check where the
+executable comes from before running it.
 
 ??? note "Installing by hand"
     Everything the tool writes is also attached to each release, if you prefer doing it yourself:
