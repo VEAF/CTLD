@@ -1616,6 +1616,12 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     local unitType    = (template and template.units and template.units[1] and template.units[1].type)
                         or "Soldier AK"
 
+    -- Unique DCS group name: two groups loaded from the same template must not collide
+    -- (coalition.addGroup destroys/replaces an existing group spawned under the same
+    -- name) — FIX-PARACHUTE-GROUP-NAME-COLLISION. Units are named after the resolved
+    -- group name, matching standard DCS Mission Editor naming (GroupName-N).
+    local groupName = troopGroup.templateName .. "-" .. ctld.utils.getNextUniqId()
+
     -- Compute one landing position per unit
     local firstDescentTime = nil
     for i = 1, unitCount do
@@ -1623,7 +1629,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
         table.insert(landPositions, landPos)
         unitDefs[i] = {
             type    = unitType,
-            name    = troopGroup.templateName .. "_unit" .. i,
+            name    = groupName .. "-" .. i,
             x       = landPos.x,
             y       = landPos.z,   -- DCS ground group: position.y = world Z axis
             heading = math.random(0, 360) * math.pi / 180,
@@ -1670,6 +1676,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
 
     -- Capture for timer closure
     local _troopGroup    = troopGroup
+    local _groupName     = groupName
     local _unitDefs      = unitDefs
     local _landPositions = landPositions
     local _dropData      = dropData
@@ -1678,16 +1685,16 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
 
     timer.scheduleFunction(function()
         local _, spawnedGroup = ctld.utils.spawnAs("GROUND", _countryId, {
-            name  = _troopGroup.templateName,
+            name  = _groupName,
             task  = "Ground Nothing",
             units = _unitDefs,
         })
 
-        local grp = Group.getByName(_troopGroup.templateName)
+        local grp = Group.getByName(_groupName)
         if grp then
-            table.insert(self._droppedGroups[_coalition] or {}, _troopGroup.templateName)
+            table.insert(self._droppedGroups[_coalition] or {}, _groupName)
             -- Mirror _droppedTemplates so embarkFromField can restore template info
-            self._droppedTemplates[_troopGroup.templateName] = {
+            self._droppedTemplates[_groupName] = {
                 key            = _troopGroup.templateKey,
                 name           = _troopGroup.templateName,
                 weight         = _troopGroup.weight,
@@ -1716,7 +1723,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
             local _landPt = _landPositions and _landPositions[1]
             if _landPt then
                 self:_assignPostSpawnTask(
-                    _troopGroup.templateName, _landPt,
+                    _groupName, _landPt,
                     _coalition, _troopGroup.specificParams)
             end
         end

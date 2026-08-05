@@ -8,6 +8,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — parachuted troop groups no longer collide on name (FIX-PARACHUTE-GROUP-NAME-COLLISION)
+
+- **Two troop groups loaded from the same template no longer destroy each other on parachute
+  landing.** `parachuteTroops` spawned the DCS ground group and its units under the raw config
+  template name (e.g. "Standard Infantry"), so a second group from the same template landed under
+  an identical name — and DCS's `coalition.addGroup` destroys/replaces any existing group spawned
+  under an already-used name, silently deleting the first group the instant the second one landed.
+  Group and unit names are now suffixed with the project's existing unique-id generator (the same
+  pattern already used by every other spawn path), and the internal tracking that lets a dropped
+  group be field-loaded back onto a transport is now keyed off the resolved unique name instead of
+  the colliding template name. Player-facing messages are unaffected.
+
 ### Fixed — AA system unpack bugs: stale menu and overlapping units (FIX-AASYSTEM-UNPACK-BUGS)
 
 - **F10 unpack menu now refreshes after assembly.** `_assemble()` previously called `CTLDCrate:destroy()` directly,
