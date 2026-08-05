@@ -300,8 +300,10 @@ describe("parachuteTroops — unique group/unit names (FIX-PARACHUTE-GROUP-NAME-
         land.getHeight = function(_) return 10 end  -- AGL = 200-10 = 190m > 50m min
 
         -- Run the parachute-landing callback synchronously so the spawn is observable.
+        -- Must forward `t` (the scheduled fire time) like the real DCS API does — some
+        -- callbacks (e.g. CTLDPlayerManager's flight-state poller) use it arithmetically.
         timer.scheduleFunction = function(fn, arg, t)
-            fn(arg)
+            fn(arg, t)
             return 0
         end
 
