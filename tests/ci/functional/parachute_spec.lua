@@ -246,6 +246,180 @@ describe("F-059/F-060 — parachuteTroops", function()
 
 end)
 
+-- ── FIX-PARACHUTE-GROUP-NAME-COLLISION : unique group/unit names ────────────
+describe("parachuteTroops — unique group/unit names (FIX-PARACHUTE-GROUP-NAME-COLLISION)", function()
+
+    local tm
+    local _origGs, _origGetHeight, _origSchedule, _origAddGroup, _origGetByName
+    local mockTransport = {
+        getPoint    = function() return { x=0, y=200, z=0 } end,
+        getVelocity = function() return { x=0, y=0,   z=0 } end,
+        getName     = function() return "MockTransport_FIXPGNC" end,
+    }
+
+    -- [name] = { name = name, alive = true, units = {...} }
+    local spawnedGroups
+
+    local function makeGroup(templateName)
+        return CTLDTroopGroup:new({
+            templateName = templateName,
+            templateKey  = nil,
+            unitTotal    = 2,
+            weight       = 200,
+            coalitionId  = 2,
+        })
+    end
+
+    local function spawnedNames()
+        local names = {}
+        for n in pairs(spawnedGroups) do table.insert(names, n) end
+        return names
+    end
+
+    before_each(function()
+        resetAll()
+        _origGs        = ctld.gs
+        _origGetHeight = land.getHeight
+        _origSchedule  = timer.scheduleFunction
+        _origAddGroup  = coalition.addGroup
+        _origGetByName = Group.getByName
+
+        ctld.gs = function(k)
+            if k == "parachuteMinAltitudeTroops"  then return 50  end
+            if k == "parachuteDescentRateTroops"  then return 100 end
+            if k == "parachuteInertiaFactor"      then return 0.0 end
+            if k == "parachuteLateralDriftMin"    then return 5   end
+            if k == "parachuteLateralDriftMax"    then return 10  end
+            if k == "capabilitiesByType"           then
+                return { ["UH-1H"] = { troopsEnabled=true, maxTroopsOnboard=10 } }
+            end
+            if k == "numberOfTroops" then return 10 end
+            return _origGs(k)
+        end
+
+        land.getHeight = function(_) return 10 end  -- AGL = 200-10 = 190m > 50m min
+
+        -- Run the parachute-landing callback synchronously so the spawn is observable.
+        timer.scheduleFunction = function(fn, arg, t)
+            fn(arg)
+            return 0
+        end
+
+        spawnedGroups = {}
+        coalition.addGroup = function(countryId, category, groupData)
+            spawnedGroups[groupData.name] = { name = groupData.name, alive = true, units = groupData.units }
+            return { getName = function() return groupData.name end }
+        end
+        Group.getByName = function(name)
+            local g = spawnedGroups[name]
+            if not g or not g.alive then return nil end
+            return {
+                getName  = function() return g.name end,
+                isExist  = function() return g.alive end,
+                getUnits = function() return {} end,
+            }
+        end
+
+        tm = CTLDTroopManager.getInstance()
+    end)
+
+    after_each(function()
+        ctld.gs                = _origGs
+        land.getHeight         = _origGetHeight
+        timer.scheduleFunction = _origSchedule
+        coalition.addGroup     = _origAddGroup
+        Group.getByName        = _origGetByName
+    end)
+
+    it("two groups from the same template both survive as distinct DCS groups", function()
+        tm._inTransit["UH-1H-1"] = { makeGroup("Standard Infantry"), makeGroup("Standard Infantry") }
+
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+        assert.equals(1, #spawnedNames())
+        local firstName = spawnedNames()[1]
+
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+
+        assert.is_true(spawnedGroups[firstName].alive)
+        assert.is_not_nil(Group.getByName(firstName))
+    end)
+
+    it("two same-template groups + one different-template group all survive", function()
+        tm._inTransit["UH-1H-1"] = {
+            makeGroup("Standard Infantry"),
+            makeGroup("Standard Infantry"),
+            makeGroup("Mortar"),
+        }
+
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+
+        local aliveCount = 0
+        for _, g in pairs(spawnedGroups) do
+            if g.alive then aliveCount = aliveCount + 1 end
+        end
+        assert.equals(3, aliveCount)
+    end)
+
+    it("spawned group names are distinct across two same-template drops", function()
+        tm._inTransit["UH-1H-1"] = { makeGroup("Standard Infantry"), makeGroup("Standard Infantry") }
+
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+
+        local names = spawnedNames()
+        assert.equals(2, #names)
+        assert.are_not.equals(names[1], names[2])
+    end)
+
+    it("spawned unit names are distinct across two same-template drops", function()
+        tm._inTransit["UH-1H-1"] = { makeGroup("Standard Infantry"), makeGroup("Standard Infantry") }
+
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+
+        local unitNames = {}
+        for _, g in pairs(spawnedGroups) do
+            for _, u in ipairs(g.units) do
+                assert.is_nil(unitNames[u.name])
+                unitNames[u.name] = true
+            end
+        end
+    end)
+
+    it("single-group parachute drop is unaffected (no collision possible)", function()
+        tm._inTransit["UH-1H-1"] = { makeGroup("Standard Infantry") }
+
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+
+        assert.equals(1, #spawnedNames())
+        assert.is_true(spawnedGroups[spawnedNames()[1]].alive)
+    end)
+
+    it("_droppedTemplates is keyed by the resolved spawned name, not the raw template name", function()
+        tm._inTransit["UH-1H-1"] = { makeGroup("Standard Infantry") }
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+
+        local spawnedName = spawnedNames()[1]
+        assert.is_not_nil(tm._droppedTemplates[spawnedName])
+        assert.equals("Standard Infantry", tm._droppedTemplates[spawnedName].name)
+    end)
+
+    it("_droppedGroups tracks the resolved spawned name for both same-template drops", function()
+        tm._inTransit["UH-1H-1"] = { makeGroup("Standard Infantry"), makeGroup("Standard Infantry") }
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+        tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+
+        local tracked = {}
+        for _, n in ipairs(tm._droppedGroups[2]) do tracked[n] = true end
+        for _, n in ipairs(spawnedNames()) do
+            assert.is_true(tracked[n])
+        end
+    end)
+
+end)
+
 -- ── F-061 / F-062 : parachuteVehicle ─────────────────────────────────────────
 describe("F-061/F-062 — parachuteVehicle", function()
 
