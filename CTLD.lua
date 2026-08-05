@@ -12443,12 +12443,13 @@ function CTLDCrateManager:_injectSceneCrate(sceneName, model)
     end
     if self._weightIndex[w] then return end  -- still taken after reassign (shouldn't happen)
 
+    local cr    = cd.cratesRequired or 1
     local entry = {
         weight         = w,
-        desc           = ctld.tr(cd.i18nKey or sceneName),
+        desc           = ctld.tr(cd.i18nKey or sceneName) .. " (x" .. cr .. ")",
         unit           = sceneName,
         side           = cd.side,
-        cratesRequired = cd.cratesRequired or 1,
+        cratesRequired = cr,
         showSets       = (cd.showSets == nil) and true or cd.showSets,
     }
     self._weightIndex[w] = entry
@@ -12540,11 +12541,12 @@ function CTLDCrateManager:_processSpawnableCrates()
             end
         end
 
-        -- Pass 2: generate singleTypeSet for qualifying singleCrates
+        -- Pass 2: generate singleTypeSet for qualifying singleCrates; append (xN) suffix
         local processedSingle = {}
         for _, sc in ipairs(singleCrates) do
             local entry = { singleCrate = sc }
             local cr    = sc.cratesRequired or 1
+            sc.desc = sc.desc .. " (x" .. cr .. ")"
             if cr > 1 and showCrateSets and (sc.showSets ~= false) then
                 local weights = {}
                 for i = 1, cr do weights[i] = sc.weight end
@@ -22748,7 +22750,6 @@ fobScene.crate = {
     deployKey      = "Build FOB",
     cratesRequired = 3,
     side           = nil,
-    showSets       = false,
     -- fobCompatible: marks this scene as a FOB-type deployment.
     -- CTLDFOBManager._collectFOBCrates() collects any crate whose scene model
     -- has fobCompatible=true, so future FOB variants are recognised automatically.
