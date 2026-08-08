@@ -547,4 +547,105 @@ describe("CTLDTroopManager", function()
 
     end)
 
+    -- ── F-037 : onUnitDead — event unwrap + orphaned servant cleanup (FIX-FIELD-EXTRACT-CASUALTIES) ──
+    describe("F-037 — onUnitDead", function()
+
+        local _origGetByName
+
+        local function mockDeadUnit(uname)
+            return {
+                _name      = uname,
+                getName    = function(self) return self._name end,
+                isExist    = function(self) return true end,
+                getCountry = function(self) return 2 end,
+            }
+        end
+
+        -- groupUnitNames: names alive in the DCS group INCLUDING the one about to die
+        -- (matches _findGroupByAliveUnit's contract: it must still be found isExist()==true
+        -- in the group roster at the instant the death event is processed).
+        local function registerDroppedGroup(groupName, groupUnitNames)
+            local units = {}
+            for _, uname in ipairs(groupUnitNames) do
+                units[#units + 1] = mockDeadUnit(uname)
+            end
+            local destroyed = { called = false }
+            local mockGroup = {
+                _name    = groupName,
+                getName  = function(self) return self._name end,
+                getUnits = function(self) return units end,
+                getUnit  = function(self, i) return units[i] end,
+                isExist  = function(self) return true end,
+                destroy  = function(self) destroyed.called = true end,
+            }
+            Group.getByName = function(name)
+                if name == groupName then return mockGroup end
+                return _origGetByName and _origGetByName(name) or nil
+            end
+            local coa = mockUnit:getCoalition()
+            tm._droppedGroups[coa] = { groupName }
+            tm._droppedTemplates[groupName] = { key = "Alpha_Squad", name = "Alpha Squad" }
+            return destroyed
+        end
+
+        before_each(function()
+            _origGetByName = Group.getByName
+        end)
+
+        after_each(function()
+            Group.getByName = _origGetByName
+        end)
+
+        it("nil/missing event.initiator is a safe no-op", function()
+            assert.has_no.errors(function() tm:onUnitDead({}) end)
+            assert.has_no.errors(function() tm:onUnitDead(nil) end)
+        end)
+
+        it("last real troop dies, servant remains: group destroyed and purged", function()
+            local coa = mockUnit:getCoalition()
+            local destroyed = registerDroppedGroup("MockDropped_037_1", { "INF_u1", "SVNT_u1" })
+
+            tm:onUnitDead({ initiator = mockDeadUnit("INF_u1") })
+
+            assert.is_true(destroyed.called)
+            assert.equals(0, #tm._droppedGroups[coa])
+            assert.is_nil(tm._droppedTemplates["MockDropped_037_1"])
+        end)
+
+        it("non-last real troop dies, others remain: group untouched", function()
+            local coa = mockUnit:getCoalition()
+            local destroyed = registerDroppedGroup("MockDropped_037_2",
+                { "INF_u1", "INF_u2", "SVNT_u1" })
+
+            tm:onUnitDead({ initiator = mockDeadUnit("INF_u1") })
+
+            assert.is_false(destroyed.called)
+            assert.equals(1, #tm._droppedGroups[coa])
+            assert.is_not_nil(tm._droppedTemplates["MockDropped_037_2"])
+        end)
+
+        it("no servant present: last unit dies, no new cleanup path engaged", function()
+            local coa = mockUnit:getCoalition()
+            local destroyed = registerDroppedGroup("MockDropped_037_3", { "INF_u1" })
+
+            tm:onUnitDead({ initiator = mockDeadUnit("INF_u1") })
+
+            assert.is_false(destroyed.called)
+            assert.equals(1, #tm._droppedGroups[coa])
+        end)
+
+        it("JTAC deregistration fires given the real event shape", function()
+            registerDroppedGroup("MockDropped_037_4", { "JTAC_u1", "INF_u1" })
+            local jm = CTLDJTACManager.getInstance()
+            local deregistered = {}
+            jm.deregisterJTAC = function(self, name) deregistered[#deregistered + 1] = name end
+
+            tm:onUnitDead({ initiator = mockDeadUnit("JTAC_u1") })
+
+            assert.equals(1, #deregistered)
+            assert.equals("JTAC_u1", deregistered[1])
+        end)
+
+    end)
+
 end)
