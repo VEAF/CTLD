@@ -22,6 +22,10 @@ The tool writes four things into the `.miz`: `CTLD.lua`, the two beacon sound fi
 configuration, and the MISSION START triggers that load them in the right order. It reports what it
 wrote, and re-installing replaces rather than duplicates.
 
+The `CTLD.lua` it writes is the one **embedded in that exe**, so you move to a newer CTLD by
+downloading the tool again once a release is published — see
+[the tool carries its own CTLD](ctld-tools.md#the-tool-carries-its-own-ctld).
+
 !!! info "Why a trigger plays the beacon sounds at mission start"
     One of those triggers plays both `.ogg` files at mission start. It is not there for you to hear:
     the Mission Editor discards any file no trigger refers to when it saves a mission, and without it

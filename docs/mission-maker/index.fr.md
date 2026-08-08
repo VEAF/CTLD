@@ -24,6 +24,10 @@ L'outil écrit quatre choses dans le `.miz` : `CTLD.lua`, les deux fichiers son 
 configuration, et les déclencheurs MISSION START qui les chargent dans le bon ordre. Il indique
 ce qu'il a écrit, et réinstaller remplace au lieu de dupliquer.
 
+Le `CTLD.lua` qu'il écrit est celui **embarqué dans cet exe** : vous passez à une version plus récente
+de CTLD en retéléchargeant l'outil une fois qu'une release est publiée — voir
+[l'outil embarque son propre CTLD](ctld-tools.fr.md#the-tool-carries-its-own-ctld).
+
 !!! info "Pourquoi un déclencheur joue les sons des balises au démarrage"
     L'un de ces déclencheurs joue les deux fichiers `.ogg` au démarrage de la mission. Il n'est pas là
     pour être entendu : l'éditeur de mission supprime tout fichier auquel aucun déclencheur ne fait

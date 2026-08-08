@@ -21,6 +21,21 @@ fichier unique.
     clic droit sur `ctld-tools.exe` → **Propriétés** → onglet **Général** → cochez **Débloquer** en
     bas → **OK**.
 
+### L'outil embarque son propre CTLD { #the-tool-carries-its-own-ctld }
+
+L'exe **embarque le `CTLD.lua` qu'il installe**, construit depuis le commit sur lequel sa release a
+été taguée. Il ne télécharge rien et ne se met jamais à jour tout seul : il fonctionne sans réseau,
+et le même exe installe toujours le même moteur.
+
+Une nouvelle version de CTLD n'arrive donc dans vos missions que lorsqu'une **release est publiée** —
+le travail courant fusionné dans le dépôt ne change rien pour vous. Pour en profiter, retéléchargez
+`ctld-tools.exe` depuis la page [Releases](https://github.com/VEAF/CTLD/releases) et réinjectez dans
+votre mission ; réinjecter remplace ce que l'outil avait écrit au lieu de le dupliquer.
+
+!!! note "Les *release candidates* ne portent pas le badge *Latest*"
+    Tant que la v2 est en release candidate, chaque release est publiée en **pré-version**, et GitHub
+    réserve le badge *Latest* aux versions stables. Prenez l'entrée la plus haute de la page Releases.
+
 ## Ouvrir l'outil { #open-it }
 
 **Double-cliquez `ctld-tools.exe`.** Une petite fenêtre console s'ouvre — c'est le serveur local ;
