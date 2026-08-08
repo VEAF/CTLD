@@ -1,6 +1,6 @@
 # 03 — Document the dev channel
 
-**Status:** todo
+**Status:** done
 **Lot:** FEAT-DEV-BUILD-CHANNEL
 
 ## Problem
@@ -20,5 +20,8 @@ half-truth — "so where does this exe FullGas sent me come from?".
 
 ## Acceptance
 
-- [ ] EN and FR in step on the mission-maker side.
-- [ ] No wording that suggests a dev build supersedes a release.
+- [x] EN and FR in step, on both the developer and the mission-maker side (`workflow.{md,fr.md}`,
+      `ctld-tools.{md,fr.md}`).
+- [x] No wording that suggests a dev build supersedes a release: both pages open on "a release is
+      the only thing you are told to download", and the mission-maker sentence says to take a dev
+      build only when asked.

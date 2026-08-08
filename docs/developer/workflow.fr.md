@@ -103,6 +103,32 @@ Deux canaux, choisis par la chaîne de version :
   `published-latest` est avancé jusqu'à elle — un pointeur de téléchargement permanent vers la
   « dernière stable ».
 
+## Builds de développement { #dev-builds }
+
+Une release reste la seule chose qu'on demande à un concepteur de mission de télécharger — mais
+entre deux releases, il faut bien *quelque chose* à donner à un testeur. Chaque fusion dans
+`develop` déclenche donc `.github/workflows/dev-build.yml`, qui produit un `ctld-tools.exe` complet
+à partir de ce commit (interface web, schéma, catalogue par défaut et moteur issus de la même
+source) et le publie deux fois :
+
+- en **artefact d'action** (`ctld-tools-dev`, conservé 14 jours) — traçable par exécution, mais son
+  téléchargement exige une session GitHub et il arrive dans un `.zip` ;
+- en **pré-version flottante `dev`**, réécrite à chaque fusion — téléchargement anonyme, lien
+  stable, l'`.exe` directement. C'est celle qu'on envoie.
+
+Un tel build inscrit son commit dans `ctld.VERSION` : `--version` affiche `2.0.0-rc6-a1b2c3d`, tout
+comme le rapport d'installation et la copie du moteur dans la mission — un rapport de bug nomme donc
+son build. Le suffixe vient de `merge_CTLD.ps1 -VersionSuffix`, utilisé par ce seul workflow : un
+build local et une release conservent la version écrite dans `src/CTLD_config.lua`.
+
+Le tag `dev` ne correspond pas à `published-v*` : le rafraîchir ne déclenche jamais le workflow de
+release, et `published-latest` continue de désigner la dernière version stable.
+
+!!! warning "Ce n'est pas une release"
+    Un build de développement n'a ni notes de version, ni documentation publiée propre, ni garantie
+    au-delà de la CI passée sur son commit. En donner un à un concepteur de mission qui n'a rien
+    demandé, c'est se condamner à déboguer une version que personne ne sait identifier.
+
 ## Skills d'écriture { #authoring-skills }
 
 Le programme de ré-outillage est mené avec trois skills d'écriture agnostiques du tracker (ils

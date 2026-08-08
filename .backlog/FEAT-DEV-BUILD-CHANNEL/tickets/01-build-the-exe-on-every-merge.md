@@ -1,6 +1,6 @@
 # 01 — Build the exe on every merge into `develop`
 
-**Status:** todo
+**Status:** done
 **Lot:** FEAT-DEV-BUILD-CHANNEL
 
 ## Problem
@@ -23,6 +23,10 @@ a release, with no documentation of its own.
 
 ## Acceptance
 
+None of these can be observed before the workflow first runs, which happens on the merge of this
+very lot — a workflow only exists for GitHub once it is on the default flow. To check then:
+
 - [ ] A merge into `develop` produces both an artifact and an updated `dev` pre-release.
 - [ ] The `dev` exe downloads **without a GitHub session** (the check that motivated the choice).
+- [ ] Its `--version` names the merge commit.
 - [ ] Publishing a real release still works and does not collide with the floating tag.

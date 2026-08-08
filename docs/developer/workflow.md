@@ -98,6 +98,31 @@ Two channels, selected by the version string:
 - **Stable** (`x.y.z`) → a normal release; `## [Unreleased]` is frozen to `## [x.y.z] — date`, and
   `published-latest` is advanced to it — a permanent "last stable `CTLD.lua`" download pointer.
 
+## Dev builds
+
+A release is the only thing a Mission Maker is told to download — but between two releases there
+has to be *something* to hand a tester. Every merge into `develop` therefore runs
+`.github/workflows/dev-build.yml`, which produces a complete `ctld-tools.exe` from that commit
+(frontend, schema, default catalogue and engine all from the same source) and publishes it twice:
+
+- as an **action artifact** (`ctld-tools-dev`, kept 14 days) — traceable per run, but downloading
+  it needs a GitHub session and it arrives zipped;
+- as a floating **`dev` pre-release**, rewritten on each merge — anonymous download, stable link,
+  the `.exe` itself. That is the one to send someone.
+
+Such a build stamps its commit into `ctld.VERSION`: `--version` prints `2.0.0-rc6-a1b2c3d`, and so
+do the install report and the mission's copy of the engine, so a bug report names its build. The
+suffix comes from `merge_CTLD.ps1 -VersionSuffix`, used by that workflow alone — a local build and
+a release keep the version as written in `src/CTLD_config.lua`.
+
+The `dev` tag does not match `published-v*`, so refreshing it never triggers the release workflow,
+and `published-latest` still points at the last stable release.
+
+!!! warning "Not a release"
+    A dev build has no release notes, no published documentation of its own, and no guarantee
+    beyond the CI that ran on its commit. Handing one to a Mission Maker who did not ask for it is
+    how you end up debugging a version nobody can identify.
+
 ## Authoring skills
 
 The re-tooling program is run with three tracker-agnostic authoring skills (they write into the

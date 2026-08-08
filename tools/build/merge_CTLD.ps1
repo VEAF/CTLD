@@ -2,8 +2,24 @@
 # Output: UTF-8 WITHOUT BOM (required by DCS Lua engine).
 # Compatible with PowerShell 5 and 7.
 # Usage: powershell -ExecutionPolicy Bypass -File tools/build/merge_CTLD.ps1
+#        ... -VersionSuffix a1b2c3d   (dev build: stamps ctld.VERSION as <version>-<suffix>)
+
+param(
+    # Appended to ctld.VERSION, in the header *and* in the merged source, so `--version`,
+    # the install report and the DCS log all name the same build. Used by the dev-build
+    # workflow with the commit hash (FEAT-DEV-BUILD-CHANNEL); empty for a local or release
+    # build, which must keep the version as written in src/CTLD_config.lua.
+    [string]$VersionSuffix = ""
+)
 
 $ErrorActionPreference = "Stop"
+
+# The suffix lands inside a Lua string literal: keep it to characters that cannot close it
+# or break the line.
+if ($VersionSuffix -and $VersionSuffix -notmatch '^[A-Za-z0-9._-]+$') {
+    Write-Host "[ERROR] -VersionSuffix must match ^[A-Za-z0-9._-]+$ (got '$VersionSuffix')."
+    exit 1
+}
 
 $scriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot    = Resolve-Path (Join-Path $scriptDir "..\..")
@@ -80,6 +96,7 @@ Pop-Location
 $configFile = Join-Path $srcDir "CTLD_config.lua"
 $versionLine = Select-String -Path $configFile -Pattern 'ctld\.VERSION\s*=\s*"([^"]+)"' | Select-Object -First 1
 $ctldVersion = if ($versionLine) { $versionLine.Matches[0].Groups[1].Value } else { "unknown" }
+if ($VersionSuffix) { $ctldVersion = "$ctldVersion-$VersionSuffix" }
 $buildDate = (Get-Date).ToString("yyyy-MM-dd")
 
 # Accumulate all output in a StringBuilder for a single write
@@ -112,9 +129,17 @@ foreach ($line in (Get-Content $listFile)) {
         continue
     }
 
+    $text = [System.IO.File]::ReadAllText($file)
+    # A dev build stamps the commit into the ctld.VERSION assignment itself, not only into the
+    # header comment: `--version`, the install report and resources.ctld_version() all read the
+    # assignment out of the built engine.
+    if ($VersionSuffix) {
+        $text = [regex]::Replace($text, '(ctld\.VERSION\s*=\s*")([^"]+)(")', ('${1}${2}-' + $VersionSuffix + '${3}'))
+    }
+
     $null = $sb.AppendLine('-- ====================================================================================================')
     $null = $sb.AppendLine("-- Start : $line")
-    $null = $sb.AppendLine([System.IO.File]::ReadAllText($file))
+    $null = $sb.AppendLine($text)
     $null = $sb.AppendLine("-- End : $line")
     $merged++
 }
