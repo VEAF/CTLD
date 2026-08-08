@@ -1,5 +1,7 @@
 """The FastAPI backend: thin endpoints over the core (load/edit/save/validate/version-gap)."""
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -334,9 +336,15 @@ def test_open_dialog_offers_missions(monkeypatch):
     assert any("*.yaml" in p for p in patterns), "and still list plain YAML"
 
 
+# The engine is a build artifact, so a checkout can legitimately not have one. Every test that
+# installs it says so and steps aside (see test_install.py); this one used to fail instead, deep in
+# the response payload, on a `KeyError: 'injected'` that named neither the engine nor the build.
+@pytest.mark.skipif(
+    not (Path(__file__).resolve().parents[3] / "CTLD.lua").is_file(),
+    reason="CTLD.lua not built in this checkout",
+)
 def test_inject_into_miz(tmp_path):
     import shutil
-    from pathlib import Path
 
     from ctld_tools.miz import MARKER, read_mission
 

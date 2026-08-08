@@ -10,9 +10,17 @@ limited to the build pipeline and the busted-based tests that run entirely witho
 
 ## Build pipeline
 
-CTLD ships as a single file, `CTLD.lua`, at the repository root. It is **generated** by merging
-the pure-Lua modules under `src/` in dependency order — never hand-edit it, and rebuild after any
-`src/` change.
+CTLD ships as a single file, `CTLD.lua`. It is **generated** by merging the pure-Lua modules under
+`src/` in dependency order — never hand-edit it, and rebuild after any `src/` change.
+
+It is **not in the repository**: a fresh clone has no `CTLD.lua`, and the file you build sits at the
+repo root, git-ignored. Where to get one without building:
+
+| You are | Take it from |
+|---|---|
+| a contributor | the build below |
+| a Mission Maker | `ctld-tools.exe`, which carries it — or the asset attached to a [release](https://github.com/VEAF/CTLD/releases) |
+| testing an unreleased fix | the floating [`dev` pre-release](https://github.com/VEAF/CTLD/releases/tag/dev), rebuilt on every merge into `develop` |
 
 **Local build (Windows):**
 

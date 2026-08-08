@@ -10,9 +10,18 @@ limite à la chaîne de build et aux tests basés sur busted qui s'exécutent en
 
 ## Chaîne de build { #build-pipeline }
 
-CTLD est distribué sous forme d'un fichier unique, `CTLD.lua`, à la racine du dépôt. Il est
-**généré** en fusionnant les modules en Lua pur situés sous `src/` dans l'ordre de dépendance — ne
-le modifiez jamais à la main, et reconstruisez-le après toute modification de `src/`.
+CTLD est distribué sous forme d'un fichier unique, `CTLD.lua`. Il est **généré** en fusionnant les
+modules en Lua pur situés sous `src/` dans l'ordre de dépendance — ne le modifiez jamais à la main,
+et reconstruisez-le après toute modification de `src/`.
+
+Il **ne figure pas dans le dépôt** : un clone neuf n'a pas de `CTLD.lua`, et celui que vous
+construisez se pose à la racine du dépôt, ignoré par git. Où en obtenir un sans le construire :
+
+| Vous êtes | Prenez-le |
+|---|---|
+| contributeur | via le build ci-dessous |
+| concepteur de mission | dans `ctld-tools.exe`, qui l'embarque — ou dans les fichiers joints à une [release](https://github.com/VEAF/CTLD/releases) |
+| testeur d'un correctif non publié | dans la [pré-version flottante `dev`](https://github.com/VEAF/CTLD/releases/tag/dev), reconstruite à chaque fusion dans `develop` |
 
 **Build local (Windows) :**
 

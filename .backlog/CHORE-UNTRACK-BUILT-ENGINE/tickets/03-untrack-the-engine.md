@@ -1,6 +1,6 @@
 # 03 — Untrack the engine and say so
 
-**Status:** todo
+**Status:** done
 **Lot:** CHORE-UNTRACK-BUILT-ENGINE
 
 ## Problem
@@ -25,9 +25,14 @@ No history rewriting: the 471 past blobs weigh 2.8 MiB packed and harm nobody.
 
 ## Acceptance
 
-- [ ] A fresh clone has no `CTLD.lua`; `merge_CTLD.ps1` produces one; `git status` stays clean
-      afterwards.
-- [ ] CI is green with the file absent from the repository — in particular `python-quality` still
-      reports 262 passed, 0 skipped.
-- [ ] A release still attaches `CTLD.lua`, and so does the `dev` pre-release.
-- [ ] EN and FR documentation in step.
+- [x] The file is untracked (`git ls-files CTLD.lua` → nothing) and ignored
+      (`git check-ignore` → `/CTLD.lua`), so a fresh clone has none and a local build leaves
+      `git status` clean.
+- [x] EN and FR documentation in step: `building-and-testing.{md,fr.md}` gain a table saying where
+      to get an engine per role, and `CLAUDE.md` now says *never commit* as well as *never
+      hand-edit*.
+- [x] A release still attaches `CTLD.lua`, and so does the `dev` pre-release — observed on the
+      first dev build: assets `ctld-tools.exe` (22.4 MB) and `CTLD.lua` (1.17 MB), the latter
+      declaring `ctld.VERSION = "2.0.0-rc6-182ec25"`.
+- [ ] CI green with the file absent — this PR's own run is the proof; `python-quality` must report
+      262 passed, 0 skipped.

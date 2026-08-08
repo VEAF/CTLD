@@ -1,6 +1,6 @@
 # 02 — A missing engine skips the test, it does not crash it
 
-**Status:** todo
+**Status:** done
 **Lot:** CHORE-UNTRACK-BUILT-ENGINE
 
 ## Problem
@@ -22,5 +22,5 @@ build it (`resources.read_engine`), and this test is not the place to redesign t
 
 ## Acceptance
 
-- [ ] With no `CTLD.lua`, the suite reports skips and **zero failures**.
-- [ ] With `CTLD.lua`, the test runs and asserts what it asserts today.
+- [x] With no `CTLD.lua`: **234 passed, 28 skipped, 0 failed** (it was 27 skipped / 1 failed).
+- [x] With `CTLD.lua`: **262 passed**, the test running and asserting exactly what it did before.
