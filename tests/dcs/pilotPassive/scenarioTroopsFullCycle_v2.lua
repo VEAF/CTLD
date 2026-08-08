@@ -576,8 +576,9 @@ elseif step == 6 then
     log("Step 6: killing JTAC '" .. deadUnitName
         .. "' | its target='" .. tostring(deadJtacTarget) .. "'")
 
-    -- Simulate S_EVENT_DEAD for the JTAC unit
-    troopMgr:onUnitDead(deadUnitName)
+    -- Simulate S_EVENT_DEAD for the JTAC unit (matches the real bridge call shape:
+    -- onUnitDead receives the DCS event table, not a bare unit name)
+    troopMgr:onUnitDead({ initiator = Unit.getByName(deadUnitName) })
 
     -- Verify: dead JTAC removed, its target freed, alive JTAC still claims its target
     check("F-T6.4", "dead JTAC removed from jtacMgr",

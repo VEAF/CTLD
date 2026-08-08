@@ -17,6 +17,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   units (`SVNT_*`) stay excluded from the count; the mortar unit itself is always counted.
 - **A dropped group reduced to zero real troops** (mortar operator dead, servant still
   standing) is no longer offered for field extraction.
+- **The "Extract from field" F10 menu now shows each group's current troop count**, e.g.
+  `Extract: Bravo (7 troops)` or `Bravo (7 troops, 25m)` in the multi-group submenu — letting a
+  pilot choose which group to extract based on what it will actually cost in capacity.
+- **`onUnitDead` now actually fires.** It was registered on the DCS event bridge as a raw
+  `S_EVENT_DEAD` handler but written to expect a plain unit name, so it never matched a real
+  dead unit in a live mission — silently disabling both its own bookkeeping and JTAC
+  deregistration-on-death, which depends on it. Fixed to unwrap `event.initiator`, matching
+  every other bridge-registered death handler in the codebase. A group that loses its last real
+  trooper while a mortar servant survives is now despawned reactively at that moment.
 
 ### Fixed — F10 menu duplication and multi-crew menu loss (FIX-MENU-DOUBLE-MULTICREW)
 

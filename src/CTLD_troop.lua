@@ -1161,9 +1161,17 @@ end
 --- Called from CTLDDCSEventBridge on S_EVENT_DEAD.
 -- Removes the dead unit from _aliveUnits and _jtacUnits of the owning group.
 -- Deregisters the JTAC from CTLDJTACManager if the dead unit was a JTAC.
+-- If the death leaves a deployed group with zero real troops but some DCS units still standing
+-- (a mortar servant orphaned by its operator's death), the residual group is despawned and
+-- purged (FIX-FIELD-EXTRACT-CASUALTIES).
 -- NOTE: wasJtac is captured BEFORE _removeDeadUnit clears _jtacUnits[unitName].
--- @param unitName string  DCS unit name
-function CTLDTroopManager:onUnitDead(unitName)
+-- @param event table  DCS S_EVENT_DEAD event (event.initiator = the dead Unit)
+function CTLDTroopManager:onUnitDead(event)
+    local initiator = event and event.initiator
+    if not initiator then return end
+    local ok, unitName = pcall(function() return initiator:getName() end)
+    if not ok or not unitName then return end
+
     local grp = self:_findGroupByAliveUnit(unitName)
     if not grp then
         ctld.utils.log("INFO", "onUnitDead: no group found for unit '%s' — skipping", unitName)
@@ -1178,6 +1186,16 @@ function CTLDTroopManager:onUnitDead(unitName)
         CTLDJTACManager.getInstance():deregisterJTAC(unitName)
         ctld.utils.log("INFO", "onUnitDead: JTAC unit '%s' deregistered", unitName)
     end
+
+    -- Orphaned servant cleanup: deployed group, zero real troops left, servant(s) still standing.
+    if grp.dcsGroup and grp.state == CTLDTroopGroup.STATE.DEPLOYED
+        and grp:getLogicalCount() == 0 and grp:getAliveCount() > 0 then
+        local groupName = grp.dcsGroup:getName()
+        grp.dcsGroup:destroy()
+        self:_removeFromDropped(grp.coalitionId, groupName)
+        ctld.utils.log("INFO",
+            "onUnitDead: despawned orphaned servant-only residue for group '%s'", groupName)
+    end
 end
 
 --- Returns the count of alive units (helper for onUnitDead logging).
@@ -1185,6 +1203,18 @@ end
 function CTLDTroopGroup:getAliveCount()
     local n = 0
     for _ in pairs(self._aliveUnits) do n = n + 1 end
+    return n
+end
+
+--- Returns the count of alive units that count as real troops, excluding cosmetic
+-- mortar-servant units (SVNT_* prefix). Mirrors CTLDTroopManager:_countLogicalUnits,
+-- but reads the in-memory _aliveUnits snapshot instead of re-querying the DCS group.
+-- @return number
+function CTLDTroopGroup:getLogicalCount()
+    local n = 0
+    for name in pairs(self._aliveUnits) do
+        if not name:match("^SVNT") then n = n + 1 end
+    end
     return n
 end
 
