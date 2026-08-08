@@ -1347,6 +1347,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dev-builds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dev builds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#authoring-skills" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2089,6 +2100,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dev-builds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dev builds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#authoring-skills" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2248,6 +2270,29 @@ it walks through:</p>
 <li><strong>Stable</strong> (<code>x.y.z</code>) → a normal release; <code>## [Unreleased]</code> is frozen to <code>## [x.y.z] — date</code>, and
   <code>published-latest</code> is advanced to it — a permanent "last stable <code>CTLD.lua</code>" download pointer.</li>
 </ul>
+<h2 id="dev-builds">Dev builds<a class="headerlink" href="#dev-builds" title="Permanent link">&para;</a></h2>
+<p>A release is the only thing a Mission Maker is told to download — but between two releases there
+has to be <em>something</em> to hand a tester. Every merge into <code>develop</code> therefore runs
+<code>.github/workflows/dev-build.yml</code>, which produces a complete <code>ctld-tools.exe</code> from that commit
+(frontend, schema, default catalogue and engine all from the same source) and publishes it twice:</p>
+<ul>
+<li>as an <strong>action artifact</strong> (<code>ctld-tools-dev</code>, kept 14 days) — traceable per run, but downloading
+  it needs a GitHub session and it arrives zipped;</li>
+<li>as a floating <strong><code>dev</code> pre-release</strong>, rewritten on each merge — anonymous download, stable link,
+  the <code>.exe</code> itself. That is the one to send someone.</li>
+</ul>
+<p>Such a build stamps its commit into <code>ctld.VERSION</code>: <code>--version</code> prints <code>2.0.0-rc6-a1b2c3d</code>, and so
+do the install report and the mission's copy of the engine, so a bug report names its build. The
+suffix comes from <code>merge_CTLD.ps1 -VersionSuffix</code>, used by that workflow alone — a local build and
+a release keep the version as written in <code>src/CTLD_config.lua</code>.</p>
+<p>The <code>dev</code> tag does not match <code>published-v*</code>, so refreshing it never triggers the release workflow,
+and <code>published-latest</code> still points at the last stable release.</p>
+<div class="admonition warning">
+<p class="admonition-title">Not a release</p>
+<p>A dev build has no release notes, no published documentation of its own, and no guarantee
+beyond the CI that ran on its commit. Handing one to a Mission Maker who did not ask for it is
+how you end up debugging a version nobody can identify.</p>
+</div>
 <h2 id="authoring-skills">Authoring skills<a class="headerlink" href="#authoring-skills" title="Permanent link">&para;</a></h2>
 <p>The re-tooling program is run with three tracker-agnostic authoring skills (they write into the
 local <code>.backlog/</code>, not GitHub):</p>
