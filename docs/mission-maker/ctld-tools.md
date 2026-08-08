@@ -19,6 +19,21 @@ file.
     right-click `ctld-tools.exe` → **Properties** → **General** tab → check **Unblock** at the bottom
     → **OK**.
 
+### The tool carries its own CTLD
+
+The exe **embeds the `CTLD.lua` it installs**, built from the commit its release was tagged on. It
+downloads nothing and never updates itself: it works with no network, and the same exe always
+installs the same engine.
+
+A new CTLD therefore reaches your missions only when a **release is published** — day-to-day work
+merged into the repository changes nothing for you. To move to it, download `ctld-tools.exe` again
+from the [Releases](https://github.com/VEAF/CTLD/releases) page and re-inject into your mission;
+re-injecting replaces what the tool wrote before instead of duplicating it.
+
+!!! note "Release candidates carry no *Latest* badge"
+    While v2 is in release candidate, each release is published as a **pre-release**, and GitHub
+    keeps the *Latest* badge for stable releases. Take the topmost entry on the Releases page.
+
 ## Open it
 
 **Double-click `ctld-tools.exe`.** A small console window opens — that is the local server; leave it

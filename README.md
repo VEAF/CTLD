@@ -26,6 +26,19 @@ triggers that load them in the right order. Re-installing replaces rather than d
 
 Full walkthrough: **[Mission maker guide](https://veaf.github.io/CTLD/dev/mission-maker/)**.
 
+### Getting a newer CTLD
+
+`ctld-tools.exe` **carries the CTLD it installs** — the `CTLD.lua` built from the commit its own
+release was tagged on, embedded in the exe. It downloads nothing and never updates itself, so it runs
+with no network and the same exe always installs the same engine.
+
+A new CTLD therefore reaches your missions only once a **release is published**: day-to-day work
+merged into the repository changes nothing on your side. To move to it, **download
+`ctld-tools.exe` again** from the [Releases page](../../releases) and re-install into your mission.
+
+While v2 is in release candidate, each release is published as a **pre-release** — GitHub keeps the
+"Latest" badge for stable releases — so take the topmost entry on the Releases page.
+
 ### Windows says it blocked the app
 
 `ctld-tools.exe` is not code-signed — a certificate costs money a community project has no reason to
