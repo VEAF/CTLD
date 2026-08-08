@@ -449,6 +449,95 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
         end)
     end)
 
+    -- ── F-089b : Extract from field menu shows troop counts (FIX-FIELD-EXTRACT-CASUALTIES) ──
+    describe("F-089b — Extract from field menu shows troop counts", function()
+        local tm, playerObj
+        local _origGetByName
+
+        local function mockDroppedGroup(unitNames)
+            local units = {}
+            for _, uname in ipairs(unitNames) do
+                table.insert(units, {
+                    getName = function() return uname end,
+                    isExist = function() return true end,
+                })
+            end
+            return { getUnits = function() return units end }
+        end
+
+        before_each(function()
+            resetSingletons()
+            EventDispatcher.getInstance()
+            CTLDDCSEventBridge.getInstance()
+            CTLDZoneManager.getInstance()
+            CTLDPlayerManager.getInstance()
+            tm = CTLDTroopManager.getInstance()
+
+            tm._isInAir = function() return false end
+
+            local zm = CTLDZoneManager.getInstance()
+            zm.getTroopZonesForCoalition = function() return {} end
+
+            _origGetByName = Unit.getByName
+            Unit.getByName = function(n)
+                if n == "BLUE_UH1H_1" then
+                    return {
+                        getName  = function() return "BLUE_UH1H_1" end,
+                        isExist  = function() return true end,
+                        getPoint = function() return { x = 0, y = 0, z = 0 } end,
+                    }
+                end
+                return _origGetByName and _origGetByName(n) or nil
+            end
+
+            playerObj = makePlayer({
+                unitName = "BLUE_UH1H_1", coalition = coalition.side.BLUE, typeName = "UH-1H",
+            })
+        end)
+
+        after_each(function()
+            Unit.getByName = _origGetByName
+        end)
+
+        it("single nearby group: direct button shows troop count", function()
+            tm._findAllNearbyDropped = function()
+                return { {
+                    groupName = "Bravo",
+                    group     = mockDroppedGroup({ "INF_u1", "INF_u2", "INF_u3", "INF_u4", "INF_u5", "SVNT_u1" }),
+                    distM     = 25,
+                } }
+            end
+            CTLDPlayerManager.getInstance():buildMenu(playerObj)
+            local menu = ctld.MenuManager:getInstance():getMenuByGroupId(playerObj.groupId)
+
+            local path = { ROOT, tr("Troop Commands"), tr("Embark / Extract Troops"),
+                            tr("Extract: %1 (%2 troops)", "Bravo", 5) }
+            assert.is_true(has(menu, path))
+        end)
+
+        it("multiple nearby groups: submenu entries show troop count and distance", function()
+            tm._findAllNearbyDropped = function()
+                return {
+                    { groupName = "Bravo",  group = mockDroppedGroup({ "INF_u1", "INF_u2" }),           distM = 25 },
+                    { groupName = "Charlie", group = mockDroppedGroup({ "INF_u1", "SVNT_u1" }),         distM = 87 },
+                }
+            end
+            CTLDPlayerManager.getInstance():buildMenu(playerObj)
+            local menu = ctld.MenuManager:getInstance():getMenuByGroupId(playerObj.groupId)
+
+            local base = { ROOT, tr("Troop Commands"), tr("Embark / Extract Troops"), tr("Extract from field") }
+            local bravoPath = {}
+            for _, p in ipairs(base) do table.insert(bravoPath, p) end
+            table.insert(bravoPath, tr("%1 (%2 troops, %3m)", "Bravo", 2, 25))
+            assert.is_true(has(menu, bravoPath))
+
+            local charliePath = {}
+            for _, p in ipairs(base) do table.insert(charliePath, p) end
+            table.insert(charliePath, tr("%1 (%2 troops, %3m)", "Charlie", 1, 87))
+            assert.is_true(has(menu, charliePath))
+        end)
+    end)
+
     -- ── F-025 : OnVehicleLoaded/Unloaded → CTLDPlayer.loadedVehicles ─────────
     describe("F-025 — player-manager maintains loadedVehicles on vehicle events", function()
         local pm, playerObj, transport, veh

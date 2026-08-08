@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.16"
+ctld.i18n["ko"].translation_version = "1.17"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -288,7 +288,7 @@ ctld.i18n["ko"]["Disembark Troops"]                           = "병력 하차"
 ctld.i18n["ko"]["Disembark All"]                              = "전체 하차"
 ctld.i18n["ko"]["Embark / Extract Troops"]                    = "병력 탑승 / 추출"
 ctld.i18n["ko"]["Extract from field"]                         = "현장에서 추출"
-ctld.i18n["ko"]["Extract: %1"]                                = "추출: %1"
+-- STALE: ctld.i18n["ko"]["Extract: %1"]                                = "추출: %1"
 ctld.i18n["ko"]["No troops onboard."]                         = "탑승 병력 없음."
 ctld.i18n["ko"]["Transport weight limit exceeded (%1 kg max)."] = "수송 중량 한계 초과 (최대 %1 kg)."
 ctld.i18n["ko"]["Vehicle ready for loading"]                    = "%1이(가) 적재 준비되었습니다."
@@ -441,3 +441,7 @@ ctld.i18n["ko"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
 ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry ignored"] = ""
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-09
+ctld.i18n["ko"]["%1 (%2 troops, %3m)"] = "%1 (%2명, %3 m)"
+ctld.i18n["ko"]["Extract: %1 (%2 troops)"] = "추출: %1 (%2명)"

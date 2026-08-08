@@ -1932,8 +1932,9 @@ function CTLDTroopManager:refreshMenuSection(playerObj, overrideInAir)
             if #nearbyGroups == 1 then
                 -- Single nearby group: direct button
                 local capturedName = nearbyGroups[1].groupName
+                local capturedCount = self:_countLogicalUnits(nearbyGroups[1].group)
                 menu:addCommand({ root, troopSub, embarkSub },
-                    ctld.tr("Extract: %1", nearbyGroups[1].groupName),
+                    ctld.tr("Extract: %1 (%2 troops)", capturedName, capturedCount),
                     function(arg)
                         local u = Unit.getByName(arg.unitName)
                         if not u then return end
@@ -1946,8 +1947,9 @@ function CTLDTroopManager:refreshMenuSection(playerObj, overrideInAir)
                 menu:addSubMenu({ root, troopSub, embarkSub }, extractSub)
                 for _, entry in ipairs(nearbyGroups) do
                     local capturedName = entry.groupName
+                    local capturedCount = self:_countLogicalUnits(entry.group)
                     menu:addCommand({ root, troopSub, embarkSub, extractSub },
-                        string.format("%s (%dm)", entry.groupName, math.floor(entry.distM)),
+                        ctld.tr("%1 (%2 troops, %3m)", entry.groupName, capturedCount, math.floor(entry.distM)),
                         function(arg)
                             local u = Unit.getByName(arg.unitName)
                             if not u then return end

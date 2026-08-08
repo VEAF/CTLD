@@ -110,9 +110,14 @@ dépose est refusée avec un message vous demandant de descendre en stationnaire
 Pour récupérer un groupe déposé plus tôt, atterrissez dans le rayon d'extraction (par défaut
 **125 m**, `maxExtractDistance`) et utilisez **Embark / Extract Troops** :
 
-- Un seul groupe à proximité → un bouton direct **Extract: &lt;group name&gt;**.
-- Plusieurs à proximité → un sous-menu **Extract from field** listant chaque groupe avec sa
-  distance, par ex. `Bravo (25m)`.
+- Un seul groupe à proximité → un bouton direct **Extract: &lt;group name&gt;**, affichant son
+  effectif actuel, par ex. `Extract: Bravo (7 troops)`.
+- Plusieurs à proximité → un sous-menu **Extract from field** listant chaque groupe avec son
+  effectif actuel et sa distance, par ex. `Bravo (7 troops, 25m)`.
+
+L'effectif affiché correspond aux survivants, pas au nombre initialement déployé — les pertes
+subies depuis la dépose ne sont pas comptées. Un groupe ayant perdu tous ses vrais soldats (ne
+reste plus qu'un servant de mortier) n'apparaît plus ici.
 
 Vous devez être au sol, et vous avez besoin d'assez de capacité disponible pour prendre le groupe à
 bord. L'équipe extraite conserve son identité et ses éventuels ordres, de sorte que vous pouvez la
