@@ -1,0 +1,124 @@
+name: Dev build
+
+# Every merge into `develop` produces a complete `ctld-tools.exe` from that commit, so there is
+# something to hand a tester between two releases (FEAT-DEV-BUILD-CHANNEL). It is not a release:
+# unreleased, untested, and it names its commit in its own version.
+#
+# Published twice, on purpose. An **action artifact** is traceable per run but needs a GitHub
+# session to download — the API answers 401 anonymously, even on a public repository — and it
+# arrives zipped. A **floating `dev` pre-release** downloads anonymously, from a stable link, as
+# the `.exe` itself. The `dev` tag deliberately does not match `published-v*`, so refreshing it
+# never re-triggers `release.yml`.
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:        # manual trigger from the Actions UI (any branch)
+
+# Two merges landing minutes apart would race for the same floating tag; the last one wins.
+concurrency:
+  group: dev-build
+  cancel-in-progress: true
+
+jobs:
+  dev-exe:
+    name: Build & publish the dev exe
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Build the frontend (→ ctld_tools/web/static)
+        working-directory: tools/ctld-tools/web
+        shell: bash
+        run: |
+          npm ci
+          npm run build
+
+      # --without dev (drops ruff/mypy/pytest); --with build adds pyinstaller. The package
+      # itself is needed by the merge build, which embeds the config YAML via `ctld-tools embed`.
+      - name: Install ctld-tools
+        working-directory: tools/ctld-tools
+        shell: bash
+        run: |
+          pip install poetry
+          poetry install --without dev --with build
+
+      - name: Resolve the dev version suffix
+        id: ver
+        shell: bash
+        run: echo "suffix=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      # -VersionSuffix stamps the commit into ctld.VERSION itself, so --version, the install
+      # report and the DCS log all name this build rather than the last release candidate.
+      - name: Build CTLD.lua, stamped with the commit
+        run: powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1 -VersionSuffix ${{ steps.ver.outputs.suffix }}
+        shell: pwsh
+
+      - name: Build ctld-tools.exe
+        working-directory: tools/ctld-tools
+        shell: bash
+        run: |
+          poetry run pyinstaller --onefile --console --name ctld-tools \
+            --collect-data ctld_tools \
+            --collect-submodules uvicorn \
+            --add-data "../../src/CTLD_config.yaml;ctld_data" \
+            --add-data "../../src/CTLD_config_schema.yaml;ctld_data" \
+            --add-data "../../CTLD.lua;ctld_data" \
+            --add-data "../../assets/beacon.ogg;ctld_data" \
+            --add-data "../../assets/beaconsilent.ogg;ctld_data" \
+            ctld_tools/__main__.py
+
+      # The whole point of the channel is that a bug report names its build: an exe whose
+      # --version does not carry this commit is worse than no exe at all.
+      - name: Smoke-check the exe (it must name this commit)
+        working-directory: tools/ctld-tools
+        shell: bash
+        run: |
+          printed="$(./dist/ctld-tools.exe --version)"
+          case "$printed" in
+            *-${{ steps.ver.outputs.suffix }}) echo "version: $printed" ;;
+            *) echo "::error::--version printed '$printed', expected the -${{ steps.ver.outputs.suffix }} suffix"; exit 1 ;;
+          esac
+
+      - name: Upload the exe as an artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ctld-tools-dev
+          path: tools/ctld-tools/dist/ctld-tools.exe
+          retention-days: 14
+
+      - name: Refresh the floating `dev` pre-release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Delete before moving the tag: a release outlives the tag it was cut from, and
+          # `gh release create` refuses to publish twice on the same one.
+          gh release delete dev --yes || true
+          git tag -f dev
+          git push -f origin dev
+          cat > dev-notes.md <<'NOTES'
+          **This is not a release.** It is the tool built from the latest merge into `develop`:
+          unreleased, and tested only by whatever CI ran on that commit. Take it when someone asks
+          you to try something; otherwise download a release from the
+          [Releases page](https://github.com/VEAF/CTLD/releases).
+
+          `ctld-tools.exe --version` prints the commit this build came from — quote it in any bug
+          report. As with every release, Windows will flag the unsigned executable on first run;
+          the [installation notes](https://github.com/VEAF/CTLD#windows-says-it-blocked-the-app)
+          say how to get past it.
+
+          `CTLD.lua` is attached too, for anyone wiring a mission by hand.
+          NOTES
+          gh release create dev \
+            tools/ctld-tools/dist/ctld-tools.exe CTLD.lua \
+            --title "CTLD dev build (${{ steps.ver.outputs.suffix }})" \
+            --notes-file dev-notes.md \
+            --prerelease

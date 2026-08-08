@@ -36,6 +36,11 @@ votre mission ; réinjecter remplace ce que l'outil avait écrit au lieu de le d
     Tant que la v2 est en release candidate, chaque release est publiée en **pré-version**, et GitHub
     réserve le badge *Latest* aux versions stables. Prenez l'entrée la plus haute de la page Releases.
 
+On peut aussi vous transmettre un **build de développement** : un `ctld-tools.exe` construit à partir
+du travail du jour plutôt que d'une release, reconnaissable au commit inscrit dans sa version
+(`2.0.0-rc6-a1b2c3d`). N'en prenez un que si quelqu'un vous demande d'essayer quelque chose de
+précis : il n'a ni notes de version, ni documentation propre.
+
 ## Ouvrir l'outil { #open-it }
 
 **Double-cliquez `ctld-tools.exe`.** Une petite fenêtre console s'ouvre — c'est le serveur local ;

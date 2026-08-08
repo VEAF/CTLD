@@ -34,6 +34,10 @@ re-injecting replaces what the tool wrote before instead of duplicating it.
     While v2 is in release candidate, each release is published as a **pre-release**, and GitHub
     keeps the *Latest* badge for stable releases. Take the topmost entry on the Releases page.
 
+You may also be handed a **dev build** — a `ctld-tools.exe` built from the day's work rather than
+from a release, recognisable by the commit in its version (`2.0.0-rc6-a1b2c3d`). Only take one if
+someone asks you to try something specific: it has no release notes and no documentation of its own.
+
 ## Open it
 
 **Double-click `ctld-tools.exe`.** A small console window opens — that is the local server; leave it

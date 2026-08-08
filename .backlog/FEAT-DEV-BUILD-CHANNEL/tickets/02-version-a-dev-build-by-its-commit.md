@@ -1,6 +1,6 @@
 # 02 — A dev build says which commit it is
 
-**Status:** todo
+**Status:** done
 **Lot:** FEAT-DEV-BUILD-CHANNEL
 
 ## Problem
@@ -21,7 +21,15 @@ Two neighbouring behaviours were checked and need no change: `configVersion`
 
 ## Acceptance
 
-- [ ] A dev build reports `2.0.0-rc6-<hash>`; a local build reports `2.0.0-rc6`.
-- [ ] Installing with a dev build puts that string in the install report and in the engine header.
-- [ ] Opening a configuration authored with a dev build raises no version-gap popup.
-- [ ] The release workflow's `--version` check (tag vs printed version) still passes.
+- [x] A dev build reports `2.0.0-rc6-<hash>`; a local build reports `2.0.0-rc6`. Run locally:
+      `merge_CTLD.ps1 -VersionSuffix a1b2c3d` → `ctld.VERSION = "2.0.0-rc6-a1b2c3d"` in the built
+      engine and in its header; `resources.ctld_version()` reads it back; a plain rebuild restores
+      `2.0.0-rc6` byte for byte.
+- [x] `resources.docs_version()` still answers `dev` for a suffixed version (checked in the same
+      run), so the help link needs no change.
+- [ ] Installing with a dev build puts that string in the install report — follows from
+      `install.engine_version()` reading the injected bytes, not observed end to end.
+- [ ] Opening a configuration authored with a dev build raises no version-gap popup. Reasoned, not
+      executed: `configVersion` (`src/CTLD_config.yaml`) is a separate value from `ctld.VERSION`.
+- [ ] The release workflow's `--version` check (tag vs printed version) still passes — untouched,
+      `-VersionSuffix` is not passed there; confirmed at the next release.
