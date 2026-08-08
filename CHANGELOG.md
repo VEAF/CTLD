@@ -8,6 +8,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — F10 menu duplication and multi-crew menu loss (FIX-MENU-DOUBLE-MULTICREW)
+
+- **F10 menu no longer duplicates** when a second crew member joins a multi-crew aircraft
+  (e.g. CH-47 copilot entering after the pilot). `ctld.Menu` now tracks live top-level DCS
+  handles in a dedicated `_activeHandles` list independent of the logical tree. The cleanup
+  pass in `refreshMenuForGroup` uses this list, so it is never disrupted by a `buildMenu`
+  tree reset.
+- **CTLD menu survives a crew-member leave** in multi-crew groups. `onPlayerLeaveUnit` now
+  defers the full DCS menu teardown until the last tracked player in the group leaves;
+  remaining crew members keep their menu.
+
 ### Changed — FOB "All crates" and crate-count indicator in Request Equipment (UX-FOB-ALLCRATES-CRATE-COUNT)
 
 - **FOB scene now exposes an "All crates" entry** in Request Equipment. The `showSets = false`
