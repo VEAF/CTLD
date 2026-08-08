@@ -33,7 +33,8 @@ param(
 )
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot  = Resolve-Path (Join-Path $scriptDir "..\..")
+# One segment at a time: merge_CTLD.ps1 calls this script, and both now run on Linux too.
+$repoRoot  = Resolve-Path (Join-Path (Join-Path $scriptDir "..") "..")
 
 if ($SourceDir -eq "") { $SourceDir = Join-Path $repoRoot "src" }
 if ($DictDir   -eq "") { $DictDir   = $SourceDir }
