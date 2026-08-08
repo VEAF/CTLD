@@ -22,7 +22,9 @@ if ($VersionSuffix -and $VersionSuffix -notmatch '^[A-Za-z0-9._-]+$') {
 }
 
 $scriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot    = Resolve-Path (Join-Path $scriptDir "..\..")
+# Composed one segment at a time: a literal "..\.." is a Windows-only path, and this script also
+# runs on the Linux runner that tests ctld-tools (CHORE-UNTRACK-BUILT-ENGINE).
+$repoRoot    = Resolve-Path (Join-Path (Join-Path $scriptDir "..") "..")
 $listFile    = Join-Path $scriptDir "listToMerge.txt"
 $srcDir      = Join-Path $repoRoot  "src"
 $outFile     = Join-Path $repoRoot  "CTLD.lua"
@@ -30,7 +32,7 @@ $distDir     = Join-Path $repoRoot  "dist"
 $userCfgSrc  = Join-Path $srcDir    "CTLD_userConfig.lua"
 $userCfgDest = Join-Path $distDir   "CTLD_userConfig.lua"
 
-$ctldToolsDir = Join-Path $repoRoot "tools\ctld-tools"
+$ctldToolsDir = Join-Path (Join-Path $repoRoot "tools") "ctld-tools"
 $configYaml   = Join-Path $srcDir   "CTLD_config.yaml"
 
 # Synchronise the i18n dictionary files with ctld.tr() keys found in src/.

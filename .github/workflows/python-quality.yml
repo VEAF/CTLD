@@ -5,13 +5,15 @@ on:
     branches: [develop, master]
     paths:
       - "tools/ctld-tools/**"
-      - "src/CTLD_config.yaml"
+      - "src/**"
+      - "tools/build/**"
       - "tests/ci/data/config_defaults.json"
       - ".github/workflows/python-quality.yml"
   pull_request:
     paths:
       - "tools/ctld-tools/**"
-      - "src/CTLD_config.yaml"
+      - "src/**"
+      - "tools/build/**"
       - "tests/ci/data/config_defaults.json"
       - ".github/workflows/python-quality.yml"
 
@@ -43,6 +45,15 @@ jobs:
 
       - name: Type check (mypy)
         run: poetry run mypy ctld_tools
+
+      # 27 tests install the real engine into a .miz and skip themselves when it is missing, so a
+      # job that does not build it stays green while that whole suite quietly stops running
+      # (CHORE-UNTRACK-BUILT-ENGINE measured 262 passed → 234 passed / 27 skipped / 1 failed).
+      # merge_CTLD.ps1 is the single build path — a lookalike built for the tests would drift.
+      - name: Build CTLD.lua (the tests install it)
+        working-directory: ${{ github.workspace }}
+        shell: pwsh
+        run: ./tools/build/merge_CTLD.ps1
 
       # Tests include the oracle drift guard (committed tests/ci/data/config_defaults.json
       # == fresh emit from src/CTLD_config.yaml) and the embed/wrap round-trip.

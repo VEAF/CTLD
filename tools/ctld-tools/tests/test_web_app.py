@@ -1,5 +1,7 @@
 """The FastAPI backend: thin endpoints over the core (load/edit/save/validate/version-gap)."""
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -7,6 +9,11 @@ from ctld_tools.web.app import app
 from ctld_tools.web.state import session
 
 client = TestClient(app)
+
+#: Same repo-root expression as every other test module here (test_install, test_resources, …):
+#: no shared helper exists, so the convention is one constant per file rather than the path
+#: recomputed at each use.
+REPO = Path(__file__).resolve().parents[3]
 
 SAMPLE = """\
 configVersion: "1.0.0"
@@ -334,13 +341,16 @@ def test_open_dialog_offers_missions(monkeypatch):
     assert any("*.yaml" in p for p in patterns), "and still list plain YAML"
 
 
+# The engine is a build artifact, so a checkout can legitimately not have one. Every test that
+# installs it says so and steps aside (see test_install.py); this one used to fail instead, deep in
+# the response payload, on a `KeyError: 'injected'` that named neither the engine nor the build.
+@pytest.mark.skipif(not (REPO / "CTLD.lua").is_file(), reason="CTLD.lua not built in this checkout")
 def test_inject_into_miz(tmp_path):
     import shutil
-    from pathlib import Path
 
     from ctld_tools.miz import MARKER, read_mission
 
-    src_miz = Path(__file__).resolve().parents[3] / "missions" / "Test_CTLDNEXT_01.miz"
+    src_miz = REPO / "missions" / "Test_CTLDNEXT_01.miz"
     miz = tmp_path / "out.miz"
     shutil.copy(src_miz, miz)
     client.post("/api/catalog/load-default")  # clean catalogue, no validation errors
