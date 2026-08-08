@@ -52,6 +52,12 @@ redefined terms are added here in the same move as the decision that introduces 
   scalar/behavioural settings). **Data** are *what* CTLD operates on: the catalogue objects (crates,
   troop groups, aircraft capabilities, zones, AA systems). Within each, entries are grouped into
   functional families for navigation.
+- **Dev build** — a `ctld-tools.exe` produced by CI from a `develop` merge rather than from a
+  release tag, versioned `<ctld version>-<commit hash>` so a bug report names the exact build. Not a
+  release: it has no documentation of its own and never carries the *Latest* badge.
+- **Custom beacon sound** — an `.ogg` a MM supplies in place of a default beacon sound. It travels
+  **in the mission**, under a reserved name (ADR 0012); the file name it had on the MM's disk is kept
+  as a label only. _Avoid_: calling the reserved name a "renaming" — the MM's own file is untouched.
 - **Config version tag** — a version stamped on the `ctld-config` YAML and its schema. ctld-tools
   compares the version a `user-config` was authored against to the current catalogue; on mismatch it
   warns the MM and surfaces the diffs to review before re-injecting (re-migration is tool-driven; the
