@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(*)",
+      "PowerShell(busted*)",
       "WebFetch(domain:wiki.hoggitworld.com)",
       "WebFetch(domain:github.com)"
     ],
