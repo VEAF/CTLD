@@ -30,6 +30,14 @@ CTLDTroopGroup.STATE = {
     RETURNED_TO_TRZ = "RETURNED_TO_TRZ",
 }
 
+-- Cosmetic mortar-servant units are spawned by CTLDObjectRegistry.spawnObject as
+-- "SVNT-<uid>" (namePrefix "SVNT" + a numeric suffix — see _registerOneTemplate below).
+-- They never count as a real troop for capacity, weight, or logical-count purposes.
+-- Single predicate shared by every alive/logical-count filter in this file.
+local function _isServantUnitName(name)
+    return name:match("^SVNT") ~= nil
+end
+
 --- Constructor.
 -- @param data table:
 --   templateKey   (string|nil)  CTLDObjectRegistry key (nil for recovered groups)
@@ -97,8 +105,7 @@ function CTLDTroopGroup:_syncFromDCSGroup(dcsGroup)
     for _, unit in ipairs(units) do
         if unit:isExist() then
             local name = unit:getName()
-            -- SVNT units are mortar servants (cosmetic crew); exclude from tracking and count.
-            if not name:match("^SVNT") then
+            if not _isServantUnitName(name) then
                 self._aliveUnits[name] = unit
                 if name:match("^JTAC") then
                     self._jtacUnits[name] = true
@@ -1168,9 +1175,16 @@ end
 -- @param event table  DCS S_EVENT_DEAD event (event.initiator = the dead Unit)
 function CTLDTroopManager:onUnitDead(event)
     local initiator = event and event.initiator
-    if not initiator then return end
+    if not initiator then
+        ctld.utils.log("DEBUG", "onUnitDead: event has no initiator — skipping")
+        return
+    end
     local ok, unitName = pcall(function() return initiator:getName() end)
-    if not ok or not unitName then return end
+    if not ok or not unitName then
+        ctld.utils.log("DEBUG", "onUnitDead: initiator:getName() failed (%s) — skipping",
+            tostring(unitName))
+        return
+    end
 
     local grp = self:_findGroupByAliveUnit(unitName)
     if not grp then
@@ -1206,14 +1220,14 @@ function CTLDTroopGroup:getAliveCount()
     return n
 end
 
---- Returns the count of alive units that count as real troops, excluding cosmetic
--- mortar-servant units (SVNT_* prefix). Mirrors CTLDTroopManager:_countLogicalUnits,
--- but reads the in-memory _aliveUnits snapshot instead of re-querying the DCS group.
+--- Returns the count of alive units that count as real troops (see _isServantUnitName).
+-- Mirrors CTLDTroopManager:_countLogicalUnits, but reads the in-memory _aliveUnits
+-- snapshot instead of re-querying the DCS group.
 -- @return number
 function CTLDTroopGroup:getLogicalCount()
     local n = 0
     for name in pairs(self._aliveUnits) do
-        if not name:match("^SVNT") then n = n + 1 end
+        if not _isServantUnitName(name) then n = n + 1 end
     end
     return n
 end
@@ -1321,8 +1335,8 @@ function CTLDTroopManager:_countDroppedTroops(coalition)
     return count
 end
 
--- Returns the count of a live DCS group's units that count as real troops, excluding cosmetic
--- mortar-servant units (SVNT_* prefix). Mirrors CTLDTroopGroup:_syncFromDCSGroup's filter.
+-- Returns the count of a live DCS group's units that count as real troops
+-- (see _isServantUnitName). Mirrors CTLDTroopGroup:_syncFromDCSGroup's filter.
 -- @param dcsGroup Group  live DCS group
 -- @return number
 function CTLDTroopManager:_countLogicalUnits(dcsGroup)
@@ -1330,7 +1344,7 @@ function CTLDTroopManager:_countLogicalUnits(dcsGroup)
     local count = 0
     for i = 1, #units do
         local u = units[i]
-        if u and u:isExist() and not u:getName():match("^SVNT") then
+        if u and u:isExist() and not _isServantUnitName(u:getName()) then
             count = count + 1
         end
     end
