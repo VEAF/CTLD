@@ -387,4 +387,164 @@ describe("CTLDTroopManager", function()
 
     end)
 
+    -- ── F-036b : embarkFromField reflects real casualties (logical count) ──
+    describe("F-036b — embarkFromField casualties (logical count)", function()
+
+        local _origGetByName
+
+        local function registerDropped(groupName, unitNames, storedTotal, storedWeight)
+            local unitPos = mockUnit:getPoint()
+            local units = {}
+            for _, uname in ipairs(unitNames) do
+                table.insert(units, {
+                    _pos     = { x=unitPos.x+10, y=unitPos.y, z=unitPos.z+10 },
+                    _country = 2,
+                    getPoint   = function(self) return self._pos end,
+                    getCountry = function(self) return self._country end,
+                    getName    = function(self) return uname end,
+                    isExist    = function(self) return true end,
+                })
+            end
+            local mockGroup = {
+                _name    = groupName,
+                getName  = function(self) return self._name end,
+                getUnits = function(self) return units end,
+                getUnit  = function(self, i) return units[i] end,
+                isExist  = function(self) return true end,
+                destroy  = function(self) end,
+            }
+            Group.getByName = function(name)
+                if name == groupName then return mockGroup end
+                return _origGetByName(name)
+            end
+
+            local coa = mockUnit:getCoalition()
+            tm._droppedGroups[coa] = { groupName }
+            tm._droppedTemplates[groupName] = {
+                key    = "Alpha_Squad",
+                name   = "Alpha Squad",
+                weight = storedWeight,
+                total  = storedTotal,
+            }
+        end
+
+        before_each(function()
+            _origGetByName = Group.getByName
+            tm._isInAir = function(self, u) return false end
+        end)
+
+        after_each(function()
+            Group.getByName = _origGetByName
+        end)
+
+        it("extracted count reflects survivors, not the count frozen at deploy time", function()
+            -- Deployed with 10 troops (stored.total=10); only 6 real troops + 1 servant survived.
+            registerDropped("MockDropped_036b_1",
+                { "INF_u1", "INF_u2", "INF_u3", "INF_u4", "INF_u5", "INF_u6", "SVNT_u1" },
+                10, 1300)
+
+            tm:embarkFromField(mockUnit)
+            local list = tm:getInTransit("UH-1H-1")
+            assert.is_not_nil(list)
+            assert.equals(6, list[1].unitTotal)
+        end)
+
+        it("mortar servant is excluded even when the mortar itself survives", function()
+            -- No casualties: 1 inf + 1 mortar deployed (stored.total=2), servant still alive.
+            registerDropped("MockDropped_036b_2",
+                { "INF_u1", "MORTAR_u1", "SVNT_u1" },
+                2, 260)
+
+            tm:embarkFromField(mockUnit)
+            local list = tm:getInTransit("UH-1H-1")
+            assert.equals(2, list[1].unitTotal)
+        end)
+
+        it("weight scales proportionally with the survivor count", function()
+            -- stored: 10 troops @ 130 kg avg = 1300. Survivors: 6 real troops + 1 servant.
+            registerDropped("MockDropped_036b_3",
+                { "INF_u1", "INF_u2", "INF_u3", "INF_u4", "INF_u5", "INF_u6", "SVNT_u1" },
+                10, 1300)
+
+            tm:embarkFromField(mockUnit)
+            local list = tm:getInTransit("UH-1H-1")
+            assert.equals(780, list[1].weight)
+        end)
+
+        it("no casualties → extracted count still equals the original deploy count", function()
+            registerDropped("MockDropped_036b_4", { "INF_u1", "INF_u2", "INF_u3" }, 3, 390)
+
+            tm:embarkFromField(mockUnit)
+            local list = tm:getInTransit("UH-1H-1")
+            assert.equals(3, list[1].unitTotal)
+        end)
+
+    end)
+
+    -- ── F-036c : nearby-group lookups exclude zero-logical-count groups ────
+    describe("F-036c — nearby dropped-group lookups filter servant-only groups", function()
+
+        local _origGetByName
+
+        local function mockDroppedGroup(groupName, unitNames)
+            local unitPos = mockUnit:getPoint()
+            local units = {}
+            for _, uname in ipairs(unitNames) do
+                table.insert(units, {
+                    _pos     = { x=unitPos.x+5, y=unitPos.y, z=unitPos.z+5 },
+                    _country = 2,
+                    getPoint   = function(self) return self._pos end,
+                    getCountry = function(self) return self._country end,
+                    getName    = function(self) return uname end,
+                    isExist    = function(self) return true end,
+                })
+            end
+            return {
+                _name    = groupName,
+                getName  = function(self) return self._name end,
+                getUnits = function(self) return units end,
+                getUnit  = function(self, i) return units[i] end,
+                isExist  = function(self) return true end,
+            }
+        end
+
+        before_each(function()
+            _origGetByName = Group.getByName
+        end)
+
+        after_each(function()
+            Group.getByName = _origGetByName
+        end)
+
+        it("_findNearestDropped skips a group with only a servant alive", function()
+            local servantOnly = mockDroppedGroup("MockDropped_036c_1", { "SVNT_u1" })
+            Group.getByName = function(name)
+                if name == "MockDropped_036c_1" then return servantOnly end
+                return _origGetByName(name)
+            end
+            local coa = mockUnit:getCoalition()
+            tm._droppedGroups[coa] = { "MockDropped_036c_1" }
+
+            local nearest = tm:_findNearestDropped(mockUnit, coa)
+            assert.is_nil(nearest)
+        end)
+
+        it("_findAllNearbyDropped excludes a servant-only group but keeps a real one", function()
+            local servantOnly = mockDroppedGroup("MockDropped_036c_2", { "SVNT_u1" })
+            local realGroup   = mockDroppedGroup("MockDropped_036c_3", { "INF_u1", "INF_u2" })
+            Group.getByName = function(name)
+                if name == "MockDropped_036c_2" then return servantOnly end
+                if name == "MockDropped_036c_3" then return realGroup end
+                return _origGetByName(name)
+            end
+            local coa = mockUnit:getCoalition()
+            tm._droppedGroups[coa] = { "MockDropped_036c_2", "MockDropped_036c_3" }
+
+            local found = tm:_findAllNearbyDropped(mockUnit, coa)
+            assert.equals(1, #found)
+            assert.equals("MockDropped_036c_3", found[1].groupName)
+        end)
+
+    end)
+
 end)

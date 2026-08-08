@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — field-extracted troop count now reflects casualties (FIX-FIELD-EXTRACT-CASUALTIES)
+
+- **Extracting a dropped troop group from the field now counts live survivors**, not the
+  headcount frozen at deploy time. Ten troops dropped, three killed, seven re-embarked —
+  matching the legacy monolith's live-unit-count behavior instead of the undeclared deviation
+  where the original deploy count was returned regardless of losses. Cosmetic mortar-servant
+  units (`SVNT_*`) stay excluded from the count; the mortar unit itself is always counted.
+- **A dropped group reduced to zero real troops** (mortar operator dead, servant still
+  standing) is no longer offered for field extraction.
+
 ### Fixed — F10 menu duplication and multi-crew menu loss (FIX-MENU-DOUBLE-MULTICREW)
 
 - **F10 menu no longer duplicates** when a second crew member joins a multi-crew aircraft
