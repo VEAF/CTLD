@@ -15,7 +15,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.16"
+ctld.i18n["en"].translation_version = "1.17"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -456,7 +456,7 @@ ctld.i18n["en"]["Disembark Troops"]                           = "Disembark Troop
 ctld.i18n["en"]["Disembark All"]                              = "Disembark All"
 ctld.i18n["en"]["Embark / Extract Troops"]                    = "Embark / Extract Troops"
 ctld.i18n["en"]["Extract from field"]                         = "Extract from field"
-ctld.i18n["en"]["Extract: %1"]                                = "Extract: %1"
+-- STALE: ctld.i18n["en"]["Extract: %1"]                                = "Extract: %1"
 ctld.i18n["en"]["No troops onboard."]                         = "No troops onboard."
 ctld.i18n["en"]["Transport weight limit exceeded (%1 kg max)."] = "Transport weight limit exceeded (%1 kg max)."
 ctld.i18n["en"]["Vehicle ready for loading"]                    = "A %1 is ready for loading."
@@ -568,3 +568,7 @@ ctld.i18n["en"]["dropOffZones is not read by CTLD 2 — declare each AI drop-off
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-08-01
 ctld.i18n["en"]["  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry ignored"] = "  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry ignored"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-09
+ctld.i18n["en"]["%1 (%2 troops, %3m)"] = "%1 (%2 troops, %3m)"
+ctld.i18n["en"]["Extract: %1 (%2 troops)"] = "Extract: %1 (%2 troops)"

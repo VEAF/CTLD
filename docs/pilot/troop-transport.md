@@ -104,9 +104,14 @@ telling you to hover lower or land.
 To recover a group that was dropped earlier, land within extract range (default **125 m**,
 `maxExtractDistance`) and use **Embark / Extract Troops**:
 
-- One group nearby → a direct **Extract: &lt;group name&gt;** button.
-- Several nearby → an **Extract from field** submenu listing each group with its distance, e.g.
-  `Bravo (25m)`.
+- One group nearby → a direct **Extract: &lt;group name&gt;** button, showing its current troop
+  count, e.g. `Extract: Bravo (7 troops)`.
+- Several nearby → an **Extract from field** submenu listing each group with its current troop
+  count and distance, e.g. `Bravo (7 troops, 25m)`.
+
+The troop count reflects survivors, not the number originally deployed — casualties taken since
+drop-off are excluded. A group that lost every real trooper (only a mortar servant left standing)
+no longer appears here.
 
 You must be on the ground, and you need enough spare capacity to take the group on board. The
 extracted team keeps its identity and any orders, so you can drop it again elsewhere.
