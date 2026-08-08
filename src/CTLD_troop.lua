@@ -1008,9 +1008,10 @@ function CTLDTroopManager:embarkFromField(unit)
     local country  = nearest.group:getUnit(1):getCountry()
     local stored   = self._droppedTemplates[nearest.groupName] or {}
 
-    -- Logical troop count: prefer stored.total (excludes mortar servants) so that servants
-    -- do not inflate the capacity check on re-embark (Bug 2).
-    local logicalCount = (stored.total and stored.total > 0) and stored.total or groupSize
+    -- Logical troop count: live survivors, excluding mortar servants (SVNT_*) so they never
+    -- inflate the capacity check (Bug 2) — and so combat losses are reflected on re-embark
+    -- (FIX-FIELD-EXTRACT-CASUALTIES), matching the legacy monolith's live-count behavior.
+    local logicalCount = self:_countLogicalUnits(nearest.group)
 
     -- Weight: proportional to surviving logical units using original avg weight (BUG-07)
     local avgWeight = (stored.weight and stored.total and stored.total > 0)
@@ -1290,7 +1291,24 @@ function CTLDTroopManager:_countDroppedTroops(coalition)
     return count
 end
 
--- Returns { groupName, group, distM } for the nearest dropped group within maxExtractDistance, or nil.
+-- Returns the count of a live DCS group's units that count as real troops, excluding cosmetic
+-- mortar-servant units (SVNT_* prefix). Mirrors CTLDTroopGroup:_syncFromDCSGroup's filter.
+-- @param dcsGroup Group  live DCS group
+-- @return number
+function CTLDTroopManager:_countLogicalUnits(dcsGroup)
+    local units = dcsGroup:getUnits() or {}
+    local count = 0
+    for i = 1, #units do
+        local u = units[i]
+        if u and u:isExist() and not u:getName():match("^SVNT") then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+-- Returns { groupName, group, distM } for the nearest dropped group within maxExtractDistance, or
+-- nil. Excludes a group with zero logical troops (e.g. only a mortar servant left standing).
 function CTLDTroopManager:_findNearestDropped(unit, coalition)
     local pt      = unit:getPoint()
     local maxDist = ctld.gs("maxExtractDistance")
@@ -1298,7 +1316,7 @@ function CTLDTroopManager:_findNearestDropped(unit, coalition)
 
     for _, name in ipairs(self._droppedGroups[coalition]) do
         local g = Group.getByName(name)
-        if g and g:isExist() and #g:getUnits() > 0 then
+        if g and g:isExist() and #g:getUnits() > 0 and self:_countLogicalUnits(g) > 0 then
             local leader = g:getUnit(1)
             if leader then
                 local gpt  = leader:getPoint()
@@ -1412,6 +1430,7 @@ function CTLDTroopManager:_menuDisembark(unit)
 end
 
 --- Returns all dropped groups within maxExtractDistance of unit, sorted by distance asc (pt3).
+-- Excludes a group with zero logical troops (e.g. only a mortar servant left standing).
 -- @param unit      DCS Unit
 -- @param coalition number
 -- @return table  array of { groupName, group, distM }
@@ -1421,7 +1440,7 @@ function CTLDTroopManager:_findAllNearbyDropped(unit, coalition)
     local found   = {}
     for _, name in ipairs(self._droppedGroups[coalition]) do
         local g = Group.getByName(name)
-        if g and g:isExist() and #g:getUnits() > 0 then
+        if g and g:isExist() and #g:getUnits() > 0 and self:_countLogicalUnits(g) > 0 then
             local leader = g:getUnit(1)
             if leader then
                 local gpt  = leader:getPoint()

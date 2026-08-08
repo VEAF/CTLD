@@ -72,6 +72,10 @@ redefined terms are added here in the same move as the decision that introduces 
   **always** designates the AI-controlled transport units (auto pickup/dropoff via AIZ zones).
 - **Troop** — an infantry group loaded/unloaded by a transport; state machine
   (loaded → deployed → field-loaded → extracted).
+- **Logical troop count** — the number of DCS units in a troop group that count toward transport
+  capacity, zone stock and player-facing counts. Excludes cosmetic crew (`SVNT_*` mortar servants,
+  spawned alongside a mortar unit but never counted as a troop). Distinct from the raw DCS unit
+  count (`#group:getUnits()`), which includes those servants.
 - **Crate** — a supply crate that can be spawned, slung, dropped by parachute, and **packed** /
   **unpacked** into a static or vehicle.
 - **Pack / unpack** — the sanctioned verbs for crate assembly/disassembly. The old term
