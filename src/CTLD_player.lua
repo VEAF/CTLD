@@ -353,6 +353,9 @@ end
 
 --- DCS S_EVENT_PLAYER_LEAVE_UNIT handler.
 -- Removes the CTLDPlayer and wipes the F10 CTLD menu.
+-- For multi-crew aircraft (multiple players sharing the same DCS group), the DCS
+-- menu is preserved as long as at least one crew member remains tracked.  Full
+-- teardown runs only when the last tracked player in the group leaves.
 -- @param event table  DCS event { initiator = Unit, ... }
 function CTLDPlayerManager:onPlayerLeaveUnit(event)
     local unit = event and event.initiator
@@ -361,18 +364,27 @@ function CTLDPlayerManager:onPlayerLeaveUnit(event)
     local playerObj = self._players[unitName]
     if not playerObj then return end
 
-    local mmgr     = ctld.MenuManager:getInstance()
-    local menuData = mmgr.menus and mmgr.menus[playerObj.groupId]
-    if menuData then
-        for _, item in ipairs(menuData.children or {}) do
-            if item._dcsHandle ~= nil then
-                missionCommands.removeItemForGroup(playerObj.groupId, item._dcsHandle)
-            end
-        end
-        mmgr.menus[playerObj.groupId] = nil
+    -- Count players sharing this groupId (includes the departing player).
+    local groupId    = playerObj.groupId
+    local groupCount = 0
+    for _, p in pairs(self._players) do
+        if p.groupId == groupId then groupCount = groupCount + 1 end
     end
-    self._players[unitName] = nil
 
+    if groupCount <= 1 then
+        -- Last player in the group: full DCS menu teardown.
+        local mmgr     = ctld.MenuManager:getInstance()
+        local menuData = mmgr.menus and mmgr.menus[groupId]
+        if menuData then
+            for _, h in ipairs(menuData._activeHandles or {}) do
+                missionCommands.removeItemForGroup(groupId, h)
+            end
+            mmgr.menus[groupId] = nil
+        end
+    end
+    -- else: other crew members remain — preserve the DCS menu for them.
+
+    self._players[unitName] = nil
     ctld.utils.log("INFO", "CTLDPlayerManager: leave unit=" .. unitName)
 end
 
