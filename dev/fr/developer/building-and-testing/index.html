@@ -2094,9 +2094,33 @@ continue, si bien que les commandes ci-dessous reflètent ce que fait la CI à c
 scénarios — sont couverts dans <a href="../integration-testing/">Tests d'intégration</a>. Cette page se
 limite à la chaîne de build et aux tests basés sur busted qui s'exécutent entièrement sans DCS.</p>
 <h2 id="build-pipeline">Chaîne de build<a class="headerlink" href="#build-pipeline" title="Permanent link">&para;</a></h2>
-<p>CTLD est distribué sous forme d'un fichier unique, <code>CTLD.lua</code>, à la racine du dépôt. Il est
-<strong>généré</strong> en fusionnant les modules en Lua pur situés sous <code>src/</code> dans l'ordre de dépendance — ne
-le modifiez jamais à la main, et reconstruisez-le après toute modification de <code>src/</code>.</p>
+<p>CTLD est distribué sous forme d'un fichier unique, <code>CTLD.lua</code>. Il est <strong>généré</strong> en fusionnant les
+modules en Lua pur situés sous <code>src/</code> dans l'ordre de dépendance — ne le modifiez jamais à la main,
+et reconstruisez-le après toute modification de <code>src/</code>.</p>
+<p>Il <strong>ne figure pas dans le dépôt</strong> : un clone neuf n'a pas de <code>CTLD.lua</code>, et celui que vous
+construisez se pose à la racine du dépôt, ignoré par git. Où en obtenir un sans le construire :</p>
+<table>
+<thead>
+<tr>
+<th>Vous êtes</th>
+<th>Prenez-le</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>contributeur</td>
+<td>via le build ci-dessous</td>
+</tr>
+<tr>
+<td>concepteur de mission</td>
+<td>dans <code>ctld-tools.exe</code>, qui l'embarque — ou dans les fichiers joints à une <a href="https://github.com/VEAF/CTLD/releases">release</a></td>
+</tr>
+<tr>
+<td>testeur d'un correctif non publié</td>
+<td>dans la <a href="https://github.com/VEAF/CTLD/releases/tag/dev">pré-version flottante <code>dev</code></a>, reconstruite à chaque fusion dans <code>develop</code></td>
+</tr>
+</tbody>
+</table>
 <p><strong>Build local (Windows) :</strong></p>
 <div class="highlight"><pre><span></span><code>powershell -ExecutionPolicy Bypass -File tools/build/merge_CTLD.ps1
 </code></pre></div>

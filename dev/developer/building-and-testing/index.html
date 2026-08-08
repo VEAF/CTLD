@@ -2094,9 +2094,32 @@ commands below mirror what CI does on every push.</p>
 against it — is covered in <a href="../integration-testing/">Integration testing</a>. This page is
 limited to the build pipeline and the busted-based tests that run entirely without DCS.</p>
 <h2 id="build-pipeline">Build pipeline<a class="headerlink" href="#build-pipeline" title="Permanent link">&para;</a></h2>
-<p>CTLD ships as a single file, <code>CTLD.lua</code>, at the repository root. It is <strong>generated</strong> by merging
-the pure-Lua modules under <code>src/</code> in dependency order — never hand-edit it, and rebuild after any
-<code>src/</code> change.</p>
+<p>CTLD ships as a single file, <code>CTLD.lua</code>. It is <strong>generated</strong> by merging the pure-Lua modules under
+<code>src/</code> in dependency order — never hand-edit it, and rebuild after any <code>src/</code> change.</p>
+<p>It is <strong>not in the repository</strong>: a fresh clone has no <code>CTLD.lua</code>, and the file you build sits at the
+repo root, git-ignored. Where to get one without building:</p>
+<table>
+<thead>
+<tr>
+<th>You are</th>
+<th>Take it from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>a contributor</td>
+<td>the build below</td>
+</tr>
+<tr>
+<td>a Mission Maker</td>
+<td><code>ctld-tools.exe</code>, which carries it — or the asset attached to a <a href="https://github.com/VEAF/CTLD/releases">release</a></td>
+</tr>
+<tr>
+<td>testing an unreleased fix</td>
+<td>the floating <a href="https://github.com/VEAF/CTLD/releases/tag/dev"><code>dev</code> pre-release</a>, rebuilt on every merge into <code>develop</code></td>
+</tr>
+</tbody>
+</table>
 <p><strong>Local build (Windows):</strong></p>
 <div class="highlight"><pre><span></span><code>powershell -ExecutionPolicy Bypass -File tools/build/merge_CTLD.ps1
 </code></pre></div>
