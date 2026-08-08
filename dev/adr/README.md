@@ -15,3 +15,6 @@ Retroactive ADRs document decisions already made during the v2.0.0 rewrite.
 | [0007](0007-design-time-asset-validation.md) | Design-time asset validation over runtime probing | Accepted |
 | [0008](0008-userconfig-api-and-aa-injection-in-bootstrap.md) | userConfig API and AA injection relocated to bootstrap | Accepted |
 | [0009](0009-external-yaml-authoring-ctld-tools.md) | External YAML authoring for CTLD configuration (ctld-tools) | Accepted |
+| [0010](0010-startup-report-two-family-separation.md) | Startup report and two-family output separation | Accepted |
+| [0011](0011-complete-yaml-config-and-webapp-tooling.md) | Complete-YAML config model and web-app tooling for ctld-tools | Accepted — supersedes 0008 and 0009 points 2 & 3 |
+| [0012](0012-canonical-names-for-custom-beacon-sounds.md) | Canonical file names for custom beacon sounds | Accepted |
