@@ -2279,10 +2279,14 @@ telling you to hover lower or land.</p>
 <p>To recover a group that was dropped earlier, land within extract range (default <strong>125 m</strong>,
 <code>maxExtractDistance</code>) and use <strong>Embark / Extract Troops</strong>:</p>
 <ul>
-<li>One group nearby → a direct <strong>Extract: &lt;group name&gt;</strong> button.</li>
-<li>Several nearby → an <strong>Extract from field</strong> submenu listing each group with its distance, e.g.
-  <code>Bravo (25m)</code>.</li>
+<li>One group nearby → a direct <strong>Extract: &lt;group name&gt;</strong> button, showing its current troop
+  count, e.g. <code>Extract: Bravo (7 troops)</code>.</li>
+<li>Several nearby → an <strong>Extract from field</strong> submenu listing each group with its current troop
+  count and distance, e.g. <code>Bravo (7 troops, 25m)</code>.</li>
 </ul>
+<p>The troop count reflects survivors, not the number originally deployed — casualties taken since
+drop-off are excluded. A group that lost every real trooper (only a mortar servant left standing)
+no longer appears here.</p>
 <p>You must be on the ground, and you need enough spare capacity to take the group on board. The
 extracted team keeps its identity and any orders, so you can drop it again elsewhere.</p>
 <p>Mission makers can also make pre-placed map groups extractable this way without a pickup zone —
