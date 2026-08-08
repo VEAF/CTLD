@@ -34,5 +34,5 @@ No history rewriting: the 471 past blobs weigh 2.8 MiB packed and harm nobody.
 - [x] A release still attaches `CTLD.lua`, and so does the `dev` pre-release — observed on the
       first dev build: assets `ctld-tools.exe` (22.4 MB) and `CTLD.lua` (1.17 MB), the latter
       declaring `ctld.VERSION = "2.0.0-rc6-182ec25"`.
-- [ ] CI green with the file absent — this PR's own run is the proof; `python-quality` must report
-      262 passed, 0 skipped.
+- [x] CI green with the file absent from the repository: all eight checks pass on PR #110, and
+      `python-quality` reports **262 passed, 0 skipped** after building the engine itself.

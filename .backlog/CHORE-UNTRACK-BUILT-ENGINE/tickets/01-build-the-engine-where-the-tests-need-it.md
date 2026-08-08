@@ -41,6 +41,6 @@ either can break it and must trigger it.
 - [x] `python-quality` builds `CTLD.lua` before running `pytest`.
 - [x] A local Windows build still works unchanged — same command, and `git diff` on the rebuilt
       `CTLD.lua` reports no changed line. Suite still at **262 passed**.
-- [ ] The suite reports **262 passed, 0 skipped** on the ubuntu runner — only observable once this
-      PR's CI runs. It is also where `pwsh`'s presence on the image gets confirmed; the fallback if
-      it is missing is `windows-latest`, per the ticket.
+- [x] The suite reports **262 passed, 0 skipped** on the ubuntu runner (PR #110 CI), and `pwsh` is
+      present — the log shows `shell: /usr/bin/pwsh` then `Merged : 32 file(s)`. The
+      `windows-latest` fallback is not needed.
