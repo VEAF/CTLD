@@ -118,19 +118,29 @@ function ctld.MenuManager:refreshMenuForGroup(groupId)
 
     -- Remove only CTLD's own top-level entries — never wipe the whole group menu
     -- (nil path would also destroy standard DCS entries such as Ground Crew / ATC).
-    -- We use the opaque DCS handle stored at the previous build (_dcsHandle).
-    -- Passing a string array ({"CTLD"}) to removeItemForGroup is silently ignored by DCS,
-    -- which expects the opaque handle returned by addSubMenuForGroup/addCommandForGroup.
-    for _, item in ipairs(menu.children) do
-        if item._dcsHandle ~= nil then
-            missionCommands.removeItemForGroup(groupId, item._dcsHandle)
-            item._dcsHandle = nil
-        end
+    -- _activeHandles survives a menu.children reset in buildMenu, so handles are
+    -- always available for cleanup even when the logical tree has been rebuilt.
+    local removed = 0
+    for _, h in ipairs(menu._activeHandles) do
+        missionCommands.removeItemForGroup(groupId, h)
+        removed = removed + 1
+    end
+    menu._activeHandles = {}
+    if removed > 0 then
+        ctld.logInfo("ctld.MenuManager:refreshMenuForGroup: removed %d top-level handle(s) for group %d",
+            removed, groupId)
     end
 
     local count = 0
     for _, item in ipairs(ctld.MenuManager:_sortByOrder(menu.children)) do
         count = count + ctld.MenuManager:_rebuildMenuNode(groupId, {}, item)
+    end
+
+    -- Repopulate _activeHandles with the new top-level handles for the next cleanup pass.
+    for _, item in ipairs(menu.children) do
+        if item._dcsHandle ~= nil then
+            table.insert(menu._activeHandles, item._dcsHandle)
+        end
     end
 
     ctld.logInfo("ctld.MenuManager:refreshMenuForGroup: rebuilt %d items for group %d", count, groupId)
@@ -285,12 +295,13 @@ ctld.Menu = {}
 
 function ctld.Menu:_new(groupId, manager)
     local obj = {
-        groupId    = groupId,
-        groupName  = manager:_getGroupName(groupId),
-        children   = {},   -- root-level nodes (ordered by `order` field at render time)
-        _lookup    = {},   -- path string → node (for fast access)
-        manager    = manager,
-        nextItemId = 1,
+        groupId        = groupId,
+        groupName      = manager:_getGroupName(groupId),
+        children       = {},   -- root-level nodes (ordered by `order` field at render time)
+        _lookup        = {},   -- path string → node (for fast access)
+        _activeHandles = {},   -- opaque DCS handles for top-level items currently live in DCS
+        manager        = manager,
+        nextItemId     = 1,
     }
     setmetatable(obj, { __index = ctld.Menu })
     return obj

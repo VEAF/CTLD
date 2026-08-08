@@ -111,6 +111,37 @@ touches that perimeter.
 
 ---
 
+## MT-05 — Multi-crew F10 menu lifecycle (CH-47 pilot + copilot)
+
+**Perimeter / files:** `src/CTLD_menu.lua` — `ctld.Menu._activeHandles`, `refreshMenuForGroup` ;
+`src/CTLD_player.lua` — `buildMenu`, `onPlayerLeaveUnit`
+
+**Pre-requisites:**
+
+- Mission with a CH-47D (or any multi-crew transport) slot accessible to two players
+- Two human players available (or use two separate DCS instances on the same server)
+- CTLD loaded; dcs-bridge not required (F10 menu is directly observable in-game)
+
+### Sequence
+
+| # | Action | Verify |
+|---|--------|--------|
+| 1 | Player A enters the CH-47D pilot slot. Wait ≥ 2 s. | ✓ Exactly **one** "CTLD" entry appears in the F10 menu for player A. ✓ All sub-items are interactive (no freeze, commands execute). |
+| 2 | Player B enters the CH-47D copilot slot (same aircraft, same DCS group). | ✓ Player B sees exactly **one** "CTLD" entry in F10. ✓ Player A still sees exactly one "CTLD" entry — no duplication. ✓ Both players can interact with the menu (commands execute without error). |
+| 3 | Player A leaves the pilot slot while Player B remains in the copilot slot. | ✓ Player B still has exactly **one** "CTLD" entry in F10. ✓ Player B can still interact with the menu. ✓ Player A (now in no slot or spectators) has no CTLD menu. |
+| 4 | Player A re-enters the same pilot slot. Wait ≥ 2 s. | ✓ Player A sees exactly **one** "CTLD" entry. ✓ No duplication for either player. ✓ Both can interact normally. |
+| 5 | Player B leaves. Then Player A leaves. | ✓ After Player B leaves: Player A still has exactly one "CTLD" entry. ✓ After Player A leaves: F10 shows no CTLD entry for either player (full teardown). |
+| 6 | Single-pilot re-slot: Player A leaves and immediately re-enters the same slot. Wait ≥ 2 s. | ✓ Exactly **one** "CTLD" entry appears. No orphan entry from the previous session. |
+
+### Pass criteria
+
+- Steps 1–4: "CTLD" appears exactly once in F10 for each player at all times
+- Step 2: no menu freeze or non-interactive entry after copilot joins
+- Step 3: copilot menu survives pilot leave
+- Step 5: no orphan "CTLD" entry after last player leaves
+
+---
+
 ## MT-06 — RECON FARP/FOB layer — détection ennemie persistante
 
 **Perimeter / files:** `src/CTLD_recon.lua` — `_syncFarpMarks`, `_clearFarpMarks`,

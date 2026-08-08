@@ -360,6 +360,92 @@ describe("ctld.Menu removeMenuBranch", function()
 end)
 
 -- ─────────────────────────────────────────────────────────────
+describe("ctld.MenuManager refreshMenuForGroup _activeHandles", function()
+    -- U-067
+
+    local mgr
+    local addCalls    -- { groupId, name } per addSubMenuForGroup call
+    local removeCalls -- { groupId, handle } per removeItemForGroup call
+    local handleSeq   -- incremented handle counter
+
+    before_each(function()
+        ctld.MenuManager._instance = nil
+        mgr        = ctld.MenuManager:getInstance()
+        addCalls   = {}
+        removeCalls = {}
+        handleSeq  = 0
+        missionCommands.addSubMenuForGroup = function(gid, name, _path)
+            handleSeq = handleSeq + 1
+            local h = "h" .. handleSeq
+            table.insert(addCalls, { gid = gid, name = name, handle = h })
+            return h
+        end
+        missionCommands.addCommandForGroup = function() end
+        missionCommands.removeItemForGroup = function(gid, h)
+            table.insert(removeCalls, { gid = gid, handle = h })
+        end
+    end)
+
+    after_each(function()
+        missionCommands.addSubMenuForGroup = function() end
+        missionCommands.addCommandForGroup = function() end
+        missionCommands.removeItemForGroup = function() end
+    end)
+
+    it("first refresh: no removeItemForGroup call, _activeHandles populated", function()
+        local menu = mgr:createMenuForGroup(5001)
+        menu:addSubMenu({}, "CTLD", { order = 10 })
+        mgr:refreshMenuForGroup(5001)
+
+        assert.equals(0, #removeCalls)
+        assert.equals(1, #menu._activeHandles)
+        assert.equals("h1", menu._activeHandles[1])
+    end)
+
+    it("second refresh: removeItemForGroup called with first handle before new addSubMenuForGroup", function()
+        local menu = mgr:createMenuForGroup(5002)
+        menu:addSubMenu({}, "CTLD", { order = 10 })
+        mgr:refreshMenuForGroup(5002)
+        local firstHandle = menu._activeHandles[1]
+
+        -- Simulate buildMenu reset + section rebuild
+        menu.children  = {}
+        menu._lookup   = {}
+        menu.nextItemId = 1
+        menu:addSubMenu({}, "CTLD", { order = 10 })
+        mgr:refreshMenuForGroup(5002)
+
+        -- remove must have fired before the second add
+        assert.equals(1, #removeCalls)
+        assert.equals(firstHandle, removeCalls[1].handle)
+        -- second add produced a new handle stored in _activeHandles
+        assert.equals(1, #menu._activeHandles)
+        assert.not_equal(firstHandle, menu._activeHandles[1])
+    end)
+
+    it("_activeHandles is empty after menu.children reset until next refresh", function()
+        local menu = mgr:createMenuForGroup(5003)
+        menu:addSubMenu({}, "CTLD", { order = 10 })
+        mgr:refreshMenuForGroup(5003)
+        assert.equals(1, #menu._activeHandles)
+
+        -- Simulate buildMenu reset
+        menu.children  = {}
+        menu._lookup   = {}
+        menu.nextItemId = 1
+        -- _activeHandles must still hold the old handle (not cleared by children reset)
+        assert.equals(1, #menu._activeHandles)
+    end)
+
+    it("new ctld.Menu has empty _activeHandles", function()
+        local menu = mgr:createMenuForGroup(5004)
+        assert.is_not_nil(menu._activeHandles)
+        assert.equals(0, #menu._activeHandles)
+    end)
+
+end)
+
+-- ─────────────────────────────────────────────────────────────
 describe("ctld.MenuManager _rebuildPagedChildren pagination", function()
     -- U-066
 

@@ -347,3 +347,141 @@ describe("CTLDPlayerManager onPlayerEnterUnit + onPlayerLeaveUnit", function()
     end)
 
 end)
+
+-- ─────────────────────────────────────────────────────────────
+describe("CTLDPlayerManager onPlayerLeaveUnit multi-crew group-aware", function()
+    -- U-030
+
+    local mgr
+    local removeCalls
+
+    -- Build a minimal mock unit for a given unitName and groupId.
+    local function makeMockUnit(unitName, groupId)
+        local grp = { _id = groupId, _name = "grp_" .. groupId }
+        function grp:getID()   return self._id   end
+        function grp:getName() return self._name end
+
+        local u = { _name = unitName, _type = "CH-47D", _coa = coalition.side.BLUE }
+        function u:getName()       return self._name end
+        function u:getTypeName()   return self._type end
+        function u:getCoalition()  return self._coa  end
+        function u:isExist()       return true        end
+        function u:getPlayerName() return self._name end
+        function u:getGroup()      return grp         end
+        return u
+    end
+
+    -- Inject a CTLDPlayer directly into _players, bypassing buildMenu.
+    local function injectPlayer(m, unitName, groupId)
+        m._players[unitName] = CTLDPlayer:new({
+            unitName         = unitName,
+            groupId          = groupId,
+            groupName        = "grp_" .. groupId,
+            coalition        = coalition.side.BLUE,
+            typeName         = "CH-47D",
+            isTransport      = true,
+            canCarryVehicles = true,
+        })
+    end
+
+    -- Inject a ctld.Menu with a fake _activeHandles entry for groupId.
+    local function injectMenu(groupId, handle)
+        ctld.MenuManager._instance = nil
+        local mm   = ctld.MenuManager:getInstance()
+        local menu = mm:createMenuForGroup(groupId)
+        menu._activeHandles = { handle }
+        return mm
+    end
+
+    before_each(function()
+        CTLDPlayerManager._instance  = nil
+        CTLDDCSEventBridge._instance = nil
+        mgr = CTLDPlayerManager.getInstance()
+        removeCalls = {}
+        missionCommands.removeItemForGroup = function(gid, h)
+            table.insert(removeCalls, { gid = gid, handle = h })
+        end
+    end)
+
+    after_each(function()
+        missionCommands.removeItemForGroup = function() end
+        ctld.MenuManager._instance = nil
+    end)
+
+    it("last player leaves: removeItemForGroup called with active handle", function()
+        local gid = 7001
+        injectPlayer(mgr, "pilot_A", gid)
+        injectMenu(gid, "handle_A")
+
+        local unitA = makeMockUnit("pilot_A", gid)
+        mgr:onPlayerLeaveUnit({ initiator = unitA })
+
+        assert.equals(1, #removeCalls)
+        assert.equals("handle_A", removeCalls[1].handle)
+    end)
+
+    it("last player leaves: mmgr.menus[groupId] set to nil", function()
+        local gid = 7002
+        injectPlayer(mgr, "pilot_A", gid)
+        local mm = injectMenu(gid, "handle_A")
+
+        local unitA = makeMockUnit("pilot_A", gid)
+        mgr:onPlayerLeaveUnit({ initiator = unitA })
+
+        assert.is_nil(mm.menus[gid])
+    end)
+
+    it("non-last player leaves: removeItemForGroup NOT called", function()
+        local gid = 7003
+        injectPlayer(mgr, "pilot_A",   gid)
+        injectPlayer(mgr, "copilot_B", gid)
+        injectMenu(gid, "handle_AB")
+
+        local unitA = makeMockUnit("pilot_A", gid)
+        mgr:onPlayerLeaveUnit({ initiator = unitA })
+
+        assert.equals(0, #removeCalls)
+    end)
+
+    it("non-last player leaves: mmgr.menus[groupId] preserved", function()
+        local gid = 7004
+        injectPlayer(mgr, "pilot_A",   gid)
+        injectPlayer(mgr, "copilot_B", gid)
+        local mm = injectMenu(gid, "handle_AB")
+
+        local unitA = makeMockUnit("pilot_A", gid)
+        mgr:onPlayerLeaveUnit({ initiator = unitA })
+
+        assert.is_not_nil(mm.menus[gid])
+    end)
+
+    it("non-last leave: departing player removed from _players", function()
+        local gid = 7005
+        injectPlayer(mgr, "pilot_A",   gid)
+        injectPlayer(mgr, "copilot_B", gid)
+        injectMenu(gid, "handle_AB")
+
+        local unitA = makeMockUnit("pilot_A", gid)
+        mgr:onPlayerLeaveUnit({ initiator = unitA })
+
+        assert.is_nil(mgr:getPlayer("pilot_A"))
+        assert.is_not_nil(mgr:getPlayer("copilot_B"))
+    end)
+
+    it("after non-last leave, last player leaves: full cleanup fires", function()
+        local gid = 7006
+        injectPlayer(mgr, "pilot_A",   gid)
+        injectPlayer(mgr, "copilot_B", gid)
+        local mm = injectMenu(gid, "handle_AB")
+
+        mgr:onPlayerLeaveUnit({ initiator = makeMockUnit("pilot_A",   gid) })
+        mgr:onPlayerLeaveUnit({ initiator = makeMockUnit("copilot_B", gid) })
+
+        assert.equals(1, #removeCalls)
+        assert.equals("handle_AB", removeCalls[1].handle)
+        assert.is_nil(mm.menus[gid])
+        assert.is_nil(mgr:getPlayer("pilot_A"))
+        assert.is_nil(mgr:getPlayer("copilot_B"))
+    end)
+
+end)
