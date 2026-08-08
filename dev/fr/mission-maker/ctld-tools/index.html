@@ -961,6 +961,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Récupérer l&#39;outil">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-tool-carries-its-own-ctld" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L'outil embarque son propre CTLD
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2028,6 +2045,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Récupérer l&#39;outil">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-tool-carries-its-own-ctld" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L'outil embarque son propre CTLD
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2179,6 +2213,19 @@ fichier unique.</p>
 <p>Windows peut bloquer les fichiers <code>.exe</code> téléchargés depuis internet. Si l'outil ne démarre pas,
 clic droit sur <code>ctld-tools.exe</code> → <strong>Propriétés</strong> → onglet <strong>Général</strong> → cochez <strong>Débloquer</strong> en
 bas → <strong>OK</strong>.</p>
+</div>
+<h3 id="the-tool-carries-its-own-ctld">L'outil embarque son propre CTLD<a class="headerlink" href="#the-tool-carries-its-own-ctld" title="Permanent link">&para;</a></h3>
+<p>L'exe <strong>embarque le <code>CTLD.lua</code> qu'il installe</strong>, construit depuis le commit sur lequel sa release a
+été taguée. Il ne télécharge rien et ne se met jamais à jour tout seul : il fonctionne sans réseau,
+et le même exe installe toujours le même moteur.</p>
+<p>Une nouvelle version de CTLD n'arrive donc dans vos missions que lorsqu'une <strong>release est publiée</strong> —
+le travail courant fusionné dans le dépôt ne change rien pour vous. Pour en profiter, retéléchargez
+<code>ctld-tools.exe</code> depuis la page <a href="https://github.com/VEAF/CTLD/releases">Releases</a> et réinjectez dans
+votre mission ; réinjecter remplace ce que l'outil avait écrit au lieu de le dupliquer.</p>
+<div class="admonition note">
+<p class="admonition-title">Les <em>release candidates</em> ne portent pas le badge <em>Latest</em></p>
+<p>Tant que la v2 est en release candidate, chaque release est publiée en <strong>pré-version</strong>, et GitHub
+réserve le badge <em>Latest</em> aux versions stables. Prenez l'entrée la plus haute de la page Releases.</p>
 </div>
 <h2 id="open-it">Ouvrir l'outil<a class="headerlink" href="#open-it" title="Permanent link">&para;</a></h2>
 <p><strong>Double-cliquez <code>ctld-tools.exe</code>.</strong> Une petite fenêtre console s'ouvre — c'est le serveur local ;

@@ -961,6 +961,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Get the tool">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-tool-carries-its-own-ctld" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The tool carries its own CTLD
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2028,6 +2045,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Get the tool">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-tool-carries-its-own-ctld" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The tool carries its own CTLD
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2177,6 +2211,19 @@ file.</p>
 <p>Windows may block <code>.exe</code> files downloaded from the internet. If the tool doesn't start,
 right-click <code>ctld-tools.exe</code> → <strong>Properties</strong> → <strong>General</strong> tab → check <strong>Unblock</strong> at the bottom
 → <strong>OK</strong>.</p>
+</div>
+<h3 id="the-tool-carries-its-own-ctld">The tool carries its own CTLD<a class="headerlink" href="#the-tool-carries-its-own-ctld" title="Permanent link">&para;</a></h3>
+<p>The exe <strong>embeds the <code>CTLD.lua</code> it installs</strong>, built from the commit its release was tagged on. It
+downloads nothing and never updates itself: it works with no network, and the same exe always
+installs the same engine.</p>
+<p>A new CTLD therefore reaches your missions only when a <strong>release is published</strong> — day-to-day work
+merged into the repository changes nothing for you. To move to it, download <code>ctld-tools.exe</code> again
+from the <a href="https://github.com/VEAF/CTLD/releases">Releases</a> page and re-inject into your mission;
+re-injecting replaces what the tool wrote before instead of duplicating it.</p>
+<div class="admonition note">
+<p class="admonition-title">Release candidates carry no <em>Latest</em> badge</p>
+<p>While v2 is in release candidate, each release is published as a <strong>pre-release</strong>, and GitHub
+keeps the <em>Latest</em> badge for stable releases. Take the topmost entry on the Releases page.</p>
 </div>
 <h2 id="open-it">Open it<a class="headerlink" href="#open-it" title="Permanent link">&para;</a></h2>
 <p><strong>Double-click <code>ctld-tools.exe</code>.</strong> A small console window opens — that is the local server; leave it
