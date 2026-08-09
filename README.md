@@ -39,6 +39,13 @@ merged into the repository changes nothing on your side. To move to it, **downlo
 While v2 is in release candidate, each release is published as a **pre-release** — GitHub keeps the
 "Latest" badge for stable releases — so take the topmost entry on the Releases page.
 
+One exception to "only a release": someone may hand you a **dev build**, an exe rebuilt from the
+latest work merged into `develop` and published as the floating
+[`dev` pre-release](../../releases/tag/dev). It is unreleased and tested only by whatever CI ran on
+its commit, which it names in its own version (`ctld-tools.exe --version` prints
+`2.0.0-rc6-a1b2c3d`) — quote that in any bug report. Take one when someone asks you to try
+something; otherwise stay on a release.
+
 ### Windows says it blocked the app
 
 `ctld-tools.exe` is not code-signed — a certificate costs money a community project has no reason to
