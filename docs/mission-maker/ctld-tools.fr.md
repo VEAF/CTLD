@@ -98,6 +98,34 @@ Les entrées de catalogue — **caisses**, **groupes de troupes**, **capacités 
 type d'aéronef dans la liste DCS), **zones**, noms des pilotes de transport, poids des véhicules —
 s'éditent sous forme de tableaux, en bas de la famille à laquelle elles appartiennent.
 
+### Sons des balises { #beacon-sounds }
+
+Les deux sons de balise — l'audible et le silencieux réservé aux appareils FC3 — sont le seul
+endroit où un réglage est un **fichier** : ils ont donc un sélecteur plutôt qu'une zone de texte.
+**Par défaut** utilise le son embarqué dans l'outil, **Personnalisé** ouvre un explorateur de
+fichiers pour votre propre `.ogg`.
+
+Le fichier que vous choisissez est lu **immédiatement** et voyage dans la mission. C'est plus
+important qu'il n'y paraît : rouvrir ce `.miz` plus tard en ramène le son, donc vous pouvez
+reconfigurer et réinstaller la mission **sur une autre machine, des mois après, même si vous avez
+supprimé le fichier d'origine**.
+
+Deux détails à connaître :
+
+- **Dans la mission, le fichier est renommé** en `CTLD_beacon_custom.ogg` (ou
+  `CTLD_beaconsilent_custom.ogg`). Votre fichier à vous n'est pas touché, et l'outil conserve son
+  nom pour vous l'afficher — ce nom réservé est ce qui lui permet de distinguer votre son de celui
+  d'origine, même si le vôtre s'appelle lui aussi `beacon.ogg`.
+- **Un `.yaml` enregistré ne peut pas porter le son**, seulement son nom. Si vous rouvrez une telle
+  configuration, l'outil signalera le fichier manquant et refusera d'installer tant que vous ne
+  l'aurez pas resélectionné — mieux vaut ça qu'une mission dont les balises sont muettes sans que
+  rien ne l'explique. Si la mission visée contient déjà le fichier, il n'y a rien à faire.
+
+!!! tip "Ajouter le son vous-même"
+    Saisir un nom de fichier fonctionne toujours, pour un son que vous avez ajouté via l'éditeur de
+    mission : CTLD joue le `l10n/DEFAULT/<nom>` que vous lui indiquez. Le sélecteur est la voie
+    recommandée ; le champ texte reste là pour une mission câblée à la main.
+
 ### Annuler une modification { #undoing-a-change }
 
 Tout réglage que vous modifiez est marqué **modifié**, et la famille reçoit un compteur dans la

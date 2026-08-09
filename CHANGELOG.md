@@ -27,6 +27,23 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   every other bridge-registered death handler in the codebase. A group that loses its last real
   trooper while a mortar servant survives is now despawned reactively at that moment.
 
+### Added — beacon sounds a Mission Maker can choose (FEAT-CUSTOM-BEACON-SOUNDS)
+
+- **`ctld-tools` can install your own beacon sound.** The two sound settings (`radioSound`,
+  `radioSoundFC3`) are no longer free-text boxes naming a file the tool never installed: each gets
+  a **Default / Custom** picker, and a chosen `.ogg` is written into the `.miz` with its resource
+  key and preload trigger, exactly like the bundled ones. The file is checked for an `OggS`
+  signature when picked — a renamed `.mp3` would play nothing in DCS.
+- **A custom sound travels in the mission.** Reopening an installed `.miz` recovers it, so the
+  mission can be reconfigured and reinstalled on another machine after the original file is gone.
+  A configuration saved as `.yaml` carries only the name, so reopening one asks for the file again
+  and blocks installation until it is supplied (unless the target mission already holds it).
+- **Schema:** a sound chosen through the tool enters the mission under a reserved name
+  (`CTLD_beacon_custom.ogg` / `CTLD_beaconsilent_custom.ogg`) — see ADR 0012 — with the name it had
+  on disk kept as a label (`radioSoundOriginalName`, `radioSoundFC3OriginalName`, schema-only, so no
+  existing configuration reports a missing setting). Typing a file name by hand is unchanged and
+  still supported for a sound added through the Mission Editor.
+
 ### Fixed — F10 menu duplication and multi-crew menu loss (FIX-MENU-DOUBLE-MULTICREW)
 
 - **F10 menu no longer duplicates** when a second crew member joins a multi-crew aircraft

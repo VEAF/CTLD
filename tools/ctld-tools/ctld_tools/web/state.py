@@ -23,6 +23,12 @@ class Session:
         self._mission_path: Path | None = None
         # "file" (this tool's install, or a .yaml) or "inline" (a mission installed by rc1–rc3).
         self._config_shape: str = "file"
+        # The bytes of each customised beacon sound, keyed by setting name. Filled either from the
+        # disk (the MM just picked a file) or from the archive (they just opened a mission that
+        # carries one) — one notion, two sources. Keeping a *path* instead would rot: the file
+        # moves, the drive is unplugged, the configuration is reopened on another machine; and a
+        # mission has no path to offer at all.
+        self._sounds: dict[str, bytes] = {}
 
     # ── loaded catalogue ───────────────────────────────────────────
     @property
@@ -52,10 +58,17 @@ class Session:
         one has to work: otherwise last month's mission can only be reconfigured from scratch. Both
         storage shapes are read (see `install.read_config`), and `mission_path` remembers which
         mission it came from so the next install defaults to it.
+
+        A mission also carries its **sounds**, so a customised one is recovered here — that is what
+        makes an installed mission reconfigurable months later, on another machine, with the
+        original file long gone. A `.yaml` cannot carry one (a binary has no place in the
+        configuration document), so opening one leaves the sounds empty and validation asks for the
+        file before the next install.
         """
         path = Path(path)
+        self._sounds = {}
         if path.suffix.lower() == ".miz":
-            from ctld_tools.install import read_config
+            from ctld_tools.install import read_config, read_sounds_from_miz
 
             found = read_config(path)
             if found is None:
@@ -64,6 +77,7 @@ class Session:
             self._path = None
             self._mission_path = path
             self._config_shape = found.shape
+            self._sounds = read_sounds_from_miz(path, self._catalog)
             return
         self._catalog = Catalog.load(path)
         self._path = path
@@ -73,11 +87,29 @@ class Session:
     def load_text(self, text: str) -> None:
         self._catalog = Catalog.loads(text)
         self._path = None
+        self._sounds = {}
 
     def load_default(self) -> None:
         path = resources.default_catalog_path()
         self._catalog = Catalog.load(path)
         self._path = path
+        self._sounds = {}
+
+    # ── custom beacon sounds ───────────────────────────────────────
+    def set_sound(self, setting: str, data: bytes) -> None:
+        """Hold the bytes of a customised sound for `setting`."""
+        self._sounds[setting] = data
+
+    def sound(self, setting: str) -> bytes | None:
+        """The bytes held for `setting`, or None when it uses the bundled sound."""
+        return self._sounds.get(setting)
+
+    def drop_sound(self, setting: str) -> None:
+        self._sounds.pop(setting, None)
+
+    def sounds(self) -> dict[str, bytes]:
+        """Every customised sound currently held, keyed by setting name."""
+        return dict(self._sounds)
 
     # ── reference data (lazy, cached) ──────────────────────────────
     @property
@@ -97,6 +129,9 @@ class Session:
         self._path = None
         self._schema = None
         self._default = None
+        self._mission_path = None
+        self._config_shape = "file"
+        self._sounds = {}
 
 
 session = Session()

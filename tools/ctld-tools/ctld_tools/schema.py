@@ -60,6 +60,26 @@ class Schema:
         label = self._entry(key).get("label")
         return label.get(lang) or label.get("en") if isinstance(label, dict) else None
 
+    def editor(self, key: str) -> str | None:
+        """The editor the UI must use for this setting, or None for the type-derived default.
+
+        Only declared where the value's *type* is not enough to pick a control: `radioSound` is a
+        string, but a text box invites typing a file name that puts no file anywhere. Naming the
+        two keys inside a component instead would survive a schema rename with nothing failing —
+        the box would silently come back (`FEAT-EDITOR-COVERAGE` banned that pattern for `choices`).
+        """
+        editor = self._entry(key).get("editor")
+        return str(editor) if editor is not None else None
+
+    def hidden(self, key: str) -> bool:
+        """True when the key is written by the tool and must not appear as a setting.
+
+        For values the tool maintains beside another setting — the original file name of a custom
+        beacon sound (ADR 0012). They live in the configuration, so the UI has to know not to list
+        them; hand-editing one would only desynchronise it from the setting it describes.
+        """
+        return bool(self._entry(key).get("hidden", False))
+
     def unit(self, key: str) -> str | None:
         """The unit a value is expressed in ("m", "s", "kg", …), or None.
 

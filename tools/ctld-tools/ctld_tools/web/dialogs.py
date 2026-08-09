@@ -45,3 +45,12 @@ def save_config() -> str | None:
 
 def pick_miz() -> str | None:
     return _ask("askopenfilename", filetypes=[("DCS mission", "*.miz")])
+
+
+def pick_sound() -> str | None:
+    """Pick a beacon sound. `.ogg` first — the only format the engine is known to play here.
+
+    The filter is a convenience, not a guarantee: renaming an `.mp3` gets past it, so the bytes are
+    checked for the `OggS` signature once read (see `resources.is_ogg`).
+    """
+    return _ask("askopenfilename", filetypes=[("Ogg sound", "*.ogg"), ("All files", "*.*")])

@@ -5,6 +5,11 @@
 #   group:        functional family key (see the `families:` section below)
 #   standard:     true = shown under "Common settings"; false/absent = Advanced
 #   choices:      allowed values (a fixed enum) — offered as a value list
+#   editor:       the control the UI must use when the value's type is not enough to pick one
+#                 (`sound` = the default/custom beacon-sound picker). Declared here rather than
+#                 keyed off setting names inside a component, per FEAT-EDITOR-COVERAGE.
+#   hidden:       true = written by the tool beside another setting, never listed as a setting
+#                 of its own (the *OriginalName labels — see ADR 0012)
 #   label:        { en, fr } short display name, shown instead of the raw config key
 #   unit:         unit symbol shown next to a numeric value ("m", "s", "min", "m/s", "kg").
 #                 Not translated — symbols are language-independent. Each one was traced to
@@ -45,6 +50,7 @@ location_DMS:
 radioSound:
   group: general
   standard: true
+  editor: sound
   label: {en: Beacon sound file, fr: Fichier son du beacon}
   description:
     en: Beacon sound file — must be added to the mission .miz, or beacons will not work
@@ -52,10 +58,31 @@ radioSound:
 radioSoundFC3:
   group: general
   standard: true
+  editor: sound
   label: {en: Silent beacon file for FC3, fr: Fichier de beacon silencieux FC3}
   description:
     en: Silent beacon file for FC3 aircraft
     fr: Fichier de beacon silencieux pour les appareils FC3
+# The two labels below record the name a customised sound had on the Mission Maker's disk, which
+# the reserved in-mission name (ADR 0012) would otherwise lose. Written by the tool, read only by
+# it, never shown as a setting (`hidden`), and deliberately absent from CTLD_config.yaml: a
+# catalogue entry would make them *parameters* under ADR 0011 Addendum 1, so the completeness rule
+# would demand them of every snapshot — FIX-TOOL-I18N-LANG's wall. No `default:` either: absent
+# means the sound is the bundled one.
+radioSoundOriginalName:
+  group: general
+  hidden: true
+  label: {en: Original name of the custom beacon sound, fr: Nom d'origine du son de balise personnalisé}
+  description:
+    en: File name the custom beacon sound had when it was chosen — shown in the tool, ignored by CTLD
+    fr: Nom du fichier son personnalisé au moment de sa sélection — affiché dans l'outil, ignoré par CTLD
+radioSoundFC3OriginalName:
+  group: general
+  hidden: true
+  label: {en: Original name of the custom FC3 beacon sound, fr: Nom d'origine du son de balise FC3 personnalisé}
+  description:
+    en: File name the custom silent FC3 sound had when it was chosen — shown in the tool, ignored by CTLD
+    fr: Nom du fichier son FC3 silencieux personnalisé au moment de sa sélection — affiché dans l'outil, ignoré par CTLD
 addPlayerAircraftByType:
   group: general
   label: {en: Detect player units by type, fr: Détecter les unités joueur par type}

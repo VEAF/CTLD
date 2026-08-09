@@ -10,6 +10,11 @@ export interface SchemaKey {
   group: string | null
   standard: boolean
   choices: unknown[] | null
+  /** Named control when the value type is not enough to pick one (`sound` = beacon-sound picker).
+   *  Optional like the rest of the schema's metadata: an entry that declares none is normal. */
+  editor?: string | null
+  /** Written by the tool beside another setting — never listed as a setting of its own. */
+  hidden?: boolean
   /** Authored display name in the active language; null → derive one from the key. */
   label: string | null
   /** Authored unit symbol ("m", "s", "kg", …); null → fall back to reading the description. */
@@ -120,7 +125,37 @@ export type InstallResult = {
   triggers: string[]
   replacedPrevious: boolean
   changedSettings: number
+  sounds: InstalledSound[]
 }
+
+export type InstalledSound = {
+  setting: string
+  file: string
+  size: number
+  custom: boolean
+}
+
+/** What one beacon-sound picker shows: which source, which file, and whether it can be installed. */
+export type SoundState = {
+  setting: string
+  custom: boolean
+  file: string
+  /** The name the file had on the MM's disk — the reserved in-mission name would lose it. */
+  originalName: string | null
+  size: number | null
+  available: boolean
+}
+
+export const getSounds = () => fetch('/api/sounds').then((r) => json<{ sounds: SoundState[] }>(r))
+
+/** Open the native picker and adopt the chosen file; `{cancelled:true}` when the MM backs out. */
+export const chooseSound = (setting: string) =>
+  post(`/api/sounds/${setting}/custom`).then((r) =>
+    json<{ cancelled?: boolean; setting?: string; file?: string; originalName?: string; size?: number }>(r),
+  )
+
+export const resetSound = (setting: string) =>
+  post(`/api/sounds/${setting}/default`).then((r) => json<{ setting: string; file: string }>(r))
 
 export const injectMiz = (miz: string) =>
   post('/api/inject', { miz }).then((r) => json<InstallResult>(r))

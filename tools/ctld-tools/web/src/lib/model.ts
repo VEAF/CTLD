@@ -41,6 +41,10 @@ export function classify(snap: Snapshot, schema: SchemaInfo): Family[] {
   }
 
   for (const key of snap.keys) {
+    // A `hidden` key is written by the tool beside another setting (the original name of a custom
+    // beacon sound, ADR 0012). It lives in the configuration but is not a setting: listing it would
+    // invite hand-editing a label into disagreeing with the sound it describes.
+    if (schema.keys[key]?.hidden) continue
     if (isStructured(snap.values[key])) {
       family(DATA_FAMILY[key] ?? OTHER_FAMILY).data.push(key)
     } else {
@@ -58,9 +62,14 @@ export function classify(snap: Snapshot, schema: SchemaInfo): Family[] {
   return orderFamilies(byKey.keys(), schema.familyMeta).map((name) => byKey.get(name)!)
 }
 
-/** Every scalar setting key in the catalogue, used by search. */
-export function settingKeys(snap: Snapshot): string[] {
-  return snap.keys.filter((k) => !isStructured(snap.values[k]))
+/**
+ * Every scalar setting key in the catalogue, used by search.
+ *
+ * `schema` is optional only so old call sites keep working; pass it, or search will offer the
+ * hidden tool-written keys that `classify` deliberately leaves out of the families.
+ */
+export function settingKeys(snap: Snapshot, schema?: SchemaInfo): string[] {
+  return snap.keys.filter((k) => !isStructured(snap.values[k]) && !schema?.keys[k]?.hidden)
 }
 
 // ── scalar editors ────────────────────────────────────────────────

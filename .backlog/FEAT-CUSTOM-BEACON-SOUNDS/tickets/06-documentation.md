@@ -1,6 +1,6 @@
 # 06 — Document the custom sounds
 
-**Status:** todo
+**Status:** done
 **Lot:** FEAT-CUSTOM-BEACON-SOUNDS
 
 ## Problem
@@ -20,5 +20,6 @@ file, and both would be wrong the day this ships.
 
 ## Acceptance
 
-- [ ] EN and FR say the same thing, FR anchors matching their EN counterparts.
-- [ ] No claim about DCS audio formats that has not been verified.
+- [x] EN and FR say the same thing; the FR section carries `{ #beacon-sounds }`.
+- [x] No claim about DCS audio formats beyond what the code enforces: the docs say `.ogg` and that
+      a non-Ogg file is refused, and never assert what else DCS might accept.

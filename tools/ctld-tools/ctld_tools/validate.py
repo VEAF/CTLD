@@ -149,11 +149,39 @@ def _validate_completeness(catalog: Catalog, default: Catalog, out: list[Finding
             out.append(Finding(ERROR, f"settings.{key}", "validate.parameter.missing", {"name": key}))
 
 
+def _validate_custom_sounds(catalog: Catalog, available: Collection[str], out: list[Finding]) -> None:
+    """A customised beacon sound the install could not produce blocks the export.
+
+    `available` is the set of settings whose bytes the caller can write — held in the session
+    (chosen from disk, or recovered from the mission that was opened) or already sitting in the
+    target mission under the same name. Anything else means the archive would get a configuration
+    pointing at a file nobody wrote: silent beacons, discovered in flight, with nothing on screen
+    to explain them. That is the failure `FIX-INSTALL-SOUND-ORPHANS` and `FEAT-ONE-CLICK-INSTALL`
+    spent two lots removing, so it is an error rather than a line in the report.
+    """
+    from ctld_tools import resources
+
+    for setting, spec in resources.SOUND_SETTINGS.items():
+        if catalog.get(setting) != spec["custom"]:
+            continue
+        if setting in available:
+            continue
+        out.append(
+            Finding(
+                ERROR,
+                f"settings.{setting}",
+                "validate.sound.missing",
+                {"name": setting, "file": spec["custom"]},
+            )
+        )
+
+
 def validate(
     catalog: Catalog,
     schema: Schema,
     types: Collection[str] | None = None,
     default: Catalog | None = None,
+    sounds_available: Collection[str] | None = None,
 ) -> list[Finding]:
     """Return findings for a complete catalogue against the DCS types + the schema.
 
@@ -172,6 +200,8 @@ def validate(
     _validate_choices(catalog, schema, out)
     if default is not None:
         _validate_completeness(catalog, default, out)
+    if sounds_available is not None:
+        _validate_custom_sounds(catalog, sounds_available, out)
     return out
 
 

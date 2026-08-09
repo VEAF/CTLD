@@ -1,6 +1,6 @@
 # 04 — A sound that cannot be produced blocks the install
 
-**Status:** todo
+**Status:** done
 **Lot:** FEAT-CUSTOM-BEACON-SOUNDS
 
 ## Problem
@@ -23,7 +23,10 @@ Two ways to end up with silent beacons, both invisible until someone flies:
 
 ## Acceptance
 
-- [ ] A non-Ogg file is refused at selection; the configuration is unchanged.
-- [ ] Opening a `.yaml` that names a custom sound, then targeting a mission without it → blocking
-      error, install refused.
-- [ ] Same configuration, but the target mission already holds the file → no error, install allowed.
+- [x] A non-Ogg file is refused at selection (422, `OggS` named in the message) and the
+      configuration is left pointing at the bundled sound.
+- [x] Opening a `.yaml` that names a custom sound, then targeting a mission without it → blocking
+      `validate.sound.missing`, install refused.
+- [x] Same configuration, but the target mission already holds the file → no error, install allowed
+      and the existing bytes rewritten.
+- [x] No size cap; the size is reported instead.
