@@ -1,9 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import {
+    getCatalog,
     getDcsTypes,
     getDefaults,
     getSchema,
+    getSounds,
     getValidate,
     getVersion,
     getVersionGap,
@@ -16,6 +18,7 @@
     type Finding,
     type SchemaInfo,
     type Snapshot,
+    type SoundState,
     type ToolVersion,
     type VersionGap,
   } from './lib/api'
@@ -57,6 +60,7 @@
   let error = $state<string | null>(null)
   let status = $state<string | null>(null)
   let findings = $state<Finding[]>([])
+  let soundStates = $state<Record<string, SoundState>>({})
 
   // loadableGroups names — what an AI zone's troopTemplates may restrict itself to.
   const troopTemplateNames = $derived(
@@ -93,7 +97,7 @@
     DATA_FAMILY[key] ?? familyOf(key, schema?.keys[key]?.group)
 
   const hits = $derived(
-    !snapshot || !schema ? [] : searchSettings(query, settingKeys(snapshot), schema, familyForKey),
+    !snapshot || !schema ? [] : searchSettings(query, settingKeys(snapshot, schema), schema, familyForKey),
   )
   const searching = $derived(query.trim().length > 0)
 
@@ -194,6 +198,7 @@
       activeFamily = null
       advancedManual = null
       await doValidate()
+      await refreshSounds()
       const g = await getVersionGap()
       gap = g.isEmpty ? null : g
     } catch (e) {
@@ -207,6 +212,27 @@
     } catch {
       findings = []
     }
+  }
+
+  // The two beacon sounds are not editable as text: their state (bundled or a chosen file, and
+  // whether the tool still holds that file) lives in the backend session, so the row reads it from
+  // there rather than from the catalogue value alone.
+  async function refreshSounds() {
+    try {
+      soundStates = Object.fromEntries((await getSounds()).sounds.map((s) => [s.setting, s]))
+    } catch {
+      soundStates = {}
+    }
+  }
+
+  // Picking or clearing a sound edits the catalogue on the backend, so the snapshot and the
+  // validation both have to be re-read — the same round trip `applySetting` does for a text field.
+  async function onSoundChanged() {
+    snapshot = await getCatalog()
+    dirty = true
+    justSaved = false
+    await refreshSounds()
+    await doValidate()
   }
 
   function confirmDiscard(): boolean {
@@ -451,8 +477,10 @@
           value={snapshot?.values[hit.key]}
           fallback={defaults[hit.key]}
           familyName={familyLabel(hit.family, schema?.familyMeta)}
+          sound={soundStates[hit.key]}
           onedit={edit}
           onreset={reset}
+          onsound={onSoundChanged}
         />
       {/each}
     {:else if current && snapshot}
@@ -469,8 +497,10 @@
             meta={schema?.keys[key]}
             value={snapshot.values[key]}
             fallback={defaults[key]}
+            sound={soundStates[key]}
             onedit={edit}
             onreset={reset}
+            onsound={onSoundChanged}
           />
         {/each}
       {/if}
@@ -487,8 +517,10 @@
               meta={schema?.keys[key]}
               value={snapshot.values[key]}
               fallback={defaults[key]}
+              sound={soundStates[key]}
               onedit={edit}
               onreset={reset}
+              onsound={onSoundChanged}
             />
           {/each}
         </details>

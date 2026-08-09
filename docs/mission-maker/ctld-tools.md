@@ -89,6 +89,33 @@ Catalogue entries — **crates**, **troop groups**, **aircraft capabilities** (p
 from the DCS list), **zones**, transport pilot names, vehicle weights — are edited as tables, at the
 bottom of the family they belong to.
 
+### Beacon sounds
+
+The two beacon sounds — the audible one and the silent one FC3 aircraft use — are the one place
+where a setting is a **file**, so they get a picker rather than a text box: **Default** uses the
+sound the tool carries, **Custom** opens a file browser for your own `.ogg`.
+
+A file you choose is read **immediately** and travels inside the mission. That matters more than it
+sounds: reopening that `.miz` later brings the sound back with it, so you can reconfigure and
+reinstall the mission **on another machine, months later, even if you have deleted the file you
+originally picked**.
+
+Two details worth knowing:
+
+- **Inside the mission the file is renamed** to `CTLD_beacon_custom.ogg` (or
+  `CTLD_beaconsilent_custom.ogg`). Your own file is untouched, and the tool keeps its name to show
+  you — the reserved name is what lets it tell your sound apart from the bundled one, even when
+  yours happens to be called `beacon.ogg` too.
+- **A saved `.yaml` cannot carry the sound**, only its name. Reopen such a configuration and the
+  tool will say the file is missing and refuse to install until you pick it again — better than a
+  mission whose beacons are silent for reasons nobody can see. If the mission you are installing
+  into already holds the file, there is nothing to do.
+
+!!! tip "Adding the sound yourself"
+    Typing a file name still works, for a sound you added through the Mission Editor: CTLD plays
+    whatever `l10n/DEFAULT/<name>` you point it at. The picker is the supported path; the text
+    field remains for a mission wired by hand.
+
 ### Undoing a change
 
 Any setting you change is marked **changed**, and the family gets a counter in the left column, so

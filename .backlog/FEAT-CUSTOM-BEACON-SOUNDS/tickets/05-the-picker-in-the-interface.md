@@ -1,6 +1,6 @@
 # 05 — Default or custom, in the interface
 
-**Status:** todo
+**Status:** done
 **Lot:** FEAT-CUSTOM-BEACON-SOUNDS
 
 ## Problem
@@ -23,7 +23,9 @@ Both sounds are independent: one may be custom and the other default.
 
 ## Acceptance
 
-- [ ] Neither `radioSound` nor `radioSoundFC3` appears as a literal in any component.
-- [ ] Reopening a mission with a custom sound shows *Custom* and the original file name.
-- [ ] A component test covers the round trip Default → Custom → Default.
-- [ ] EN and FR strings, in step (the interface's own parity test).
+- [x] Neither setting name appears in any component: the picker is bound to `meta.editor === 'sound'`.
+- [x] Reopening a mission with a custom sound shows *Custom*, the original file name, the size and
+      the reserved name; an unavailable file gets its own warning line.
+- [x] `SoundPicker.test.ts` covers Default → Custom → Default, cancellation, and a refusal from the
+      backend (7 tests). The hidden labels are excluded from the families and from search.
+- [x] EN and FR strings in step — `i18n.parity.test.ts` passes.

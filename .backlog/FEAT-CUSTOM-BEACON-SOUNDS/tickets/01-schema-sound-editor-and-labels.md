@@ -1,6 +1,6 @@
 # 01 — The schema declares the sound editor and the original-name labels
 
-**Status:** todo
+**Status:** done
 **Lot:** FEAT-CUSTOM-BEACON-SOUNDS
 
 ## Problem
@@ -24,7 +24,9 @@ this lot would report a missing setting at mission start — `FIX-TOOL-I18N-LANG
 
 ## Acceptance
 
-- [ ] `Schema.editor("radioSound") == "sound"`; a setting without the field returns `None`.
-- [ ] The two label keys are absent from `src/CTLD_config.yaml`, so `validate` on an untouched
-      pre-lot configuration reports nothing new (test with a `2.0.0-rc6` config).
-- [ ] The header comment of the schema documents `editor:`.
+- [x] `Schema.editor("radioSound") == "sound"`; a setting without the field returns `None`.
+- [x] The two label keys are absent from `src/CTLD_config.yaml` (asserted in `test_schema.py`), so
+      the completeness rule never demands them; the whole suite still passes on the shipped
+      catalogue.
+- [x] The header comment of the schema documents `editor:` and `hidden:`.
+- [x] `/api/schema` carries both, so the UI binds on metadata rather than on a setting name.

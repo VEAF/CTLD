@@ -1,6 +1,6 @@
 # 03 — Install writes the chosen sound under its reserved name
 
-**Status:** todo
+**Status:** done
 **Lot:** FEAT-CUSTOM-BEACON-SOUNDS
 
 ## Problem
@@ -22,9 +22,10 @@ and whether it was the default or a chosen file.
 
 ## Acceptance
 
-- [ ] A custom install puts `CTLD_beacon_custom.ogg` in `l10n/DEFAULT/`, in `mapResource`, and in
-      the preload trigger — same three places as a default one.
-- [ ] `radioSound` in the injected configuration matches the file actually written.
-- [ ] Reinstalling over the same mission replaces rather than accumulates (existing idempotence
-      test, extended to the custom case).
-- [ ] Going back to the default restores `beacon.ogg` and leaves the mission playable.
+- [x] A custom install puts `CTLD_beacon_custom.ogg` in `l10n/DEFAULT/`, in `mapResource` (via
+      `sound_key`) and in the preload trigger — the same three places as a bundled one.
+- [x] `radioSound` in the injected configuration matches the file actually written; the report now
+      carries `{setting, file, size, custom}` per sound.
+- [x] Reinstalling over the same mission still replaces rather than accumulates (the existing
+      idempotence tests pass unchanged).
+- [x] Going back to the default restores `beacon.ogg`.

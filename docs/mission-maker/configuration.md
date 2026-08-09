@@ -191,8 +191,8 @@ randomised 90–120 % of `SOLDIER_WEIGHT`, plus kit and role-specific gear.
 |---|---|---|
 | `enabledRadioBeaconDrop` | `true` | Allow beacon deployment |
 | `deployedBeaconBattery` | `30` | Beacon battery life (minutes) |
-| `radioSound` | `"beacon.ogg"` | Beacon sound file — the tool puts it in the `.miz`; if you install by hand, add it yourself or beacons stay silent |
-| `radioSoundFC3` | `"beaconsilent.ogg"` | Silent beacon file for FC3 aircraft, same rule |
+| `radioSound` | `"beacon.ogg"` | Beacon sound file — the tool puts it in the `.miz`; if you install by hand, add it yourself or beacons stay silent. `CTLD_beacon_custom.ogg` means [a sound you chose](ctld-tools.md#beacon-sounds) |
+| `radioSoundFC3` | `"beaconsilent.ogg"` | Silent beacon file for FC3 aircraft, same rule (custom: `CTLD_beaconsilent_custom.ogg`) |
 
 ### AA systems
 

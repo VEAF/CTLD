@@ -1,6 +1,6 @@
 # 02 — The session holds the sound, not a path
 
-**Status:** todo
+**Status:** done
 **Lot:** FEAT-CUSTOM-BEACON-SOUNDS
 
 ## Problem
@@ -25,7 +25,8 @@ it, which ticket 04 turns into a blocking error rather than a surprise.
 
 ## Acceptance
 
-- [ ] Choosing a file then installing writes those bytes, with the source file deleted in between.
-- [ ] Opening a `.miz` with custom sounds, then installing into a **different** mission, reproduces
-      them — no access to the original file.
-- [ ] Loading the defaults after a custom choice leaves no bytes behind.
+- [x] Choosing a file then installing writes those bytes, with the source file deleted in between
+      (`test_a_custom_sound_survives_install_reopen_and_reinstall`).
+- [x] Opening a `.miz` with custom sounds, then installing into a **different** mission, reproduces
+      them byte for byte — the original file is `unlink()`ed and the session reset in between.
+- [x] Loading the defaults, a `.yaml`, or resetting the session leaves no bytes behind.

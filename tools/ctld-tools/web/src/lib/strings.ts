@@ -199,4 +199,13 @@ export const EN_STRINGS: Record<string, string> = {
   'web.slot.colour_b': "Blue",
   'web.slot.colour_a': "Opacity",
   'web.slot.colour_hint': "0.0 to 1.0",
+  // ── beacon sounds ───────────────────────────────────────────────
+  'web.sound.default': "Default",
+  'web.sound.custom': "Custom",
+  'web.sound.choose': "Choose a file…",
+  'web.sound.replace': "Choose another file…",
+  'web.sound.from': "from {name}",
+  'web.sound.in_mission': "in the mission: {name}",
+  'web.sound.missing': "The file is no longer loaded — choose it again, or switch back to the default.",
+  'web.sound.not_ogg': "That file is not an Ogg sound, so DCS would play nothing.",
 }

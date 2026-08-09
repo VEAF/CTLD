@@ -6,6 +6,7 @@ current default. No business logic: each route delegates to the lot-2 library.
 
 from __future__ import annotations
 
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -150,6 +151,8 @@ def get_schema(lang: str | None = None) -> dict[str, Any]:
             "group": schema.group(k),
             "standard": schema.standard(k),
             "choices": schema.choices(k),
+            "editor": schema.editor(k),
+            "hidden": schema.hidden(k),
             "label": schema.label(k, language),
             "unit": schema.unit(k),
             "description": schema.description(k, language) or schema.description(k),
@@ -311,11 +314,144 @@ def run_validate() -> dict[str, Any]:
         cat = session.catalog
     except LookupError as exc:
         raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
-    findings = validate(cat, session.schema, default=session.default_catalog())
+    findings = validate(
+        cat,
+        session.schema,
+        default=session.default_catalog(),
+        sounds_available=_sounds_available(session.mission_path),
+    )
     return {
         "hasErrors": has_errors(findings),
         "findings": [{"severity": f.severity, "where": f.where, "key": f.key, "message": f.message} for f in findings],
     }
+
+
+def _sounds_available(target: str | Path | None = None) -> set[str]:
+    """Which beacon sounds an install could actually write right now.
+
+    A customised sound is writable when the session holds its bytes — picked from disk, or read out
+    of the mission that was opened — **or** when the target mission already carries a file of that
+    name. The second case is the Mission Maker reinstalling over the same mission, or one who put
+    the file there through the Mission Editor: nothing is missing, so nothing should be reported.
+    """
+    from ctld_tools.install import L10N, custom_sound_name
+
+    cat = session.catalog
+    out = set(session.sounds())
+    if target is None:
+        return out
+    path = Path(target)
+    if not path.is_file():
+        return out
+    try:
+        with zipfile.ZipFile(path) as z:
+            members = set(z.namelist())
+    except (zipfile.BadZipFile, OSError):
+        return out
+    for setting in resources.SOUND_SETTINGS:
+        name = custom_sound_name(cat, setting)
+        if name and f"{L10N}/{name}" in members:
+            out.add(setting)
+    return out
+
+
+def _target_sounds(target: str | Path, catalog: Any) -> dict[str, bytes]:
+    """Customised sounds the target mission already carries, so a reinstall can rewrite them."""
+    from ctld_tools.install import read_sounds_from_miz
+
+    path = Path(target)
+    if not path.is_file():
+        return {}
+    try:
+        return read_sounds_from_miz(path, catalog)
+    except (zipfile.BadZipFile, OSError):
+        return {}
+
+
+def _sound_state() -> list[dict[str, Any]]:
+    """What the UI needs to render the two pickers: source, name, size, availability."""
+    cat = session.catalog
+    state: list[dict[str, Any]] = []
+    for setting, spec in resources.SOUND_SETTINGS.items():
+        value = cat.get(setting)
+        custom = value == spec["custom"]
+        held = session.sound(setting)
+        state.append(
+            {
+                "setting": setting,
+                "custom": custom,
+                "file": value,
+                "originalName": cat.get(spec["label"]) if custom else None,
+                "size": len(held) if held is not None else None,
+                "available": (not custom) or setting in _sounds_available(session.mission_path),
+            }
+        )
+    return state
+
+
+@app.get("/api/sounds")
+def get_sounds() -> dict[str, Any]:
+    try:
+        session.catalog
+    except LookupError as exc:
+        raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
+    return {"sounds": _sound_state()}
+
+
+@app.post("/api/sounds/{setting}/custom")
+def choose_sound(setting: str) -> dict[str, Any]:
+    """Pick a beacon sound from disk: read it now, keep the bytes, point the setting at them.
+
+    The bytes are read **here**, not at install time, so the choice survives the file being moved,
+    the drive being unplugged, or the configuration being carried to another machine — the whole
+    point of ADR 0012's model.
+    """
+    spec = resources.SOUND_SETTINGS.get(setting)
+    if spec is None:
+        raise HTTPException(status_code=404, detail=f"not a beacon sound setting: {setting}")
+    try:
+        cat = session.catalog
+    except LookupError as exc:
+        raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
+
+    from ctld_tools.web import dialogs
+
+    chosen = dialogs.pick_sound()
+    if not chosen:
+        return {"cancelled": True}
+    path = Path(chosen)
+    data = path.read_bytes()
+    if not resources.is_ogg(data):
+        raise HTTPException(
+            status_code=422,
+            detail=f"{path.name} is not an Ogg file (no OggS signature) — DCS would play nothing",
+        )
+
+    session.set_sound(setting, data)
+    cat.set(setting, spec["custom"])
+    if cat.has(spec["label"]):
+        cat.set(spec["label"], path.name)
+    else:
+        cat.add_setting(spec["label"], path.name)
+    return {"setting": setting, "file": spec["custom"], "originalName": path.name, "size": len(data)}
+
+
+@app.post("/api/sounds/{setting}/default")
+def reset_sound(setting: str) -> dict[str, Any]:
+    """Go back to the bundled sound: drop the bytes, the reserved name and the label."""
+    spec = resources.SOUND_SETTINGS.get(setting)
+    if spec is None:
+        raise HTTPException(status_code=404, detail=f"not a beacon sound setting: {setting}")
+    try:
+        cat = session.catalog
+    except LookupError as exc:
+        raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
+
+    session.drop_sound(setting)
+    cat.set(setting, spec["default"])
+    if cat.has(spec["label"]):
+        cat.remove(spec["label"])
+    return {"setting": setting, "file": spec["default"]}
 
 
 @app.get("/api/dialog/{kind}")
@@ -345,10 +481,27 @@ def inject(req: InjectRequest) -> dict[str, Any]:
         cat = session.catalog
     except LookupError as exc:
         raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
-    if has_errors(validate(cat, session.schema, default=session.default_catalog())):
+    # Validated against the **target** mission, not the open one: a customised sound already sitting
+    # in the mission being written to is not missing, wherever the configuration came from.
+    findings = validate(
+        cat,
+        session.schema,
+        default=session.default_catalog(),
+        sounds_available=_sounds_available(req.miz),
+    )
+    if has_errors(findings):
         raise HTTPException(status_code=422, detail="fix validation errors before injecting")
     try:
-        report = install(req.miz, wrap(cat.dumps(), "configUser"), req.miz)
+        report = install(
+            req.miz,
+            wrap(cat.dumps(), "configUser"),
+            req.miz,
+            catalog=cat,
+            # The session wins where it has something; the target mission fills the rest, which is
+            # the "already there" case validation just allowed. Merged, not `or`-ed: one sound may
+            # come from each side.
+            held_sounds={**_target_sounds(req.miz, cat), **session.sounds()},
+        )
     except FileNotFoundError as exc:  # a checkout with no built engine, or a missing .miz
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
@@ -361,6 +514,7 @@ def inject(req: InjectRequest) -> dict[str, Any]:
         "triggers": report.triggers,
         "replacedPrevious": report.replaced_previous,
         "changedSettings": changed,
+        "sounds": report.sounds,
     }
 
 

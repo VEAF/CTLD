@@ -2,10 +2,11 @@
   // One setting: human label, raw key, description, the right editor, its unit, and a way back to
   // the CTLD default. The row is the unit of trust — a MM should be able to read what a setting
   // does, see whether they have touched it, and undo that, without leaving the row.
-  import type { SchemaKey } from './api'
+  import type { SchemaKey, SoundState } from './api'
   import { t } from './i18n.svelte'
   import { settingLabel, settingUnit } from './labels'
   import { editorType, isChanged, type EditorType } from './model'
+  import SoundPicker from './SoundPicker.svelte'
 
   let {
     settingKey,
@@ -13,8 +14,10 @@
     value,
     fallback,
     familyName,
+    sound,
     onedit,
     onreset,
+    onsound,
   }: {
     settingKey: string
     meta: SchemaKey | undefined
@@ -22,8 +25,11 @@
     fallback: unknown
     /** Set when the row is shown in search results, to say which family owns it. */
     familyName?: string
+    /** Present for a setting the schema marks `editor: 'sound'`. */
+    sound?: SoundState
     onedit: (key: string, raw: string | boolean, type: EditorType) => void
     onreset: (key: string, fallback: unknown) => void
+    onsound?: () => void
   } = $props()
 
   const name = $derived(settingLabel(settingKey, meta?.label))
@@ -42,7 +48,9 @@
   </div>
 
   <div class="ctrl">
-    {#if type === 'boolean'}
+    {#if meta?.editor === 'sound' && sound}
+      <SoundPicker {sound} onchange={() => onsound?.()} />
+    {:else if type === 'boolean'}
       <input {id} type="checkbox" checked={value === true} onchange={(e) => onedit(settingKey, e.currentTarget.checked, 'boolean')} />
     {:else if type === 'enum'}
       <select {id} value={String(value)} onchange={(e) => onedit(settingKey, e.currentTarget.value, 'enum')}>
@@ -59,7 +67,7 @@
       <input {id} type="text" value={String(value ?? '')} onchange={(e) => onedit(settingKey, e.currentTarget.value, 'string')} />
     {/if}
 
-    {#if changed}
+    {#if changed && meta?.editor !== 'sound'}
       <button class="ghost reset" title={t('web.action.reset')} aria-label={`${t('web.action.reset')}: ${name}`} onclick={() => onreset(settingKey, fallback)}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
           <path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4" />

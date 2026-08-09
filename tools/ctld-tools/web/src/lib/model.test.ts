@@ -16,8 +16,9 @@ const schema: SchemaInfo = {
   families: ['aa', 'troops', 'jtac'],
   familyMeta: {},
   keys: {
-    numberOfTroops: { group: 'troops', standard: true, choices: null, label: null, unit: null, description: null },
-    aaRearmDistance: { group: 'aa', standard: false, choices: null, label: null, unit: null, description: null },
+    numberOfTroops: { group: 'troops', standard: true, choices: null, editor: null, hidden: false, label: null, unit: null, description: null },
+    aaRearmDistance: { group: 'aa', standard: false, choices: null, editor: null, hidden: false, label: null, unit: null, description: null },
+    radioSoundOriginalName: { group: 'general', standard: false, choices: null, editor: null, hidden: true, label: null, unit: null, description: null },
     // hoverTime has no schema entry and no prefix rule → OTHER_FAMILY
   },
   tableFields: {},
@@ -26,11 +27,12 @@ const schema: SchemaInfo = {
 
 const snap: Snapshot = {
   path: null,
-  keys: ['numberOfTroops', 'aaRearmDistance', 'hoverTime', 'spawnableCrates', 'transportPilotNames'],
+  keys: ['numberOfTroops', 'aaRearmDistance', 'hoverTime', 'radioSoundOriginalName', 'spawnableCrates', 'transportPilotNames'],
   values: {
     numberOfTroops: 10,
     aaRearmDistance: 300,
     hoverTime: 10,
+    radioSoundOriginalName: 'Ma Balise Été.ogg',
     spawnableCrates: { Support: [] },
     transportPilotNames: ['Pilot #1'],
   },
@@ -58,7 +60,10 @@ describe('classify', () => {
     const placed = classify(snap, schema)
       .flatMap((f) => [...f.standard, ...f.advanced, ...f.data])
       .sort()
-    expect(placed).toEqual([...snap.keys].sort())
+    // Totality still holds, over the settings: the only exclusion is a key the schema marks
+    // `hidden`, i.e. one the tool writes beside another setting rather than one the MM edits.
+    const editable = snap.keys.filter((k) => !schema.keys[k]?.hidden).sort()
+    expect(placed).toEqual(editable)
   })
 
   it('puts an unplaceable setting in `other` rather than dropping it', () => {
@@ -68,12 +73,25 @@ describe('classify', () => {
 
 describe('settingKeys', () => {
   it('lists the scalar keys only — what search covers', () => {
-    expect(settingKeys(snap)).toEqual(['numberOfTroops', 'aaRearmDistance', 'hoverTime'])
+    expect(settingKeys(snap, schema)).toEqual(['numberOfTroops', 'aaRearmDistance', 'hoverTime'])
+  })
+
+  it('leaves out the tool-written labels, so search cannot offer one to edit', () => {
+    expect(settingKeys(snap, schema)).not.toContain('radioSoundOriginalName')
+  })
+})
+
+describe('hidden keys', () => {
+  it('never land in a family — they are labels, not settings (ADR 0012)', () => {
+    const everywhere = classify(snap, schema).flatMap((f) => [...f.standard, ...f.advanced, ...f.data])
+    expect(everywhere).not.toContain('radioSoundOriginalName')
+    // …and the setting they describe is still listed as usual
+    expect(snap.keys).toContain('radioSoundOriginalName')
   })
 })
 
 describe('editorType', () => {
-  const enumMeta: SchemaKey = { group: null, standard: false, choices: ['a', 'b'], label: null, unit: null, description: null }
+  const enumMeta: SchemaKey = { group: null, standard: false, choices: ['a', 'b'], editor: null, hidden: false, label: null, unit: null, description: null }
 
   it('resolves each scalar type', () => {
     expect(editorType(enumMeta, 'a')).toBe('enum')

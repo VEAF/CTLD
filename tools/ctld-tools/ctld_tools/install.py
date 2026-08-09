@@ -55,9 +55,22 @@ CONFIG_FILE = "CTLD_userConfig.lua"
 ENGINE_KEY = "CTLD_MapKey_Engine"
 CONFIG_KEY = "CTLD_MapKey_UserConfig"
 
-#: One resource key per beacon sound, keyed by file name. Present so the Mission Editor keeps the
-#: files (see the module docstring): a sound no trigger refers to is dropped on the next save.
-SOUND_KEYS = {name: f"CTLD_MapKey_Sound_{name.split('.')[0]}" for name in resources.SOUND_NAMES}
+
+def sound_key(name: str) -> str:
+    """The resource key for a beacon sound file.
+
+    Derived from the file name, which is what makes a custom sound land on its own key. Switching
+    between the bundled and a custom sound therefore leaves the previous entry behind, pointing at
+    a file no trigger references any more; the Mission Editor drops both on its next save, and
+    nothing in the mission or in game depends on them meanwhile. Deliberate: the alternative was
+    for this tool to delete files out of a Mission Maker's archive.
+    """
+    return f"CTLD_MapKey_Sound_{name.split('.')[0]}"
+
+
+#: One resource key per bundled beacon sound. Present so the Mission Editor keeps the files (see
+#: the module docstring): a sound no trigger refers to is dropped on the next save.
+SOUND_KEYS = {name: sound_key(name) for name in resources.SOUND_NAMES}
 
 #: Trigger comments — how a re-install recognises what a previous run put there.
 CONFIG_MARKER = MARKER
@@ -106,6 +119,60 @@ def read_config(miz_path: str | Path) -> FoundConfig | None:
     return None
 
 
+def custom_sound_name(catalog: object, setting: str) -> str | None:
+    """The reserved file name `setting` points at, when it names a customised sound.
+
+    ADR 0012: a sound chosen through the tool always enters the mission under a reserved name, so
+    the value *itself* says whether it is customised. Comparing against the bundled name instead
+    would call a Mission Maker's own `beacon.ogg` "the default one" and overwrite it on the next
+    install.
+    """
+    spec = resources.SOUND_SETTINGS.get(setting)
+    if spec is None:
+        return None
+    value = catalog.get(setting) if hasattr(catalog, "get") else None
+    return spec["custom"] if value == spec["custom"] else None
+
+
+def read_sounds_from_miz(miz_path: str | Path, catalog: object) -> dict[str, bytes]:
+    """The customised beacon sounds a mission carries, keyed by setting name.
+
+    This is what makes an installed mission reconfigurable later: the sound travels **in the
+    archive**, so reopening the `.miz` is enough to reinstall it identically — on another machine,
+    with the file the Mission Maker chose long deleted.
+    """
+    out: dict[str, bytes] = {}
+    with zipfile.ZipFile(Path(miz_path)) as z:
+        members = set(z.namelist())
+        for setting in resources.SOUND_SETTINGS:
+            name = custom_sound_name(catalog, setting)
+            if name and f"{L10N}/{name}" in members:
+                out[setting] = z.read(f"{L10N}/{name}")
+    return out
+
+
+def sounds_to_write(catalog: object, held: dict[str, bytes] | None = None) -> dict[str, bytes]:
+    """The sound files an install must write, keyed by file name.
+
+    Each of the two settings resolves to either the bundled sound or the held custom bytes. A
+    customised sound with nothing held raises: `validate` blocks that case long before here, and
+    writing the mission without it would give silent beacons discovered in flight.
+    """
+    held = held or {}
+    out: dict[str, bytes] = {}
+    bundled = resources.read_sounds()
+    for setting, spec in resources.SOUND_SETTINGS.items():
+        name = custom_sound_name(catalog, setting)
+        if name is None:
+            out[spec["default"]] = bundled[spec["default"]]
+            continue
+        data = held.get(setting)
+        if data is None:
+            raise FileNotFoundError(f"{setting} names a custom sound ({name}) but no file is loaded — choose it again")
+        out[name] = data
+    return out
+
+
 @dataclass
 class InstallReport:
     """What an install wrote, so the caller can show it without reopening the archive."""
@@ -115,6 +182,9 @@ class InstallReport:
     files: list[str] = field(default_factory=list)
     triggers: list[str] = field(default_factory=list)
     replaced_previous: bool = False
+    #: One entry per beacon sound: `{"setting", "file", "size", "custom"}`. The Mission Maker has
+    #: no other way to check that the file they picked is the one that landed.
+    sounds: list[dict] = field(default_factory=list)
 
 
 def engine_version(engine: bytes) -> str | None:
@@ -227,24 +297,36 @@ def _sound_trigger(keys: list[str], comment: str, country: int) -> dict:
     }
 
 
-def install(miz_path: str | Path, userconfig_lua: str, out_path: str | Path | None = None) -> InstallReport:
+def install(
+    miz_path: str | Path,
+    userconfig_lua: str,
+    out_path: str | Path | None = None,
+    *,
+    catalog: object | None = None,
+    held_sounds: dict[str, bytes] | None = None,
+) -> InstallReport:
     """Write the engine, the sounds, the configuration and their triggers into a `.miz`.
 
     Idempotent: a previous install's triggers (matched by comment), resource-map entries and files
     are replaced, never accumulated. `out_path` defaults to `miz_path` (in-place).
+
+    `catalog` + `held_sounds` are how a **customised** beacon sound reaches the archive: the
+    catalogue says which of the two settings names a reserved file, and `held_sounds` carries its
+    bytes (see `sounds_to_write`). Without them the two bundled sounds are written, which is what
+    every caller did before ADR 0012 and what a default configuration still means.
     """
     miz_path = Path(miz_path)
     out_path = Path(out_path) if out_path else miz_path
 
     engine = resources.read_engine()
-    sounds = resources.read_sounds()
+    sounds = sounds_to_write(catalog, held_sounds) if catalog is not None else resources.read_sounds()
 
     mission = read_mission(miz_path)
     map_resource = _read_map_resource(miz_path)
 
     config = _script_trigger(CONFIG_KEY, CONFIG_MARKER)
     engine_trigger = _script_trigger(ENGINE_KEY, ENGINE_MARKER)
-    sound_keys = [SOUND_KEYS[name] for name in sorted(sounds)]
+    sound_keys = [sound_key(name) for name in sorted(sounds)]
     sounds_trigger = _sound_trigger(sound_keys, SOUNDS_MARKER, _silent_country(mission))
 
     # Configuration first: the engine reads ctld.configUser while loading. The sounds last: their
@@ -262,7 +344,7 @@ def install(miz_path: str | Path, userconfig_lua: str, out_path: str | Path | No
     map_resource[CONFIG_KEY] = CONFIG_FILE
     map_resource[ENGINE_KEY] = ENGINE_FILE
     for name in sorted(sounds):
-        map_resource[SOUND_KEYS[name]] = name
+        map_resource[sound_key(name)] = name
 
     payload: dict[str, bytes] = {
         f"{L10N}/{ENGINE_FILE}": engine,
@@ -274,12 +356,25 @@ def install(miz_path: str | Path, userconfig_lua: str, out_path: str | Path | No
 
     _write_miz(mission, miz_path, out_path, payload)
 
+    written = {
+        setting: (custom_sound_name(catalog, setting) or spec["default"]) if catalog is not None else spec["default"]
+        for setting, spec in resources.SOUND_SETTINGS.items()
+    }
     return InstallReport(
         miz=out_path.name,
         engine_version=engine_version(engine),
         files=[ENGINE_FILE, CONFIG_FILE, *sorted(sounds)],
         triggers=["configuration", "engine", "sounds"],
         replaced_previous=replaced,
+        sounds=[
+            {
+                "setting": setting,
+                "file": name,
+                "size": len(sounds[name]),
+                "custom": name != resources.SOUND_SETTINGS[setting]["default"],
+            }
+            for setting, name in written.items()
+        ],
     )
 
 

@@ -28,6 +28,42 @@ _ENV = "CTLD_TOOLS_SRC"
 #: `radioSound` / `radioSoundFC3` defaults; a mission without these files has silent beacons.
 SOUND_NAMES = ("beacon.ogg", "beaconsilent.ogg")
 
+#: The two settings that name a beacon sound, each with the bundled file it points at by default,
+#: the name a **customised** file takes inside a mission, and the label recording what that file
+#: was called on the Mission Maker's disk.
+#:
+#: The reserved name is the whole of ADR 0012: it is what tells the tool, on reopening a mission,
+#: that this sound is not the bundled one — without a second configuration key that could
+#: contradict the engine. Comparing against the default name instead would misread the ordinary
+#: case of a Mission Maker whose own file is called `beacon.ogg`.
+SOUND_SETTINGS: dict[str, dict[str, str]] = {
+    "radioSound": {
+        "default": "beacon.ogg",
+        "custom": "CTLD_beacon_custom.ogg",
+        "label": "radioSoundOriginalName",
+    },
+    "radioSoundFC3": {
+        "default": "beaconsilent.ogg",
+        "custom": "CTLD_beaconsilent_custom.ogg",
+        "label": "radioSoundFC3OriginalName",
+    },
+}
+
+#: Every beacon-sound file name this tool owns — the two bundled ones and the two reserved custom
+#: ones. Nothing outside this set is ever touched in a Mission Maker's archive.
+OWNED_SOUND_NAMES = frozenset(
+    [*(s["default"] for s in SOUND_SETTINGS.values()), *(s["custom"] for s in SOUND_SETTINGS.values())]
+)
+
+#: The first four bytes of any Ogg stream. Checked when a file is chosen: renaming an `.mp3` to
+#: `.ogg` takes two seconds, DCS then plays nothing, and the Mission Maker finds out in flight.
+OGG_MAGIC = b"OggS"
+
+
+def is_ogg(data: bytes) -> bool:
+    return data[:4] == OGG_MAGIC
+
+
 ENGINE_NAME = "CTLD.lua"
 
 

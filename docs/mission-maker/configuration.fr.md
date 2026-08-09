@@ -197,8 +197,8 @@ aléatoire de 90–120 % de `SOLDIER_WEIGHT`, plus l'équipement et le matériel
 |---|---|---|
 | `enabledRadioBeaconDrop` | `true` | Autorise le déploiement de beacon |
 | `deployedBeaconBattery` | `30` | Durée de vie de la batterie du beacon (minutes) |
-| `radioSound` | `"beacon.ogg"` | Fichier son du beacon — l'outil le place dans le `.miz` ; si vous installez à la main, ajoutez-le vous-même, sinon les balises resteront muettes |
-| `radioSoundFC3` | `"beaconsilent.ogg"` | Fichier de beacon silencieux pour les appareils FC3, même règle |
+| `radioSound` | `"beacon.ogg"` | Fichier son du beacon — l'outil le place dans le `.miz` ; si vous installez à la main, ajoutez-le vous-même, sinon les balises resteront muettes. `CTLD_beacon_custom.ogg` désigne [un son que vous avez choisi](ctld-tools.fr.md#beacon-sounds) |
+| `radioSoundFC3` | `"beaconsilent.ogg"` | Fichier de beacon silencieux pour les appareils FC3, même règle (personnalisé : `CTLD_beaconsilent_custom.ogg`) |
 
 ### Systèmes AA { #aa-systems }
 

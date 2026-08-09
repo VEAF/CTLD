@@ -53,6 +53,16 @@ def test_schema_endpoint_exposes_families_and_keys():
     assert "tableFields" not in body["keys"]  # the reserved section is not a setting
 
 
+def test_schema_endpoint_exposes_the_sound_editor_and_hidden_labels():
+    """The UI picks the sound picker from the schema, and knows which keys not to list."""
+    keys = client.get("/api/schema").json()["keys"]
+    assert keys["radioSound"]["editor"] == "sound"
+    assert keys["radioSoundFC3"]["editor"] == "sound"
+    assert keys["hoverTime"]["editor"] is None
+    assert keys["radioSoundOriginalName"]["hidden"] is True
+    assert keys["radioSound"]["hidden"] is False
+
+
 def test_schema_endpoint_exposes_table_fields():
     body = client.get("/api/schema").json()
     crates = body["tableFields"]["spawnableCrates"]
