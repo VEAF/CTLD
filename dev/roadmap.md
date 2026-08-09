@@ -85,3 +85,27 @@ Le lot CTLD-TOOLS-MM-UX a mis dans `src/CTLD_config_schema.yaml` les **familles*
 Converge avec « générer les tableaux de config de la doc depuis le schéma » : mêmes métadonnées, même
 source. Le vrai reste-à-faire coûteux, ce sont les **descriptions** des ~44 réglages non documentés
 (les inventer serait contraire à la règle zéro-supposition).
+
+## CHANGELOG — réorganiser `[Unreleased]` avant la 2.0.0 stable
+
+Soulevé par Zip le 2026-08-09 en constatant qu'aucune release candidate n'a de section à elle.
+C'est **voulu** et documenté (`docs/developer/workflow.md` : une rc laisse `[Unreleased]` ouverte,
+seule une stable la gèle en `## [x.y.z] — date`), et ça reste le bon modèle : une rc est une étape
+vers la 2.0.0, pas une version livrée, et découper en `[2.0.0-rc1]`…`[2.0.0-rcN]` obligerait un
+lecteur à recoller sept sections pour savoir ce que la 2.0.0 apporte. Les notes de chaque rc, elles,
+vivent déjà sur sa page GitHub.
+
+L'effet de bord, lui, est réel : `[Unreleased]` a dépassé **1450 lignes**, tout ce qui s'est
+accumulé depuis la 2.0.0 du 6 juillet, empilé par lot dans l'ordre d'arrivée. Le jour du tag stable,
+ce bloc se fige tel quel et devient la section de référence de la version — donc le moment de le
+réorganiser est **avant** le tag, pas après.
+
+Pistes à instruire (aucune tranchée) : regrouper par thème plutôt que par ordre d'arrivée
+(Added / Changed / Fixed à la « Keep a Changelog », ou par domaine CTLD : troupes, caisses, JTAC,
+outil…) ; fusionner les entrées qui se corrigent l'une l'autre entre deux rc, un lecteur de la
+2.0.0 n'ayant que faire d'un bug introduit puis corrigé avant publication ; décider si le détail
+d'implémentation (noms de fonctions, numéros de PR) a sa place dans un fichier lu par des mission
+makers, ou s'il redescend d'un cran.
+
+À faire pendant la préparation de la release stable, pas avant : chaque lot mergé d'ici là y ajoute
+des lignes.
