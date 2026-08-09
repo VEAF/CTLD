@@ -1015,6 +1015,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#beacon-sounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sons des balises
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#undoing-a-change" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2099,6 +2110,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#beacon-sounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sons des balises
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#undoing-a-change" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2278,6 +2300,32 @@ du réglage</strong> (celui utilisé dans la documentation CTLD et sur les forum
 <p>Les entrées de catalogue — <strong>caisses</strong>, <strong>groupes de troupes</strong>, <strong>capacités des aéronefs</strong> (choisir un
 type d'aéronef dans la liste DCS), <strong>zones</strong>, noms des pilotes de transport, poids des véhicules —
 s'éditent sous forme de tableaux, en bas de la famille à laquelle elles appartiennent.</p>
+<h3 id="beacon-sounds">Sons des balises<a class="headerlink" href="#beacon-sounds" title="Permanent link">&para;</a></h3>
+<p>Les deux sons de balise — l'audible et le silencieux réservé aux appareils FC3 — sont le seul
+endroit où un réglage est un <strong>fichier</strong> : ils ont donc un sélecteur plutôt qu'une zone de texte.
+<strong>Par défaut</strong> utilise le son embarqué dans l'outil, <strong>Personnalisé</strong> ouvre un explorateur de
+fichiers pour votre propre <code>.ogg</code>.</p>
+<p>Le fichier que vous choisissez est lu <strong>immédiatement</strong> et voyage dans la mission. C'est plus
+important qu'il n'y paraît : rouvrir ce <code>.miz</code> plus tard en ramène le son, donc vous pouvez
+reconfigurer et réinstaller la mission <strong>sur une autre machine, des mois après, même si vous avez
+supprimé le fichier d'origine</strong>.</p>
+<p>Deux détails à connaître :</p>
+<ul>
+<li><strong>Dans la mission, le fichier est renommé</strong> en <code>CTLD_beacon_custom.ogg</code> (ou
+  <code>CTLD_beaconsilent_custom.ogg</code>). Votre fichier à vous n'est pas touché, et l'outil conserve son
+  nom pour vous l'afficher — ce nom réservé est ce qui lui permet de distinguer votre son de celui
+  d'origine, même si le vôtre s'appelle lui aussi <code>beacon.ogg</code>.</li>
+<li><strong>Un <code>.yaml</code> enregistré ne peut pas porter le son</strong>, seulement son nom. Si vous rouvrez une telle
+  configuration, l'outil signalera le fichier manquant et refusera d'installer tant que vous ne
+  l'aurez pas resélectionné — mieux vaut ça qu'une mission dont les balises sont muettes sans que
+  rien ne l'explique. Si la mission visée contient déjà le fichier, il n'y a rien à faire.</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Ajouter le son vous-même</p>
+<p>Saisir un nom de fichier fonctionne toujours, pour un son que vous avez ajouté via l'éditeur de
+mission : CTLD joue le <code>l10n/DEFAULT/&lt;nom&gt;</code> que vous lui indiquez. Le sélecteur est la voie
+recommandée ; le champ texte reste là pour une mission câblée à la main.</p>
+</div>
 <h3 id="undoing-a-change">Annuler une modification<a class="headerlink" href="#undoing-a-change" title="Permanent link">&para;</a></h3>
 <p>Tout réglage que vous modifiez est marqué <strong>modifié</strong>, et la famille reçoit un compteur dans la
 colonne de gauche : vous voyez donc toujours ce que vous avez touché. Une <strong>flèche de
