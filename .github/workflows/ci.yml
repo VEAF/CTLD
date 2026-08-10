@@ -194,4 +194,49 @@ jobs:
             echo "No src/ changes — CHANGELOG guard not applicable."
           fi
 
+  # ─────────────────────────────────────────────────────────────
+  # i18n dictionary guard — blocks a PR that introduces a ctld.tr()/config-YAML
+  # key missing from one or more of the four i18n dictionaries (unconditional,
+  # no escape hatch: fixing it costs a local merge_CTLD.ps1 run, no API key
+  # required), or that leaves a newly-introduced non-EN entry empty (escape
+  # hatch: the 'skip-i18n' label, for contributors without local
+  # ANTHROPIC_API_KEY access). Diff-scoped against the PR base, so the
+  # pre-existing dictionary debt already on develop never blocks an unrelated
+  # PR. Runs on pull requests only. STALE keys are reported by the MISSING
+  # dry-run but are not blocking here. See ADR 0013.
+  # ─────────────────────────────────────────────────────────────
+  i18n-guard:
+    name: i18n Dictionary Guard
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check for i18n keys missing from a dictionary
+        shell: pwsh
+        run: |
+          $output = & tools/build/generate_i18n_dicts.ps1 2>&1 | Out-String
+          Write-Host $output
+          if ($output -match "MISSING") {
+            Write-Host "::error::This PR introduces i18n key(s) missing from one or more dictionaries. Run tools/build/merge_CTLD.ps1 locally (or generate_i18n_dicts.ps1 -Apply) to add the stubs, then commit the result."
+            exit 1
+          }
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Check for newly-introduced empty i18n entries
+        env:
+          HAS_SKIP: ${{ contains(github.event.pull_request.labels.*.name, 'skip-i18n') }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$HAS_SKIP" = "true" ]; then
+            echo "skip-i18n label present — empty-stub check bypassed."
+            exit 0
+          fi
+          if ! python tools/build/check_i18n_diff.py "$BASE_SHA"; then
+            echo "::error::This PR leaves a newly-introduced i18n entry untranslated. Run tools/build/merge_CTLD.ps1 locally with ANTHROPIC_API_KEY set to translate it, or apply the 'skip-i18n' label if a maintainer will translate it later."
+            exit 1
+          fi
+
   # Releases are handled by .github/workflows/release.yml (tag published-v*).

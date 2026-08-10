@@ -8,6 +8,24 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — CI now catches untranslated i18n menu entries before merge (FIX-I18N-DICT-GUARD)
+
+- **`translate_i18n.py`'s stub detection was broken since it shipped**: it only recognised a
+  non-EN dictionary value identical to the English text as "untranslated" — never an empty
+  string, which is exactly what `generate_i18n_dicts.ps1 -Apply` writes for a freshly-added key.
+  So a new `ctld.tr()` string was never picked up for translation, with or without
+  `ANTHROPIC_API_KEY` set locally. Fixed: an empty value is now also treated as a stub.
+- **New CI job `i18n-guard`** (diff-scoped against the PR base, same shape as `changelog-guard`):
+  fails a PR that introduces an i18n key missing from any of the four dictionaries
+  (`CTLD_i18n_en/fr/es/ko.lua`, unconditional — no bypass), or that leaves a *newly introduced*
+  non-EN entry empty (bypassable via the `skip-i18n` label, for contributors without local
+  `ANTHROPIC_API_KEY` access). Does not retroactively block on pre-existing untranslated entries.
+- **New `tools/build/check_i18n_diff.py`** + shared parser `tools/build/i18n_dict_utils.py`
+  (extracted from `translate_i18n.py`, now reused by both scripts).
+- Out of scope here: the 91 `CTLD_i18n_ko.lua` and 76 `CTLD_i18n_es.lua` entries already empty on
+  `develop` — a follow-up lot repays that debt; this guard only prevents it from growing further.
+- See ADR 0013.
+
 ### Fixed — field-extracted troop count now reflects casualties (FIX-FIELD-EXTRACT-CASUALTIES)
 
 - **Extracting a dropped troop group from the field now counts live survivors**, not the
