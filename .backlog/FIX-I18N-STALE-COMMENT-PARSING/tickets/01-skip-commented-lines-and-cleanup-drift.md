@@ -26,30 +26,40 @@ determined. `check_i18n_diff.py` needs no code change: it calls the shared `pars
 the fix automatically.
 
 As a one-time cleanup in this same ticket, once `generate_i18n_dicts.ps1` is fixed, run it with
-`-Apply` against the repo's real dictionaries. This is expected to prefix `-- STALE:` onto the KO/ES
-copies of the keys already known to be dead in `CTLD_i18n_en.lua` (23 KO + 8 ES, per the
-`FIX-I18N-DEBT-REPAYMENT` count) — no dictionary value changes, only line prefixes on already-dead
-entries.
+`-Apply` against the repo's real dictionaries.
+
+**Actual outcome, larger than scoped**: this didn't just re-mark 23 KO + 8 ES entries as expected.
+It surfaced that 56 keys were wrongly `-- STALE:`-marked in **all four dictionaries including
+English** — every AA system component label (HAWK/BUK/KUB/NASAMS/Patriot/S-300), several F10 menu
+labels, and 7 vehicle-category labels, all referenced only via `CTLD_config.yaml`'s `desc:`/`name:`
+fields (not `ctld.tr()`), almost certainly marked stale by a version of the script predating that
+scan. This is a live production bug (`ctld.i18n["en"]["HAWK Launcher"]` etc. were `nil` at
+runtime), not a cosmetic drift. `-Apply` revived all 56 (EN's text restored automatically); the
+FR/ES/KO translations sitting in the old commented lines were recovered by hand into the freshly
+revived stubs rather than lost.
 
 ## Acceptance criteria
 
-- [ ] `parse_dict` excludes a `-- STALE:`-commented entry from its returned dict.
-- [ ] `parse_keep_en` excludes a commented `__keep_en` entry the same way.
-- [ ] A mix of live and commented lines for different keys in the same text parses only the live
+- [x] `parse_dict` excludes a `-- STALE:`-commented entry from its returned dict.
+- [x] `parse_keep_en` excludes a commented `__keep_en` entry the same way.
+- [x] A mix of live and commented lines for different keys in the same text parses only the live
       ones (no false exclusion of genuinely live neighbors).
-- [ ] `Get-DictKeys` in `generate_i18n_dicts.ps1` no longer counts a commented line as a key the
-      dictionary "has" — verified via the dry-run report on the repo's real dictionaries.
-- [ ] `_apply_translations` given a key whose only occurrence is a `-- STALE:`-commented line
+- [x] `Get-DictKeys` in `generate_i18n_dicts.ps1` no longer counts a commented line as a key the
+      dictionary "has" — verified via the dry-run report on the repo's real dictionaries (went from
+      wrongly reporting these 56 keys as present/stale to correctly reporting them `MISSING`).
+- [x] `_apply_translations` given a key whose only occurrence is a `-- STALE:`-commented line
       performs no write and reports zero keys written, rather than uncommenting or corrupting it.
-- [ ] Every currently live (non-commented) entry across all four dictionaries parses identically to
-      before the fix — no behavior change for live content.
-- [ ] Unit tests added to `test_i18n_dict_utils.py` and `test_translate_i18n.py` covering the cases
+- [x] Every currently live (non-commented) entry across all four dictionaries parses identically to
+      before the fix — no behavior change for live content (confirmed via `luac -p` on all 4 files
+      plus the full `pytest tools/build/` suite staying green).
+- [x] Unit tests added to `test_i18n_dict_utils.py` and `test_translate_i18n.py` covering the cases
       above; no test added against real `src/CTLD_i18n_*.lua` files (fixtures stay synthetic).
-- [ ] `pytest tools/build/` stays green (existing + new tests).
-- [ ] `generate_i18n_dicts.ps1 -Apply` run once against the repo post-fix; resulting diff on
-      `CTLD_i18n_ko.lua`/`_es.lua` contains only `-- STALE:` line-prefix additions on the expected
-      dead keys, no value changes, no unrelated `MISSING` regressions reported.
-- [ ] `CHANGELOG.md` `[Unreleased]` updated.
+- [x] `pytest tools/build/` stays green (24/24, 5 new tests).
+- [x] `generate_i18n_dicts.ps1 -Apply` run once against the repo post-fix. Diff is larger than
+      originally scoped (see above) but contains only line additions/prefix changes on the 56
+      affected keys across all 4 dictionaries — no unrelated `MISSING` regressions; final dry-run
+      reports `OK` for all four dictionaries.
+- [x] `CHANGELOG.md` `[Unreleased]` updated, documenting the discovered production bug and its fix.
 
 ## Blocked by
 

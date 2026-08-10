@@ -18,11 +18,19 @@ Consequence, found concretely during `FIX-I18N-DEBT-REPAYMENT` (2026-08-10): 23 
 and 8 of the 78 ES stubs counted at `FIX-I18N-DICT-GUARD`'s merge were actually `-- STALE:` keys in
 `CTLD_i18n_en.lua` — dead, unused entries that `translate_i18n.py` would have spent API/CLI calls
 translating and written into lines that are already disabled comments, had they not been manually
-excluded from that lot's scope. A second, related symptom found while cleaning up the roadmap: the
-KO/ES copies of these same dead keys are *not* marked `-- STALE:` themselves, even though
-`CTLD_i18n_en.lua` already marks them — a cross-dictionary drift whose exact historical cause
-couldn't be pinned down by static reading alone, but which shares the identical root defect
-(`generate_i18n_dicts.ps1`'s own `Get-DictKeys` has the same comment-blind regex).
+excluded from that lot's scope.
+
+**What this turned out to actually be**, discovered while fixing the parser and re-running the
+corrected `generate_i18n_dicts.ps1` for real: those 23/8 keys were the tip of a much bigger
+iceberg. 56 keys — every AA system component label (HAWK/BUK/KUB/NASAMS/Patriot/S-300), several
+crate/smoke/vehicle F10 menu labels, and 7 vehicle-category labels — were marked `-- STALE:` in
+**all four dictionaries, including English**, almost certainly because they're referenced only via
+`CTLD_config.yaml`'s `desc:`/`name:` fields, not a `ctld.tr()` call, and were marked stale by a
+version of `generate_i18n_dicts.ps1` that predates the config-YAML scan that would have kept them
+recognized as in use. At runtime this meant `ctld.i18n["en"]["HAWK Launcher"]` (and 55 others) were
+`nil` in the shipped `CTLD.lua` — broken or missing F10/AA-system text in **every** language, not a
+KO/ES-only cosmetic issue. This is a live production bug this lot's fix surfaces and repairs, not
+just a parsing correctness improvement.
 
 ## Solution
 
@@ -79,18 +87,26 @@ entries, closing the drift this lot was written to investigate.
 - **No change to the `MISSING`/`STALE` classification rules themselves** — a key is still `STALE`
   when unused in `src/` and `MISSING` when absent from a dictionary. This lot only fixes how
   "present in a dictionary" is determined (a commented line no longer counts as present).
-- **One-time real-file cleanup, same lot**: after `generate_i18n_dicts.ps1` is fixed, run it with
-  `-Apply` once against the repo's actual dictionaries. Expected effect: the KO/ES entries already
-  known to be dead in EN (23 KO + 8 ES, per the `FIX-I18N-DEBT-REPAYMENT` count) get their lines
-  prefixed `-- STALE:` in `CTLD_i18n_ko.lua`/`_es.lua`, matching what `CTLD_i18n_en.lua` already
-  shows. No dictionary *value* changes — only line prefixes on already-empty or already-translated
-  dead entries.
-- **Root cause of the historical cross-dictionary drift is not fully confirmed.** Static reading of
-  `generate_i18n_dicts.ps1` shows the STALE re-marking step is safe against re-triggering on an
-  already-commented line (its regex is anchored to line-start `ctld.i18n[...]`, which a `-- STALE: `
-  prefix no longer matches) — so the bug being fixed here is not proven to be the direct cause of
-  the specific drift observed. It is fixed regardless, on the "same structural defect, fix by
-  precaution" reasoning from the grilling session, not on a confirmed causal chain.
+- **One-time real-file cleanup, same lot — actual outcome larger than planned.** Running
+  `generate_i18n_dicts.ps1 -Apply` with the corrected `Get-DictKeys` did not just re-mark the
+  23/8 KO/ES entries expected from the `FIX-I18N-DEBT-REPAYMENT` count. It revealed that **56 keys
+  were wrongly `-- STALE:`-marked in all four dictionaries, including English** — a live production
+  bug (see Problem Statement), not the cosmetic KO/ES drift originally scoped. `-Apply` revived all
+  56 (EN's own text restored automatically, since EN's value always equals its key). The FR/ES/KO
+  translations that existed in the old commented lines were recovered by hand into the newly-revived
+  entries — read from the dead comment, written into the fresh live stub — rather than lost or
+  left for a full re-translation pass. Genuinely-still-untranslated stubs (7 category labels in
+  KO/ES that were never translated even before this bug, plus 15 KO-only labels from the same
+  cause) are left empty.
+- **Root cause of the historical drift, resolved for the 56-key case**: these keys are referenced
+  only via `CTLD_config.yaml`'s `desc:`/`name:` fields (confirmed for the AA system labels, e.g.
+  `desc: HAWK Launcher`), not a `ctld.tr()` call — invisible to the scan `generate_i18n_dicts.ps1`
+  used before its config-YAML scan (documented in the script as a later addition, "invisible to the
+  ctld.tr(\"...\") scan above"). A run predating that scan would have seen them as unused and
+  correctly-at-the-time marked them stale; once the YAML scan was added, nothing ever un-stales a
+  key automatically (by design — "not deleted, confirm manually"), so they stayed wrongly commented
+  until this lot's `-Apply` run. The narrower KO/ES-only drift for the original 23/8 count remains
+  unconfirmed in its exact mechanism, but is moot now that the underlying keys are live again.
 
 ## Testing Decisions
 
