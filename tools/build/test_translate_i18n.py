@@ -1,6 +1,6 @@
-"""Stub detection: which entries translate_i18n.py sends to Claude for translation."""
+"""Stub detection and backend selection for translate_i18n.py."""
 
-from translate_i18n import _collect_stubs, _is_stub
+from translate_i18n import _collect_stubs, _is_stub, _select_backend
 
 
 def test_empty_value_is_a_stub():
@@ -37,3 +37,11 @@ def test_collect_stubs_skips_real_translations():
     en_dict = {"Actions": "Actions"}
     lang_dict = {"Actions": "액션"}
     assert _collect_stubs(en_dict, lang_dict, keep_en=set()) == {}
+
+
+def test_select_backend_prefers_api_when_key_present():
+    assert _select_backend(has_api_key=True) == "api"
+
+
+def test_select_backend_falls_back_to_cli_when_key_absent():
+    assert _select_backend(has_api_key=False) == "cli"

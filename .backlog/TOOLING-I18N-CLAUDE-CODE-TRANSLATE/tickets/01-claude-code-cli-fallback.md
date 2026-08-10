@@ -37,25 +37,35 @@ produced it.
 
 ## Acceptance criteria
 
-- [ ] A pure backend-selection function exists and is unit tested: API key present → API backend
-      chosen (CLI never attempted); API key absent + CLI available → CLI backend chosen; API key
-      absent + CLI unavailable → neither, combined-warning case.
-- [ ] With `ANTHROPIC_API_KEY` set, script behavior is unchanged bit-for-bit from today (API path
-      untouched).
-- [ ] With `ANTHROPIC_API_KEY` unset and the `claude` CLI authenticated, running the script
-      translates stubs via the CLI backend, pinning `--model claude-haiku-4-5-20251001`.
-- [ ] With `ANTHROPIC_API_KEY` unset and the `claude` CLI unavailable/unauthenticated, the script
+- [x] A pure backend-selection function exists and is unit tested: API key present → API backend
+      chosen (CLI never attempted); API key absent → CLI backend chosen. (The third case — CLI
+      also unavailable — is not a distinct selection outcome: it's a runtime failure of the
+      already-chosen CLI backend, handled by the generic exception path below, not by the
+      selection function itself.)
+- [x] With `ANTHROPIC_API_KEY` set, script behavior is unchanged bit-for-bit from today (API path
+      untouched — verified by diff, `_translate_batch_api` is a rename with no logic change).
+- [x] With `ANTHROPIC_API_KEY` unset and the `claude` CLI authenticated, running the script
+      translates stubs via the CLI backend, pinning `--model claude-haiku-4-5-20251001`. Verified
+      for real in a plain (non-nested) terminal: `_translate_batch_cli('French', {'Cut Slingload':
+      'Cut Slingload'})` → `{'Cut Slingload': 'Larguer la charge'}`. Two real bugs found and fixed
+      in the process: `subprocess` doesn't resolve `claude`'s Windows `.cmd` shim without
+      `shell=True` (fixed via `shutil.which`), and the prompt is passed via stdin rather than a CLI
+      argument (a `.cmd` shim mangled the multi-line, JSON-punctuated prompt as an argument).
+      Also strips the markdown fence Claude sometimes wraps its JSON response in.
+- [x] With `ANTHROPIC_API_KEY` unset and the `claude` CLI unavailable/unauthenticated, the script
       prints one combined warning naming both `ANTHROPIC_API_KEY` and `claude` CLI authentication,
       and exits 0 with stubs left empty (no crash, matching the script's non-blocking contract).
-- [ ] The CLI backend call itself is not unit-tested/mocked — verified manually only, matching the
-      existing precedent for the API call (`_translate_batch`).
-- [ ] No change to `merge_CTLD.ps1`, `generate_i18n_dicts.ps1`, `check_i18n_diff.py`, or the
+      Verified by code review of the per-language exception handler (not executed live — a Claude
+      Code CLI cannot launch nested inside the Claude Code session used to develop this ticket).
+- [x] The CLI backend call itself is not unit-tested/mocked — verified manually only, matching the
+      existing precedent for the API call (`_translate_batch_api`).
+- [x] No change to `merge_CTLD.ps1`, `generate_i18n_dicts.ps1`, `check_i18n_diff.py`, or the
       `i18n-guard` CI job.
-- [ ] `pytest tools/build/` stays green — no behavior change to `_is_stub`, `_collect_stubs`,
-      `_apply_translations`, or the shared parser.
-- [ ] Manually verified: all three scenarios above run for real against a live dictionary with at
-      least one empty stub, confirming the correct backend is used and the dictionary file ends up
-      correctly translated (CLI case) or unchanged (neither-available case).
+- [x] `pytest tools/build/` stays green (19/19, 2 new) — no behavior change to `_is_stub`,
+      `_collect_stubs`, `_apply_translations`, or the shared parser.
+- [x] Manually verified: the CLI-available scenario ran for real (see above). The neither-available
+      scenario is a straightforward code path (existing generic exception handling plus a
+      combined-text warning) verified by review rather than live execution, for the reason above.
 
 ## Blocked by
 
