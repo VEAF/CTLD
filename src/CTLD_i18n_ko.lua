@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.17"
+ctld.i18n["ko"].translation_version = "1.18"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -447,3 +447,39 @@ ctld.i18n["ko"]["  AIZ[%1] ERROR '%2': name already taken by zone '%3' — entry
 --- Keys added by generate_i18n_dicts.ps1 on 2026-08-09
 ctld.i18n["ko"]["%1 (%2 troops, %3m)"] = "%1 (%2명, %3 m)"
 ctld.i18n["ko"]["Extract: %1 (%2 troops)"] = "추출: %1 (%2명)"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-08-10
+ctld.i18n["ko"]["BUK - All crates"] = "SA-11 - 전체 화물"
+ctld.i18n["ko"]["BUK CC Radar"] = "SA-11 CC"
+ctld.i18n["ko"]["BUK Launcher"] = "SA-11 포대"
+ctld.i18n["ko"]["BUK Repair"] = "SA-11 수리킷"
+ctld.i18n["ko"]["BUK Search Radar"] = "SA-11 탐지 레이더"
+ctld.i18n["ko"]["HAWK - All crates"] = "호크 - 전체 화물"
+ctld.i18n["ko"]["HAWK CWAR"] = "호크 CWAR"
+ctld.i18n["ko"]["HAWK Launcher"] = "호크 포대"
+ctld.i18n["ko"]["HAWK PCP"] = "호크 PCP"
+ctld.i18n["ko"]["HAWK Repair"] = "호크 수리킷"
+ctld.i18n["ko"]["HAWK Search Radar"] = "호크 탐지 레이더"
+ctld.i18n["ko"]["HAWK Track Radar"] = "호크 추적 레이더"
+ctld.i18n["ko"]["KUB - All crates"] = "SA-6 - 전체 화물"
+ctld.i18n["ko"]["KUB Launcher"] = "SA-6 포대"
+ctld.i18n["ko"]["KUB Radar"] = "SA-6 레이더"
+ctld.i18n["ko"]["KUB Repair"] = "SA-6 수리킷"
+ctld.i18n["ko"]["NASAMS - All crates"] = "NASAMS - 전체 화물"
+ctld.i18n["ko"]["NASAMS Command Post"] = "NASAMS 관제소"
+ctld.i18n["ko"]["NASAMS Launcher 120C"] = "NASAMS 포대 120C"
+ctld.i18n["ko"]["NASAMS Repair"] = "NASAMS 수리킷"
+ctld.i18n["ko"]["NASAMS Search/Track Radar"] = "NASAMS 레이더"
+ctld.i18n["ko"]["Patriot - All crates"] = "패트리어트 - 전체 화물"
+ctld.i18n["ko"]["Patriot AMG (optional)"] = "패트리어트 AMG (선택 사항)"
+ctld.i18n["ko"]["Patriot ECS"] = "패트리어트 ECS"
+ctld.i18n["ko"]["Patriot Launcher"] = "패트리어트 포대"
+ctld.i18n["ko"]["Patriot Radar"] = "패트리어트 탐지 레이더"
+ctld.i18n["ko"]["Patriot Repair"] = "패트리어트 수리킷"
+ctld.i18n["ko"]["S-300 - All crates"] = "S-300 - 전체 화물"
+ctld.i18n["ko"]["S-300 Grumble Big Bird SR"] = "S-300 Big Bird 탐지 레이더"
+ctld.i18n["ko"]["S-300 Grumble C2"] = "S-300 관제소"
+ctld.i18n["ko"]["S-300 Grumble Clam Shell SR"] = "S-300 Clam Shell 탐지 레이더"
+ctld.i18n["ko"]["S-300 Grumble Flap Lid-A TR"] = "S-300 5N63 추적 레이더"
+ctld.i18n["ko"]["S-300 Grumble TEL C"] = "S-300 C 포대"
+ctld.i18n["ko"]["S-300 Repair"] = "S-300 수리킷"

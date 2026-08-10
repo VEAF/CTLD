@@ -56,9 +56,14 @@ def _apply_translations(path: Path, translations: dict[str, str], lang: str) -> 
     for key, new_val in translations.items():
         # Escape backslashes and double-quotes in the new value
         escaped = new_val.replace("\\", "\\\\").replace('"', '\\"')
-        pattern  = r'(ctld\.i18n\["' + re.escape(lang) + r'"\]\["' + re.escape(key) + r'"\]\s*=\s*)"(?:[^"\\]|\\.)*"'
+        # Anchored to line start (MULTILINE) so a "-- STALE: " commented line - which no
+        # longer starts with "ctld.i18n[...]" at column 0 - is never matched and rewritten.
+        pattern = re.compile(
+            r'^(ctld\.i18n\["' + re.escape(lang) + r'"\]\["' + re.escape(key) + r'"\]\s*=\s*)"(?:[^"\\]|\\.)*"',
+            re.MULTILINE,
+        )
         replacement = r'\g<1>"' + escaped + '"'
-        new_text, n = re.subn(pattern, replacement, text)
+        new_text, n = pattern.subn(replacement, text)
         if n:
             text = new_text
             count += 1

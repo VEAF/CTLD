@@ -8,6 +8,30 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — 56 i18n keys wrongly marked stale, breaking AA system / crate labels in every language (FIX-I18N-STALE-COMMENT-PARSING)
+
+- **The i18n tooling's dictionary parser matched a `-- STALE:`-commented line the same as a live
+  one** (`tools/build/i18n_dict_utils.py`'s `parse_dict`/`parse_keep_en`, `generate_i18n_dicts.ps1`'s
+  `Get-DictKeys`, and `translate_i18n.py`'s `_apply_translations` all shared the same comment-blind
+  regex). Fixed: all three now skip any line starting with `--`.
+- **Consequence discovered while fixing it**: 56 keys — every HAWK/BUK/KUB/NASAMS/Patriot/S-300 AA
+  system component label, several crate/smoke/vehicle F10 menu labels, and the `Infantry`/`Air
+  Defense (AA)`/`Ground Vehicles`/`Helicopters`/`Aircraft`/`Ships`/`FARP / FOB` category labels —
+  were incorrectly marked `-- STALE:` in **every dictionary including English**, most likely predating
+  `generate_i18n_dicts.ps1`'s config-YAML `desc:`/`name:` scan (these keys are referenced there, not
+  via a `ctld.tr()` call, so an older version of the script would never have seen them as in use).
+  At runtime this meant `ctld.i18n["en"]["HAWK Launcher"]` and 55 others were `nil` — broken/missing
+  text in F10 menus and the AA system UI, in every language, not just KO/ES.
+- **Fixed for real**: `generate_i18n_dicts.ps1 -Apply` re-run with the corrected parser revives all
+  56 keys (EN gets its own text back automatically). The FR/ES/KO translations that were sitting
+  inert in the old commented lines were manually recovered into the freshly-revived entries rather
+  than lost or re-translated from scratch. Genuinely new stubs (7 category labels in KO/ES, and 15
+  labels in KO that were never translated even before this bug) are left empty, ready for a future
+  translation pass.
+- No change to `MISSING`/`STALE` classification rules — only to how "present in a dictionary" is
+  determined. `check_i18n_diff.py` needed no code change (inherits the fix via the shared parser).
+- See `.backlog/FIX-I18N-STALE-COMMENT-PARSING/`. No ADR — a bug fix, not a design trade-off.
+
 ### Added — Claude Code CLI as a local i18n auto-translate fallback (TOOLING-I18N-CLAUDE-CODE-TRANSLATE)
 
 - **`translate_i18n.py` no longer requires `ANTHROPIC_API_KEY`** to auto-translate empty i18n

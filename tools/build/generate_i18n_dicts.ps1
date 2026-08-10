@@ -110,12 +110,17 @@ Write-Host ""
 # =============================================================================
 
 function Get-DictKeys([string]$filePath) {
+    # A "-- STALE: " (or any "-- ") commented line is not a live entry - skipped, so a dead
+    # key already marked stale doesn't keep being reported as present in this dictionary.
     $keys = [System.Collections.Generic.HashSet[string]]::new()
     if (-not (Test-Path $filePath)) { return $keys }
-    $raw = Get-Content $filePath -Raw -Encoding UTF8
-    $found = [regex]::Matches($raw, 'ctld\.i18n\["[^"]+"\]\["((?:[^"\\]|\\.)*)"\]')
-    foreach ($m in $found) {
-        [void]$keys.Add($m.Groups[1].Value)
+    $lines = Get-Content $filePath -Encoding UTF8
+    foreach ($line in $lines) {
+        if ($line.TrimStart().StartsWith("--")) { continue }
+        $m = [regex]::Match($line, 'ctld\.i18n\["[^"]+"\]\["((?:[^"\\]|\\.)*)"\]')
+        if ($m.Success) {
+            [void]$keys.Add($m.Groups[1].Value)
+        }
     }
     return $keys
 }

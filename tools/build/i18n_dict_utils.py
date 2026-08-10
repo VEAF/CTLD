@@ -11,9 +11,18 @@ _KEEP_EN_RE = re.compile(r'\["([^"]+)"\]\s*=\s*true')
 
 
 def parse_dict(text: str) -> dict[str, str]:
-    """Parse a CTLD_i18n_XX.lua dict file's content into {key: value} (excludes translation_version)."""
+    """Parse a CTLD_i18n_XX.lua dict file's content into {key: value} (excludes translation_version).
+
+    A line commented out (e.g. generate_i18n_dicts.ps1's "-- STALE: " marker for a key no longer
+    referenced in src/) is not a live entry and is skipped.
+    """
     result: dict[str, str] = {}
-    for m in _ENTRY_RE.finditer(text):
+    for line in text.splitlines():
+        if line.strip().startswith("--"):
+            continue
+        m = _ENTRY_RE.search(line)
+        if not m:
+            continue
         key, val = m.group(1), m.group(2)
         if key != "translation_version":
             result[key] = val
@@ -21,10 +30,15 @@ def parse_dict(text: str) -> dict[str, str]:
 
 
 def parse_keep_en(text: str) -> set[str]:
-    """Parse the keys listed in a dict file's `__keep_en = { ["key"] = true, ... }` block."""
+    """Parse the keys listed in a dict file's `__keep_en = { ["key"] = true, ... }` block.
+
+    A commented-out entry inside the block is not live and is skipped (see parse_dict).
+    """
     keep_en: set[str] = set()
     in_block = False
     for line in text.splitlines():
+        if line.strip().startswith("--"):
+            continue
         if "__keep_en" in line and "=" in line and "{" in line:
             in_block = True
         if in_block:
