@@ -109,3 +109,34 @@ makers, ou s'il redescend d'un cran.
 
 À faire pendant la préparation de la release stable, pas avant : chaque lot mergé d'ici là y ajoute
 des lignes.
+
+## TOOLING — traduire i18n via Claude Code (mode headless) plutôt que l'API Anthropic directe
+
+Contexte (émergé pendant `FIX-I18N-DEBT-REPAYMENT`, 2026-08-10) : `tools/build/translate_i18n.py`
+appelle l'API Anthropic directement (`ANTHROPIC_API_KEY`, facturation à l'usage séparée). Un
+contributeur avec un abonnement Claude Code mais sans clé API ne peut pas faire tourner l'outil
+localement — vécu concrètement sur ce lot, résolu en traduisant à la main faute de clé.
+
+Piste : `claude -p "prompt"` (mode non-interactif) s'authentifie via l'abonnement Claude Code, pas
+une clé API séparée — le script pourrait shell-out vers ce mode au lieu d'utiliser le SDK
+`anthropic`. Compromis à trancher : ça suppose une session Claude Code authentifiée disponible
+partout où le script tourne, ce qui exclut la CI (contrairement à la clé API, qui elle s'y prête) ;
+et ça change le modèle de coût (quota d'abonnement au lieu de facturation API). À grill avant de
+lancer un lot : faut-il un mode dual (API si dispo, sinon CLI), ou remplacer complètement ?
+
+## TOOLING — `i18n_dict_utils.py` ne distingue pas une entrée `-- STALE:` d'une entrée live
+
+Contexte (trouvé pendant `FIX-I18N-DEBT-REPAYMENT`, 2026-08-10) : le regex de
+`tools/build/i18n_dict_utils.py`'s `parse_dict`/`_ENTRY_RE` matche `ctld.i18n["lang"]["key"] =
+"..."` peu importe si la ligne est commentée par un préfixe `-- STALE: ` (marqueur de
+`generate_i18n_dicts.ps1 -Apply` pour une clé qui n'est plus référencée dans `src/`). Conséquence
+vécue : sur les 93 stubs KO / 78 ES comptés au merge de `FIX-I18N-DICT-GUARD`, 23 / 8 étaient en
+réalité des clés `-- STALE:` dans `CTLD_i18n_en.lua` — `translate_i18n.py` les aurait traduites
+(appels API gaspillés) et écrites dans des lignes déjà mortes (`_apply_translations`'s regex ne
+distingue pas non plus). `check_i18n_diff.py` hérite du même gap via le même parseur partagé.
+
+Piste : `parse_dict`/`parse_keep_en` (et tout appelant) devraient ignorer les lignes dont la version
+strippée commence par `--`. Repéré aussi : `CTLD_i18n_ko.lua`/`_es.lua` ont des clés vides que
+`CTLD_i18n_en.lua` marque déjà `-- STALE:` mais que `ko`/`es` eux-mêmes n'ont pas encore marquées
+ainsi (dérive entre dictionnaires) — à comprendre si c'est un simple décalage de synchronisation ou
+un vrai gap dans `generate_i18n_dicts.ps1`.
