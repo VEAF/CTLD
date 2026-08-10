@@ -19,3 +19,4 @@ Retroactive ADRs document decisions already made during the v2.0.0 rewrite.
 | [0011](0011-complete-yaml-config-and-webapp-tooling.md) | Complete-YAML config model and web-app tooling for ctld-tools | Accepted — supersedes 0008 and 0009 points 2 & 3 |
 | [0012](0012-canonical-names-for-custom-beacon-sounds.md) | Canonical file names for custom beacon sounds | Accepted |
 | [0013](0013-ci-i18n-dict-guard.md) | CI-enforced i18n dictionary guard, diff-scoped with a translation-only bypass | Accepted |
+| [0014](0014-i18n-claude-code-cli-fallback.md) | i18n auto-translate: Claude Code CLI as a local fallback, not a replacement | Accepted |

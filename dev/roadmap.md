@@ -110,19 +110,7 @@ makers, ou s'il redescend d'un cran.
 À faire pendant la préparation de la release stable, pas avant : chaque lot mergé d'ici là y ajoute
 des lignes.
 
-## TOOLING — traduire i18n via Claude Code (mode headless) plutôt que l'API Anthropic directe
-
-Contexte (émergé pendant `FIX-I18N-DEBT-REPAYMENT`, 2026-08-10) : `tools/build/translate_i18n.py`
-appelle l'API Anthropic directement (`ANTHROPIC_API_KEY`, facturation à l'usage séparée). Un
-contributeur avec un abonnement Claude Code mais sans clé API ne peut pas faire tourner l'outil
-localement — vécu concrètement sur ce lot, résolu en traduisant à la main faute de clé.
-
-Piste : `claude -p "prompt"` (mode non-interactif) s'authentifie via l'abonnement Claude Code, pas
-une clé API séparée — le script pourrait shell-out vers ce mode au lieu d'utiliser le SDK
-`anthropic`. Compromis à trancher : ça suppose une session Claude Code authentifiée disponible
-partout où le script tourne, ce qui exclut la CI (contrairement à la clé API, qui elle s'y prête) ;
-et ça change le modèle de coût (quota d'abonnement au lieu de facturation API). À grill avant de
-lancer un lot : faut-il un mode dual (API si dispo, sinon CLI), ou remplacer complètement ?
+<!-- TOOLING-I18N-CLAUDE-CODE-TRANSLATE — formalisé en lot `.backlog/TOOLING-I18N-CLAUDE-CODE-TRANSLATE/` (grill-with-docs, 2026-08-10, ADR 0014). -->
 
 ## TOOLING — `i18n_dict_utils.py` ne distingue pas une entrée `-- STALE:` d'une entrée live
 
@@ -138,5 +126,13 @@ distingue pas non plus). `check_i18n_diff.py` hérite du même gap via le même 
 Piste : `parse_dict`/`parse_keep_en` (et tout appelant) devraient ignorer les lignes dont la version
 strippée commence par `--`. Repéré aussi : `CTLD_i18n_ko.lua`/`_es.lua` ont des clés vides que
 `CTLD_i18n_en.lua` marque déjà `-- STALE:` mais que `ko`/`es` eux-mêmes n'ont pas encore marquées
-ainsi (dérive entre dictionnaires) — à comprendre si c'est un simple décalage de synchronisation ou
-un vrai gap dans `generate_i18n_dicts.ps1`.
+ainsi (dérive entre dictionnaires).
+
+**À traiter dans ce lot, pas seulement le symptôme parseur** : remonter à la cause de cette dérive
+avant de corriger uniquement `parse_dict` — sans quoi le patch du parseur masque le problème plutôt
+que de le résoudre. Hypothèse à vérifier en premier : `generate_i18n_dicts.ps1`'s marquage `STALE`
+scanne-t-il et applique-t-il le préfixe aux 4 dictionnaires (en/fr/es/ko) dans la même passe, ou
+traite-t-il chaque fichier indépendamment avec un risque de désynchronisation (ex. un seul fichier
+mis à jour lors d'un run partiel, ou un ordre de traitement qui laisse certains fichiers en
+retard) ? Si le marquage est censé être atomique/uniforme et ne l'est pas, c'est un bug dans le
+script à corriger en même temps que le parseur — pas seulement documenter le symptôme.
