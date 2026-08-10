@@ -543,6 +543,7 @@ ctld.i18n["es"].__keep_en = {
     ["%1 [%2] %3."]  = true,
     ["%1\nFOB @ %2"] = true,
     ["CTLD"]         = true,
+    ["FARP / FOB"]   = true,
     ["JTAC"]         = true,
 }
 
@@ -553,13 +554,13 @@ ctld.i18n["es"]["Cannot deploy %1: AA system limit reached (%2/%3)"] = "No se pu
 ctld.i18n["es"]["Cannot repair %1. No damaged %1 within %2m"] = "No se puede reparar %1. No hay %1 dañado en %2m"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-22
-ctld.i18n["es"]["Air Defense (AA)"] = ""
-ctld.i18n["es"]["Aircraft"] = ""
-ctld.i18n["es"]["FARP / FOB"] = ""
-ctld.i18n["es"]["Ground Vehicles"] = ""
-ctld.i18n["es"]["Helicopters"] = ""
-ctld.i18n["es"]["Infantry"] = ""
-ctld.i18n["es"]["Ships"] = ""
+ctld.i18n["es"]["Air Defense (AA)"] = "Defensa aérea (AA)"
+ctld.i18n["es"]["Aircraft"] = "Aeronaves"
+ctld.i18n["es"]["FARP / FOB"] = "FARP / FOB"
+ctld.i18n["es"]["Ground Vehicles"] = "Vehículos terrestres"
+ctld.i18n["es"]["Helicopters"] = "Helicópteros"
+ctld.i18n["es"]["Infantry"] = "Infantería"
+ctld.i18n["es"]["Ships"] = "Barcos"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 ctld.i18n["es"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = "%1 ajuste(s) ausente(s) de la configuración de la misión — se usó el valor por defecto de CTLD: %2"

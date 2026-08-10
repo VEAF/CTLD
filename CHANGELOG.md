@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — remaining KO/ES i18n debt from the revived stale keys repaid (FIX-I18N-DEBT-REPAYMENT-2)
+
+- **22 KO + 7 ES entries translated**: genuine debt among the 56 keys `FIX-I18N-STALE-COMMENT-PARSING`
+  revived — never translated even before that bug, not part of it. `CTLD_i18n_en.lua` and
+  `CTLD_i18n_fr.lua` were already complete after that fix.
+- `FARP / FOB` added to KO's and ES's `__keep_en` block (acronym, no translatable content) —
+  the same mechanism already used for `JTAC`, `CTLD`, etc.
+- No tooling changed, translation content only. `pytest tools/build/` 24/24 green (unchanged);
+  `generate_i18n_dicts.ps1` dry-run reports `OK` on all four dictionaries.
+
 ### Fixed — 56 i18n keys wrongly marked stale, breaking AA system / crate labels in every language (FIX-I18N-STALE-COMMENT-PARSING)
 
 - **The i18n tooling's dictionary parser matched a `-- STALE:`-commented line the same as a live
