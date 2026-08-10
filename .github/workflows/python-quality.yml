@@ -59,3 +59,11 @@ jobs:
       # == fresh emit from src/CTLD_config.yaml) and the embed/wrap round-trip.
       - name: Tests (pytest + coverage)
         run: poetry run pytest
+
+      # tools/build/ is standalone scripts (no poetry project of its own, "pip only" per
+      # translate_i18n.py's original design) — install pytest directly and run against it.
+      - name: Tests (tools/build/, plain pytest)
+        working-directory: ${{ github.workspace }}
+        run: |
+          pip install pytest
+          pytest tools/build/

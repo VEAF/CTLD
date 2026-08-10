@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """translate_i18n.py — Fill empty i18n stubs via the Claude API.
 
-Reads src/CTLD_i18n_*.lua, identifies stubs (value == EN value),
+Reads src/CTLD_i18n_*.lua, identifies stubs (empty, or value == EN value),
 and fills them using Claude claude-haiku-4-5-20251001, one batch call per language.
 Writes results back in-place. Non-blocking: any error prints a WARNING and exits 0.
 
@@ -16,6 +16,8 @@ import sys
 import json
 from pathlib import Path
 
+from i18n_dict_utils import parse_dict, parse_keep_en
+
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
@@ -23,20 +25,21 @@ MODEL     = "claude-haiku-4-5-20251001"
 LANG_NAMES = {"fr": "French", "es": "Spanish", "ko": "Korean"}
 
 # ---------------------------------------------------------------------------
-# Parse a CTLD_i18n_XX.lua dict file into {key: value} (excludes translation_version)
+# A stub is an entry not worth keeping as-is: empty (generate_i18n_dicts.ps1's
+# convention for a freshly-added non-EN key), or still a verbatim copy of the
+# EN text (the pre-existing convention this predicate used to check alone).
 # ---------------------------------------------------------------------------
-_ENTRY_RE   = re.compile(r'ctld\.i18n\["[^"]+"\]\["([^"]+)"\]\s*=\s*"((?:[^"\\]|\\.)*)"\s*')
-# Matches keys inside a __keep_en = { ["key"] = true, ... } block
-_KEEP_EN_RE = re.compile(r'\["([^"]+)"\]\s*=\s*true')
+def _is_stub(lang_value: str | None, en_value: str) -> bool:
+    return lang_value == en_value or lang_value == ""
 
-def _parse_dict(path: Path) -> dict[str, str]:
-    text = path.read_text(encoding="utf-8")
-    result = {}
-    for m in _ENTRY_RE.finditer(text):
-        key, val = m.group(1), m.group(2)
-        if key != "translation_version":
-            result[key] = val
-    return result
+
+def _collect_stubs(
+    en_dict: dict[str, str], lang_dict: dict[str, str], keep_en: set[str]
+) -> dict[str, str]:
+    return {
+        k: v for k, v in en_dict.items()
+        if k not in keep_en and _is_stub(lang_dict.get(k), v)
+    }
 
 # ---------------------------------------------------------------------------
 # Write translated values back into the Lua source file
@@ -93,7 +96,7 @@ def main() -> int:
         print(f"[translate-i18n] WARNING: EN dict not found at {en_path}", flush=True)
         return 0
 
-    en_dict = _parse_dict(en_path)
+    en_dict = parse_dict(en_path.read_text(encoding="utf-8"))
     if not en_dict:
         print("[translate-i18n] WARNING: EN dict is empty — nothing to translate.", flush=True)
         return 0
@@ -113,24 +116,10 @@ def main() -> int:
             continue
 
         lang_text = lang_path.read_text(encoding="utf-8")
-        lang_dict = _parse_dict(lang_path)
+        lang_dict = parse_dict(lang_text)
+        keep_en = parse_keep_en(lang_text)
 
-        # Keys marked intentionally EN in __keep_en block — exclude from stub detection
-        keep_en: set[str] = set()
-        in_block = False
-        for line in lang_text.splitlines():
-            if "__keep_en" in line and "=" in line and "{" in line:
-                in_block = True
-            if in_block:
-                m = _KEEP_EN_RE.search(line)
-                if m:
-                    keep_en.add(m.group(1))
-                if "}" in line and "__keep_en" not in line:
-                    in_block = False
-
-        # A stub = key present in lang dict with value == EN value, not in __keep_en
-        stubs = {k: v for k, v in en_dict.items()
-                 if lang_dict.get(k) == v and k not in keep_en}
+        stubs = _collect_stubs(en_dict, lang_dict, keep_en)
 
         if not stubs:
             print(f"[translate-i18n] {lang}: no stubs — skipped.", flush=True)
