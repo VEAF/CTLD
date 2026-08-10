@@ -8,6 +8,21 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — pre-existing KO/ES i18n translation debt repaid (FIX-I18N-DEBT-REPAYMENT)
+
+- **`CTLD_i18n_ko.lua` and `CTLD_i18n_es.lua` had 93 and 78 empty entries** respectively on
+  `develop` — F10 menu entries silently falling back to English for Korean/Spanish Mission Makers.
+  Follow-up repayment lot promised by `FIX-I18N-DICT-GUARD` (ADR 0013).
+- **70 live entries translated per language** (the same set for both — every key still referenced
+  by a current `ctld.tr()`/config-YAML call). The remaining 23/8 empty entries counted at
+  `FIX-I18N-DICT-GUARD`'s merge were `-- STALE:` in `CTLD_i18n_en.lua` (no longer referenced
+  anywhere in `src/`) — repaying dead keys would help no one, so they were left alone.
+- **`JTAC` and `%1 [%2] %3.` added to each dictionary's `__keep_en` block**: a sigil and a
+  placeholder-only string respectively, neither translatable — the existing sanctioned mechanism
+  for "intentionally kept as English", already used for `CTLD`, `MLRS`, etc.
+- No tooling changed: `translate_i18n.py`, `i18n_dict_utils.py`, `check_i18n_diff.py` and the
+  `i18n-guard` CI job are untouched. Translation content only.
+
 ### Fixed — CI now catches untranslated i18n menu entries before merge (FIX-I18N-DICT-GUARD)
 
 - **`translate_i18n.py`'s stub detection was broken since it shipped**: it only recognised a
