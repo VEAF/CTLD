@@ -8,6 +8,27 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Claude Code CLI as a local i18n auto-translate fallback (TOOLING-I18N-CLAUDE-CODE-TRANSLATE)
+
+- **`translate_i18n.py` no longer requires `ANTHROPIC_API_KEY`** to auto-translate empty i18n
+  stubs during a local `merge_CTLD.ps1` build. When the key is absent, it now falls back to the
+  Claude Code CLI (`claude -p`), authenticating via a Claude Code subscription instead — the
+  existing API-key path is unchanged and stays first-priority whenever the key is set.
+- Model pinned to `claude-haiku-4-5-20251001` on the CLI call too, matching the API path's
+  deliberate cheap/fast choice rather than inheriting the session's default model.
+- No pre-flight check for CLI/session availability — a failure is caught by the same non-blocking
+  handling already used for API errors, with a combined warning naming both ways to enable
+  auto-translation when neither is available.
+- Two Windows-specific bugs fixed during manual verification: `subprocess` does not resolve
+  `claude`'s `.cmd` shim via `PATHEXT` without `shell=True` (now resolved via `shutil.which`
+  first), and the prompt is now passed via stdin rather than as a CLI argument (a `.cmd` shim's
+  argument handling mangled the multi-line, JSON-punctuated prompt otherwise). Also strips the
+  markdown code fence Claude sometimes wraps its JSON response in despite being asked not to.
+- No change to `merge_CTLD.ps1`, `generate_i18n_dicts.ps1`, `check_i18n_diff.py`, or the
+  `i18n-guard` CI job — CI never auto-translates (ADR 0013), and the guard only inspects
+  dictionary content, never the mechanism that produced it.
+- See ADR 0014.
+
 ### Fixed — pre-existing KO/ES i18n translation debt repaid (FIX-I18N-DEBT-REPAYMENT)
 
 - **`CTLD_i18n_ko.lua` and `CTLD_i18n_es.lua` had 93 and 78 empty entries** respectively on
