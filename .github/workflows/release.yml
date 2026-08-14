@@ -77,6 +77,19 @@ jobs:
           git push origin -f published-latest
         shell: pwsh
 
+      # The engine is git-ignored since CHORE-UNTRACK-BUILT-ENGINE (PR #110), so build-exe's
+      # checkout no longer carries it — and that job bundles it with --add-data. Hand the
+      # freshly-built file over as an artifact rather than rebuilding it there: the exe then
+      # embeds byte-for-byte the CTLD.lua attached to this release, which a second independent
+      # build could not guarantee.
+      - name: Hand CTLD.lua to the exe build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctld-engine
+          path: CTLD.lua
+          retention-days: 1
+          if-no-files-found: error
+
   # ─────────────────────────────────────────────────────────────
   # Build the Mission Maker tool ctld-tools.exe (PyInstaller) and attach it to the
   # release. A single console exe = the CLI (embed/validate/gen) AND the GUI launcher:
@@ -99,6 +112,13 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
+
+      # --add-data below bundles CTLD.lua from the repo root. It is git-ignored since PR #110,
+      # so the checkout above does not provide it; the release job built it and passed it here.
+      - name: Collect CTLD.lua from the release job
+        uses: actions/download-artifact@v4
+        with:
+          name: ctld-engine
 
       - name: Build the frontend (→ ctld_tools/web/static)
         working-directory: tools/ctld-tools/web
