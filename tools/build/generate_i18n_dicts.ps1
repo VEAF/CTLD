@@ -18,9 +18,11 @@
 #   -Apply            : applies changes to dict files on disk.
 #
 # Per-dict changes applied with -Apply:
-#   MISSING keys  -> appended at end of file (EN: value=key, others: value="")
-#   STALE keys    -> line prefixed with "-- STALE:" (not deleted — confirm manually)
-#   version bump  -> each modified dict gets its own version incremented
+#   MISSING keys    -> appended at end of file (EN: value=key, others: value="")
+#   STALE keys      -> line prefixed with "-- STALE:" (not deleted — confirm manually)
+#   SUPERSEDED keys -> commented-out line deleted (a live line for that key exists)
+#   version bump    -> each modified dict gets its own version incremented, except when
+#                      a SUPERSEDED purge is the only change (no translation content moved)
 #
 # Usage (from repo root or from build/):
 #   .\build\generate_i18n_dicts.ps1           # dry-run
@@ -109,15 +111,26 @@ Write-Host ""
 # Helpers
 # =============================================================================
 
+$EntryPattern = 'ctld\.i18n\["[^"]+"\]\["((?:[^"\\]|\\.)*)"\]'
+
 function Get-DictKeys([string]$filePath) {
     # A "-- STALE: " (or any "-- ") commented line is not a live entry - skipped, so a dead
     # key already marked stale doesn't keep being reported as present in this dictionary.
+    return (Get-DictKeysByState $filePath $false)
+}
+
+function Get-DeadDictKeys([string]$filePath) {
+    # The mirror of Get-DictKeys: the keys carried by commented-out entries only. A key found
+    # by both is SUPERSEDED - a dead line left behind by a revival, which -Apply deletes.
+    return (Get-DictKeysByState $filePath $true)
+}
+
+function Get-DictKeysByState([string]$filePath, [bool]$wantCommented) {
     $keys = [System.Collections.Generic.HashSet[string]]::new()
     if (-not (Test-Path $filePath)) { return $keys }
-    $lines = Get-Content $filePath -Encoding UTF8
-    foreach ($line in $lines) {
-        if ($line.TrimStart().StartsWith("--")) { continue }
-        $m = [regex]::Match($line, 'ctld\.i18n\["[^"]+"\]\["((?:[^"\\]|\\.)*)"\]')
+    foreach ($line in (Get-Content $filePath -Encoding UTF8)) {
+        if ($line.TrimStart().StartsWith("--") -ne $wantCommented) { continue }
+        $m = [regex]::Match($line, $EntryPattern)
         if ($m.Success) {
             [void]$keys.Add($m.Groups[1].Value)
         }
@@ -149,21 +162,26 @@ foreach ($lang in $DictFiles.Keys) {
     $filePath   = $DictFiles[$lang]
     $filename   = Split-Path -Leaf $filePath
     $dictKeys   = Get-DictKeys $filePath
+    $deadKeys   = Get-DeadDictKeys $filePath
     $currentVer = Get-DictVersion $filePath
 
     $missing = @($usedKeys | Where-Object { -not $dictKeys.Contains($_) } | Sort-Object)
     $stale   = @($dictKeys  | Where-Object { -not $usedKeys.Contains($_) } | Sort-Object)
+    # A commented entry whose key is also live: the dead half of a revived key, kept by
+    # mistake. Inert at runtime, but a translator editing that line sees no effect.
+    $superseded = @($deadKeys | Where-Object { $dictKeys.Contains($_) } | Sort-Object)
 
     Write-Host "--- $filename ($lang) | version $currentVer ---"
 
-    if ($missing.Count -eq 0 -and $stale.Count -eq 0) {
+    if ($missing.Count -eq 0 -and $stale.Count -eq 0 -and $superseded.Count -eq 0) {
         Write-Host "  OK" -ForegroundColor Green
         Write-Host ""
         continue
     }
 
-    foreach ($k in $missing) { Write-Host "  MISSING : [$k]" -ForegroundColor Red }
-    foreach ($k in $stale)   { Write-Host "  STALE   : [$k]" -ForegroundColor Yellow }
+    foreach ($k in $missing)    { Write-Host "  MISSING    : [$k]" -ForegroundColor Red }
+    foreach ($k in $stale)      { Write-Host "  STALE      : [$k]" -ForegroundColor Yellow }
+    foreach ($k in $superseded) { Write-Host "  SUPERSEDED : [$k]" -ForegroundColor DarkYellow }
 
     if (-not $Apply) {
         Write-Host ""
@@ -173,6 +191,19 @@ foreach ($lang in $DictFiles.Keys) {
     # ---- Apply changes ----
     $raw     = Get-Content $filePath -Raw -Encoding UTF8
     $changed = $false
+
+    # Delete superseded lines: a commented-out entry for a key that also has a live line.
+    # Matches the whole line (with its newline) only when it starts with "--" AND carries
+    # this key's entry, so a commented __keep_en member — which has no ctld.i18n[...] entry
+    # — is never touched. Every occurrence goes, not just the first.
+    foreach ($k in $superseded) {
+        $ek      = [regex]::Escape($k)
+        $pattern = "(?m)^--.*ctld\.i18n\[`"$lang`"\]\[`"$ek`"\].*\r?\n"
+        if ([regex]::IsMatch($raw, $pattern)) {
+            $raw     = [regex]::Replace($raw, $pattern, '')
+            $changed = $true
+        }
+    }
 
     # Mark stale keys: prefix the matching line with "-- STALE: "
     foreach ($k in $stale) {
@@ -199,16 +230,21 @@ foreach ($lang in $DictFiles.Keys) {
         $changed = $true
     }
 
-    # Bump this dict's own version
+    # Bump this dict's own version — but not when a purge is all that happened. The version
+    # exists so ctld.i18n_check() can flag a dict lagging behind EN in *content*; deleting
+    # inert comments moves no translation, and a bump would signal drift that did not occur.
     if ($changed) {
-        $newVer = Bump-Version $currentVer
-        $raw    = [regex]::Replace($raw,
-            '(translation_version\s*=\s*)"[^"]+"',
-            "`$1`"$newVer`"")
+        $newVer = $currentVer
+        if ($missing.Count -gt 0 -or $stale.Count -gt 0) {
+            $newVer = Bump-Version $currentVer
+            $raw    = [regex]::Replace($raw,
+                '(translation_version\s*=\s*)"[^"]+"',
+                "`$1`"$newVer`"")
+        }
 
         [System.IO.File]::WriteAllText($filePath, $raw, [System.Text.UTF8Encoding]::new($false))
-        Write-Host ("  APPLIED : {0} added, {1} staled | {2} -> {3}" -f `
-            $missing.Count, $stale.Count, $currentVer, $newVer) -ForegroundColor Cyan
+        Write-Host ("  APPLIED : {0} added, {1} staled, {2} purged | {3} -> {4}" -f `
+            $missing.Count, $stale.Count, $superseded.Count, $currentVer, $newVer) -ForegroundColor Cyan
         $anyApplied = $true
     }
 

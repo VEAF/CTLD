@@ -28,9 +28,17 @@ crate/smoke/vehicle F10 menu labels, and 7 vehicle-category labels — were mark
 `CTLD_config.yaml`'s `desc:`/`name:` fields, not a `ctld.tr()` call, and were marked stale by a
 version of `generate_i18n_dicts.ps1` that predates the config-YAML scan that would have kept them
 recognized as in use. At runtime this meant `ctld.i18n["en"]["HAWK Launcher"]` (and 55 others) were
-`nil` in the shipped `CTLD.lua` — broken or missing F10/AA-system text in **every** language, not a
-KO/ES-only cosmetic issue. This is a live production bug this lot's fix surfaces and repairs, not
-just a parsing correctness improvement.
+`nil` in the shipped `CTLD.lua`.
+
+> **Impact, corrected by `FIX-I18N-PURGE-SUPERSEDED` after measuring it.** This PRD originally read
+> "broken or missing F10/AA-system text in **every** language". That is wrong: `ctld.tr()` falls back
+> *active language → EN → the key itself*, and the key **is** the English text, so a `nil` entry
+> renders as correct English, never as blank or broken text — and no code reads `ctld.i18n[...]`
+> directly outside the i18n module to bypass that chain. Replaying the pre-fix dictionaries in Lua
+> 5.1 returns `HAWK Launcher` for `tr(en)`, `tr(fr)` and `tr(ko)` alike. The real symptom is a **loss
+> of translation**: those labels rendered in English in FR/ES/KO, English being unaffected — exactly
+> the symptom originally reported. Still a live production bug worth this lot, but a degraded one,
+> not a broken UI.
 
 ## Solution
 

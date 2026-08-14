@@ -8,6 +8,29 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — 225 superseded `-- STALE:` lines purged from the dictionaries (FIX-I18N-PURGE-SUPERSEDED)
+
+- **A revived key kept its dead line**: `FIX-I18N-STALE-COMMENT-PARSING` brought 56 keys back by
+  appending fresh live lines at end of file, leaving the `-- STALE:` lines they supersede in place.
+  225 keys across the four dictionaries existed twice — `"HAWK Launcher"` was both
+  `CTLD_i18n_en.lua:78` (commented, inert) and `:596` (live). Inert at runtime, but a translator
+  who opens the file, finds the first occurrence and edits it never sees their work render.
+- **`generate_i18n_dicts.ps1` gains a third category** next to `MISSING` and `STALE`:
+  **`SUPERSEDED`** — a key carried by both a commented and a live line. Reported in dry-run,
+  the commented line deleted under `-Apply`. Fixed in the generator rather than by a one-shot
+  script, so the duplicates cannot come back the next time a key is revived.
+- Applied: **66 EN + 66 FR + 59 ES + 34 KO lines removed**, 303 live keys per dictionary unchanged.
+  Audited first — 218 of the 225 pairs held an identical value, 7 an older wording the live line
+  had already replaced, and **none** had an empty live value against a translated commented one, so
+  no translation was lost.
+- **The 582 genuinely dead commented lines stay** (keys with no live counterpart): that archive is
+  what let PR #119 recover the FR/ES/KO translations of the 56 revived keys instead of
+  re-translating them from scratch.
+- No `translation_version` bump for a purge — the version signals a dictionary lagging behind EN in
+  *content*, and removing inert comments moves no translation.
+- See `.backlog/FIX-I18N-PURGE-SUPERSEDED/`. No ADR — cleanup plus a generator rule, not a design
+  trade-off.
+
 ### Fixed — remaining KO/ES i18n debt from the revived stale keys repaid (FIX-I18N-DEBT-REPAYMENT-2)
 
 - **22 KO + 7 ES entries translated**: genuine debt among the 56 keys `FIX-I18N-STALE-COMMENT-PARSING`
@@ -18,7 +41,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - No tooling changed, translation content only. `pytest tools/build/` 24/24 green (unchanged);
   `generate_i18n_dicts.ps1` dry-run reports `OK` on all four dictionaries.
 
-### Fixed — 56 i18n keys wrongly marked stale, breaking AA system / crate labels in every language (FIX-I18N-STALE-COMMENT-PARSING)
+### Fixed — 56 i18n keys wrongly marked stale, losing their FR/ES/KO translations (FIX-I18N-STALE-COMMENT-PARSING)
 
 - **The i18n tooling's dictionary parser matched a `-- STALE:`-commented line the same as a live
   one** (`tools/build/i18n_dict_utils.py`'s `parse_dict`/`parse_keep_en`, `generate_i18n_dicts.ps1`'s
@@ -30,8 +53,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   were incorrectly marked `-- STALE:` in **every dictionary including English**, most likely predating
   `generate_i18n_dicts.ps1`'s config-YAML `desc:`/`name:` scan (these keys are referenced there, not
   via a `ctld.tr()` call, so an older version of the script would never have seen them as in use).
-  At runtime this meant `ctld.i18n["en"]["HAWK Launcher"]` and 55 others were `nil` — broken/missing
-  text in F10 menus and the AA system UI, in every language, not just KO/ES.
+- **In-game symptom**: those labels rendered **in English instead of the active language** in FR, ES
+  and KO — the AA system component names, several crate/smoke/vehicle F10 entries and the category
+  headers. **English itself was unaffected.** `ctld.i18n["en"]["HAWK Launcher"]` and 55 others were
+  indeed `nil`, but `ctld.tr()` falls back *active language → EN → the key itself*, and the key **is**
+  the English text, so a missing entry renders as correct English rather than as blank or broken
+  text (and nothing reads `ctld.i18n[...]` directly outside the i18n module to bypass that chain).
+  This is exactly the symptom originally reported: F10 entries staying untranslated in Korean.
 - **Fixed for real**: `generate_i18n_dicts.ps1 -Apply` re-run with the corrected parser revives all
   56 keys (EN gets its own text back automatically). The FR/ES/KO translations that were sitting
   inert in the old commented lines were manually recovered into the freshly-revived entries rather
