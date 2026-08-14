@@ -82,13 +82,28 @@ operations or push without an explicit go.
      - **Pre-release** (`x.y.z-rcN`): **leave `## [Unreleased]` open** so post-rc fixes keep landing
        there — do not freeze the changelog. (Optionally add a dated `## [x.y.z-rcN]` heading above
        `[Unreleased]` capturing the rc snapshot; the invariant is that `[Unreleased]` survives.)
-   - Bump `ctld.VERSION` in `src/CTLD_config.lua` to the target (suffix included for an rc).
+   - Bump `ctld.VERSION` in `src/CTLD_config.lua` to the target (suffix included for an rc). This is
+     the **only** version to bump: `ctld-tools` reads it as its single source of truth
+     (`resources.py`), so the exe and its help link follow on their own. The `0.1.0` in
+     `tools/ctld-tools/pyproject.toml` is a leftover and is not displayed anywhere.
    - **Rebuild** the deliverable: `powershell -ExecutionPolicy Bypass -File tools\build\merge_CTLD.ps1`
-     (the version changed in `src/`).
+     (the version changed in `src/`). This is a **local check**, not a file to commit — see step 5.
+     Confirm the rebuilt `CTLD.lua` carries the new `ctld.VERSION` before going further.
 
-5. **Git** (after the user's go): create `release/x.y.z` from `develop`, commit
-   (`RELEASE_NOTES.md`, `CHANGELOG.md`, `src/CTLD_config.lua`, `CTLD.lua`), push, open a PR
+5. **Git** (after the user's go): create `release/x.y.z` from `develop`, commit, push, open a PR
    targeting `develop`, report the URL. Wait for CI + review, then merge.
+
+   - **Commit** `RELEASE_NOTES.md`, `src/CTLD_config.lua`, and `CHANGELOG.md` **only when step 4
+     changed it** (a stable freeze, or an optional rc heading — an rc that leaves `[Unreleased]`
+     alone has nothing to commit there).
+   - **Never `CTLD.lua`.** It is a build artifact, git-ignored since `CHORE-UNTRACK-BUILT-ENGINE`
+     (PR #110), and CI rebuilds it and attaches it to the release. `git add` on it silently does
+     nothing; committing it was the pre-#110 instruction and is now wrong.
+   - **PR title**: `release: prepare x.y.z` — the form every release PR has used since rc3.
+   - **Label the PR `skip-changelog`.** Bumping `ctld.VERSION` is a `src/` change, so the
+     `changelog-guard` CI job demands a `CHANGELOG.md` entry and fails the PR without it. Every
+     release PR from rc3 to rc7 carried this label; a release is the one case where the guard has
+     nothing to protect.
 
 6. **Final tag** (give the user these commands to run after merge — pushing the tag is irreversible
    and triggers the release workflow):
