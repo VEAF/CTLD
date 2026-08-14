@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/api-reference/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/api-reference/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/api-reference/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/architecture/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/architecture/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/building-and-testing/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/building-and-testing/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/building-and-testing/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/design-spec/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/design-spec/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/design-spec/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/events/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/events/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/events/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/i18n/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/i18n/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/i18n/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/integration-testing/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/integration-testing/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/integration-testing/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/migration-v1-v2/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/migration-v1-v2/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/migration-v1-v2/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/workflow/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/workflow/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/workflow/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/subsystems/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/aa/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/aa/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/subsystems/aa/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/beacons/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/beacons/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/subsystems/beacons/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/crates/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/crates/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/subsystems/crates/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/menu/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/menu/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/subsystems/menu/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/players/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/players/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/subsystems/players/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/recon/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/recon/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/subsystems/recon/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/scenes/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/scenes/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/subsystems/scenes/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/troops-jtac/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/troops-jtac/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/subsystems/troops-jtac/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/vehicles/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/vehicles/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/subsystems/vehicles/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/zones/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/developer/subsystems/zones/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/developer/subsystems/zones/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/mission-maker/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/asset-validation/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/asset-validation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/mission-maker/asset-validation/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/configuration/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/configuration/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/mission-maker/configuration/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/crates-catalogue/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/crates-catalogue/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/mission-maker/crates-catalogue/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/ctld-tools/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/ctld-tools/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/mission-maker/ctld-tools/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/legacy-api/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/legacy-api/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/mission-maker/legacy-api/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/minefield/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/minefield/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/mission-maker/minefield/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/scenes-fob/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/scenes-fob/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/mission-maker/scenes-fob/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/translations/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/translations/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/mission-maker/translations/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/zones/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/zones/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/mission-maker/zones/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/pilot/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/pilot/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/pilot/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/pilot/beacons/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/pilot/beacons/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/pilot/beacons/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/pilot/crates/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/pilot/crates/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/pilot/crates/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/pilot/jtac/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/pilot/jtac/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/pilot/jtac/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/pilot/pack/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/pilot/pack/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/pilot/pack/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/pilot/parachute/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/pilot/parachute/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/pilot/parachute/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/pilot/recon/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/pilot/recon/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/pilot/recon/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/pilot/slingload/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/pilot/slingload/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/pilot/slingload/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/pilot/smoke/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/pilot/smoke/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/pilot/smoke/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/pilot/troop-transport/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/pilot/troop-transport/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/pilot/troop-transport/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/pilot/vehicles/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7/pilot/vehicles/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7fr/pilot/vehicles/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/api-reference/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/api-reference/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/api-reference/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/architecture/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/architecture/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/building-and-testing/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/building-and-testing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/building-and-testing/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/design-spec/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/design-spec/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/design-spec/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/events/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/events/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/events/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/i18n/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/i18n/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/i18n/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/integration-testing/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/integration-testing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/integration-testing/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/migration-v1-v2/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/migration-v1-v2/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/migration-v1-v2/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/workflow/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/workflow/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/workflow/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/subsystems/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/aa/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/aa/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/subsystems/aa/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/beacons/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/beacons/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/subsystems/beacons/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/crates/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/crates/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/subsystems/crates/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/menu/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/menu/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/subsystems/menu/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/players/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/players/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/subsystems/players/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/recon/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/recon/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/subsystems/recon/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/scenes/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/scenes/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/subsystems/scenes/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/troops-jtac/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/troops-jtac/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/subsystems/troops-jtac/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/vehicles/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/vehicles/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/subsystems/vehicles/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/zones/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/developer/subsystems/zones/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7developer/subsystems/zones/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7mission-maker/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/asset-validation/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/asset-validation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7mission-maker/asset-validation/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/configuration/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/configuration/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7mission-maker/configuration/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/crates-catalogue/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/crates-catalogue/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7mission-maker/crates-catalogue/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/ctld-tools/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/ctld-tools/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7mission-maker/ctld-tools/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/legacy-api/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/legacy-api/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7mission-maker/legacy-api/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/minefield/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/minefield/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7mission-maker/minefield/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/scenes-fob/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/scenes-fob/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7mission-maker/scenes-fob/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/translations/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/translations/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7mission-maker/translations/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/zones/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/mission-maker/zones/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7mission-maker/zones/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7pilot/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/beacons/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/beacons/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7pilot/beacons/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/crates/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/crates/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7pilot/crates/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/jtac/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/jtac/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7pilot/jtac/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/pack/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/pack/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7pilot/pack/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/parachute/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/parachute/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7pilot/parachute/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/recon/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/recon/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7pilot/recon/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/slingload/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/slingload/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7pilot/slingload/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/smoke/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/smoke/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7pilot/smoke/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/troop-transport/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/troop-transport/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7pilot/troop-transport/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/vehicles/</loc>
+        <lastmod>2026-08-14</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/CTLD/2.0.0-rc7/fr/pilot/vehicles/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/CTLD/2.0.0-rc7pilot/vehicles/"/>
+    </url>
+</urlset>
