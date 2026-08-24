@@ -2278,15 +2278,15 @@ its cargo. Because the DCS static is destroyed on load, <code>unloadCrate</code>
 <p>Every unpack outcome — ground vehicle, air JTAC, or static — is deployed through a single
 three-step pipeline in <code>_spawnUnpacked(desc, pos, coa, cId, playerName)</code>:</p>
 <div class="highlight"><pre><span></span><code>_spawnUnpacked(desc, pos, coa, cId, playerName)
-  ├── spawnAs ≠ &quot;GROUND&quot;/&quot;STATIC&quot; (air) + JTAC_dropEnabled == false → skip
+  ├── spawnAs ≠ "GROUND"/"STATIC" (air) + JTAC_dropEnabled == false → skip
   ├── desc.isJTAC → CTLDJTACManager:_consumeJTACSlot(coa)   ← quota gate (definitive)
   │     └── limit reached → notify player + return (no spawn)
   ├── ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
-  │     ├── spawnAs == &quot;GROUND&quot;   → minimal {name, task, units[{x,y,heading}]}
-  │     └── spawnAs == &quot;AIRPLANE&quot; → full {groupId, units[{alt,speed}], route[orbit+EPLRS]}
+  │     ├── spawnAs == "GROUND"   → minimal {name, task, units[{x,y,heading}]}
+  │     └── spawnAs == "AIRPLANE" → full {groupId, units[{alt,speed}], route[orbit+EPLRS]}
   │           (orbit + EPLRS embedded only when isJTAC = true)
   ├── ctld.utils.spawnFromDescriptor(desc, cId, unitDef)
-  │     ├── spawnAs == &quot;STATIC&quot;   → coalition.addStaticObject
+  │     ├── spawnAs == "STATIC"   → coalition.addStaticObject
   │     └── otherwise             → coalition.addGroup(Group.Category[spawnAs])
   └── _dispatchPostSpawn(desc, gname)
         └── isJTAC = true → CTLDJTACManager:startLase(gname)

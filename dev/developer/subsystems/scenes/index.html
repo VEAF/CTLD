@@ -2100,7 +2100,7 @@ snapshot, waiting a configurable delay between them.</p>
 is intentionally empty — there is no hard-coded model list.</p>
 <h2 id="internal-data-model">Internal data model<a class="headerlink" href="#internal-data-model" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>CtldScene (one instance per active deployment)
-  ├── _name        : &quot;&lt;modelName&gt;#&lt;counter&gt;&quot;  (unique per deployment)
+  ├── _name        : "&lt;modelName&gt;#&lt;counter&gt;"  (unique per deployment)
   ├── _modelName   : original model name (used for registry / pack lookups)
   ├── _unit        : trigger DCS Unit (or a mock unit for playSceneAtPos)
   ├── _steps       : model.steps (shared reference)
@@ -2201,7 +2201,7 @@ last step finishes, <code>_onComplete(scene)</code> fires (also under <code>pcal
 <h2 id="farp-pack-flow">FARP pack flow<a class="headerlink" href="#farp-pack-flow" title="Permanent link">&para;</a></h2>
 <p>Packing tears a deployed FARP scene back down into crates while preserving its warehouse state.
 The flow is split across the scene manager and <a href="../crates/"><code>CTLDCrateManager</code></a>:</p>
-<div class="highlight"><pre><span></span><code>Player selects &quot;Pack Equipt → Pack &lt;scene&gt;&quot;
+<div class="highlight"><pre><span></span><code>Player selects "Pack Equipt → Pack &lt;scene&gt;"
   └── CTLDCrateManager:refreshPackEquiptSection(playerObj)
         └── CTLDSceneManager:findNearbyRepackableScenes(transport:getPoint(), 300)
               └── returns _active scenes within radius whose model defines onRepack

@@ -2736,10 +2736,10 @@ identically.</p>
 <div class="highlight"><pre><span></span><code>TRZ  _  fob  _  N   _  30     _  defend  _  50
  │       │      │      │          │          │
  │       │      │      │          │          └─ target: 50 soldiers for the objective
- │       │      │      │          └──────────── flag: &quot;defend&quot; (DCS flag name)
+ │       │      │      │          └──────────── flag: "defend" (DCS flag name)
  │       │      │      └─────────────────────── stock: 30 troops max (limited)
  │       │      └────────────────────────────── coalition: NEUTRAL
- │       └───────────────────────────────────── name: &quot;fob&quot;
+ │       └───────────────────────────────────── name: "fob"
  └───────────────────────────────────────────── prefix TRZ
 </code></pre></div>
 <h3 id="parser-validation">Parser validation<a class="headerlink" href="#parser-validation" title="Permanent link">&para;</a></h3>
@@ -2989,7 +2989,7 @@ published with the removal.</p>
 <div class="highlight"><pre><span></span><code><span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">)</span><span class="w">                     </span><span class="c1">-- → CTLDTroopZone | nil</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZonesForCoalition</span><span class="p">(</span><span class="nv">coalition</span><span class="p">)</span><span class="w">       </span><span class="c1">-- active zones for coalition (0 = both)</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZoneAtPoint</span><span class="p">(</span><span class="nv">point</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="p">)</span><span class="w">      </span><span class="c1">-- containing zone; excludes AI-only pickup zones</span>
-<span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZoneForUnit</span><span class="p">(</span><span class="nv">unitName</span><span class="p">)</span><span class="w">              </span><span class="c1">-- zone under a live unit&#39;s position</span>
+<span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZoneForUnit</span><span class="p">(</span><span class="nv">unitName</span><span class="p">)</span><span class="w">              </span><span class="c1">-- zone under a live unit's position</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getWaypointZoneAt</span><span class="p">(</span><span class="nv">point</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="p">)</span><span class="w">        </span><span class="c1">-- active WPZ containing point</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getNearestWaypointZone</span><span class="p">(</span><span class="nv">point</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="p">)</span><span class="w">   </span><span class="c1">-- nearest WPZ (point need not be inside)</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getDropoffZoneAt</span><span class="p">(</span><span class="nv">point</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="p">)</span><span class="w">         </span><span class="c1">-- active IAZ-legacy auto-drop zone at point</span>
@@ -3018,7 +3018,7 @@ pickup/dropoff getters back the AI transport loop (<code>_checkAIStatus</code>).
 <span class="nv">zm</span><span class="p">:</span><span class="nf">setTroopZoneActive</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">active</span><span class="p">)</span><span class="w">                         </span><span class="c1">-- enable / disable a TRZ</span>
 
 <span class="c1">-- Legacy-compatible (called by the legacy API wrappers):</span>
-<span class="nv">zm</span><span class="p">:</span><span class="nf">isUnitInZone</span><span class="p">(</span><span class="nv">unitName</span><span class="p">,</span><span class="w"> </span><span class="nv">zoneType</span><span class="p">)</span><span class="w">     </span><span class="c1">-- zoneType: &quot;extract&quot; | &quot;pickup&quot; | nil (any active zone)</span>
+<span class="nv">zm</span><span class="p">:</span><span class="nf">isUnitInZone</span><span class="p">(</span><span class="nv">unitName</span><span class="p">,</span><span class="w"> </span><span class="nv">zoneType</span><span class="p">)</span><span class="w">     </span><span class="c1">-- zoneType: "extract" | "pickup" | nil (any active zone)</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">createExtractZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">flag</span><span class="p">,</span><span class="w"> </span><span class="nv">smoke</span><span class="p">)</span><span class="w">   </span><span class="c1">-- runtime EXZ from a DCS trigger zone</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">removeExtractZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">flag</span><span class="p">)</span><span class="w">          </span><span class="c1">-- flag accepted but ignored</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">activateWaypointZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">)</span><span class="w">             </span><span class="c1">-- delegates to setTroopZoneActive(…, true)</span>

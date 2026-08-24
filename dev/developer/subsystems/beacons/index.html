@@ -2335,10 +2335,26 @@ immediately would broadcast from a stale or zero position.</p>
 </table>
 <p>Frequencies are stored in Hz. The VHF pool skips a hard-coded set of real-world NDB frequencies
 (<code>CTLDBeaconManager._ndbSkip</code>) that already exist on DCS maps, to avoid interference.</p>
-<p><code>_assignFrequencies()</code> draws one frequency per band with <code>_pickFreq(free, used)</code>, which picks a
-random entry and moves it to the used pool. When a pool drops to <strong>3 or fewer</strong> free entries it
-recycles the entire used pool back into free before picking. <code>_freeFrequencies(beacon)</code> returns
-all three frequencies to their free pools when a beacon is removed or destroyed.</p>
+<p><code>_assignFrequencies(granted)</code> draws one frequency per band with <code>_pickFreq(free, used)</code>, which picks
+a random entry and hands it to <code>_takeFreq(free, used, index)</code> — the one place a frequency leaves the
+free pool. When a pool drops to <strong>3 or fewer</strong> free entries it recycles the entire used pool back
+into free before picking. <code>_freeFrequencies(beacon)</code> returns all three frequencies to their free
+pools when a beacon is removed or destroyed.</p>
+<p>A caller may ask for a specific frequency instead of taking the draw, via <code>opts.frequencies</code> on
+<code>createAtPoint</code> (see
+<a href="../../api-reference/#beacon-requested-frequencies">Requesting specific frequencies</a> for the API).
+<code>CTLDBeaconManager._bands</code> states each band's option key, unit, Hz multiplier and range, and
+<code>_resolveFreqRequest(request)</code> validates the whole request against the pools <strong>without mutating
+them</strong>, returning the granted entries as <code>{ [band] = { freq = Hz, index } }</code> or <code>nil, reason</code>. So a
+refusal on the third band cannot leave the first two consumed, and a refused call spawns nothing.</p>
+<p>The rule is that a request is granted only if the frequency is currently <strong>free in its band's pool</strong>;
+anything else refuses the whole call rather than substituting a random pick. Two reasons, one of each
+kind. Behaviourally, a beacon answering on a frequency other than the briefed one is invisible to the
+mission maker and inaudible to the pilot who tuned the briefed one — a refusal is at least something
+the caller can react to. Mechanically, the pool is the bookkeeping: <code>_freeFrequencies</code> unconditionally
+pushes a beacon's three frequencies back into the free pools, so a frequency granted from outside the
+pool would be <em>added</em> to it on removal and later drawn at random, and a frequency granted twice would
+be freed while the second beacon is still transmitting on it.</p>
 <h2 id="lifecycle">Lifecycle<a class="headerlink" href="#lifecycle" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>dropped   → 3 TACAN_beacon groups spawned, transmissions start after 1s
 active    → _refreshAll() runs every beaconRefreshInterval seconds
@@ -2347,8 +2363,12 @@ removed   → manual removal by a player within 500m
 </code></pre></div>
 <p><strong>Creation paths.</strong> All three go through <strong><code>createAtPoint(point, coalitionId, countryId, opts)</code></strong>,
 which owns the spawn, the frequency assignment, the battery and the map layers — and nothing that
-addresses a pilot. <code>opts</code> carries <code>name</code>, <code>batteryMinutes</code> (<code>-1</code> = never expires) and <code>isFOB</code>. It
-returns the <code>CTLDBeacon</code>, whose <code>vhf</code> / <code>uhf</code> / <code>fm</code> fields are what a script reads back.</p>
+addresses a pilot. <code>opts</code> carries <code>name</code>, <code>batteryMinutes</code> (<code>-1</code> = never expires), <code>isFOB</code> and
+<code>frequencies</code> (see <a href="#frequency-pools">Frequency pools</a>). It returns the <code>CTLDBeacon</code>, whose
+<code>vhf</code> / <code>uhf</code> / <code>fm</code> fields are what a script reads back — or <code>nil</code> and a reason string when the
+frequency request is refused or the spawn fails. On that failed-spawn path the three already-drawn
+frequencies are returned to their pools, so a caller retrying the same request is not told its own
+frequency is in use by a beacon that does not exist.</p>
 <ul>
 <li><code>dropBeacon(transport, player, isFOB, overridePosition)</code> — the transport path: when the aircraft
   is on the ground it offsets the spawn point behind the aircraft (heading + π, using the

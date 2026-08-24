@@ -3542,7 +3542,7 @@ handled by the relevant manager, and only then re-emitted as business events whe
 <h3 id="subscribeeventname-callback"><code>subscribe(eventName, callback)</code><a class="headerlink" href="#subscribeeventname-callback" title="Permanent link">&para;</a></h3>
 <p>Registers a callback for a named event. The callback receives the event payload table as
 its single argument.</p>
-<div class="highlight"><pre><span></span><code><span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">&quot;OnCrateLoaded&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">evt</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">"OnCrateLoaded"</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">evt</span><span class="p">)</span>
 <span class="w">    </span><span class="c1">-- evt.crateName, evt.carrierUnitName, evt.coalition, ...</span>
 <span class="kr">end</span><span class="p">)</span>
 </code></pre></div>
@@ -3555,18 +3555,18 @@ function reference</strong> used at subscribe time (keep a local reference if yo
 unsubscribe). Only the last-registered matching occurrence is removed per call.</p>
 <div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">onLoaded</span><span class="p">(</span><span class="nv">evt</span><span class="p">)</span><span class="w"> </span><span class="cm">--[[ ... ]]</span><span class="w"> </span><span class="kr">end</span>
 <span class="kd">local</span><span class="w"> </span><span class="nv">ed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">()</span>
-<span class="nv">ed</span><span class="p">:</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">&quot;OnCrateLoaded&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">onLoaded</span><span class="p">)</span>
+<span class="nv">ed</span><span class="p">:</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">"OnCrateLoaded"</span><span class="p">,</span><span class="w"> </span><span class="nv">onLoaded</span><span class="p">)</span>
 <span class="c1">-- later:</span>
-<span class="nv">ed</span><span class="p">:</span><span class="nf">unsubscribe</span><span class="p">(</span><span class="s2">&quot;OnCrateLoaded&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">onLoaded</span><span class="p">)</span>
+<span class="nv">ed</span><span class="p">:</span><span class="nf">unsubscribe</span><span class="p">(</span><span class="s2">"OnCrateLoaded"</span><span class="p">,</span><span class="w"> </span><span class="nv">onLoaded</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="unsubscribealleventname"><code>unsubscribeAll(eventName)</code><a class="headerlink" href="#unsubscribealleventname" title="Permanent link">&para;</a></h3>
 <p>Drops every subscriber for one event — used on module teardown.</p>
-<div class="highlight"><pre><span></span><code><span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">unsubscribeAll</span><span class="p">(</span><span class="s2">&quot;OnCrateLoaded&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">unsubscribeAll</span><span class="p">(</span><span class="s2">"OnCrateLoaded"</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="publisheventname-payload"><code>publish(eventName, payload)</code><a class="headerlink" href="#publisheventname-payload" title="Permanent link">&para;</a></h3>
 <p>Dispatches <code>payload</code> to every subscriber of <code>eventName</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">publish</span><span class="p">(</span><span class="s2">&quot;OnMySomethingHappened&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nv">unitName</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;UH-1H-1&quot;</span><span class="p">,</span>
+<div class="highlight"><pre><span></span><code><span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">publish</span><span class="p">(</span><span class="s2">"OnMySomethingHappened"</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nv">unitName</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">"UH-1H-1"</span><span class="p">,</span>
 <span class="w">    </span><span class="nv">coalition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">coalition</span><span class="p">.</span><span class="py">side</span><span class="p">.</span><span class="py">BLUE</span><span class="p">,</span>
 <span class="w">    </span><span class="nv">timestamp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">timer</span><span class="p">.</span><span class="nf">getAbsTime</span><span class="p">(),</span>
 <span class="p">})</span>
@@ -3591,7 +3591,7 @@ forward to <code>EventDispatcher:publish</code>; subscribers see no difference.<
 it with targeted subscriptions — see
 <a href="../migration-v1-v2/">Migration v1 → v2</a> for the full worked example.</p>
 <div class="highlight"><pre><span></span><code><span class="c1">-- v2: one subscription per event of interest, no id dispatch chain</span>
-<span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">&quot;OnCrateSpawned&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">evt</span><span class="p">)</span>
+<span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">"OnCrateSpawned"</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">evt</span><span class="p">)</span>
 <span class="w">    </span><span class="c1">-- evt.crateName, evt.coalition, evt.spawnedBy, evt.position</span>
 <span class="kr">end</span><span class="p">)</span>
 </code></pre></div>

@@ -2251,11 +2251,11 @@ entirely in Lua memory, inside <code>CTLDTroopManager._inTransit[unitName]</code
 carry several groups) or, once on the ground, as a name in <code>CTLDTroopManager._droppedGroups[coalition]</code>.</p>
 <p><code>CTLDTroopGroup.STATE</code> declares five constants:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">CTLDTroopGroup</span><span class="p">.</span><span class="py">STATE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nv">TRZ_LOADED</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;TRZ_LOADED&quot;</span><span class="p">,</span><span class="w">    </span><span class="c1">-- onboard, loaded from a TroopZone</span>
-<span class="w">    </span><span class="nv">DEPLOYED</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;deployed&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">-- on the ground as a live DCS group</span>
-<span class="w">    </span><span class="nv">FIELD_LOADED</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;FIELD_LOADED&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">-- onboard, recovered from the field</span>
-<span class="w">    </span><span class="nv">DEPLOYED_EXZ</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;DEPLOYED_EXZ&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">-- (declared; see note below)</span>
-<span class="w">    </span><span class="nv">RETURNED_TO_TRZ</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;RETURNED_TO_TRZ&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nv">TRZ_LOADED</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"TRZ_LOADED"</span><span class="p">,</span><span class="w">    </span><span class="c1">-- onboard, loaded from a TroopZone</span>
+<span class="w">    </span><span class="nv">DEPLOYED</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"deployed"</span><span class="p">,</span><span class="w">      </span><span class="c1">-- on the ground as a live DCS group</span>
+<span class="w">    </span><span class="nv">FIELD_LOADED</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">"FIELD_LOADED"</span><span class="p">,</span><span class="w">  </span><span class="c1">-- onboard, recovered from the field</span>
+<span class="w">    </span><span class="nv">DEPLOYED_EXZ</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">"DEPLOYED_EXZ"</span><span class="p">,</span><span class="w">  </span><span class="c1">-- (declared; see note below)</span>
+<span class="w">    </span><span class="nv">RETURNED_TO_TRZ</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"RETURNED_TO_TRZ"</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>The transitions actually driven by the current code:</p>

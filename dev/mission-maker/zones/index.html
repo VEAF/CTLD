@@ -2465,8 +2465,8 @@ occupies the name <code>dropzone1</code>.</p>
 <p>So an <code>aiZones</code> entry whose <code>dcsZoneName</code> is <code>dropzone1</code> — pointing at a genuinely different
 Mission Editor zone — collides with that TRZ and <strong>is dropped</strong>. CTLD reports it at mission
 start:</p>
-<div class="highlight"><pre><span></span><code>[ERROR] ZoneManager:   AIZ[1] ERROR &#39;dropzone1&#39;: name already taken by zone
-&#39;TRZ_dropzone1_B_0_nil_0&#39; — entry ignored
+<div class="highlight"><pre><span></span><code>[ERROR] ZoneManager:   AIZ[1] ERROR 'dropzone1': name already taken by zone
+'TRZ_dropzone1_B_0_nil_0' — entry ignored
 </code></pre></div>
 <p>The fix is always the same: give the two zones different names. Registration order is
 <code>TRZ_</code> → AI zones → <code>WPZ_</code> → legacy tables.</p>
@@ -2646,10 +2646,10 @@ a warning is written to <code>CTLD.log</code> and the zone is ignored.</p>
 <div class="highlight"><pre><span></span><code>TRZ  _  fob  _  N   _  20     _  defend  _  50
  │      │       │      │          │          │
  │      │       │      │          │          └─ target : 50 soldiers complete the objective
- │      │       │      │          └──────────── flag   : &quot;defend&quot; (DCS flag name)
+ │      │       │      │          └──────────── flag   : "defend" (DCS flag name)
  │      │       │      └─────────────────────── stock  : 20 troops max (limited pickup)
  │      │       └────────────────────────────── coalition: NEUTRAL
- │      └────────────────────────────────────── name   : &quot;fob&quot;
+ │      └────────────────────────────────────── name   : "fob"
  └───────────────────────────────────────────── prefix TRZ
 </code></pre></div>
 <blockquote>
@@ -2825,10 +2825,10 @@ including how a destroyed FOB removes its logistic zone.</p>
 <p>Use the <code>CTLDZoneManager</code> API from a <strong>DO SCRIPT</strong> trigger to simulate zone capture or a temporary
 loss. This works for both <code>LGZ_</code> trigger zones and <code>logisticUnits</code>-based zones:</p>
 <div class="highlight"><pre><span></span><code><span class="c1">-- Deactivate — zone is ignored by all pilots until reactivated</span>
-<span class="nv">CTLDZoneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">deactivateLogisticZone</span><span class="p">(</span><span class="s2">&quot;depot1&quot;</span><span class="p">)</span>
+<span class="nv">CTLDZoneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">deactivateLogisticZone</span><span class="p">(</span><span class="s2">"depot1"</span><span class="p">)</span>
 
 <span class="c1">-- Reactivate — zone becomes available again</span>
-<span class="nv">CTLDZoneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">activateLogisticZone</span><span class="p">(</span><span class="s2">&quot;depot1&quot;</span><span class="p">)</span>
+<span class="nv">CTLDZoneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">activateLogisticZone</span><span class="p">(</span><span class="s2">"depot1"</span><span class="p">)</span>
 </code></pre></div>
 <p>The zone stays registered and can be toggled any number of times.</p>
 <hr />

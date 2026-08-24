@@ -1916,6 +1916,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="CTLDBeaconManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#beacon-requested-frequencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requesting specific frequencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2140,6 +2157,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="CTLDBeaconManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#beacon-requested-frequencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requesting specific frequencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2236,7 +2270,7 @@ listed here.</p>
 <p>All managers are <strong>singletons</strong>. Always obtain the instance via <code>Manager.getInstance()</code> before
 calling an instance method:</p>
 <div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">troops</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">CTLDTroopManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">()</span>
-<span class="nv">troops</span><span class="p">:</span><span class="nf">spawnGroupAtTrigger</span><span class="p">(</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;pickzone1&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span>
+<span class="nv">troops</span><span class="p">:</span><span class="nf">spawnGroupAtTrigger</span><span class="p">(</span><span class="s2">"blue"</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="s2">"pickzone1"</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span>
 </code></pre></div>
 <p>Configuration is read-only and accessed via <code>ctld.gs("paramName")</code> — never <code>config:getSetting()</code>.
 See <a href="../architecture/">Architecture</a> for the singleton idiom and <a href="../migration-v1-v2/">Migration v1 → v2</a>
@@ -2296,9 +2330,9 @@ event.</em></p>
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code><span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">&quot;OnTroopsDeployed&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">evt</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">"OnTroopsDeployed"</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">evt</span><span class="p">)</span>
 <span class="w">    </span><span class="c1">-- evt.groupName, evt.deployedBy, evt.position, evt.trigger</span>
-<span class="w">    </span><span class="nv">trigger</span><span class="p">.</span><span class="py">action</span><span class="p">.</span><span class="nf">outText</span><span class="p">(</span><span class="s2">&quot;Troops at &quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nb">tostring</span><span class="p">(</span><span class="nv">evt</span><span class="p">.</span><span class="py">position</span><span class="p">),</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span>
+<span class="w">    </span><span class="nv">trigger</span><span class="p">.</span><span class="py">action</span><span class="p">.</span><span class="nf">outText</span><span class="p">(</span><span class="s2">"Troops at "</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nb">tostring</span><span class="p">(</span><span class="nv">evt</span><span class="p">.</span><span class="py">position</span><span class="p">),</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span>
 <span class="kr">end</span><span class="p">)</span>
 </code></pre></div>
 <p>Full event catalogue: <a href="../events/">Events</a>.</p>
@@ -2675,8 +2709,8 @@ event.</em></p>
 </tr>
 <tr>
 <td><code>createAtPoint</code></td>
-<td><code>(point, coalitionId, countryId, opts) → CTLDBeacon\|nil</code></td>
-<td>Spawn a beacon at an arbitrary point, with <strong>no transport and no player</strong>. <code>opts</code>: <code>{ name, batteryMinutes (-1 = never expires), isFOB }</code>. The returned beacon's <code>vhf</code> / <code>uhf</code> / <code>fm</code> fields (Hz) are the caller's answer — <code>beacon:freqText()</code> formats them. Announces nothing and publishes no event; <code>enabledRadioBeaconDrop</code> does not apply (it gates the pilot's menu action).</td>
+<td><code>(point, coalitionId, countryId, opts) → CTLDBeacon\|nil, reason</code></td>
+<td>Spawn a beacon at an arbitrary point, with <strong>no transport and no player</strong>. <code>opts</code>: <code>{ name, batteryMinutes (-1 = never expires), isFOB, frequencies }</code>. The returned beacon's <code>vhf</code> / <code>uhf</code> / <code>fm</code> fields (Hz) are the caller's answer — <code>beacon:freqText()</code> formats them. Announces nothing and publishes no event; <code>enabledRadioBeaconDrop</code> does not apply (it gates the pilot's menu action). Returns <code>nil</code> plus a reason string when the frequency request is refused or the spawn fails.</td>
 </tr>
 <tr>
 <td><code>removeBeacon</code></td>
@@ -2704,13 +2738,95 @@ event.</em></p>
 <span class="kd">local</span><span class="w"> </span><span class="nv">mgr</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="nv">CTLDBeaconManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">()</span>
 <span class="kd">local</span><span class="w"> </span><span class="nv">beacon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">mgr</span><span class="p">:</span><span class="nf">createAtPoint</span><span class="p">({</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">12000</span><span class="p">,</span><span class="w"> </span><span class="nv">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nv">z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">4500</span><span class="w"> </span><span class="p">},</span>
 <span class="w">                                 </span><span class="nv">coalition</span><span class="p">.</span><span class="py">side</span><span class="p">.</span><span class="py">BLUE</span><span class="p">,</span><span class="w"> </span><span class="nv">country</span><span class="p">.</span><span class="py">id</span><span class="p">.</span><span class="py">USA</span><span class="p">,</span>
-<span class="w">                                 </span><span class="p">{</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;FARP Alpha NDB&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">batteryMinutes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="p">})</span>
+<span class="w">                                 </span><span class="p">{</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"FARP Alpha NDB"</span><span class="p">,</span><span class="w"> </span><span class="nv">batteryMinutes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="p">})</span>
 <span class="nv">trigger</span><span class="p">.</span><span class="py">action</span><span class="p">.</span><span class="nf">outTextForCoalition</span><span class="p">(</span><span class="nv">coalition</span><span class="p">.</span><span class="py">side</span><span class="p">.</span><span class="py">BLUE</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;FARP Alpha NDB: &quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">beacon</span><span class="p">:</span><span class="nf">freqText</span><span class="p">(),</span><span class="w"> </span><span class="mi">20</span><span class="p">)</span>
+<span class="w">    </span><span class="s2">"FARP Alpha NDB: "</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">beacon</span><span class="p">:</span><span class="nf">freqText</span><span class="p">(),</span><span class="w"> </span><span class="mi">20</span><span class="p">)</span>
 
 <span class="c1">-- …and removes it when the FARP dies.</span>
-<span class="nv">mgr</span><span class="p">:</span><span class="nf">removeBeacon</span><span class="p">(</span><span class="s2">&quot;FARP Alpha NDB&quot;</span><span class="p">)</span>
+<span class="nv">mgr</span><span class="p">:</span><span class="nf">removeBeacon</span><span class="p">(</span><span class="s2">"FARP Alpha NDB"</span><span class="p">)</span>
 </code></pre></div>
+<h3 id="beacon-requested-frequencies">Requesting specific frequencies<a class="headerlink" href="#beacon-requested-frequencies" title="Permanent link">&para;</a></h3>
+<p><code>createAtPoint</code> draws each of the three frequencies at random from the pool. When the mission
+<strong>briefs</strong> a frequency — an FM channel given to a helicopter crew, a NDB printed on a kneeboard —
+pass <code>opts.frequencies</code> instead. Any subset of the three bands may be named; the bands left out keep
+drawing at random.</p>
+<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">beacon</span><span class="p">,</span><span class="w"> </span><span class="nv">reason</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">mgr</span><span class="p">:</span><span class="nf">createAtPoint</span><span class="p">(</span><span class="nv">point</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="p">.</span><span class="py">side</span><span class="p">.</span><span class="py">BLUE</span><span class="p">,</span><span class="w"> </span><span class="nv">country</span><span class="p">.</span><span class="py">id</span><span class="p">.</span><span class="py">USA</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nv">name</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"FARP Alpha NDB"</span><span class="p">,</span>
+<span class="w">    </span><span class="nv">frequencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">vhfKHz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">250</span><span class="p">,</span><span class="w"> </span><span class="nv">fmMHz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">40.5</span><span class="w"> </span><span class="p">},</span><span class="w">   </span><span class="c1">-- UHF stays random</span>
+<span class="p">})</span>
+<span class="kr">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="nv">beacon</span><span class="w"> </span><span class="kr">then</span>
+<span class="w">    </span><span class="nv">ctld</span><span class="p">.</span><span class="py">utils</span><span class="p">.</span><span class="nf">log</span><span class="p">(</span><span class="s2">"WARN"</span><span class="p">,</span><span class="w"> </span><span class="s2">"no beacon: %s"</span><span class="p">,</span><span class="w"> </span><span class="nv">reason</span><span class="p">)</span>
+<span class="kr">end</span>
+</code></pre></div>
+<p><strong>The unit is in the key name</strong> — <code>vhfKHz</code>, <code>uhfMHz</code>, <code>fmMHz</code>. That is the unit a mission maker reads
+a beacon frequency in (and the one <code>freqText()</code> prints), while the module stores Hz. Each band's
+range is narrow enough that a value given in the wrong unit cannot land inside another band, so it is
+refused rather than accepted as something else:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Unit</th>
+<th>Range</th>
+<th>Step</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>vhfKHz</code></td>
+<td>kHz</td>
+<td>200 – 1250</td>
+<td>10 kHz below 850, 50 kHz above</td>
+</tr>
+<tr>
+<td><code>uhfMHz</code></td>
+<td>MHz</td>
+<td>220 – 398.5</td>
+<td>0.5 MHz</td>
+</tr>
+<tr>
+<td><code>fmMHz</code></td>
+<td>MHz</td>
+<td>30 – 75.9</td>
+<td>0.1 MHz, within <code>30–35.9</code>, <code>40–45.9</code>, <code>50–55.9</code>, <code>60–65.9</code>, <code>70–75.9</code></td>
+</tr>
+</tbody>
+</table>
+<p>A request that cannot be granted <strong>refuses the whole call</strong>: <code>createAtPoint</code> returns <code>nil</code> and a
+reason, spawns nothing and consumes no frequency. It never substitutes another frequency — a beacon
+answering on something other than the briefed frequency is invisible to the mission maker and
+inaudible to the pilot who tuned the briefed one. Four refusals:</p>
+<table>
+<thead>
+<tr>
+<th>Refused</th>
+<th>Example</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unknown key</td>
+<td><code>{ vhf = 250 }</code></td>
+<td>The unit is missing from the key. Accepting it would hand back a random frequency for a typo — the failure this option exists to remove.</td>
+</tr>
+<tr>
+<td>Outside the band</td>
+<td><code>{ vhfKHz = 250000 }</code></td>
+<td>What a unit mistake looks like (Hz where kHz was asked for, and so on).</td>
+</tr>
+<tr>
+<td>Not in the pool</td>
+<td><code>{ vhfKHz = 205 }</code>, <code>{ vhfKHz = 440 }</code></td>
+<td>Off the band's step, or one of the real-world NDB frequencies the VHF pool withholds because a map beacon already occupies it.</td>
+</tr>
+<tr>
+<td>Already used</td>
+<td>a frequency a live beacon holds</td>
+<td>The collision the pool exists to prevent.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="ctldjtacmanager">CTLDJTACManager<a class="headerlink" href="#ctldjtacmanager" title="Permanent link">&para;</a></h2>
 <p><em>Manages JTAC auto-lase, spot corrections, orbit, smoke, 9-line, multi-JTAC deconfliction.</em></p>
 <table>
@@ -2882,12 +2998,12 @@ event.</em></p>
 </table>
 <p><strong>Scene model fields:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">myScene</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nv">name</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;My FARP&quot;</span><span class="p">,</span><span class="w">         </span><span class="c1">-- unique name, also used as crate `unit` field</span>
+<span class="w">    </span><span class="nv">name</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="s2">"My FARP"</span><span class="p">,</span><span class="w">         </span><span class="c1">-- unique name, also used as crate `unit` field</span>
 <span class="w">    </span><span class="nv">fobCompatible</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">             </span><span class="c1">-- set true to allow as a FOB scene</span>
 <span class="w">    </span><span class="nv">onRepack</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">scene</span><span class="p">,</span><span class="w"> </span><span class="nv">repackData</span><span class="p">)</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="kr">end</span><span class="p">,</span><span class="w">  </span><span class="c1">-- optional: enables Pack Equipt</span>
 <span class="w">    </span><span class="nv">steps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">-- Polar step: fixed offset from the helicopter</span>
-<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nv">objectsDescDbKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;FARP_Tent&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nv">objectsDescDbKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"FARP_Tent"</span><span class="p">,</span>
 <span class="w">          </span><span class="nv">polar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">distance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w"> </span><span class="nv">angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="p">},</span>
 <span class="w">          </span><span class="nv">relativeHeadingInDegrees</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">90</span><span class="p">,</span>
 <span class="w">          </span><span class="nv">relativeAltitudeInMeters</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
@@ -2895,7 +3011,7 @@ event.</em></p>
 
 <span class="w">        </span><span class="c1">-- Func-only step: no spawn, just a callback</span>
 <span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nv">delayAfterPreviousStep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">          </span><span class="nv">func</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">ctx</span><span class="p">)</span><span class="w"> </span><span class="nv">trigger</span><span class="p">.</span><span class="py">action</span><span class="p">.</span><span class="nf">outText</span><span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">)</span><span class="w"> </span><span class="kr">end</span><span class="w"> </span><span class="p">},</span>
+<span class="w">          </span><span class="nv">func</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">ctx</span><span class="p">)</span><span class="w"> </span><span class="nv">trigger</span><span class="p">.</span><span class="py">action</span><span class="p">.</span><span class="nf">outText</span><span class="p">(</span><span class="s2">"Done"</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">)</span><span class="w"> </span><span class="kr">end</span><span class="w"> </span><span class="p">},</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">}</span>
 <span class="nv">CTLDSceneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">registerSceneModel</span><span class="p">(</span><span class="nv">myScene</span><span class="p">)</span>
@@ -2978,8 +3094,8 @@ event.</em></p>
 </table>
 <div class="highlight"><pre><span></span><code><span class="c1">-- Deploy ~40 mines in a 50 m wide x 80 m long field starting 30 m ahead</span>
 <span class="kd">local</span><span class="w"> </span><span class="nv">ok</span><span class="p">,</span><span class="w"> </span><span class="nv">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">mineFieldScene</span><span class="p">.</span><span class="nf">setLandMineAuto</span><span class="p">(</span>
-<span class="w">    </span><span class="nv">Unit</span><span class="p">.</span><span class="nf">getByName</span><span class="p">(</span><span class="s2">&quot;my_helo&quot;</span><span class="p">),</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w"> </span><span class="mi">40</span><span class="p">)</span>
-<span class="kr">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="nv">ok</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="nv">env</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="s2">&quot;Minefield error: &quot;</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">result</span><span class="p">)</span><span class="w"> </span><span class="kr">end</span>
+<span class="w">    </span><span class="nv">Unit</span><span class="p">.</span><span class="nf">getByName</span><span class="p">(</span><span class="s2">"my_helo"</span><span class="p">),</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w"> </span><span class="mi">40</span><span class="p">)</span>
+<span class="kr">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="nv">ok</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="nv">env</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="s2">"Minefield error: "</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">result</span><span class="p">)</span><span class="w"> </span><span class="kr">end</span>
 
 <span class="c1">-- Clear the first set later</span>
 <span class="nv">mineFieldScene</span><span class="p">.</span><span class="nf">clearSet</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>

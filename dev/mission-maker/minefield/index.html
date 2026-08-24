@@ -2157,7 +2157,7 @@ unpack a crate), fetch the scene model and call one of its two layout functions.
 a DCS Unit object, which defines the origin and heading of the field, and both return a
 success flag plus the array of spawned static objects.</p>
 <p>Get the model once:</p>
-<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">mineField</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">CTLDSceneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">getModel</span><span class="p">(</span><span class="s2">&quot;mineField&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">mineField</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">CTLDSceneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">getModel</span><span class="p">(</span><span class="s2">"mineField"</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="setlandmineauto-by-area-and-count"><code>setLandMineAuto</code> — by area and count<a class="headerlink" href="#setlandmineauto-by-area-and-count" title="Permanent link">&para;</a></h3>
 <p>Provide the target dimensions and a desired mine count; CTLD computes the best

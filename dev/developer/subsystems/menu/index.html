@@ -2713,18 +2713,18 @@ with a metatable created by <code>ctld.Menu:_new(groupId, manager)</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="c1">-- Root menu (the ctld.Menu instance)</span>
 <span class="p">{</span>
 <span class="w">    </span><span class="nv">groupId</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="nv">number</span><span class="p">,</span><span class="w">     </span><span class="c1">-- DCS group ID this menu belongs to</span>
-<span class="w">    </span><span class="nv">groupName</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1">-- resolved once at creation, for name-based lookup</span>
+<span class="w">    </span><span class="nv">groupName</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span><span class="w">   </span><span class="c1">-- resolved once at creation, for name-based lookup</span>
 <span class="w">    </span><span class="nv">children</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span><span class="w">    </span><span class="c1">-- root-level nodes</span>
-<span class="w">    </span><span class="nv">_lookup</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span><span class="w">    </span><span class="c1">-- &quot;path.string&quot; → node reference (fast access)</span>
+<span class="w">    </span><span class="nv">_lookup</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span><span class="w">    </span><span class="c1">-- "path.string" → node reference (fast access)</span>
 <span class="w">    </span><span class="nv">manager</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="nv">reference</span><span class="p">,</span><span class="w">  </span><span class="c1">-- back-reference to ctld.MenuManager</span>
 <span class="w">    </span><span class="nv">nextItemId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">number</span><span class="p">,</span><span class="w">     </span><span class="c1">-- counter for unique node ids</span>
 <span class="p">}</span>
 
 <span class="c1">-- Submenu node</span>
 <span class="p">{</span>
-<span class="w">    </span><span class="nv">id</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;sub_123&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nv">name</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nb">type</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;submenu&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nv">id</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"sub_123"</span><span class="p">,</span>
+<span class="w">    </span><span class="nv">name</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<span class="w">    </span><span class="nb">type</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"submenu"</span><span class="p">,</span>
 <span class="w">    </span><span class="nv">children</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">},</span>
 <span class="w">    </span><span class="nv">order</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="nv">number</span><span class="o">|</span><span class="kc">nil</span><span class="p">,</span><span class="w">   </span><span class="c1">-- position among siblings (see Order convention)</span>
 <span class="w">    </span><span class="nv">enabled</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nv">boolean</span><span class="p">,</span><span class="w">      </span><span class="c1">-- DCS visibility (see Enabled convention), default true</span>
@@ -2732,9 +2732,9 @@ with a metatable created by <code>ctld.Menu:_new(groupId, manager)</code>.</p>
 
 <span class="c1">-- Command node</span>
 <span class="p">{</span>
-<span class="w">    </span><span class="nv">id</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cmd_456&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nv">name</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nb">type</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;command&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nv">id</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="s2">"cmd_456"</span><span class="p">,</span>
+<span class="w">    </span><span class="nv">name</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<span class="w">    </span><span class="nb">type</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s2">"command"</span><span class="p">,</span>
 <span class="w">    </span><span class="nv">functionToCall</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="err">,</span>
 <span class="w">    </span><span class="nf">anyArgument</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="nv">table</span><span class="p">,</span><span class="w">   </span><span class="c1">-- passed as-is to the callback; defaults to {}</span>
 <span class="w">    </span><span class="nv">order</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="nv">number</span><span class="o">|</span><span class="kc">nil</span><span class="p">,</span>
@@ -2760,9 +2760,9 @@ without disturbing sibling slots.</p>
 <p>The <code>_lookup</code> table maps a dotted path string to a node reference, giving O(1) path resolution
 instead of O(depth × siblings) tree traversal:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">_lookup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="p">[</span><span class="s2">&quot;CTLD&quot;</span><span class="p">]</span><span class="w">                          </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">ref</span><span class="o">&gt;</span><span class="p">,</span>
-<span class="w">    </span><span class="p">[</span><span class="s2">&quot;CTLD.Troop Commands&quot;</span><span class="p">]</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">ref</span><span class="o">&gt;</span><span class="p">,</span>
-<span class="w">    </span><span class="p">[</span><span class="s2">&quot;CTLD.Troop Commands.Infantry&quot;</span><span class="p">]</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">ref</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">[</span><span class="s2">"CTLD"</span><span class="p">]</span><span class="w">                          </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">ref</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">[</span><span class="s2">"CTLD.Troop Commands"</span><span class="p">]</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">ref</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">[</span><span class="s2">"CTLD.Troop Commands.Infantry"</span><span class="p">]</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">ref</span><span class="o">&gt;</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>It is maintained automatically by <code>addSubMenu</code> / <code>addCommand</code> and pruned by <code>clearBranch</code>,
@@ -2834,7 +2834,7 @@ F10 → Vehicles → → Next Page:
 <div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">wrapped</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span>
 <span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="nv">ok</span><span class="p">,</span><span class="w"> </span><span class="nv">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">pcall</span><span class="p">(</span><span class="nv">node</span><span class="p">.</span><span class="py">functionToCall</span><span class="p">,</span><span class="w"> </span><span class="nv">node</span><span class="p">.</span><span class="py">anyArgument</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="p">{})</span>
 <span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="nv">ok</span><span class="w"> </span><span class="kr">then</span>
-<span class="w">        </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">logError</span><span class="p">(</span><span class="s2">&quot;ctld.MenuManager: callback failed for &#39;%s&#39;: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="nv">node</span><span class="p">.</span><span class="py">name</span><span class="p">,</span><span class="w"> </span><span class="nb">tostring</span><span class="p">(</span><span class="nv">err</span><span class="p">))</span>
+<span class="w">        </span><span class="nv">ctld</span><span class="p">.</span><span class="nf">logError</span><span class="p">(</span><span class="s2">"ctld.MenuManager: callback failed for '%s': %s"</span><span class="p">,</span><span class="w"> </span><span class="nv">node</span><span class="p">.</span><span class="py">name</span><span class="p">,</span><span class="w"> </span><span class="nb">tostring</span><span class="p">(</span><span class="nv">err</span><span class="p">))</span>
 <span class="w">    </span><span class="kr">end</span>
 <span class="kr">end</span>
 <span class="nv">missionCommands</span><span class="p">.</span><span class="nf">addCommandForGroup</span><span class="p">(</span><span class="nv">groupId</span><span class="p">,</span><span class="w"> </span><span class="nv">node</span><span class="p">.</span><span class="py">name</span><span class="p">,</span><span class="w"> </span><span class="nv">dcsPath</span><span class="p">,</span><span class="w"> </span><span class="nv">wrapped</span><span class="p">,</span><span class="w"> </span><span class="p">{})</span>
@@ -2885,9 +2885,9 @@ single-threaded environment).</p>
 <code>"Invalid function reference"</code>, <code>"Cannot remove root menu"</code>.</p>
 <p>The dynamic-refresh idiom, used throughout the crate/vehicle managers:</p>
 <div class="highlight"><pre><span></span><code><span class="kd">local</span><span class="w"> </span><span class="nv">menu</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ctld</span><span class="p">.</span><span class="py">MenuManager</span><span class="p">:</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">getMenuByGroupId</span><span class="p">(</span><span class="nv">groupId</span><span class="p">)</span>
-<span class="nv">menu</span><span class="p">:</span><span class="nf">clearBranch</span><span class="p">({</span><span class="w"> </span><span class="s2">&quot;CTLD Commands&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Pack Vehicles&quot;</span><span class="w"> </span><span class="p">})</span><span class="w">   </span><span class="c1">-- keep the container, drop its contents</span>
+<span class="nv">menu</span><span class="p">:</span><span class="nf">clearBranch</span><span class="p">({</span><span class="w"> </span><span class="s2">"CTLD Commands"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Pack Vehicles"</span><span class="w"> </span><span class="p">})</span><span class="w">   </span><span class="c1">-- keep the container, drop its contents</span>
 <span class="kr">for</span><span class="w"> </span><span class="nv">_</span><span class="p">,</span><span class="w"> </span><span class="nv">v</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nb">ipairs</span><span class="p">(</span><span class="nv">nearbyVehicles</span><span class="p">)</span><span class="w"> </span><span class="kr">do</span>
-<span class="w">    </span><span class="nv">menu</span><span class="p">:</span><span class="nf">addCommand</span><span class="p">({</span><span class="w"> </span><span class="s2">&quot;CTLD Commands&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Pack Vehicles&quot;</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="nv">v</span><span class="p">.</span><span class="py">name</span><span class="p">,</span><span class="w"> </span><span class="nv">packFn</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">unitName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">v</span><span class="p">.</span><span class="py">name</span><span class="w"> </span><span class="p">})</span>
+<span class="w">    </span><span class="nv">menu</span><span class="p">:</span><span class="nf">addCommand</span><span class="p">({</span><span class="w"> </span><span class="s2">"CTLD Commands"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Pack Vehicles"</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="nv">v</span><span class="p">.</span><span class="py">name</span><span class="p">,</span><span class="w"> </span><span class="nv">packFn</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">unitName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">v</span><span class="p">.</span><span class="py">name</span><span class="w"> </span><span class="p">})</span>
 <span class="kr">end</span>
 <span class="nv">menu</span><span class="p">:</span><span class="nf">refresh</span><span class="p">()</span><span class="w">   </span><span class="c1">-- single atomic, debounced rebuild</span>
 </code></pre></div>
@@ -2943,12 +2943,12 @@ Every other top-level section is contributed by the manager that owns it. Each m
 its section once, at its own <code>getInstance()</code> time:</p>
 <div class="highlight"><pre><span></span><code><span class="c1">-- e.g. from a crate/troop/jtac manager</span>
 <span class="nv">CTLDPlayerManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">registerMenuSection</span><span class="p">({</span>
-<span class="w">    </span><span class="nv">key</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;crates&quot;</span><span class="p">,</span><span class="w">              </span><span class="c1">-- unique id; duplicate keys are ignored (idempotent)</span>
+<span class="w">    </span><span class="nv">key</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s2">"crates"</span><span class="p">,</span><span class="w">              </span><span class="c1">-- unique id; duplicate keys are ignored (idempotent)</span>
 <span class="w">    </span><span class="nv">manager</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="nv">_cmInstance</span><span class="p">,</span><span class="w">           </span><span class="c1">-- the manager instance</span>
-<span class="w">    </span><span class="nv">method</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;buildMenuSection&quot;</span><span class="p">,</span><span class="w">    </span><span class="c1">-- called as manager:method(playerObj, menu)</span>
-<span class="w">    </span><span class="nv">configKey</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;enableCrates&quot;</span><span class="p">,</span><span class="w">        </span><span class="c1">-- ctld.gs(configKey) must be true; nil = always active</span>
+<span class="w">    </span><span class="nv">method</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"buildMenuSection"</span><span class="p">,</span><span class="w">    </span><span class="c1">-- called as manager:method(playerObj, menu)</span>
+<span class="w">    </span><span class="nv">configKey</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"enableCrates"</span><span class="p">,</span><span class="w">        </span><span class="c1">-- ctld.gs(configKey) must be true; nil = always active</span>
 <span class="w">    </span><span class="nv">order</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="mi">40</span><span class="p">,</span><span class="w">                     </span><span class="c1">-- lower = higher in the menu</span>
-<span class="w">    </span><span class="nv">refreshMethod</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;refreshMenuSection&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">-- optional; called on land/takeoff (see below)</span>
+<span class="w">    </span><span class="nv">refreshMethod</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"refreshMenuSection"</span><span class="p">,</span><span class="w">  </span><span class="c1">-- optional; called on land/takeoff (see below)</span>
 <span class="p">})</span>
 </code></pre></div>
 <p>A <code>sectionDef</code> carries: <code>key</code>, <code>manager</code>, <code>method</code>, optional <code>configKey</code>, optional <code>order</code>, and an
@@ -3176,14 +3176,14 @@ matches). <code>Embark / Extract</code> paginates at 10 items/page.</p>
 inside a logistics zone (LGZ). One branch per nearby logistics zone; categories paginate at
 10/page.</p>
 <div class="highlight"><pre><span></span><code>Request Equipment
-├── [Logistics Zone &quot;Zone-Alpha&quot;]
+├── [Logistics Zone "Zone-Alpha"]
 │   ├── Infantry
 │   │   ├── Rifle Squad
 │   │   └── Rifle Squad x3   (singleTypeSet, if enableAllCrates)
 │   ├── Support
 │   │   └── Machine Gunner Team
 │   └── [→ Next Page]         (if &gt; 10 categories)
-└── [Logistics Zone &quot;Zone-Beta&quot;]
+└── [Logistics Zone "Zone-Beta"]
     └── [...]
 </code></pre></div>
 <p>Item conditions: JTAC items require <code>JTAC_dropEnabled = true</code>; a <code>descriptor.side</code> must match the
@@ -3280,7 +3280,7 @@ after each clearing operation.</p>
 <p>Manager <code>CTLDJTACManager</code> (<code>src/CTLD_jtac.lua</code>). Config gate <code>JTAC_jtacStatusF10 = true</code>.</p>
 <div class="highlight"><pre><span></span><code>JTAC
 ├── Request JTAC Equipment  (submenu)  [SOL — if JTAC_dropEnabled + in LGZ]
-│   ├── Air JTAC Type1    (drone, spawnAs = &quot;AIRPLANE&quot;)
+│   ├── Air JTAC Type1    (drone, spawnAs = "AIRPLANE")
 │   ├── Ground JTAC Type2 (vehicle)
 │   └── [...]
 ├── JTAC Status  (command)

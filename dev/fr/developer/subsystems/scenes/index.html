@@ -2102,7 +2102,7 @@ chargement via <code>CTLDSceneManager.getInstance():registerSceneModel(model)</c
 modèles codée en dur.</p>
 <h2 id="internal-data-model">Modèle de données interne<a class="headerlink" href="#internal-data-model" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>CtldScene (une instance par déploiement actif)
-  ├── _name        : &quot;&lt;modelName&gt;#&lt;counter&gt;&quot;  (unique par déploiement)
+  ├── _name        : "&lt;modelName&gt;#&lt;counter&gt;"  (unique par déploiement)
   ├── _modelName   : original model name (used for registry / pack lookups)
   ├── _unit        : trigger DCS Unit (or a mock unit for playSceneAtPos)
   ├── _steps       : model.steps (shared reference)
@@ -2207,7 +2207,7 @@ poursuit. Lorsque la dernière étape se termine, <code>_onComplete(scene)</code
 <p>Le pack démonte une scène de FARP déployée pour la remettre en crates tout en préservant l'état de
 son entrepôt (warehouse). Le flux est réparti entre le gestionnaire de scènes et
 <a href="../crates/"><code>CTLDCrateManager</code></a> :</p>
-<div class="highlight"><pre><span></span><code>Player selects &quot;Pack Equipt → Pack &lt;scene&gt;&quot;
+<div class="highlight"><pre><span></span><code>Player selects "Pack Equipt → Pack &lt;scene&gt;"
   └── CTLDCrateManager:refreshPackEquiptSection(playerObj)
         └── CTLDSceneManager:findNearbyRepackableScenes(transport:getPoint(), 300)
               └── returns _active scenes within radius whose model defines onRepack

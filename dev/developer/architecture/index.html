@@ -2286,10 +2286,10 @@ dev/CI time against a vendored datamine stock-type set (<code>tests/data/dcs_typ
   WARNs on unknown configured types — a pure table lookup, <strong>no spawning, no events</strong>.</li>
 </ul>
 <p>A scene or mission declares its mod types so validation stays strict on everything else:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">someScene</span><span class="p">.</span><span class="py">modTypes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Some_Mod_Type&quot;</span><span class="w"> </span><span class="p">}</span><span class="w">   </span><span class="c1">-- on a scene model</span>
+<div class="highlight"><pre><span></span><code><span class="nv">someScene</span><span class="p">.</span><span class="py">modTypes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">"Some_Mod_Type"</span><span class="w"> </span><span class="p">}</span><span class="w">   </span><span class="c1">-- on a scene model</span>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="nt">advanced</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">modTypes</span><span class="p">:</span><span class="w">                                </span><span class="c1"># for a mission&#39;s own crate/troop/AA config</span>
+<span class="w">  </span><span class="nt">modTypes</span><span class="p">:</span><span class="w">                                </span><span class="c1"># for a mission's own crate/troop/AA config</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Some_Mod_Type</span>
 </code></pre></div>
 <blockquote>

@@ -2126,7 +2126,7 @@ function-by-function migration path.</p>
 </tbody>
 </table>
 <p><strong>Example — spawn troops from a <code>DO SCRIPT</code>:</strong></p>
-<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">spawnGroupAtTrigger</span><span class="p">(</span><span class="nv">coalition</span><span class="p">.</span><span class="py">side</span><span class="p">.</span><span class="py">BLUE</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;LZ_NORTH&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1000</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">spawnGroupAtTrigger</span><span class="p">(</span><span class="nv">coalition</span><span class="p">.</span><span class="py">side</span><span class="p">.</span><span class="py">BLUE</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"> </span><span class="s2">"LZ_NORTH"</span><span class="p">,</span><span class="w"> </span><span class="mi">1000</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="pickup-waypoint-and-extract-zones">Pickup, waypoint and extract zones<a class="headerlink" href="#pickup-waypoint-and-extract-zones" title="Permanent link">&para;</a></h2>
 <table>
@@ -2176,7 +2176,7 @@ function-by-function migration path.</p>
 </tbody>
 </table>
 <p><strong>Example — activate a pickup zone at mission start:</strong></p>
-<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">activatePickupZone</span><span class="p">(</span><span class="s2">&quot;TRZ_ALPHA&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">activatePickupZone</span><span class="p">(</span><span class="s2">"TRZ_ALPHA"</span><span class="p">)</span>
 </code></pre></div>
 <p>See <a href="../zones/">Zone setup</a> for how these zones are defined in the Mission Editor.</p>
 <h2 id="crates">Crates<a class="headerlink" href="#crates" title="Permanent link">&para;</a></h2>
@@ -2203,7 +2203,7 @@ function-by-function migration path.</p>
 </tbody>
 </table>
 <p><strong>Example — spawn a crate at a trigger zone:</strong></p>
-<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">spawnCrateAtZone</span><span class="p">(</span><span class="nv">coalition</span><span class="p">.</span><span class="py">side</span><span class="p">.</span><span class="py">BLUE</span><span class="p">,</span><span class="w"> </span><span class="mi">800</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;FARP_BRAVO&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">spawnCrateAtZone</span><span class="p">(</span><span class="nv">coalition</span><span class="p">.</span><span class="py">side</span><span class="p">.</span><span class="py">BLUE</span><span class="p">,</span><span class="w"> </span><span class="mi">800</span><span class="p">,</span><span class="w"> </span><span class="s2">"FARP_BRAVO"</span><span class="p">)</span>
 </code></pre></div>
 <p>The <code>weight</code> argument selects which crate is spawned. See the
 <a href="../crates-catalogue/">Crate catalogue</a> for the available crate definitions.</p>
@@ -2246,15 +2246,15 @@ function-by-function migration path.</p>
 </tbody>
 </table>
 <p><strong>Example — auto-lase an enemy armour group, then stop:</strong></p>
-<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">JTACAutoLase</span><span class="p">(</span><span class="s2">&quot;ENEMY_ARMOUR_1&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1688</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">JTACAutoLase</span><span class="p">(</span><span class="s2">"ENEMY_ARMOUR_1"</span><span class="p">,</span><span class="w"> </span><span class="mi">1688</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
 <span class="c1">-- ... when the strike is complete:</span>
-<span class="nv">ctld</span><span class="p">.</span><span class="nf">JTACAutoLaseStop</span><span class="p">(</span><span class="s2">&quot;ENEMY_ARMOUR_1&quot;</span><span class="p">)</span>
+<span class="nv">ctld</span><span class="p">.</span><span class="nf">JTACAutoLaseStop</span><span class="p">(</span><span class="s2">"ENEMY_ARMOUR_1"</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="callbacks">Callbacks<a class="headerlink" href="#callbacks" title="Permanent link">&para;</a></h2>
 <p>In v1, external scripts registered a callback with <code>ctld.addCallback(fn)</code> to react to CTLD
 events. <strong>This function is not provided in v2</strong> — there is no compatibility wrapper. Subscribe
 to the v2 event dispatcher instead:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">&quot;OnCrateSpawned&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">event</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="nv">EventDispatcher</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">"OnCrateSpawned"</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">event</span><span class="p">)</span>
 <span class="w">    </span><span class="c1">-- react to the event</span>
 <span class="kr">end</span><span class="p">)</span>
 </code></pre></div>

@@ -2467,8 +2467,8 @@ qui rend le piège facile : une zone <code>TRZ_</code> s'enregistre sous son nom
 <p>Une entrée <code>aiZones</code> dont le <code>dcsZoneName</code> vaut <code>dropzone1</code> — pointant pourtant vers une zone
 de l'éditeur de mission bel et bien différente — entre donc en collision avec cette TRZ et
 <strong>est ignorée</strong>. CTLD le signale au démarrage de la mission :</p>
-<div class="highlight"><pre><span></span><code>[ERROR] ZoneManager:   AIZ[1] ERROR &#39;dropzone1&#39;: name already taken by zone
-&#39;TRZ_dropzone1_B_0_nil_0&#39; — entry ignored
+<div class="highlight"><pre><span></span><code>[ERROR] ZoneManager:   AIZ[1] ERROR 'dropzone1': name already taken by zone
+'TRZ_dropzone1_B_0_nil_0' — entry ignored
 </code></pre></div>
 <p>La correction est toujours la même : donner deux noms différents aux deux zones. L'ordre
 d'enregistrement est <code>TRZ_</code> → zones IA → <code>WPZ_</code> → tables héritées.</p>
@@ -2647,11 +2647,11 @@ invalide — un avertissement est écrit dans <code>CTLD.log</code> et la zone e
 <p>Annoté :</p>
 <div class="highlight"><pre><span></span><code>TRZ  _  fob  _  N   _  20     _  defend  _  50
  │      │       │      │          │          │
- │      │       │      │          │          └─ target : 50 soldats complètent l&#39;objectif
- │      │       │      │          └──────────── flag   : &quot;defend&quot; (nom de flag DCS)
+ │      │       │      │          │          └─ target : 50 soldats complètent l'objectif
+ │      │       │      │          └──────────── flag   : "defend" (nom de flag DCS)
  │      │       │      └─────────────────────── stock  : 20 troupes max (pickup limité)
  │      │       └────────────────────────────── coalition: NEUTRAL
- │      └────────────────────────────────────── name   : &quot;fob&quot;
+ │      └────────────────────────────────────── name   : "fob"
  └───────────────────────────────────────────── préfixe TRZ
 </code></pre></div>
 <blockquote>
@@ -2693,7 +2693,7 @@ paramètres, dans <a href="../configuration/">Configuration</a> :</p>
 </tbody>
 </table>
 <div class="highlight"><pre><span></span><code><span class="w">  </span><span class="c1"># Chaque porte-avions de classe Nimitz et Stennis et chaque Tarawa de la mission</span>
-<span class="w">  </span><span class="c1"># devient un point d&#39;embarquement illimité — aucun nom d&#39;unité nulle part.</span>
+<span class="w">  </span><span class="c1"># devient un point d'embarquement illimité — aucun nom d'unité nulle part.</span>
 <span class="w">  </span><span class="nt">troopZoneShipTypes</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CVN_71</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Stennis</span>
@@ -2803,7 +2803,7 @@ disparaît quand l'objet est détruit. Deux paramètres le permettent, dans
 </tbody>
 </table>
 <div class="highlight"><pre><span></span><code><span class="w">  </span><span class="c1"># Chaque porte-avions de classe Stennis et chaque dépôt de munitions FARP</span>
-<span class="w">  </span><span class="c1"># de la mission devient un point logistique — aucun nom d&#39;unité nulle part.</span>
+<span class="w">  </span><span class="c1"># de la mission devient un point logistique — aucun nom d'unité nulle part.</span>
 <span class="w">  </span><span class="nt">logisticUnitTypes</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Stennis</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CVN_71</span>
@@ -2836,10 +2836,10 @@ FOB, y compris comment une FOB détruite retire sa zone logistique.</p>
 ou une perte temporaire. Cela fonctionne à la fois pour les trigger zones <code>LGZ_</code> et pour les zones
 basées sur <code>logisticUnits</code> :</p>
 <div class="highlight"><pre><span></span><code><span class="c1">-- Deactivate — zone is ignored by all pilots until reactivated</span>
-<span class="nv">CTLDZoneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">deactivateLogisticZone</span><span class="p">(</span><span class="s2">&quot;depot1&quot;</span><span class="p">)</span>
+<span class="nv">CTLDZoneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">deactivateLogisticZone</span><span class="p">(</span><span class="s2">"depot1"</span><span class="p">)</span>
 
 <span class="c1">-- Reactivate — zone becomes available again</span>
-<span class="nv">CTLDZoneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">activateLogisticZone</span><span class="p">(</span><span class="s2">&quot;depot1&quot;</span><span class="p">)</span>
+<span class="nv">CTLDZoneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">activateLogisticZone</span><span class="p">(</span><span class="s2">"depot1"</span><span class="p">)</span>
 </code></pre></div>
 <p>La zone reste enregistrée et peut être basculée autant de fois que souhaité.</p>
 <hr />
@@ -3068,7 +3068,7 @@ la main, ils ressemblent à ceci :</p>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yes</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">USS Tarawa</span><span class="w">      </span><span class="c1"># un nom d&#39;unité de navire est aussi accepté — la zone suit le navire</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">USS Tarawa</span><span class="w">      </span><span class="c1"># un nom d'unité de navire est aussi accepté — la zone suit le navire</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">blue</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yes</span>
@@ -3082,8 +3082,8 @@ la main, ils ressemblent à ceci :</p>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yes</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 
-<span class="w">  </span><span class="c1"># Unités logistiques : noms d&#39;unité ou de statique placés dans le ME.</span>
-<span class="w">  </span><span class="c1"># Si l&#39;objet nommé est détruit, sa zone logistique est retirée automatiquement.</span>
+<span class="w">  </span><span class="c1"># Unités logistiques : noms d'unité ou de statique placés dans le ME.</span>
+<span class="w">  </span><span class="c1"># Si l'objet nommé est détruit, sa zone logistique est retirée automatiquement.</span>
 <span class="w">  </span><span class="nt">logisticUnits</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logistic1</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logistic2</span>
