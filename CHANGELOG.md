@@ -8,6 +8,55 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — a scripted beacon can be placed on a requested frequency (FEAT-BEACON-REQUESTED-FREQS)
+
+- **`CTLDBeaconManager:createAtPoint` drew all three frequencies at random**, with no way for the
+  caller to ask for one. A mission that *briefs* a frequency — an FM channel given to a helicopter
+  crew, a NDB printed on a kneeboard — could only read back whatever the pool picked and tell the
+  pilots afterwards.
+- **`opts.frequencies`** now takes any subset of `{ vhfKHz = 250, uhfMHz = 251, fmMHz = 40.5 }`.
+  Bands left out keep drawing at random, so every existing call — `dropBeacon`, `createAtZone`, and
+  a caller passing only `name` / `isFOB` / `batteryMinutes` — behaves exactly as before. An absent or
+  empty table is today's behaviour.
+- **The unit is in the key name.** A mission maker reads VHF off a kneeboard in kHz and UHF/FM in MHz
+  — which is also what `CTLDBeacon:freqText()` prints — while the module stores Hz. Each band's range
+  (`200–1250` kHz, `220–398.5` MHz, `30–75.9` MHz) is narrow enough that no value expressed in Hz,
+  nor in kHz where MHz was meant or the reverse, falls inside any band, so the range check *is* the
+  unit check. A fractional request is rounded to the nearest Hz, because `45.2 MHz` has no exact
+  double and the pool holds `45200000` exactly.
+- **A request that cannot be granted refuses the whole call** — `nil` plus a reason string, nothing
+  spawned, no frequency consumed, no beacon counter bumped. Falling back to a random pick with a
+  warning was rejected: a beacon answering on a frequency other than the briefed one is invisible to
+  the mission maker (the kneeboard still says 250 kHz) and inaudible to the pilot who tuned it.
+  Four cases:
+  - an **unknown key** (`vhf = 250` instead of `vhfKHz = 250`) — otherwise a typo quietly gets a
+    random frequency, the exact failure this option exists to remove;
+  - a value **outside the band** — the shape a unit mistake takes;
+  - a value in range but **absent from the pool**: off its step grid, or one of the real-world NDB
+    frequencies `_ndbSkip` withholds because a map beacon already occupies it. Granting it would
+    break the pool's one invariant — every frequency in circulation came out of the pool, and
+    `_freeFrequencies` puts all three back — so an off-grid frequency would be *added* to the pool on
+    removal and later drawn at random for another beacon;
+  - a value the pool holds but a **live beacon already uses** — the collision the pool exists to
+    prevent, which also corrupts the bookkeeping: removing the first of two beacons sharing a
+    frequency returns to the free pool a frequency the second is still transmitting on.
+- Validated before anything is consumed: `_resolveFreqRequest` checks the whole request and returns
+  the granted entries with their index in the free pool without mutating it, so a refusal on the
+  third band cannot leave the first two consumed. `_pickFreq` and the new `_takeFreq` share the one
+  place a frequency leaves the free pool.
+- `createAtZone`, `dropBeacon` and the legacy `ctld.*` wrappers are untouched — nobody on those paths
+  is holding a briefed frequency.
+
+### Fixed — a failed beacon spawn no longer keeps its three frequencies (FEAT-BEACON-REQUESTED-FREQS)
+
+- `createAtPoint` drew the three frequencies before spawning and, when the spawn failed, returned
+  without giving them back — they stayed in the used pools until the recycle threshold. Invisible
+  while every frequency was random; with a requested frequency it would tell a caller retrying the
+  same request that its own frequency is already used by a beacon that does not exist. The three are
+  now returned to their free pools on that path, which also gains a reason string
+  (`nil, "beacon spawn failed"`). The orphaned DCS groups a partially-failed spawn leaves behind are
+  a separate, pre-existing problem and are untouched.
+
 ### Fixed — 225 superseded `-- STALE:` lines purged from the dictionaries (FIX-I18N-PURGE-SUPERSEDED)
 
 - **A revived key kept its dead line**: `FIX-I18N-STALE-COMMENT-PARSING` brought 56 keys back by

@@ -64,7 +64,7 @@ Transmissions are started **1 second after spawn** via `timer.scheduleFunction`:
 freshly-added group's units uninitialised for roughly a second, so calling `radioTransmission`
 immediately would broadcast from a stale or zero position.
 
-## Frequency pools
+## Frequency pools { #frequency-pools }
 
 Three free/used pool pairs are built once in `_buildFreqPools()`:
 
@@ -77,10 +77,28 @@ Three free/used pool pairs are built once in `_buildFreqPools()`:
 Frequencies are stored in Hz. The VHF pool skips a hard-coded set of real-world NDB frequencies
 (`CTLDBeaconManager._ndbSkip`) that already exist on DCS maps, to avoid interference.
 
-`_assignFrequencies()` draws one frequency per band with `_pickFreq(free, used)`, which picks a
-random entry and moves it to the used pool. When a pool drops to **3 or fewer** free entries it
-recycles the entire used pool back into free before picking. `_freeFrequencies(beacon)` returns
-all three frequencies to their free pools when a beacon is removed or destroyed.
+`_assignFrequencies(granted)` draws one frequency per band with `_pickFreq(free, used)`, which picks
+a random entry and hands it to `_takeFreq(free, used, index)` — the one place a frequency leaves the
+free pool. When a pool drops to **3 or fewer** free entries it recycles the entire used pool back
+into free before picking. `_freeFrequencies(beacon)` returns all three frequencies to their free
+pools when a beacon is removed or destroyed.
+
+A caller may ask for a specific frequency instead of taking the draw, via `opts.frequencies` on
+`createAtPoint` (see
+[Requesting specific frequencies](../api-reference.md#beacon-requested-frequencies) for the API).
+`CTLDBeaconManager._bands` states each band's option key, unit, Hz multiplier and range, and
+`_resolveFreqRequest(request)` validates the whole request against the pools **without mutating
+them**, returning the granted entries as `{ [band] = { freq = Hz, index } }` or `nil, reason`. So a
+refusal on the third band cannot leave the first two consumed, and a refused call spawns nothing.
+
+The rule is that a request is granted only if the frequency is currently **free in its band's pool**;
+anything else refuses the whole call rather than substituting a random pick. Two reasons, one of each
+kind. Behaviourally, a beacon answering on a frequency other than the briefed one is invisible to the
+mission maker and inaudible to the pilot who tuned the briefed one — a refusal is at least something
+the caller can react to. Mechanically, the pool is the bookkeeping: `_freeFrequencies` unconditionally
+pushes a beacon's three frequencies back into the free pools, so a frequency granted from outside the
+pool would be *added* to it on removal and later drawn at random, and a frequency granted twice would
+be freed while the second beacon is still transmitting on it.
 
 ## Lifecycle
 
@@ -93,8 +111,12 @@ removed   → manual removal by a player within 500m
 
 **Creation paths.** All three go through **`createAtPoint(point, coalitionId, countryId, opts)`**,
 which owns the spawn, the frequency assignment, the battery and the map layers — and nothing that
-addresses a pilot. `opts` carries `name`, `batteryMinutes` (`-1` = never expires) and `isFOB`. It
-returns the `CTLDBeacon`, whose `vhf` / `uhf` / `fm` fields are what a script reads back.
+addresses a pilot. `opts` carries `name`, `batteryMinutes` (`-1` = never expires), `isFOB` and
+`frequencies` (see [Frequency pools](#frequency-pools)). It returns the `CTLDBeacon`, whose
+`vhf` / `uhf` / `fm` fields are what a script reads back — or `nil` and a reason string when the
+frequency request is refused or the spawn fails. On that failed-spawn path the three already-drawn
+frequencies are returned to their pools, so a caller retrying the same request is not told its own
+frequency is in use by a beacon that does not exist.
 
 - `dropBeacon(transport, player, isFOB, overridePosition)` — the transport path: when the aircraft
   is on the ground it offsets the spawn point behind the aircraft (heading + π, using the

@@ -79,11 +79,30 @@ Les fréquences sont stockées en Hz. Le pool VHF saute un ensemble codé en dur
 réelles (`CTLDBeaconManager._ndbSkip`) qui existent déjà sur les cartes DCS, pour éviter les
 interférences.
 
-`_assignFrequencies()` tire une fréquence par bande avec `_pickFreq(free, used)`, qui choisit une
-entrée aléatoire et la déplace vers le pool utilisé. Lorsqu'un pool tombe à **3 entrées libres ou
-moins**, il recycle l'intégralité du pool utilisé vers le pool libre avant de tirer.
-`_freeFrequencies(beacon)` rend les trois fréquences à leurs pools libres lorsqu'un beacon est
-retiré ou détruit.
+`_assignFrequencies(granted)` tire une fréquence par bande avec `_pickFreq(free, used)`, qui choisit
+une entrée aléatoire et la confie à `_takeFreq(free, used, index)` — le seul endroit où une fréquence
+quitte le pool libre. Lorsqu'un pool tombe à **3 entrées libres ou moins**, il recycle l'intégralité
+du pool utilisé vers le pool libre avant de tirer. `_freeFrequencies(beacon)` rend les trois
+fréquences à leurs pools libres lorsqu'un beacon est retiré ou détruit.
+
+Un appelant peut demander une fréquence précise au lieu de subir le tirage, via `opts.frequencies` sur
+`createAtPoint` (voir
+[Demander des fréquences précises](../api-reference.md#beacon-requested-frequencies) pour l'API).
+`CTLDBeaconManager._bands` énonce pour chaque bande sa clé d'option, son unité, son multiplicateur
+vers les Hz et sa plage, et `_resolveFreqRequest(request)` valide toute la demande contre les pools
+**sans les modifier**, en retournant les demandes accordées sous la forme
+`{ [bande] = { freq = Hz, index } }` ou `nil, raison`. Ainsi un refus sur la troisième bande ne peut
+pas laisser les deux premières consommées, et un appel refusé ne fait rien spawner.
+
+La règle : une demande n'est accordée que si la fréquence est actuellement **libre dans le pool de sa
+bande** ; tout le reste fait échouer l'appel entier au lieu de substituer un tirage aléatoire. Deux
+raisons, une de chaque nature. Côté comportement, un beacon qui répond ailleurs que sur la fréquence
+annoncée est invisible pour le mission maker et inaudible pour le pilote qui a affiché la fréquence
+annoncée — un refus est au moins quelque chose auquel l'appelant peut réagir. Côté mécanique, le pool
+*est* la comptabilité : `_freeFrequencies` remet inconditionnellement les trois fréquences d'un beacon
+dans les pools libres, donc une fréquence accordée hors du pool y serait *ajoutée* au retrait puis
+tirée au hasard plus tard, et une fréquence accordée deux fois serait libérée alors que le second
+beacon émet encore dessus.
 
 ## Cycle de vie { #lifecycle }
 
@@ -96,8 +115,12 @@ removed   → manual removal by a player within 500m
 
 **Chemins de création.** Les trois passent par **`createAtPoint(point, coalitionId, countryId, opts)`**,
 qui porte le spawn, l'attribution des fréquences, la batterie et les couches de carte — et rien de ce
-qui s'adresse à un pilote. `opts` transporte `name`, `batteryMinutes` (`-1` = n'expire jamais) et
-`isFOB`. Il retourne le `CTLDBeacon`, dont les champs `vhf` / `uhf` / `fm` sont ce qu'un script relit.
+qui s'adresse à un pilote. `opts` transporte `name`, `batteryMinutes` (`-1` = n'expire jamais),
+`isFOB` et `frequencies` (voir [Pools de fréquences](#frequency-pools)). Il retourne le `CTLDBeacon`,
+dont les champs `vhf` / `uhf` / `fm` sont ce qu'un script relit — ou `nil` et une chaîne de raison si
+la demande de fréquence est refusée ou si le spawn échoue. Sur ce chemin d'échec de spawn, les trois
+fréquences déjà tirées sont rendues à leurs pools, pour qu'un appelant qui retente la même demande ne
+s'entende pas dire que sa propre fréquence est prise par un beacon qui n'existe pas.
 
 - `dropBeacon(transport, player, isFOB, overridePosition)` — le chemin de transport : lorsque
   l'appareil est au sol, il décale le point de spawn derrière l'appareil (cap + π, en utilisant la

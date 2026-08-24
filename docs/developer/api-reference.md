@@ -155,7 +155,7 @@ Full event catalogue: [Events](events.md).
 | Method | Signature | Description |
 | --- | --- | --- |
 | `getInstance` | `() → CTLDBeaconManager` | Returns the singleton. |
-| `createAtPoint` | `(point, coalitionId, countryId, opts) → CTLDBeacon\|nil` | Spawn a beacon at an arbitrary point, with **no transport and no player**. `opts`: `{ name, batteryMinutes (-1 = never expires), isFOB }`. The returned beacon's `vhf` / `uhf` / `fm` fields (Hz) are the caller's answer — `beacon:freqText()` formats them. Announces nothing and publishes no event; `enabledRadioBeaconDrop` does not apply (it gates the pilot's menu action). |
+| `createAtPoint` | `(point, coalitionId, countryId, opts) → CTLDBeacon\|nil, reason` | Spawn a beacon at an arbitrary point, with **no transport and no player**. `opts`: `{ name, batteryMinutes (-1 = never expires), isFOB, frequencies }`. The returned beacon's `vhf` / `uhf` / `fm` fields (Hz) are the caller's answer — `beacon:freqText()` formats them. Announces nothing and publishes no event; `enabledRadioBeaconDrop` does not apply (it gates the pilot's menu action). Returns `nil` plus a reason string when the frequency request is refused or the spawn fails. |
 | `removeBeacon` | `(name) → boolean` | Remove a beacon by display name or internal key. Silent, like `createAtPoint`. |
 | `createAtZone` | `(zoneName, coalitionStr, batteryLife, name)` | Spawn a beacon at a named trigger zone. `coalitionStr`: `"blue"` / `"red"`. `batteryLife`: minutes. `name` (optional): label shown in the F10 list. Announces to the coalition and publishes `OnBeaconDropped`. |
 | `getBeaconsForCoalition` | `(coalitionId)` | Return an array of active beacon data tables for a coalition. |
@@ -173,6 +173,46 @@ trigger.action.outTextForCoalition(coalition.side.BLUE,
 -- …and removes it when the FARP dies.
 mgr:removeBeacon("FARP Alpha NDB")
 ```
+
+### Requesting specific frequencies { #beacon-requested-frequencies }
+
+`createAtPoint` draws each of the three frequencies at random from the pool. When the mission
+**briefs** a frequency — an FM channel given to a helicopter crew, a NDB printed on a kneeboard —
+pass `opts.frequencies` instead. Any subset of the three bands may be named; the bands left out keep
+drawing at random.
+
+```lua
+local beacon, reason = mgr:createAtPoint(point, coalition.side.BLUE, country.id.USA, {
+    name        = "FARP Alpha NDB",
+    frequencies = { vhfKHz = 250, fmMHz = 40.5 },   -- UHF stays random
+})
+if not beacon then
+    ctld.utils.log("WARN", "no beacon: %s", reason)
+end
+```
+
+**The unit is in the key name** — `vhfKHz`, `uhfMHz`, `fmMHz`. That is the unit a mission maker reads
+a beacon frequency in (and the one `freqText()` prints), while the module stores Hz. Each band's
+range is narrow enough that a value given in the wrong unit cannot land inside another band, so it is
+refused rather than accepted as something else:
+
+| Key | Unit | Range | Step |
+| --- | --- | --- | --- |
+| `vhfKHz` | kHz | 200 – 1250 | 10 kHz below 850, 50 kHz above |
+| `uhfMHz` | MHz | 220 – 398.5 | 0.5 MHz |
+| `fmMHz` | MHz | 30 – 75.9 | 0.1 MHz, within `30–35.9`, `40–45.9`, `50–55.9`, `60–65.9`, `70–75.9` |
+
+A request that cannot be granted **refuses the whole call**: `createAtPoint` returns `nil` and a
+reason, spawns nothing and consumes no frequency. It never substitutes another frequency — a beacon
+answering on something other than the briefed frequency is invisible to the mission maker and
+inaudible to the pilot who tuned the briefed one. Four refusals:
+
+| Refused | Example | Why |
+| --- | --- | --- |
+| Unknown key | `{ vhf = 250 }` | The unit is missing from the key. Accepting it would hand back a random frequency for a typo — the failure this option exists to remove. |
+| Outside the band | `{ vhfKHz = 250000 }` | What a unit mistake looks like (Hz where kHz was asked for, and so on). |
+| Not in the pool | `{ vhfKHz = 205 }`, `{ vhfKHz = 440 }` | Off the band's step, or one of the real-world NDB frequencies the VHF pool withholds because a map beacon already occupies it. |
+| Already used | a frequency a live beacon holds | The collision the pool exists to prevent. |
 
 ## CTLDJTACManager
 
