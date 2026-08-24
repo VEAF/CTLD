@@ -17,6 +17,8 @@
 --   VHF : 200–1250 kHz  (10 kHz steps below 850, 50 kHz above)
 --   UHF : 220–399 MHz   (0.5 MHz steps)
 --   FM  : 30–76 MHz     (formula: (100*f + 10*s + t) * 100 kHz)
+--   A caller may ask for a specific frequency per band via createAtPoint's
+--   opts.frequencies = { vhfKHz, uhfMHz, fmMHz }; see _resolveFreqRequest.
 --
 -- Radio transmission modes:
 --   VHF : mode 0 (AM), sound = radioSound
@@ -210,19 +212,141 @@ function CTLDBeaconManager:_pickFreq(free, used)
         for _, f in ipairs(used) do free[#free + 1] = f end
         for k in pairs(used) do used[k] = nil end
     end
-    local idx  = math.random(#free)
-    local freq = table.remove(free, idx)
+    return self:_takeFreq(free, used, math.random(#free))
+end
+
+--- Move the entry at `index` from the free pool to the used pool. The single place a
+-- frequency leaves circulation, whether it was drawn at random or asked for by name.
+-- @param free  table (pool of free freqs)
+-- @param used  table (pool of used freqs)
+-- @param index number  a valid index into `free`
+-- @return number frequency (Hz)
+function CTLDBeaconManager:_takeFreq(free, used, index)
+    local freq = table.remove(free, index)
     used[#used + 1] = freq
     return freq
 end
 
---- Return all three frequencies for a new beacon.
-function CTLDBeaconManager:_assignFrequencies()
-    return {
-        vhf = self:_pickFreq(self._freeVHF, self._usedVHF),
-        uhf = self:_pickFreq(self._freeUHF, self._usedUHF),
-        fm  = self:_pickFreq(self._freeFM,  self._usedFM),
-    }
+-- The three bands a beacon transmits on, as a caller names them in `opts.frequencies`.
+--
+-- The unit is part of the key: `vhfKHz`, `uhfMHz`, `fmMHz`. A mission maker reads a beacon
+-- frequency off a kneeboard in kHz for VHF and in MHz for UHF/FM (which is also what
+-- `CTLDBeacon:freqText()` prints), while the module stores Hz — so the option takes the
+-- band's own unit and the key says which. `min`/`max` then catch a unit mistake for free:
+-- no value expressed in Hz, nor in kHz where MHz was meant (or the reverse), falls inside
+-- any band's range.
+--
+-- `min`/`max` mirror the pools built by `_buildFreqPools`; `beacon_scripted_api_spec`
+-- asserts they still agree with them, so the two cannot drift apart silently.
+CTLDBeaconManager._bands = {
+    { key = "vhf", optKey = "vhfKHz", unit = "kHz", perUnit = 1000,
+      min = 200, max = 1250,  free = "_freeVHF", used = "_usedVHF" },
+    { key = "uhf", optKey = "uhfMHz", unit = "MHz", perUnit = 1000000,
+      min = 220, max = 398.5, free = "_freeUHF", used = "_usedUHF" },
+    { key = "fm",  optKey = "fmMHz",  unit = "MHz", perUnit = 1000000,
+      min = 30,  max = 75.9,  free = "_freeFM",  used = "_usedFM"  },
+}
+
+--- Index of `freq` (Hz) in a pool, or nil.
+function CTLDBeaconManager:_poolIndexOf(pool, freq)
+    for i = 1, #pool do
+        if pool[i] == freq then return i end
+    end
+    return nil
+end
+
+--- Validate a caller's frequency request against the pools, without consuming anything.
+--
+-- Every refusal aborts the whole call rather than substituting a random frequency. A beacon
+-- that answers on a frequency other than the briefed one is a failure neither the mission
+-- maker nor the pilot can see: the tone is simply absent from the radio they tuned. A
+-- refusal, returned and logged, is something the caller can act on.
+--
+-- Four ways a request is refused, all of them the caller's mistake and none of them silent:
+--   * an unknown key (`vhf = 250` instead of `vhfKHz = 250`) — otherwise a typo would quietly
+--     get a random frequency, which is the exact failure this option exists to remove;
+--   * a value outside the band's range — the shape a unit mistake takes (Hz for kHz, MHz for
+--     kHz…), so the message names the unit the key asked for;
+--   * a value in range but absent from the pool — off its step grid, or one of the real-world
+--     NDB frequencies `_ndbSkip` deliberately withholds. Granting it would break the pool's
+--     one invariant: every frequency in circulation came out of the pool, and
+--     `_freeFrequencies` puts all three back. An off-grid frequency handed out here would be
+--     *added* to the pool on removal, and later drawn at random for someone else — and an NDB
+--     frequency is withheld because a map beacon already occupies it;
+--   * a value the pool holds but a live beacon already uses — the collision the pool exists to
+--     prevent. Two beacons on one frequency also corrupt the bookkeeping: removing the first
+--     returns a frequency the second is still transmitting on to the free pool.
+--
+-- @param request table|nil  `opts.frequencies`, e.g. { vhfKHz = 250, fmMHz = 40.5 }; any
+--                           subset of the three bands, the rest staying random
+-- @return table  granted requests as `{ [bandKey] = { freq = Hz, index = <index in free> } }`
+--                (empty when nothing was requested)
+-- @return nil, string  on refusal: the reason, ready to log or show
+function CTLDBeaconManager:_resolveFreqRequest(request)
+    if request == nil then return {} end
+    if type(request) ~= "table" then
+        return nil, "opts.frequencies must be a table of { vhfKHz, uhfMHz, fmMHz }"
+    end
+
+    local known = {}
+    for _, band in ipairs(CTLDBeaconManager._bands) do known[band.optKey] = true end
+    for key in pairs(request) do
+        if not known[key] then
+            return nil, string.format(
+                "unknown frequency request key '%s' — expected vhfKHz, uhfMHz or fmMHz",
+                tostring(key))
+        end
+    end
+
+    local granted = {}
+    for _, band in ipairs(CTLDBeaconManager._bands) do
+        local wanted = request[band.optKey]
+        if wanted ~= nil then
+            local BAND = string.upper(band.key)
+            if type(wanted) ~= "number" or wanted ~= wanted then
+                return nil, string.format("%s must be a number of %s, got '%s'",
+                    band.optKey, band.unit, tostring(wanted))
+            end
+            if wanted < band.min or wanted > band.max then
+                return nil, string.format("%s = %s is outside the %s beacon band (%s to %s %s)",
+                    band.optKey, tostring(wanted), BAND,
+                    tostring(band.min), tostring(band.max), band.unit)
+            end
+            -- Round to the nearest Hz: 45.2 MHz is not exact in binary, and the pool holds
+            -- 45200000 exactly, so a raw multiplication would miss it.
+            local hz  = math.floor(wanted * band.perUnit + 0.5)
+            local idx = self:_poolIndexOf(self[band.free], hz)
+            if not idx then
+                if self:_poolIndexOf(self[band.used], hz) then
+                    return nil, string.format("%s = %s %s is already used by another beacon",
+                        band.optKey, tostring(wanted), band.unit)
+                end
+                return nil, string.format(
+                    "%s = %s %s is not a %s beacon frequency (off the band's step, or a map NDB frequency)",
+                    band.optKey, tostring(wanted), band.unit, BAND)
+            end
+            granted[band.key] = { freq = hz, index = idx }
+        end
+    end
+
+    return granted
+end
+
+--- Return all three frequencies for a new beacon: the granted requests where the caller asked
+-- for one, a random draw from the pool for every band it left alone.
+-- @param granted table|nil  the result of `_resolveFreqRequest` (nil = all three random)
+function CTLDBeaconManager:_assignFrequencies(granted)
+    granted = granted or {}
+    local freqs = {}
+    for _, band in ipairs(CTLDBeaconManager._bands) do
+        local ask = granted[band.key]
+        if ask then
+            freqs[band.key] = self:_takeFreq(self[band.free], self[band.used], ask.index)
+        else
+            freqs[band.key] = self:_pickFreq(self[band.free], self[band.used])
+        end
+    end
+    return freqs
 end
 
 --- Return frequencies to their free pools.
@@ -334,13 +458,30 @@ end
 --                      name           = string  display name (default "Beacon #N"),
 --                      batteryMinutes = number  -1 = never expires (default: the
 --                                               `deployedBeaconBattery` setting),
---                      isFOB          = bool    never expires, as for a FOB beacon }
--- @return CTLDBeacon or nil on spawn failure. Its `vhf` / `uhf` / `fm` fields (Hz) are the
---         caller's answer; `beacon:freqText()` formats them.
+--                      isFOB          = bool    never expires, as for a FOB beacon,
+--                      frequencies    = table   ask for specific frequencies instead of
+--                                               drawing them at random — any subset of
+--                                               { vhfKHz = 250, uhfMHz = 251, fmMHz = 40.5 },
+--                                               the bands left out staying random. The unit is
+--                                               in the key name. A request that cannot be
+--                                               granted refuses the whole call rather than
+--                                               quietly substituting another frequency — see
+--                                               `_resolveFreqRequest` for the four cases }
+-- @return CTLDBeacon, or nil plus a reason string when the frequency request is refused or the
+--         spawn fails. Its `vhf` / `uhf` / `fm` fields (Hz) are the caller's answer;
+--         `beacon:freqText()` formats them.
 function CTLDBeaconManager:createAtPoint(point, coalitionId, countryId, opts)
     opts = opts or {}
 
-    local freqs = self:_assignFrequencies()
+    -- Validated before anything is spawned or drawn, so a refused request costs nothing:
+    -- no beacon, no consumed frequency, no bumped counter.
+    local granted, refusal = self:_resolveFreqRequest(opts.frequencies)
+    if not granted then
+        ctld.utils.log("ERROR", "CTLDBeaconManager:createAtPoint — frequency request refused: %s", refusal)
+        return nil, refusal
+    end
+
+    local freqs = self:_assignFrequencies(granted)
 
     self._beaconCount = self._beaconCount + 1
     local displayName = opts.name or ("Beacon #" .. self._beaconCount)
@@ -353,7 +494,11 @@ function CTLDBeaconManager:createAtPoint(point, coalitionId, countryId, opts)
 
     if not (vhfGroup and uhfGroup and fmGroup) then
         ctld.utils.log("ERROR", "CTLDBeaconManager:createAtPoint — spawn failed for '%s'", displayName)
-        return nil
+        -- Give the three frequencies back: they were drawn before the spawn, and a caller
+        -- retrying the same request must not be told its own frequency is already in use.
+        -- `freqs` carries exactly the `vhf` / `uhf` / `fm` fields `_freeFrequencies` reads.
+        self:_freeFrequencies(freqs)
+        return nil, "beacon spawn failed"
     end
 
     local batteryMins = opts.batteryMinutes or ctld.gs("deployedBeaconBattery")

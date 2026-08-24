@@ -156,7 +156,7 @@ scripting des troops IA.*
 | Method | Signature | Description |
 | --- | --- | --- |
 | `getInstance` | `() → CTLDBeaconManager` | Retourne le singleton. |
-| `createAtPoint` | `(point, coalitionId, countryId, opts) → CTLDBeacon\|nil` | Fait spawn un beacon en un point quelconque, **sans transport ni joueur**. `opts` : `{ name, batteryMinutes (-1 = n'expire jamais), isFOB }`. Les champs `vhf` / `uhf` / `fm` (Hz) du beacon retourné sont la réponse pour l'appelant — `beacon:freqText()` les met en forme. N'annonce rien et ne publie aucun événement ; `enabledRadioBeaconDrop` ne s'applique pas (ce réglage gouverne l'action du menu pilote). |
+| `createAtPoint` | `(point, coalitionId, countryId, opts) → CTLDBeacon\|nil, raison` | Fait spawn un beacon en un point quelconque, **sans transport ni joueur**. `opts` : `{ name, batteryMinutes (-1 = n'expire jamais), isFOB, frequencies }`. Les champs `vhf` / `uhf` / `fm` (Hz) du beacon retourné sont la réponse pour l'appelant — `beacon:freqText()` les met en forme. N'annonce rien et ne publie aucun événement ; `enabledRadioBeaconDrop` ne s'applique pas (ce réglage gouverne l'action du menu pilote). Retourne `nil` et une chaîne de raison si la demande de fréquence est refusée ou si le spawn échoue. |
 | `removeBeacon` | `(name) → boolean` | Retire un beacon par son nom affiché ou par sa clé interne. Silencieux, comme `createAtPoint`. |
 | `createAtZone` | `(zoneName, coalitionStr, batteryLife, name)` | Fait spawn un beacon dans une zone de trigger nommée. `coalitionStr` : `"blue"` / `"red"`. `batteryLife` : minutes. `name` (optionnel) : libellé affiché dans la liste F10. Annonce à la coalition et publie `OnBeaconDropped`. |
 | `getBeaconsForCoalition` | `(coalitionId)` | Retourne un tableau des données de beacons actifs pour une coalition. |
@@ -174,6 +174,47 @@ trigger.action.outTextForCoalition(coalition.side.BLUE,
 -- …et le retire quand la FARP disparaît.
 mgr:removeBeacon("FARP Alpha NDB")
 ```
+
+### Demander des fréquences précises { #beacon-requested-frequencies }
+
+`createAtPoint` tire chacune des trois fréquences au hasard dans le pool. Quand la mission **annonce
+en briefing** une fréquence — un canal FM donné à un équipage d'hélicoptère, un NDB imprimé sur une
+planchette — passer `opts.frequencies` à la place. N'importe quel sous-ensemble des trois bandes peut
+être nommé ; les bandes laissées de côté continuent d'être tirées au hasard.
+
+```lua
+local beacon, raison = mgr:createAtPoint(point, coalition.side.BLUE, country.id.USA, {
+    name        = "FARP Alpha NDB",
+    frequencies = { vhfKHz = 250, fmMHz = 40.5 },   -- l'UHF reste aléatoire
+})
+if not beacon then
+    ctld.utils.log("WARN", "pas de beacon : %s", raison)
+end
+```
+
+**L'unité fait partie du nom de la clé** — `vhfKHz`, `uhfMHz`, `fmMHz`. C'est l'unité dans laquelle un
+mission maker lit une fréquence de beacon (et celle que `freqText()` affiche), alors que le module
+stocke des Hz. La plage de chaque bande est assez étroite pour qu'une valeur donnée dans la mauvaise
+unité ne puisse pas tomber dans une autre bande : elle est donc refusée, et non acceptée pour autre
+chose.
+
+| Clé | Unité | Plage | Pas |
+| --- | --- | --- | --- |
+| `vhfKHz` | kHz | 200 – 1250 | 10 kHz en dessous de 850, 50 kHz au-dessus |
+| `uhfMHz` | MHz | 220 – 398,5 | 0,5 MHz |
+| `fmMHz` | MHz | 30 – 75,9 | 0,1 MHz, dans `30–35,9`, `40–45,9`, `50–55,9`, `60–65,9`, `70–75,9` |
+
+Une demande qui ne peut pas être satisfaite **fait échouer tout l'appel** : `createAtPoint` retourne
+`nil` et une raison, ne fait rien spawner et ne consomme aucune fréquence. Il ne substitue jamais une
+autre fréquence — un beacon qui répond ailleurs que sur la fréquence annoncée est invisible pour le
+mission maker et inaudible pour le pilote qui a affiché la fréquence annoncée. Quatre refus :
+
+| Refusé | Exemple | Pourquoi |
+| --- | --- | --- |
+| Clé inconnue | `{ vhf = 250 }` | L'unité manque dans la clé. L'accepter rendrait une fréquence aléatoire pour une faute de frappe — précisément la panne que cette option supprime. |
+| Hors de la bande | `{ vhfKHz = 250000 }` | La forme que prend une erreur d'unité (des Hz là où des kHz étaient demandés, etc.). |
+| Absente du pool | `{ vhfKHz = 205 }`, `{ vhfKHz = 440 }` | Hors du pas de la bande, ou l'une des fréquences NDB réelles que le pool VHF retient parce qu'un beacon de la carte l'occupe déjà. |
+| Déjà utilisée | une fréquence tenue par un beacon vivant | La collision que le pool existe pour empêcher. |
 
 ## CTLDJTACManager
 
