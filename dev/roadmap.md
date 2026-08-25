@@ -100,3 +100,112 @@ des lignes.
 <!-- TOOLING — i18n_dict_utils.py ne distingue pas une entrée -- STALE: d'une entrée live —
      formalisé en lot `.backlog/FIX-I18N-STALE-COMMENT-PARSING/` (grill-with-docs, 2026-08-10).
      Pas d'ADR (bug factuel, pas de trade-off de conception). -->
+
+## Parachutage — garde générale d'activation, prioritaire sur `canParachuteDrop`
+
+Constaté en répondant à une question sur `ctld-tools.exe` : le groupe de settings **Parachute**
+(`CTLD_config_schema.yaml`) ne couvre que la *physique* du parachutage (vitesse de descente, dérive,
+altitude d'ouverture, rayon de déballage auto). Il n'existe aucune garde globale pour activer/
+désactiver la fonctionnalité elle-même — seul `canParachuteDrop` (`capabilitiesByType`, par type
+d'appareil) conditionne l'apparition des entrées F10 « Parachute », appareil par appareil.
+
+Idée : ajouter un réglage global `enableParachuteDrop` (pseudo-grill du 2026-08-11 — décisions ci-dessous,
+pas encore formalisées en lot) qui fait office de garde de premier rang. `canParachuteDrop` ne serait
+évalué qu'en second rang, seulement si la garde générale vaut `true` ; si elle vaut `false`, le
+parachutage est désactivé pour tous les appareils sans avoir à repasser `canParachuteDrop: false` un
+par un dans `capabilitiesByType`.
+
+Décisions retenues (alignées sur les gardes globales existantes du même genre) :
+- **Nom** : `enableParachuteDrop` — suit la convention `enable<Feature>` déjà en place
+  (`enableCrates`, `enableSmokeDrop`, `enableFastRopeInsertion`, `enableHoverSlingload`,
+  `enableFARPRepack`), plutôt qu'un suffixe `*Enabled` (seul `reconEnabled` fait exception aujourd'hui).
+- **Comportement** : masque entièrement les entrées F10 « Parachute » quand `false`, même si
+  `canParachuteDrop=true` pour l'appareil — comme `enableCrates`/`enableSmokeDrop` qui gatent
+  l'enregistrement de toute la section de menu (`CTLD_crate.lua:281-282`) et `enableFastRopeInsertion`
+  qui conditionne à la fois la logique et l'apparition de l'entrée menu (`CTLD_troop.lua:1316`,
+  `CTLD_troop.lua:2024`). Pas de message d'erreur à l'action : le garde retire l'entrée, il ne la
+  laisse pas visible pour échouer ensuite.
+- **Emplacement schéma** : nouveau champ dans le groupe `parachute` existant de
+  `CTLD_config_schema.yaml`, à côté des réglages de physique — reste dans la famille ctld-tools
+  « Parachute ».
+
+Reste à trancher **au to-prd/to-issues** (implémentation, pas conception) : quels points d'appel côté
+menu (troops/vehicles/crates parachute — sections distinctes ou un seul gate ?) doivent lire
+`enableParachuteDrop`, et l'impact sur les tests busted existants du groupe parachute.
+
+## extractableGroups — détection automatique par convention de nommage
+
+Constaté en expliquant `extractableGroups` : aujourd'hui, rendre un groupe pré-placé dans le Mission
+Editor extractible au F10 exige que le MM ajoute son nom à la table de config `extractableGroups`
+(`INIT-E`, `CTLDCoreManager:_initExtractableGroups`, `CTLD_core.lua:520`) — une étape manuelle,
+séparée du placement du groupe lui-même, à la manière de `logisticUnits` avant l'introduction de
+`logisticUnitTypes`.
+
+Idée : offrir au MM le choix entre la liste explicite existante et une **convention de nommage**
+détectée automatiquement à l'init, sans toucher à la config — le MM place son groupe et le nomme
+directement dans l'éditeur, comme il le fait déjà pour les zones `TRZ_…`. Les deux mécanismes
+coexistent (union, dédoublonnée) : un groupe listé dans `extractableGroups` *et* nommé selon la
+convention ne compte qu'une fois.
+
+Décisions retenues (pseudo-grill du 2026-08-11, alignées sur les conventions de nommage déjà
+présentes dans `src/`) :
+- **Style** : préfixe strict `EXTR_<nom>`, sur le modèle de `SVNT_` (`_isServantUnitName`,
+  `^SVNT`, `CTLD_troop.lua:37`) plutôt que la sous-chaîne libre de `_isJTACGroup` (`"jtac"` n'importe
+  où dans le nom, insensible à la casse, `CTLD_core.lua:549`) — un préfixe ancré évite les faux
+  positifs sur un nom de groupe qui contiendrait le mot par coïncidence.
+- **Mot-clé** : `EXTR` — court, cohérent avec les préfixes existants (`SVNT_`, `TRZ_`), distinct de
+  `JTAC`/`SVNT`.
+- **Périmètre coalition du scan** : RED + BLUE + NEUTRAL. Plus large que le seul autre scan par nom
+  existant (`_initMMJTACs` ne couvre que RED/BLUE, `CTLD_core.lua:488`), choisi pour rester cohérent
+  avec la liste explicite `extractableGroups` — celle-ci accepte déjà n'importe quelle coalition
+  puisqu'elle lit `group:getCoalition()` sur le groupe résolu, sans restriction dans
+  `_initExtractableGroups`. Inclure NEUTRAL sert notamment le cas des **civils** (par nature neutres)
+  — un groupe de civils à évacuer/extraire, par exemple — que le périmètre RED/BLUE seul de
+  `_initMMJTACs` ne couvrirait pas.
+- **Mécanisme** : étendre `INIT-E` pour scanner `coalition.getGroups(side)` sur les trois côtés (comme
+  `_initMMJTACs` le fait pour RED/BLUE) et tester le préfixe `^EXTR` sur chaque nom, en plus de la
+  résolution des noms listés dans `extractableGroups` — même passage d'init, résultat fusionné dans
+  `CTLDTroopManager._droppedGroups[coalition]`.
+
+Reste à trancher **au to-prd/to-issues** (implémentation, pas conception) : convention exacte du nom
+après le préfixe (`EXTR_<name>` libre, ou faut-il aussi extraire des métadonnées du nom comme `TRZ_`
+le fait pour ses 5 champs ?) et mise à jour de la doc mission-maker (`configuration.md` /
+`.fr.md`) pour documenter les deux voies côte à côte.
+
+<!-- FOB — API scriptée pour zone de troupes : généralisée et formalisée en lot
+     `.backlog/FEAT-TROOP-ZONE-SCRIPTED-API/` (grill-with-docs, 2026-08-26) — le grilling a élargi
+     le périmètre de "FOB uniquement" à "n'importe quel objet DCS nommé" (zone ME, unité, statique,
+     groupe, ou FARP/airbase), d'où `createTroopZoneAtObject(objectName, trzName)` plutôt que
+     `registerFOBAsTroopZone(fobName, trzName)`. Entrée conservée ci-dessous pour l'historique. -->
+
+## FOB — API scriptée pour ajouter une zone de troupes (pickup) par-dessus un FOB
+
+Constaté en répondant à une question MM (2026-08-25) : comment ajouter, via un script lancé après
+l'init, une capacité d'embarquement de troupes sur un FOB déjà construit. Aujourd'hui, seul
+`CTLDZoneManager:registerFOBAsLogistic(fobName, point, radius, coalitionId)` existe pour ce cas de
+figure (`CTLD_zone.lua:1187-1198`), et il n'est même pas pensé pour un appel MM : il est déclenché
+**automatiquement** par `CTLDFOBManager` à la construction du FOB (`CTLD_fob.lua:319`). Aucun
+équivalent troupes n'existe : `createExtractZone(zoneName, flagNumber, smoke)` (`CTLD_zone.lua:
+1481-1507`) ne fixe jamais `pickMaxStock`, donc `hasPickup()` reste `false` (`:107-109`) — elle ne
+peut compter qu'une extraction, jamais servir de zone de pickup.
+
+Solution de contournement donnée en attendant (non officielle) : reconstruire soi-même une
+`CTLDTroopZone` à partir de la zone logistique déjà enregistrée du FOB
+(`CTLDZoneManager:getLogisticZone(fobName)`) et l'insérer directement dans la table privée
+`self._troopZones`, en réutilisant au passage le parseur privé `CTLDZoneManager:_parseTRZ(name)`
+(`:591-650`) pour que le MM garde le contrôle de la coalition/stock/flag/target via un nom `TRZ_…`
+classique. Fonctionne (le menu F10 se reconstruit en direct depuis `_troopZones`,
+`CTLD_troop.lua:1937`), mais dépend de deux champs/méthodes privés — pas garanti dans le temps.
+
+Idée de lot : ajouter `CTLDZoneManager:registerFOBAsTroopZone(fobName, trzName)` /
+`removeFOBTroopZone(fobName)`, sur le modèle du **scripted API** déjà livré pour les balises
+(`FEAT-VMCT-INTEGRATION` ticket 03, `CTLDBeaconManager:createAtPoint()` / `removeBeacon()`) — une
+paire créer/retirer publique, documentée, testée (busted + scénario `tests/dcs`), qui accepte un
+nom `TRZ_…` complet (réutilisant `_parseTRZ` en interne, promu public ou dupliqué proprement) et
+résout la position/rayon du FOB via sa zone logistique existante, sans que l'appelant ait besoin de
+toucher à un champ privé.
+
+Reste à trancher **au to-prd/to-issues** (implémentation, pas conception) : `registerFOBAsTroopZone`
+doit-il exiger que le FOB soit déjà logistique (comme le contournement), ou doit-il accepter un
+point/rayon explicites pour couvrir un FOB sans zone logistique ? Faut-il aussi un
+`getFOBTroopZone(fobName)` symétrique à `getLogisticZone` ?
