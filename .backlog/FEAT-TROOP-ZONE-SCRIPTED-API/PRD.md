@@ -127,9 +127,14 @@ regardless of how it was created.
   the **developer** docs (confirmed: neither appears anywhere in `docs/mission-maker/`) —
   `docs/developer/api-reference.md` / `.fr.md` (the flat method-reference table) and
   `docs/developer/subsystems/zones.md` / `.fr.md` (the narrative subsystem page, which also
-  carries a short runtime-usage code snippet for each). Add `createTroopZoneAtObject` there, next
-  to both, in the same four files — not in `docs/mission-maker/zones.md`, which documents the
-  `TRZ_…` naming convention for editor-placed zones but not the scripted constructors.
+  carries a short runtime-usage code snippet for each). Added `createTroopZoneAtObject` there,
+  next to both, in the same four files.
+  Post-review addendum: the mission-maker guide already documents an analogous runtime API for
+  logistic zones (`docs/mission-maker/zones.md` § "Deactivating and reactivating a logistic
+  zone", `CTLDZoneManager` called directly from a DO SCRIPT) — on explicit request, a matching
+  "Creating a pickup zone at runtime" subsection was added to `docs/mission-maker/zones.md` /
+  `.fr.md`, right after "Pickup points on ships", with the same `zm:createTroopZoneAtObject(...)`
+  / `removeExtractZone(...)` example.
 - **Roadmap**: the narrower FOB-only entry in `dev/roadmap.md` this lot generalizes should be
   marked formalized once this lot exists, per the project's own roadmap convention.
 
