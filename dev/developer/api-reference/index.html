@@ -2481,6 +2481,16 @@ event.</em></p>
 <td>Unregister an extract zone.</td>
 </tr>
 <tr>
+<td><code>createTroopZoneAtObject</code></td>
+<td><code>(objectName, trzName)</code></td>
+<td>Add a pickup-capable TRZ zone on any named DCS object (trigger zone, unit, static, group, or airbase/FARP). <code>trzName</code> is a full <code>TRZ_&lt;name&gt;_&lt;coal&gt;_&lt;stock&gt;_&lt;flag&gt;_&lt;target&gt;</code> name. Anchors to <code>objectName</code> when it can move; remove with <code>removeExtractZone</code>.</td>
+</tr>
+<tr>
+<td><code>parseTRZ</code></td>
+<td><code>(name) → table \| nil, string</code></td>
+<td>Parse a <code>TRZ_…</code> name into <code>{zoneName, coalition, pickMaxStock, objectiveFlag, objectiveTarget}</code>, or <code>nil</code> + a reason.</td>
+</tr>
+<tr>
 <td><code>activateLogisticZone</code></td>
 <td><code>(name)</code></td>
 <td>Re-enable a suspended LGZ. Fires <code>OnLogisticZoneUpdated</code>.</td>

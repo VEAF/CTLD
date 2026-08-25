@@ -1058,6 +1058,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#creating-a-pickup-zone-at-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Créer une zone d'embarquement à l'exécution
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2202,6 +2213,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#creating-a-pickup-zone-at-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Créer une zone d'embarquement à l'exécution
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2711,6 +2733,22 @@ l'autre.</p>
 qu'affiche l'éditeur de mission. <code>ctld-tools validate</code> rejette un nom qui ne correspond à aucun
 type DCS connu : une faute de frappe est donc détectée avant même que la mission tourne.</p>
 </div>
+<h3 id="creating-a-pickup-zone-at-runtime">Créer une zone d'embarquement à l'exécution<a class="headerlink" href="#creating-a-pickup-zone-at-runtime" title="Permanent link">&para;</a></h3>
+<p>Une trigger zone <code>TRZ_</code> ne peut être placée que sur quelque chose qui existe déjà quand l'éditeur
+de mission enregistre la mission. Utilisez <code>CTLDZoneManager:createTroopZoneAtObject</code> depuis un
+déclencheur <strong>DO SCRIPT</strong> pour ajouter une zone d'embarquement de troupes à tout moment <em>après</em>
+le début de la mission — sur un FOB une fois sa construction terminée, un FARP tout juste
+apparu, un navire, ou tout autre objet nommé. Le nom <code>TRZ_…</code> suit exactement la même convention
+que ci-dessus : coalition, stock, flag et target fonctionnent à l'identique.</p>
+<div class="highlight"><pre><span></span><code><span class="nv">CTLDZoneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">createTroopZoneAtObject</span><span class="p">(</span><span class="s2">"FARP Alpha"</span><span class="p">,</span><span class="w"> </span><span class="s2">"TRZ_farpAlpha_B_999_nil_0"</span><span class="p">)</span>
+</code></pre></div>
+<p><code>objectName</code> peut être une trigger zone de l'éditeur de mission, une unité, un statique, un
+groupe, ou un airbase/FARP — le premier qui correspond. La zone suit l'objet s'il peut se
+déplacer (une Moving Zone, une unité, un navire) ; un airbase/FARP reste fixe. Tout ce qui n'est
+pas une trigger zone reçoit un rayon de 200 m. Supprimez-la comme n'importe quelle autre zone de
+troupes :</p>
+<div class="highlight"><pre><span></span><code><span class="nv">CTLDZoneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">removeExtractZone</span><span class="p">(</span><span class="s2">"farpAlpha"</span><span class="p">)</span>
+</code></pre></div>
 <hr />
 <h2 id="waypoint-zones-wpz">Zones de waypoint (WPZ)<a class="headerlink" href="#waypoint-zones-wpz" title="Permanent link">&para;</a></h2>
 <p>Quand des troupes sont déployées (fast-rope ou dépose au sol) en un point qui tombe <strong>à

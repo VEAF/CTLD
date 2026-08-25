@@ -2530,6 +2530,12 @@ de simples types <code>class()</code> instanciés via <code>:new(data)</code>.</
 <td><code>CTLDTroopZone</code></td>
 <td>Extract zone créée depuis un <code>DO SCRIPT</code> de mission</td>
 </tr>
+<tr>
+<td>TRZ (dynamique, tout objet)</td>
+<td><code>createTroopZoneAtObject()</code> à l'exécution</td>
+<td><code>CTLDTroopZone</code></td>
+<td>TRZ pickup créée depuis un <code>DO SCRIPT</code>, sur une zone de trigger, une unité, un statique, un groupe, ou un airbase/FARP</td>
+</tr>
 </tbody>
 </table>
 <p>Les zones TRZ, WPZ et LGZ sont découvertes en parcourant <code>env.mission.triggers.zones</code> à
@@ -3032,6 +3038,8 @@ monde), ou les deux camps sont égaux. <code>getNearestWaypointZone</code> sous-
 <span class="nv">zm</span><span class="p">:</span><span class="nf">isUnitInZone</span><span class="p">(</span><span class="nv">unitName</span><span class="p">,</span><span class="w"> </span><span class="nv">zoneType</span><span class="p">)</span><span class="w">     </span><span class="c1">-- zoneType : "extract" | "pickup" | nil (toute zone active)</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">createExtractZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">flag</span><span class="p">,</span><span class="w"> </span><span class="nv">smoke</span><span class="p">)</span><span class="w">   </span><span class="c1">-- EXZ à l'exécution depuis une zone de trigger DCS</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">removeExtractZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">flag</span><span class="p">)</span><span class="w">          </span><span class="c1">-- flag accepté mais ignoré</span>
+<span class="nv">zm</span><span class="p">:</span><span class="nf">createTroopZoneAtObject</span><span class="p">(</span><span class="nv">objectName</span><span class="p">,</span><span class="w"> </span><span class="nv">trzName</span><span class="p">)</span><span class="w">  </span><span class="c1">-- TRZ pickup à l'exécution sur tout objet nommé</span>
+<span class="nv">zm</span><span class="p">:</span><span class="nf">parseTRZ</span><span class="p">(</span><span class="nv">name</span><span class="p">)</span><span class="w">                             </span><span class="c1">-- parse un nom TRZ_ sans rien enregistrer</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">activateWaypointZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">)</span><span class="w">             </span><span class="c1">-- délègue à setTroopZoneActive(…, true)</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">deactivateWaypointZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">)</span><span class="w">           </span><span class="c1">-- délègue à setTroopZoneActive(…, false)</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">changeRemainingGroups</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">amount</span><span class="p">)</span><span class="w">    </span><span class="c1">-- ajuste pickCurrentStock de ±amount (plancher à 0)</span>
@@ -3039,6 +3047,18 @@ monde), ou les deux camps sont égaux. <code>getNearestWaypointZone</code> sous-
 <p>Les logistic zones désactivées sont ignorées par chaque getter jusqu'à réactivation, ce qui
 permet à une mission de simuler un point de ravitaillement capturé ou temporairement perdu sans
 le détruire.</p>
+<p><code>createTroopZoneAtObject</code> résout <code>objectName</code> en essayant, dans l'ordre, une zone de trigger DCS,
+une unité, un statique, un groupe, ou un airbase/FARP — et ancre la zone à cet objet quand il peut
+bouger (<code>dcsName</code> pour une zone de trigger qui est une Moving Zone, <code>linkedUnit</code> pour une
+unité/statique/groupe) ; un airbase/FARP reste fixe. Le rayon propre de la zone de trigger est
+utilisé ; tout autre objet reçoit un rayon par défaut de 200 m. Par exemple, pour ajouter une zone
+pickup sur un FARP placé dans l'éditeur de mission :</p>
+<div class="highlight"><pre><span></span><code><span class="nv">zm</span><span class="p">:</span><span class="nf">createTroopZoneAtObject</span><span class="p">(</span><span class="s2">"FARP Alpha"</span><span class="p">,</span><span class="w"> </span><span class="s2">"TRZ_farpAlpha_B_999_nil_0"</span><span class="p">)</span>
+</code></pre></div>
+<p><code>parseTRZ</code> est ce que cette méthode et la découverte TRZ à l'init utilisent toutes les deux pour
+transformer un nom <code>TRZ_…</code> en <code>{zoneName, coalition, pickMaxStock, objectiveFlag,
+objectiveTarget}</code> (ou <code>nil</code> + une raison) — voir la
+<a href="#trz-naming-convention">convention de nommage TRZ</a> plus haut.</p>
 <h2 id="unload-priority-extract-before-rtb">Priorité de déchargement : extract avant RTB<a class="headerlink" href="#unload-priority-extract-before-rtb" title="Permanent link">&para;</a></h2>
 <p>Lorsqu'un joueur décharge des troops, la zone contenante est évaluée dans cet ordre (géré par le
 sous-système troop, pas par le zone manager lui-même) :</p>

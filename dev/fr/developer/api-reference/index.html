@@ -2482,6 +2482,16 @@ scripting des troops IA.</em></p>
 <td>Désenregistre une extract zone.</td>
 </tr>
 <tr>
+<td><code>createTroopZoneAtObject</code></td>
+<td><code>(objectName, trzName)</code></td>
+<td>Ajoute une zone TRZ pickup sur n'importe quel objet DCS nommé (zone de trigger, unité, statique, groupe, ou airbase/FARP). <code>trzName</code> est un nom complet <code>TRZ_&lt;nom&gt;_&lt;coal&gt;_&lt;stock&gt;_&lt;flag&gt;_&lt;target&gt;</code>. S'ancre à <code>objectName</code> s'il peut bouger ; se retire avec <code>removeExtractZone</code>.</td>
+</tr>
+<tr>
+<td><code>parseTRZ</code></td>
+<td><code>(name) → table \| nil, string</code></td>
+<td>Parse un nom <code>TRZ_…</code> en <code>{zoneName, coalition, pickMaxStock, objectiveFlag, objectiveTarget}</code>, ou <code>nil</code> + une raison.</td>
+</tr>
+<tr>
 <td><code>activateLogisticZone</code></td>
 <td><code>(name)</code></td>
 <td>Réactive une LGZ suspendue. Déclenche <code>OnLogisticZoneUpdated</code>.</td>

@@ -2529,6 +2529,12 @@ state and geometry tests.</p>
 <td><code>CTLDTroopZone</code></td>
 <td>Extract zone created from a mission <code>DO SCRIPT</code></td>
 </tr>
+<tr>
+<td>TRZ (dynamic, any object)</td>
+<td><code>createTroopZoneAtObject()</code> at runtime</td>
+<td><code>CTLDTroopZone</code></td>
+<td>Pickup-capable TRZ created from a <code>DO SCRIPT</code>, on a trigger zone, unit, static, group, or airbase/FARP</td>
+</tr>
 </tbody>
 </table>
 <p>TRZ, WPZ and LGZ are discovered by scanning <code>env.mission.triggers.zones</code> at init. AIZ zones
@@ -3021,12 +3027,24 @@ pickup/dropoff getters back the AI transport loop (<code>_checkAIStatus</code>).
 <span class="nv">zm</span><span class="p">:</span><span class="nf">isUnitInZone</span><span class="p">(</span><span class="nv">unitName</span><span class="p">,</span><span class="w"> </span><span class="nv">zoneType</span><span class="p">)</span><span class="w">     </span><span class="c1">-- zoneType: "extract" | "pickup" | nil (any active zone)</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">createExtractZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">flag</span><span class="p">,</span><span class="w"> </span><span class="nv">smoke</span><span class="p">)</span><span class="w">   </span><span class="c1">-- runtime EXZ from a DCS trigger zone</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">removeExtractZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">flag</span><span class="p">)</span><span class="w">          </span><span class="c1">-- flag accepted but ignored</span>
+<span class="nv">zm</span><span class="p">:</span><span class="nf">createTroopZoneAtObject</span><span class="p">(</span><span class="nv">objectName</span><span class="p">,</span><span class="w"> </span><span class="nv">trzName</span><span class="p">)</span><span class="w">  </span><span class="c1">-- runtime pickup TRZ on any named object</span>
+<span class="nv">zm</span><span class="p">:</span><span class="nf">parseTRZ</span><span class="p">(</span><span class="nv">name</span><span class="p">)</span><span class="w">                             </span><span class="c1">-- parse a TRZ_ name without registering anything</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">activateWaypointZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">)</span><span class="w">             </span><span class="c1">-- delegates to setTroopZoneActive(…, true)</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">deactivateWaypointZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">)</span><span class="w">           </span><span class="c1">-- delegates to setTroopZoneActive(…, false)</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">changeRemainingGroups</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">amount</span><span class="p">)</span><span class="w">    </span><span class="c1">-- adjust pickCurrentStock by ±amount (floored at 0)</span>
 </code></pre></div>
 <p>Deactivated logistic zones are ignored by every getter until reactivated, which lets a mission
 simulate a captured or temporarily lost resupply point without destroying it.</p>
+<p><code>createTroopZoneAtObject</code> resolves <code>objectName</code> against a DCS trigger zone, a unit, a static, a
+group, or an airbase/FARP — whichever matches first — and anchors the zone to it when it can
+move (<code>dcsName</code> for a trigger zone that's a Moving Zone, <code>linkedUnit</code> for a unit/static/group);
+an airbase/FARP match is fixed. A trigger zone's own radius is used; every other match gets a
+200 m default. For example, to add a pickup zone on a FARP placed in the Mission Editor:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">zm</span><span class="p">:</span><span class="nf">createTroopZoneAtObject</span><span class="p">(</span><span class="s2">"FARP Alpha"</span><span class="p">,</span><span class="w"> </span><span class="s2">"TRZ_farpAlpha_B_999_nil_0"</span><span class="p">)</span>
+</code></pre></div>
+<p><code>parseTRZ</code> is what both this method and the init-time TRZ discovery use to turn a <code>TRZ_…</code>
+string into <code>{zoneName, coalition, pickMaxStock, objectiveFlag, objectiveTarget}</code> (or <code>nil</code> plus
+a reason) — see <a href="#trz-naming-convention">TRZ naming convention</a> above.</p>
 <h2 id="unload-priority-extract-before-rtb">Unload priority: extract before RTB<a class="headerlink" href="#unload-priority-extract-before-rtb" title="Permanent link">&para;</a></h2>
 <p>When a player unloads troops, the containing zone is evaluated in this order (handled by the
 troop subsystem, not the zone manager itself):</p>
