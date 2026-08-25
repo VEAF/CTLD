@@ -588,7 +588,7 @@ end
 -- flag   : string or reserved word "nil" (= no objective flag)
 -- target : integer ≥0     — 0=no win condition (nil), N≥1=soldier threshold
 -- Returns a table on success, nil + error string on failure.
-function CTLDZoneManager:_parseTRZ(name)
+function CTLDZoneManager:parseTRZ(name)
     local parts = _split(name, "_")
     if parts[1] ~= "TRZ" then return nil, "not a TRZ" end
 
@@ -690,7 +690,7 @@ function CTLDZoneManager:_discoverTRZ()
     for _, zd in pairs(env.mission.triggers.zones) do
         local name = zd.name or ""
         if string.sub(name, 1, 4) == "TRZ_" then
-            local parsed, err = self:_parseTRZ(name)
+            local parsed, err = self:parseTRZ(name)
             if not parsed then
                 ctld.utils.log("WARN", "CTLDZoneManager: cannot parse TRZ '%s': %s", name, tostring(err))
             elseif not self._troopZones[parsed.zoneName] then
@@ -1565,7 +1565,7 @@ function CTLDZoneManager:_validateZoneNames()
         for _, zd in pairs(env.mission.triggers.zones) do
             local name = zd.name or ""
             if string.sub(name, 1, 4) == "TRZ_" then
-                local parsed, err = self:_parseTRZ(name)
+                local parsed, err = self:parseTRZ(name)
                 if not parsed then
                     errors[#errors + 1] = "  TRZ ERROR '" .. name .. "': " .. tostring(err)
                 end

@@ -1,12 +1,12 @@
 # FEAT-TROOP-ZONE-SCRIPTED-API
 
-**Status:** ⬜ ready
+**Status:** 🔄 in-progress
 
 ## Tickets
 
 | Ticket | Status | Title |
 |---|---|---|
-| `01-parsetrz-visibility-promotion` | ⬜ ready | 01 — `parseTRZ` promoted to public |
+| `01-parsetrz-visibility-promotion` | ✅ done | 01 — `parseTRZ` promoted to public |
 | `02-createtroopzoneatobject` | ⬜ ready | 02 — `createTroopZoneAtObject` — scripted pickup zone on any named object |
 | `03-developer-docs` | ⬜ ready | 03 — developer docs (EN+FR) |
 

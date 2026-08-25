@@ -1,6 +1,6 @@
 # 01 — `parseTRZ` promoted to public
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 ## Why
 
