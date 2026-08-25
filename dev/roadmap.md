@@ -209,3 +209,31 @@ Reste à trancher **au to-prd/to-issues** (implémentation, pas conception) : `r
 doit-il exiger que le FOB soit déjà logistique (comme le contournement), ou doit-il accepter un
 point/rayon explicites pour couvrir un FOB sans zone logistique ? Faut-il aussi un
 `getFOBTroopZone(fobName)` symétrique à `getLogisticZone` ?
+
+## Zones dynamiques — aucun rafraîchissement du menu F10 des joueurs déjà sur place
+
+Constaté en testant en direct `createTroopZoneAtObject` (`FEAT-TROOP-ZONE-SCRIPTED-API`,
+2026-08-26) : un joueur déjà posé pile à l'endroit où une `TRZ_` vient d'être créée par script ne
+voit **rien** dans son menu F10 tant qu'il ne redécolle/ratterrit pas — `CTLDTroopManager` ne
+reconstruit la branche "Troop Commands" que sur `S_EVENT_LAND`/`S_EVENT_TAKEOFF`
+(`CTLD_troop.lua:1854-1857`), jamais en continu ni sur un événement de création de zone.
+
+Ce n'est pas propre aux zones de troupes : `CTLDZoneManager:registerFOBAsLogistic` (zones
+logistiques sur FOB) publie bien un événement `OnLogisticZoneUpdated`
+(`CTLD_zone.lua:1157`), mais **rien dans tout `src/` ne s'y abonne** (grep confirmé) — aucun menu
+de joueur n'est rafraîchi en réaction. Le même vide existe donc pour `createExtractZone`,
+`registerFOBAsLogistic` et `createTroopZoneAtObject` : les trois créent la zone et s'arrêtent là,
+sans jamais toucher au menu d'un joueur déjà présent.
+
+Dans le cas d'usage principal (un MM construit un FOB/FARP puis un joueur y atterrit *après*),
+ça ne se voit pas : l'atterrissage qui suit déclenche naturellement le rafraîchissement. Le trou
+ne touche que le cas où un joueur est **déjà posé** au moment où la zone apparaît.
+
+Idée de lot (portée transverse, pas spécifique à un seul type de zone) : que la création/
+suppression dynamique d'une zone (troupe ou logistique) déclenche un rafraîchissement ciblé du
+menu de tout joueur actuellement à portée — probablement en s'abonnant enfin à
+`OnLogisticZoneUpdated` côté `CTLDCrateManager`, et en publiant/écoutant un événement équivalent
+pour les zones de troupes, plutôt qu'en ajoutant des appels de rafraîchissement au cas par cas
+dans chaque fonction de création. Reste à trancher **au to-prd/to-issues** : un seul mécanisme
+générique pour les deux familles de zones, ou deux événements distincts (troupe/logistique)
+comme aujourd'hui pour la création elle-même ?
