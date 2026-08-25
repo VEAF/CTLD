@@ -92,6 +92,8 @@ Full event catalogue: [Events](events.md).
 | `deactivateWaypointZone` | `(zoneName)` | Disable a WPZ. |
 | `createExtractZone` | `(zoneName, flagNumber, smoke)` | Register a DCS trigger zone as an extract zone. `smoke`: `0`=Green … `4`=Blue, `-1`=none. |
 | `removeExtractZone` | `(zoneName, flagNumber)` | Unregister an extract zone. |
+| `createTroopZoneAtObject` | `(objectName, trzName)` | Add a pickup-capable TRZ zone on any named DCS object (trigger zone, unit, static, group, or airbase/FARP). `trzName` is a full `TRZ_<name>_<coal>_<stock>_<flag>_<target>` name. Anchors to `objectName` when it can move; remove with `removeExtractZone`. |
+| `parseTRZ` | `(name) → table \| nil, string` | Parse a `TRZ_…` name into `{zoneName, coalition, pickMaxStock, objectiveFlag, objectiveTarget}`, or `nil` + a reason. |
 | `activateLogisticZone` | `(name)` | Re-enable a suspended LGZ. Fires `OnLogisticZoneUpdated`. |
 | `deactivateLogisticZone` | `(name)` | Suspend a LGZ — players inside can no longer spawn crates. Fires `OnLogisticZoneUpdated`. |
 | `registerFOBAsLogistic` | `(fobName, point, radius, coalitionId)` | Register a FOB as a logistic zone (called automatically by `CTLDFOBManager` on FOB build). |

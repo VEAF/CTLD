@@ -1,6 +1,6 @@
 # 03 — developer docs (EN+FR)
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 ## Why
 

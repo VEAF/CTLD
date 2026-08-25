@@ -1,6 +1,6 @@
 # FEAT-TROOP-ZONE-SCRIPTED-API
 
-**Status:** 🔄 in-progress
+**Status:** ✅ done
 
 ## Tickets
 
@@ -8,7 +8,7 @@
 |---|---|---|
 | `01-parsetrz-visibility-promotion` | ✅ done | 01 — `parseTRZ` promoted to public |
 | `02-createtroopzoneatobject` | ✅ done | 02 — `createTroopZoneAtObject` — scripted pickup zone on any named object |
-| `03-developer-docs` | ⬜ ready | 03 — developer docs (EN+FR) |
+| `03-developer-docs` | ✅ done | 03 — developer docs (EN+FR) |
 
 Program: none — standalone feature, generalizes the FOB-only idea previously sitting in
 `dev/roadmap.md` ("FOB — API scriptée pour ajouter une zone de troupes (pickup) par-dessus un

@@ -26,6 +26,7 @@ de simples types `class()` instanciés via `:new(data)`.
 | Legacy | config `troopZones` / `wpZones` / `logisticUnits` | `CTLDTroopZone` / `CTLDLogisticZone` | Rétrocompatibilité avec les anciennes conventions PKZ/IAZ/WPZ/EXZ |
 | Découverte par type | config `logisticUnitTypes` / `troopZoneShipTypes` | `CTLDLogisticZone` / `CTLDTroopZone` | Chaque objet de la mission d'un type DCS listé, ancré à cet objet |
 | EXZ (dynamique) | `createExtractZone()` à l'exécution | `CTLDTroopZone` | Extract zone créée depuis un `DO SCRIPT` de mission |
+| TRZ (dynamique, tout objet) | `createTroopZoneAtObject()` à l'exécution | `CTLDTroopZone` | TRZ pickup créée depuis un `DO SCRIPT`, sur une zone de trigger, une unité, un statique, un groupe, ou un airbase/FARP |
 
 Les zones TRZ, WPZ et LGZ sont découvertes en parcourant `env.mission.triggers.zones` à
 l'init. Les zones AIZ sont chargées depuis `ctld.gs("aiZones")` et référencent par leur nom une
@@ -350,6 +351,8 @@ zm:setTroopZoneActive(zoneName, active)                         -- active / dés
 zm:isUnitInZone(unitName, zoneType)     -- zoneType : "extract" | "pickup" | nil (toute zone active)
 zm:createExtractZone(zoneName, flag, smoke)   -- EXZ à l'exécution depuis une zone de trigger DCS
 zm:removeExtractZone(zoneName, flag)          -- flag accepté mais ignoré
+zm:createTroopZoneAtObject(objectName, trzName)  -- TRZ pickup à l'exécution sur tout objet nommé
+zm:parseTRZ(name)                             -- parse un nom TRZ_ sans rien enregistrer
 zm:activateWaypointZone(zoneName)             -- délègue à setTroopZoneActive(…, true)
 zm:deactivateWaypointZone(zoneName)           -- délègue à setTroopZoneActive(…, false)
 zm:changeRemainingGroups(zoneName, amount)    -- ajuste pickCurrentStock de ±amount (plancher à 0)
@@ -358,6 +361,22 @@ zm:changeRemainingGroups(zoneName, amount)    -- ajuste pickCurrentStock de ±am
 Les logistic zones désactivées sont ignorées par chaque getter jusqu'à réactivation, ce qui
 permet à une mission de simuler un point de ravitaillement capturé ou temporairement perdu sans
 le détruire.
+
+`createTroopZoneAtObject` résout `objectName` en essayant, dans l'ordre, une zone de trigger DCS,
+une unité, un statique, un groupe, ou un airbase/FARP — et ancre la zone à cet objet quand il peut
+bouger (`dcsName` pour une zone de trigger qui est une Moving Zone, `linkedUnit` pour une
+unité/statique/groupe) ; un airbase/FARP reste fixe. Le rayon propre de la zone de trigger est
+utilisé ; tout autre objet reçoit un rayon par défaut de 200 m. Par exemple, pour ajouter une zone
+pickup sur un FARP placé dans l'éditeur de mission :
+
+```lua
+zm:createTroopZoneAtObject("FARP Alpha", "TRZ_farpAlpha_B_999_nil_0")
+```
+
+`parseTRZ` est ce que cette méthode et la découverte TRZ à l'init utilisent toutes les deux pour
+transformer un nom `TRZ_…` en `{zoneName, coalition, pickMaxStock, objectiveFlag,
+objectiveTarget}` (ou `nil` + une raison) — voir la
+[convention de nommage TRZ](#trz-naming-convention) plus haut.
 
 ## Priorité de déchargement : extract avant RTB { #unload-priority-extract-before-rtb }
 
