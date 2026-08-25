@@ -179,6 +179,29 @@ l'autre.
     qu'affiche l'éditeur de mission. `ctld-tools validate` rejette un nom qui ne correspond à aucun
     type DCS connu : une faute de frappe est donc détectée avant même que la mission tourne.
 
+### Créer une zone d'embarquement à l'exécution { #creating-a-pickup-zone-at-runtime }
+
+Une trigger zone `TRZ_` ne peut être placée que sur quelque chose qui existe déjà quand l'éditeur
+de mission enregistre la mission. Utilisez `CTLDZoneManager:createTroopZoneAtObject` depuis un
+déclencheur **DO SCRIPT** pour ajouter une zone d'embarquement de troupes à tout moment *après*
+le début de la mission — sur un FOB une fois sa construction terminée, un FARP tout juste
+apparu, un navire, ou tout autre objet nommé. Le nom `TRZ_…` suit exactement la même convention
+que ci-dessus : coalition, stock, flag et target fonctionnent à l'identique.
+
+```lua
+CTLDZoneManager.getInstance():createTroopZoneAtObject("FARP Alpha", "TRZ_farpAlpha_B_999_nil_0")
+```
+
+`objectName` peut être une trigger zone de l'éditeur de mission, une unité, un statique, un
+groupe, ou un airbase/FARP — le premier qui correspond. La zone suit l'objet s'il peut se
+déplacer (une Moving Zone, une unité, un navire) ; un airbase/FARP reste fixe. Tout ce qui n'est
+pas une trigger zone reçoit un rayon de 200 m. Supprimez-la comme n'importe quelle autre zone de
+troupes :
+
+```lua
+CTLDZoneManager.getInstance():removeExtractZone("farpAlpha")
+```
+
 ---
 
 ## Zones de waypoint (WPZ) { #waypoint-zones-wpz }

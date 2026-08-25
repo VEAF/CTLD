@@ -67,6 +67,11 @@ StaticObject = {
     getByName = function(name) return nil end,
 }
 
+-- ── Airbase ──────────────────────────────────────────────────
+Airbase = {
+    getByName = function(name) return nil end,
+}
+
 -- ── Object ───────────────────────────────────────────────────
 Object = {
     Category = { UNIT = 1, WEAPON = 2, STATIC = 3, BASE = 4, SCENERY = 5, CARGO = 6 },

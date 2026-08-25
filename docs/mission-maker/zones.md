@@ -174,6 +174,27 @@ missions.
     `ctld-tools validate` rejects a name that matches no known DCS type, so a typo is caught before
     the mission ever runs.
 
+### Creating a pickup zone at runtime
+
+A `TRZ_` trigger zone can only be placed on something that already exists when the Mission
+Editor saves the mission. Use `CTLDZoneManager:createTroopZoneAtObject` from a **DO SCRIPT**
+trigger to add a pickup troop zone any time *after* mission start instead — on a FOB once it
+finishes building, a spawned FARP, a ship, or any other named object. The `TRZ_…` name follows
+the exact same convention as above, so coalition, stock, flag and target work identically:
+
+```lua
+CTLDZoneManager.getInstance():createTroopZoneAtObject("FARP Alpha", "TRZ_farpAlpha_B_999_nil_0")
+```
+
+`objectName` can be a Mission Editor trigger zone, a unit, a static, a group, or an airbase/FARP
+— whichever matches first. The zone follows the object if it can move (a Moving Zone, a unit, a
+ship); an airbase/FARP match stays fixed instead. Anything other than a trigger zone gets a
+200 m radius. Remove it the same way as any other troop zone:
+
+```lua
+CTLDZoneManager.getInstance():removeExtractZone("farpAlpha")
+```
+
 ---
 
 ## Waypoint zones (WPZ)

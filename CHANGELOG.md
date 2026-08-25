@@ -8,6 +8,23 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — a scripted way to add a pickup troop zone on any named object (FEAT-TROOP-ZONE-SCRIPTED-API)
+
+- **The only script-callable troop-zone constructor, `createExtractZone`, never set a pickup
+  stock** — it could count an extraction but could never produce a "Load Troops" F10 entry. There
+  was no way to add a `TRZ_…`-equivalent pickup zone at runtime on something that doesn't exist yet
+  when CTLD initializes (a scene-built FOB, a spawned FARP, a ship).
+- **`CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)`** adds one, on any named DCS
+  object: a Mission Editor trigger zone, a unit, a static, a group, or an airbase/FARP. `trzName`
+  is a full `TRZ_<name>_<coalition>_<stock>_<flag>_<target>` string, parsed by the same convention
+  already used for editor-placed zones — coalition, pickup stock, extraction flag and win-target
+  all come from it, no new syntax. The new zone anchors to the resolved object when it can move (a
+  Moving Zone via `dcsName`, a unit/static/group via `linkedUnit`); an airbase/FARP match stays
+  fixed. Removing it needs no new function: the existing `removeExtractZone` already clears any
+  troop zone by name.
+- `CTLDZoneManager._parseTRZ` promoted to public `parseTRZ` — no behavior change, just reused by
+  the new entry point.
+
 ### Added — a scripted beacon can be placed on a requested frequency (FEAT-BEACON-REQUESTED-FREQS)
 
 - **`CTLDBeaconManager:createAtPoint` drew all three frequencies at random**, with no way for the

@@ -588,7 +588,7 @@ end
 -- flag   : string or reserved word "nil" (= no objective flag)
 -- target : integer ≥0     — 0=no win condition (nil), N≥1=soldier threshold
 -- Returns a table on success, nil + error string on failure.
-function CTLDZoneManager:_parseTRZ(name)
+function CTLDZoneManager:parseTRZ(name)
     local parts = _split(name, "_")
     if parts[1] ~= "TRZ" then return nil, "not a TRZ" end
 
@@ -690,7 +690,7 @@ function CTLDZoneManager:_discoverTRZ()
     for _, zd in pairs(env.mission.triggers.zones) do
         local name = zd.name or ""
         if string.sub(name, 1, 4) == "TRZ_" then
-            local parsed, err = self:_parseTRZ(name)
+            local parsed, err = self:parseTRZ(name)
             if not parsed then
                 ctld.utils.log("WARN", "CTLDZoneManager: cannot parse TRZ '%s': %s", name, tostring(err))
             elseif not self._troopZones[parsed.zoneName] then
@@ -1521,6 +1521,89 @@ function CTLDZoneManager:removeExtractZone(zoneName, flagNumber)
     return false
 end
 
+-- Default radius for a createTroopZoneAtObject zone whose resolved object has none of its own
+-- (only a Mission Editor trigger zone carries a native radius here).
+local _TROOP_ZONE_DEFAULT_RADIUS = 200
+
+--- Resolves objectName to (center, radius, dcsName, linkedUnit) for createTroopZoneAtObject, in
+-- order: a Mission Editor trigger zone, a unit or static, a group's first unit, an airbase.
+-- Returns nil on no match. dcsName/linkedUnit are the anchor fields to pass through to
+-- CTLDTroopZone:new — set for whichever kind can move, nil for a fixed position.
+local function _resolveTroopZoneObject(objectName)
+    local trig = trigger.misc.getZone(objectName)
+    if trig then
+        return trig.point, trig.radius, objectName, nil
+    end
+
+    local unitOrStatic = Unit.getByName(objectName) or StaticObject.getByName(objectName)
+    if unitOrStatic then
+        return unitOrStatic:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, unitOrStatic
+    end
+
+    local group = Group.getByName(objectName)
+    if group then
+        local firstUnit = group:getUnit(1)
+        if firstUnit then
+            return firstUnit:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, firstUnit
+        end
+    end
+
+    local airbase = Airbase.getByName(objectName)
+    if airbase then
+        return airbase:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, nil
+    end
+
+    return nil
+end
+
+--- Create a dynamic pickup-capable troop zone at any named DCS object (MM DO SCRIPT), any time
+-- after CTLD has initialized. objectName may be a Mission Editor trigger zone, a unit, a static,
+-- a group, or an airbase/FARP — whichever matches first. trzName is a full TRZ_ name (see
+-- parseTRZ) so coalition/pickup stock/objective flag/target come from the same convention as an
+-- editor-placed zone. The new zone anchors to objectName when it can move (a Moving Zone via
+-- dcsName, a unit/static/group via linkedUnit); an airbase/FARP match is fixed. Remove with the
+-- existing removeExtractZone(zoneName); look it up with the existing getTroopZone(zoneName).
+-- @param objectName string   DCS trigger zone / unit / static / group / airbase name
+-- @param trzName    string   full TRZ_<name>_<coalition>_<stock>_<flag>_<target> name
+-- @return boolean
+function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
+    local parsed, err = self:parseTRZ(trzName)
+    if not parsed then
+        ctld.utils.log("ERROR", "CTLDZoneManager:createTroopZoneAtObject — invalid TRZ_ name '%s': %s",
+            tostring(trzName), tostring(err))
+        return false
+    end
+
+    if self._troopZones[parsed.zoneName] then
+        ctld.utils.log("WARN", "CTLDZoneManager:createTroopZoneAtObject — zone already registered: %s",
+            parsed.zoneName)
+        return false
+    end
+
+    local center, radius, dcsName, linkedUnit = _resolveTroopZoneObject(objectName)
+    if not center then
+        ctld.utils.log("ERROR", "CTLDZoneManager:createTroopZoneAtObject — object not found: %s",
+            tostring(objectName))
+        return false
+    end
+
+    self._troopZones[parsed.zoneName] = CTLDTroopZone:new({
+        dcsName         = dcsName,
+        zoneName        = parsed.zoneName,
+        coalition       = parsed.coalition,
+        center          = center,
+        radius          = radius,
+        linkedUnit      = linkedUnit,
+        pickMaxStock    = parsed.pickMaxStock,
+        objectiveFlag   = parsed.objectiveFlag,
+        objectiveTarget = parsed.objectiveTarget,
+        active          = true,
+    })
+    ctld.utils.log("INFO", "CTLDZoneManager:createTroopZoneAtObject — '%s' at '%s' (coalition=%s, stock=%s)",
+        parsed.zoneName, objectName, tostring(parsed.coalition), tostring(parsed.pickMaxStock))
+    return true
+end
+
 --- Activate a waypoint zone (troops deployed inside will move toward zone center).
 -- @param zoneName string
 function CTLDZoneManager:activateWaypointZone(zoneName)
@@ -1565,7 +1648,7 @@ function CTLDZoneManager:_validateZoneNames()
         for _, zd in pairs(env.mission.triggers.zones) do
             local name = zd.name or ""
             if string.sub(name, 1, 4) == "TRZ_" then
-                local parsed, err = self:_parseTRZ(name)
+                local parsed, err = self:parseTRZ(name)
                 if not parsed then
                     errors[#errors + 1] = "  TRZ ERROR '" .. name .. "': " .. tostring(err)
                 end
