@@ -7,7 +7,7 @@
 | Ticket | Status | Title |
 |---|---|---|
 | `01-parsetrz-visibility-promotion` | ✅ done | 01 — `parseTRZ` promoted to public |
-| `02-createtroopzoneatobject` | ⬜ ready | 02 — `createTroopZoneAtObject` — scripted pickup zone on any named object |
+| `02-createtroopzoneatobject` | ✅ done | 02 — `createTroopZoneAtObject` — scripted pickup zone on any named object |
 | `03-developer-docs` | ⬜ ready | 03 — developer docs (EN+FR) |
 
 Program: none — standalone feature, generalizes the FOB-only idea previously sitting in

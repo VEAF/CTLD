@@ -1,6 +1,6 @@
 # 02 — `createTroopZoneAtObject` — scripted pickup zone on any named object
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 ## Why
 
