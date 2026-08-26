@@ -245,6 +245,12 @@ Non tranché (à instruire en grill-with-docs avant to-prd) :
 - **Portée** : lié au rafraîchissement menu F10 pour un joueur déjà sur place, voir l'entrée
   roadmap « Zones dynamiques — aucun rafraîchissement... » ci-dessus (même trou probable).
 
+<!-- Volet FOB formalisé/livré via FIX-FOB-TROOP-PICKUP (PR #136) ; volet FARP formalisé en lot
+     `.backlog/FEAT-FARP-TROOP-PICKUP/` (grill-with-docs, 2026-08-26). Les deux couvrent l'idée
+     d'origine (FOB, FARP) sans le réglage générique imaginé au départ — chaque cas réutilise le
+     réglage/mécanisme le plus proche déjà existant plutôt qu'un système de sélection par
+     type/convention. -->
+
 ## Lien générique zone ↔ objet de référence (owner-triggered)
 
 Constaté en grillant le fix `troopPickupAtFOB` (2026-08-26, voir aussi le lot
