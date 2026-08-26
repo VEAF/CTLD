@@ -202,6 +202,13 @@ describe("CTLDBeaconManager _buildFreqPools", function()
             end
         end)
 
+        -- FIX-BEACON-FM-POOL-GAP: 460 = every 100 kHz step from 30.0 to 75.9 MHz, no gap.
+        -- A density regression (like the s=0..5 bug this fix closes) is invisible to the two
+        -- loose tests above (non-empty, in-range) — only an exact count catches it.
+        it("holds all 460 steps, 30.0-75.9 MHz with no gap", function()
+            assert.equals(460, #mgr._freeFM)
+        end)
+
     end)
 
 end)

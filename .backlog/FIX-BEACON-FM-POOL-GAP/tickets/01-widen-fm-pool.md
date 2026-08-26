@@ -1,14 +1,15 @@
 # 01 — widen the FM pool's `s` digit to `0..9`
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 See the PRD for the legacy-parity evidence and full reasoning.
 
 ## What changes
 
-1. `src/CTLD_beacon.lua`, `CTLDBeaconManager:_buildFreqPools` (~line 198): `for s = 0, 5 do` →
-   `for s = 0, 9 do` in the FM loop. Update the comment above it (`-- FM: (100*f + 10*s + t) *
-   100000 Hz, f=3..7, s=0..5, t=0..9`) to say `s=0..9`.
+1. `src/CTLD_beacon.lua`, `CTLDBeaconManager:_buildFreqPools` (~line 198): widen `s` to `0..9` for
+   `f=3..6` only — `f=7` keeps `s=0..5`, since widening it too would push the pool's top past the
+   declared 75.9 MHz ceiling (`CTLDBeaconManager._bands.fm.max`) to 79.9 MHz. Update the comment
+   above it accordingly.
 2. `tests/ci/unit/beacon_scripted_api_spec.lua`:
    - `"refuses a frequency the pool does not offer"` (~line 340): replace `{ fmMHz = 38 }` with
      `{ fmMHz = 38.05 }`, and its comment (`-- 380 needs s=8, and s only runs 0..5`) with one

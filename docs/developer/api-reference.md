@@ -205,7 +205,7 @@ refused rather than accepted as something else:
 | --- | --- | --- | --- |
 | `vhfKHz` | kHz | 200 – 1250 | 10 kHz below 850, 50 kHz above |
 | `uhfMHz` | MHz | 220 – 398.5 | 0.5 MHz |
-| `fmMHz` | MHz | 30 – 75.9 | 0.1 MHz, within `30–35.9`, `40–45.9`, `50–55.9`, `60–65.9`, `70–75.9` |
+| `fmMHz` | MHz | 30 – 75.9 | 0.1 MHz |
 
 A request that cannot be granted **refuses the whole call**: `createAtPoint` returns `nil` and a
 reason, spawns nothing and consumes no frequency. It never substitutes another frequency — a beacon

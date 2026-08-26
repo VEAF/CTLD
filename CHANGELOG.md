@@ -8,6 +8,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — the FM beacon pool was missing a third of its band (FIX-BEACON-FM-POOL-GAP)
+
+- **`_buildFreqPools` capped the FM pool's tens digit at `0..5` instead of `0..9`**, leaving four
+  gaps — `36.0–39.9`, `46.0–49.9`, `56.0–59.9`, `66.0–69.9` MHz — unreachable, including ordinary
+  frequencies like 38.00 MHz. Inherited verbatim from legacy
+  ([GitHub issue #127](https://github.com/VEAF/CTLD/issues/127)); confirmed as an artefact (a
+  dead loop and a comment describing a never-implemented finer scheme sit right above the legacy
+  generator), not a deliberate exclusion like VHF's real-world NDB skip list.
+- The FM pool now holds all 460 steps from 30.0 to 75.9 MHz — 300 → 460 — with no gap. A
+  frequency previously refused by `opts.frequencies` for landing in one of the four gaps is now
+  granted normally.
+
 ### Added — troops can now be picked up at a built FARP (FEAT-FARP-TROOP-PICKUP)
 
 - **New `troopPickupAtFARP`** (default `true`) and **`farpTroopPickupRadius`** (default `150` m,

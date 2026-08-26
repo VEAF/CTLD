@@ -1,6 +1,6 @@
 # FIX-BEACON-FM-POOL-GAP — the FM beacon pool is missing a third of its band
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 Reported by **David "Zip" Pierron** ([GitHub issue #127](https://github.com/VEAF/CTLD/issues/127)),
 raised from the VMCT side while building a `-beacon` marker command on `createAtPoint`. Grilled
@@ -31,10 +31,14 @@ generator's shape, never cleaned up. The four gaps correspond to no real-world F
 
 ## What changes
 
-- `CTLD_beacon.lua`: `for s = 0, 5 do` → `for s = 0, 9 do` in `_buildFreqPools`'s FM loop. The FM
-  pool becomes continuous over the full 30.0–75.9 MHz range at its existing 0.1 MHz granularity
-  (300 → 460 total steps). `CTLDBeaconManager._bands`'s `fm` entry (`min=30, max=75.9`) is
-  unchanged — the range itself doesn't move, only its density.
+- `CTLD_beacon.lua`, `_buildFreqPools`'s FM loop: `s` runs `0..9` for `f=3..6` (closes the four
+  internal gaps), but stays `0..5` for `f=7` — widening it there too would push the top of the
+  pool to 79.9 MHz, past the documented/declared 75.9 MHz ceiling
+  (`CTLDBeaconManager._bands.fm.max`). The FM pool becomes continuous over 30.0–75.9 MHz at its
+  existing 0.1 MHz granularity (300 → 460 total steps); the band's own range is unchanged, only
+  its density. (Caught during implementation by the existing `beacon_scripted_api_spec.lua` test
+  that cross-checks `_bands`' declared min/max against the actual pool — a naive uniform
+  `s=0..9` for every `f` would have silently grown the band past its documented ceiling.)
 - **Scope, deliberately minimal**: just the digit-range widening the issue itself proposes. The
   4-digit/0.05 MHz idea the dead legacy comment gestures at is explicitly out — nobody asked for
   it, and it would double the pool's resolution for no stated need.
