@@ -2514,12 +2514,17 @@ scripting des troops IA.</em></p>
 <tr>
 <td><code>registerFOBAsTroopZone</code></td>
 <td><code>(fobName, point, radius, coalitionId)</code></td>
-<td>Enregistre un FOB comme zone de pickup de troupes à stock illimité (appelé automatiquement par <code>CTLDFOBManager</code> à la construction d'un FOB, conditionné par <code>troopPickupAtFOB</code>). Refuse (<code>WARN</code>) en cas de collision de nom.</td>
+<td>Enregistre une zone de pickup de troupes à stock illimité. Appelé automatiquement à la construction d'un FOB (conditionné par <code>troopPickupAtFOB</code>) et, via <code>registerFARPTroopPickupFromScene</code>, à la construction d'une FARP (conditionné par <code>troopPickupAtFARP</code>). Refuse (<code>WARN</code>) en cas de collision de nom.</td>
 </tr>
 <tr>
 <td><code>unregisterTroopZone</code></td>
 <td><code>(name)</code></td>
-<td>Supprime une zone de troupes par son nom (appelé automatiquement à la destruction d'un FOB).</td>
+<td>Supprime une zone de troupes par son nom (appelé automatiquement à la destruction d'un FOB/FARP).</td>
+</tr>
+<tr>
+<td><code>registerFARPTroopPickupFromScene</code></td>
+<td><code>(ctx)</code></td>
+<td>Enregistre une FARP construite comme zone de pickup de troupes depuis l'étape finale d'une scène (<code>ctx.scene._spawnedObjs[1]</code> est le statique catégorie Heliports de la FARP). Surveille l'<code>Airbase</code> résultante via <code>CTLDStaticWatcher</code> et appelle <code>unregisterTroopZone</code> une fois DCS la considère détruite — aucun manager FARP dédié nécessaire.</td>
 </tr>
 <tr>
 <td><code>getTroopZone</code></td>

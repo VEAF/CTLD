@@ -1163,6 +1163,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#farp-point-de-ravitaillement-et-de-rearmement-avance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FARP — Point de Ravitaillement et de Réarmement Avancé
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="FARP — Point de Ravitaillement et de Réarmement Avancé">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#farp-build-flow-pilot-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Déroulé de la construction d'une FARP (côté pilote)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farp-destruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destruction d'une FARP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farp-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration de la FARP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2207,6 +2257,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#farp-point-de-ravitaillement-et-de-rearmement-avance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FARP — Point de Ravitaillement et de Réarmement Avancé
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="FARP — Point de Ravitaillement et de Réarmement Avancé">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#farp-build-flow-pilot-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Déroulé de la construction d'une FARP (côté pilote)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farp-destruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destruction d'une FARP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farp-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration de la FARP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2688,6 +2788,54 @@ n'existent plus.</p>
 </tr>
 </tbody>
 </table>
+<h2 id="farp-point-de-ravitaillement-et-de-rearmement-avance">FARP — Point de Ravitaillement et de Réarmement Avancé<a class="headerlink" href="#farp-point-de-ravitaillement-et-de-rearmement-avance" title="Permanent link">&para;</a></h2>
+<p>Une FARP est un point de ravitaillement/réarmement déployable construit à partir de crates,
+utilisant l'une des trois scenes FARP intégrées — <code>farpScene</code>, <code>FARP Alpha</code> ou <code>Countryside FARP</code>
+(voir <a href="#built-in-scenes">Scenes intégrées</a> ci-dessus). Une fois construite, elle s'enregistre
+auprès de DCS comme une vraie base aérienne et, si <code>troopPickupAtFARP = true</code>, comme troop pickup
+zone — le même mécanisme qu'un FOB construit, fonctionnant identiquement sur les trois scenes.</p>
+<h3 id="farp-build-flow-pilot-side">Déroulé de la construction d'une FARP (côté pilote)<a class="headerlink" href="#farp-build-flow-pilot-side" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Le pilote charge la ou les crates requises par la scene FARP choisie et vole jusqu'à la zone
+   cible.</li>
+<li>L'unpack est déclenché depuis le menu F10, comme pour toute autre scene.</li>
+<li>La scene de FARP se joue ; les structures spawnent en séquence.</li>
+<li>À la fin : la FARP est une base aérienne DCS fonctionnelle (ravitaillement/réarmement/réparation
+   disponibles), et — si <code>troopPickupAtFARP = true</code> — une troop pickup zone.</li>
+</ol>
+<h3 id="farp-destruction">Destruction d'une FARP<a class="headerlink" href="#farp-destruction" title="Permanent link">&para;</a></h3>
+<p>Contrairement au FOB — dont la destruction est un seuil de fraction de structures
+(<code>fobDestructionThreshold</code>) — la destruction d'une FARP est décidée par DCS lui-même : dès que DCS
+ne considère plus la base aérienne sous-jacente comme existante, sa troop pickup zone (le cas
+échéant) est retirée immédiatement. Il n'existe pas de réglage de seuil de destruction spécifique
+à la FARP.</p>
+<h3 id="farp-configuration">Configuration de la FARP<a class="headerlink" href="#farp-configuration" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Défaut</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>troopPickupAtFARP</code></td>
+<td><code>true</code></td>
+<td>Enregistre une FARP déployée comme troop pickup zone</td>
+</tr>
+<tr>
+<td><code>farpTroopPickupRadius</code></td>
+<td><code>150</code></td>
+<td>Rayon (m) à l'intérieur duquel les troupes peuvent être récupérées à une FARP</td>
+</tr>
+</tbody>
+</table>
+<p>Même famille <code>mm_facing</code> <strong>FOB / FARP</strong> que les réglages du FOB ci-dessus :</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">troopPickupAtFARP</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">farpTroopPickupRadius</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">150</span>
+</code></pre></div>
 
 
 

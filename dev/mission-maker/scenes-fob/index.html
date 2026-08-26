@@ -1163,6 +1163,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#farp-forward-arming-and-refuelling-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FARP — Forward Arming and Refuelling Point
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="FARP — Forward Arming and Refuelling Point">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#farp-build-flow-pilot-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FARP build flow (pilot side)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farp-destruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FARP destruction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farp-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FARP configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2207,6 +2257,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#farp-forward-arming-and-refuelling-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FARP — Forward Arming and Refuelling Point
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="FARP — Forward Arming and Refuelling Point">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#farp-build-flow-pilot-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FARP build flow (pilot side)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farp-destruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FARP destruction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#farp-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FARP configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2671,6 +2771,52 @@ referenced <code>cratesRequiredForFOB</code> and <code>buildTimeFOB</code>; thos
 </tr>
 </tbody>
 </table>
+<h2 id="farp-forward-arming-and-refuelling-point">FARP — Forward Arming and Refuelling Point<a class="headerlink" href="#farp-forward-arming-and-refuelling-point" title="Permanent link">&para;</a></h2>
+<p>A FARP is a deployable rearm/refuel point built from crates, using one of the three built-in FARP
+scenes — <code>farpScene</code>, <code>FARP Alpha</code>, or <code>Countryside FARP</code> (see <a href="#built-in-scenes">Built-in scenes</a>
+above). Once built it registers with DCS as a real airbase and, if <code>troopPickupAtFARP = true</code>, as
+a troop pickup zone — the same mechanism a built FOB uses, working identically across all three
+scenes.</p>
+<h3 id="farp-build-flow-pilot-side">FARP build flow (pilot side)<a class="headerlink" href="#farp-build-flow-pilot-side" title="Permanent link">&para;</a></h3>
+<ol>
+<li>The pilot loads the crate(s) required by the chosen FARP scene and flies to the target area.</li>
+<li>Unpack is triggered from the F10 menu, as for any other scene.</li>
+<li>The FARP scene plays; structures spawn in sequence.</li>
+<li>On completion: the FARP is a functional DCS airbase (rearm/refuel/repair available), and — if
+   <code>troopPickupAtFARP = true</code> — a troop pickup zone.</li>
+</ol>
+<h3 id="farp-destruction">FARP destruction<a class="headerlink" href="#farp-destruction" title="Permanent link">&para;</a></h3>
+<p>Unlike a FOB — whose destruction is a fraction-of-structures threshold (<code>fobDestructionThreshold</code>)
+— a FARP's destruction is decided by DCS itself: once DCS no longer considers the underlying
+airbase to exist, its troop pickup zone (if any) is removed immediately. There is no
+FARP-specific destruction-threshold setting.</p>
+<h3 id="farp-configuration">FARP configuration<a class="headerlink" href="#farp-configuration" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>troopPickupAtFARP</code></td>
+<td><code>true</code></td>
+<td>Register a deployed FARP as a troop pickup zone</td>
+</tr>
+<tr>
+<td><code>farpTroopPickupRadius</code></td>
+<td><code>150</code></td>
+<td>Radius (m) within which troops can be picked up at a FARP</td>
+</tr>
+</tbody>
+</table>
+<p>Same <code>mm_facing</code> <strong>FOB / FARP</strong> family as the FOB settings above:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">troopPickupAtFARP</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">farpTroopPickupRadius</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">150</span>
+</code></pre></div>
 
 
 

@@ -2513,12 +2513,17 @@ event.</em></p>
 <tr>
 <td><code>registerFOBAsTroopZone</code></td>
 <td><code>(fobName, point, radius, coalitionId)</code></td>
-<td>Register a FOB as an unlimited-stock troop pickup zone (called automatically by <code>CTLDFOBManager</code> on FOB build, gated by <code>troopPickupAtFOB</code>). Refuses (<code>WARN</code>) on a name collision.</td>
+<td>Register an unlimited-stock troop pickup zone. Called automatically on FOB build (gated by <code>troopPickupAtFOB</code>) and, via <code>registerFARPTroopPickupFromScene</code>, on FARP build (gated by <code>troopPickupAtFARP</code>). Refuses (<code>WARN</code>) on a name collision.</td>
 </tr>
 <tr>
 <td><code>unregisterTroopZone</code></td>
 <td><code>(name)</code></td>
-<td>Remove a troop zone by name (called automatically on FOB destruction).</td>
+<td>Remove a troop zone by name (called automatically on FOB/FARP destruction).</td>
+</tr>
+<tr>
+<td><code>registerFARPTroopPickupFromScene</code></td>
+<td><code>(ctx)</code></td>
+<td>Register a built FARP as a troop pickup zone from a scene's final step (<code>ctx.scene._spawnedObjs[1]</code> is the FARP's Heliports-category static). Watches the resulting <code>Airbase</code> via <code>CTLDStaticWatcher</code> and calls <code>unregisterTroopZone</code> once DCS considers it destroyed — no bespoke FARP manager needed.</td>
 </tr>
 <tr>
 <td><code>getTroopZone</code></td>
