@@ -36,7 +36,18 @@ do
         return
     end
 
-    local unknown = _CTLD_assetCheck(_CTLD_STOCK_TYPES, CTLDTypeCollector.collect())
+    -- CTLDTypeCollector.collect() reads config through ctld.gs — guarded, so it now raises if
+    -- this file is loaded before ctld.initialize() has run (e.g. companion loaded too early).
+    -- Report it the same way every other failure path here does, instead of letting it crash.
+    local ok, unknownOrErr = pcall(CTLDTypeCollector.collect)
+    if not ok then
+        local msg = "[CTLD asset-check] failed to collect configured types — load this AFTER "
+            .. "ctld.initialize() has run: " .. tostring(unknownOrErr)
+        if ctld.utils and ctld.utils.log then ctld.utils.log("WARN", msg) end
+        if trigger and trigger.action and trigger.action.outText then trigger.action.outText(msg, 15) end
+        return
+    end
+    local unknown = _CTLD_assetCheck(_CTLD_STOCK_TYPES, unknownOrErr)
     if #unknown == 0 then
         local msg = "[CTLD asset-check] OK — every configured DCS type is stock or a declared mod."
         ctld.utils.log("INFO", msg)

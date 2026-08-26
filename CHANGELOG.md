@@ -8,6 +8,23 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — reading config before ctld.initialize() now fails clearly, not on arithmetic (FIX-CONFIG-NOT-LOADED-GUARD)
+
+- **A CTLD manager touched before `ctld.initialize()` used to crash on an unreadable arithmetic
+  error deep inside `src/`**, with a stack trace naming neither CTLD nor the missing
+  initialization ([GitHub issue #125](https://github.com/VEAF/CTLD/issues/125)). Every setting
+  read before init silently resolved to `nil`, and the first manager to do arithmetic on that
+  `nil` (e.g. a refresh interval) is the one that crashed.
+- `CTLDConfig:getSetting` — the sole real read path, everything in `src/` reads config through
+  `ctld.gs`, which delegates straight to it — now refuses immediately with a message naming
+  `ctld.initialize()`. `CTLD_i18n.lua`'s pre-init `tr()` tolerance (it already wraps its read in
+  `pcall`, falling back to a default language) is unaffected — it catches the new explicit error
+  exactly as it caught the old implicit crash.
+- Fixed two review findings before merge: `CTLDConfig:load()` used to mark itself loaded before
+  validating a malformed `ctld.configUser`, which could leave the new guard silently bypassed on
+  an aborted load; and `tools/companion/asset_check.lua` now reports (instead of crashing on) the
+  guard firing when the companion is loaded before `ctld.initialize()`.
+
 ### Fixed — the FM beacon pool was missing a third of its band (FIX-BEACON-FM-POOL-GAP)
 
 - **`_buildFreqPools` capped the FM pool's tens digit at `0..5` instead of `0..9`**, leaving four

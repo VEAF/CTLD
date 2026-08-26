@@ -338,6 +338,15 @@ describe("CTLDi18n", function()
             assert.equals("hello", ctld.tr("__TESTKEY__"))
         end)
 
+        -- FIX-CONFIG-NOT-LOADED-GUARD: a pre-init tr() must still degrade gracefully, not raise
+        -- the new getSetting() guard error. _activeLang()'s own pcall is what makes this work.
+        it("a call before ctld.initialize() still returns a string, never raises", function()
+            CTLDConfig._instance = nil   -- fresh, never-loaded instance — no :load() call
+            assert.has_no_error(function()
+                assert.equals("hello", ctld.tr("__TESTKEY__"))
+            end)
+        end)
+
     end)
 
 end)
