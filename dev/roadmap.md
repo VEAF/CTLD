@@ -268,8 +268,16 @@ Constat important qui écarte une généralisation naïve de l'ancrage existant 
 **deux mécanismes de cycle de vie**, pas un — l'ancrage par sondage (`_linkedUnit:isExist()`,
 marche pour un objet DCS unique) et la notification par le propriétaire (le FOB n'utilise pas
 `_linkedUnit` ; sa mort est un jugement composite — seuil d'intégrité sur plusieurs
-`sceneObjects` — que rien ne peut déduire en sondant un seul objet). Le FARP suivrait
-probablement le même schéma composite.
+`sceneObjects` — que rien ne peut déduire en sondant un seul objet).
+
+<!-- Correction (vérification roadmap, 2026-08-26, FEAT-FARP-TROOP-PICKUP) : le FARP ne suit PAS
+     le schéma composite du FOB, contrairement à ce que cette entrée supposait initialement. Un
+     FARP s'enregistre comme un vrai Airbase DCS (statique catégorie Heliports), donc sa
+     destruction est binaire et native (Airbase:isExist()) — pas de seuil d'intégrité multi-objets
+     nécessaire. Le lot a réutilisé CTLDStaticWatcher (sondage générique déjà existant, déjà
+     éprouvé par le Recon pour ce même type d'objet) plutôt qu'un troisième mécanisme de cycle de
+     vie. Voir aussi l'entrée ci-dessous (camion de transport) : un troisième cas concret,
+     lui aussi purement poll-based (_linkedUnit), déjà couvert par le mécanisme existant. -->
 
 Idée : un registre de liens orthogonal aux tables de zones existantes —
 `CTLDZoneManager:linkZonesToOwner(ownerId, { {type="logistic", key=...}, {type="troop", key=...},
@@ -286,3 +294,36 @@ absorber l'ancrage par sondage (`_linkedUnit`) existant, ou rester un mécanisme
 propriétaires composites uniquement ; forme exacte de `ownerId` et de la table d'entrées ; est-ce
 que `createTroopZoneAtObject`/`createExtractZone` (aujourd'hui sans notion de propriétaire ni
 d'événement publié) migrent vers ce registre ou restent à part.
+
+### Cas d'usage additionnel — pickup zone mobile sur un camion de transport
+
+Demandé le 2026-08-26. Idée : associer une TRZ_ à un camion de transport pour simuler des troupes
+transportées au sol, qu'un appareil viendrait embarquer en se posant à proximité du camion — la
+zone doit suivre le camion, pas rester figée à sa position de spawn.
+
+Constat en explorant le code existant : **la moitié "suivi de position" de cette idée est déjà
+livrée, sans code nouveau.** `createTroopZoneAtObject` résout déjà un `objectName` quelconque —
+zone éditeur, **unité ou statique**, groupe, ou airbase (`_resolveTroopZoneObject`,
+`CTLD_zone.lua:1615`) — et pour une unité/statique/groupe, pose `linkedUnit` sur la
+`CTLDTroopZone` créée, exactement le même mécanisme déjà utilisé pour une TRZ_ ancrée sur un
+navire (`FIX-SHIP-ZONE-ANCHOR-PARITY`). Rien n'y limite le type d'unité à un navire — un camion
+DCS ordinaire (`Unit`) fonctionne déjà de la même façon. Concrètement : un MM peut probablement
+déjà appeler `CTLDZoneManager:createTroopZoneAtObject("MonCamion", "TRZ_...")` aujourd'hui et
+obtenir une zone de pickup qui suit le camion — **à vérifier en test live avant de considérer que
+c'est un vrai gap**, mais rien dans le code lu ne l'empêche.
+
+Ce qui resterait potentiellement à trancher, si la vérification ci-dessus confirme que le suivi de
+position marche déjà tel quel :
+- **Automatisation** : le MM doit-il appeler `createTroopZoneAtObject` lui-même à chaque camion
+  (ce qui marche déjà), ou faut-il une détection automatique par convention de nommage/type de
+  véhicule — même famille de question que l'entrée « TRZ_ automatique » ci-dessus (FOB/FARP),
+  cette fois pour un véhicule ordinaire plutôt qu'une scène.
+- **Destruction du camion** : aujourd'hui, une zone ancrée par `linkedUnit` ne se retire jamais
+  toute seule quand son ancre meurt — elle se fige à sa dernière position connue
+  (`isAlive()`/`getCenter()`, comportement déjà prouvé pour un navire coulé). Pour un camion,
+  est-ce le comportement voulu (les troupes restent récupérables à l'épave) ou faut-il un
+  retrait explicite à la destruction — la même question de nettoyage déterministe que
+  `FEAT-FARP-TROOP-PICKUP` a dû trancher pour le pack de FARP.
+- Un troisième cas concret et purement poll-based (aucune sémantique composite comme le FOB) —
+  utile comme référence si/quand le système générique ci-dessus est instruit : il confirmerait
+  que l'ancrage par sondage doit bien être absorbé par le générique, pas laissé de côté.
