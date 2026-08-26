@@ -116,7 +116,7 @@ jobs:
       # --add-data below bundles CTLD.lua from the repo root. It is git-ignored since PR #110,
       # so the checkout above does not provide it; the release job built it and passed it here.
       - name: Collect CTLD.lua from the release job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ctld-engine
 
