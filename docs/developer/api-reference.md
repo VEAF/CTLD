@@ -98,8 +98,9 @@ Full event catalogue: [Events](events.md).
 | `deactivateLogisticZone` | `(name)` | Suspend a LGZ — players inside can no longer spawn crates. Fires `OnLogisticZoneUpdated`. |
 | `registerFOBAsLogistic` | `(fobName, point, radius, coalitionId)` | Register a FOB as a logistic zone (called automatically by `CTLDFOBManager` on FOB build). Refuses (`WARN`) on a name collision. |
 | `unregisterLogistic` | `(name)` | Remove a logistic zone by name (called automatically on FOB destruction). |
-| `registerFOBAsTroopZone` | `(fobName, point, radius, coalitionId)` | Register a FOB as an unlimited-stock troop pickup zone (called automatically by `CTLDFOBManager` on FOB build, gated by `troopPickupAtFOB`). Refuses (`WARN`) on a name collision. |
-| `unregisterTroopZone` | `(name)` | Remove a troop zone by name (called automatically on FOB destruction). |
+| `registerFOBAsTroopZone` | `(fobName, point, radius, coalitionId)` | Register an unlimited-stock troop pickup zone. Called automatically on FOB build (gated by `troopPickupAtFOB`) and, via `registerFARPTroopPickupFromScene`, on FARP build (gated by `troopPickupAtFARP`). Refuses (`WARN`) on a name collision. |
+| `unregisterTroopZone` | `(name)` | Remove a troop zone by name (called automatically on FOB/FARP destruction). |
+| `registerFARPTroopPickupFromScene` | `(ctx)` | Register a built FARP as a troop pickup zone from a scene's final step (`ctx.scene._spawnedObjs[1]` is the FARP's Heliports-category static). Watches the resulting `Airbase` via `CTLDStaticWatcher` and calls `unregisterTroopZone` once DCS considers it destroyed — no bespoke FARP manager needed. |
 | `getTroopZone` | `(zoneName)` | Return the `CTLDTroopZone` for `zoneName`, or `nil`. |
 | `getTroopZonesForCoalition` | `(coalition)` | Return all troop zones for a coalition. |
 | `getTroopZoneAtPoint` | `(point, coalition)` | Return the troop zone containing `point`, or `nil`. |

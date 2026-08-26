@@ -172,9 +172,11 @@ aléatoire de 90–120 % de `SOLDIER_WEIGHT`, plus l'équipement et le matériel
 |---|---|---|
 | `enabledFOBBuilding` | `true` | Autorise la construction de FOB depuis des crate |
 | `troopPickupAtFOB` | `true` | Autorise le pickup de troops aux FOB construits |
+| `troopPickupAtFARP` | `true` | Autorise le pickup de troops aux FARP construites |
 | `fobMinDistanceFromZones` | `500` | Distance minimale (m) de toute zone logistique à laquelle un FOB peut être déployé |
 | `fobLogisticZoneRadius` | `150` | Rayon (m) de la zone logistique créée autour d'un FOB déployé |
 | `fobTroopPickupRadius` | `150` | Rayon (m) dans lequel les troops peuvent embarquer à un FOB |
+| `farpTroopPickupRadius` | `150` | Rayon (m) dans lequel les troops peuvent embarquer à une FARP |
 | `fobDestructionThreshold` | `0.5` | Fraction d'objets de scène détruits avant qu'un FOB soit considéré perdu (0.0–1.0) |
 | `enableFARPRepack` | `true` | Autorise les joueurs à pack une scène FARP déployée de nouveau en crate pour redéploiement |
 

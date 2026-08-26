@@ -1,6 +1,6 @@
 # 01 — `troopPickupAtFARP` + final registration step on the 3 FARP scenes
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 See the PRD for the full mechanism and the reasoning behind each choice.
 

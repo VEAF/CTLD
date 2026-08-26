@@ -48,6 +48,7 @@ describe("FARP / minefield scenes", function()
         dofile(_thisFile .. "src/scenes/CTLD_mineFieldScene.lua")
         dofile(_thisFile .. "src/scenes/CTLD_farpAlphaScene.lua")
         dofile(_thisFile .. "src/scenes/CTLD_farpScene.lua")
+        dofile(_thisFile .. "src/scenes/CTLD_countrysideFarpScene.lua")
     end)
 
     before_each(function()
@@ -65,8 +66,8 @@ describe("FARP / minefield scenes", function()
             assert.equals("FARP Alpha", model.name)
         end)
 
-        it("has 14 steps (13 spawn + 1 completion func)", function()
-            assert.equals(14, #model.steps)
+        it("has 15 steps (13 spawn + 1 completion func + 1 troop pickup func)", function()
+            assert.equals(15, #model.steps)
         end)
 
         it("step 1 spawns SINGLE_HELIPAD at polar 100/0 with a fuel-warehouse func", function()
@@ -86,6 +87,12 @@ describe("FARP / minefield scenes", function()
 
         it("step 14 is func-only (completion message, no registryKey)", function()
             local s = model.steps[14]
+            assert.is_nil(s.registryKey)
+            assert.is_function(s.func)
+        end)
+
+        it("step 15 is func-only (troop pickup registration, no registryKey)", function()
+            local s = model.steps[15]
             assert.is_nil(s.registryKey)
             assert.is_function(s.func)
         end)
@@ -117,8 +124,8 @@ describe("FARP / minefield scenes", function()
             assert.equals("farpScene", model.name)
         end)
 
-        it("has 6 steps (prescript + 5 objects)", function()
-            assert.equals(6, #model.steps)
+        it("has 7 steps (prescript + 5 objects + 1 troop pickup func)", function()
+            assert.equals(7, #model.steps)
         end)
 
         it("step 1 is the prescript func (no registryKey, delay 0)", function()
@@ -171,6 +178,146 @@ describe("FARP / minefield scenes", function()
                 assert.is_not_nil(model.steps[i].relativeAltitudeInMeters)
             end
         end)
+
+        it("step 7 is func-only (troop pickup registration, no registryKey)", function()
+            local s = model.steps[7]
+            assert.is_nil(s.registryKey)
+            assert.is_function(s.func)
+        end)
+
+    end)
+
+    -- ── Countryside FARP scene structure (FEAT-FARP-TROOP-PICKUP) ─────────────
+    describe("Countryside FARP scene structure", function()
+
+        local model
+        before_each(function() model = sm:getModel("Countryside FARP") end)
+
+        it("is registered as a built-in scene model", function()
+            assert.is_not_nil(model)
+            assert.equals("Countryside FARP", model.name)
+        end)
+
+        it("has 12 steps (9 spawn + 1 warehouse/message func + 1 troop pickup func)", function()
+            assert.equals(12, #model.steps)
+        end)
+
+        it("step 1 spawns Invisible_FARP", function()
+            assert.equals("Invisible_FARP", model.steps[1].registryKey)
+        end)
+
+        it("step 12 is func-only (troop pickup registration, no registryKey)", function()
+            local s = model.steps[12]
+            assert.is_nil(s.registryKey)
+            assert.is_function(s.func)
+        end)
+
+    end)
+
+    -- ── FARP troop pickup registration (FEAT-FARP-TROOP-PICKUP) ───────────────
+    -- Drives each scene's own final step.func(ctx) directly, then asserts through the
+    -- public CTLDZoneManager path — the same discipline FIX-FOB-TROOP-PICKUP established.
+    describe("FARP troop pickup registration (FEAT-FARP-TROOP-PICKUP)", function()
+
+        local origGs, origAirbaseGetByName, settings
+
+        local function fakeHelipad(name, point)
+            local o = { _exists = true }
+            function o:getName()  return name end
+            function o:getPoint() return point end
+            return o
+        end
+
+        local function fakeAirbase(helipad)
+            local ab = { _helipad = helipad }
+            function ab:getName()  return helipad:getName() end
+            function ab:getPoint() return helipad:getPoint() end
+            function ab:isExist()  return helipad._exists end
+            return ab
+        end
+
+        local function ctxFor(spawnedObj, coalitionId)
+            return {
+                unit  = { getName = function() return "test-unit" end },
+                scene = {
+                    _spawnedObjs = { spawnedObj },
+                    _coalitionId = coalitionId or coalition.side.BLUE,
+                    _params      = {},
+                },
+            }
+        end
+
+        before_each(function()
+            CTLDZoneManager.getInstance()._troopZones = {}
+
+            origGs   = ctld.gs
+            settings = {}
+            ctld.gs  = function(key)
+                if settings[key] ~= nil then return settings[key] end
+                return origGs and origGs(key)
+            end
+
+            origAirbaseGetByName = Airbase.getByName
+        end)
+
+        after_each(function()
+            ctld.gs           = origGs
+            Airbase.getByName = origAirbaseGetByName
+        end)
+
+        for _, sceneName in ipairs({ "farpScene", "FARP Alpha", "Countryside FARP" }) do
+            describe(sceneName, function()
+
+                local function lastStepFunc()
+                    local model = sm:getModel(sceneName)
+                    return model.steps[#model.steps].func
+                end
+
+                it("registers a pickup-capable troop zone when troopPickupAtFARP is true", function()
+                    local pad = fakeHelipad(sceneName .. "-1", { x = 10, y = 0, z = 20 })
+                    local ab  = fakeAirbase(pad)
+                    Airbase.getByName = function(n) return (n == pad:getName()) and ab or nil end
+
+                    lastStepFunc()(ctxFor(pad))
+
+                    local zone = CTLDZoneManager.getInstance():getTroopZoneAtPoint(
+                        { x = 10, y = 0, z = 20 }, coalition.side.BLUE)
+                    assert.is_not_nil(zone)
+                    assert.is_true(zone:hasPickup())
+                end)
+
+                it("registers no troop zone when troopPickupAtFARP is false", function()
+                    settings.troopPickupAtFARP = false
+                    local pad = fakeHelipad(sceneName .. "-2", { x = 10, y = 0, z = 20 })
+                    local ab  = fakeAirbase(pad)
+                    Airbase.getByName = function(n) return (n == pad:getName()) and ab or nil end
+
+                    lastStepFunc()(ctxFor(pad))
+
+                    local zone = CTLDZoneManager.getInstance():getTroopZoneAtPoint(
+                        { x = 10, y = 0, z = 20 }, coalition.side.BLUE)
+                    assert.is_nil(zone)
+                end)
+
+                it("removes the troop zone once the airbase stops existing (no ghost zone)", function()
+                    local pad = fakeHelipad(sceneName .. "-3", { x = 10, y = 0, z = 20 })
+                    local ab  = fakeAirbase(pad)
+                    Airbase.getByName = function(n) return (n == pad:getName()) and ab or nil end
+
+                    lastStepFunc()(ctxFor(pad))
+                    assert.is_not_nil(CTLDZoneManager.getInstance():getTroopZoneAtPoint(
+                        { x = 10, y = 0, z = 20 }, coalition.side.BLUE))
+
+                    pad._exists = false
+                    CTLDStaticWatcher.getInstance():_tick(0)
+
+                    local zone = CTLDZoneManager.getInstance():getTroopZoneAtPoint(
+                        { x = 10, y = 0, z = 20 }, coalition.side.BLUE)
+                    assert.is_nil(zone)
+                end)
+
+            end)
+        end
 
     end)
 

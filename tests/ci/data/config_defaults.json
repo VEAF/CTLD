@@ -325,6 +325,7 @@
     "extract24",
     "extract25"
   ],
+  "farpTroopPickupRadius": 150,
   "fastRopeMaximumHeight": 18.28,
   "fieldExtractTroopWeight": 130,
   "fobCrateCollectionRadius": 750,
@@ -1092,6 +1093,7 @@
     "transport24",
     "transport25"
   ],
+  "troopPickupAtFARP": true,
   "troopPickupAtFOB": true,
   "troopZoneShipTypes": [],
   "troopZones": [

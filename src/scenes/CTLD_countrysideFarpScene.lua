@@ -251,6 +251,17 @@ countrysideFarpScene.steps = {
             return true
         end,
     },
+
+    -- ----------------------------------------------------------------
+    -- Step 12: register a troop pickup zone at the FARP (troopPickupAtFARP).
+    -- ----------------------------------------------------------------
+    {
+        delayAfterPreviousStep = 0,
+        func = function(ctx)
+            CTLDZoneManager.getInstance():registerFARPTroopPickupFromScene(ctx)
+            return true
+        end,
+    },
 }
 
 -- ====================================================================================================

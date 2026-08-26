@@ -255,6 +255,7 @@ mm_facing:
   - extract23
   - extract24
   - extract25
+  farpTroopPickupRadius: 150
   fastRopeMaximumHeight: 18.28
   fobCrateCollectionRadius: 750
   fobDestructionThreshold: 0.5
@@ -803,6 +804,7 @@ mm_facing:
   - transport23
   - transport24
   - transport25
+  troopPickupAtFARP: true
   troopPickupAtFOB: true
   troopZoneShipTypes: []
   troopZones:

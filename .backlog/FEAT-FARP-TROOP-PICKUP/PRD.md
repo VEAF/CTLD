@@ -1,6 +1,6 @@
 # FEAT-FARP-TROOP-PICKUP
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 Grilled 2026-08-26, directly following `FIX-FOB-TROOP-PICKUP` (PR #136, merged) which reconnected
 `troopPickupAtFOB` to the F10 troop-pickup path. Mid-grill, the same question was asked for the

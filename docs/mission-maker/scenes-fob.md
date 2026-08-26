@@ -294,3 +294,41 @@ mm_facing:
 |---|---|
 | `OnFOBDeployed` | FOB construction completed and the base is fully active |
 | `OnFOBDestroyed` | FOB destroyed by enemy action |
+
+## FARP — Forward Arming and Refuelling Point
+
+A FARP is a deployable rearm/refuel point built from crates, using one of the three built-in FARP
+scenes — `farpScene`, `FARP Alpha`, or `Countryside FARP` (see [Built-in scenes](#built-in-scenes)
+above). Once built it registers with DCS as a real airbase and, if `troopPickupAtFARP = true`, as
+a troop pickup zone — the same mechanism a built FOB uses, working identically across all three
+scenes.
+
+### FARP build flow (pilot side)
+
+1. The pilot loads the crate(s) required by the chosen FARP scene and flies to the target area.
+2. Unpack is triggered from the F10 menu, as for any other scene.
+3. The FARP scene plays; structures spawn in sequence.
+4. On completion: the FARP is a functional DCS airbase (rearm/refuel/repair available), and — if
+   `troopPickupAtFARP = true` — a troop pickup zone.
+
+### FARP destruction
+
+Unlike a FOB — whose destruction is a fraction-of-structures threshold (`fobDestructionThreshold`)
+— a FARP's destruction is decided by DCS itself: once DCS no longer considers the underlying
+airbase to exist, its troop pickup zone (if any) is removed immediately. There is no
+FARP-specific destruction-threshold setting.
+
+### FARP configuration
+
+| Parameter | Default | Description |
+|---|---|---|
+| `troopPickupAtFARP` | `true` | Register a deployed FARP as a troop pickup zone |
+| `farpTroopPickupRadius` | `150` | Radius (m) within which troops can be picked up at a FARP |
+
+Same `mm_facing` **FOB / FARP** family as the FOB settings above:
+
+```yaml
+mm_facing:
+  troopPickupAtFARP: true
+  farpTroopPickupRadius: 150
+```
