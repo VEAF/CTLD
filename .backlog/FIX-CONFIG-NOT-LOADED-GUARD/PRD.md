@@ -27,13 +27,19 @@ reported case: `CTLDZoneManager.getInstance()` → `init()` → `_scheduleSmoke(
 
 - `CTLDConfig:getSetting`: refuse at the top when `not self.isLoaded`, with
   `error("CTLD configuration is not loaded — call ctld.initialize() before reading any CTLD
-  setting or using a CTLD manager.", 3)`. Chosen over the issue's own suggestion (a guard in each
+  setting or using a CTLD manager.", 0)`. Chosen over the issue's own suggestion (a guard in each
   manager's `getInstance()`, ~18 call sites) or a guard in `ctld.gs`: `getSetting` is the deepest
-  single choke point — it catches every real call path (`ctld.gs`, the sole path any `src/` code
-  takes) *and* the documented-but-unused direct `CTLDConfig.get():getSetting(...)` API a mission
-  script could call. Level `3` on `error()` points the stack at the caller of `ctld.gs` (e.g.
-  `CTLD_zone.lua:1076`), not at the line inside `getSetting` itself — the diagnosis the issue
-  actually asked for.
+  single choke point for *config reads* — it catches every read reached through `ctld.gs` (the
+  sole path any `src/` code takes) *and* the documented-but-unused direct
+  `CTLDConfig.get():getSetting(...)` API a mission script could call. It does not cover a manager
+  whose `init()` never reads a setting (e.g. `CTLDSceneManager`): building one pre-init still
+  succeeds silently, and the crash is only deferred to whichever setting is actually read
+  downstream — an accepted gap, not a regression, since the issue's own crash was itself a config
+  read. Level `0` on `error()` (message only, no position): several real callers reach `getSetting`
+  via a tail call (`return ctld.gs(key)`), which in Lua 5.1 drops the caller's own stack frame — a
+  fixed level would then land wrong, sometimes on a frame with no line info at all. The message
+  text naming `ctld.initialize()` is the actual diagnosis; a stack position was found unreliable
+  enough to drop.
 - **No change to `CTLD_i18n.lua`.** `_activeLang()` ([:70-73](../../src/CTLD_i18n.lua#L70)) already
   wraps its `ctld.gs("i18n_lang")` call in `pcall`, specifically to tolerate a pre-init `tr()`
   call, falling back to `ctld.i18n_lang or "en"`. Confirmed this fix doesn't regress it: the

@@ -41,7 +41,6 @@ function CTLDConfig:load()
     if self.isLoaded then
         return true, "CTLDConfig: Configuration already loaded."
     end
-    self.isLoaded                                       = true
 
     -- ****************************************************************
     -- COMPLETE CONFIGURATION (ADR 0011) — resolve the winning YAML snapshot and
@@ -55,10 +54,14 @@ function CTLDConfig:load()
 
     -- A configUser that parses to nothing is malformed. ctld-tools validates the
     -- snapshot before use, so this is a hard error — no silent fallback to defaults.
+    -- isLoaded stays false on this path: getSetting()'s not-loaded guard must still fire
+    -- for an aborted load, not be silently bypassed by a flag set before validation.
     if usingUser and next(flat) == nil then
         error("CTLDConfig: ctld.configUser is malformed or empty — aborting load. "
             .. "Validate the snapshot with ctld-tools before use.")
     end
+
+    self.isLoaded = true
 
     -- Localise i18n labels: every desc/name string is an i18n key (mirrors the
     -- gen-config _I18N_FIELDS wrapping, so runtime labels match in every language).
@@ -106,11 +109,14 @@ end
 -- form src/ code is allowed to use, delegates straight here) and the documented-but-rarely-used
 -- direct CTLDConfig.get():getSetting() call a mission script could make. Refusing here — instead
 -- of in each manager's getInstance(), or in ctld.gs alone — catches both without duplicating the
--- guard. Level 3 points the error at the caller of ctld.gs, not at this line.
+-- guard. Level 0 (no position info): several real callers reach this via a tail call
+-- (`return ctld.gs(key)`), which drops the caller's own frame in Lua 5.1 — a fixed level
+-- would then either mis-point or land on a frame with no line info at all. The message text
+-- alone (naming ctld.initialize()) is what actually helps here, not the position.
 function CTLDConfig:getSetting(key)
     if not self.isLoaded then
         error("CTLD configuration is not loaded — call ctld.initialize() before reading any "
-            .. "CTLD setting or using a CTLD manager.", 3)
+            .. "CTLD setting or using a CTLD manager.", 0)
     end
     local v = self.settings[key]
     if v ~= nil then return v end

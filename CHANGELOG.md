@@ -17,9 +17,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   `nil` (e.g. a refresh interval) is the one that crashed.
 - `CTLDConfig:getSetting` — the sole real read path, everything in `src/` reads config through
   `ctld.gs`, which delegates straight to it — now refuses immediately with a message naming
-  `ctld.initialize()`, pointing the stack at the actual caller. `CTLD_i18n.lua`'s pre-init `tr()`
-  tolerance (it already wraps its read in `pcall`, falling back to a default language) is
-  unaffected — it catches the new explicit error exactly as it caught the old implicit crash.
+  `ctld.initialize()`. `CTLD_i18n.lua`'s pre-init `tr()` tolerance (it already wraps its read in
+  `pcall`, falling back to a default language) is unaffected — it catches the new explicit error
+  exactly as it caught the old implicit crash.
+- Fixed two review findings before merge: `CTLDConfig:load()` used to mark itself loaded before
+  validating a malformed `ctld.configUser`, which could leave the new guard silently bypassed on
+  an aborted load; and `tools/companion/asset_check.lua` now reports (instead of crashing on) the
+  guard firing when the companion is loaded before `ctld.initialize()`.
 
 ### Fixed — the FM beacon pool was missing a third of its band (FIX-BEACON-FM-POOL-GAP)
 

@@ -270,6 +270,15 @@ describe("CTLDConfig", function()
             fresh = CTLDConfig.get()   -- isLoaded = false, no :load() call
         end)
 
+        -- Mirrors i18n_spec.lua's own after_each for the identical hazard: without this, a
+        -- reordered/added test here leaves CTLDConfig unloaded for every later spec in the
+        -- same busted process — an unrelated-looking mass failure elsewhere, not a local one.
+        after_each(function()
+            ctld.configUser = nil
+            CTLDConfig._instance = nil
+            CTLDConfig.get():load()
+        end)
+
         it("getSetting raises an error naming ctld.initialize()", function()
             local ok, err = pcall(function() return fresh:getSetting("anyKey") end)
             assert.is_false(ok)
@@ -287,6 +296,20 @@ describe("CTLDConfig", function()
             local ok, value = pcall(function() return fresh:getSetting("numberOfTroops") end)
             assert.is_true(ok)
             assert.is_not_nil(value)
+        end)
+
+        -- Review finding: load() used to set isLoaded=true BEFORE the malformed-configUser
+        -- check that can error() out, so a failed load left isLoaded=true with settings still
+        -- empty — getSetting's guard would then skip straight through and return nil silently,
+        -- reproducing the exact bug this fix exists to close, via a different trigger.
+        it("still refuses (not nil) after a load() that aborted on malformed configUser", function()
+            ctld.configUser = "# comment-only snapshot — parses to an empty table"
+            local ok1 = pcall(function() fresh:load() end)
+            assert.is_false(ok1)   -- load() itself errors on the malformed snapshot
+
+            local ok2, err = pcall(function() return fresh:getSetting("anyKey") end)
+            assert.is_false(ok2)
+            assert.is_not_nil(tostring(err):find("ctld.initialize()", 1, true))
         end)
 
     end)
