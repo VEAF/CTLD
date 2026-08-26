@@ -172,44 +172,6 @@ après le préfixe (`EXTR_<name>` libre, ou faut-il aussi extraire des métadonn
 le fait pour ses 5 champs ?) et mise à jour de la doc mission-maker (`configuration.md` /
 `.fr.md`) pour documenter les deux voies côte à côte.
 
-<!-- FOB — API scriptée pour zone de troupes : généralisée et formalisée en lot
-     `.backlog/FEAT-TROOP-ZONE-SCRIPTED-API/` (grill-with-docs, 2026-08-26) — le grilling a élargi
-     le périmètre de "FOB uniquement" à "n'importe quel objet DCS nommé" (zone ME, unité, statique,
-     groupe, ou FARP/airbase), d'où `createTroopZoneAtObject(objectName, trzName)` plutôt que
-     `registerFOBAsTroopZone(fobName, trzName)`. Entrée conservée ci-dessous pour l'historique. -->
-
-## FOB — API scriptée pour ajouter une zone de troupes (pickup) par-dessus un FOB
-
-Constaté en répondant à une question MM (2026-08-25) : comment ajouter, via un script lancé après
-l'init, une capacité d'embarquement de troupes sur un FOB déjà construit. Aujourd'hui, seul
-`CTLDZoneManager:registerFOBAsLogistic(fobName, point, radius, coalitionId)` existe pour ce cas de
-figure (`CTLD_zone.lua:1187-1198`), et il n'est même pas pensé pour un appel MM : il est déclenché
-**automatiquement** par `CTLDFOBManager` à la construction du FOB (`CTLD_fob.lua:319`). Aucun
-équivalent troupes n'existe : `createExtractZone(zoneName, flagNumber, smoke)` (`CTLD_zone.lua:
-1481-1507`) ne fixe jamais `pickMaxStock`, donc `hasPickup()` reste `false` (`:107-109`) — elle ne
-peut compter qu'une extraction, jamais servir de zone de pickup.
-
-Solution de contournement donnée en attendant (non officielle) : reconstruire soi-même une
-`CTLDTroopZone` à partir de la zone logistique déjà enregistrée du FOB
-(`CTLDZoneManager:getLogisticZone(fobName)`) et l'insérer directement dans la table privée
-`self._troopZones`, en réutilisant au passage le parseur privé `CTLDZoneManager:_parseTRZ(name)`
-(`:591-650`) pour que le MM garde le contrôle de la coalition/stock/flag/target via un nom `TRZ_…`
-classique. Fonctionne (le menu F10 se reconstruit en direct depuis `_troopZones`,
-`CTLD_troop.lua:1937`), mais dépend de deux champs/méthodes privés — pas garanti dans le temps.
-
-Idée de lot : ajouter `CTLDZoneManager:registerFOBAsTroopZone(fobName, trzName)` /
-`removeFOBTroopZone(fobName)`, sur le modèle du **scripted API** déjà livré pour les balises
-(`FEAT-VMCT-INTEGRATION` ticket 03, `CTLDBeaconManager:createAtPoint()` / `removeBeacon()`) — une
-paire créer/retirer publique, documentée, testée (busted + scénario `tests/dcs`), qui accepte un
-nom `TRZ_…` complet (réutilisant `_parseTRZ` en interne, promu public ou dupliqué proprement) et
-résout la position/rayon du FOB via sa zone logistique existante, sans que l'appelant ait besoin de
-toucher à un champ privé.
-
-Reste à trancher **au to-prd/to-issues** (implémentation, pas conception) : `registerFOBAsTroopZone`
-doit-il exiger que le FOB soit déjà logistique (comme le contournement), ou doit-il accepter un
-point/rayon explicites pour couvrir un FOB sans zone logistique ? Faut-il aussi un
-`getFOBTroopZone(fobName)` symétrique à `getLogisticZone` ?
-
 ## Zones dynamiques — aucun rafraîchissement du menu F10 des joueurs déjà sur place
 
 Constaté en testant en direct `createTroopZoneAtObject` (`FEAT-TROOP-ZONE-SCRIPTED-API`,
