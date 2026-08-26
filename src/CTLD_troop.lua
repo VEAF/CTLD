@@ -1938,7 +1938,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj, overrideInAir)
             if zone:hasPickup() and zone:isInZone(pt) then
                 hasEmbarkContent = true
                 local zName     = zone.zoneName
-                local zoneSub   = ctld.tr("Load from %1", "TRZ_" .. zName)
+                local zoneSub   = ctld.tr("Load from %1", zone.displayName or ("TRZ_" .. zName))
                 local zoneStock = (zone.pickMaxStock == 0) and math.huge or zone.pickCurrentStock
                 menu:addSubMenu({ root, troopSub, embarkSub }, zoneSub)
                 for _, tmpl in ipairs(self._templates) do

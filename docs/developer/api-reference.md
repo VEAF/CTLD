@@ -96,9 +96,9 @@ Full event catalogue: [Events](events.md).
 | `parseTRZ` | `(name) → table \| nil, string` | Parse a `TRZ_…` name into `{zoneName, coalition, pickMaxStock, objectiveFlag, objectiveTarget}`, or `nil` + a reason. |
 | `activateLogisticZone` | `(name)` | Re-enable a suspended LGZ. Fires `OnLogisticZoneUpdated`. |
 | `deactivateLogisticZone` | `(name)` | Suspend a LGZ — players inside can no longer spawn crates. Fires `OnLogisticZoneUpdated`. |
-| `registerFOBAsLogistic` | `(fobName, point, radius, coalitionId)` | Register a FOB as a logistic zone (called automatically by `CTLDFOBManager` on FOB build). |
+| `registerFOBAsLogistic` | `(fobName, point, radius, coalitionId)` | Register a FOB as a logistic zone (called automatically by `CTLDFOBManager` on FOB build). Refuses (`WARN`) on a name collision. |
 | `unregisterLogistic` | `(name)` | Remove a logistic zone by name (called automatically on FOB destruction). |
-| `registerFOBAsTroopZone` | `(fobName, point, radius, coalitionId)` | Register a FOB as an unlimited-stock troop pickup zone (called automatically by `CTLDFOBManager` on FOB build, gated by `troopPickupAtFOB`). |
+| `registerFOBAsTroopZone` | `(fobName, point, radius, coalitionId)` | Register a FOB as an unlimited-stock troop pickup zone (called automatically by `CTLDFOBManager` on FOB build, gated by `troopPickupAtFOB`). Refuses (`WARN`) on a name collision. |
 | `unregisterTroopZone` | `(name)` | Remove a troop zone by name (called automatically on FOB destruction). |
 | `getTroopZone` | `(zoneName)` | Return the `CTLDTroopZone` for `zoneName`, or `nil`. |
 | `getTroopZonesForCoalition` | `(coalition)` | Return all troop zones for a coalition. |

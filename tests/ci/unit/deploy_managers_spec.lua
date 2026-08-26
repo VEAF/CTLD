@@ -367,7 +367,8 @@ describe("CTLDFOBManager deploy + destroy", function()
     describe("troop pickup zone (FIX-FOB-TROOP-PICKUP)", function()
 
         before_each(function()
-            CTLDZoneManager.getInstance()._troopZones = {}
+            CTLDZoneManager.getInstance()._troopZones    = {}
+            CTLDZoneManager.getInstance()._logisticZones = {}
         end)
 
         it("registers a pickup-capable troop zone at the FOB centroid when troopPickupAtFOB is true", function()
@@ -407,6 +408,30 @@ describe("CTLDFOBManager deploy + destroy", function()
             fm:_registerDeployedFOB(scene({ sceneObj("fobE"), sceneObj("fobF") }))
             assert.is_false(fm:isInFOBTroopZone(FOB_CENTROID, coalition.side.BLUE))
             borrowed:restore()
+        end)
+
+        it("refuses to overwrite an existing troop zone with the same name (collision guard)", function()
+            local zm = CTLDZoneManager.getInstance()
+            local first = zm:registerFOBAsTroopZone("Deployed FOB #1", FOB_CENTROID, 150, coalition.side.BLUE)
+            assert.is_true(first)
+            local existing = zm._troopZones["Deployed FOB #1"]
+
+            local second = zm:registerFOBAsTroopZone("Deployed FOB #1", { x = 999, y = 0, z = 999 }, 300,
+                coalition.side.RED)
+            assert.is_false(second)
+            assert.equals(existing, zm._troopZones["Deployed FOB #1"])
+        end)
+
+        it("refuses to overwrite an existing logistic zone with the same name (collision guard)", function()
+            local zm = CTLDZoneManager.getInstance()
+            local first = zm:registerFOBAsLogistic("Deployed FOB #1", FOB_CENTROID, 150, coalition.side.BLUE)
+            assert.is_true(first)
+            local existing = zm._logisticZones["Deployed FOB #1"]
+
+            local second = zm:registerFOBAsLogistic("Deployed FOB #1", { x = 999, y = 0, z = 999 }, 300,
+                coalition.side.RED)
+            assert.is_false(second)
+            assert.equals(existing, zm._logisticZones["Deployed FOB #1"])
         end)
 
     end)

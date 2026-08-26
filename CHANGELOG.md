@@ -19,6 +19,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   new config. Radius reuses the existing `fobTroopPickupRadius` (150 m default, matching legacy),
   stock is unlimited (matching legacy). The zone is removed when the FOB is destroyed, same as
   its logistic zone.
+- Found in review: `registerFOBAsLogistic`/`registerFOBAsTroopZone` now refuse (with a `WARN` log)
+  to overwrite an existing zone sharing the FOB's name, matching the collision guard
+  `createExtractZone`/`createTroopZoneAtObject` already had — a Mission-Editor zone can no longer
+  be silently clobbered by a same-named FOB. The F10 "Load from …" entry for a FOB-sourced zone
+  also shows the FOB's own name instead of a fabricated `TRZ_…` prefix.
 
 ### Added — a scripted way to add a pickup troop zone on any named object (FEAT-TROOP-ZONE-SCRIPTED-API)
 

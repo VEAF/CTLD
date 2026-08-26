@@ -45,10 +45,13 @@ CTLDTroopZone = class()
 --   Optional : verticies, pickMaxStock, objectiveFlag, objectiveTarget,
 --              smoke (trigger.smokeColor.* or -1), active,
 --              isWaypoint (bool), isDropoff (bool),
---              isAIPickup (bool), isAIDropoff (bool)
+--              isAIPickup (bool), isAIDropoff (bool), displayName (string)
 function CTLDTroopZone:init(data)
     self.dcsName          = data.dcsName
     self.zoneName         = data.zoneName
+    -- F10 label override: when set, the menu shows this instead of "TRZ_"..zoneName. Needed for
+    -- a zone whose zoneName isn't a parsed TRZ_ token (e.g. a FOB's own name).
+    self.displayName      = data.displayName
     self.coalition        = data.coalition  or 0
     self.center           = data.center
     self.radius           = data.radius     or 0
@@ -1184,7 +1187,12 @@ end
 -- @param point     vec3
 -- @param radius    number  (default 150)
 -- @param coalitionId number
+-- @return boolean
 function CTLDZoneManager:registerFOBAsLogistic(fobName, point, radius, coalitionId)
+    if self._logisticZones[fobName] then
+        ctld.utils.log("WARN", "CTLDZoneManager:registerFOBAsLogistic — zone already registered: %s", fobName)
+        return false
+    end
     local zone = CTLDLogisticZone:new({
         name      = fobName,
         coalition = coalitionId or 0,
@@ -1195,6 +1203,7 @@ function CTLDZoneManager:registerFOBAsLogistic(fobName, point, radius, coalition
     self._logisticZones[fobName] = zone
     ctld.utils.log("INFO", "CTLDZoneManager: FOB logistic zone '%s' r=%dm", fobName, radius or 150)
     self:_publishLogisticZoneUpdated({ { unitName = fobName, coalition = coalitionId } }, {})
+    return true
 end
 
 --- Register a deployed FOB as a troop pickup zone (unlimited stock).
@@ -1202,9 +1211,15 @@ end
 -- @param point     vec3
 -- @param radius    number  (default 150)
 -- @param coalitionId number
+-- @return boolean
 function CTLDZoneManager:registerFOBAsTroopZone(fobName, point, radius, coalitionId)
+    if self._troopZones[fobName] then
+        ctld.utils.log("WARN", "CTLDZoneManager:registerFOBAsTroopZone — zone already registered: %s", fobName)
+        return false
+    end
     local zone = CTLDTroopZone:new({
         zoneName     = fobName,
+        displayName  = fobName,   -- not a parsed TRZ_ name — show it as-is, no "TRZ_" prefix
         coalition    = coalitionId or 0,
         center       = point,
         radius       = radius or 150,
@@ -1213,6 +1228,7 @@ function CTLDZoneManager:registerFOBAsTroopZone(fobName, point, radius, coalitio
     })
     self._troopZones[fobName] = zone
     ctld.utils.log("INFO", "CTLDZoneManager: FOB troop zone '%s' r=%dm", fobName, radius or 150)
+    return true
 end
 
 --- Unregister a troop zone by name (no-op if not present).

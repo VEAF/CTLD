@@ -83,6 +83,15 @@ removes that zone the same way `_destroyFOB` already removes its logistic zone t
   `FIX-SHIP-ZONE-ANCHOR-PARITY`. No migration note: nothing for a mission maker to do, the old
   (silent no-op) behavior was the bug.
 
+**Post-review addendum** (8-angle code review on PR #136, 2026-08-26, user decided to fix both
+in this PR rather than defer): `registerFOBAsLogistic`/`registerFOBAsTroopZone` gained the same
+collision guard `createExtractZone`/`createTroopZoneAtObject` already have — refuse (`WARN` log)
+rather than silently overwrite a `_logisticZones`/`_troopZones` entry sharing the FOB's name.
+`CTLDTroopZone` gained an optional `displayName` field (F10 label override, defaulting to
+`"TRZ_" .. zoneName` when absent) so a FOB-sourced zone shows its own name in "Load from …"
+instead of a fabricated `TRZ_…` prefix — `registerFOBAsTroopZone` sets it to `fobName`; every
+other producer of `_troopZones` is untouched and keeps its existing display behavior.
+
 ## Testing Decisions
 
 - **Extend the existing seam**, `tests/ci/unit/deploy_managers_spec.lua`'s

@@ -449,6 +449,76 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
         end)
     end)
 
+    -- ── FIX-FOB-TROOP-PICKUP : F10 label for a FOB-sourced troop zone ────────
+    describe("F10 label — FOB-sourced troop zone shows its own name, not a fake TRZ_ prefix", function()
+        local menu, playerObj
+        local _origGetByName
+
+        before_each(function()
+            resetSingletons()
+            EventDispatcher.getInstance()
+            CTLDDCSEventBridge.getInstance()
+            CTLDZoneManager.getInstance()
+            CTLDPlayerManager.getInstance()
+            local tm = CTLDTroopManager.getInstance()
+
+            tm._templates = {}
+            tm:createLoadableGroup({ name = "Standard Group", composition = { inf = 4 } })
+
+            tm._isInAir              = function() return false end
+            tm._findAllNearbyDropped = function() return {} end
+
+            -- A zone shaped exactly like the one registerFOBAsTroopZone produces: zoneName is
+            -- the human-readable FOB name, never a parsed TRZ_ token — displayName carries the
+            -- label the F10 menu should actually show.
+            local zm = CTLDZoneManager.getInstance()
+            zm.getTroopZonesForCoalition = function()
+                return { {
+                    zoneName         = "Deployed FOB #1",
+                    displayName      = "Deployed FOB #1",
+                    pickMaxStock     = 0,
+                    pickCurrentStock = 0,
+                    hasPickup        = function() return true end,
+                    isInZone         = function() return true end,
+                } }
+            end
+
+            _origGetByName = Unit.getByName
+            Unit.getByName = function(n)
+                if n == "BLUE_UH1H_1" then
+                    return {
+                        getName  = function() return "BLUE_UH1H_1" end,
+                        isExist  = function() return true end,
+                        getPoint = function() return { x = 0, y = 0, z = 0 } end,
+                    }
+                end
+                return _origGetByName and _origGetByName(n) or nil
+            end
+
+            playerObj = makePlayer({
+                unitName = "BLUE_UH1H_1", coalition = coalition.side.BLUE, typeName = "UH-1H",
+            })
+            CTLDPlayerManager.getInstance():buildMenu(playerObj)
+            menu = ctld.MenuManager:getInstance():getMenuByGroupId(playerObj.groupId)
+        end)
+
+        after_each(function()
+            Unit.getByName = _origGetByName
+        end)
+
+        it("shows the zone's own name, without a TRZ_ prefix", function()
+            local path = { ROOT, tr("Troop Commands"), tr("Embark / Extract Troops"),
+                            tr("Load from %1", "Deployed FOB #1"), tr("Load ") .. "Standard Group" }
+            assert.is_true(has(menu, path))
+        end)
+
+        it("does not also register a fake TRZ_-prefixed entry", function()
+            local fakePath = { ROOT, tr("Troop Commands"), tr("Embark / Extract Troops"),
+                                tr("Load from %1", "TRZ_Deployed FOB #1"), tr("Load ") .. "Standard Group" }
+            assert.is_false(has(menu, fakePath))
+        end)
+    end)
+
     -- ── F-089b : Extract from field menu shows troop counts (FIX-FIELD-EXTRACT-CASUALTIES) ──
     describe("F-089b — Extract from field menu shows troop counts", function()
         local tm, playerObj
