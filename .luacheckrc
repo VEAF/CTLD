@@ -25,9 +25,13 @@ read_globals = {
     "land", "atmosphere", "coord", "radio", "spot", "missionCommands",
     -- DCS object constructors / class tables
     "Unit", "Group", "StaticObject", "Airbase", "Object", "Controller",
-    "Weapon", "Runway", "Warehouse",
+    "Weapon", "Runway", "Warehouse", "AI", "Spot",
     -- DCS utility globals
     "dcsCommon", "mist",
+    -- Optional external mods, always guarded at the call site (e.g. `if STTS and ...`)
+    "STTS",
+    -- Legacy MM customization global (deprecated, guarded with type() checks)
+    "ctld_config_user",
     -- Lua 5.1 stdlib present in DCS but not in luacheck min std
     "require", "dofile", "loadfile", "loadstring",
     -- io / os present in DCS sandboxed environment
@@ -38,6 +42,8 @@ read_globals = {
 globals = {
     -- Core namespace
     "ctld",
+    -- OOP helper (src/core/class.lua)
+    "class",
     -- Config
     "CTLDConfig",
     -- i18n
@@ -81,6 +87,15 @@ globals = {
 }
 
 -- Per-file overrides
+
+-- i18n dictionaries hold translated UI strings, not code — a 200-char line limit doesn't serve
+-- readability here the way it does in src/ logic, and wrapping a translation mid-sentence would
+-- only make the dictionaries harder to diff/maintain.
+files["src/CTLD_i18n_en.lua"] = { max_line_length = false }
+files["src/CTLD_i18n_fr.lua"] = { max_line_length = false }
+files["src/CTLD_i18n_es.lua"] = { max_line_length = false }
+files["src/CTLD_i18n_ko.lua"] = { max_line_length = false }
+
 files["tests/"] = {
     -- Test helpers may use additional globals. `_CTLD_assetCheck` / `_CTLD_STOCK_TYPES` come from
     -- the dev-time companion (tools/companion/, itself excluded from luacheck) exercised by its spec.
