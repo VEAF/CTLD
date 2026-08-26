@@ -1,6 +1,6 @@
 # FIX-FOB-TROOP-PICKUP — troopPickupAtFOB has no effect in-game
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 Found 2026-08-26 while investigating a mission maker question about `troopPickupAtFOB`, then
 grilled with the user. Independent of `FEAT-TROOP-ZONE-SCRIPTED-API` (PR #129): that lot lets a
@@ -52,7 +52,8 @@ removes that zone the same way `_destroyFOB` already removes its logistic zone t
   in `CTLD_zone.lua` and following their exact style (same logging pattern, same return shape):
   - `registerFOBAsTroopZone(fobName, point, radius, coalitionId)` — synthesizes a `CTLDTroopZone`
     (`name = fobName`, `coalition = coalitionId or 0`, `center = point`, `radius = radius or 150`,
-    `active = true`, `pickMaxStock = nil` — unlimited, matching legacy's uncapped FOB pickup — no
+    `active = true`, `pickMaxStock = 0` — the zone's own unlimited-stock convention
+    (`CTLDTroopZone:consumeStock`), matching legacy's uncapped FOB pickup — no
     `objectiveFlag`/`objectiveTarget`, no `linkedUnit`: a FOB's position is fixed at its build
     centroid, the same choice `registerFOBAsLogistic` already makes for the same FOB) and stores
     it in `self._troopZones[fobName]`.

@@ -357,6 +357,68 @@ describe("CTLDFOBManager deploy + destroy", function()
 
     end)
 
+    -- ── FIX-FOB-TROOP-PICKUP : troop pickup zone ─────────────────────────────
+    describe("troop pickup zone (FIX-FOB-TROOP-PICKUP)", function()
+
+        local origGs, settings
+
+        before_each(function()
+            CTLDZoneManager.getInstance()._troopZones = {}
+
+            origGs   = ctld.gs
+            settings = {}
+            ctld.gs  = function(key)
+                if settings[key] ~= nil then return settings[key] end
+                return origGs and origGs(key)
+            end
+        end)
+
+        after_each(function()
+            ctld.gs = origGs
+        end)
+
+        local function pointInFOB()
+            return { x = 10, y = 0, z = 20 }
+        end
+
+        it("registers a pickup-capable troop zone at the FOB centroid when troopPickupAtFOB is true", function()
+            fm:_registerDeployedFOB(scene({ sceneObj("fobA"), sceneObj("fobB") }))
+            local zone = CTLDZoneManager.getInstance():getTroopZoneAtPoint(pointInFOB(), coalition.side.BLUE)
+            assert.is_not_nil(zone)
+            assert.is_true(zone:hasPickup())
+        end)
+
+        it("registers no troop zone when troopPickupAtFOB is false", function()
+            settings.troopPickupAtFOB = false
+            fm:_registerDeployedFOB(scene({ sceneObj("fobA"), sceneObj("fobB") }))
+            local zone = CTLDZoneManager.getInstance():getTroopZoneAtPoint(pointInFOB(), coalition.side.BLUE)
+            assert.is_nil(zone)
+        end)
+
+        it("removes the troop zone when the FOB is destroyed (no ghost zone)", function()
+            local o1, o2 = sceneObj("deadTroopA"), sceneObj("deadTroopB")
+            fm:_registerDeployedFOB(scene({ o1, o2 }))
+            assert.is_not_nil(CTLDZoneManager.getInstance():getTroopZoneAtPoint(pointInFOB(), coalition.side.BLUE))
+
+            o1._alive, o2._alive = false, false
+            fm:onDead({ initiator = o1 })
+
+            local zone = CTLDZoneManager.getInstance():getTroopZoneAtPoint(pointInFOB(), coalition.side.BLUE)
+            assert.is_nil(zone)
+        end)
+
+        it("leaves isInFOBTroopZone behaving exactly as before, for both settings", function()
+            fm:_registerDeployedFOB(scene({ sceneObj("fobC"), sceneObj("fobD") }))
+            assert.is_true(fm:isInFOBTroopZone(pointInFOB(), coalition.side.BLUE))
+
+            fm._fobs, fm._objectToFOB, fm._fobCount = {}, {}, 0
+            settings.troopPickupAtFOB = false
+            fm:_registerDeployedFOB(scene({ sceneObj("fobE"), sceneObj("fobF") }))
+            assert.is_false(fm:isInFOBTroopZone(pointInFOB(), coalition.side.BLUE))
+        end)
+
+    end)
+
 end)
 
 -- ============================================================

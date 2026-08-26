@@ -1197,6 +1197,33 @@ function CTLDZoneManager:registerFOBAsLogistic(fobName, point, radius, coalition
     self:_publishLogisticZoneUpdated({ { unitName = fobName, coalition = coalitionId } }, {})
 end
 
+--- Register a deployed FOB as a troop pickup zone (unlimited stock).
+-- @param fobName   string
+-- @param point     vec3
+-- @param radius    number  (default 150)
+-- @param coalitionId number
+function CTLDZoneManager:registerFOBAsTroopZone(fobName, point, radius, coalitionId)
+    local zone = CTLDTroopZone:new({
+        zoneName     = fobName,
+        coalition    = coalitionId or 0,
+        center       = point,
+        radius       = radius or 150,
+        pickMaxStock = 0,   -- unlimited
+        active       = true,
+    })
+    self._troopZones[fobName] = zone
+    ctld.utils.log("INFO", "CTLDZoneManager: FOB troop zone '%s' r=%dm", fobName, radius or 150)
+end
+
+--- Unregister a troop zone by name (no-op if not present).
+-- @param name string
+function CTLDZoneManager:unregisterTroopZone(name)
+    if self._troopZones[name] then
+        self._troopZones[name] = nil
+        ctld.utils.log("INFO", "CTLDZoneManager: troop zone '%s' unregistered", name)
+    end
+end
+
 --- Remove a logistic zone (e.g. FOB destroyed).
 function CTLDZoneManager:unregisterLogistic(name)
     local zone = self._logisticZones[name]

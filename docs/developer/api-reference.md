@@ -98,6 +98,8 @@ Full event catalogue: [Events](events.md).
 | `deactivateLogisticZone` | `(name)` | Suspend a LGZ — players inside can no longer spawn crates. Fires `OnLogisticZoneUpdated`. |
 | `registerFOBAsLogistic` | `(fobName, point, radius, coalitionId)` | Register a FOB as a logistic zone (called automatically by `CTLDFOBManager` on FOB build). |
 | `unregisterLogistic` | `(name)` | Remove a logistic zone by name (called automatically on FOB destruction). |
+| `registerFOBAsTroopZone` | `(fobName, point, radius, coalitionId)` | Register a FOB as an unlimited-stock troop pickup zone (called automatically by `CTLDFOBManager` on FOB build, gated by `troopPickupAtFOB`). |
+| `unregisterTroopZone` | `(name)` | Remove a troop zone by name (called automatically on FOB destruction). |
 | `getTroopZone` | `(zoneName)` | Return the `CTLDTroopZone` for `zoneName`, or `nil`. |
 | `getTroopZonesForCoalition` | `(coalition)` | Return all troop zones for a coalition. |
 | `getTroopZoneAtPoint` | `(point, coalition)` | Return the troop zone containing `point`, or `nil`. |

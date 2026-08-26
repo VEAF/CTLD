@@ -338,6 +338,8 @@ function CTLDFOBManager:_registerDeployedFOB(scene)
     -- Troop pickup at FOB
     if ctld.gs("troopPickupAtFOB") then
         fob._troopPickup = true
+        CTLDZoneManager.getInstance():registerFOBAsTroopZone(fobName, centroid,
+            ctld.gs("fobTroopPickupRadius"), coalitionId)
     end
 
     ctld.utils.log("INFO",
@@ -400,8 +402,9 @@ function CTLDFOBManager:_destroyFOB(fob, killerUnit, killerCoalition, integrityP
     local objectsDestroyed = objectsTotal - math.floor(integrityPercent * objectsTotal + 0.5)
     local durationAlive    = timer.getAbsTime() - fob.spawnTime
 
-    -- Remove logistic zone
+    -- Remove logistic + troop zones
     CTLDZoneManager.getInstance():unregisterLogistic(fob.name)
+    CTLDZoneManager.getInstance():unregisterTroopZone(fob.name)
 
     -- Clean reverse-lookup
     for _, obj in ipairs(fob.sceneObjects) do

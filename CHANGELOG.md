@@ -8,6 +8,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — troops can now actually be picked up at a built FOB (FIX-FOB-TROOP-PICKUP)
+
+- **`troopPickupAtFOB` (default `true`) had no effect in-game.** It set a per-FOB flag read only
+  by `CTLDFOBManager:isInFOBTroopZone`, which nothing in the F10 "Load Troops" menu or pickup
+  logic ever called — that path only consults `TRZ_…` zones. Legacy fully wired the equivalent
+  check; this was an undeclared parity regression, invisible to every test level.
+- A deployed FOB now also registers a real troop pickup zone, discovered through the same
+  `CTLDZoneManager` machinery as any Mission-Editor-placed `TRZ_…` zone — no new menu code, no
+  new config. Radius reuses the existing `fobTroopPickupRadius` (150 m default, matching legacy),
+  stock is unlimited (matching legacy). The zone is removed when the FOB is destroyed, same as
+  its logistic zone.
+
 ### Added — a scripted way to add a pickup troop zone on any named object (FEAT-TROOP-ZONE-SCRIPTED-API)
 
 - **The only script-callable troop-zone constructor, `createExtractZone`, never set a pickup

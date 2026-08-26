@@ -99,6 +99,8 @@ scripting des troops IA.*
 | `deactivateLogisticZone` | `(name)` | Suspend une LGZ — les joueurs à l'intérieur ne peuvent plus faire spawn de crates. Déclenche `OnLogisticZoneUpdated`. |
 | `registerFOBAsLogistic` | `(fobName, point, radius, coalitionId)` | Enregistre un FOB comme zone logistique (appelé automatiquement par `CTLDFOBManager` à la construction d'un FOB). |
 | `unregisterLogistic` | `(name)` | Supprime une zone logistique par son nom (appelé automatiquement à la destruction d'un FOB). |
+| `registerFOBAsTroopZone` | `(fobName, point, radius, coalitionId)` | Enregistre un FOB comme zone de pickup de troupes à stock illimité (appelé automatiquement par `CTLDFOBManager` à la construction d'un FOB, conditionné par `troopPickupAtFOB`). |
+| `unregisterTroopZone` | `(name)` | Supprime une zone de troupes par son nom (appelé automatiquement à la destruction d'un FOB). |
 | `getTroopZone` | `(zoneName)` | Retourne le `CTLDTroopZone` pour `zoneName`, ou `nil`. |
 | `getTroopZonesForCoalition` | `(coalition)` | Retourne toutes les troop zones d'une coalition. |
 | `getTroopZoneAtPoint` | `(point, coalition)` | Retourne la troop zone contenant `point`, ou `nil`. |

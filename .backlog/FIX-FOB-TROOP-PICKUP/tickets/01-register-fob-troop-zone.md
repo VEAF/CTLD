@@ -1,6 +1,6 @@
 # 01 — `registerFOBAsTroopZone`/`unregisterTroopZone` + FOB wiring
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 See the PRD for the legacy reference behaviour and the full rationale.
 
@@ -9,8 +9,9 @@ See the PRD for the legacy reference behaviour and the full rationale.
 1. `CTLDZoneManager` (`CTLD_zone.lua`), next to `registerFOBAsLogistic`/`unregisterLogistic`:
    - `registerFOBAsTroopZone(fobName, point, radius, coalitionId)` — synthesizes a
      `CTLDTroopZone` (`name = fobName`, `coalition = coalitionId or 0`, `center = point`,
-     `radius = radius or 150`, `active = true`, `pickMaxStock = nil`, no `objectiveFlag`/
-     `objectiveTarget`, no `linkedUnit`) and stores it in `self._troopZones[fobName]`.
+     `radius = radius or 150`, `active = true`, `pickMaxStock = 0` — unlimited, per
+     `CTLDTroopZone:consumeStock`'s own convention — no `objectiveFlag`/`objectiveTarget`, no
+     `linkedUnit`) and stores it in `self._troopZones[fobName]`.
    - `unregisterTroopZone(name)` — removes `self._troopZones[name]` if present, no-op otherwise.
 2. `CTLDFOBManager:_registerDeployedFOB` (`CTLD_fob.lua`): inside the existing
    `if ctld.gs("troopPickupAtFOB") then` guard, keep `fob._troopPickup = true` and add a call to
