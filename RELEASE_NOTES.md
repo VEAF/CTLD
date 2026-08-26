@@ -1,4 +1,4 @@
-# CTLD 2.0.0-rc7 — release candidate
+# CTLD 2.0.0-rc8 — release candidate
 
 ## Installation
 
@@ -12,72 +12,58 @@
 **Properties** → tick **Unblock** → **OK**.
 
 Prefer doing it by hand? The files are attached to this release too — see the
-[documentation](https://veaf.github.io/CTLD/2.0.0-rc7/mission-maker/).
+[documentation](https://veaf.github.io/CTLD/2.0.0-rc8/mission-maker/).
 
 ---
 
-**Already installed a mission with rc6?** Re-install it with this version. The repaired translations
-and the in-mission fixes travel inside the engine the tool writes into your `.miz` — a mission
-installed with rc6 keeps the old one until you install again.
+**Already installed a mission with rc7?** Re-install it with this version. The fixes below travel
+inside the engine the tool writes into your `.miz` — a mission installed with rc7 keeps the old one
+until you install again.
 
-The biggest release candidate since rc1: the translated menus are whole again, and seven in-mission
-bugs are fixed — two of which silently destroyed things you had deployed.
+This release candidate closes two troop-pickup gaps reported by the community and a beacon frequency
+gap, and hardens the engine against a bad setup — a missing initialization step now tells you exactly
+what to fix instead of failing on an unrelated error.
 
 ## What's fixed in the mission
 
-- **Troops extracted from the field are counted for real.** Drop ten, lose three, and you now
-  re-embark seven — not the ten you originally dropped. The F10 menu also shows each group's current
-  headcount (`Extract: Bravo (7 troops)`), so you can pick which group to pull out knowing what it
-  will cost you in capacity. A group whose last real trooper is dead is no longer offered at all.
+- **Troops can now actually be picked up at a built FOB.** The "Allow troop pickup at built FOBs"
+  setting has existed since the rewrite, on by default — but nothing in the F10 "Load Troops" menu
+  ever consulted it, so a FOB never offered troop pickup no matter what it was set to. It now works:
+  a deployed FOB registers a real pickup zone, using the FOB's own radius, exactly as it does for
+  logistics.
 
-- **Two troop groups from the same template no longer delete each other.** Parachuting a second
-  group loaded from the same template destroyed the first one the instant it landed — DCS replaces
-  any group spawned under a name already in use, and both were landing under the raw template name.
-  Silent, instant, and nothing on screen explained it.
+- **Troops can now be picked up at a built FARP.** FARPs had no troop-pickup capability at all —
+  only FOBs did. Any of the three built-in FARP scenes (default, Alpha, Countryside) now registers a
+  pickup zone the moment it finishes building, and removes it the moment DCS destroys the FARP (or
+  when a Countryside FARP is packed back into crates).
 
-- **AA system parts no longer spawn on top of each other.** Systems with more than two identical
-  parts spread their units across the whole circle instead of their own arc segment — the S-300 TEL D
-  landed inside the Big Bird SR.
+- **A quarter of the FM beacon band was unreachable.** The FM pool skipped four ranges —
+  36.0–39.9, 46.0–49.9, 56.0–59.9 and 66.0–69.9 MHz — including ordinary frequencies like 38.00 MHz.
+  Any beacon or briefing asking for one of those quietly failed or landed elsewhere. All 460 steps
+  from 30.0 to 75.9 MHz are reachable now.
 
-- **The unpack menu disappears once the system is built.** It stayed visible for nearby pilots after
-  assembly, offering to unpack crates that no longer existed.
+## Under the hood: a clearer failure when CTLD isn't started correctly
 
-- **The F10 menu no longer doubles on multi-crew aircraft.** A copilot joining a CH-47 after the
-  pilot got a second copy of the whole CTLD menu. And when one crew member leaves a shared group, the
-  remaining crew keep their menu instead of losing it.
+If a mission's script setup skips `ctld.initialize()` — an integration mistake, not something a
+Mission Maker using the tool can trigger — CTLD used to crash on an unrelated arithmetic error deep
+inside the engine, giving no hint that initialization was the actual problem. It now fails
+immediately with a message that says exactly what's missing. Reported by **Zip**, who also reported
+the FM beacon gap above — thank you for both.
 
-- **Death events actually fire.** `onUnitDead` was registered in a way that never matched a real dead
-  unit in a live mission, which also disabled JTAC de-registration on death. Both work now.
+## New scripted capabilities (for mission scripters)
 
-## What's fixed in the menus
-
-- **The translated menus are whole again.** 56 labels — every HAWK, BUK, KUB, NASAMS, Patriot and
-  S-300 component, several crate, smoke and vehicle entries, and the category headers (Infantry, Air
-  Defense, Ground Vehicles, Helicopters, Aircraft, Ships, FARP / FOB) — had been dropped from the
-  dictionaries by a tooling bug and were falling back to English. If you fly in French, Spanish or
-  Korean, those menus read in your language again. English was unaffected throughout.
-
-- **Korean and Spanish are complete.** The entries those two languages had never received — 70 per
-  language, plus 29 more surfaced by the fix above — have been translated. Reported by **FullGas**,
-  who also built the fix and the CI guard that stops it happening again: from now on a pull request
-  adding a menu entry cannot merge while any of the four dictionaries is missing it.
-
-## What's new for Mission Makers
-
-- **Your own beacon sound.** The two sound settings are no longer free-text boxes naming a file the
-  tool never installed: each gets a **Default / Custom** picker, and the `.ogg` you choose is written
-  into the `.miz` with its resource key and preload trigger, exactly like the bundled ones. The file
-  is checked for a real OGG signature when you pick it — a renamed `.mp3` plays nothing in DCS. A
-  custom sound travels inside the mission, so reopening the `.miz` on another machine recovers it
-  even if the original file is gone.
-
-- **"All crates" for the FOB, and crate counts everywhere.** Request Equipment was missing the
-  one-click "FOB Crate (x3) - All crates" entry every other multi-crate item had. Every entry now
-  also shows how many crates it needs — `(x3)`, `(x1)` — so you can plan a sortie without opening the
-  documentation.
+- A beacon placed through script (`createAtPoint`) can now be **requested on a specific frequency**
+  instead of always drawing at random — useful when a frequency is already briefed to pilots on a
+  kneeboard.
+- A troop pickup zone can now be added through script on **any named object** — a unit, a static, a
+  group, or an airbase — not only through a Mission Editor trigger zone.
 
 ## Nothing to change in your configuration
 
-No setting was added, renamed or removed. A beacon sound picked through the tool is recorded
-alongside the existing sound settings, so configurations written with earlier release candidates load
-unchanged.
+No existing setting was renamed or removed, and every default keeps today's behavior. FARP troop
+pickup ships **on by default** (`troopPickupAtFARP`, 150 m radius) — turn it off in the tool if you
+don't want it.
+
+---
+
+Thanks to **Tripack** (VEAF) for testing and feedback on this release candidate.
