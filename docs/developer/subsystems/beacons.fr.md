@@ -73,7 +73,7 @@ Trois paires de pools libre/utilisé sont construites une fois dans `_buildFreqP
 | --- | --- | --- |
 | VHF | 200–840 kHz, puis 850–1250 kHz | 10 kHz en dessous de 850, 50 kHz au-dessus |
 | UHF | 220 MHz jusqu'à (non inclus) 399 MHz | 0,5 MHz |
-| FM | bande 30–76 MHz | `(100*f + 10*s + t) * 100 kHz` pour `f=3..7`, `s=0..5`, `t=0..9` |
+| FM | bande 30–75,9 MHz | `(100*f + 10*s + t) * 100 kHz` pour `f=3..7`, `t=0..9` ; `s=0..9` pour `f=3..6`, `s=0..5` pour `f=7` (maintient le pool à exactement 75,9 MHz) |
 
 Les fréquences sont stockées en Hz. Le pool VHF saute un ensemble codé en dur de fréquences NDB
 réelles (`CTLDBeaconManager._ndbSkip`) qui existent déjà sur les cartes DCS, pour éviter les

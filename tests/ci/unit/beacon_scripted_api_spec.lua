@@ -254,6 +254,16 @@ describe("CTLDBeaconManager scripted beacon API", function()
             assert.equals("250.00 kHz - 251.00 / 40.50 MHz", b:freqText())
         end)
 
+        -- FIX-BEACON-FM-POOL-GAP: 38.00 MHz used to fall in one of the pool's four gaps
+        -- (s only ran 0..5); the pool is now continuous over the full 30.0-75.9 MHz range.
+        it("grants a frequency that used to fall in the FM pool's now-closed gap", function()
+            local b = mgr:createAtPoint({ x = 0, y = 0, z = 0 }, coalition.side.BLUE, country.id.USA,
+                { frequencies = { fmMHz = 38 } })
+
+            assert.is_not_nil(b)
+            assert.equals(38000000, b.fm)
+        end)
+
         it("moves a granted frequency out of the free pool and into the used one", function()
             local freeVHF = #mgr._freeVHF
             local b = mgr:createAtPoint({ x = 0, y = 0, z = 0 }, coalition.side.BLUE, country.id.USA,
@@ -337,7 +347,7 @@ describe("CTLDBeaconManager scripted beacon API", function()
                 { vhfKHz = 205 },      -- VHF steps by 10 kHz below 850
                 { vhfKHz = 440 },      -- on the step, but a real-world NDB (_ndbSkip)
                 { uhfMHz = 251.25 },   -- UHF steps by 0.5 MHz
-                { fmMHz  = 38 },       -- 380 needs s=8, and s only runs 0..5
+                { fmMHz  = 38.05 },    -- FM steps by 0.1 MHz (the t digit), 38.05 is off-grid
             }
             for _, request in ipairs(cases) do
                 local b, reason = mgr:createAtPoint({ x = 0, y = 0, z = 0 },
@@ -373,7 +383,7 @@ describe("CTLDBeaconManager scripted beacon API", function()
             local spawnsBefore = spawnCount
 
             local b = mgr:createAtPoint({ x = 0, y = 0, z = 0 }, coalition.side.BLUE, country.id.USA,
-                { frequencies = { vhfKHz = 250, uhfMHz = 251, fmMHz = 38 } })   -- FM is off-grid
+                { frequencies = { vhfKHz = 250, uhfMHz = 251, fmMHz = 38.05 } })   -- FM is off-grid
 
             assert.is_nil(b)
             local vhfAfter, uhfAfter, fmAfter = poolSizes()

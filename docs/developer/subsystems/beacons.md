@@ -72,7 +72,7 @@ Three free/used pool pairs are built once in `_buildFreqPools()`:
 | --- | --- | --- |
 | VHF | 200–840 kHz, then 850–1250 kHz | 10 kHz below 850, 50 kHz above |
 | UHF | 220 MHz up to (not including) 399 MHz | 0.5 MHz |
-| FM | 30–76 MHz band | `(100*f + 10*s + t) * 100 kHz` for `f=3..7`, `s=0..5`, `t=0..9` |
+| FM | 30–75.9 MHz band | `(100*f + 10*s + t) * 100 kHz` for `f=3..7`, `t=0..9`; `s=0..9` for `f=3..6`, `s=0..5` for `f=7` (keeps the pool at exactly 75.9 MHz) |
 
 Frequencies are stored in Hz. The VHF pool skips a hard-coded set of real-world NDB frequencies
 (`CTLDBeaconManager._ndbSkip`) that already exist on DCS maps, to avoid interference.

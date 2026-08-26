@@ -193,9 +193,12 @@ function CTLDBeaconManager:_buildFreqPools()
         f = f + 500000
     end
 
-    -- FM: (100*f + 10*s + t) * 100000 Hz, f=3..7, s=0..5, t=0..9
+    -- FM: (100*f + 10*s + t) * 100000 Hz, f=3..7, t=0..9. s=0..9 for f=3..6 (closes the four
+    -- gaps between decades); f=7 keeps s=0..5 so the pool still tops out at 75.9 MHz, matching
+    -- CTLDBeaconManager._bands's declared fm.max — widening it too would silently grow the band.
     for f = 3, 7 do
-        for s = 0, 5 do
+        local sMax = (f == 7) and 5 or 9
+        for s = 0, sMax do
             for t = 0, 9 do
                 self._freeFM[#self._freeFM + 1] = (100 * f + 10 * s + t) * 100000
             end

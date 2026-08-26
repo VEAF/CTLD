@@ -207,7 +207,7 @@ chose.
 | --- | --- | --- | --- |
 | `vhfKHz` | kHz | 200 – 1250 | 10 kHz en dessous de 850, 50 kHz au-dessus |
 | `uhfMHz` | MHz | 220 – 398,5 | 0,5 MHz |
-| `fmMHz` | MHz | 30 – 75,9 | 0,1 MHz, dans `30–35,9`, `40–45,9`, `50–55,9`, `60–65,9`, `70–75,9` |
+| `fmMHz` | MHz | 30 – 75,9 | 0,1 MHz |
 
 Une demande qui ne peut pas être satisfaite **fait échouer tout l'appel** : `createAtPoint` retourne
 `nil` et une raison, ne fait rien spawner et ne consomme aucune fréquence. Il ne substitue jamais une
