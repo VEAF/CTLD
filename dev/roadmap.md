@@ -199,3 +199,25 @@ pour les zones de troupes, plutôt qu'en ajoutant des appels de rafraîchissemen
 dans chaque fonction de création. Reste à trancher **au to-prd/to-issues** : un seul mécanisme
 générique pour les deux familles de zones, ou deux événements distincts (troupe/logistique)
 comme aujourd'hui pour la création elle-même ?
+
+## luacheck n'est en réalité vérifié nulle part (ni local, ni CI)
+
+Constaté en vérifiant l'état de `develop` après le merge de `FEAT-TROOP-ZONE-SCRIPTED-API` (PR
+#129, 2026-08-26) : `CLAUDE.md` affirme "`luacheck --config .luacheckrc src/` must be clean (rely
+on CI if not installed locally)", mais **aucun job CI n'exécute luacheck** (grep confirmé sur
+`.github/workflows/` — zéro occurrence). Le job `Lua 5.1 Syntax Check` ne fait qu'un `luac5.1 -p`
+(compilation/syntaxe), pas d'analyse statique (variables inutilisées, globals implicites, etc.).
+
+Côté local, le hook `tools/hooks/luacheck-on-edit.sh` (PostToolUse sur Edit/Write d'un fichier
+`src/*.lua`) est un **no-op silencieux** quand `luacheck` n'est pas installé (`command -v
+luacheck` échoue) — le cas sur cette machine Windows (absent du PATH et de
+`luarocks/rocks/bin`). Résultat : le code fusionné dans cette même PR (`src/CTLD_zone.lua`) n'a
+jamais été passé au luacheck réel, ni pendant la session (hook muet), ni en CI (job absent) — la
+garantie de qualité annoncée dans `CLAUDE.md` est un filet vide depuis on ne sait combien de temps.
+
+Idée de lot : soit ajouter un vrai job CI luacheck (le plus simple — `luacheck` s'installe via
+`luarocks` sur le runner ubuntu déjà utilisé par `busted Tests`), soit rendre le hook local
+bloquant/visible plutôt que silencieux quand le binaire manque, soit les deux. Reste à trancher
+**au to-prd/to-issues** : faire de ce nouveau job un gate bloquant dès le départ, ou l'ajouter en
+mode rapport seul le temps de nettoyer une éventuelle dette luacheck déjà accumulée dans `src/`
+(inconnue tant que le linter n'a jamais tourné dessus) ?
