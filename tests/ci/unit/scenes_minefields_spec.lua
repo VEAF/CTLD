@@ -55,6 +55,31 @@ describe("FARP / minefield scenes", function()
         sm = CTLDSceneManager.getInstance()
     end)
 
+    -- Shared by "FARP troop pickup registration" and "Countryside FARP pack cleanup" below.
+    local function fakeHelipad(name, point)
+        local o = { _exists = true }
+        function o:getName()  return name end
+        function o:getPoint() return point end
+        return o
+    end
+
+    local function fakeAirbase(helipad)
+        local ab = { _helipad = helipad }
+        function ab:getName()  return helipad:getName() end
+        function ab:getPoint() return helipad:getPoint() end
+        function ab:isExist()  return helipad._exists end
+        return ab
+    end
+
+    local function ctxFor(spawnedObj, coalitionId)
+        return {
+            scene = {
+                _spawnedObjs = { spawnedObj },
+                _coalitionId = coalitionId or coalition.side.BLUE,
+            },
+        }
+    end
+
     -- ── F-043 : FARP Alpha scene structure ────────────────────────────────────
     describe("FARP Alpha scene structure (F-043)", function()
 
@@ -198,7 +223,7 @@ describe("FARP / minefield scenes", function()
             assert.equals("Countryside FARP", model.name)
         end)
 
-        it("has 12 steps (9 spawn + 1 warehouse/message func + 1 troop pickup func)", function()
+        it("has 12 steps (10 spawn + 1 warehouse/message func + 1 troop pickup func)", function()
             assert.equals(12, #model.steps)
         end)
 
@@ -219,49 +244,14 @@ describe("FARP / minefield scenes", function()
     -- public CTLDZoneManager path — the same discipline FIX-FOB-TROOP-PICKUP established.
     describe("FARP troop pickup registration (FEAT-FARP-TROOP-PICKUP)", function()
 
-        local origGs, origAirbaseGetByName, settings
-
-        local function fakeHelipad(name, point)
-            local o = { _exists = true }
-            function o:getName()  return name end
-            function o:getPoint() return point end
-            return o
-        end
-
-        local function fakeAirbase(helipad)
-            local ab = { _helipad = helipad }
-            function ab:getName()  return helipad:getName() end
-            function ab:getPoint() return helipad:getPoint() end
-            function ab:isExist()  return helipad._exists end
-            return ab
-        end
-
-        local function ctxFor(spawnedObj, coalitionId)
-            return {
-                unit  = { getName = function() return "test-unit" end },
-                scene = {
-                    _spawnedObjs = { spawnedObj },
-                    _coalitionId = coalitionId or coalition.side.BLUE,
-                    _params      = {},
-                },
-            }
-        end
+        local origAirbaseGetByName
 
         before_each(function()
             CTLDZoneManager.getInstance()._troopZones = {}
-
-            origGs   = ctld.gs
-            settings = {}
-            ctld.gs  = function(key)
-                if settings[key] ~= nil then return settings[key] end
-                return origGs and origGs(key)
-            end
-
             origAirbaseGetByName = Airbase.getByName
         end)
 
         after_each(function()
-            ctld.gs           = origGs
             Airbase.getByName = origAirbaseGetByName
         end)
 
@@ -287,7 +277,7 @@ describe("FARP / minefield scenes", function()
                 end)
 
                 it("registers no troop zone when troopPickupAtFARP is false", function()
-                    settings.troopPickupAtFARP = false
+                    local borrowed = ctldTestSettings.borrow({ troopPickupAtFARP = false })
                     local pad = fakeHelipad(sceneName .. "-2", { x = 10, y = 0, z = 20 })
                     local ab  = fakeAirbase(pad)
                     Airbase.getByName = function(n) return (n == pad:getName()) and ab or nil end
@@ -297,6 +287,7 @@ describe("FARP / minefield scenes", function()
                     local zone = CTLDZoneManager.getInstance():getTroopZoneAtPoint(
                         { x = 10, y = 0, z = 20 }, coalition.side.BLUE)
                     assert.is_nil(zone)
+                    borrowed:restore()
                 end)
 
                 it("removes the troop zone once the airbase stops existing (no ghost zone)", function()
@@ -318,6 +309,45 @@ describe("FARP / minefield scenes", function()
 
             end)
         end
+
+    end)
+
+    -- ── Countryside FARP pack cleanup (FEAT-FARP-TROOP-PICKUP review finding) ─
+    -- packScene() destroys scene._spawnedObjs but has no idea a troop zone/watcher exists.
+    -- Cleanup must happen in onRepack (called BEFORE destruction), not rely on
+    -- CTLDStaticWatcher later observing the airbase as gone — that DCS behavior (does
+    -- destroying the underlying static also flip a separately-resolved Airbase handle's
+    -- isExist()?) is not something this test suite can verify.
+    describe("Countryside FARP pack cleanup", function()
+
+        local origAirbaseGetByName
+
+        before_each(function()
+            CTLDZoneManager.getInstance()._troopZones = {}
+            origAirbaseGetByName = Airbase.getByName
+        end)
+
+        after_each(function()
+            Airbase.getByName = origAirbaseGetByName
+        end)
+
+        it("removes the troop zone in onRepack, before the FARP's objects are destroyed", function()
+            local pad = fakeHelipad("csfarp-pack-1", { x = 10, y = 0, z = 20 })
+            local ab  = fakeAirbase(pad)
+            function ab:getWarehouse() return nil end
+            Airbase.getByName = function(n) return (n == pad:getName()) and ab or nil end
+
+            local model = sm:getModel("Countryside FARP")
+            model.steps[#model.steps].func(ctxFor(pad))
+            assert.is_not_nil(CTLDZoneManager.getInstance():getTroopZoneAtPoint(
+                { x = 10, y = 0, z = 20 }, coalition.side.BLUE))
+
+            model.onRepack({ _params = { farpName = pad:getName() } }, {})
+
+            local zone = CTLDZoneManager.getInstance():getTroopZoneAtPoint(
+                { x = 10, y = 0, z = 20 }, coalition.side.BLUE)
+            assert.is_nil(zone)
+        end)
 
     end)
 

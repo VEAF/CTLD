@@ -100,6 +100,34 @@ same way, automatically, for all three FARP scene variants.
   `FIX-FOB-TROOP-PICKUP`: nothing subscribes to a troop-zone-creation event today.
 - **CHANGELOG.md**: an **Added** entry (new capability, not a restored one — unlike the FOB fix).
 
+**Post-review addendum** (8-angle code review on PR #137, 2026-08-26):
+- **Pack-scene ghost-zone gap, closed.** `CTLDSceneManager:packScene` destroys a scene's
+  `_spawnedObjs` with no idea a troop zone/watcher exists for it, and whether destroying a packed
+  static also flips a *separately-resolved* `Airbase` handle's `isExist()` isn't something to
+  assume — the review flagged this as untested and potentially leaving a permanent ghost pickup
+  zone. Only `Countryside FARP` supports packing among the three FARP scenes (`farpScene`/
+  `FARP Alpha` have no `onRepack` at all); its `onRepack` — already called by `packScene` *before*
+  any destruction — now calls `unregisterTroopZone`/`CTLDStaticWatcher:unwatch` explicitly first,
+  making cleanup deterministic and independent of that unverified DCS behavior.
+- **`CTLDStaticWatcher:watch` gained a collision WARN** (`CTLD_core.lua`) when it silently
+  overwrote a still-live entry for the same id — a pre-existing gap in a shared, unfactored
+  cross-feature registry (also used by `CTLDReconManager`), not specific to this PR, but cheap and
+  consistent with the collision guard `registerFOBAsTroopZone` already has.
+- **Architectural deviation from the FOB precedent, now documented** (doc comment on
+  `registerFARPTroopPickupFromScene`): the FOB path keeps `CTLDZoneManager` free of any
+  scene-context knowledge (`CTLDFOBManager:_registerDeployedFOB` unpacks `scene._params`/
+  `_spawnedObjs` and calls `CTLDZoneManager` with plain primitives); this PR's method reaches into
+  `ctx.scene._spawnedObjs` directly. Deliberate: no `CTLDFARPManager` exists (or is needed) to own
+  that unpacking, so introducing one only to preserve the FOB path's layering would be the
+  speculative abstraction — but the deviation is now explicit rather than silently copyable.
+- Also fixed: a redundant `ab:getName()` call (the name was already known from `helipad:getName()`
+  before the `Airbase.getByName` lookup); a WARN log on the two previously-silent failure branches
+  (no spawned object, `Airbase.getByName` returns `nil`); the new test file reused
+  `ctldTestSettings.borrow`/`:restore()` instead of a hand-rolled `ctld.gs` monkey-patch (the exact
+  pattern flagged and fixed on the previous PR, #136, and missed again here); trimmed unused
+  `unit`/`_params` fields from the test `ctx` fixture; fixed a miscounted step-total in a test
+  description string.
+
 ## Testing Decisions
 
 - **Structure**: extend `tests/ci/unit/scenes_minefields_spec.lua`'s existing

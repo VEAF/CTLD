@@ -20,6 +20,9 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   (`Airbase:isExist()`) via the existing `CTLDStaticWatcher` — already used for this exact object
   class by the recon FARP-detection code — rather than a new bespoke manager. The zone disappears
   the moment DCS considers the FARP destroyed.
+- Found in review: packing a `Countryside FARP` back into crates (`enableFARPRepack`) now removes
+  its troop pickup zone explicitly, before the pack destroys the FARP's objects, instead of
+  depending on an unverified DCS behavior to eventually notice.
 
 ### Fixed — troops can now actually be picked up at a built FOB (FIX-FOB-TROOP-PICKUP)
 

@@ -396,12 +396,20 @@ CTLDObjectRegistry.registerIfAbsent("Windsock", {
 
 -- ====================================================================================================
 -- BLOCK : onRepack — called by CTLDSceneManager:packScene before objects are destroyed.
--- Captures the current warehouse fuel levels so they can be restored on next deployment.
+-- Removes the FARP's troop pickup zone/watcher (FEAT-FARP-TROOP-PICKUP review finding: whether
+-- destroying the packed static also flips a separately-resolved Airbase handle's isExist() is
+-- not something to assume — clean up explicitly here rather than rely on CTLDStaticWatcher
+-- noticing later), and captures the current warehouse fuel levels so they can be restored on
+-- next deployment.
 -- ====================================================================================================
 
 countrysideFarpScene.onRepack = function(scene, repackData)
     local farpName = scene._params and scene._params.farpName
     if not farpName then return end
+
+    CTLDZoneManager.getInstance():unregisterTroopZone(farpName)
+    CTLDStaticWatcher.getInstance():unwatch("trz_farp_" .. farpName)
+
     local ab = Airbase.getByName(farpName)
     if not ab then return end
     local w = ab:getWarehouse()
