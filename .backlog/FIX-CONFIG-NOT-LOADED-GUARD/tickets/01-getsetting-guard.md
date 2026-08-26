@@ -1,6 +1,6 @@
 # 01 — refuse `getSetting` before `ctld.initialize()`, with a clear message
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 See the PRD for the legacy-parity-free root cause and the reasoning behind the chosen guard site.
 

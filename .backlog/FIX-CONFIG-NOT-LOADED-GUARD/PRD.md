@@ -1,6 +1,6 @@
 # FIX-CONFIG-NOT-LOADED-GUARD — reading config before ctld.initialize() crashes unreadably
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 Reported by **David "Zip" Pierron** ([GitHub issue #125](https://github.com/VEAF/CTLD/issues/125)),
 found on CTLD `2.0.0-rc7` vendored in VEAF-Mission-Creation-Tools, where the integrator failed to

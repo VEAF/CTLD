@@ -102,8 +102,16 @@ function CTLDConfig.localiseI18n(t)
     end
 end
 
--- Retrieve a specific setting
+-- Retrieve a specific setting. The sole choke point for every real read path (ctld.gs, the sole
+-- form src/ code is allowed to use, delegates straight here) and the documented-but-rarely-used
+-- direct CTLDConfig.get():getSetting() call a mission script could make. Refusing here — instead
+-- of in each manager's getInstance(), or in ctld.gs alone — catches both without duplicating the
+-- guard. Level 3 points the error at the caller of ctld.gs, not at this line.
 function CTLDConfig:getSetting(key)
+    if not self.isLoaded then
+        error("CTLD configuration is not loaded — call ctld.initialize() before reading any "
+            .. "CTLD setting or using a CTLD manager.", 3)
+    end
     local v = self.settings[key]
     if v ~= nil then return v end
     -- A parameter the snapshot omitted resolves to its catalogue default (ADR 0011 Addendum 1).
