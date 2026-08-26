@@ -221,3 +221,26 @@ bloquant/visible plutôt que silencieux quand le binaire manque, soit les deux. 
 **au to-prd/to-issues** : faire de ce nouveau job un gate bloquant dès le départ, ou l'ajouter en
 mode rapport seul le temps de nettoyer une éventuelle dette luacheck déjà accumulée dans `src/`
 (inconnue tant que le linter n'a jamais tourné dessus) ?
+
+## TRZ_ automatique — création liée au spawn d'un objet (FOB, FARP, etc.)
+
+Demandé le 2026-08-26. `CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)`
+(`FEAT-TROOP-ZONE-SCRIPTED-API`, PR #129) permet déjà de créer une `TRZ_` sur n'importe quel objet
+DCS nommé après coup, mais uniquement via un appel scripté explicite — un MM ou une intégration
+externe (ex. VMCT) doit le déclencher lui-même, objet par objet.
+
+Idée : un réglage de config qui automatise cet appel — dès qu'un objet correspondant à un critère
+donné (type, ex. FOB/FARP, ou convention de nommage) apparaît en mission, CTLD crée automatiquement
+une `TRZ_` dessus, sans script dédié côté MM.
+
+Non tranché (à instruire en grill-with-docs avant to-prd) :
+- **Déclencheur** : quel événement DCS marque un objet comme « spawné » selon son type (FOB/FARP
+  vs. unité/statique/groupe classique) — à vérifier contre le mécanisme de détection déjà utilisé
+  par `createTroopZoneAtObject` et par les zones dynamiques existantes.
+- **Critère de sélection** : liste explicite de types, convention de nommage (à la `TRZ_`/`EXTR_`/
+  `SVNT_`), ou les deux — voir l'entrée roadmap `extractableGroups` ci-dessus pour un précédent de
+  décision sur ce même choix.
+- **Nommage de la `TRZ_` générée** : quels champs (coalition/stock/flag/target) par défaut quand
+  rien n'est fourni par le MM, et est-ce que le `trzName` reste dérivable du nom de l'objet source.
+- **Portée** : lié au rafraîchissement menu F10 pour un joueur déjà sur place, voir l'entrée
+  roadmap « Zones dynamiques — aucun rafraîchissement... » ci-dessus (même trou probable).
