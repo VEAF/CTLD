@@ -343,6 +343,8 @@ zm:getLogisticZonesAtPoint(point, coalition, key)    -- TOUTES les zones contena
 ```lua
 zm:registerFOBAsLogistic(fobName, point, radius, coalitionId)  -- ajoute un FOB construit comme LGZ
 zm:unregisterLogistic(name)                                     -- retire une LGZ dynamique (FOB détruit)
+zm:registerFOBAsTroopZone(fobName, point, radius, coalitionId)  -- ajoute un FOB construit comme TRZ à stock illimité
+zm:unregisterTroopZone(name)                                    -- retire une TRZ dynamique (FOB détruit)
 zm:deactivateLogisticZone(name)                                 -- désactivation réversible (capture / perte)
 zm:activateLogisticZone(name)                                   -- réactive
 zm:setTroopZoneActive(zoneName, active)                         -- active / désactive une TRZ

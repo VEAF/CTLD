@@ -269,12 +269,14 @@ describe("CTLDFOBManager deploy + destroy", function()
         return o
     end
 
+    local FOB_CENTROID = { x = 10, y = 0, z = 20 }
+
     -- Minimal completed-scene stand-in: _registerDeployedFOB reads _params + _spawnedObjs.
     -- No transportName → the beacon branch (Unit.getByName / CTLDBeaconManager) is skipped.
     local function scene(objs)
         return {
             _params = {
-                centroid    = { x = 10, y = 0, z = 20 },
+                centroid    = FOB_CENTROID,
                 coalitionId = coalition.side.BLUE,
                 countryId   = country.id.USA,
                 player      = "auto-unpack",
@@ -285,11 +287,15 @@ describe("CTLDFOBManager deploy + destroy", function()
         }
     end
 
-    before_each(function()
-        fm = CTLDFOBManager.getInstance()
+    local function resetFOBManager()
         fm._fobs        = {}
         fm._objectToFOB = {}
         fm._fobCount    = 0
+    end
+
+    before_each(function()
+        fm = CTLDFOBManager.getInstance()
+        resetFOBManager()
     end)
 
     -- ── F-012 : deploy ────────────────────────────────────────────────────────
@@ -353,6 +359,79 @@ describe("CTLDFOBManager deploy + destroy", function()
 
             assert.equals(0, #fired)                     -- no destruction event
             assert.is_not_nil(fm._fobs["fob_001"])        -- still registered
+        end)
+
+    end)
+
+    -- ── FIX-FOB-TROOP-PICKUP : troop pickup zone ─────────────────────────────
+    describe("troop pickup zone (FIX-FOB-TROOP-PICKUP)", function()
+
+        before_each(function()
+            CTLDZoneManager.getInstance()._troopZones    = {}
+            CTLDZoneManager.getInstance()._logisticZones = {}
+        end)
+
+        it("registers a pickup-capable troop zone at the FOB centroid when troopPickupAtFOB is true", function()
+            fm:_registerDeployedFOB(scene({ sceneObj("fobA"), sceneObj("fobB") }))
+            local zone = CTLDZoneManager.getInstance():getTroopZoneAtPoint(FOB_CENTROID, coalition.side.BLUE)
+            assert.is_not_nil(zone)
+            assert.is_true(zone:hasPickup())
+        end)
+
+        it("registers no troop zone when troopPickupAtFOB is false", function()
+            local borrowed = ctldTestSettings.borrow({ troopPickupAtFOB = false })
+            fm:_registerDeployedFOB(scene({ sceneObj("fobA"), sceneObj("fobB") }))
+            local zone = CTLDZoneManager.getInstance():getTroopZoneAtPoint(FOB_CENTROID, coalition.side.BLUE)
+            assert.is_nil(zone)
+            borrowed:restore()
+        end)
+
+        it("removes the troop zone when the FOB is destroyed (no ghost zone)", function()
+            local o1, o2 = sceneObj("deadTroopA"), sceneObj("deadTroopB")
+            fm:_registerDeployedFOB(scene({ o1, o2 }))
+            assert.is_not_nil(CTLDZoneManager.getInstance():getTroopZoneAtPoint(FOB_CENTROID, coalition.side.BLUE))
+
+            o1._alive, o2._alive = false, false
+            fm:onDead({ initiator = o1 })
+
+            local zone = CTLDZoneManager.getInstance():getTroopZoneAtPoint(FOB_CENTROID, coalition.side.BLUE)
+            assert.is_nil(zone)
+        end)
+
+        it("leaves isInFOBTroopZone behaving exactly as before, for both settings", function()
+            fm:_registerDeployedFOB(scene({ sceneObj("fobC"), sceneObj("fobD") }))
+            assert.is_true(fm:isInFOBTroopZone(FOB_CENTROID, coalition.side.BLUE))
+
+            resetFOBManager()
+            CTLDZoneManager.getInstance()._troopZones = {}
+            local borrowed = ctldTestSettings.borrow({ troopPickupAtFOB = false })
+            fm:_registerDeployedFOB(scene({ sceneObj("fobE"), sceneObj("fobF") }))
+            assert.is_false(fm:isInFOBTroopZone(FOB_CENTROID, coalition.side.BLUE))
+            borrowed:restore()
+        end)
+
+        it("refuses to overwrite an existing troop zone with the same name (collision guard)", function()
+            local zm = CTLDZoneManager.getInstance()
+            local first = zm:registerFOBAsTroopZone("Deployed FOB #1", FOB_CENTROID, 150, coalition.side.BLUE)
+            assert.is_true(first)
+            local existing = zm._troopZones["Deployed FOB #1"]
+
+            local second = zm:registerFOBAsTroopZone("Deployed FOB #1", { x = 999, y = 0, z = 999 }, 300,
+                coalition.side.RED)
+            assert.is_false(second)
+            assert.equals(existing, zm._troopZones["Deployed FOB #1"])
+        end)
+
+        it("refuses to overwrite an existing logistic zone with the same name (collision guard)", function()
+            local zm = CTLDZoneManager.getInstance()
+            local first = zm:registerFOBAsLogistic("Deployed FOB #1", FOB_CENTROID, 150, coalition.side.BLUE)
+            assert.is_true(first)
+            local existing = zm._logisticZones["Deployed FOB #1"]
+
+            local second = zm:registerFOBAsLogistic("Deployed FOB #1", { x = 999, y = 0, z = 999 }, 300,
+                coalition.side.RED)
+            assert.is_false(second)
+            assert.equals(existing, zm._logisticZones["Deployed FOB #1"])
         end)
 
     end)
