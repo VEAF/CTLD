@@ -219,8 +219,24 @@ Idée de lot : soit ajouter un vrai job CI luacheck (le plus simple — `luachec
 `luarocks` sur le runner ubuntu déjà utilisé par `busted Tests`), soit rendre le hook local
 bloquant/visible plutôt que silencieux quand le binaire manque, soit les deux. Reste à trancher
 **au to-prd/to-issues** : faire de ce nouveau job un gate bloquant dès le départ, ou l'ajouter en
-mode rapport seul le temps de nettoyer une éventuelle dette luacheck déjà accumulée dans `src/`
-(inconnue tant que le linter n'a jamais tourné dessus) ?
+mode rapport seul le temps de nettoyer une éventuelle dette luacheck déjà accumulée dans `src/`.
+
+**Mise à jour (2026-08-26)** : luacheck installé en local (résolu deux `luarocks` en conflit sur
+cette machine — celui bundlé dans `lua-for-windows`, cassé pour compiler des extensions C, shadowait
+celui de scoop ; supprimé ses shims, gardé `lua-for-windows` pour son runtime Lua 5.1) et lancé sur
+`src/` pour de vrai la première fois. Résultat : **0 erreur**, 206 warnings dans 33 fichiers.
+**117 (57 %) étaient des faux positifs de config**, corrigés dans la foulée (`.luacheckrc`) :
+`class`/`AI`/`Spot`/`STTS`/`ctld_config_user` sont des globals réels (DCS ou legacy) absents de
+`read_globals`/`globals` (47 warnings), et les 70 restants étaient des lignes de traduction i18n
+dépassant `max_line_length=200` — limite sans objet sur du texte traduit, désormais exemptée pour
+`CTLD_i18n_{en,fr,es,ko}.lua`. Total ramené à **89 warnings, 0 erreur**, dette réelle et déjà
+quantifiée (donc le "reste à trancher" ci-dessus n'est plus une inconnue) :
+variables inutilisées et shadowing éparpillés sur ~8 fichiers, 2 branches `if` vides dans
+`CTLD_vehicle.lua`, une négation simplifiable dans `CTLD_jtac.lua`, et surtout **58 occurrences dans
+`legacy_api.lua`** où un paramètre nommé `_préfixé` (convention "volontairement inutilisé") est en
+fait utilisé — la convention de nommage elle-même est trompeuse à corriger, pas le code qui
+l'entoure. Chacune de ces ~89 lignes demande un vrai jugement au cas par cas, pas un simple réglage
+de config — candidat pour un futur lot de nettoyage dédié, hors scope de celui-ci.
 
 ## TRZ_ automatique — création liée au spawn d'un objet (FOB, FARP, etc.)
 
