@@ -2503,12 +2503,22 @@ event.</em></p>
 <tr>
 <td><code>registerFOBAsLogistic</code></td>
 <td><code>(fobName, point, radius, coalitionId)</code></td>
-<td>Register a FOB as a logistic zone (called automatically by <code>CTLDFOBManager</code> on FOB build).</td>
+<td>Register a FOB as a logistic zone (called automatically by <code>CTLDFOBManager</code> on FOB build). Refuses (<code>WARN</code>) on a name collision.</td>
 </tr>
 <tr>
 <td><code>unregisterLogistic</code></td>
 <td><code>(name)</code></td>
 <td>Remove a logistic zone by name (called automatically on FOB destruction).</td>
+</tr>
+<tr>
+<td><code>registerFOBAsTroopZone</code></td>
+<td><code>(fobName, point, radius, coalitionId)</code></td>
+<td>Register a FOB as an unlimited-stock troop pickup zone (called automatically by <code>CTLDFOBManager</code> on FOB build, gated by <code>troopPickupAtFOB</code>). Refuses (<code>WARN</code>) on a name collision.</td>
+</tr>
+<tr>
+<td><code>unregisterTroopZone</code></td>
+<td><code>(name)</code></td>
+<td>Remove a troop zone by name (called automatically on FOB destruction).</td>
 </tr>
 <tr>
 <td><code>getTroopZone</code></td>

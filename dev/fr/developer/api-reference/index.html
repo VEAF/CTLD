@@ -2504,12 +2504,22 @@ scripting des troops IA.</em></p>
 <tr>
 <td><code>registerFOBAsLogistic</code></td>
 <td><code>(fobName, point, radius, coalitionId)</code></td>
-<td>Enregistre un FOB comme zone logistique (appelé automatiquement par <code>CTLDFOBManager</code> à la construction d'un FOB).</td>
+<td>Enregistre un FOB comme zone logistique (appelé automatiquement par <code>CTLDFOBManager</code> à la construction d'un FOB). Refuse (<code>WARN</code>) en cas de collision de nom.</td>
 </tr>
 <tr>
 <td><code>unregisterLogistic</code></td>
 <td><code>(name)</code></td>
 <td>Supprime une zone logistique par son nom (appelé automatiquement à la destruction d'un FOB).</td>
+</tr>
+<tr>
+<td><code>registerFOBAsTroopZone</code></td>
+<td><code>(fobName, point, radius, coalitionId)</code></td>
+<td>Enregistre un FOB comme zone de pickup de troupes à stock illimité (appelé automatiquement par <code>CTLDFOBManager</code> à la construction d'un FOB, conditionné par <code>troopPickupAtFOB</code>). Refuse (<code>WARN</code>) en cas de collision de nom.</td>
+</tr>
+<tr>
+<td><code>unregisterTroopZone</code></td>
+<td><code>(name)</code></td>
+<td>Supprime une zone de troupes par son nom (appelé automatiquement à la destruction d'un FOB).</td>
 </tr>
 <tr>
 <td><code>getTroopZone</code></td>
