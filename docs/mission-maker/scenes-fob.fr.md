@@ -311,3 +311,43 @@ mm_facing:
 |---|---|
 | `OnFOBDeployed` | Construction du FOB terminée et base pleinement active |
 | `OnFOBDestroyed` | FOB détruit par une action ennemie |
+
+## FARP — Point de Ravitaillement et de Réarmement Avancé
+
+Une FARP est un point de ravitaillement/réarmement déployable construit à partir de crates,
+utilisant l'une des trois scenes FARP intégrées — `farpScene`, `FARP Alpha` ou `Countryside FARP`
+(voir [Scenes intégrées](#built-in-scenes) ci-dessus). Une fois construite, elle s'enregistre
+auprès de DCS comme une vraie base aérienne et, si `troopPickupAtFARP = true`, comme troop pickup
+zone — le même mécanisme qu'un FOB construit, fonctionnant identiquement sur les trois scenes.
+
+### Déroulé de la construction d'une FARP (côté pilote) { #farp-build-flow-pilot-side }
+
+1. Le pilote charge la ou les crates requises par la scene FARP choisie et vole jusqu'à la zone
+   cible.
+2. L'unpack est déclenché depuis le menu F10, comme pour toute autre scene.
+3. La scene de FARP se joue ; les structures spawnent en séquence.
+4. À la fin : la FARP est une base aérienne DCS fonctionnelle (ravitaillement/réarmement/réparation
+   disponibles), et — si `troopPickupAtFARP = true` — une troop pickup zone.
+
+### Destruction d'une FARP { #farp-destruction }
+
+Contrairement au FOB — dont la destruction est un seuil de fraction de structures
+(`fobDestructionThreshold`) — la destruction d'une FARP est décidée par DCS lui-même : dès que DCS
+ne considère plus la base aérienne sous-jacente comme existante, sa troop pickup zone (le cas
+échéant) est retirée immédiatement. Il n'existe pas de réglage de seuil de destruction spécifique
+à la FARP.
+
+### Configuration de la FARP { #farp-configuration }
+
+| Paramètre | Défaut | Description |
+|---|---|---|
+| `troopPickupAtFARP` | `true` | Enregistre une FARP déployée comme troop pickup zone |
+| `farpTroopPickupRadius` | `150` | Rayon (m) à l'intérieur duquel les troupes peuvent être récupérées à une FARP |
+
+Même famille `mm_facing` **FOB / FARP** que les réglages du FOB ci-dessus :
+
+```yaml
+mm_facing:
+  troopPickupAtFARP: true
+  farpTroopPickupRadius: 150
+```

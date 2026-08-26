@@ -1240,6 +1240,46 @@ function CTLDZoneManager:unregisterTroopZone(name)
     end
 end
 
+--- Register a built FARP as a troop pickup zone, gated by troopPickupAtFARP. Called from the
+-- final step of every FARP scene (farpScene, FARP Alpha, Countryside FARP) — ctx.scene._spawnedObjs[1]
+-- is always the FARP's own Heliports-category static, the first object every FARP scene spawns.
+-- Unlike a FOB, a FARP registers as a real DCS Airbase, so its destruction is binary and
+-- DCS-native (Airbase:isExist()) — no integrity model needed. Reuses CTLDStaticWatcher (already
+-- proven for this exact object class by CTLDReconManager's FARP detection) instead of a bespoke
+-- manager: the watch fires unregisterTroopZone once DCS considers the FARP gone.
+-- Repack/pack scenes (e.g. Countryside FARP) must NOT rely on that watch alone to clean up —
+-- their own onRepack calls unregisterTroopZone explicitly, before destroy(), since whether a
+-- packed static's destruction also flips a separately-resolved Airbase handle's isExist() is
+-- not something to assume.
+-- Deliberately placed on CTLDZoneManager rather than a dedicated CTLDFARPManager (the FOB path's
+-- CTLDFOBManager owns this kind of scene-context unpacking for FOB): a FARP needs no equivalent
+-- entity — no integrity tracking, no destruction handler of its own — so introducing one just to
+-- host this one method would be the speculative abstraction, not the reuse.
+-- @param ctx table  scene step context (ctx.scene._spawnedObjs, ctx.scene._coalitionId)
+function CTLDZoneManager:registerFARPTroopPickupFromScene(ctx)
+    if not ctld.gs("troopPickupAtFARP") then return end
+    local helipad = ctx.scene._spawnedObjs and ctx.scene._spawnedObjs[1]
+    if not helipad then
+        ctld.utils.log("WARN", "CTLDZoneManager:registerFARPTroopPickupFromScene — no spawned object")
+        return
+    end
+    local name = helipad:getName()
+    local ab   = Airbase.getByName(name)
+    if not ab then
+        ctld.utils.log("WARN",
+            "CTLDZoneManager:registerFARPTroopPickupFromScene — '%s' is not a resolvable Airbase", name)
+        return
+    end
+
+    local ok = self:registerFOBAsTroopZone(name, ab:getPoint(),
+        ctld.gs("farpTroopPickupRadius"), ctx.scene._coalitionId)
+    if not ok then return end
+
+    CTLDStaticWatcher.getInstance():watch("trz_farp_" .. name,
+        function() return ab:isExist() end,
+        function() CTLDZoneManager.getInstance():unregisterTroopZone(name) end)
+end
+
 --- Remove a logistic zone (e.g. FOB destroyed).
 function CTLDZoneManager:unregisterLogistic(name)
     local zone = self._logisticZones[name]

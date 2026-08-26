@@ -181,6 +181,13 @@ troopPickupAtFOB:
   description:
     en: Allow troop pickup at built FOBs
     fr: Autorise le pickup de troops aux FOB construits
+troopPickupAtFARP:
+  group: troops
+  standard: true
+  label: {en: Allow troop pickup at FARPs, fr: Autoriser l'embarquement aux FARP}
+  description:
+    en: Allow troop pickup at built FARPs
+    fr: Autorise le pickup de troops aux FARP construites
 maxExtractDistance:
   group: troops
   standard: true
@@ -427,6 +434,14 @@ fobTroopPickupRadius:
   description:
     en: Radius (m) within which troops may board at a FOB
     fr: Rayon (m) dans lequel les troops peuvent embarquer à un FOB
+farpTroopPickupRadius:
+  group: fob
+  standard: true
+  label: {en: FARP troop boarding radius, fr: Rayon d'embarquement à une FARP}
+  unit: m
+  description:
+    en: Radius (m) within which troops may board at a FARP
+    fr: Rayon (m) dans lequel les troops peuvent embarquer à une FARP
 fobDestructionThreshold:
   group: fob
   label: {en: FOB destruction threshold, fr: Seuil de destruction d'une FOB}

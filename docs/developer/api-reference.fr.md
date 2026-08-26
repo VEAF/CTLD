@@ -99,8 +99,9 @@ scripting des troops IA.*
 | `deactivateLogisticZone` | `(name)` | Suspend une LGZ — les joueurs à l'intérieur ne peuvent plus faire spawn de crates. Déclenche `OnLogisticZoneUpdated`. |
 | `registerFOBAsLogistic` | `(fobName, point, radius, coalitionId)` | Enregistre un FOB comme zone logistique (appelé automatiquement par `CTLDFOBManager` à la construction d'un FOB). Refuse (`WARN`) en cas de collision de nom. |
 | `unregisterLogistic` | `(name)` | Supprime une zone logistique par son nom (appelé automatiquement à la destruction d'un FOB). |
-| `registerFOBAsTroopZone` | `(fobName, point, radius, coalitionId)` | Enregistre un FOB comme zone de pickup de troupes à stock illimité (appelé automatiquement par `CTLDFOBManager` à la construction d'un FOB, conditionné par `troopPickupAtFOB`). Refuse (`WARN`) en cas de collision de nom. |
-| `unregisterTroopZone` | `(name)` | Supprime une zone de troupes par son nom (appelé automatiquement à la destruction d'un FOB). |
+| `registerFOBAsTroopZone` | `(fobName, point, radius, coalitionId)` | Enregistre une zone de pickup de troupes à stock illimité. Appelé automatiquement à la construction d'un FOB (conditionné par `troopPickupAtFOB`) et, via `registerFARPTroopPickupFromScene`, à la construction d'une FARP (conditionné par `troopPickupAtFARP`). Refuse (`WARN`) en cas de collision de nom. |
+| `unregisterTroopZone` | `(name)` | Supprime une zone de troupes par son nom (appelé automatiquement à la destruction d'un FOB/FARP). |
+| `registerFARPTroopPickupFromScene` | `(ctx)` | Enregistre une FARP construite comme zone de pickup de troupes depuis l'étape finale d'une scène (`ctx.scene._spawnedObjs[1]` est le statique catégorie Heliports de la FARP). Surveille l'`Airbase` résultante via `CTLDStaticWatcher` et appelle `unregisterTroopZone` une fois DCS la considère détruite — aucun manager FARP dédié nécessaire. |
 | `getTroopZone` | `(zoneName)` | Retourne le `CTLDTroopZone` pour `zoneName`, ou `nil`. |
 | `getTroopZonesForCoalition` | `(coalition)` | Retourne toutes les troop zones d'une coalition. |
 | `getTroopZoneAtPoint` | `(point, coalition)` | Retourne la troop zone contenant `point`, ou `nil`. |

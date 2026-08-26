@@ -182,12 +182,20 @@ function CTLDStaticWatcher:init()
     ctld.utils.log("INFO", "CTLDStaticWatcher: init complete")
 end
 
---- Register an object to watch.
--- @param id       string   unique key (e.g. airbase name or fobId)
+--- Register an object to watch. _watched is a single flat, shared registry across every
+-- caller in the engine — prefix id with a caller-specific namespace (e.g. "recon_farp_",
+-- "trz_farp_") so two independent features watching the same underlying DCS object never
+-- collide. Re-watching a live id silently replaces the previous entry (logged as a WARN).
+-- @param id       string   unique, caller-namespaced key (e.g. "trz_farp_" .. airbaseName)
 -- @param checkFn  function returns true while alive
 -- @param onDeadFn function called once when checkFn() → false
 -- @param meta     any      passed to onDeadFn and S_EVENT_STATIC_DEAD payload (optional)
 function CTLDStaticWatcher:watch(id, checkFn, onDeadFn, meta)
+    if self._watched[id] then
+        ctld.utils.log("WARN",
+            "CTLDStaticWatcher: watch('%s') overwrites a still-live entry — callers must use a unique id",
+            tostring(id))
+    end
     self._watched[id] = { checkFn = checkFn, onDeadFn = onDeadFn, meta = meta }
     self:_ensureTimer()
     ctld.utils.log("INFO", "CTLDStaticWatcher: watching '%s'", tostring(id))

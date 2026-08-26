@@ -8,6 +8,22 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — troops can now be picked up at a built FARP (FEAT-FARP-TROOP-PICKUP)
+
+- **New `troopPickupAtFARP`** (default `true`) and **`farpTroopPickupRadius`** (default `150` m,
+  independent of the FOB's own radius). A built FARP — any of the three built-in scenes:
+  `farpScene`, `FARP Alpha`, `Countryside FARP` — now registers a troop pickup zone the moment its
+  scene completes, discovered through the same `CTLDZoneManager` machinery as a Mission-Editor
+  `TRZ_…` zone or a built FOB. Follows directly from `FIX-FOB-TROOP-PICKUP`: reuses
+  `registerFOBAsTroopZone`/`unregisterTroopZone` as-is.
+- Unlike a FOB, a FARP registers as a real DCS airbase, so its destruction is detected natively
+  (`Airbase:isExist()`) via the existing `CTLDStaticWatcher` — already used for this exact object
+  class by the recon FARP-detection code — rather than a new bespoke manager. The zone disappears
+  the moment DCS considers the FARP destroyed.
+- Found in review: packing a `Countryside FARP` back into crates (`enableFARPRepack`) now removes
+  its troop pickup zone explicitly, before the pack destroys the FARP's objects, instead of
+  depending on an unverified DCS behavior to eventually notice.
+
 ### Fixed — troops can now actually be picked up at a built FOB (FIX-FOB-TROOP-PICKUP)
 
 - **`troopPickupAtFOB` (default `true`) had no effect in-game.** It set a per-FOB flag read only
