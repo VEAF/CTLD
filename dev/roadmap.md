@@ -244,3 +244,39 @@ Non tranché (à instruire en grill-with-docs avant to-prd) :
   rien n'est fourni par le MM, et est-ce que le `trzName` reste dérivable du nom de l'objet source.
 - **Portée** : lié au rafraîchissement menu F10 pour un joueur déjà sur place, voir l'entrée
   roadmap « Zones dynamiques — aucun rafraîchissement... » ci-dessus (même trou probable).
+
+## Lien générique zone ↔ objet de référence (owner-triggered)
+
+Constaté en grillant le fix `troopPickupAtFOB` (2026-08-26, voir aussi le lot
+`FIX-FOB-TROOP-PICKUP` qui corrige le bug lui-même sans attendre cette généralisation) : la
+plomberie d'ancrage est **dupliquée, pas partagée**, entre `CTLDTroopZone` et `CTLDLogisticZone`
+(`CTLD_zone.lua:40` et `:372`) — `_linkedUnit`, `_anchorUnitName`, `getCenter()`, `isDynamic()`,
+`isAlive()` existent en code quasi identique dans les deux classes. Et l'enregistrement/nettoyage
+d'une zone liée à un FOB est ad hoc par type : `registerFOBAsLogistic` + `unregisterLogistic`
+existent pour la logistique ; le fix `FIX-FOB-TROOP-PICKUP` ajoute leur symétrique
+(`registerFOBAsTroopZone` + `unregisterTroopZone`) pour les troupes, appelé explicitement depuis
+`CTLDFOBManager:_destroyFOB`. Un troisième type de zone lié à un FOB demain exigerait un troisième
+couple register/unregister et un troisième appel dans `_destroyFOB` à ne pas oublier.
+
+Constat important qui écarte une généralisation naïve de l'ancrage existant : il y a en réalité
+**deux mécanismes de cycle de vie**, pas un — l'ancrage par sondage (`_linkedUnit:isExist()`,
+marche pour un objet DCS unique) et la notification par le propriétaire (le FOB n'utilise pas
+`_linkedUnit` ; sa mort est un jugement composite — seuil d'intégrité sur plusieurs
+`sceneObjects` — que rien ne peut déduire en sondant un seul objet). Le FARP suivrait
+probablement le même schéma composite.
+
+Idée : un registre de liens orthogonal aux tables de zones existantes —
+`CTLDZoneManager:linkZonesToOwner(ownerId, { {type="logistic", key=...}, {type="troop", key=...},
+... })` côté création, et un seul `CTLDZoneManager:unlinkOwner(ownerId)` côté suppression, qui sait
+par type dans quelle table `nil`-er et quel événement `OnXxxZoneUpdated` publier. `_destroyFOB`
+(et demain le teardown FARP, et tout futur propriétaire composite) n'aurait plus qu'un seul appel
+à faire, quel que soit le nombre de types de zones liés. Referme aussi, comme effet de bord,
+l'entrée roadmap « Zones dynamiques — aucun rafraîchissement du menu F10 » ci-dessus : un point
+d'entrée unique de création/suppression est le bon endroit pour garantir ce rafraîchissement,
+au lieu de compter sur chaque fonction de création pour y penser séparément.
+
+Non tranché (à instruire en grill-with-docs dédié avant to-prd) : le générique doit-il aussi
+absorber l'ancrage par sondage (`_linkedUnit`) existant, ou rester un mécanisme séparé pour les
+propriétaires composites uniquement ; forme exacte de `ownerId` et de la table d'entrées ; est-ce
+que `createTroopZoneAtObject`/`createExtractZone` (aujourd'hui sans notion de propriétaire ni
+d'événement publié) migrent vers ce registre ou restent à part.
