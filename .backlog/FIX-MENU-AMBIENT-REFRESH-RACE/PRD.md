@@ -1,6 +1,6 @@
 # FIX-MENU-AMBIENT-REFRESH-RACE — a background F10 menu rebuild can fire the wrong CTLD command
 
-**Status:** ⬜ ready
+**Status:** 🔄 in-progress
 
 Reported live by **a.lingo**, 2026-09-16: a C-130 parked on a TRZ requested "Load Standard Group"
 from `Troop Commands > Embark / Extract Troops`, and instead triggered `Smoke > Red` at the

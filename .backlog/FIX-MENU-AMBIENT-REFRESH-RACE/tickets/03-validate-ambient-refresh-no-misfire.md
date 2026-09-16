@@ -1,6 +1,23 @@
 # 03 — Validate: no misfire during an ambient refresh (busted + live dcs-bridge)
 
-**Status:** ⬜ ready
+**Status:** ✅ done
+
+Busted: all cases below implemented in `tests/ci/unit/menu_manager_spec.lua`
+("ctld.MenuManager ambient vs urgent refresh"), `busted tests/ci/` green (1373/1373).
+
+Live: `tests/dcs/pilotActive/scenario_menu_ambient_refresh_race.lua` (tag `MARR`) run against the
+live mission on 2026-09-16 — **PASS 2/2**:
+
+```
+20:21:10.008  [MARR] forcing ambient refresh for groupId=1
+20:21:10.008  [MARR] PASS MARR-1: ambient refresh forced
+20:21:41.642  [MARR] PASS MARR-2: embarkFromTroopZone ran correctly — auto-verified via hasTroops()
+20:21:41.642  [MARR] ✅ [OK] Menu ambient refresh race — no misfire — 2/2 PASS
+```
+
+After the forced ambient refresh, the pilot's click on "Load Standard Group" correctly ran
+`embarkFromTroopZone` — confirmed programmatically via `CTLDTroopManager:hasTroops()`, not just the
+pilot's self-report. No misfire (the original bug's `dropSmoke` shape did not reproduce).
 
 **Blocked by:** ticket 02.
 
@@ -75,10 +92,8 @@ tiering rule).
 
 ## Acceptance
 
-- [ ] All busted cases above pass; `busted tests/ci/` green overall.
-- [ ] `luacheck --config .luacheckrc src/` clean.
-- [ ] The live scenario, run manually at least once against a real mission, confirms `PASS` —
-  attach the run's verdict/log excerpt to this ticket or the PR description.
-- [ ] `docs/developer/subsystems/menu.md` updated to describe the ambient/urgent split (the file
-  currently documents only the atomic wipe+rebuild model and the 0.15s burst debounce — both still
-  true, but incomplete after this lot).
+- [x] All busted cases above pass; `busted tests/ci/` green overall (1373/1373).
+- [x] `luacheck --config .luacheckrc src/` clean.
+- [x] The live scenario, run manually against the real mission, confirms `PASS` — verdict/log
+  excerpt above.
+- [x] `docs/developer/subsystems/menu.md` (+`.fr.md`) updated to describe the ambient/urgent split.

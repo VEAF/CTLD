@@ -1,6 +1,6 @@
 # 02 — Split ambient (delayed) vs urgent (immediate) menu refresh
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** ticket 01 (confirms the small list of no-click-context urgent sites).
 
@@ -70,26 +70,26 @@ uses an automatic same-group detector instead of manually tagging ~30 call sites
 
 ## Acceptance
 
-- [ ] `menu:refresh()` called from **outside** any `runUrgent` context (or for a different group
+- [x] `menu:refresh()` called from **outside** any `runUrgent` context (or for a different group
   than the one currently inside one) wipes the group's CTLD root handle(s) immediately but does
   not re-add any command/submenu until `AMBIENT_REBUILD_DELAY_S` seconds later.
-- [ ] `menu:refresh()` called **from inside** `runUrgent(G, ...)` for that same group `G` wipes and
+- [x] `menu:refresh()` called **from inside** `runUrgent(G, ...)` for that same group `G` wipes and
   rebuilds in the same call — no observable behavior change from today for any existing
   click-triggered refresh (embark, disembark, pack, unpack, request equipment, etc.), including
   ones reached through a synchronous `EventDispatcher` publish nested in the same call stack.
-- [ ] `menu:refresh({ urgent = true })` always wipes and rebuilds in the same call, regardless of
+- [x] `menu:refresh({ urgent = true })` always wipes and rebuilds in the same call, regardless of
   `_urgentGroupId` — the direct escape hatch works independently of the automatic detector.
-- [ ] `onTakeoff`, `onLand`, and the flight-state poller's TAKEOFF/LAND transitions rebuild
+- [x] `onTakeoff`, `onLand`, and the flight-state poller's TAKEOFF/LAND transitions rebuild
   immediately (via `runUrgent`), matching today's behavior exactly.
-- [ ] A second ambient refresh for the same group while one is already pending does not reset or
+- [x] A second ambient refresh for the same group while one is already pending does not reset or
   duplicate the scheduled rebuild.
-- [ ] An urgent refresh for a group with a pending ambient rebuild cancels the pending timer and
+- [x] An urgent refresh for a group with a pending ambient rebuild cancels the pending timer and
   rebuilds immediately — no double-rebuild, no leftover scheduled function firing later on stale
   state.
-- [ ] A refresh fanned out to a *different* group than the one currently inside a `runUrgent` call
+- [x] A refresh fanned out to a *different* group than the one currently inside a `runUrgent` call
   (e.g. `_refreshNearbyPlayers` reaching a bystander) stays ambient — proves the same-group check,
   not just "some urgent context is active", gates urgency.
-- [ ] `busted tests/ci/` green, `luacheck --config .luacheckrc src/` clean, `CTLD.lua` rebuilt.
+- [x] `busted tests/ci/` green, `luacheck --config .luacheckrc src/` clean, `CTLD.lua` rebuilt.
 
 ## Tests
 

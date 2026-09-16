@@ -1,6 +1,6 @@
 # 01 — Audit non-click-triggered "urgent" refresh entry points
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 See the PRD and **ADR 0015**. This ticket's scope was narrowed during implementation — see
 "Design refinement" below before reading the rest.
@@ -79,9 +79,9 @@ synchronously from one of those) needs **no change** — the automatic mechanism
 
 ## Acceptance
 
-- [ ] The three sites above (or whatever a fresh grep confirms as the complete "real transition,
+- [x] The three sites above (or whatever a fresh grep confirms as the complete "real transition,
   no click context" set) are the only call sites carrying an explicit `{ urgent = true }`.
-- [ ] No code change in `src/` — this ticket is audit-only; ticket 02 implements both the
+- [x] No code change in `src/` — this ticket is audit-only; ticket 02 implements both the
   automatic mechanism and these explicit opt-ins.
 
 ## Findings
