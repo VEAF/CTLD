@@ -8,6 +8,24 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a background menu refresh could fire the wrong F10 command (FIX-MENU-AMBIENT-REFRESH-RACE)
+
+- **A transport parked on a pickup zone could ask for one thing on F10 and get another** —
+  reported live: a C-130 on a TRZ requested "Load Standard Group" and instead triggered
+  `Smoke > Red` at its own position. Reproduced twice against a live mission: `refreshMenuForGroup`
+  wipes and rebuilds a group's whole F10 menu atomically on every call (by design), and a
+  background refresh landing while the player is mid-navigation resolves their next click against
+  the freshly rebuilt tree instead of the stale screen they're looking at. DCS exposes no way to
+  know a player's menu is open, so the race can't be detected directly.
+- Any refresh that isn't a direct, synchronous consequence of the group's own action (a background
+  poll, a cross-player event fan-out) is now **ambient** by default: it wipes the menu immediately
+  — so a click landing in the gap now resolves to nothing instead of the wrong command — then
+  rebuilds it 4 seconds later. Refreshes reached synchronously from the group's own click, or from
+  `onTakeoff`/`onLand`/the flight-state poller, remain immediate, detected automatically with no
+  per-call-site tagging needed.
+- See **ADR 0015** for the full investigation, the two live reproductions, and the alternatives
+  considered (and rejected) before this design.
+
 ### Fixed — CTLD.lua 2.0.0-rc8 did not load at all (FIX-BUILT-FILE-DOES-NOT-LOAD)
 
 - **The released `CTLD.lua` aborted while loading**, two thirds of the way through its own main

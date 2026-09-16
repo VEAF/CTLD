@@ -446,6 +446,195 @@ describe("ctld.MenuManager refreshMenuForGroup _activeHandles", function()
 end)
 
 -- ─────────────────────────────────────────────────────────────
+-- FIX-MENU-AMBIENT-REFRESH-RACE: ambient (delayed) vs urgent (immediate) refresh.
+-- See dev/adr/0015-safe-by-default-ambient-menu-refresh.md for the full rationale.
+describe("ctld.MenuManager ambient vs urgent refresh", function()
+
+    local mgr
+    local addCalls, removeCalls, handleSeq
+    local scheduledCalls   -- { fn, id, t } per timer.scheduleFunction call
+    local removedIds       -- ids passed to timer.removeFunction
+    local nextTimerId
+
+    local AMBIENT_DELAY = 4      -- must match AMBIENT_REBUILD_DELAY_S in CTLD_menu.lua
+    local DEBOUNCE       = 0.15  -- must match DEBOUNCE_S in CTLD_menu.lua
+
+    before_each(function()
+        ctld.MenuManager._instance = nil
+        mgr         = ctld.MenuManager:getInstance()
+        addCalls    = {}
+        removeCalls = {}
+        handleSeq   = 0
+        scheduledCalls = {}
+        removedIds     = {}
+        nextTimerId    = 0
+
+        missionCommands.addSubMenuForGroup = function(gid, name, _path)
+            handleSeq = handleSeq + 1
+            local h = "h" .. handleSeq
+            table.insert(addCalls, { gid = gid, name = name, handle = h })
+            return h
+        end
+        missionCommands.addCommandForGroup = function(_gid, _name, _path, fn)
+            return fn   -- return the wrapped callback so tests can invoke it directly
+        end
+        missionCommands.removeItemForGroup = function(gid, h)
+            table.insert(removeCalls, { gid = gid, handle = h })
+        end
+        timer.scheduleFunction = function(fn, _arg, t)
+            nextTimerId = nextTimerId + 1
+            table.insert(scheduledCalls, { fn = fn, id = nextTimerId, t = t })
+            return nextTimerId
+        end
+        timer.removeFunction = function(id)
+            table.insert(removedIds, id)
+        end
+        timer.getTime = function() return 0 end
+    end)
+
+    after_each(function()
+        missionCommands.addSubMenuForGroup = function() end
+        missionCommands.addCommandForGroup = function() end
+        missionCommands.removeItemForGroup = function() end
+        timer.scheduleFunction = function(fn, arg, t) return 0 end
+        timer.removeFunction = function(id) end
+        timer.getTime = function() return 0 end
+    end)
+
+    -- Seed a menu with one top-level submenu and immediately render it (bypassing
+    -- deferredRefreshForGroup entirely), the way a real menu looks right after
+    -- buildMenu/onPlayerEnterUnit — establishes _activeHandles for the ambient wipe to act on.
+    local function seedMenu(groupId)
+        local menu = mgr:createMenuForGroup(groupId)
+        menu:addSubMenu({}, "CTLD", { order = 10 })
+        mgr:refreshMenuForGroup(groupId)
+        return menu
+    end
+
+    it("ambient refresh (no context) wipes immediately but delays the rebuild", function()
+        local menu = seedMenu(6001)
+        local addBefore = #addCalls
+
+        menu:refresh()   -- no opts, no runUrgent context => ambient
+
+        assert.equals(1, #removeCalls)            -- wiped now
+        assert.equals(addBefore, #addCalls)       -- NOT rebuilt yet
+        assert.equals(0, #menu._activeHandles)    -- nothing left for a click to resolve against
+        assert.equals(1, #scheduledCalls)
+        assert.equals(AMBIENT_DELAY, scheduledCalls[1].t)
+
+        scheduledCalls[1].fn()   -- advance the mocked timer
+
+        assert.equals(addBefore + 1, #addCalls)   -- rebuilt now
+        assert.equals(1, #menu._activeHandles)
+    end)
+
+    it("a second ambient refresh while one is pending does not re-wipe or reschedule", function()
+        local menu = seedMenu(6002)
+
+        menu:refresh()
+        assert.equals(1, #removeCalls)
+        assert.equals(1, #scheduledCalls)
+
+        menu:refresh()   -- second ambient call, still pending
+        assert.equals(1, #removeCalls)     -- no second wipe (nothing left to remove anyway)
+        assert.equals(1, #scheduledCalls)  -- no second timer
+    end)
+
+    it("menu:refresh({ urgent = true }) rebuilds via the normal debounced-immediate path", function()
+        local menu = seedMenu(6003)
+        local addBefore = #addCalls
+
+        menu:refresh({ urgent = true })
+
+        assert.equals(1, #scheduledCalls)
+        assert.equals(DEBOUNCE, scheduledCalls[1].t)   -- DEBOUNCE_S, not AMBIENT_REBUILD_DELAY_S
+        scheduledCalls[1].fn()
+        assert.equals(addBefore + 1, #addCalls)
+    end)
+
+    it("an urgent refresh cancels a pending ambient rebuild for the same group", function()
+        local menu = seedMenu(6004)
+
+        menu:refresh()   -- ambient: schedules the delayed rebuild
+        local ambientTimerId = scheduledCalls[1].id
+
+        menu:refresh({ urgent = true })
+
+        assert.equals(1, #removedIds)
+        assert.equals(ambientTimerId, removedIds[1])
+        -- the urgent path scheduled its own (debounced) rebuild afterward
+        assert.equals(2, #scheduledCalls)
+        assert.equals(DEBOUNCE, scheduledCalls[2].t)
+    end)
+
+    it("runUrgent marks refreshes for that same group urgent for the duration of fn", function()
+        local menu = seedMenu(6005)
+
+        mgr:runUrgent(6005, function()
+            menu:refresh()
+        end)
+
+        assert.equals(1, #scheduledCalls)
+        assert.equals(DEBOUNCE, scheduledCalls[1].t)
+        assert.is_nil(mgr._urgentGroupId)   -- cleared after runUrgent returns
+    end)
+
+    it("a refresh for a DIFFERENT group during runUrgent stays ambient (bystander case)", function()
+        local menuActor    = seedMenu(6006)
+        local menuBystander = seedMenu(6007)
+
+        mgr:runUrgent(6006, function()
+            menuBystander:refresh()   -- fan-out to a different group mid-callback
+        end)
+
+        assert.equals(1, #scheduledCalls)
+        assert.equals(AMBIENT_DELAY, scheduledCalls[1].t)   -- ambient, not urgent
+    end)
+
+    it("runUrgent clears _urgentGroupId even when fn raises", function()
+        local ok = pcall(function()
+            mgr:runUrgent(6008, function() error("boom") end)
+        end)
+        assert.is_false(ok)
+        assert.is_nil(mgr._urgentGroupId)
+
+        -- a later ambient refresh for that same group must not be wrongly urgent
+        local menu = seedMenu(6008)
+        menu:refresh()
+        assert.equals(AMBIENT_DELAY, scheduledCalls[#scheduledCalls].t)
+    end)
+
+    it("a real menu command's own refresh is urgent automatically (no opts needed)", function()
+        local menu = mgr:createMenuForGroup(6009)
+        local capturedWrapped
+        local origAddCmd = missionCommands.addCommandForGroup
+        missionCommands.addCommandForGroup = function(_gid, _name, _path, fn)
+            capturedWrapped = fn
+        end
+
+        menu:addSubMenu({}, "CTLD", { order = 10 })
+        menu:addCommand({ "CTLD" }, "Do Thing", function()
+            menu:refresh()   -- refresh triggered synchronously from inside the click
+        end)
+        mgr:refreshMenuForGroup(6009)   -- renders the command, capturing `wrapped`
+        missionCommands.addCommandForGroup = origAddCmd
+
+        assert.is_not_nil(capturedWrapped)
+        local addBefore = #addCalls
+
+        capturedWrapped()   -- simulate DCS invoking the click
+
+        assert.equals(1, #scheduledCalls)
+        assert.equals(DEBOUNCE, scheduledCalls[1].t)   -- urgent, auto-detected
+        scheduledCalls[1].fn()
+        assert.equals(addBefore + 1, #addCalls)
+        assert.is_nil(mgr._urgentGroupId)   -- cleared after the command callback returns
+    end)
+
+end)
+
+-- ─────────────────────────────────────────────────────────────
 describe("ctld.MenuManager _rebuildPagedChildren pagination", function()
     -- U-066
 

@@ -229,31 +229,42 @@ function CTLDPlayerManager:init()
                             db.pending   = nil
                             db.ticks     = 0
                             playerObj._isFlying = nowInAir
+                            -- runUrgent: same real transition onTakeoff/onLand handle, detected
+                            -- here redundantly by polling — see AMBIENT vs URGENT REFRESH in
+                            -- CTLD_menu.lua.
                             if nowInAir then
-                                CTLDTroopManager.getInstance():refreshMenuSection(playerObj, true)
-                                CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
-                                CTLDCrateManager.getInstance():refreshCrateFlightSection(playerObj, true)
-                                CTLDVehicleSpawner.getInstance():refreshLoadSection(playerObj)
-                                CTLDVehicleSpawner.getInstance():refreshUnloadSection(playerObj)
-                                CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(playerObj)
-                                CTLDJTACManager.getInstance():refreshJtacEquipmentSection(playerObj)
+                                ctld.MenuManager:getInstance():runUrgent(playerObj.groupId, function()
+                                    CTLDTroopManager.getInstance():refreshMenuSection(playerObj, true)
+                                    CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
+                                    CTLDCrateManager.getInstance():refreshCrateFlightSection(playerObj, true)
+                                    CTLDVehicleSpawner.getInstance():refreshLoadSection(playerObj)
+                                    CTLDVehicleSpawner.getInstance():refreshUnloadSection(playerObj)
+                                    CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(playerObj)
+                                    CTLDJTACManager.getInstance():refreshJtacEquipmentSection(playerObj)
+                                end)
                                 ctld.utils.log("INFO", "CTLDPlayerManager: flight-state poller → TAKEOFF unit=%s", unitName)
                             else
-                                CTLDTroopManager.getInstance():refreshMenuSection(playerObj, false)
-                                CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
-                                CTLDCrateManager.getInstance():refreshLoadCrateSection(playerObj)
-                                CTLDCrateManager.getInstance():refreshUnpackSection(playerObj, true)  -- _noRefresh: refreshCrateFlightSection below calls refresh()
-                                CTLDCrateManager.getInstance():refreshCrateFlightSection(playerObj, false)
-                                CTLDVehicleSpawner.getInstance():refreshLoadSection(playerObj)
-                                CTLDVehicleSpawner.getInstance():refreshUnloadSection(playerObj)
-                                CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(playerObj)
-                                CTLDJTACManager.getInstance():refreshJtacEquipmentSection(playerObj)
-                                for _, s in ipairs(inst._menuSections) do
-                                    if s.refreshMethod and s.manager and s.manager[s.refreshMethod] then
-                                        local _rok, _rerr = pcall(s.manager[s.refreshMethod], s.manager, playerObj)
-                                        if not _rok then ctld.utils.log("WARN", "CTLDPlayerManager: refreshSection '%s' failed for '%s': %s", tostring(s.refreshMethod), unitName, tostring(_rerr)) end
+                                ctld.MenuManager:getInstance():runUrgent(playerObj.groupId, function()
+                                    CTLDTroopManager.getInstance():refreshMenuSection(playerObj, false)
+                                    CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
+                                    CTLDCrateManager.getInstance():refreshLoadCrateSection(playerObj)
+                                    CTLDCrateManager.getInstance():refreshUnpackSection(playerObj, true)  -- _noRefresh: refreshCrateFlightSection below calls refresh()
+                                    CTLDCrateManager.getInstance():refreshCrateFlightSection(playerObj, false)
+                                    CTLDVehicleSpawner.getInstance():refreshLoadSection(playerObj)
+                                    CTLDVehicleSpawner.getInstance():refreshUnloadSection(playerObj)
+                                    CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(playerObj)
+                                    CTLDJTACManager.getInstance():refreshJtacEquipmentSection(playerObj)
+                                    for _, s in ipairs(inst._menuSections) do
+                                        if s.refreshMethod and s.manager and s.manager[s.refreshMethod] then
+                                            local _rok, _rerr = pcall(s.manager[s.refreshMethod], s.manager, playerObj)
+                                            if not _rok then
+                                                ctld.utils.log("WARN",
+                                                    "CTLDPlayerManager: refreshSection '%s' failed for '%s': %s",
+                                                    tostring(s.refreshMethod), unitName, tostring(_rerr))
+                                            end
+                                        end
                                     end
-                                end
+                                end)
                                 ctld.utils.log("INFO", "CTLDPlayerManager: flight-state poller → LAND unit=%s", unitName)
                             end
                         end
@@ -402,31 +413,36 @@ function CTLDPlayerManager:onLand(event)
     -- the 1 s timer sees ground state and does not rebuild flight-only items (Pack Equipt).
     captured._isFlying = false
     timer.scheduleFunction(function()
-        -- Pass overrideInAir=false: S_EVENT_LAND fires before inAir() crosses its threshold;
-        -- force ground state immediately rather than relying on the speed/AGL check.
-        CTLDTroopManager.getInstance():refreshMenuSection(captured, false)
-        CTLDCrateManager.getInstance():refreshRequestEquipmentSection(captured)
-        CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
-        CTLDCrateManager.getInstance():refreshUnpackSection(captured, true)  -- _noRefresh: refreshCrateFlightSection below calls refresh()
-        -- Pass overrideInAir=false: S_EVENT_LAND fires before inAir() crosses its threshold;
-        -- force ground state immediately rather than relying on the speed/AGL check.
-        CTLDCrateManager.getInstance():refreshCrateFlightSection(captured, false)
-        CTLDVehicleSpawner.getInstance():refreshLoadSection(captured)
-        CTLDVehicleSpawner.getInstance():refreshUnloadSection(captured)
-        CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(captured)
-        CTLDJTACManager.getInstance():refreshJtacEquipmentSection(captured)
-        -- Generic refresh for sections that registered a refreshMethod
-        -- (e.g. mine field demine section — proximity-dependent content).
-        for _, s in ipairs(self._menuSections) do
-            if s.refreshMethod and s.manager and s.manager[s.refreshMethod] then
-                local ok, err = pcall(s.manager[s.refreshMethod], s.manager, captured)
-                if not ok then
-                    ctld.utils.log("WARN",
-                        "CTLDPlayerManager:onLand refreshMethod '%s' error: %s",
-                        tostring(s.refreshMethod), tostring(err))
+        -- runUrgent: landing is a real, player-noticed state transition (not a silent
+        -- background one) even though it fires from a timer, not a menu click — see
+        -- AMBIENT vs URGENT REFRESH in CTLD_menu.lua.
+        ctld.MenuManager:getInstance():runUrgent(captured.groupId, function()
+            -- Pass overrideInAir=false: S_EVENT_LAND fires before inAir() crosses its threshold;
+            -- force ground state immediately rather than relying on the speed/AGL check.
+            CTLDTroopManager.getInstance():refreshMenuSection(captured, false)
+            CTLDCrateManager.getInstance():refreshRequestEquipmentSection(captured)
+            CTLDCrateManager.getInstance():refreshLoadCrateSection(captured)
+            CTLDCrateManager.getInstance():refreshUnpackSection(captured, true)  -- _noRefresh: refreshCrateFlightSection below calls refresh()
+            -- Pass overrideInAir=false: S_EVENT_LAND fires before inAir() crosses its threshold;
+            -- force ground state immediately rather than relying on the speed/AGL check.
+            CTLDCrateManager.getInstance():refreshCrateFlightSection(captured, false)
+            CTLDVehicleSpawner.getInstance():refreshLoadSection(captured)
+            CTLDVehicleSpawner.getInstance():refreshUnloadSection(captured)
+            CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(captured)
+            CTLDJTACManager.getInstance():refreshJtacEquipmentSection(captured)
+            -- Generic refresh for sections that registered a refreshMethod
+            -- (e.g. mine field demine section — proximity-dependent content).
+            for _, s in ipairs(self._menuSections) do
+                if s.refreshMethod and s.manager and s.manager[s.refreshMethod] then
+                    local ok, err = pcall(s.manager[s.refreshMethod], s.manager, captured)
+                    if not ok then
+                        ctld.utils.log("WARN",
+                            "CTLDPlayerManager:onLand refreshMethod '%s' error: %s",
+                            tostring(s.refreshMethod), tostring(err))
+                    end
                 end
             end
-        end
+        end)
     end, nil, timer.getTime() + 1)
 end
 
@@ -439,15 +455,21 @@ function CTLDPlayerManager:onTakeoff(event)
     -- Set flight flag immediately so any refresh between now and inAir() reaching threshold
     -- (e.g. _refreshNearbyPackPlayers triggered by vehicle events) sees flight state.
     playerObj._isFlying = true
-    -- Pass overrideInAir=true: S_EVENT_TAKEOFF fires before ctld.utils.inAir() crosses its speed/AGL
-    -- threshold, so we explicitly signal flight mode rather than relying on inAir() at this point.
-    CTLDTroopManager.getInstance():refreshMenuSection(playerObj, true)
-    CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
-    CTLDCrateManager.getInstance():refreshCrateFlightSection(playerObj, true)
-    CTLDVehicleSpawner.getInstance():refreshLoadSection(playerObj)
-    CTLDVehicleSpawner.getInstance():refreshUnloadSection(playerObj)
-    CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(playerObj)
-    CTLDJTACManager.getInstance():refreshJtacEquipmentSection(playerObj)
+    -- runUrgent: takeoff is a real, player-noticed state transition (not a silent background
+    -- one) even though it has no menu-click context to auto-detect urgency from — see
+    -- AMBIENT vs URGENT REFRESH in CTLD_menu.lua.
+    ctld.MenuManager:getInstance():runUrgent(playerObj.groupId, function()
+        -- Pass overrideInAir=true: S_EVENT_TAKEOFF fires before ctld.utils.inAir() crosses its
+        -- speed/AGL threshold, so we explicitly signal flight mode rather than relying on
+        -- inAir() at this point.
+        CTLDTroopManager.getInstance():refreshMenuSection(playerObj, true)
+        CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
+        CTLDCrateManager.getInstance():refreshCrateFlightSection(playerObj, true)
+        CTLDVehicleSpawner.getInstance():refreshLoadSection(playerObj)
+        CTLDVehicleSpawner.getInstance():refreshUnloadSection(playerObj)
+        CTLDVehicleSpawner.getInstance():refreshParachuteVehicleSection(playerObj)
+        CTLDJTACManager.getInstance():refreshJtacEquipmentSection(playerObj)
+    end)
 end
 
 --- Register a menu section contributed by a manager.

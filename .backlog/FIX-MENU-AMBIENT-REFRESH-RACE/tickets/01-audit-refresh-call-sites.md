@@ -21,23 +21,29 @@ parameter through dozens of signatures across 6 files.
 **Simpler mechanism, same observable behavior**: DCS/Lua has no preemption — one menu command's
 callback (`ctld.MenuManager:_rebuildMenuNode`'s `wrapped` function,
 [CTLD_menu.lua:192](../../src/CTLD_menu.lua#L192)) runs synchronously to completion before another
-can start. So "is this refresh a direct, synchronous consequence of group G's own click" can be
-answered by a single shared field set for the duration of that callback — no parameter threading:
+can start. So "is this refresh a direct, synchronous consequence of group G's own action" can be
+answered by a single shared field set for the duration of that action — no parameter threading:
 
-- `wrapped` sets `ctld.MenuManager._activeCommandGroupId = groupId` right before calling `fn(arg)`,
-  clears it (`= nil`) right after, unconditionally (success or `pcall` failure).
+- A new `ctld.MenuManager:runUrgent(groupId, fn)` helper sets `_urgentGroupId = groupId`, runs
+  `fn()`, clears `_urgentGroupId` unconditionally afterward (success or error).
+- `wrapped` routes its existing `pcall(fn, arg)` through `runUrgent(groupId, ...)`.
 - `deferredRefreshForGroup(groupId, opts)` treats the refresh as urgent when
-  `opts and opts.urgent == true` **or** `groupId == ctld.MenuManager._activeCommandGroupId`.
+  `opts and opts.urgent == true` **or** `groupId == ctld.MenuManager._urgentGroupId`.
 
 This makes every refresh reached synchronously from a group's own click urgent **automatically**,
 with zero changes at ~25 of the ~30 original call sites — including ones nested behind an
 `EventDispatcher` publish that fires synchronously within the same call stack (`OnCrateLoaded`,
 `OnVehicleLoaded`, etc.), since Lua's synchronous event dispatch means the flag is still set when
 those handlers run. Critically, it also gets bystanders right for free: `_refreshNearbyPlayers`
-fanning out to a *different* group mid-callback compares that group's id against
-`_activeCommandGroupId` (the acting group's id) and correctly finds no match → stays ambient — the
-exact "classify from the receiving group's perspective" rule the original ticket called for,
-without having to enforce it by hand at each fan-out site.
+fanning out to a *different* group mid-callback compares that group's id against `_urgentGroupId`
+(the acting group's id) and correctly finds no match → stays ambient — the exact "classify from
+the receiving group's perspective" rule the original ticket called for, without having to enforce
+it by hand at each fan-out site.
+
+The same `runUrgent` helper is reused (not the `{ urgent = true }` opts flag) for the three
+no-click-context sites below — they wrap their existing refresh calls in
+`runUrgent(playerObj.groupId, function() ... end)` too, since it's the identical mechanism applied
+from a non-click context rather than a separate code path.
 
 ## What changes
 
@@ -49,7 +55,7 @@ silent background one").
 Confirmed candidates (verify with a fresh read before ticket 02 implements — this is a starting
 point):
 
-| Site | Why it needs explicit `urgent = true` |
+| Site | Why it needs `runUrgent` wrapping |
 |---|---|
 | `CTLDPlayerManager:onTakeoff` ([CTLD_player.lua:434](../../src/CTLD_player.lua#L434)) | Fired from `S_EVENT_TAKEOFF`, not a menu click — no command-callback context exists to auto-detect. |
 | `CTLDPlayerManager:onLand` ([CTLD_player.lua:394](../../src/CTLD_player.lua#L394)) | Same — `S_EVENT_LAND`, no click context. |
