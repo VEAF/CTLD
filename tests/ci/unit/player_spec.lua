@@ -349,6 +349,115 @@ describe("CTLDPlayerManager onPlayerEnterUnit + onPlayerLeaveUnit", function()
 end)
 
 -- ─────────────────────────────────────────────────────────────
+-- FIX-MENU-AMBIENT-REFRESH-RACE follow-up: buildMenu must render immediately (urgent), and
+-- onPlayerLeaveUnit must not leave a stale pending-refresh entry behind for a reused groupId.
+describe("CTLDPlayerManager buildMenu / onPlayerLeaveUnit — ambient/urgent interplay", function()
+
+    local mgr, mmgr
+    local addCalls, scheduledCalls, removedIds, nextTimerId
+
+    local mockGroup = { _id = 4242, _name = "mock_grp_4242" }
+    function mockGroup:getID()   return self._id   end
+    function mockGroup:getName() return self._name end
+
+    local mockUnit = {
+        _name = "mock_pilot_4242",
+        _type = "UH-1H",
+        _coa  = coalition.side.BLUE,
+    }
+    function mockUnit:getName()       return self._name end
+    function mockUnit:getTypeName()   return self._type end
+    function mockUnit:getCoalition()  return self._coa  end
+    function mockUnit:isExist()       return true        end
+    function mockUnit:getPlayerName() return "MockPilot" end
+    function mockUnit:getGroup()      return mockGroup   end
+
+    before_each(function()
+        CTLDPlayerManager._instance  = nil
+        CTLDDCSEventBridge._instance = nil
+        ctld.MenuManager._instance   = nil
+        mgr  = CTLDPlayerManager.getInstance()
+        mmgr = ctld.MenuManager:getInstance()
+
+        addCalls       = {}
+        scheduledCalls = {}
+        removedIds     = {}
+        nextTimerId    = 0
+
+        missionCommands.addSubMenuForGroup = function(gid, name, _path)
+            table.insert(addCalls, { gid = gid, name = name })
+            return "h" .. (#addCalls)
+        end
+        missionCommands.addCommandForGroup = function(gid, name)
+            table.insert(addCalls, { gid = gid, name = name })
+        end
+        missionCommands.removeItemForGroup = function() end
+        timer.scheduleFunction = function(fn, _arg, t)
+            nextTimerId = nextTimerId + 1
+            table.insert(scheduledCalls, { fn = fn, id = nextTimerId, t = t })
+            return nextTimerId
+        end
+        timer.removeFunction = function(id) table.insert(removedIds, id) end
+        timer.getTime = function() return 0 end
+    end)
+
+    after_each(function()
+        missionCommands.addSubMenuForGroup = function() end
+        missionCommands.addCommandForGroup = function() end
+        missionCommands.removeItemForGroup = function() end
+        timer.scheduleFunction = function(fn, arg, t) return 0 end
+        timer.removeFunction = function(id) end
+        timer.getTime = function() return 0 end
+    end)
+
+    it("a freshly-joined player's menu renders immediately, not after AMBIENT_REBUILD_DELAY_S", function()
+        mgr:onPlayerEnterUnit({ initiator = mockUnit })
+
+        -- buildMenu's own trailing refresh must have gone through the urgent (debounced) path:
+        -- scheduled at DEBOUNCE_S (0.15), not AMBIENT_REBUILD_DELAY_S (4) — and, since the
+        -- flow is urgent, the same debounce timer that's already captured is the one that
+        -- actually renders once advanced.
+        assert.is_true(#scheduledCalls >= 1)
+        assert.equals(0.15, scheduledCalls[#scheduledCalls].t)
+
+        local addBefore = #addCalls
+        scheduledCalls[#scheduledCalls].fn()
+        assert.is_true(#addCalls > addBefore)   -- the CTLD root menu actually got rendered
+    end)
+
+    it("onTakeoff's refresh chain is urgent, not delayed 4s (regression anchor for the runUrgent wrap)", function()
+        mgr:onPlayerEnterUnit({ initiator = mockUnit })
+        scheduledCalls[#scheduledCalls].fn()   -- settle the initial urgent build first
+        local scheduledBefore = #scheduledCalls
+
+        mgr:onTakeoff({ initiator = mockUnit })
+
+        -- At least one new refresh must have been scheduled, and none of the NEW ones may be
+        -- the 4s ambient delay — reverting onTakeoff's runUrgent wrap would make this fail.
+        assert.is_true(#scheduledCalls > scheduledBefore)
+        for i = scheduledBefore + 1, #scheduledCalls do
+            assert.not_equal(4, scheduledCalls[i].t)
+        end
+    end)
+
+    it("onPlayerLeaveUnit cancels any pending refresh for the departing group", function()
+        mgr:onPlayerEnterUnit({ initiator = mockUnit })
+        -- Advance the urgent debounce so the menu is fully built before it's torn down.
+        scheduledCalls[#scheduledCalls].fn()
+
+        -- Simulate an ambient refresh left pending for this group at the moment the player leaves.
+        mmgr:deferredRefreshForGroup(mockGroup._id)
+        assert.is_not_nil(mmgr._pendingAmbient[mockGroup._id])
+
+        mgr:onPlayerLeaveUnit({ initiator = mockUnit })
+
+        assert.is_nil(mmgr._pendingAmbient[mockGroup._id])
+        assert.is_nil(mmgr._pendingRefresh[mockGroup._id])
+    end)
+
+end)
+
+-- ─────────────────────────────────────────────────────────────
 describe("CTLDPlayerManager onPlayerLeaveUnit multi-crew group-aware", function()
     -- U-030
 
