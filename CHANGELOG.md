@@ -26,6 +26,39 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   doesn't apply to an always-satisfied part). One change fixes both HAWK and Patriot; S-300's own
   `NoCrate` part ("TEL D") has no catalogue entry and was never affected.
 
+### Fixed — a background menu refresh could fire the wrong F10 command (FIX-MENU-AMBIENT-REFRESH-RACE)
+
+- **A transport parked on a pickup zone could ask for one thing on F10 and get another** —
+  reported live: a C-130 on a TRZ requested "Load Standard Group" and instead triggered
+  `Smoke > Red` at its own position. Reproduced twice against a live mission: `refreshMenuForGroup`
+  wipes and rebuilds a group's whole F10 menu atomically on every call (by design), and a
+  background refresh landing while the player is mid-navigation resolves their next click against
+  the freshly rebuilt tree instead of the stale screen they're looking at. DCS exposes no way to
+  know a player's menu is open, so the race can't be detected directly.
+- Any refresh that isn't a direct, synchronous consequence of the group's own action (a background
+  poll, a cross-player event fan-out) is now **ambient** by default: it wipes the menu immediately
+  — so a click landing in the gap now resolves to nothing instead of the wrong command — then
+  rebuilds it 4 seconds later. Refreshes reached synchronously from the group's own click, or from
+  `onTakeoff`/`onLand`/the flight-state poller, remain immediate, detected automatically with no
+  per-call-site tagging needed.
+- Self-review before merge caught and fixed three more regressions the ambient default silently
+  introduced: a freshly-joined player's first F10 menu appearance was itself delayed up to 4s
+  (`buildMenu` is now wrapped so it always renders immediately — nothing was on screen yet, so
+  there was never a race to protect against there); the same delay hit a player's own menu right
+  after a successful hover-slingload or losing a crate to overspeed (now immediate — their own
+  action, their own menu, no bystander risk); and a group leaving mid-ambient-wait could leave a
+  stale pending-rebuild entry that DCS could later apply to an unrelated occupant reusing the same
+  numeric group id (now cleared on last-crew-leave). Also hardened `runUrgent` itself: it now
+  saves/restores the previous urgent group (instead of unconditionally clearing it) so a nested
+  call can't demote an outer one back to ambient, and logs a raising callback instead of
+  re-raising it — `onTakeoff`/`onLand`/the flight-state poller call it from inside their own
+  unprotected `timer.scheduleFunction` callback, where an uncaught raise would have silently
+  killed that recurring poller for every player.
+- See **ADR 0015** for the full investigation, the two live reproductions, and the alternatives
+  considered (and rejected) before this design.
+
+### Fixed — CTLD.lua 2.0.0-rc8 did not load at all (FIX-BUILT-FILE-DOES-NOT-LOAD)
+
 - **The released `CTLD.lua` aborted while loading**, two thirds of the way through its own main
   chunk. Reported against VEAF Tools 6.22.0, the first release to vendor rc8
   ([VEAF-Mission-Creation-Tools issue #957](https://github.com/VEAF/VEAF-Mission-Creation-Tools/issues/957)).

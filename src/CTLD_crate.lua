@@ -1153,7 +1153,13 @@ function CTLDCrateManager:checkHoverStatus()
                         })
                         trigger.action.outTextForGroup(playerObj.groupId,
                             ctld.tr("Too fast! Slingloaded crate lost: %1", lost.descriptor.desc), 10)
-                        CTLDPlayerManager.getInstance():refreshForUnit(unitName)
+                        -- runUrgent: a direct, player-noticed consequence of this player's own
+                        -- flying (own crate lost, own menu only) — see AMBIENT vs URGENT REFRESH
+                        -- in CTLD_menu.lua. No bystander risk: refreshForUnit only touches this
+                        -- unit's own menu.
+                        ctld.MenuManager:getInstance():runUrgent(playerObj.groupId, function()
+                            CTLDPlayerManager.getInstance():refreshForUnit(unitName)
+                        end)
                     end
                     self._hoverStatus[unitName] = nil
 
@@ -1224,17 +1230,24 @@ function CTLDCrateManager:checkHoverStatus()
                                 trigger.action.outTextForGroup(playerObj.groupId,
                                     ctld.tr("Slingloaded %1 crate!", nearestCrate.descriptor.desc), 10, true)
                                 ctld.utils.updateTransportWeight(unitName)
-                                self:_publish("OnCrateLoaded", {
-                                    crate           = nearestCrate,
-                                    crateName       = nearestCrate.crateName,
-                                    carrierUnitName = transport:getName(),
-                                    coalition       = nearestCrate.coalition,
-                                    descriptor      = nearestCrate.descriptor,
-                                    trigger         = "slingload",
-                                    timestamp       = timer.getAbsTime(),
-                                })
-                                CTLDPlayerManager.getInstance():refreshForUnit(unitName)
-                                self:refreshCrateFlightSectionForUnit(unitName)
+                                -- runUrgent: a direct, player-noticed consequence of this
+                                -- player's own successful hover-slingload — see AMBIENT vs
+                                -- URGENT REFRESH in CTLD_menu.lua. Wraps the OnCrateLoaded
+                                -- publish too, since its own subscriber (CTLDPlayerManager)
+                                -- refreshes this same unit's menu synchronously.
+                                ctld.MenuManager:getInstance():runUrgent(playerObj.groupId, function()
+                                    self:_publish("OnCrateLoaded", {
+                                        crate           = nearestCrate,
+                                        crateName       = nearestCrate.crateName,
+                                        carrierUnitName = transport:getName(),
+                                        coalition       = nearestCrate.coalition,
+                                        descriptor      = nearestCrate.descriptor,
+                                        trigger         = "slingload",
+                                        timestamp       = timer.getAbsTime(),
+                                    })
+                                    CTLDPlayerManager.getInstance():refreshForUnit(unitName)
+                                    self:refreshCrateFlightSectionForUnit(unitName)
+                                end)
                             end
                         else
                             if warnTooLow then

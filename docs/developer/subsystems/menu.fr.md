@@ -157,6 +157,49 @@ déclenchent ensemble) d'éjecter le joueur du menu F10 en pleine navigation. Le
 à l'entrée d'un joueur passe aussi par le debounce. `refreshMenuForGroup` reste disponible pour une
 reconstruction directe, non débouncée.
 
+### Rafraîchissement ambiant vs urgent { #ambient-vs-urgent-refresh }
+
+Ajouté par `FIX-MENU-AMBIENT-REFRESH-RACE` — voir l'**ADR 0015** pour l'investigation complète.
+
+Le debounce de 0.15 s ci-dessus ne fusionne que les *rafales* rapprochées — il ne fait rien quand
+un seul rafraîchissement légitime survient pendant qu'un joueur navigue déjà dans le menu qu'on
+s'apprête à démonter. DCS ne donne aux scripts aucun moyen de savoir si le menu F10 d'un joueur est
+ouvert ni à quel niveau, donc une reconstruction à ce moment résout le **prochain** clic du joueur
+contre l'arbre fraîchement reconstruit au lieu de l'écran figé qu'il regarde — confirmé en direct :
+un rafraîchissement en tâche de fond survenant en pleine navigation a fait déclencher au joueur une
+commande différente de celle affichée à l'écran.
+
+Chaque rafraîchissement est de l'un des deux types suivants :
+
+- **Urgent** — conséquence directe et synchrone de l'action du groupe lui-même : le
+  rafraîchissement qu'une commande de menu déclenche juste après avoir terminé (embarquement,
+  débarquement, pack, unpack…), ou une vraie transition d'état remarquée par le joueur sans clic à
+  désigner (`onTakeoff`, `onLand`, le poller d'état de vol). Reconstruit immédiatement, via le même
+  chemin débouncé qu'avant.
+- **Ambiant** — tout le reste (polls en tâche de fond, diffusions d'événements vers d'autres
+  joueurs comme `_refreshNearbyPlayers`). Le **défaut**. Vide le menu du groupe immédiatement — un
+  clic survenant dans cet intervalle ne résout donc plus rien au lieu de la mauvaise commande —
+  puis le reconstruit `AMBIENT_REBUILD_DELAY_S = 4 s` plus tard. Une seconde demande ambiante alors
+  qu'une reconstruction est déjà planifiée fusionne (pas de second vidage, pas de reprogrammation) ;
+  une demande urgente préempte une reconstruction ambiante en attente (annule le minuteur,
+  reconstruit immédiatement).
+
+L'urgence est détectée automatiquement plutôt que marquée à la main sur chacun des ~30 sites
+d'appel de rafraîchissement, la plupart étant des fonctions partagées accessibles à la fois depuis
+le clic d'un joueur et depuis un contexte d'arrière-plan/inter-joueurs.
+`ctld.MenuManager:runUrgent(groupId, fn)` enregistre `groupId` dans un champ partagé
+`_urgentGroupId` pendant la durée de `fn` (les callbacks DCS/Lua ne se préemptent jamais entre eux,
+donc un seul champ partagé est sûr), et le vide inconditionnellement ensuite.
+`deferredRefreshForGroup` traite un rafraîchissement comme urgent quand son `groupId` correspond à
+`_urgentGroupId` — vrai pour tout ce qui est atteint de façon synchrone depuis cet appel, quel que
+soit le nombre de couches de fonctions partagées ou de publications `EventDispatcher` synchrones
+traversées, et correctement faux pour une diffusion atteignant le menu d'un **autre** groupe en
+cours d'appel (un spectateur reste ambiant, comme il se doit). Le `wrapped` de `_rebuildMenuNode`
+fait passer chaque clic de menu par `runUrgent` ; `onTakeoff`, `onLand` et le poller d'état de vol
+l'appellent directement depuis leur propre contexte sans clic. Un `{ urgent = true }` explicite
+passé à `refresh()`/`deferredRefreshForGroup` reste disponible comme échappatoire direct à côté de
+la détection automatique.
+
 ### Pagination
 
 DCS donne à chaque niveau de menu dix créneaux contrôlés par le programmeur (F1–F10 ; F11 est la
