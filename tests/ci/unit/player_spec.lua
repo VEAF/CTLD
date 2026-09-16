@@ -425,6 +425,21 @@ describe("CTLDPlayerManager buildMenu / onPlayerLeaveUnit — ambient/urgent int
         assert.is_true(#addCalls > addBefore)   -- the CTLD root menu actually got rendered
     end)
 
+    it("onTakeoff's refresh chain is urgent, not delayed 4s (regression anchor for the runUrgent wrap)", function()
+        mgr:onPlayerEnterUnit({ initiator = mockUnit })
+        scheduledCalls[#scheduledCalls].fn()   -- settle the initial urgent build first
+        local scheduledBefore = #scheduledCalls
+
+        mgr:onTakeoff({ initiator = mockUnit })
+
+        -- At least one new refresh must have been scheduled, and none of the NEW ones may be
+        -- the 4s ambient delay — reverting onTakeoff's runUrgent wrap would make this fail.
+        assert.is_true(#scheduledCalls > scheduledBefore)
+        for i = scheduledBefore + 1, #scheduledCalls do
+            assert.not_equal(4, scheduledCalls[i].t)
+        end
+    end)
+
     it("onPlayerLeaveUnit cancels any pending refresh for the departing group", function()
         mgr:onPlayerEnterUnit({ initiator = mockUnit })
         -- Advance the urgent debounce so the menu is fully built before it's torn down.
