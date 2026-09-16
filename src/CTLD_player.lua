@@ -392,6 +392,10 @@ function CTLDPlayerManager:onPlayerLeaveUnit(event)
             end
             mmgr.menus[groupId] = nil
         end
+        -- DCS can reuse this numeric groupId for an unrelated slot occupant — a pending
+        -- urgent/ambient rebuild left scheduled for the departing group must not silently
+        -- swallow or delay the next occupant's first menu build.
+        mmgr:cancelPending(groupId)
     end
     -- else: other crew members remain — preserve the DCS menu for them.
 
@@ -502,8 +506,21 @@ end
 -- Wipes and reconstructs atomically via ctld.MenuManager.
 -- Sections are contributed by managers registered via registerMenuSection().
 -- Each section is rendered only when its configKey (if any) resolves to true.
+-- runUrgent: nothing is on screen yet for a brand-new menu (or, for a rebuild, the player
+-- just triggered this directly — e.g. a language change), so there is no stale-screen race to
+-- guard against here — see AMBIENT vs URGENT REFRESH in CTLD_menu.lua. Without this, the
+-- section builders' own trailing menu:refresh() calls would take the ambient path by default,
+-- delaying a freshly-joined player's first F10 menu appearance by AMBIENT_REBUILD_DELAY_S.
 -- @param playerObj CTLDPlayer
 function CTLDPlayerManager:buildMenu(playerObj)
+    ctld.MenuManager:getInstance():runUrgent(playerObj.groupId, function()
+        self:_buildMenuBody(playerObj)
+    end)
+end
+
+--- Actual body of buildMenu(), run inside runUrgent() by its caller above.
+-- @param playerObj CTLDPlayer
+function CTLDPlayerManager:_buildMenuBody(playerObj)
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:createMenuForGroup(playerObj.groupId)
     if not menu then

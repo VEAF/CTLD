@@ -108,8 +108,53 @@ takeoff/land branches — the only refreshes with *no* click context at all — 
   observed in the reproduction session's `dcs.log`), but sharply reduced from the observed 4-16 s
   window down to whatever residual gap exceeds the constant.
 - Only the handful of no-click-context "real transition" call sites (`onTakeoff`, `onLand`, the
-  flight-state poller) need explicit `runUrgent` wrapping; everything else is covered
+  flight-state poller, `buildMenu`, and the two hover-slingload outcomes — see "Hardening from
+  self-review" below) need explicit `runUrgent` wrapping; everything else is covered
   automatically. A future refresh added inside a menu command's own callback needs no change at
   all — it inherits urgency for free. A future *background* trigger that should somehow be urgent
   (unlikely, but possible) would need to call `runUrgent` itself, or pass `{ urgent = true }`;
   forgetting it costs an unnecessary ~4 s lag, not a correctness bug.
+
+## Hardening from self-review
+
+A multi-angle self-review before merge (line-by-line diff scan, cross-file trace, altitude, test
+coverage) surfaced real problems in the first implementation, all fixed in the same PR:
+
+- **`buildMenu` and the two hover-slingload outcomes (crate lost to overspeed, crate
+  successfully slingloaded) had no click context and were not wrapped** — so a freshly-joined
+  player's first F10 menu, and a player's own menu right after either hover-slingload outcome,
+  silently took the ambient path: up to a 4 s wait where nothing was there to protect. Both cases
+  are safe to make urgent unconditionally: `buildMenu` has nothing on screen yet to race against,
+  and the hover-slingload calls only ever touch the acting player's own menu (`refreshForUnit`
+  addressed by unit name, never a fan-out), so there is no bystander to put at risk.
+  `CTLDCrateManager:_injectSceneCrate`'s "refresh every active transport player instantly" fan-out
+  (from `FIX-PLUGIN-CRATE-INSTANT-REFRESH`) was audited too and deliberately **left ambient**: it
+  really does reach other players' menus, so marking it urgent would reintroduce a bystander risk
+  for the sake of an UX nicety — accepted as a known, narrower regression of that ticket's
+  "instant" promise rather than fixed here.
+- **`runUrgent` cleared `_urgentGroupId` unconditionally instead of saving/restoring the previous
+  value.** Harmless with today's four-then-six call sites (none nest), but nothing prevented a
+  future nested call — same group or different — from resetting an outer, still-running call back
+  to `nil` on exit, silently demoting the rest of the outer callback's refreshes to ambient. Fixed
+  to save/restore, making the helper correct by construction rather than by accident of the
+  current call graph.
+- **`runUrgent` re-raised a failing callback's error after cleanup**, on the assumption every
+  caller already wraps it in a `pcall`. True only for the menu-click site (whose own inner `pcall`
+  never lets an error reach `runUrgent` in the first place, making the re-raise dead code there).
+  `onTakeoff` and `onLand` run inside a one-shot `timer.scheduleFunction` callback and the
+  flight-state poller inside its own *recurring* one — none wrapped in an outer `pcall` — so a
+  single failing refresh inside `runUrgent` would have propagated out and, for the poller
+  specifically, skipped its `return t + POLL_INTERVAL`, silently killing that recurring callback
+  for every tracked player. Fixed: `runUrgent` now logs a failing callback instead of re-raising,
+  matching this codebase's other pcall-wrap-and-log call sites.
+- **An ambient request arriving while an urgent one was already pending for the same group didn't
+  short-circuit** — it would still wipe (harmless, already wiped) and schedule its own
+  `AMBIENT_REBUILD_DELAY_S` timer, which would later fire on its own and force an unprompted
+  rebuild on a player who has long since moved on: a milder recurrence of the exact bug class this
+  ADR exists to close. Fixed: an ambient request now no-ops outright when an urgent rebuild is
+  already scheduled for that group.
+- **A departing group's pending urgent/ambient state was never cancelled.** DCS can reuse a
+  numeric `groupId` for an unrelated slot occupant; a stale `_pendingAmbient`/`_pendingRefresh`
+  entry left over from the player who just left could silently coalesce away the next occupant's
+  first menu build. Fixed with a new `ctld.MenuManager:cancelPending(groupId)`, called from
+  `onPlayerLeaveUnit` on last-crew-leave.

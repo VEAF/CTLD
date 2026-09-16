@@ -97,3 +97,27 @@ Covered by ticket 03 (busted specs with a mocked timer, following the existing f
 debounce test pattern already in `tests/ci/` for `CTLD_player.lua`'s poller). Not duplicated here
 to keep implementation and verification as separate reviewable steps, per the PRD's own ticket
 ordering.
+
+## Follow-up (self-review before merge)
+
+A multi-angle self-review of the PR surfaced real gaps this ticket's original scope missed —
+see **ADR 0015**'s "Hardening from self-review" section for the full detail. Fixed in the same
+PR, no new ticket:
+
+- `CTLDPlayerManager:buildMenu` (`CTLD_player.lua`) split into a thin wrapper + `_buildMenuBody`,
+  the wrapper calling `runUrgent` — a freshly-joined player's first F10 menu was silently taking
+  the 4s ambient path with nothing to protect against.
+- The two hover-slingload outcomes in `CTLD_crate.lua`'s `checkHoverStatus` (crate lost to
+  overspeed, crate successfully loaded) wrapped in `runUrgent` — same-player-only refreshes that
+  had no click context. `_injectSceneCrate`'s all-players fan-out was audited and deliberately
+  left ambient (a real fan-out, so urgent would reintroduce bystander risk).
+- `runUrgent` hardened: saves/restores the previous `_urgentGroupId` instead of unconditionally
+  clearing it (nesting safety), and logs a raising callback instead of re-raising it (three of its
+  four real call sites run inside an unprotected `timer.scheduleFunction` callback where a raise
+  would have propagated — fatally, for the recurring flight-state poller).
+- `deferredRefreshForGroup`'s ambient branch now no-ops when an urgent rebuild is already pending
+  for the group, instead of also scheduling its own ambient timer that would otherwise fire later,
+  unprompted.
+- New `ctld.MenuManager:cancelPending(groupId)`, called from `onPlayerLeaveUnit` on last-crew-leave
+  — a departing group's pending urgent/ambient state was never cancelled, risking a stale entry
+  suppressing the next occupant's menu build if DCS reuses the numeric groupId.

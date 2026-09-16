@@ -592,17 +592,25 @@ describe("ctld.MenuManager ambient vs urgent refresh", function()
         assert.equals(AMBIENT_DELAY, scheduledCalls[1].t)   -- ambient, not urgent
     end)
 
-    it("runUrgent clears _urgentGroupId even when fn raises", function()
-        local ok = pcall(function()
+    it("runUrgent logs and swallows a raising fn instead of propagating it", function()
+        -- Several real callers (onTakeoff, onLand, the flight-state poller) invoke runUrgent
+        -- from inside their own unprotected timer.scheduleFunction callback — a raise here must
+        -- never escape runUrgent, or a single bad refresh would kill that recurring callback.
+        assert.has_no_error(function()
             mgr:runUrgent(6008, function() error("boom") end)
         end)
-        assert.is_false(ok)
         assert.is_nil(mgr._urgentGroupId)
 
         -- a later ambient refresh for that same group must not be wrongly urgent
         local menu = seedMenu(6008)
         menu:refresh()
         assert.equals(AMBIENT_DELAY, scheduledCalls[#scheduledCalls].t)
+    end)
+
+    it("runUrgent restores (not just clears) the previous _urgentGroupId on exit", function()
+        mgr._urgentGroupId = 9001   -- simulate an outer runUrgent already in progress
+        mgr:runUrgent(9002, function() end)
+        assert.equals(9001, mgr._urgentGroupId)
     end)
 
     it("a real menu command's own refresh is urgent automatically (no opts needed)", function()
@@ -630,6 +638,45 @@ describe("ctld.MenuManager ambient vs urgent refresh", function()
         scheduledCalls[1].fn()
         assert.equals(addBefore + 1, #addCalls)
         assert.is_nil(mgr._urgentGroupId)   -- cleared after the command callback returns
+    end)
+
+    it("an ambient refresh while an urgent one is already pending does not schedule its own timer", function()
+        -- Without this, the ambient call would still wipe (harmless, already wiped) and
+        -- schedule its own AMBIENT_REBUILD_DELAY_S timer, which would later fire on its own and
+        -- force an unprompted rebuild long after the urgent one already ran.
+        local menu = seedMenu(6010)
+
+        menu:refresh({ urgent = true })   -- schedules the urgent debounce
+        assert.equals(1, #scheduledCalls)
+
+        menu:refresh()   -- ambient, while urgent is still pending
+        assert.equals(1, #scheduledCalls)   -- no second (ambient) timer scheduled
+        assert.is_nil(mgr._pendingAmbient[6010])
+    end)
+
+    it("cancelPending clears a pending urgent debounce", function()
+        local menu = seedMenu(6011)
+        menu:refresh({ urgent = true })
+        assert.equals(1, #scheduledCalls)
+
+        mgr:cancelPending(6011)
+
+        assert.is_nil(mgr._pendingRefresh[6011])
+        -- the already-scheduled timer fires as a no-op-from-the-caller's-perspective: cancelPending
+        -- does not (and cannot, via the mocked timer) retract a call already handed to
+        -- timer.scheduleFunction, but the debounce flag it gates on is cleared.
+    end)
+
+    it("cancelPending cancels a pending ambient rebuild via timer.removeFunction", function()
+        local menu = seedMenu(6012)
+        menu:refresh()   -- ambient: wipes now, schedules the delayed rebuild
+        local ambientTimerId = scheduledCalls[#scheduledCalls].id
+
+        mgr:cancelPending(6012)
+
+        assert.equals(1, #removedIds)
+        assert.equals(ambientTimerId, removedIds[1])
+        assert.is_nil(mgr._pendingAmbient[6012])
     end)
 
 end)

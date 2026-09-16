@@ -23,6 +23,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   rebuilds it 4 seconds later. Refreshes reached synchronously from the group's own click, or from
   `onTakeoff`/`onLand`/the flight-state poller, remain immediate, detected automatically with no
   per-call-site tagging needed.
+- Self-review before merge caught and fixed three more regressions the ambient default silently
+  introduced: a freshly-joined player's first F10 menu appearance was itself delayed up to 4s
+  (`buildMenu` is now wrapped so it always renders immediately — nothing was on screen yet, so
+  there was never a race to protect against there); the same delay hit a player's own menu right
+  after a successful hover-slingload or losing a crate to overspeed (now immediate — their own
+  action, their own menu, no bystander risk); and a group leaving mid-ambient-wait could leave a
+  stale pending-rebuild entry that DCS could later apply to an unrelated occupant reusing the same
+  numeric group id (now cleared on last-crew-leave). Also hardened `runUrgent` itself: it now
+  saves/restores the previous urgent group (instead of unconditionally clearing it) so a nested
+  call can't demote an outer one back to ambient, and logs a raising callback instead of
+  re-raising it — `onTakeoff`/`onLand`/the flight-state poller call it from inside their own
+  unprotected `timer.scheduleFunction` callback, where an uncaught raise would have silently
+  killed that recurring poller for every player.
 - See **ADR 0015** for the full investigation, the two live reproductions, and the alternatives
   considered (and rejected) before this design.
 

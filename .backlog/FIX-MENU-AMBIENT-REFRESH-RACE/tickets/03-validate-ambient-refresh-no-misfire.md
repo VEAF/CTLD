@@ -3,7 +3,10 @@
 **Status:** ✅ done
 
 Busted: all cases below implemented in `tests/ci/unit/menu_manager_spec.lua`
-("ctld.MenuManager ambient vs urgent refresh"), `busted tests/ci/` green (1373/1373).
+("ctld.MenuManager ambient vs urgent refresh") plus a follow-up describe block in
+`tests/ci/unit/player_spec.lua` added during self-review (`buildMenu` renders immediately,
+`onPlayerLeaveUnit` cancels pending state) — see ticket 02's "Follow-up" section and ADR 0015's
+"Hardening from self-review". `busted tests/ci/` green (1379/1379).
 
 Live: `tests/dcs/pilotActive/scenario_menu_ambient_refresh_race.lua` (tag `MARR`) run against the
 live mission on 2026-09-16 — **PASS 2/2**:

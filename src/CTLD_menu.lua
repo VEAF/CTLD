@@ -127,15 +127,22 @@ local DEBOUNCE_S              = 0.15   -- seconds — one DCS frame is ~0.02 s; 
 local AMBIENT_REBUILD_DELAY_S = 4      -- seconds a wiped-but-not-yet-rebuilt menu stays empty
 
 -- Run fn() with groupId's refreshes treated as urgent for the duration of the call.
--- Clears _urgentGroupId unconditionally (success or error) so a raising fn never leaves the
--- group stuck "urgent" for a later, unrelated ambient refresh. Re-raises fn's error after
--- cleanup rather than swallowing it — callers that need to survive a bad callback (menu
--- commands) wrap fn in their own pcall first.
+-- Saves/restores the previous _urgentGroupId (not just resets to nil) so a nested call — same
+-- group or different — can never leave a still-running outer call demoted to ambient once the
+-- inner one returns. Restoration happens unconditionally (success or error): several real
+-- callers (onTakeoff, onLand, the flight-state poller) run inside their own unprotected
+-- timer.scheduleFunction callback with nothing above them to catch a raise, so a bad fn must
+-- never propagate out of here — logged instead of re-raised, matching this codebase's other
+-- pcall-wrap-and-log call sites (e.g. CTLD_core.lua's EventDispatcher:publish).
 function ctld.MenuManager:runUrgent(groupId, fn)
+    local previous = self._urgentGroupId
     self._urgentGroupId = groupId
     local ok, err = pcall(fn)
-    self._urgentGroupId = nil
-    if not ok then error(err, 0) end
+    self._urgentGroupId = previous
+    if not ok then
+        ctld.logError("ctld.MenuManager:runUrgent: callback failed for group %s: %s",
+            tostring(groupId), tostring(err))
+    end
 end
 
 -- opts (optional table): { urgent = true } forces the immediate (debounced) path directly,
@@ -167,6 +174,12 @@ function ctld.MenuManager:deferredRefreshForGroup(groupId, opts)
     end
 
     -- Ambient (default): wipe now, coalescing with any already-pending ambient rebuild.
+    -- An urgent rebuild already scheduled for this group (DEBOUNCE_S away) supersedes this
+    -- ambient request entirely — without this check, this call would still wipe+schedule its
+    -- own AMBIENT_REBUILD_DELAY_S timer, which would then fire ~4s later and force an
+    -- unprompted rebuild on a player who has long since moved on, reproducing a milder version
+    -- of the exact bug this mechanism exists to prevent.
+    if self._pendingRefresh[groupId] then return end
     if self._pendingAmbient[groupId] then return end   -- already wiped, rebuild already scheduled
 
     local removed = self:_wipeGroupHandles(groupId)
@@ -184,6 +197,20 @@ function ctld.MenuManager:deferredRefreshForGroup(groupId, opts)
         end
     end, nil, timer.getTime() + AMBIENT_REBUILD_DELAY_S)
     self._pendingAmbient[groupId] = { timerId = timerId }
+end
+
+-- Cancel any pending urgent (debounced) or ambient (delayed) rebuild scheduled for groupId.
+-- Call when a group's menu is torn down (last crew member leaves): DCS can reuse a numeric
+-- groupId for an unrelated slot occupant, and a leftover pending entry would otherwise make
+-- deferredRefreshForGroup silently coalesce the new occupant's first refresh into a stale
+-- timer scheduled for someone who already left.
+function ctld.MenuManager:cancelPending(groupId)
+    self._pendingRefresh[groupId] = nil
+    local pendingAmbient = self._pendingAmbient[groupId]
+    if pendingAmbient then
+        timer.removeFunction(pendingAmbient.timerId)
+        self._pendingAmbient[groupId] = nil
+    end
 end
 
 -- Remove all of a group's top-level CTLD handles from DCS. Returns the count removed.
