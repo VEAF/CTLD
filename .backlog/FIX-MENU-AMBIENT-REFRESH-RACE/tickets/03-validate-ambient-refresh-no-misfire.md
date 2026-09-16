@@ -26,6 +26,16 @@ flight-state poller debounce in `player_spec.lua`). Cases:
 - An urgent `menu:refresh({ urgent = true })` while an ambient rebuild is pending: the pending
   timer is cancelled (assert `timer.removeFunction` called with the stored id) and the rebuild
   happens synchronously in that same call.
+- A refresh triggered synchronously from inside a simulated command callback for group G (drive
+  `wrapped` the same way `_rebuildMenuNode` does — set `_activeCommandGroupId`, call `menu:refresh()`
+  with no explicit `opts`) rebuilds immediately, with no timer advance — proves the automatic
+  same-group detector, not just the explicit `urgent` flag.
+- The same, but the refresh targets a *different* groupId than `_activeCommandGroupId` (simulating
+  `_refreshNearbyPlayers` reaching a bystander mid-callback): stays ambient — proves the detector is
+  scoped by group, not "any command currently executing".
+- `_activeCommandGroupId` is cleared after a simulated callback that errors inside `pcall` (raise
+  inside the wrapped `fn`) — a subsequent ambient refresh for that same group afterward is still
+  ambient, not stuck urgent.
 
 ### Live dcs-bridge scenario (`tests/dcs/pilotActive/`)
 

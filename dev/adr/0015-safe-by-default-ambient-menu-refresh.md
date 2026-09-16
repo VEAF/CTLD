@@ -63,6 +63,24 @@ If an `urgent` refresh arrives for a group while an ambient delay is already pen
 timer is cancelled and the rebuild happens immediately — the wipe already happened, so there is
 nothing left to protect by waiting out the rest of the window.
 
+**Urgency is detected automatically for click-triggered refreshes, not tagged by hand at each call
+site.** Mapping the actual call graph found ~30 `menu:refresh()` sites funnelling through a
+handful of shared functions (`refreshUnpackSection`, `refreshRequestEquipmentSection`, etc.), each
+reachable from *both* a direct player click and a background/cross-player context (e.g.
+`_refreshNearbyPlayers` fans the same function out to every nearby player, not just the actor) —
+tagging correctly would mean threading an `opts` parameter through dozens of signatures. Instead,
+since DCS/Lua callbacks never preempt each other, the menu command dispatcher
+(`_rebuildMenuNode`'s `wrapped` function) records the acting group's id in a single shared field
+(`_activeCommandGroupId`) for the duration of that one callback, clearing it unconditionally
+afterward. `deferredRefreshForGroup(groupId, opts)` treats a refresh as urgent when
+`groupId == _activeCommandGroupId` — true for any refresh reached synchronously from that click,
+however many layers of shared function or synchronous `EventDispatcher` publish deep — **and false
+for a fan-out to a different group's menu mid-callback**, which is exactly the "classify from the
+receiving group's perspective" rule this ADR needs, achieved without enforcing it by hand at every
+fan-out site. Only refreshes with *no* click context at all — `onTakeoff`, `onLand`, and the
+flight-state poller's takeoff/land branches, none of them reached from inside a menu command — still
+need the explicit `urgent = true` opt-in.
+
 ## Considered options
 
 - **Partial/targeted submenu reconstruction** (only rebuild the changed branch). Rejected: this is
@@ -89,7 +107,9 @@ nothing left to protect by waiting out the rest of the window.
   could in principle outlast 4 s under heavy simulation lag — `ANTIFREEZE ENABLED` warnings were
   observed in the reproduction session's `dcs.log`), but sharply reduced from the observed 4-16 s
   window down to whatever residual gap exceeds the constant.
-- Existing and future call sites of `deferredRefreshForGroup`/`refreshMenuForGroup` must be
-  audited and explicitly tagged `urgent = true` where warranted; an untagged genuinely
-  player-direct refresh would work, just with an unnecessary ~4 s lag, not a correctness bug — so
-  the cost of under-tagging is UX, not safety.
+- Only the handful of no-click-context "real transition" call sites (`onTakeoff`, `onLand`, the
+  flight-state poller) need explicit `urgent = true`; everything else is covered automatically by
+  the same-group-click detector. A future refresh added inside a menu command's own callback needs
+  no tagging at all — it inherits urgency for free. A future *background* trigger that should
+  somehow be urgent (unlikely, but possible) would need the explicit flag; forgetting it costs an
+  unnecessary ~4 s lag, not a correctness bug.
