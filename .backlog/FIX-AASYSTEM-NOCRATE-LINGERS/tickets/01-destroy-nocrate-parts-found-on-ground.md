@@ -1,6 +1,12 @@
 # 01 — Destroy real ground crates found for a `NoCrate` part during assembly
 
-**Status:** ⬜ ready
+**Status:** ✅ done
+
+Implemented at `tests/ci/unit/aasystem_spec.lua` (not `CTLD_aasystem_spec.lua` — corrected the
+filename this ticket originally assumed) with 6 new cases: the 5 planned below, plus an explicit
+regression guard confirming the fix doesn't change *which* over-supplied non-`NoCrate` crate
+survives (unordered by design, only the count is guaranteed). `busted tests/ci/` green
+(1370/1370), `luacheck` clean, `CTLD.lua` rebuilds and loads under Lua 5.1.
 
 See the PRD for the full trace of why `Hawk pcp`/`Hawk cwar`/`Patriot AMG` crates never get
 cleaned up today.
@@ -36,18 +42,18 @@ loop (around the `for _, part in ipairs(template.parts) do` block that currently
 
 ## Acceptance
 
-- [ ] A `NoCrate` part (`Hawk pcp`) with one real matching ground crate present: after
+- [x] A `NoCrate` part (`Hawk pcp`) with one real matching ground crate present: after
   `_assemble()` succeeds, that crate no longer exists in `CTLDCrateManager.crates`.
-- [ ] Same with **two** real crates present for the same `NoCrate` part: both are destroyed, not
+- [x] Same with **two** real crates present for the same `NoCrate` part: both are destroyed, not
   just one.
-- [ ] A `NoCrate` part with no real ground crate present: assembly succeeds exactly as today,
+- [x] A `NoCrate` part with no real ground crate present: assembly succeeds exactly as today,
   nothing destroyed for that part, no error, no behavior change.
-- [ ] A non-`NoCrate` part with more crates present than `cratesRequired` and
+- [x] A non-`NoCrate` part with more crates present than `cratesRequired` and
   `AASystemCrateStacking = false`: destruction is still capped at `required` — proves the fix is
   scoped to `NoCrate` parts only.
-- [ ] The same holds for Patriot AMG (`Patriot ln`/`Patriot str`/`Patriot ECS` assembly with a real
+- [x] The same holds for Patriot AMG (`Patriot ln`/`Patriot str`/`Patriot ECS` assembly with a real
   `Patriot AMG` crate present).
-- [ ] `busted tests/ci/` green, `luacheck --config .luacheckrc src/` clean, `CTLD.lua` rebuilt.
+- [x] `busted tests/ci/` green, `luacheck --config .luacheckrc src/` clean, `CTLD.lua` rebuilt.
 
 ## Tests
 

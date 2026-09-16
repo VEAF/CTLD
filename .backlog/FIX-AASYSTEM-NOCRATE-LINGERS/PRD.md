@@ -1,6 +1,6 @@
 # FIX-AASYSTEM-NOCRATE-LINGERS — a real `NoCrate` part crate is never consumed by assembly
 
-**Status:** ⬜ ready
+**Status:** 🔄 in-progress
 
 Reported by **a.lingo**, 2026-09-16: after loading the HAWK crate set, transporting it,
 dropping it, and successfully unpacking (assembling) the system, the F10 "Unpack Crate" menu
