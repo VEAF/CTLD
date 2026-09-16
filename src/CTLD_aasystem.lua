@@ -491,7 +491,19 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     local cm = CTLDCrateManager.getInstance()
     for _, part in ipairs(template.parts) do
         local sp = systemParts[part.DCSTypename]
-        if not sp.NoCrate then
+        if sp.NoCrate then
+            -- FIX-AASYSTEM-NOCRATE-LINGERS: a NoCrate part is always satisfied regardless of
+            -- whether a real crate exists (see systemParts init above), so the amountFactor/
+            -- "how many crates per system" arithmetic below doesn't apply — there is no such
+            -- thing as "one system's worth" for a part that was never required to have a crate.
+            -- If a real crate was found anyway (a mission maker or a confused pilot loaded one
+            -- individually — see docs/developer/subsystems/aa.md, this is deliberately still
+            -- possible), it was already counted as consumed during collection above, so destroy
+            -- every one of them here, not just some.
+            for _, c in ipairs(sp.crates) do
+                cm:destroyCrate(c.crateName)
+            end
+        else
             local amountFactor = stacking
                 and (sp.found - sp.found % sp.required)
                 or 1

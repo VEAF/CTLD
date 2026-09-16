@@ -497,6 +497,190 @@ describe("CTLDCrateAssemblyManager _assemble publishes OnCrateCleared per consum
 end)
 
 -- ─────────────────────────────────────────────────────────────
+-- FIX-AASYSTEM-NOCRATE-LINGERS: a real ground crate found for a NoCrate part (HAWK PCP/CWAR,
+-- Patriot AMG — see docs/developer/subsystems/aa.md, these deliberately still get a standalone
+-- spawnableCrates entry) must be destroyed by _assemble() just like any other consumed crate,
+-- or it lingers in the F10 Unpack menu forever after a successful assembly.
+describe("CTLDCrateAssemblyManager _assemble destroys real crates found for NoCrate parts", function()
+
+    local m, cm
+
+    local function makeFakeHeli()
+        return {
+            getPoint     = function() return { x = 1000, y = 0, z = 2000 } end,
+            getPosition  = function()
+                return { x = { x = 1, y = 0, z = 0 }, p = { x = 1000, y = 0, z = 2000 } }
+            end,
+            getCoalition = function() return coalition.side.BLUE end,
+            getCountry   = function() return country.id.USA end,
+            getName      = function() return "test_heli" end,
+            getGroup     = function() return { getID = function() return 1 end } end,
+        }
+    end
+
+    local function findTemplate(name)
+        for _, t in ipairs(CTLDCrateAssemblyManager.TEMPLATES) do
+            if t.name == name then return t end
+        end
+        error("template not found: " .. name)
+    end
+
+    -- Registers one fake, real ground crate for every non-NoCrate part of tmpl (so assembly can
+    -- complete), plus `extraNoCrateUnits` fake crates for each given NoCrate DCSTypename.
+    -- Returns allCrates and the crate picked as the "clicked" one (a non-launcher part, to avoid
+    -- the rearm detour).
+    local function registerRequiredCrates(tmpl, extraNoCrateUnits)
+        local origin = { x = 1000, y = 0, z = 2000 }
+        local allCrates = {}
+        local idx = 0
+        local clickedCrate = nil
+        local firstNonLauncher = nil
+        for _, part in ipairs(tmpl.parts) do
+            if not part.NoCrate then
+                idx = idx + 1
+                local name = "test_crate_" .. idx
+                local fakeCrate = {
+                    crateName  = name,
+                    position   = { x = origin.x + idx, y = 0, z = origin.z + idx },
+                    coalition  = coalition.side.BLUE,
+                    descriptor = { unit = part.DCSTypename, cratesRequired = 1 },
+                    isOnGround = function() return true end,
+                    destroy    = function() end,
+                }
+                cm.crates[name] = fakeCrate
+                allCrates[name] = fakeCrate
+                if not part.launcher and not firstNonLauncher then
+                    firstNonLauncher = fakeCrate
+                end
+            end
+        end
+        clickedCrate = firstNonLauncher
+
+        for _, unitTypename in ipairs(extraNoCrateUnits or {}) do
+            idx = idx + 1
+            local name = "test_nocrate_" .. idx
+            local fakeCrate = {
+                crateName  = name,
+                position   = { x = origin.x + idx, y = 0, z = origin.z + idx },
+                coalition  = coalition.side.BLUE,
+                descriptor = { unit = unitTypename, cratesRequired = 1 },
+                isOnGround = function() return true end,
+                destroy    = function() end,
+            }
+            cm.crates[name] = fakeCrate
+            allCrates[name] = fakeCrate
+        end
+
+        return allCrates, clickedCrate
+    end
+
+    before_each(function()
+        CTLDCrateAssemblyManager._instance = nil
+        CTLDCrateManager._instance         = nil
+        m  = CTLDCrateAssemblyManager.getInstance()
+        cm = CTLDCrateManager.getInstance()
+
+        -- Stub _spawnGroup so the test does not need DCS dynAdd
+        m._spawnGroup = function(self, positions, types, headings, countryId)
+            return {
+                getName  = function() return "test_aa_group" end,
+                getUnits = function() return {} end,
+            }
+        end
+    end)
+
+    after_each(function()
+        CTLDCrateManager._instance         = nil
+        CTLDCrateAssemblyManager._instance = nil
+    end)
+
+    it("destroys a real 'Hawk pcp' crate found nearby during a HAWK assembly", function()
+        local tmpl = findTemplate("HAWK AA System")
+        local allCrates, clicked = registerRequiredCrates(tmpl, { "Hawk pcp" })
+
+        m:_assemble(makeFakeHeli(), clicked, allCrates, tmpl, 500)
+
+        local remaining = {}
+        for name in pairs(cm.crates) do remaining[#remaining + 1] = name end
+        assert.equals(0, #remaining, "the Hawk pcp crate should have been destroyed: " ..
+            table.concat(remaining, ", "))
+    end)
+
+    it("destroys BOTH real 'Hawk pcp' crates when two are found nearby", function()
+        local tmpl = findTemplate("HAWK AA System")
+        local allCrates, clicked = registerRequiredCrates(tmpl, { "Hawk pcp", "Hawk pcp" })
+
+        m:_assemble(makeFakeHeli(), clicked, allCrates, tmpl, 500)
+
+        local remaining = {}
+        for name in pairs(cm.crates) do remaining[#remaining + 1] = name end
+        assert.equals(0, #remaining, "both Hawk pcp crates should have been destroyed: " ..
+            table.concat(remaining, ", "))
+    end)
+
+    it("assembles a HAWK system with no real PCP/CWAR crate present — unchanged, no error", function()
+        local tmpl = findTemplate("HAWK AA System")
+        local allCrates, clicked = registerRequiredCrates(tmpl, {})
+
+        assert.has_no_error(function()
+            m:_assemble(makeFakeHeli(), clicked, allCrates, tmpl, 500)
+        end)
+
+        local remaining = {}
+        for name in pairs(cm.crates) do remaining[#remaining + 1] = name end
+        assert.equals(0, #remaining,
+            "the required (non-NoCrate) crates should still be consumed as before")
+    end)
+
+    it("does not touch a non-NoCrate part's amountFactor cap (regression guard)", function()
+        -- With AASystemCrateStacking=false, only `required` crates of a normal part are
+        -- destroyed even if more are present — this must be unaffected by the NoCrate fix.
+        local cfg = CTLDConfig.get()
+        local saved = cfg.settings["AASystemCrateStacking"]
+        cfg.settings["AASystemCrateStacking"] = false
+
+        local tmpl = findTemplate("HAWK AA System")
+        local allCrates, clicked = registerRequiredCrates(tmpl, {})
+
+        -- Add a second "Hawk sr" crate on top of the one already registered (over-supplied).
+        local extra = {
+            crateName  = "test_extra_sr",
+            position   = { x = 1050, y = 0, z = 2050 },
+            coalition  = coalition.side.BLUE,
+            descriptor = { unit = "Hawk sr", cratesRequired = 1 },
+            isOnGround = function() return true end,
+            destroy    = function() end,
+        }
+        cm.crates[extra.crateName] = extra
+        allCrates[extra.crateName] = extra
+
+        m:_assemble(makeFakeHeli(), clicked, allCrates, tmpl, 500)
+
+        cfg.settings["AASystemCrateStacking"] = saved
+
+        -- Collection iterates `allCrates` (a plain table, unordered), so which of the two
+        -- over-supplied "Hawk sr" crates survives is not guaranteed — only the count is.
+        local remaining = {}
+        for name in pairs(cm.crates) do remaining[#remaining + 1] = name end
+        assert.equals(1, #remaining, "exactly one over-supplied Hawk sr crate should remain: " ..
+            table.concat(remaining, ", "))
+    end)
+
+    it("destroys a real 'Patriot AMG' crate found nearby during a Patriot assembly (generic fix, not HAWK-only)", function()
+        local tmpl = findTemplate("Patriot AA System")
+        local allCrates, clicked = registerRequiredCrates(tmpl, { "Patriot AMG" })
+
+        m:_assemble(makeFakeHeli(), clicked, allCrates, tmpl, 500)
+
+        local remaining = {}
+        for name in pairs(cm.crates) do remaining[#remaining + 1] = name end
+        assert.equals(0, #remaining, "the Patriot AMG crate should have been destroyed: " ..
+            table.concat(remaining, ", "))
+    end)
+
+end)
+
+-- ─────────────────────────────────────────────────────────────
 -- AA crates are baked into the YAML catalogue (FEAT-CONFIG-YAML-COMPLETE t05):
 -- they are present in spawnableCrates at load, with no runtime injectAACrates step.
 describe("baked AA crate catalogue", function()

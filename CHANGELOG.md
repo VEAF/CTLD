@@ -8,6 +8,24 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a HAWK/Patriot crate could linger in the Unpack menu forever (FIX-AASYSTEM-NOCRATE-LINGERS)
+
+- **After successfully assembling a HAWK or Patriot AA system, the F10 Unpack Crate menu could
+  keep showing a crate as still available**, even though the system was already built. Root
+  cause: `Hawk pcp`/`Hawk cwar` and `Patriot AMG` are marked `NoCrate = true` in their assembly
+  templates ("always present, not a standalone crate") but deliberately still get an ordinary,
+  individually-loadable `spawnableCrates` catalogue entry each (per
+  `docs/developer/subsystems/aa.md`). `_assemble()`'s crate-collection loop counted a real ground
+  crate found for one of these parts toward completeness, but its destruction loop unconditionally
+  skipped every `NoCrate` part — so a real crate a mission maker or a confused pilot loaded for
+  one of these parts was never destroyed and lingered forever, permanently listed as
+  "assembleable" and permanently failing with "Cannot build … Missing …" if clicked again.
+- Fixed generically in `CTLDCrateAssemblyManager:_assemble()`: a `NoCrate` part's destruction now
+  destroys every real crate the collection loop actually found for it, bypassing the non-`NoCrate`
+  "how many crates per system" arithmetic (which assumes a real per-system requirement that
+  doesn't apply to an always-satisfied part). One change fixes both HAWK and Patriot; S-300's own
+  `NoCrate` part ("TEL D") has no catalogue entry and was never affected.
+
 ### Fixed — a background menu refresh could fire the wrong F10 command (FIX-MENU-AMBIENT-REFRESH-RACE)
 
 - **A transport parked on a pickup zone could ask for one thing on F10 and get another** —
