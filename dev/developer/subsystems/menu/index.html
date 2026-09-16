@@ -1696,6 +1696,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ambient-vs-urgent-refresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ambient vs urgent refresh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pagination" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2363,6 +2374,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ambient-vs-urgent-refresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ambient vs urgent refresh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pagination" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2789,12 +2811,46 @@ handle returned by <code>addSubMenuForGroup</code> / <code>addCommandForGroup</c
 <code>addCommandForGroup</code>, and recurses into submenu children via <code>_rebuildPagedChildren</code>.</p>
 <h3 id="debounced-refresh">Debounced refresh<a class="headerlink" href="#debounced-refresh" title="Permanent link">&para;</a></h3>
 <p><code>ctld.Menu:refresh()</code> does not rebuild immediately — it calls
-<code>ctld.MenuManager:deferredRefreshForGroup(groupId)</code>, which coalesces all refresh requests for a
-group within a <code>DEBOUNCE_S = 0.15 s</code> window into a single DCS rebuild (scheduled via
+<code>ctld.MenuManager:deferredRefreshForGroup(groupId, opts)</code>, which coalesces all refresh requests for
+a group within a <code>DEBOUNCE_S = 0.15 s</code> window into a single DCS rebuild (scheduled via
 <code>timer.scheduleFunction</code>). This prevents rapid-fire callers (the flight-state poller oscillating,
 cargo detection, landing events firing together) from ejecting the player out of the F10 menu
 mid-navigation. The initial <code>buildMenu</code> on player-enter also routes through the debounce.
 <code>refreshMenuForGroup</code> remains available for a direct, non-debounced rebuild.</p>
+<h3 id="ambient-vs-urgent-refresh">Ambient vs urgent refresh<a class="headerlink" href="#ambient-vs-urgent-refresh" title="Permanent link">&para;</a></h3>
+<p>Added by <code>FIX-MENU-AMBIENT-REFRESH-RACE</code> — see <strong>ADR 0015</strong> for the full investigation.</p>
+<p>The 0.15 s debounce above only coalesces rapid-fire <em>bursts</em> — it does nothing when a single,
+legitimate refresh lands while a player is already navigating the menu it's about to tear down.
+DCS gives scripts no way to know a player's F10 menu is open or at what depth, so a rebuild in that
+moment resolves the player's <em>next</em> click against the freshly rebuilt tree instead of the stale
+screen they're looking at — confirmed live: a background refresh landing mid-navigation made a
+player's click fire an unrelated command instead of the one they saw on screen.</p>
+<p>Every refresh is one of two kinds:</p>
+<ul>
+<li><strong>Urgent</strong> — a direct, synchronous consequence of the group's own action: the refresh a menu
+  command triggers right after completing (embark, disembark, pack, unpack, …), or a real,
+  player-noticed state transition with no click to point at (<code>onTakeoff</code>, <code>onLand</code>, the
+  flight-state poller). Rebuilds immediately, through the same debounced path as before.</li>
+<li><strong>Ambient</strong> — everything else (background polls, cross-player event fan-outs such as
+  <code>_refreshNearbyPlayers</code>). The <strong>default</strong>. Wipes the group's menu immediately — so a click
+  landing in the gap resolves to nothing instead of the wrong command — then rebuilds it
+  <code>AMBIENT_REBUILD_DELAY_S = 4 s</code> later. A second ambient request while one is already pending
+  coalesces (no re-wipe, no re-schedule); an urgent request preempts a pending ambient rebuild
+  (cancels the timer, rebuilds now).</li>
+</ul>
+<p>Urgency is detected automatically rather than tagged by hand at each of the ~30 refresh call
+sites, most of which are shared functions reachable from both a player's own click and a
+background/cross-player context. <code>ctld.MenuManager:runUrgent(groupId, fn)</code> records <code>groupId</code> in a
+shared <code>_urgentGroupId</code> field for the duration of <code>fn</code> (DCS/Lua callbacks never preempt each
+other, so one shared field is safe), clearing it unconditionally afterward.
+<code>deferredRefreshForGroup</code> treats a refresh as urgent when its <code>groupId</code> matches
+<code>_urgentGroupId</code> — true for anything reached synchronously from that call, however many layers of
+shared function or synchronous <code>EventDispatcher</code> publish deep, and correctly false for a fan-out
+reaching a <em>different</em> group's menu mid-call (a bystander stays ambient, exactly as it should).
+<code>_rebuildMenuNode</code>'s <code>wrapped</code> routes every menu click through <code>runUrgent</code>; <code>onTakeoff</code>, <code>onLand</code>,
+and the flight-state poller call it directly from their own non-click context. An explicit
+<code>{ urgent = true }</code> passed to <code>refresh()</code>/<code>deferredRefreshForGroup</code> remains available as a direct
+escape hatch alongside the automatic detector.</p>
 <h3 id="pagination">Pagination<a class="headerlink" href="#pagination" title="Permanent link">&para;</a></h3>
 <p>DCS gives each menu level ten programmer-controlled slots (F1–F10; F11 is the DCS "Previous Page",
 F12 is "Quit"). <code>_rebuildPagedChildren</code> applies this rule to a pre-sorted, enabled-only list of
