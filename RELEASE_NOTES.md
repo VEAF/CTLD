@@ -1,8 +1,4 @@
-# CTLD 2.0.0-rc9 — release candidate
-
-> **If you installed a mission with rc8, re-install it with this version.** rc8's engine does not
-> start: it fails while loading, and your mission ends up with no CTLD radio menu at all. Nothing in
-> your configuration is at fault and nothing needs changing — re-installing is the whole fix.
+# CTLD 2.0.0-rc10 — release candidate
 
 ## Installation
 
@@ -16,48 +12,45 @@
 **Properties** → tick **Unblock** → **OK**.
 
 Prefer doing it by hand? The files are attached to this release too — see the
-[documentation](https://veaf.github.io/CTLD/2.0.0-rc9/mission-maker/).
+[documentation](https://veaf.github.io/CTLD/2.0.0-rc10/mission-maker/).
 
 ---
 
-This release candidate exists for one reason: **rc8 does not load**. Everything rc8 brought is still
-here — it simply never got the chance to run.
+Two live-reported F10 menu bugs, both fixed in this release.
 
-## What was broken in rc8
+## A transport could ask for one thing on F10 and get another
 
-The engine failed while loading, before it ever started. In game that looks like:
+Reported live: a transport parked on a pickup zone requested "Load Standard Group" from
+**Troop Commands → Embark / Extract Troops**, and instead a smoke grenade went off at the
+aircraft's own position.
 
-- **no CTLD radio menu** under F10, at all;
-- everything else in the mission working normally, so nothing obviously points at CTLD;
-- a single line in `dcs.log` mentioning *"CTLD configuration is not loaded"*.
+**Cause**: CTLD's F10 menu rebuilds itself as a whole every time something changes — a design
+choice that keeps the menu always consistent. A background check (for example, noticing your
+transport has parked at a supply point) could rebuild the menu at the exact moment you were
+navigating it, so your next click landed on whatever now occupied that spot instead of the item
+you were looking at. This is a DCS-side limitation — nothing in a mission can currently tell a
+script whether a player's radio menu is open — so it could not be detected directly.
 
-It affected **every** mission installed with rc8 — it had nothing to do with your settings, your
-theatre, or how the mission was built.
+**Fix**: any menu rebuild that isn't the direct result of your own click now clears the menu first,
+then rebuilds it a few seconds later. A click landing in that short gap now does **nothing**
+instead of firing the wrong command — clicks tied to your own actions (loading, unloading, taking
+off, landing) are unaffected and stay instant. In the rare case where this applies, you may see the
+CTLD F10 menu briefly disappear before reappearing — expected, and far preferable to the old
+behaviour.
 
-**If you use VEAF Mission Creation Tools**, the damage went further: VEAF loads its own scripts in the
-same block, right after CTLD, so the failure took the whole VEAF framework down with it. Those
-missions had **no radio menu whatsoever** — not CTLD's, not VEAF's. VEAF Tools 6.22.1 ships this fix;
-until you update it, re-installing with `ctld-tools.exe` from this release works too.
+## A HAWK or Patriot crate could get stuck in "Unpack Crate" forever
 
-Reported by **Tripack** (VEAF) within hours of the release — thank you.
+After successfully assembling a HAWK or Patriot air-defence system, the F10 **Unpack Crate** menu
+could keep listing one of its crates (HAWK PCP/CWAR, or the Patriot AMG) as still available — even
+though the system was already fully built. Selecting it did nothing but repeat a "Cannot build"
+message.
 
-## What caused it, briefly
+**Cause**: those specific crates are optional — the system assembles without them — but if one was
+picked up and dropped nearby anyway, it was never cleared away once the system used it.
 
-rc8 added a deliberate safety check: asking CTLD for a setting before the engine has started is now
-refused outright, with a message saying so, instead of failing later on something unrelated. That
-check was right, and it is unchanged here.
-
-What it caught was CTLD's own logging: the engine writes a log line while registering its built-in
-FARP and FOB scenes, which happens *before* the engine starts — and writing that line asked for a
-setting. Logging now tolerates being called that early, which is what it always should have done.
-
-## And so that this cannot happen again
-
-CTLD's continuous integration checked that the engine file *existed*, that it *parsed*, and that the
-individual source modules behaved. Nothing ever **ran** the assembled engine — which is exactly where
-the failure was. Every build now loads it end to end and refuses to publish if it does not come up.
+**Fix**: any such crate found near a successful assembly is now consumed along with the rest, so it
+no longer lingers in the menu afterward.
 
 ## Nothing to change in your configuration
 
-No setting was renamed, removed or given a new default since rc8. Re-install your mission and you are
-done.
+No setting was renamed, removed, or given a new default in this release.
