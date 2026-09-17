@@ -1,6 +1,6 @@
 # FIX-PLAYER-EVENT-GUARDS — a released `event.initiator` aborts the player-leave cleanup
 
-**Status:** 🔄 in-progress (implemented, PR pending)
+**Status:** ✅ done (PR #151)
 
 Reported from a live VEAF multiplayer session on 2026-09-17 (mission built with veaf-tools,
 running the rc9 bundle), found in `dcs.log`:
