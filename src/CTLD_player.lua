@@ -283,6 +283,26 @@ end
 -- then rescheduled every 30 s for 3 min as a safety net for S_EVENT_PLAYER_ENTER_UNIT
 -- missed in multiplayer (e.g. player joins while CTLD is still booting).
 function CTLDPlayerManager:_scanExistingPlayers()
+    -- The sweep is the backstop for events DCS delivers damaged, so it must outlive its own
+    -- mistakes: anything raising inside one pass would otherwise take the reschedule with it
+    -- and silently end the sweep for the rest of the mission.
+    local ok, err = pcall(self._scanPlayersOnce, self)
+    if not ok then
+        ctld.utils.log("WARN", "CTLDPlayerManager: player scan pass failed: %s", tostring(err))
+    end
+
+    -- Schedule repeated scans indefinitely (every 30 s) to recover missed
+    -- S_EVENT_PLAYER_ENTER_UNIT events (slot switch without briefing screen,
+    -- AI takeover, late joiners in long missions) and to forget departed players.
+    local self_ref = self
+    timer.scheduleFunction(function()
+        self_ref:_scanExistingPlayers()
+    end, nil, timer.getTime() + 30)
+end
+
+--- One sweep pass: add players CTLD does not know yet, forget those whose slot is gone.
+--- Called only by _scanExistingPlayers, which owns the rescheduling and the error boundary.
+function CTLDPlayerManager:_scanPlayersOnce()
     local count = 0
     for _, side in ipairs({ coalition.side.RED, coalition.side.BLUE }) do
         local units = coalition.getPlayers(side) or {}
@@ -300,13 +320,34 @@ function CTLDPlayerManager:_scanExistingPlayers()
         ctld.utils.log("INFO", "CTLDPlayerManager: built menu for %d player(s) via scan", count)
     end
 
-    -- Schedule repeated scans indefinitely (every 30 s) to recover missed
-    -- S_EVENT_PLAYER_ENTER_UNIT events (slot switch without briefing screen,
-    -- AI takeover, late joiners in long missions).
-    local self_ref = self
-    timer.scheduleFunction(function()
-        self_ref:_scanExistingPlayers()
-    end, nil, timer.getTime() + 30)
+    -- Reverse pass: forget players whose slot is gone. S_EVENT_PLAYER_LEAVE_UNIT is the
+    -- fast path, but DCS delivers it with an already-released initiator on slot and
+    -- coalition changes, and the handler cannot read a name from that. Without this pass
+    -- the entry, its F10 menu and its pending rebuild survive the player.
+    -- Every read is pcall-protected: this walks units DCS may be releasing right now.
+    local departed = {}
+    for unitName in pairs(self._players) do
+        local ok, unit = pcall(Unit.getByName, unitName)
+        if not ok or not unit then
+            departed[#departed + 1] = unitName
+        else
+            local okExist, alive  = pcall(unit.isExist, unit)
+            local okName, player  = pcall(unit.getPlayerName, unit)
+            -- getPlayerName() nil is a legitimate departure: the slot went back to AI.
+            if not okExist or not alive or not okName or not player then
+                departed[#departed + 1] = unitName
+            end
+        end
+    end
+    -- One at a time: _forgetPlayer counts the group's remaining players to decide whether
+    -- to tear the menu down, so bulk-deleting first would tear it down under a crew member
+    -- who is still flying.
+    for _, unitName in ipairs(departed) do
+        self:_forgetPlayer(unitName)
+    end
+    if #departed > 0 then
+        ctld.utils.log("INFO", "CTLDPlayerManager: forgot %d departed player(s) via scan", #departed)
+    end
 end
 
 --- DCS S_EVENT_PLAYER_ENTER_UNIT handler.
@@ -314,11 +355,15 @@ end
 -- AI units (no playerName) are silently ignored.
 -- @param event table  DCS event { initiator = Unit, ... }
 function CTLDPlayerManager:onPlayerEnterUnit(event)
-    local unit = event and event.initiator
-    if not unit or not unit:isExist() then return end
-    if not unit:getPlayerName() then return end   -- skip AI
-
-    local unitName = unit:getName()
+    local unit     = event and event.initiator
+    local unitName = ctld.utils.safeObjectName(unit)   -- nil when DCS already released it
+    if not unitName then return end
+    -- A half-released object can answer getName() and raise on everything else, so these
+    -- two reads are pcall'd rather than called outright.
+    local okExist, alive = pcall(unit.isExist, unit)
+    if not okExist or not alive then return end
+    local okPlayer, player = pcall(unit.getPlayerName, unit)
+    if not okPlayer or not player then return end   -- skip AI
 
     -- Pilot name gate: when addPlayerAircraftByType=false, only unit names explicitly
     -- listed in transportPilotNames receive CTLD menus.
@@ -369,9 +414,19 @@ end
 -- teardown runs only when the last tracked player in the group leaves.
 -- @param event table  DCS event { initiator = Unit, ... }
 function CTLDPlayerManager:onPlayerLeaveUnit(event)
-    local unit = event and event.initiator
-    if not unit then return end
-    local unitName  = unit:getName()
+    -- DCS releases the unit before delivering this event, so `initiator` is present but
+    -- carries no methods: the name is unreadable and the cleanup below cannot run. The
+    -- 30 s sweep in _scanExistingPlayers is the backstop for exactly that case.
+    local unitName = ctld.utils.safeObjectName(event and event.initiator)
+    if not unitName then return end
+    self:_forgetPlayer(unitName)
+end
+
+--- Forget a tracked player: tear the group's F10 menu down when nobody is left in it,
+--- and drop the registry entry. Shared by the PLAYER_LEAVE_UNIT handler and by the
+--- recovery sweep, so both paths apply the same multi-crew rule.
+-- @param unitName string  the unit name to forget
+function CTLDPlayerManager:_forgetPlayer(unitName)
     local playerObj = self._players[unitName]
     if not playerObj then return end
 
@@ -407,9 +462,8 @@ end
 -- Delayed 1 s: S_EVENT_LAND fires before the aircraft has fully settled,
 -- so _isInAir() may still return true at the exact moment of the event.
 function CTLDPlayerManager:onLand(event)
-    local unit = event and event.initiator
-    if not unit then return end
-    local unitName  = unit:getName()
+    local unitName = ctld.utils.safeObjectName(event and event.initiator)
+    if not unitName then return end
     local playerObj = self._players[unitName]
     if not playerObj then return end
     local captured = playerObj
@@ -452,9 +506,9 @@ end
 
 --- DCS S_EVENT_TAKEOFF handler — rebuild troop menu section for departing unit.
 function CTLDPlayerManager:onTakeoff(event)
-    local unit = event and event.initiator
-    if not unit then return end
-    local playerObj = self._players[unit:getName()]
+    local unitName = ctld.utils.safeObjectName(event and event.initiator)
+    if not unitName then return end
+    local playerObj = self._players[unitName]
     if not playerObj then return end
     -- Set flight flag immediately so any refresh between now and inAir() reaching threshold
     -- (e.g. _refreshNearbyPackPlayers triggered by vehicle events) sees flight state.

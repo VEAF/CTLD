@@ -690,9 +690,10 @@ function CTLDVehicleSpawner:_checkNativeLoading()
 
     if not next(waitingVehicles) and not next(nativeLoaded) then return end
 
-    -- Iterate transports currently known as player units (via CTLDPlayerTracker)
-    -- and check each capable-transport unit that we can find by name
-    -- Simple approach: scan all groups of both coalitions for matching type
+    -- Scan both coalitions' airplane groups for units capable of native cargo carriage.
+    -- No player index is consulted: CTLD keeps none that covers this case. The early
+    -- return above is what makes the sweep affordable — it only runs while a vehicle is
+    -- waiting or natively loaded, never on an idle tick.
     for _, side in ipairs({ coalition.side.BLUE, coalition.side.RED }) do
         local groups = coalition.getGroups(side, Group.Category.AIRPLANE) or {}
         for _, grp in ipairs(groups) do

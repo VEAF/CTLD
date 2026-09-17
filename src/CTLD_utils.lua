@@ -2190,6 +2190,22 @@ function ctld.utils.notifyCoalition(message, displayFor, side, radio, shortMessa
     end
 end
 
+--- Reads a DCS object's name without ever raising.
+--- DCS delivers events whose `initiator` refers to an object it has already released: the
+--- table is non-nil, but its method table is gone, so `obj:getName()` fails with
+--- "attempt to call method 'getName' (a nil value)". Observed on S_EVENT_PLAYER_LEAVE_UNIT,
+--- one millisecond after DCS logged `release unit`, on every slot and coalition change.
+--- A `if not obj` guard does not cover it; this does.
+--- @param obj table|nil  a DCS Unit/StaticObject, possibly already released
+--- @return string|nil  the object's name, or nil when it cannot be read
+function ctld.utils.safeObjectName(obj)
+    if type(obj) ~= "table" and type(obj) ~= "userdata" then return nil end
+    if type(obj.getName) ~= "function" then return nil end
+    local ok, name = pcall(obj.getName, obj)
+    if not ok or type(name) ~= "string" or name == "" then return nil end
+    return name
+end
+
 --- Aggregates cargo weight from all managers for the given transport and
 --- applies it as the DCS internal cargo weight (single authoritative call).
 --- Replaces the independent per-manager setUnitInternalCargo calls to avoid
