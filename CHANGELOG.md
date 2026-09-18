@@ -52,7 +52,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   of its four accessors was ever called, and the one comment claiming to consult it
   (`CTLDVehicleSpawner:_checkNativeLoading`) was corrected in #151. Its `S_EVENT_BIRTH` net — the one
   part worth keeping — moved into `CTLDPlayerManager`.
-||||||| parent of b388c96 (fix(menu): cancel the urgent debounce timer, not just its flag)
+
 ### Fixed — leaving a slot raised an error and left the player's F10 menu behind (FIX-PLAYER-EVENT-GUARDS)
 
 - **Changing slot or coalition raised `attempt to call method 'getName' (a nil value)` and left
