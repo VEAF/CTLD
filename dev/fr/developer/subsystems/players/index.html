@@ -1629,34 +1629,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#ctldplayertracker-slot-identity-index" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CTLDPlayerTracker — index d'identité des slots
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="CTLDPlayerTracker — index d&#39;identité des slots">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#public-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        API publique
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#ctldplayer-per-player-entity" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2020,34 +1992,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#ctldplayertracker-slot-identity-index" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CTLDPlayerTracker — index d'identité des slots
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="CTLDPlayerTracker — index d&#39;identité des slots">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#public-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        API publique
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#ctldplayer-per-player-entity" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2157,8 +2101,7 @@
 
 
 <h1 id="player-tracking">Suivi des joueurs<a class="headerlink" href="#player-tracking" title="Permanent link">&para;</a></h1>
-<p>CTLD suit les joueurs humains connectés <strong>sans MIST</strong>. Deux singletons coopérants couvrent ce
-domaine :</p>
+<p>CTLD suit les joueurs humains connectés <strong>sans MIST</strong>, dans un singleton unique :</p>
 <table>
 <thead>
 <tr>
@@ -2169,81 +2112,15 @@ domaine :</p>
 </thead>
 <tbody>
 <tr>
-<td><code>CTLDPlayerTracker</code></td>
-<td><code>src/CTLD_core.lua</code></td>
-<td>Index d'identité léger — qui occupe quel slot</td>
-</tr>
-<tr>
 <td><code>CTLDPlayerManager</code></td>
 <td><code>src/CTLD_player.lua</code></td>
 <td>État par joueur (entités <code>CTLDPlayer</code>), menu F10, suivi du cargo</td>
 </tr>
 </tbody>
 </table>
-<p>Les deux suivent l'idiome <code>X = class()</code> + <code>getInstance()</code> décrit dans
-<a href="../../architecture/">Architecture</a> et consomment les événements de slot DCS via l'unique
+<p>Il suit l'idiome <code>X = class()</code> + <code>getInstance()</code> décrit dans
+<a href="../../architecture/">Architecture</a> et consomme les événements de slot DCS via l'unique
 gestionnaire <code>CTLDDCSEventBridge</code> plutôt qu'en s'enregistrant directement auprès de <code>world</code>.</p>
-<h2 id="ctldplayertracker-slot-identity-index"><code>CTLDPlayerTracker</code> — index d'identité des slots<a class="headerlink" href="#ctldplayertracker-slot-identity-index" title="Permanent link">&para;</a></h2>
-<p><code>CTLDPlayerTracker</code> maintient un double index des humains connectés, <strong>sans dépendance à
-MIST</strong> :</p>
-<div class="highlight"><pre><span></span><code><span class="nv">self</span><span class="p">.</span><span class="py">_byUnit</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span><span class="w">   </span><span class="c1">-- unitName   → playerName</span>
-<span class="nv">self</span><span class="p">.</span><span class="py">_byPlayer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span><span class="w">   </span><span class="c1">-- playerName → { unitName, coalition }</span>
-</code></pre></div>
-<p>Il est alimenté par trois sources, par ordre d'autorité :</p>
-<table>
-<thead>
-<tr>
-<th>Source</th>
-<th>Rôle</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>S_EVENT_PLAYER_ENTER_UNIT</code> / <code>S_EVENT_PLAYER_LEAVE_UNIT</code></td>
-<td>Principale, ajout/suppression pilotés par événement</td>
-</tr>
-<tr>
-<td><code>S_EVENT_BIRTH</code></td>
-<td>Secours — rattrape le premier arrivant si <code>PLAYER_ENTER_UNIT</code> a été manqué</td>
-</tr>
-<tr>
-<td>Balayage <code>coalition.getPlayers()</code></td>
-<td>Filet de sécurité ; <code>_scanAllSlots()</code> s'exécute immédiatement à l'init, puis toutes les 30 s pendant les 3 premières minutes</td>
-</tr>
-</tbody>
-</table>
-<p>Le balayage est idempotent (il n'insère que les slots non encore indexés), si bien que les trois
-sources n'entrent jamais en conflit. Après 3 minutes, le flux d'événements est jugé suffisant et
-le balayage périodique s'arrête.</p>
-<h3 id="public-api">API publique<a class="headerlink" href="#public-api" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Méthode</th>
-<th>Retourne</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>getPlayerByUnit(unitName)</code></td>
-<td>Le <code>playerName</code> occupant l'unité, ou <code>nil</code> si IA/inoccupée</td>
-</tr>
-<tr>
-<td><code>getUnitByPlayer(playerName)</code></td>
-<td><code>{ unitName, coalition }</code>, ou <code>nil</code> si non connecté</td>
-</tr>
-<tr>
-<td><code>getAllPlayers()</code></td>
-<td>liste de <code>{ playerName, unitName, coalition }</code></td>
-</tr>
-<tr>
-<td><code>isPlayerUnit(unitName)</code></td>
-<td><code>true</code> si l'unité est actuellement occupée par un humain</td>
-</tr>
-</tbody>
-</table>
-<p><code>CTLDPlayerTracker.getInstance()</code> requiert que <code>CTLDDCSEventBridge</code> soit initialisé au préalable,
-car <code>init()</code> enregistre ses gestionnaires sur le bridge.</p>
 <h2 id="ctldplayer-per-player-entity"><code>CTLDPlayer</code> — entité par joueur<a class="headerlink" href="#ctldplayer-per-player-entity" title="Permanent link">&para;</a></h2>
 <p><code>CTLDPlayer = class()</code> est un instantané d'identité assorti d'un état de cargo mutable, construit
 par <code>CTLDPlayerManager</code> lorsqu'un humain entre dans un slot. Ses champs, renseignés dans
@@ -2297,6 +2174,11 @@ ci-dessous).</p>
 <td>Ignore l'IA (pas de <code>getPlayerName()</code>), applique le filtre de nom de pilote, construit un <code>CTLDPlayer</code>, le stocke, appelle <code>buildMenu(playerObj)</code></td>
 </tr>
 <tr>
+<td><code>S_EVENT_BIRTH</code></td>
+<td><code>onBirth(event)</code></td>
+<td>Filet de sécurité — enregistre un humain que CTLD ne connaît pas encore, en déléguant à <code>onPlayerEnterUnit</code>. Sort immédiatement pour une unité IA ou un joueur déjà suivi</td>
+</tr>
+<tr>
 <td><code>S_EVENT_PLAYER_LEAVE_UNIT</code></td>
 <td><code>onPlayerLeaveUnit(event)</code></td>
 <td>Retire les entrées de menu DCS du joueur et le supprime de <code>_players</code></td>
@@ -2315,12 +2197,21 @@ ci-dessous).</p>
 </table>
 <p><code>getPlayer(unitName)</code> retourne le <code>CTLDPlayer</code> suivi, ou <code>nil</code>.</p>
 <p><code>_scanExistingPlayers()</code> est un filet de sécurité multijoueur : il s'exécute une fois à la fin de
-<code>ctld.initialize()</code> et se reprogramme toutes les 30 s, synthétisant un <code>onPlayerEnterUnit</code> pour tout
-slot occupé pas encore présent dans <code>_players</code> (changements de slot, prise de contrôle par l'IA,
-arrivants tardifs).</p>
+<code>ctld.initialize()</code> et se reprogramme toutes les 30 s pendant toute la mission, synthétisant un
+<code>onPlayerEnterUnit</code> pour tout slot occupé pas encore présent dans <code>_players</code> (changements de slot,
+prise de contrôle par l'IA, arrivants tardifs) et oubliant les joueurs dont le slot a disparu.</p>
 <p><strong>Filtre de nom de pilote :</strong> lorsque <code>ctld.gs("addPlayerAircraftByType") == false</code>, seuls les noms
-d'unité listés dans <code>ctld.gs("transportPilotNames")</code> reçoivent un menu CTLD ; tous les autres sont
-journalisés et ignorés.</p>
+d'unité listés dans <code>ctld.gs("transportPilotNames")</code> peuvent utiliser les fonctions de
+<strong>transport</strong>. Tous les autres humains restent suivis et reçoivent un menu CTLD, construit avec
+<code>isTransport = false</code> et <code>canCarryVehicles = false</code> <strong>quel que soit leur type d'appareil</strong> — un type
+de transport absent de la liste ne récupère pas les menus de transport par la détection de
+capacités, sans quoi le réglage ne voudrait rien dire.</p>
+<p>Ce que voit un tel pilote est décidé par les sections elles-mêmes, qui respectent déjà
+<code>isTransport</code> : reconnaissance, fumigènes, <code>List Beacons</code>, <code>JTAC Status</code> et <code>List active FOBs</code> sont
+construites pour lui ; troupes, caisses, véhicules, pose de balises, demandes d'équipement JTAC et
+<code>Check Cargo</code> ne le sont pas. Avant la 2.0.0-rc11, le filtre sortait avant d'enregistrer le joueur :
+il n'avait aucun menu CTLD, donc aucune reconnaissance, alors que n'importe quel pilote est censé
+pouvoir s'en servir.</p>
 <h3 id="flight-state-poller">Sondage de l'état de vol<a class="headerlink" href="#flight-state-poller" title="Permanent link">&para;</a></h3>
 <p>Comme <code>S_EVENT_TAKEOFF</code> / <code>S_EVENT_LAND</code> se déclenchent avec un retard de 3 à 5 s pour les
 hélicoptères, <code>init()</code> démarre également un sondage <code>timer.scheduleFunction</code> toutes les 0,5 s. Il lit

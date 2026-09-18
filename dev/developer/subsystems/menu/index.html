@@ -3031,8 +3031,10 @@ this path.</p>
 <code>ctld.gs("capabilitiesByType")[typeName]</code>: a transport is any type with an entry;
 <code>canCarryVehicles</code> is set when that entry's <code>canTransportWholeVehicle == true</code>. Managers use these
 flags (and their own config/proximity checks) to decide which items to render. When
-<code>addPlayerAircraftByType == false</code>, only units whose name is listed in <code>transportPilotNames</code>
-receive a CTLD menu at all.</p>
+<code>addPlayerAircraftByType == false</code>, units whose name is <strong>not</strong> listed in <code>transportPilotNames</code>
+are built with <code>isTransport = false</code> whatever their type: they keep a CTLD menu, holding only
+the sections that do not require a transport (recon, smoke, <code>List Beacons</code>, <code>JTAC Status</code>,
+<code>List active FOBs</code>).</p>
 <p><code>refreshForUnit(unitName)</code> and <code>refreshAll()</code> trigger a debounced refresh for one / every tracked
 player.</p>
 <h2 id="flight-state-refresh">Flight-state refresh<a class="headerlink" href="#flight-state-refresh" title="Permanent link">&para;</a></h2>

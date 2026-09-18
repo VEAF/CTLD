@@ -3260,9 +3260,21 @@ champs que vous avez modifiés.</p>
 dans <code>capabilitiesByType</code> obtient automatiquement les menus CTLD en entrant dans un slot.
 Recommandé pour les serveurs multijoueurs ouverts.</p>
 <p><strong><code>addPlayerAircraftByType = false</code></strong> — seuls les noms d'unité explicitement listés dans
-<code>transportPilotNames</code> obtiennent les menus CTLD. Utilisez ceci pour restreindre CTLD à un
-ensemble fixe de slots nommés (ex. une escadrille de transport dédiée). Les appareils
-CTLD-capables <strong>non</strong> listés rejoignent la mission normalement mais n'ont aucun accès CTLD.</p>
+<code>transportPilotNames</code> obtiennent les menus de <strong>transport</strong>. Utilisez ceci pour réserver le
+travail de transport à un ensemble fixe de slots nommés (ex. une escadrille de transport
+dédiée). Les appareils CTLD-capables <strong>non</strong> listés rejoignent la mission normalement et ne
+transportent ni troupes, ni caisses, ni véhicules — quel que soit leur type.</p>
+<p>Ils conservent en revanche les fonctions CTLD qui n'ont rien à voir avec le transport :
+<strong>reconnaissance</strong>, <strong>fumigènes</strong>, <strong>List Beacons</strong>, <strong>JTAC Status</strong> et <strong>List active FOBs</strong>.
+N'importe quel pilote peut s'en servir, un chasseur compris, et les couper n'a jamais été le
+but de ce réglage. Chacune garde son propre interrupteur global (<code>reconF10Menu</code>,
+<code>enableSmokeDrop</code>, <code>enabledRadioBeaconDrop</code>, <code>JTAC_jtacStatusF10</code>) si vous voulez la
+supprimer pour tout le monde.</p>
+<div class="admonition warning">
+<p class="admonition-title">Modifié en 2.0.0-rc11</p>
+<p>Avant la rc11, un pilote absent de la liste n'avait <strong>aucun</strong> menu CTLD. Si votre mission
+comptait là-dessus pour masquer CTLD entièrement, désactivez les quatre réglages ci-dessus.</p>
+</div>
 <div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">addPlayerAircraftByType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 <span class="w">  </span><span class="nt">transportPilotNames</span><span class="p">:</span>

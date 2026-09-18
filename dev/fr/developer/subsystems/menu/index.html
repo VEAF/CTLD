@@ -3044,8 +3044,10 @@ met une section en file d'attente au niveau supérieur du module ; la file est v
 partir de <code>ctld.gs("capabilitiesByType")[typeName]</code> : un transport est tout type ayant une entrée ;
 <code>canCarryVehicles</code> est positionné lorsque le <code>canTransportWholeVehicle == true</code> de cette entrée.
 Les managers utilisent ces indicateurs (et leurs propres contrôles config/proximité) pour décider
-quels items rendre. Lorsque <code>addPlayerAircraftByType == false</code>, seules les unités dont le nom
-figure dans <code>transportPilotNames</code> reçoivent un menu CTLD.</p>
+quels items rendre. Lorsque <code>addPlayerAircraftByType == false</code>, les unités dont le nom ne figure
+<strong>pas</strong> dans <code>transportPilotNames</code> sont construites avec <code>isTransport = false</code> quel que soit leur
+type : elles conservent un menu CTLD, ne contenant que les sections qui n'exigent pas un
+transport (reconnaissance, fumigènes, <code>List Beacons</code>, <code>JTAC Status</code>, <code>List active FOBs</code>).</p>
 <p><code>refreshForUnit(unitName)</code> et <code>refreshAll()</code> déclenchent un rafraîchissement débouncé pour un / tous
 les joueurs suivis.</p>
 <h2 id="flight-state-refresh">Rafraîchissement selon l'état de vol<a class="headerlink" href="#flight-state-refresh" title="Permanent link">&para;</a></h2>

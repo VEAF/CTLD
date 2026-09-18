@@ -3250,9 +3250,20 @@ and marks the fields you changed.</p>
 <code>capabilitiesByType</code> automatically gets CTLD menus on entering a slot. Recommended for open
 multiplayer servers.</p>
 <p><strong><code>addPlayerAircraftByType = false</code></strong> — only unit names explicitly listed in
-<code>transportPilotNames</code> get CTLD menus. Use this to restrict CTLD to a fixed set of named slots
-(e.g. a dedicated transport squadron). CTLD-capable aircraft <strong>not</strong> in the list join the
-mission normally but have no CTLD access.</p>
+<code>transportPilotNames</code> get the <strong>transport</strong> menus. Use this to restrict transport work to a
+fixed set of named slots (e.g. a dedicated transport squadron). CTLD-capable aircraft <strong>not</strong> in
+the list join the mission normally and carry no troops, crates or vehicles — whatever their
+type.</p>
+<p>They do keep the CTLD functions that have nothing to do with transport: <strong>recon</strong>, <strong>smoke</strong>,
+<strong>List Beacons</strong>, <strong>JTAC Status</strong> and <strong>List active FOBs</strong>. Any pilot can use those, a fighter
+included, and cutting them was never the point of this setting. Each still has its own global
+switch (<code>reconF10Menu</code>, <code>enableSmokeDrop</code>, <code>enabledRadioBeaconDrop</code>, <code>JTAC_jtacStatusF10</code>) if
+you want it gone for everyone.</p>
+<div class="admonition warning">
+<p class="admonition-title">Changed in 2.0.0-rc11</p>
+<p>Before rc11, a pilot off the list had <strong>no</strong> CTLD menu at all. If your mission relied on
+that to hide CTLD entirely, turn the four switches above off.</p>
+</div>
 <div class="highlight"><pre><span></span><code><span class="nt">mm_facing</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">addPlayerAircraftByType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 <span class="w">  </span><span class="nt">transportPilotNames</span><span class="p">:</span>
