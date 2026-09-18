@@ -709,7 +709,10 @@ describe("CTLDPlayerManager _scanExistingPlayers evicts departed players", funct
     it("cancels a pending rebuild when evicting the last player", function()
         injectPlayer(mgr, "pilot_A", 8006)
         local mm = injectMenu(8006, "handle_A")
-        mm._pendingRefresh[8006] = true
+        -- Same shape the manager itself stores (FIX-CANCELPENDING-URGENT-TIMER): a bare
+        -- `true` was a shortcut mirroring the old implementation, and it stopped being
+        -- what cancelPending reads.
+        mm._pendingRefresh[8006] = { timerId = 4242 }
         slotsAre({})
 
         mgr:_scanExistingPlayers()

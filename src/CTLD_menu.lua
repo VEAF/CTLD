@@ -69,7 +69,7 @@ end
 function ctld.MenuManager:_new()
     local obj = {
         menus            = {},
-        _pendingRefresh  = {},  -- [groupId] = true while an urgent (debounced) rebuild is scheduled
+        _pendingRefresh  = {},  -- [groupId] = { timerId } while an urgent (debounced) rebuild is scheduled
         _pendingAmbient  = {},  -- [groupId] = { timerId } while an ambient rebuild is scheduled
         -- groupId a refresh should treat as urgent right now, or nil. Set/cleared by
         -- runUrgent() — see AMBIENT vs URGENT REFRESH below.
@@ -162,14 +162,21 @@ function ctld.MenuManager:deferredRefreshForGroup(groupId, opts)
 
     if isUrgent then
         if self._pendingRefresh[groupId] then return end   -- already scheduled
-        self._pendingRefresh[groupId] = true
         local selfRef = self
-        timer.scheduleFunction(function()
+        -- The entry doubles as this callback's claim on the group: cancelPending removes the
+        -- timer, and the callback refuses to act if the entry it finds is not its own. Either
+        -- alone would do in the common case; together they hold even if timer.removeFunction
+        -- misses, which matters because DCS reuses a numeric group id for the next occupant and
+        -- the rebuild would land on him 0.15 s into his flight (#152).
+        local entry = {}
+        entry.timerId = timer.scheduleFunction(function()
+            if selfRef._pendingRefresh[groupId] ~= entry then return end   -- cancelled
             selfRef._pendingRefresh[groupId] = nil
             if selfRef.menus[groupId] then
                 selfRef:refreshMenuForGroup(groupId)
             end
         end, nil, timer.getTime() + DEBOUNCE_S)
+        self._pendingRefresh[groupId] = entry
         return
     end
 
@@ -205,7 +212,15 @@ end
 -- deferredRefreshForGroup silently coalesce the new occupant's first refresh into a stale
 -- timer scheduled for someone who already left.
 function ctld.MenuManager:cancelPending(groupId)
-    self._pendingRefresh[groupId] = nil
+    local pendingUrgent = self._pendingRefresh[groupId]
+    if pendingUrgent then
+        -- Tolerate an entry that is not a table: this runs on the player-teardown path, and a
+        -- raise here would abort the caller mid-cleanup and leave the player registered.
+        if type(pendingUrgent) == "table" and pendingUrgent.timerId then
+            timer.removeFunction(pendingUrgent.timerId)
+        end
+        self._pendingRefresh[groupId] = nil
+    end
     local pendingAmbient = self._pendingAmbient[groupId]
     if pendingAmbient then
         timer.removeFunction(pendingAmbient.timerId)
