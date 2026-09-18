@@ -371,9 +371,8 @@ end
 -- ============================================================
 
 function CTLDFOBManager:onDead(event)
-    local obj = event.initiator
-    if not obj then return end
-    local objName = obj:getName()
+    local objName = ctld.utils.safeObjectName(event and event.initiator)
+    if not objName then return end
 
     local fobId = self._objectToFOB[objName]
     if not fobId then return end

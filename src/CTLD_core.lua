@@ -648,13 +648,18 @@ end
 -- Dropoff zone is checked first; pickup is skipped on the same landing.
 -- Parachute vehicle dropoff (in-flight) is not handled here.
 function CTLDCoreManager:onAILand(event)
-    local u = event and event.initiator
-    if not u or not u:isExist() then return end
+    local u        = event and event.initiator
+    local unitName = ctld.utils.safeObjectName(u)   -- nil when DCS already released it
+    if not unitName then return end
+    -- A half-released object can answer getName() and raise on everything else, so these
+    -- two reads are pcall'd rather than called outright.
+    local okExist, alive = pcall(u.isExist, u)
+    if not okExist or not alive then return end
 
-    local unitName = u:getName()
     local aiSet = self._aiPilotNames or {}
     if not aiSet[unitName] then return end
-    if u:getPlayerName() ~= nil then return end  -- skip player-controlled
+    local okPlayer, player = pcall(u.getPlayerName, u)
+    if not okPlayer or player ~= nil then return end  -- skip player-controlled and unreadable
 
     local ok, tm = pcall(CTLDTroopManager.getInstance)
     if not ok or not tm then return end

@@ -8,6 +8,32 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — leaving a slot raised an error and left the player's F10 menu behind (FIX-PLAYER-EVENT-GUARDS)
+
+- **Changing slot or coalition raised `attempt to call method 'getName' (a nil value)` and left
+  the departing player's CTLD menu in place.** Reported from a live multiplayer session: DCS
+  delivers `S_EVENT_PLAYER_LEAVE_UNIT` about a millisecond after releasing the unit, so
+  `event.initiator` is present but carries no methods at all — a `if not unit` guard does not
+  cover that. The handler aborted on its third line, so the player was never removed from the
+  registry, the group's F10 menu was never torn down, and the pending-rebuild cancellation that
+  protects the **next** occupant of a recycled group id never ran. Multi-crew aircraft were the
+  visible casualty: the "is anyone left in this group?" count included players who had long since
+  gone, so the menu was never torn down at all.
+- Fixed with a new `ctld.utils.safeObjectName()` used by the **seven** handlers that read a name
+  straight off `event.initiator` (`onPlayerEnterUnit`, `onPlayerLeaveUnit`, `onLand`, `onTakeoff`,
+  `CTLDZoneManager:onDead`, `CTLDFOBManager:onDead`, `CTLDCoreManager:onAILand`) — enumerated from
+  the event bridge's registration list, not sampled. The other six handlers already guarded
+  correctly and are untouched. A released object comes in two shapes — one with no methods at all,
+  one that still answers `getName()` and fails on everything else — and `onPlayerEnterUnit` and
+  `onAILand` read `isExist()`/`getPlayerName()` outright, so those reads are now protected too.
+- The player scan itself can no longer die: its pass runs under a protected call, so a raise inside
+  one sweep no longer takes the 30 s reschedule with it and silently end the recovery for the rest
+  of the mission.
+- A guard alone would only have turned the error into a silent leak, so the 30 s player scan —
+  which until now could only ever *add* — gained a reverse pass that forgets players whose slot no
+  longer exists, is dead, or has gone back to AI, applying the same multi-crew rule as a clean
+  departure. The event stays the fast path; the scan is the backstop.
+
 ### Fixed — a HAWK/Patriot crate could linger in the Unpack menu forever (FIX-AASYSTEM-NOCRATE-LINGERS)
 
 - **After successfully assembling a HAWK or Patriot AA system, the F10 Unpack Crate menu could

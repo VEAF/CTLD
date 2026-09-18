@@ -1167,9 +1167,8 @@ end
 
 --- S_EVENT_DEAD: remove dynamic logistic zones whose linked unit died.
 function CTLDZoneManager:onDead(event)
-    local unit = event.initiator
-    if not unit then return end
-    local unitName = unit:getName()
+    local unitName = ctld.utils.safeObjectName(event and event.initiator)
+    if not unitName then return end
     local zone = self._logisticZones[unitName]
     if zone and zone:isDynamic() then
         self._logisticZones[unitName] = nil

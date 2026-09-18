@@ -594,3 +594,256 @@ describe("CTLDPlayerManager onPlayerLeaveUnit multi-crew group-aware", function(
     end)
 
 end)
+
+-- ─────────────────────────────────────────────────────────────
+describe("CTLDPlayerManager _scanExistingPlayers evicts departed players", function()
+    -- FIX-PLAYER-EVENT-GUARDS ticket 02.
+    --
+    -- When DCS delivers S_EVENT_PLAYER_LEAVE_UNIT with an already-released initiator, the
+    -- handler cannot read the unit name and the player is never forgotten: the F10 menu is
+    -- never torn down and cancelPending (the #147 fix against a recycled groupId) never runs.
+    -- The 30 s sweep is the backstop that closes that hole.
+
+    local mgr
+    local removeCalls
+    local savedGetByName
+
+    local function injectPlayer(m, unitName, groupId)
+        m._players[unitName] = CTLDPlayer:new({
+            unitName         = unitName,
+            groupId          = groupId,
+            groupName        = "grp_" .. groupId,
+            coalition        = coalition.side.BLUE,
+            typeName         = "CH-47D",
+            isTransport      = true,
+            canCarryVehicles = true,
+        })
+    end
+
+    local function injectMenu(groupId, handle)
+        ctld.MenuManager._instance = nil
+        local mm   = ctld.MenuManager:getInstance()
+        local menu = mm:createMenuForGroup(groupId)
+        menu._activeHandles = { handle }
+        return mm
+    end
+
+    -- Unit.getByName answers from this table: name -> { exists, player }.
+    local function slotsAre(slots)
+        Unit.getByName = function(name)
+            local s = slots[name]
+            if not s then return nil end
+            local u = { _name = name }
+            function u:getName()       return self._name end
+            function u:isExist()       return s.exists   end
+            function u:getPlayerName() return s.player    end
+            return u
+        end
+    end
+
+    before_each(function()
+        CTLDPlayerManager._instance  = nil
+        CTLDDCSEventBridge._instance = nil
+        mgr = CTLDPlayerManager.getInstance()
+        removeCalls = {}
+        missionCommands.removeItemForGroup = function(gid, h)
+            table.insert(removeCalls, { gid = gid, handle = h })
+        end
+        savedGetByName = Unit.getByName
+    end)
+
+    after_each(function()
+        missionCommands.removeItemForGroup = function() end
+        ctld.MenuManager._instance = nil
+        Unit.getByName = savedGetByName
+    end)
+
+    it("evicts a player whose unit no longer exists", function()
+        injectPlayer(mgr, "pilot_A", 8001)
+        slotsAre({})   -- Unit.getByName returns nil
+
+        mgr:_scanExistingPlayers()
+
+        assert.is_nil(mgr:getPlayer("pilot_A"))
+    end)
+
+    it("evicts a player whose unit exists but is dead", function()
+        injectPlayer(mgr, "pilot_A", 8002)
+        slotsAre({ pilot_A = { exists = false, player = "Someone" } })
+
+        mgr:_scanExistingPlayers()
+
+        assert.is_nil(mgr:getPlayer("pilot_A"))
+    end)
+
+    it("evicts a player whose slot no longer carries a player name", function()
+        injectPlayer(mgr, "pilot_A", 8003)
+        slotsAre({ pilot_A = { exists = true, player = nil } })
+
+        mgr:_scanExistingPlayers()
+
+        assert.is_nil(mgr:getPlayer("pilot_A"))
+    end)
+
+    it("does NOT evict a player still flying", function()
+        injectPlayer(mgr, "pilot_A", 8004)
+        slotsAre({ pilot_A = { exists = true, player = "Zip" } })
+
+        mgr:_scanExistingPlayers()
+
+        assert.is_not_nil(mgr:getPlayer("pilot_A"))
+    end)
+
+    it("tears the group menu down when evicting the last player", function()
+        injectPlayer(mgr, "pilot_A", 8005)
+        local mm = injectMenu(8005, "handle_A")
+        slotsAre({})
+
+        mgr:_scanExistingPlayers()
+
+        assert.equals(1, #removeCalls)
+        assert.equals("handle_A", removeCalls[1].handle)
+        assert.is_nil(mm.menus[8005])
+    end)
+
+    it("cancels a pending rebuild when evicting the last player", function()
+        injectPlayer(mgr, "pilot_A", 8006)
+        local mm = injectMenu(8006, "handle_A")
+        mm._pendingRefresh[8006] = true
+        slotsAre({})
+
+        mgr:_scanExistingPlayers()
+
+        assert.is_nil(mm._pendingRefresh[8006])
+    end)
+
+    it("multi-crew: evicting both crew members tears the menu down exactly once", function()
+        injectPlayer(mgr, "pilot_A",   8007)
+        injectPlayer(mgr, "copilot_B", 8007)
+        local mm = injectMenu(8007, "handle_AB")
+        slotsAre({})
+
+        mgr:_scanExistingPlayers()
+
+        assert.is_nil(mgr:getPlayer("pilot_A"))
+        assert.is_nil(mgr:getPlayer("copilot_B"))
+        assert.equals(1, #removeCalls)
+        assert.is_nil(mm.menus[8007])
+    end)
+
+    it("multi-crew: one crew member left flying keeps the menu", function()
+        injectPlayer(mgr, "pilot_A",   8008)
+        injectPlayer(mgr, "copilot_B", 8008)
+        local mm = injectMenu(8008, "handle_AB")
+        slotsAre({ copilot_B = { exists = true, player = "Zip" } })
+
+        mgr:_scanExistingPlayers()
+
+        assert.is_nil(mgr:getPlayer("pilot_A"))
+        assert.is_not_nil(mgr:getPlayer("copilot_B"))
+        assert.equals(0, #removeCalls)
+        assert.is_not_nil(mm.menus[8008])
+    end)
+
+    it("closes the loop: a released-initiator leave is repaired by the next sweep", function()
+        injectPlayer(mgr, "pilot_A", 8009)
+        local mm = injectMenu(8009, "handle_A")
+
+        -- The event as DCS delivered it on 2026-09-17: initiator present, methods gone.
+        mgr:onPlayerLeaveUnit({ initiator = {} })
+        assert.is_not_nil(mgr:getPlayer("pilot_A"))   -- nothing the handler can do
+
+        slotsAre({})
+        mgr:_scanExistingPlayers()
+
+        assert.is_nil(mgr:getPlayer("pilot_A"))
+        assert.equals(1, #removeCalls)
+        assert.is_nil(mm.menus[8009])
+    end)
+
+    it("survives Unit.getByName raising, and still reschedules itself", function()
+        injectPlayer(mgr, "pilot_A", 8010)
+        Unit.getByName = function() error("DCS is busy releasing this unit") end
+
+        local scheduled = 0
+        local savedSchedule = timer.scheduleFunction
+        timer.scheduleFunction = function(fn, arg, t)
+            scheduled = scheduled + 1
+            return 0
+        end
+
+        local ok = pcall(function() mgr:_scanExistingPlayers() end)
+
+        timer.scheduleFunction = savedSchedule
+
+        assert.is_true(ok)
+        assert.equals(1, scheduled)
+    end)
+
+end)
+
+-- ─────────────────────────────────────────────────────────────
+describe("CTLDPlayerManager _scanExistingPlayers outlives its own failures", function()
+    -- The sweep is the backstop for damaged PLAYER_LEAVE_UNIT events. A pass that raises
+    -- must not take the 30 s reschedule with it: a sweep that silently stops is
+    -- indistinguishable from a sweep that finds nothing.
+
+    local mgr
+    local savedGetPlayers
+
+    before_each(function()
+        CTLDPlayerManager._instance  = nil
+        CTLDDCSEventBridge._instance = nil
+        mgr = CTLDPlayerManager.getInstance()
+        savedGetPlayers = coalition.getPlayers
+    end)
+
+    after_each(function()
+        coalition.getPlayers = savedGetPlayers
+        ctld.MenuManager._instance = nil
+    end)
+
+    it("a unit being released during the add pass does not cancel the eviction pass", function()
+        -- Sourcery's finding on PR #151: one bad unit in coalition.getPlayers() used to abort
+        -- the whole pass, so the reverse eviction never ran that sweep and stale entries
+        -- survived. Per-unit protection, not per-pass.
+        local mgr2 = CTLDPlayerManager.getInstance()
+        mgr2._players["stale_pilot"] = CTLDPlayer:new({
+            unitName = "stale_pilot",
+            groupId  = 8200,
+            typeName = "UH-1H",
+        })
+
+        local rotting = {}
+        function rotting:isExist() error("object no longer exists") end
+        coalition.getPlayers = function(side)
+            if side == coalition.side.RED then return { rotting } end
+            return {}
+        end
+
+        local savedGetByName = Unit.getByName
+        Unit.getByName = function() return nil end   -- the tracked slot is gone
+
+        mgr2:_scanExistingPlayers()
+
+        Unit.getByName = savedGetByName
+
+        assert.is_nil(mgr2:getPlayer("stale_pilot"))
+    end)
+
+    it("reschedules itself even when the add pass raises", function()
+        coalition.getPlayers = function() error("DCS is mid-slot-change") end
+
+        local scheduled = 0
+        local savedSchedule = timer.scheduleFunction
+        timer.scheduleFunction = function() scheduled = scheduled + 1; return 0 end
+
+        local ok = pcall(function() mgr:_scanExistingPlayers() end)
+
+        timer.scheduleFunction = savedSchedule
+
+        assert.is_true(ok)
+        assert.equals(1, scheduled)
+    end)
+
+end)
