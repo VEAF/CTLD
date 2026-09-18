@@ -59,5 +59,8 @@ player stays in `_players`, the group's F10 menu is never torn down, and `mmgr:c
       control — without it, an over-eager sweep passes every other case).
 - [x] `Unit.getByName` raising does not break the sweep: the pass completes and reschedules.
 - [x] A raise in the **add** pass does not stop the sweep either — it still reschedules.
+- [x] A single unit DCS is releasing during the add pass costs neither the other units their
+      menu nor the eviction pass its turn (Sourcery's finding on PR #151: the protection has to
+      be per unit, not per pass, or the reverse pass never runs that sweep).
 - [x] A healthy `onPlayerLeaveUnit` still cleans up immediately, without waiting for a sweep.
 - [x] Local spec runner green (1199/1200 — the one failure is `static_watcher_spec` using `assert.matches`, which the local runner does not implement; it fails identically on a clean checkout). `luacheck` delegated to CI: the local install is broken (rocks under Lua 5.5).

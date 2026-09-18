@@ -803,6 +803,34 @@ describe("CTLDPlayerManager _scanExistingPlayers outlives its own failures", fun
         ctld.MenuManager._instance = nil
     end)
 
+    it("a unit being released during the add pass does not cancel the eviction pass", function()
+        -- Sourcery's finding on PR #151: one bad unit in coalition.getPlayers() used to abort
+        -- the whole pass, so the reverse eviction never ran that sweep and stale entries
+        -- survived. Per-unit protection, not per-pass.
+        local mgr2 = CTLDPlayerManager.getInstance()
+        mgr2._players["stale_pilot"] = CTLDPlayer:new({
+            unitName = "stale_pilot",
+            groupId  = 8200,
+            typeName = "UH-1H",
+        })
+
+        local rotting = {}
+        function rotting:isExist() error("object no longer exists") end
+        coalition.getPlayers = function(side)
+            if side == coalition.side.RED then return { rotting } end
+            return {}
+        end
+
+        local savedGetByName = Unit.getByName
+        Unit.getByName = function() return nil end   -- the tracked slot is gone
+
+        mgr2:_scanExistingPlayers()
+
+        Unit.getByName = savedGetByName
+
+        assert.is_nil(mgr2:getPlayer("stale_pilot"))
+    end)
+
     it("reschedules itself even when the add pass raises", function()
         coalition.getPlayers = function() error("DCS is mid-slot-change") end
 

@@ -278,10 +278,12 @@ function CTLDPlayerManager:init()
     ctld.utils.log("INFO", "CTLDPlayerManager: init complete")
 end
 
---- Build menus for any players occupying slots not yet tracked.
--- Called once at the end of ctld.initialize() (after all sections are registered),
--- then rescheduled every 30 s for 3 min as a safety net for S_EVENT_PLAYER_ENTER_UNIT
--- missed in multiplayer (e.g. player joins while CTLD is still booting).
+--- Build menus for any players occupying slots not yet tracked, and forget those whose slot
+--- is gone. Called once at the end of ctld.initialize() (after all sections are registered),
+--- then rescheduled every 30 s **for the whole mission** — not for a bounded warm-up window.
+--- It is the safety net both for S_EVENT_PLAYER_ENTER_UNIT missed in multiplayer (a player
+--- joining while CTLD is still booting) and for S_EVENT_PLAYER_LEAVE_UNIT arriving with an
+--- initiator DCS has already released, which no handler can read a name from.
 function CTLDPlayerManager:_scanExistingPlayers()
     -- The sweep is the backstop for events DCS delivers damaged, so it must outlive its own
     -- mistakes: anything raising inside one pass would otherwise take the reschedule with it
@@ -305,14 +307,17 @@ end
 function CTLDPlayerManager:_scanPlayersOnce()
     local count = 0
     for _, side in ipairs({ coalition.side.RED, coalition.side.BLUE }) do
-        local units = coalition.getPlayers(side) or {}
-        for _, unit in ipairs(units) do
-            if unit:isExist() and unit:getPlayerName() then
-                local unitName = unit:getName()
-                if not self._players[unitName] then
-                    self:onPlayerEnterUnit({ initiator = unit })
-                    count = count + 1
-                end
+        local okList, units = pcall(coalition.getPlayers, side)
+        for _, unit in ipairs((okList and units) or {}) do
+            -- Per unit, not per pass: a single unit DCS is releasing right now must not cost
+            -- the other units their menu, nor the eviction pass below its turn.
+            local okUnit, unitName = pcall(function()
+                if not unit:isExist() or not unit:getPlayerName() then return nil end
+                return ctld.utils.safeObjectName(unit)
+            end)
+            if okUnit and unitName and not self._players[unitName] then
+                self:onPlayerEnterUnit({ initiator = unit })
+                count = count + 1
             end
         end
     end
