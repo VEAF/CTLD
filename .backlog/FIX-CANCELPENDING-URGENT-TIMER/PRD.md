@@ -1,6 +1,6 @@
 # FIX-CANCELPENDING-URGENT-TIMER — cancelPending leaves the urgent timer running
 
-**Status:** 🔄 in-progress (implemented, PR pending)
+**Status:** ✅ done (PR #154)
 
 Closes #152, filed by Zip out of an automated review of the VEAF-Mission-Creation-Tools PR that
 vendors rc10. Polish, not a field report — but see *Why it is worth doing now*.
