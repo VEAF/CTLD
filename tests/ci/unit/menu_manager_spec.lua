@@ -654,17 +654,54 @@ describe("ctld.MenuManager ambient vs urgent refresh", function()
         assert.is_nil(mgr._pendingAmbient[6010])
     end)
 
-    it("cancelPending clears a pending urgent debounce", function()
+    -- FIX-CANCELPENDING-URGENT-TIMER (#152). This case used to assert only that the flag was
+    -- cleared, and explained in a comment that cancelPending "cannot retract a call already
+    -- handed to timer.scheduleFunction". The ambient branch of the same function does exactly
+    -- that, ten lines below — the comment rationalised the defect instead of recording it.
+    it("cancelPending cancels a pending urgent debounce via timer.removeFunction", function()
         local menu = seedMenu(6011)
         menu:refresh({ urgent = true })
         assert.equals(1, #scheduledCalls)
+        local urgentTimerId = scheduledCalls[1].id
 
         mgr:cancelPending(6011)
 
         assert.is_nil(mgr._pendingRefresh[6011])
-        -- the already-scheduled timer fires as a no-op-from-the-caller's-perspective: cancelPending
-        -- does not (and cannot, via the mocked timer) retract a call already handed to
-        -- timer.scheduleFunction, but the debounce flag it gates on is cleared.
+        assert.equals(1, #removedIds)
+        assert.equals(urgentTimerId, removedIds[1])
+    end)
+
+    it("a cancelled urgent debounce rebuilds nothing if its callback still runs", function()
+        -- The reported symptom (#152): a new occupant takes the same numeric group id, already
+        -- has a menu, and the previous occupant's debounce fires inside his first 150 ms —
+        -- one unsolicited wipe-and-rebuild, which is the misfire ADR 0015 exists to prevent.
+        -- A mocked timer cannot really retract the call, so this asserts the outcome: nothing.
+        local menu = seedMenu(6013)
+        menu:refresh({ urgent = true })
+        local cb = scheduledCalls[1].fn
+
+        mgr:cancelPending(6013)
+        local addBefore = #addCalls
+
+        cb()   -- DCS fires it anyway
+
+        assert.equals(addBefore, #addCalls)   -- no rebuild
+    end)
+
+    it("cancelPending on a group with nothing pending removes nothing", function()
+        seedMenu(6014)
+
+        mgr:cancelPending(6014)
+
+        assert.equals(0, #removedIds)
+    end)
+
+    it("a second urgent refresh inside the window still coalesces", function()
+        local menu = seedMenu(6015)
+        menu:refresh({ urgent = true })
+        menu:refresh({ urgent = true })
+
+        assert.equals(1, #scheduledCalls)
     end)
 
     it("cancelPending cancels a pending ambient rebuild via timer.removeFunction", function()

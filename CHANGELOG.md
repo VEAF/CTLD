@@ -8,6 +8,21 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a cancelled menu rebuild could still land on the next occupant (FIX-CANCELPENDING-URGENT-TIMER)
+
+- **`ctld.MenuManager:cancelPending` cancelled the ambient rebuild but not the urgent one.** The
+  ambient path stores its timer id and removes it; the urgent (debounced) path stored only a flag,
+  so clearing the flag left the timer scheduled and it fired anyway. DCS reuses a numeric group id
+  for the next occupant of a slot, so the rebuild could land on a **different player** 0.15 s into
+  his flight — one unsolicited wipe-and-rebuild, which is the misfire ADR 0015 and the ambient/urgent
+  split exist to prevent. Reported as [#152](https://github.com/VEAF/CTLD/issues/152).
+- The urgent entry now carries its timer id, symmetrically with the ambient one, **and** doubles as
+  the callback's claim on the group: the callback refuses to rebuild if the entry it finds is not
+  its own. Either alone would cover the common case; together they hold even if
+  `timer.removeFunction` misses.
+- Worth noting for anyone reading the history: `cancelPending` only started being *reached* with
+  the fix in #151 — before it, the player-leave handler raised before getting there on every slot
+  and coalition change, which is exactly where a recycled group id comes from.
 ### Changed — a fighter pilot now gets the CTLD functions that concern him (FEAT-NON-TRANSPORT-PILOTS)
 
 - **Recon works for any pilot, aircraft included — but with `addPlayerAircraftByType = false` a
@@ -37,6 +52,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   of its four accessors was ever called, and the one comment claiming to consult it
   (`CTLDVehicleSpawner:_checkNativeLoading`) was corrected in #151. Its `S_EVENT_BIRTH` net — the one
   part worth keeping — moved into `CTLDPlayerManager`.
+
 ### Fixed — leaving a slot raised an error and left the player's F10 menu behind (FIX-PLAYER-EVENT-GUARDS)
 
 - **Changing slot or coalition raised `attempt to call method 'getName' (a nil value)` and left
