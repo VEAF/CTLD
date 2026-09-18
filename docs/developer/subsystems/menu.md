@@ -325,8 +325,10 @@ Called on player-enter (and re-runnable). It:
 `ctld.gs("capabilitiesByType")[typeName]`: a transport is any type with an entry;
 `canCarryVehicles` is set when that entry's `canTransportWholeVehicle == true`. Managers use these
 flags (and their own config/proximity checks) to decide which items to render. When
-`addPlayerAircraftByType == false`, only units whose name is listed in `transportPilotNames`
-receive a CTLD menu at all.
+`addPlayerAircraftByType == false`, units whose name is **not** listed in `transportPilotNames`
+are built with `isTransport = false` whatever their type: they keep a CTLD menu, holding only
+the sections that do not require a transport (recon, smoke, `List Beacons`, `JTAC Status`,
+`List active FOBs`).
 
 `refreshForUnit(unitName)` and `refreshAll()` trigger a debounced refresh for one / every tracked
 player.

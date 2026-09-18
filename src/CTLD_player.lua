@@ -131,6 +131,9 @@ function CTLDPlayerManager:init()
     local bridge = CTLDDCSEventBridge.getInstance()
     bridge:register(self, world.event.S_EVENT_PLAYER_ENTER_UNIT, "onPlayerEnterUnit")
     bridge:register(self, world.event.S_EVENT_PLAYER_LEAVE_UNIT, "onPlayerLeaveUnit")
+    -- Safety net: DCS can fire S_EVENT_BIRTH before world.addEventHandler is registered, and a
+    -- missed ENTER leaves a player with no CTLD menu until the 30 s sweep catches up.
+    bridge:register(self, world.event.S_EVENT_BIRTH, "onBirth")
 
     -- Subscribe to CTLD cargo events to maintain per-player cargo state
     local ed = EventDispatcher.getInstance()
@@ -370,18 +373,27 @@ function CTLDPlayerManager:onPlayerEnterUnit(event)
     local okPlayer, player = pcall(unit.getPlayerName, unit)
     if not okPlayer or not player then return end   -- skip AI
 
-    -- Pilot name gate: when addPlayerAircraftByType=false, only unit names explicitly
-    -- listed in transportPilotNames receive CTLD menus.
+    -- Idempotent: this handler is now reachable three ways — the DCS event, the BIRTH safety
+    -- net and the 30 s scan. Rebuilding a menu that already exists would wipe and reconstruct
+    -- it under a player who may have it open, which is the misfire #147 was about.
+    if self._players[unitName] then return end
+
+    -- Pilot name gate: when addPlayerAircraftByType=false, only unit names explicitly listed
+    -- in transportPilotNames may use the TRANSPORT functions. It used to return here, which
+    -- left the pilot with no CTLD menu at all — and therefore no recon, no smoke, no beacon
+    -- list, none of which has anything to do with carrying cargo (#150). The gate now feeds
+    -- isTransport, and the seventeen isTransport guards inside the sections do the rest.
+    local transportAllowed = true
     if ctld.gs("addPlayerAircraftByType") == false then
-        local allowed = false
+        transportAllowed = false
         for _, name in ipairs(ctld.gs("transportPilotNames") or {}) do
-            if name == unitName then allowed = true; break end
+            if name == unitName then transportAllowed = true; break end
         end
-        if not allowed then
+        if not transportAllowed then
             ctld.utils.log("INFO",
-                "CTLDPlayerManager: %s not in transportPilotNames — no CTLD menu (addPlayerAircraftByType=false)",
+                "CTLDPlayerManager: %s not in transportPilotNames — non-transport CTLD menu only"
+                .. " (addPlayerAircraftByType=false)",
                 unitName)
-            return
         end
     end
 
@@ -392,6 +404,11 @@ function CTLDPlayerManager:onPlayerEnterUnit(event)
     end
 
     local isTransport, canCarryVehicles = self:_detectCapabilities(unit)
+    -- The whitelist wins over the aircraft type: a Huey pilot whose unit name is not listed
+    -- must not recover the transport menus through his type, or the setting means nothing.
+    if not transportAllowed then
+        isTransport, canCarryVehicles = false, false
+    end
 
     local playerObj = CTLDPlayer:new({
         unitName         = unitName,
@@ -410,6 +427,21 @@ function CTLDPlayerManager:onPlayerEnterUnit(event)
         "CTLDPlayerManager: enter unit=%s type=%s transport=%s vehicles=%s",
         unitName, playerObj.typeName,
         tostring(isTransport), tostring(canCarryVehicles)))
+end
+
+--- DCS S_EVENT_BIRTH handler — safety net for a missed S_EVENT_PLAYER_ENTER_UNIT.
+-- BIRTH fires for every unit in the mission, AI included, so this gets out early and cheaply
+-- and delegates to onPlayerEnterUnit: one registration path, one place where the whitelist and
+-- the menu build live.
+-- @param event table  DCS event { initiator = Unit, ... }
+function CTLDPlayerManager:onBirth(event)
+    local unit     = event and event.initiator
+    local unitName = ctld.utils.safeObjectName(unit)
+    if not unitName then return end
+    if self._players[unitName] then return end        -- already tracked
+    local okPlayer, player = pcall(unit.getPlayerName, unit)
+    if not okPlayer or not player then return end     -- AI, or unreadable
+    self:onPlayerEnterUnit(event)
 end
 
 --- DCS S_EVENT_PLAYER_LEAVE_UNIT handler.
@@ -601,78 +633,81 @@ function CTLDPlayerManager:_buildMenuBody(playerObj)
     menu:addSubMenu({}, root, { order = 10 })
 
     -- "Check Cargo" — queries crates and troops loaded on this transport
-    menu:addCommand({ root }, ctld.tr("Check Cargo"),
-        function()
-            local transport = Unit.getByName(unitName)
-            local lines     = {}
-            local total     = 0
+    -- Transport only: for anyone else it could only ever answer "no cargo on board".
+    if playerObj.isTransport then
+        menu:addCommand({ root }, ctld.tr("Check Cargo"),
+            function()
+                local transport = Unit.getByName(unitName)
+                local lines     = {}
+                local total     = 0
 
-            -- Crates loaded on this transport — grouped by descriptor.desc
-            -- Compare by unit name, not object identity (DCS userdata equality is unreliable)
-            local crateMgr   = CTLDCrateManager.getInstance()
-            local crateCount = {}   -- desc → { count, totalWeight }
-            local crateOrder = {}   -- preserve insertion order for deterministic output
-            for _, c in pairs(crateMgr.crates) do
-                if c:isLoaded() and c.loadedBy and c.loadedBy:getName() == unitName then
-                    local desc   = (c.descriptor and c.descriptor.desc) or "?"
-                    local weight = (c.descriptor and c.descriptor.weight) or 0
-                    if not crateCount[desc] then
-                        crateCount[desc] = { count = 0, totalWeight = 0 }
-                        table.insert(crateOrder, desc)
+                -- Crates loaded on this transport — grouped by descriptor.desc
+                -- Compare by unit name, not object identity (DCS userdata equality is unreliable)
+                local crateMgr   = CTLDCrateManager.getInstance()
+                local crateCount = {}   -- desc → { count, totalWeight }
+                local crateOrder = {}   -- preserve insertion order for deterministic output
+                for _, c in pairs(crateMgr.crates) do
+                    if c:isLoaded() and c.loadedBy and c.loadedBy:getName() == unitName then
+                        local desc   = (c.descriptor and c.descriptor.desc) or "?"
+                        local weight = (c.descriptor and c.descriptor.weight) or 0
+                        if not crateCount[desc] then
+                            crateCount[desc] = { count = 0, totalWeight = 0 }
+                            table.insert(crateOrder, desc)
+                        end
+                        crateCount[desc].count       = crateCount[desc].count + 1
+                        crateCount[desc].totalWeight = crateCount[desc].totalWeight + weight
+                        total = total + weight
                     end
-                    crateCount[desc].count       = crateCount[desc].count + 1
-                    crateCount[desc].totalWeight = crateCount[desc].totalWeight + weight
-                    total = total + weight
                 end
-            end
-            for _, desc in ipairs(crateOrder) do
-                local info = crateCount[desc]
-                table.insert(lines,
-                    ctld.tr("%1: %2 crate(s) onboard (%3 kg)", desc, info.count, info.totalWeight))
-            end
-
-            -- Troops loaded on this transport (may be multiple groups)
-            local troopMgr = CTLDTroopManager.getInstance()
-            local tList    = troopMgr:getInTransit(unitName)
-            if tList then
-                for _, tGroup in ipairs(tList) do
-                    table.insert(lines, ctld.tr("%1 troop(s) onboard (%2 kg)", tGroup.unitTotal, tGroup.weight))
-                    total = total + tGroup.weight
+                for _, desc in ipairs(crateOrder) do
+                    local info = crateCount[desc]
+                    table.insert(lines,
+                        ctld.tr("%1: %2 crate(s) onboard (%3 kg)", desc, info.count, info.totalWeight))
                 end
-            end
 
-            -- Whole vehicles loaded on this transport (GAP-1)
-            if transport then
-                local vehSpawner = CTLDVehicleSpawner.getInstance()
-                local loadedVehs = vehSpawner:findLoadedVehicles(transport)
-                local vehCount = {}
-                local vehOrder = {}
-                for _, v in ipairs(loadedVehs) do
-                    local vt = v.vehicleType or "?"
-                    if not vehCount[vt] then
-                        vehCount[vt] = 0
-                        table.insert(vehOrder, vt)
+                -- Troops loaded on this transport (may be multiple groups)
+                local troopMgr = CTLDTroopManager.getInstance()
+                local tList    = troopMgr:getInTransit(unitName)
+                if tList then
+                    for _, tGroup in ipairs(tList) do
+                        table.insert(lines, ctld.tr("%1 troop(s) onboard (%2 kg)", tGroup.unitTotal, tGroup.weight))
+                        total = total + tGroup.weight
                     end
-                    vehCount[vt] = vehCount[vt] + 1
                 end
-                local vWeights = ctld.gs("groundVehicleWeights") or {}
-                for _, vt in ipairs(vehOrder) do
-                    local count = vehCount[vt]
-                    local w     = (vWeights[vt] or ctld.gs("defaultVehicleWeight")) * count
-                    total = total + w
-                    table.insert(lines, ctld.tr("%1: %2 vehicle(s) onboard", vt, count))
-                end
-            end
 
-            local msg
-            if #lines == 0 then
-                msg = ctld.tr("No cargo on board.")
-            else
-                table.insert(lines, ctld.tr("Total cargo weight: %1 kg", total))
-                msg = table.concat(lines, "\n")
-            end
-            trigger.action.outTextForGroup(gid, msg, 10)
-        end, {})
+                -- Whole vehicles loaded on this transport (GAP-1)
+                if transport then
+                    local vehSpawner = CTLDVehicleSpawner.getInstance()
+                    local loadedVehs = vehSpawner:findLoadedVehicles(transport)
+                    local vehCount = {}
+                    local vehOrder = {}
+                    for _, v in ipairs(loadedVehs) do
+                        local vt = v.vehicleType or "?"
+                        if not vehCount[vt] then
+                            vehCount[vt] = 0
+                            table.insert(vehOrder, vt)
+                        end
+                        vehCount[vt] = vehCount[vt] + 1
+                    end
+                    local vWeights = ctld.gs("groundVehicleWeights") or {}
+                    for _, vt in ipairs(vehOrder) do
+                        local count = vehCount[vt]
+                        local w     = (vWeights[vt] or ctld.gs("defaultVehicleWeight")) * count
+                        total = total + w
+                        table.insert(lines, ctld.tr("%1: %2 vehicle(s) onboard", vt, count))
+                    end
+                end
+
+                local msg
+                if #lines == 0 then
+                    msg = ctld.tr("No cargo on board.")
+                else
+                    table.insert(lines, ctld.tr("Total cargo weight: %1 kg", total))
+                    msg = table.concat(lines, "\n")
+                end
+                trigger.action.outTextForGroup(gid, msg, 10)
+            end, {})
+    end
 
     -- Registered sections sorted by order field
     local sorted = {}

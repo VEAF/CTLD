@@ -8,6 +8,35 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — a fighter pilot now gets the CTLD functions that concern him (FEAT-NON-TRANSPORT-PILOTS)
+
+- **Recon works for any pilot, aircraft included — but with `addPlayerAircraftByType = false` a
+  pilot absent from `transportPilotNames` had no CTLD menu at all**, so no recon either. A setting
+  whose purpose is to reserve the *transport* menus for a named list was cutting every function
+  that has nothing to do with transport. The whitelist now decides `isTransport` instead of
+  deciding registration: such a pilot is tracked, gets a menu, and is built with
+  `isTransport = false` **whatever his aircraft type** — a transport type off the list does not
+  recover the transport menus through capability detection. The seventeen `isTransport` guards
+  already inside the sections do the rest; no section needed a new gate. Closes
+  [#150](https://github.com/VEAF/CTLD/issues/150).
+- **Smoke opens to every pilot.** It drops at the player's own position and reads no cargo — marking
+  a position from a fighter is exactly what it is for.
+- **`List Beacons` opens to every pilot**, while `Drop Beacon` and `Remove Closest Beacon` stay
+  transport-only. A beacon's frequency is navigation information.
+- **`Check Cargo` is hidden from non-transport pilots**, since it could only ever report an empty
+  hold. `JTAC Status`, `List active FOBs` and the minefield demining were already open and are
+  unchanged.
+- `CTLDPlayerManager` now subscribes to `S_EVENT_BIRTH` as a safety net: DCS can fire it before the
+  event handler is registered, and a missed `PLAYER_ENTER_UNIT` left a player without a CTLD menu
+  until the 30 s scan caught up.
+
+### Removed
+
+- `CTLDPlayerTracker` (~150 lines). It had never been instantiated since `CTLD_core.lua` was written
+  on 2026-04-02: step 2 of the initialisation order documented in its own file was never wired, none
+  of its four accessors was ever called, and the one comment claiming to consult it
+  (`CTLDVehicleSpawner:_checkNativeLoading`) was corrected in #151. Its `S_EVENT_BIRTH` net — the one
+  part worth keeping — moved into `CTLDPlayerManager`.
 ### Fixed — leaving a slot raised an error and left the player's F10 menu behind (FIX-PLAYER-EVENT-GUARDS)
 
 - **Changing slot or coalition raised `attempt to call method 'getName' (a nil value)` and left

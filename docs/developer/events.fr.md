@@ -837,9 +837,9 @@ Les événements moteur actuellement traités, et par qui :
 
 | Événement DCS | Handler(s) |
 | --- | --- |
-| `S_EVENT_PLAYER_ENTER_UNIT` | `CTLDPlayerTracker:onPlayerEnterUnit()`, `CTLDPlayerManager:onPlayerEnterUnit()` |
-| `S_EVENT_PLAYER_LEAVE_UNIT` | `CTLDPlayerTracker:onPlayerLeaveUnit()`, `CTLDPlayerManager:onPlayerLeaveUnit()` |
-| `S_EVENT_BIRTH` | `CTLDPlayerTracker:onBirth()`, `CTLDCrateManager:onBirth()`, `CTLDJTACManager:onBirth()`, `CTLDVehicleSpawner:onBirth()` |
+| `S_EVENT_PLAYER_ENTER_UNIT` | `CTLDPlayerManager:onPlayerEnterUnit()` |
+| `S_EVENT_PLAYER_LEAVE_UNIT` | `CTLDPlayerManager:onPlayerLeaveUnit()` |
+| `S_EVENT_BIRTH` | `CTLDPlayerManager:onBirth()`, `CTLDCrateManager:onBirth()`, `CTLDJTACManager:onBirth()`, `CTLDVehicleSpawner:onBirth()` |
 | `S_EVENT_LAND` | `CTLDPlayerManager:onLand()`, `CTLDCoreManager:onAILand()` |
 | `S_EVENT_TAKEOFF` | `CTLDPlayerManager:onTakeoff()` |
 | `S_EVENT_DEAD` | `CTLDTroopManager:onUnitDead()` + `:onTransportDead()`, `CTLDVehicleSpawner:onDead()`, `CTLDCrateManager:onCrateDead()`, `CTLDFOBManager:onDead()`, `CTLDZoneManager:onDead()` |

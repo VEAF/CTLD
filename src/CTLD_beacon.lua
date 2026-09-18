@@ -950,29 +950,31 @@ end
 -- ============================================================
 
 --- Build the "Radio Beacons" F10 submenu for a player.
--- Requires enabledRadioBeaconDrop = true (configKey gate) AND isTransport.
+-- Requires enabledRadioBeaconDrop = true (configKey gate). Placing and removing beacons is
+-- transport work and stays behind isTransport; **listing** them is navigation information any
+-- pilot can use, so it is built for everyone.
 -- @param playerObj CTLDPlayer
 -- @param menu      ctld.Menu
 function CTLDBeaconManager:buildMenuSection(playerObj, menu)
-    if not playerObj.isTransport then return end
-
     local root      = ctld.tr("CTLD")
     local beaconSub = ctld.tr("Radio Beacons")
     menu:addSubMenu({ root }, beaconSub, { order = 60 })
 
-    menu:addCommand({ root, beaconSub }, ctld.tr("Drop Beacon"),
-        function(arg)
-            local transport = Unit.getByName(arg.unitName)
-            if transport then CTLDBeaconManager.getInstance():dropBeacon(transport, nil, false) end
-        end,
-        { unitName = playerObj.unitName })
+    if playerObj.isTransport then
+        menu:addCommand({ root, beaconSub }, ctld.tr("Drop Beacon"),
+            function(arg)
+                local transport = Unit.getByName(arg.unitName)
+                if transport then CTLDBeaconManager.getInstance():dropBeacon(transport, nil, false) end
+            end,
+            { unitName = playerObj.unitName })
 
-    menu:addCommand({ root, beaconSub }, ctld.tr("Remove Closest Beacon"),
-        function(arg)
-            local transport = Unit.getByName(arg.unitName)
-            if transport then CTLDBeaconManager.getInstance():removeClosestBeacon(transport, nil) end
-        end,
-        { unitName = playerObj.unitName })
+        menu:addCommand({ root, beaconSub }, ctld.tr("Remove Closest Beacon"),
+            function(arg)
+                local transport = Unit.getByName(arg.unitName)
+                if transport then CTLDBeaconManager.getInstance():removeClosestBeacon(transport, nil) end
+            end,
+            { unitName = playerObj.unitName })
+    end
 
     menu:addCommand({ root, beaconSub }, ctld.tr("List Beacons"),
         function(arg)

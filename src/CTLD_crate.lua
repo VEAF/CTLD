@@ -3009,12 +3009,12 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
 end
 
 --- Build "Smoke" F10 submenu for a player.
--- Requires enableSmokeDrop = true (configKey gate) AND isTransport.
+-- Gated by enableSmokeDrop = true (configKey) and nothing else: smoke is built for **every**
+-- pilot, transport or not. doSmoke() drops at the player's own position and reads no cargo,
+-- no crate, no transport state — marking a position from a fighter is exactly what it is for.
 -- @param playerObj CTLDPlayer
 -- @param menu      ctld.Menu
 function CTLDCrateManager:buildSmokeSection(playerObj, menu)
-    if not playerObj.isTransport then return end
-
     local root     = ctld.tr("CTLD")
     local smokeSub = ctld.tr("Smoke")
     menu:addSubMenu({ root }, smokeSub, { order = 80 })

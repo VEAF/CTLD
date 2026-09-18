@@ -1,49 +1,14 @@
 # Player tracking
 
-CTLD tracks connected human players **without MIST**. Two cooperating singletons cover the
-concern:
+CTLD tracks connected human players **without MIST**, in a single singleton:
 
 | Singleton | Source | Responsibility |
 | --- | --- | --- |
-| `CTLDPlayerTracker` | `src/CTLD_core.lua` | Lightweight identity index — who occupies which slot |
 | `CTLDPlayerManager` | `src/CTLD_player.lua` | Per-player state (`CTLDPlayer` entities), F10 menu, cargo tracking |
 
-Both follow the `X = class()` + `getInstance()` idiom described in
-[Architecture](../architecture.md) and consume DCS slot events through the single
+It follows the `X = class()` + `getInstance()` idiom described in
+[Architecture](../architecture.md) and consumes DCS slot events through the single
 `CTLDDCSEventBridge` handler rather than registering with `world` directly.
-
-## `CTLDPlayerTracker` — slot identity index
-
-`CTLDPlayerTracker` maintains a double index of connected humans, with **no dependency on
-MIST**:
-
-```lua
-self._byUnit   = {}   -- unitName   → playerName
-self._byPlayer = {}   -- playerName → { unitName, coalition }
-```
-
-It is populated from three sources, in order of authority:
-
-| Source | Role |
-| --- | --- |
-| `S_EVENT_PLAYER_ENTER_UNIT` / `S_EVENT_PLAYER_LEAVE_UNIT` | Primary, event-driven add/remove |
-| `S_EVENT_BIRTH` | Backup — catches the first joiner if `PLAYER_ENTER_UNIT` was missed |
-| `coalition.getPlayers()` scan | Safety net; `_scanAllSlots()` runs immediately at init, then every 30 s for the first 3 minutes |
-
-The scan is idempotent (it only inserts slots not already indexed), so the three sources never
-conflict. After 3 minutes the event stream is considered sufficient and the periodic scan stops.
-
-### Public API
-
-| Method | Returns |
-| --- | --- |
-| `getPlayerByUnit(unitName)` | `playerName` occupying the unit, or `nil` if AI/unoccupied |
-| `getUnitByPlayer(playerName)` | `{ unitName, coalition }`, or `nil` if not connected |
-| `getAllPlayers()` | list of `{ playerName, unitName, coalition }` |
-| `isPlayerUnit(unitName)` | `true` if the unit is currently occupied by a human |
-
-`CTLDPlayerTracker.getInstance()` requires `CTLDDCSEventBridge` to be initialised first, because
-`init()` registers its handlers on the bridge.
 
 ## `CTLDPlayer` — per-player entity
 
@@ -84,7 +49,7 @@ below).
 
 ## `CTLDPlayerManager` — lifecycle & menu owner
 
-The manager keeps its own map, distinct from the tracker's identity index:
+The manager keeps one map of everyone it tracks:
 
 ```lua
 self._players = {}   -- unitName → CTLDPlayer
@@ -95,6 +60,7 @@ self._players = {}   -- unitName → CTLDPlayer
 | DCS event | Handler | Action |
 | --- | --- | --- |
 | `S_EVENT_PLAYER_ENTER_UNIT` | `onPlayerEnterUnit(event)` | Skip AI (no `getPlayerName()`), apply the pilot-name gate, build a `CTLDPlayer`, store it, call `buildMenu(playerObj)` |
+| `S_EVENT_BIRTH` | `onBirth(event)` | Safety net — registers a human CTLD does not know yet, by delegating to `onPlayerEnterUnit`. Returns immediately for AI units and for players already tracked |
 | `S_EVENT_PLAYER_LEAVE_UNIT` | `onPlayerLeaveUnit(event)` | Remove the player's DCS menu items and drop it from `_players` |
 | `S_EVENT_TAKEOFF` | `onTakeoff(event)` | Set `_isFlying = true`, refresh flight-dependent menu sections |
 | `S_EVENT_LAND` | `onLand(event)` | Clear `_isFlying`, refresh menu sections after a 1 s settle delay |
@@ -102,11 +68,21 @@ self._players = {}   -- unitName → CTLDPlayer
 `getPlayer(unitName)` returns the tracked `CTLDPlayer`, or `nil`.
 
 `_scanExistingPlayers()` is a multiplayer safety net: it runs once at the end of
-`ctld.initialize()` and reschedules every 30 s, synthesising `onPlayerEnterUnit` for any occupied
-slot not yet in `_players` (slot switches, AI takeover, late joiners).
+`ctld.initialize()` and reschedules every 30 s for the whole mission, synthesising
+`onPlayerEnterUnit` for any occupied slot not yet in `_players` (slot switches, AI takeover, late
+joiners) and forgetting players whose slot is gone.
 
 **Pilot-name gate:** when `ctld.gs("addPlayerAircraftByType") == false`, only unit names listed in
-`ctld.gs("transportPilotNames")` receive a CTLD menu; all others are logged and skipped.
+`ctld.gs("transportPilotNames")` may use the **transport** functions. Every other human is still
+tracked and still gets a CTLD menu, built with `isTransport = false` and `canCarryVehicles = false`
+**whatever his aircraft type** — a transport type off the list does not recover the transport menus
+through capability detection, or the setting would mean nothing.
+
+What such a pilot sees is decided by the sections themselves, which already honour `isTransport`:
+recon, smoke, `List Beacons`, `JTAC Status` and `List active FOBs` are built for him; troops,
+crates, vehicles, beacon placement, JTAC equipment requests and `Check Cargo` are not.
+Before 2.0.0-rc11 the gate returned before registering the player, so he had no CTLD menu at all —
+and therefore no recon, which any pilot is meant to be able to use.
 
 ### Flight-state poller
 
