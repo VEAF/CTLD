@@ -1,50 +1,14 @@
 # Suivi des joueurs { #player-tracking }
 
-CTLD suit les joueurs humains connectés **sans MIST**. Deux singletons coopérants couvrent ce
-domaine :
+CTLD suit les joueurs humains connectés **sans MIST**, dans un singleton unique :
 
 | Singleton | Source | Responsabilité |
 | --- | --- | --- |
-| `CTLDPlayerTracker` | `src/CTLD_core.lua` | Index d'identité léger — qui occupe quel slot |
 | `CTLDPlayerManager` | `src/CTLD_player.lua` | État par joueur (entités `CTLDPlayer`), menu F10, suivi du cargo |
 
-Les deux suivent l'idiome `X = class()` + `getInstance()` décrit dans
-[Architecture](../architecture.md) et consomment les événements de slot DCS via l'unique
+Il suit l'idiome `X = class()` + `getInstance()` décrit dans
+[Architecture](../architecture.md) et consomme les événements de slot DCS via l'unique
 gestionnaire `CTLDDCSEventBridge` plutôt qu'en s'enregistrant directement auprès de `world`.
-
-## `CTLDPlayerTracker` — index d'identité des slots { #ctldplayertracker-slot-identity-index }
-
-`CTLDPlayerTracker` maintient un double index des humains connectés, **sans dépendance à
-MIST** :
-
-```lua
-self._byUnit   = {}   -- unitName   → playerName
-self._byPlayer = {}   -- playerName → { unitName, coalition }
-```
-
-Il est alimenté par trois sources, par ordre d'autorité :
-
-| Source | Rôle |
-| --- | --- |
-| `S_EVENT_PLAYER_ENTER_UNIT` / `S_EVENT_PLAYER_LEAVE_UNIT` | Principale, ajout/suppression pilotés par événement |
-| `S_EVENT_BIRTH` | Secours — rattrape le premier arrivant si `PLAYER_ENTER_UNIT` a été manqué |
-| Balayage `coalition.getPlayers()` | Filet de sécurité ; `_scanAllSlots()` s'exécute immédiatement à l'init, puis toutes les 30 s pendant les 3 premières minutes |
-
-Le balayage est idempotent (il n'insère que les slots non encore indexés), si bien que les trois
-sources n'entrent jamais en conflit. Après 3 minutes, le flux d'événements est jugé suffisant et
-le balayage périodique s'arrête.
-
-### API publique { #public-api }
-
-| Méthode | Retourne |
-| --- | --- |
-| `getPlayerByUnit(unitName)` | Le `playerName` occupant l'unité, ou `nil` si IA/inoccupée |
-| `getUnitByPlayer(playerName)` | `{ unitName, coalition }`, ou `nil` si non connecté |
-| `getAllPlayers()` | liste de `{ playerName, unitName, coalition }` |
-| `isPlayerUnit(unitName)` | `true` si l'unité est actuellement occupée par un humain |
-
-`CTLDPlayerTracker.getInstance()` requiert que `CTLDDCSEventBridge` soit initialisé au préalable,
-car `init()` enregistre ses gestionnaires sur le bridge.
 
 ## `CTLDPlayer` — entité par joueur { #ctldplayer-per-player-entity }
 
@@ -98,6 +62,7 @@ self._players = {}   -- unitName → CTLDPlayer
 | Événement DCS | Gestionnaire | Action |
 | --- | --- | --- |
 | `S_EVENT_PLAYER_ENTER_UNIT` | `onPlayerEnterUnit(event)` | Ignore l'IA (pas de `getPlayerName()`), applique le filtre de nom de pilote, construit un `CTLDPlayer`, le stocke, appelle `buildMenu(playerObj)` |
+| `S_EVENT_BIRTH` | `onBirth(event)` | Filet de sécurité — enregistre un humain que CTLD ne connaît pas encore, en déléguant à `onPlayerEnterUnit`. Sort immédiatement pour une unité IA ou un joueur déjà suivi |
 | `S_EVENT_PLAYER_LEAVE_UNIT` | `onPlayerLeaveUnit(event)` | Retire les entrées de menu DCS du joueur et le supprime de `_players` |
 | `S_EVENT_TAKEOFF` | `onTakeoff(event)` | Positionne `_isFlying = true`, rafraîchit les sections de menu dépendantes du vol |
 | `S_EVENT_LAND` | `onLand(event)` | Efface `_isFlying`, rafraîchit les sections de menu après un délai de stabilisation de 1 s |
@@ -105,13 +70,23 @@ self._players = {}   -- unitName → CTLDPlayer
 `getPlayer(unitName)` retourne le `CTLDPlayer` suivi, ou `nil`.
 
 `_scanExistingPlayers()` est un filet de sécurité multijoueur : il s'exécute une fois à la fin de
-`ctld.initialize()` et se reprogramme toutes les 30 s, synthétisant un `onPlayerEnterUnit` pour tout
-slot occupé pas encore présent dans `_players` (changements de slot, prise de contrôle par l'IA,
-arrivants tardifs).
+`ctld.initialize()` et se reprogramme toutes les 30 s pendant toute la mission, synthétisant un
+`onPlayerEnterUnit` pour tout slot occupé pas encore présent dans `_players` (changements de slot,
+prise de contrôle par l'IA, arrivants tardifs) et oubliant les joueurs dont le slot a disparu.
 
 **Filtre de nom de pilote :** lorsque `ctld.gs("addPlayerAircraftByType") == false`, seuls les noms
-d'unité listés dans `ctld.gs("transportPilotNames")` reçoivent un menu CTLD ; tous les autres sont
-journalisés et ignorés.
+d'unité listés dans `ctld.gs("transportPilotNames")` peuvent utiliser les fonctions de
+**transport**. Tous les autres humains restent suivis et reçoivent un menu CTLD, construit avec
+`isTransport = false` et `canCarryVehicles = false` **quel que soit leur type d'appareil** — un type
+de transport absent de la liste ne récupère pas les menus de transport par la détection de
+capacités, sans quoi le réglage ne voudrait rien dire.
+
+Ce que voit un tel pilote est décidé par les sections elles-mêmes, qui respectent déjà
+`isTransport` : reconnaissance, fumigènes, `List Beacons`, `JTAC Status` et `List active FOBs` sont
+construites pour lui ; troupes, caisses, véhicules, pose de balises, demandes d'équipement JTAC et
+`Check Cargo` ne le sont pas. Avant la 2.0.0-rc11, le filtre sortait avant d'enregistrer le joueur :
+il n'avait aucun menu CTLD, donc aucune reconnaissance, alors que n'importe quel pilote est censé
+pouvoir s'en servir.
 
 ### Sondage de l'état de vol { #flight-state-poller }
 

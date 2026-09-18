@@ -338,8 +338,10 @@ Appelé à l'entrée d'un joueur (et réexécutable). Il :
 partir de `ctld.gs("capabilitiesByType")[typeName]` : un transport est tout type ayant une entrée ;
 `canCarryVehicles` est positionné lorsque le `canTransportWholeVehicle == true` de cette entrée.
 Les managers utilisent ces indicateurs (et leurs propres contrôles config/proximité) pour décider
-quels items rendre. Lorsque `addPlayerAircraftByType == false`, seules les unités dont le nom
-figure dans `transportPilotNames` reçoivent un menu CTLD.
+quels items rendre. Lorsque `addPlayerAircraftByType == false`, les unités dont le nom ne figure
+**pas** dans `transportPilotNames` sont construites avec `isTransport = false` quel que soit leur
+type : elles conservent un menu CTLD, ne contenant que les sections qui n'exigent pas un
+transport (reconnaissance, fumigènes, `List Beacons`, `JTAC Status`, `List active FOBs`).
 
 `refreshForUnit(unitName)` et `refreshAll()` déclenchent un rafraîchissement débouncé pour un / tous
 les joueurs suivis.

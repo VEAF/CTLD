@@ -3013,8 +3013,9 @@ end
 -- @param playerObj CTLDPlayer
 -- @param menu      ctld.Menu
 function CTLDCrateManager:buildSmokeSection(playerObj, menu)
-    if not playerObj.isTransport then return end
-
+    -- Open to every pilot, transport or not: doSmoke() drops at the player's own position
+    -- and reads no cargo, no crate, no transport state. Marking a position from a fighter
+    -- is exactly what it is for.
     local root     = ctld.tr("CTLD")
     local smokeSub = ctld.tr("Smoke")
     menu:addSubMenu({ root }, smokeSub, { order = 80 })

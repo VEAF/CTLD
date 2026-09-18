@@ -370,9 +370,20 @@ Two parameters decide which player units get CTLD F10 menus.
 multiplayer servers.
 
 **`addPlayerAircraftByType = false`** — only unit names explicitly listed in
-`transportPilotNames` get CTLD menus. Use this to restrict CTLD to a fixed set of named slots
-(e.g. a dedicated transport squadron). CTLD-capable aircraft **not** in the list join the
-mission normally but have no CTLD access.
+`transportPilotNames` get the **transport** menus. Use this to restrict transport work to a
+fixed set of named slots (e.g. a dedicated transport squadron). CTLD-capable aircraft **not** in
+the list join the mission normally and carry no troops, crates or vehicles — whatever their
+type.
+
+They do keep the CTLD functions that have nothing to do with transport: **recon**, **smoke**,
+**List Beacons**, **JTAC Status** and **List active FOBs**. Any pilot can use those, a fighter
+included, and cutting them was never the point of this setting. Each still has its own global
+switch (`reconF10Menu`, `enableSmokeDrop`, `enabledRadioBeaconDrop`, `JTAC_jtacStatusF10`) if
+you want it gone for everyone.
+
+!!! warning "Changed in 2.0.0-rc11"
+    Before rc11, a pilot off the list had **no** CTLD menu at all. If your mission relied on
+    that to hide CTLD entirely, turn the four switches above off.
 
 ```yaml
 mm_facing:

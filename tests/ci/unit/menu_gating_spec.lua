@@ -228,7 +228,11 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
         end)
     end)
 
-    -- ── F-055 : non-transport player → only root + Check Cargo ───────────────
+    -- ── F-055 : non-transport player → the functions that concern him, and no other ──
+    -- FEAT-NON-TRANSPORT-PILOTS: enumerated over all nine sections plus the two fixed
+    -- commands, because *which* entries appear is the whole point of the lot. Three
+    -- assertions here are the reverse of what this block asserted before it: smoke and
+    -- beacon listing open up, Check Cargo closes.
     describe("F-055 — non-transport player → transport sections absent", function()
         local menu
         before_each(function()
@@ -239,14 +243,51 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
         end)
 
         it("root CTLD present",       function() assert.is_true(has(menu, { ROOT })) end)
-        it("Check Cargo present at root", function() assert.is_true(has(menu, { ROOT, tr("Check Cargo") })) end)
+
+        -- Open to every pilot
+        it("RECON present",           function() assert.is_true(has(menu, { ROOT, tr("RECON") })) end)
+        it("JTAC present",            function() assert.is_true(has(menu, { ROOT, tr("JTAC") })) end)
+        it("JTAC Status present",     function() assert.is_true(has(menu, { ROOT, tr("JTAC"), tr("JTAC Status") })) end)
+        it("FOBs List present",       function() assert.is_true(has(menu, { ROOT, tr("FOBs List") })) end)
+        it("Smoke present — marking a position needs no cargo",
+            function() assert.is_true(has(menu, { ROOT, tr("Smoke") })) end)
+        it("Radio Beacons present",   function() assert.is_true(has(menu, { ROOT, tr("Radio Beacons") })) end)
+        it("List Beacons present — a beacon frequency is navigation information",
+            function() assert.is_true(has(menu, { ROOT, tr("Radio Beacons"), tr("List Beacons") })) end)
+
+        -- Transport only
+        it("Check Cargo absent — it could only ever report an empty hold",
+            function() assert.is_false(has(menu, { ROOT, tr("Check Cargo") })) end)
         it("Troop Commands absent",   function() assert.is_false(has(menu, { ROOT, tr("Troop Commands") })) end)
         it("Request Equipment absent", function() assert.is_false(has(menu, { ROOT, tr("Request Equipment") })) end)
         it("Crate Commands absent",   function() assert.is_false(has(menu, { ROOT, tr("Crate Commands") })) end)
-        it("Smoke absent",            function() assert.is_false(has(menu, { ROOT, tr("Smoke") })) end)
-        it("Radio Beacons absent",    function() assert.is_false(has(menu, { ROOT, tr("Radio Beacons") })) end)
-        it("RECON present (no isTransport guard)", function() assert.is_true(has(menu, { ROOT, tr("RECON") })) end)
-        it("JTAC present (no isTransport guard)",  function() assert.is_true(has(menu, { ROOT, tr("JTAC") })) end)
+        it("Vehicle Commands absent", function() assert.is_false(has(menu, { ROOT, tr("Vehicle Commands") })) end)
+        it("Drop Beacon absent",      function() assert.is_false(has(menu, { ROOT, tr("Radio Beacons"), tr("Drop Beacon") })) end)
+        it("Remove Closest Beacon absent",
+            function() assert.is_false(has(menu, { ROOT, tr("Radio Beacons"), tr("Remove Closest Beacon") })) end)
+        it("Request JTAC Equipment absent",
+            function() assert.is_false(has(menu, { ROOT, tr("JTAC"), tr("Request JTAC Equipment") })) end)
+    end)
+
+    -- ── F-055b : the transport pilot is the negative control ─────────────────
+    -- Without this, a change that simply opened every section to everyone would pass
+    -- every assertion above.
+    describe("F-055b — transport player keeps everything", function()
+        local menu
+        before_each(function()
+            menu = buildFullMenu(makePlayer({ canCarryVehicles = true }))
+        end)
+
+        it("Check Cargo present",     function() assert.is_true(has(menu, { ROOT, tr("Check Cargo") })) end)
+        it("Troop Commands present",  function() assert.is_true(has(menu, { ROOT, tr("Troop Commands") })) end)
+        it("Crate Commands present",  function() assert.is_true(has(menu, { ROOT, tr("Crate Commands") })) end)
+        it("Vehicle Commands present", function() assert.is_true(has(menu, { ROOT, tr("Vehicle Commands") })) end)
+        it("Smoke present",           function() assert.is_true(has(menu, { ROOT, tr("Smoke") })) end)
+        it("Drop Beacon present",     function() assert.is_true(has(menu, { ROOT, tr("Radio Beacons"), tr("Drop Beacon") })) end)
+        it("Remove Closest Beacon present",
+            function() assert.is_true(has(menu, { ROOT, tr("Radio Beacons"), tr("Remove Closest Beacon") })) end)
+        it("List Beacons present",    function() assert.is_true(has(menu, { ROOT, tr("Radio Beacons"), tr("List Beacons") })) end)
+        it("RECON present",           function() assert.is_true(has(menu, { ROOT, tr("RECON") })) end)
     end)
 
     -- ── F-056 : canCarryVehicles=true → Vehicle Commands present ─────────────

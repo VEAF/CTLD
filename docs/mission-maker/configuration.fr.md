@@ -380,9 +380,21 @@ dans `capabilitiesByType` obtient automatiquement les menus CTLD en entrant dans
 Recommandé pour les serveurs multijoueurs ouverts.
 
 **`addPlayerAircraftByType = false`** — seuls les noms d'unité explicitement listés dans
-`transportPilotNames` obtiennent les menus CTLD. Utilisez ceci pour restreindre CTLD à un
-ensemble fixe de slots nommés (ex. une escadrille de transport dédiée). Les appareils
-CTLD-capables **non** listés rejoignent la mission normalement mais n'ont aucun accès CTLD.
+`transportPilotNames` obtiennent les menus de **transport**. Utilisez ceci pour réserver le
+travail de transport à un ensemble fixe de slots nommés (ex. une escadrille de transport
+dédiée). Les appareils CTLD-capables **non** listés rejoignent la mission normalement et ne
+transportent ni troupes, ni caisses, ni véhicules — quel que soit leur type.
+
+Ils conservent en revanche les fonctions CTLD qui n'ont rien à voir avec le transport :
+**reconnaissance**, **fumigènes**, **List Beacons**, **JTAC Status** et **List active FOBs**.
+N'importe quel pilote peut s'en servir, un chasseur compris, et les couper n'a jamais été le
+but de ce réglage. Chacune garde son propre interrupteur global (`reconF10Menu`,
+`enableSmokeDrop`, `enabledRadioBeaconDrop`, `JTAC_jtacStatusF10`) si vous voulez la
+supprimer pour tout le monde.
+
+!!! warning "Modifié en 2.0.0-rc11"
+    Avant la rc11, un pilote absent de la liste n'avait **aucun** menu CTLD. Si votre mission
+    comptait là-dessus pour masquer CTLD entièrement, désactivez les quatre réglages ci-dessus.
 
 ```yaml
 mm_facing:
