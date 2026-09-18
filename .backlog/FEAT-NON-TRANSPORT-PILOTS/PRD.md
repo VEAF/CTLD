@@ -1,6 +1,6 @@
 # FEAT-NON-TRANSPORT-PILOTS — a fighter pilot gets the CTLD functions that concern him
 
-**Status:** 🔄 in-progress (implemented, PR pending)
+**Status:** ✅ done (PR #153)
 
 Closes #150. Asked for by Fulgas and Zip: **recon works for any pilot, aircraft included**, and a
 non-transport pilot has no reason to be cut off from it — nor from smoke, beacon listing or JTAC
