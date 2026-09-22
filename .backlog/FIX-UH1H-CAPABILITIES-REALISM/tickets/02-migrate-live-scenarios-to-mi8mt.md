@@ -9,11 +9,23 @@ CTLD (`CTLDZoneManager._troopZones`) since `USERCONFIG-LOADING` (PR #32, 2026-07
 `CTLD_userConfig.lua` — which declared their `aiZones` entries — from the `CTLD.lua` merge. AIZ_
 zones have no naming-convention auto-discovery (confirmed in `docs/mission-maker/zones.md`,
 unlike `TRZ_`/`LGZ_`/`WPZ_`), so nothing re-declared them for this dev mission after that lot.
-Fixed for this session by injecting the missing `aiZones` entries directly via `dcs-serve`
-(mirroring the block `src/CTLD_userConfig.lua` carried before PR #32) and forcing
-`CTLDZoneManager:_loadAIZonesFromConfig()` to re-run — a live-session workaround, not a
-`src/` or mission-file change (out of scope for this lot; the design question is now tracked in
-`dev/roadmap.md` under "AIZ_ — pourquoi une config explicite...").
+Rather than leave this as a live-session-only workaround, each of the three scenarios now
+declares its own required `aiZones` entries defensively (only if not already registered) at the
+top of its own step 1 — self-sufficient regardless of whether `CTLD_userConfig.lua` is ever
+loaded again for this mission. No `src/` or mission-file change (out of scope for this lot; the
+design question is now tracked in `dev/roadmap.md` under "AIZ_ — pourquoi une config
+explicite...").
+
+A second, unrelated bug surfaced while re-testing `scenario_mt08b_weight_exceeded.lua`: its first
+attempt at excluding "Hummer" from the pickup zone's candidates mutated the wrong config key
+(`cfg.settings["loadableVehiclesBLUE"]`, a top-level setting `CTLDVehicleSpawner:_isTypeLoadable`
+never reads) instead of `capabilitiesByType.Mi-8MT.loadableVehiclesBLUE` (the field that actually
+gates it) — confirmed live by reading both back from the running mission. Fixed to mutate the
+correct nested field. Separately, the survival/dropoff checks were rewritten to track the
+specific `ATGM-1` unit by name (via CTLD's own vehicle-state record) instead of "any vehicle
+found nearby/newly present" — this mission has ground units with `playerCanDrive=true` (real DCS
+driving AI) that can wander into either zone over a long test session, producing false
+pass/fail unrelated to CTLD's actual behaviour.
 
 ## What changes
 
@@ -27,20 +39,24 @@ Mission Editor (not scripted — the editor resets livery/payload to a valid Mi-
 
 `tests/dcs/pilotPassive/scenario_mt08_ai_vehicle.lua`: header comments updated to `Mi-8MT`; the
 Hummer-weight override comment corrected (no longer "above the limit", just defensively pinned
-low — see ticket 01's PRD notes).
+low — see ticket 01's PRD notes); step 1 now defensively registers `AIZ_depot_B_P_V_10`/
+`AIZ_livraison_B_D_G` in `aiZones` if not already present (see above).
 
-`tests/dcs/pilotPassive/scenario_mt09_ai_full_cycle.lua`: header comment updated to `Mi-8MT`. No
-logic change — `MT-09.1.9`'s `canTransportWholeVehicle` check and the TV-pickup detection both
-already read the transport's real type dynamically (`unit:getTypeName()`), not a hardcoded
-`"UH-1H"`.
+`tests/dcs/pilotPassive/scenario_mt09_ai_full_cycle.lua`: header comment updated to `Mi-8MT`; step
+1 defensively registers `AIZ_depot_B_P_TV_5_10`/`AIZ_livraison_B_D_G`. No other logic change —
+`MT-09.1.9`'s `canTransportWholeVehicle` check and the TV-pickup detection both already read the
+transport's real type dynamically (`unit:getTypeName()`), not a hardcoded `"UH-1H"`.
 
 `tests/dcs/pilotPassive/scenario_mt08b_weight_exceeded.lua`: target vehicle switched from
 "Hummer" to the pre-existing `ATGM-1` unit (type `M1045 HMMWV TOW`, 5000 kg); capability lookup
-key `"UH-1H"` → `"Mi-8MT"`; weight-table key `"Hummer"` → `"M1045 HMMWV TOW"`; `"Hummer"`
-temporarily removed from `loadableVehiclesBLUE` for the scenario's duration (restored in
+key `"UH-1H"` → `"Mi-8MT"`; weight-table key `"Hummer"` → `"M1045 HMMWV TOW"`; step 1 defensively
+registers `AIZ_depot_B_P_V_10`. `"Hummer"` temporarily removed from
+`capabilitiesByType.Mi-8MT.loadableVehiclesBLUE` for the scenario's duration (restored in
 `cleanup()`) so the Hummers sharing the pickup zone don't get picked up instead and mask the
-weight-rejection path. Variables/messages renamed (`hummerW`/`hummerAlive`/`hummerType` →
-`vehW`/`vehAlive`/`vehType`).
+weight-rejection path. The survival check (`MT-08B.2.3`) and dropoff check (`MT-08B.3.1`) now
+track the `ATGM-1` unit specifically (by name, via CTLD's own vehicle-state record) instead of
+"any vehicle found nearby" / "any new unit in the zone" — the now-unused generic
+`snapshotGroundUnitsInZone`/`newUnitsVsSnapshot` helpers are removed.
 
 ## Watch out
 
@@ -57,6 +73,17 @@ weight-rejection path. Variables/messages renamed (`hummerW`/`hummerAlive`/`humm
   UH-1H-specific values (a prior inspection of the `.miz` found a UH-1H-only livery
   (`italy 15b stormo s.a.r -soccorso`) and an `AddPropAircraft` block that do not carry over
   cleanly to a different airframe by a blind string swap).
+- This mission has ground units with `playerCanDrive=true` (real DCS driving AI) that can wander
+  into either zone over a long test session, independent of anything CTLD does — a check that
+  looks for "any vehicle nearby" or "any new unit in the zone" will eventually produce a false
+  pass or fail from this traffic alone. Track the specific unit by name instead (see `MT-08B.2.3`/
+  `.3.1` above) for any future check of this shape.
+- Stopping the local Python runner (`run_scenarios.py`) does **not** stop a scenario already
+  injected into DCS — the HTTP request already returned, and the Lua script keeps running inside
+  the mission independently. Two live re-runs collided this way during this lot's validation
+  (both instances spawning/destroying a clone under the same name, `heliai_vehicle_run`), which
+  looked like a Mi-8MT "disappearing" mid-flight. A mission reload is the only reliable way to
+  guarantee no orphaned scenario is still running before a fresh injection.
 
 ## Acceptance
 
