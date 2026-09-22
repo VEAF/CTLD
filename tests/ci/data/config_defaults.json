@@ -163,9 +163,19 @@
       "canTransportWholeVehicle": true,
       "convertNativeLoadToCTLD": false,
       "cratesEnabled": true,
+      "loadableVehiclesBLUE": [
+        "M1045 HMMWV TOW",
+        "M1043 HMMWV Armament",
+        "Hummer"
+      ],
+      "loadableVehiclesRED": [
+        "BRDM-2",
+        "BTR_D"
+      ],
       "maxCratesOnboard": 2,
       "maxTroopsOnboard": 16,
-      "maxWholeVehiclesOnboard": 0,
+      "maxVehicleWeight": 3000,
+      "maxWholeVehiclesOnboard": 1,
       "troopsEnabled": true,
       "useNativeDcsCargoSystem": true
     },
@@ -232,7 +242,7 @@
     "UH-1H": {
       "canParachuteDrop": true,
       "canSlingload": true,
-      "canTransportWholeVehicle": true,
+      "canTransportWholeVehicle": false,
       "convertNativeLoadToCTLD": true,
       "cratesEnabled": true,
       "loadableVehiclesBLUE": [
@@ -245,7 +255,7 @@
         "BTR_D"
       ],
       "maxCratesOnboard": 1,
-      "maxTroopsOnboard": 8,
+      "maxTroopsOnboard": 10,
       "maxVehicleWeight": 1360,
       "maxWholeVehiclesOnboard": 1,
       "troopsEnabled": true,

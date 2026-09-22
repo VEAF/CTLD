@@ -9,12 +9,12 @@
 -- automatically (waitFor) to detect loadVehicle and unloadVehicle.
 --
 -- Prerequisites:
---   - BLUE helo named "heliai_vehicle" (UH-1H), no human pilot
+--   - BLUE helo named "heliai_vehicle" (Mi-8MT), no human pilot
 --   - Route: WP landed on AIZ_depot_B_P_V_10 → flight → WP landed on AIZ_livraison_B_D_G
 --   - DCS trigger zone "AIZ_depot_B_P_V_10"  (radius ~200 m, V=vehicles only, stock=10)
 --   - DCS trigger zone "AIZ_livraison_B_D_G" (radius ~200 m, delivery LZ)
 --   - BLUE M1045 HMMWV named "hmmwv_cargo" positioned in AIZ_depot_B_P
---   - capabilitiesByType UH-1H: canTransportWholeVehicle=true
+--   - capabilitiesByType Mi-8MT: canTransportWholeVehicle=true
 --   - BLUE slot occupied (human player for MenuManager)
 --   - CTLD.lua injected before this script (wait 3-5 s)
 --
@@ -55,9 +55,10 @@ do  -- isolation scope
 local cfg                  = CTLDConfig.get()
 local _savedDebug          = cfg.settings["debug"]
 local _savedDebugScreenLog = cfg.settings["debugScreenLog"]
--- Override Hummer weight so UH-1H (maxVehicleWeight=1360 kg) can load it.
--- Real weight is 2400 kg (intentionally above UH-1H limit for gameplay).
--- This scenario tests the pickup/dropoff detection mechanic, not weight limits.
+-- Override Hummer weight defensively so this scenario stays independent of
+-- whichever aircraft AI_SRC is typed as (Mi-8MT's maxVehicleWeight=3000 kg
+-- already clears Hummer's real 2400 kg, but this scenario tests the
+-- pickup/dropoff detection mechanic, not weight limits, so pin it low).
 local _gvw                 = cfg.settings["groundVehicleWeights"] or {}
 local _savedHummerWeight   = _gvw["Hummer"]
 _gvw["Hummer"]             = 1100

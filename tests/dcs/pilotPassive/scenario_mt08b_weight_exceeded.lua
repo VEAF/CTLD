@@ -2,19 +2,22 @@
 -- @tier: auto-slow
 -- =============================================================================
 -- scenario_mt08b_weight_exceeded.lua
--- CTLD — Diagnostic: AI helo lands near HMMWV that exceeds maxVehicleWeight.
+-- CTLD — Diagnostic: AI helo lands near a vehicle that exceeds maxVehicleWeight.
 --
 -- Purpose: reproduce and analyse the "Leopard 2 near helo" observation.
--- NO weight override — HMMWV (2400 kg) > UH-1H maxVehicleWeight (1360 kg)
--- so C1 is expected to reject the load.
+-- The pickup zone also holds several lighter Hummers (used by MT-08's own
+-- happy path) — "Hummer" is temporarily removed from loadableVehiclesBLUE for
+-- the duration of this scenario so the type filter isolates ATGM-1 (type
+-- M1045 HMMWV TOW, 5000 kg) as the only candidate. Its weight exceeds
+-- Mi-8MT's maxVehicleWeight (3000 kg), so C1 is expected to reject it.
 -- The scenario then monitors the dropoff zone for any vehicle appearing
 -- that CTLD did NOT manage, and captures its typeName.
 --
 -- Prerequisites: same as MT-08 (heliai_vehicle, AIZ_depot_B_P_V_10,
---   AIZ_livraison_B_D_G, hmmwv_cargo, BLUE slot occupied, CTLD injected).
+--   AIZ_livraison_B_D_G, ATGM-1 [M1045 HMMWV TOW], BLUE slot occupied, CTLD injected).
 --
 -- @scenario  MT-08B
--- @version   1.0 — 2026-07-17
+-- @version   2.0 — 2026-09-23 (migrated UH-1H -> Mi-8MT; target vehicle Hummer -> ATGM-1)
 -- @coverage  diagnostic — weight-exceeded C1 path, unexpected dropoff spawn
 -- =============================================================================
 
@@ -39,9 +42,19 @@ local cfg                  = CTLDConfig.get()
 local _savedDebug          = cfg.settings["debug"]
 local _savedDebugScreenLog = cfg.settings["debugScreenLog"]
 -- NOTE: NO weight override — this is the diagnostic scenario.
--- HMMWV real weight = 2400 kg, UH-1H maxVehicleWeight = 1360 kg → C1 must reject.
+-- M1045 HMMWV TOW real weight = 5000 kg, Mi-8MT maxVehicleWeight = 3000 kg → C1 must reject.
 cfg.settings["debug"]          = true
 cfg.settings["debugScreenLog"] = false
+
+-- Temporarily exclude "Hummer" from loadableVehiclesBLUE: the pickup zone also
+-- holds MT-08's own (lighter) Hummers, which would otherwise be picked up
+-- instead of ATGM-1 and mask the weight-rejection path this scenario tests.
+local _savedLoadableVehiclesBLUE = cfg.settings["loadableVehiclesBLUE"]
+local _lvbFiltered = {}
+for _, t in ipairs(_savedLoadableVehiclesBLUE or {}) do
+    if t ~= "Hummer" then table.insert(_lvbFiltered, t) end
+end
+cfg.settings["loadableVehiclesBLUE"] = _lvbFiltered
 
 -- ── 4. Constants ──────────────────────────────────────────────────────────────
 local TAG     = "[MT-08B]"
@@ -158,8 +171,9 @@ end
 local function cleanup()
     if S.timerHandle then timer.removeFunction(S.timerHandle) ; S.timerHandle = nil end
     destroyClone(AI_UNIT)
-    cfg.settings["debug"]          = _savedDebug
-    cfg.settings["debugScreenLog"] = _savedDebugScreenLog
+    cfg.settings["debug"]               = _savedDebug
+    cfg.settings["debugScreenLog"]      = _savedDebugScreenLog
+    cfg.settings["loadableVehiclesBLUE"] = _savedLoadableVehiclesBLUE
     _SCN_MT08B_RUNNING = false
     _SCN_MT08B_CLEANUP = nil
     log("cleanup done")
@@ -229,21 +243,21 @@ end
 
 -- ── S1: Init — verify weight mismatch, spawn clone ───────────────────────────
 steps[1] = function()
-    instruct("S1/4 — INIT (MT-08B)\nNo weight override. C1 must reject HMMWV (too heavy).")
+    instruct("S1/4 — INIT (MT-08B)\nNo weight override. C1 must reject M1045 HMMWV TOW (too heavy).")
     waitThen(1, function()
         cfg.settings["transportPilotNames"] = { AI_UNIT }
         CTLDCoreManager.getInstance():_initAITransports()
 
         -- Verify the weight mismatch that will cause C1 to reject
-        local caps    = (ctld.gs("capabilitiesByType") or {})["UH-1H"] or {}
+        local caps    = (ctld.gs("capabilitiesByType") or {})["Mi-8MT"] or {}
         local maxW    = caps.maxVehicleWeight
         local weights = ctld.gs("groundVehicleWeights") or {}
-        local hummerW = weights["Hummer"] or 0
-        check("MT-08B.1.1", "UH-1H maxVehicleWeight configured", maxW ~= nil,
+        local vehW    = weights["M1045 HMMWV TOW"] or 0
+        check("MT-08B.1.1", "Mi-8MT maxVehicleWeight configured", maxW ~= nil,
             "maxVehicleWeight="..tostring(maxW))
-        check("MT-08B.1.2", "Hummer weight > UH-1H limit (C1 will reject)",
-            maxW ~= nil and hummerW > maxW,
-            "hummer="..hummerW.." kg, limit="..tostring(maxW).." kg")
+        check("MT-08B.1.2", "M1045 HMMWV TOW weight > Mi-8MT limit (C1 will reject)",
+            maxW ~= nil and vehW > maxW,
+            "vehicle="..vehW.." kg, limit="..tostring(maxW).." kg")
 
         local cloneG, cloneErr = spawnClone(AI_SRC, AI_UNIT)
         check("MT-08B.1.3", "Clone '"..AI_UNIT.."' spawned", cloneG ~= nil, tostring(cloneErr))
@@ -286,23 +300,23 @@ steps[2] = function()
                 check("MT-08B.2.2", "C2 did not load virtual vehicle",
                     virtualEntry == nil,
                     virtualEntry and ("virtual type="..tostring(virtualEntry.type)) or "nil")
-                -- HMMWV survival check: the physical vehicle must still be alive in the zone
+                -- Vehicle survival check: the physical vehicle must still be alive in the zone
                 local dcsZone = trigger.misc.getZone(AIZ_P)
-                local hummerAlive = false
-                local hummerType  = "?"
+                local vehAlive = false
+                local vehType  = "?"
                 if ok and vs and dcsZone then
                     for _, v in pairs(vs._vehicles) do
                         if v.unit and v.unit:isExist() then
-                            local d = ctld.utils.getDistance("mt08b_hummer_alive", dcsZone.point, v.unit:getPoint())
+                            local d = ctld.utils.getDistance("mt08b_veh_alive", dcsZone.point, v.unit:getPoint())
                             if d <= dcsZone.radius + 100 then
-                                hummerAlive = true
-                                hummerType  = v.vehicleType or "?"
+                                vehAlive = true
+                                vehType  = v.vehicleType or "?"
                             end
                         end
                     end
                 end
-                check("MT-08B.2.3", "HMMWV still alive in pickup zone after C1 rejection",
-                    hummerAlive, "typeName_found="..hummerType)
+                check("MT-08B.2.3", "M1045 HMMWV TOW still alive in pickup zone after C1 rejection",
+                    vehAlive, "typeName_found="..vehType)
                 -- Log helo position at pickup for comparison with dropoff detection
                 if unit and unit:isExist() then
                     local pt = unit:getPoint()
@@ -426,7 +440,7 @@ if not playerFound then
 end
 
 _SCN_MT08B_CLEANUP = cleanup
-instruct("MT-08B démarré — diagnostic poids HMMWV vs UH-1H")
+instruct("MT-08B démarré — diagnostic poids M1045 HMMWV TOW vs Mi-8MT")
 advanceStep()
 
 end  -- isolation scope

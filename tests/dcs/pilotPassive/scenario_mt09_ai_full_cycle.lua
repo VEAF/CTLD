@@ -8,7 +8,7 @@
 -- automatically (waitFor) to detect TV pickup and dropoff.
 --
 -- Prerequisites:
---   - BLUE heli named "heliai_full" (UH-1H), no human pilot
+--   - BLUE heli named "heliai_full" (Mi-8MT), no human pilot
 --   - Route: WP on AIZ_depot_B_P_TV_5_10 (landed) → AIZ_livraison_B_D_G (landed)
 --   - AIZ_depot_B_P_TV_5_10  : TV pickup zone (troops + vehicle), r~61m
 --   - AIZ_livraison_B_D_G    : dropoff zone, r~274m
