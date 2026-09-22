@@ -1,6 +1,6 @@
 # FIX-UH1H-CAPABILITIES-REALISM — UH-1H whole-vehicle transport is unrealistic and contradicts the docs
 
-**Status:** in-progress.
+**Status:** ✅ merged (PR #159).
 
 Requested by **a.lingo**, 2026-09-22/23: the UH-1H's default `capabilitiesByType` entry in
 `src/CTLD_config.yaml` claims `canTransportWholeVehicle: true` and `maxTroopsOnboard: 8`. Neither
