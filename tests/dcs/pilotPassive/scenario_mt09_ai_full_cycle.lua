@@ -8,7 +8,7 @@
 -- automatically (waitFor) to detect TV pickup and dropoff.
 --
 -- Prerequisites:
---   - BLUE heli named "heliai_full" (UH-1H), no human pilot
+--   - BLUE heli named "heliai_full" (Mi-8MT), no human pilot
 --   - Route: WP on AIZ_depot_B_P_TV_5_10 (landed) → AIZ_livraison_B_D_G (landed)
 --   - AIZ_depot_B_P_TV_5_10  : TV pickup zone (troops + vehicle), r~61m
 --   - AIZ_livraison_B_D_G    : dropoff zone, r~274m
@@ -281,6 +281,29 @@ steps[1] = function()
         CTLDCoreManager.getInstance():_initAITransports()
 
         local zm = CTLDZoneManager.getInstance()
+        -- Defensive: AIZ_ zones have no naming-convention auto-discovery (unlike TRZ_/LGZ_/WPZ_,
+        -- see dev/roadmap.md "AIZ_ — pourquoi une config explicite...") — they need an explicit
+        -- aiZones entry. Nothing in this dev mission declares one for AIZ_P/AIZ_D since
+        -- USERCONFIG-LOADING (PR #32) stopped merging CTLD_userConfig.lua (which used to). Register
+        -- them here so this scenario is self-sufficient regardless of that gap.
+        if not zm._troopZones[AIZ_P] or not zm._troopZones[AIZ_D] then
+            local az = cfg.settings["aiZones"] or {}
+            local function hasEntry(dzn)
+                for _, e in ipairs(az) do if e.dcsZoneName == dzn then return true end end
+                return false
+            end
+            if not hasEntry(AIZ_P) then
+                table.insert(az, { dcsZoneName = AIZ_P, coalition = "BLUE", isPickup = true,
+                    cargoType = "TV", troopStock = { All = -1 }, vehicleStock = { Hummer = 5 } })
+            end
+            if not hasEntry(AIZ_D) then
+                table.insert(az, { dcsZoneName = AIZ_D, coalition = "BLUE", isDropoff = true,
+                    aiDropMode = "G" })
+            end
+            cfg.settings["aiZones"] = az
+            zm:_validateZoneNames()
+            zm:_loadAIZonesFromConfig()
+        end
         local zP = zm._troopZones[AIZ_P]
         local zD = zm._troopZones[AIZ_D]
         check("MT-09.1.1", "AIZ_P found: "..AIZ_P, zP ~= nil)

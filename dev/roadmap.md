@@ -343,3 +343,47 @@ position marche déjà tel quel :
 - Un troisième cas concret et purement poll-based (aucune sémantique composite comme le FOB) —
   utile comme référence si/quand le système générique ci-dessus est instruit : il confirmerait
   que l'ancrage par sondage doit bien être absorbé par le générique, pas laissé de côté.
+
+## AIZ_ — pourquoi une config explicite, contrairement à TRZ_/LGZ_/WPZ_ ?
+
+Constaté en diagnostiquant l'échec live de MT-08/MT-08B/MT-09 (lot `FIX-UH1H-CAPABILITIES-REALISM`,
+2026-09-23) : les zones `AIZ_depot_B_P_V_10` etc. de la mission de test avaient cessé de
+s'enregistrer côté CTLD depuis `USERCONFIG-LOADING` (PR #32, 2026-07-17), qui a retiré
+`CTLD_userConfig.lua` — lequel déclarait leur entrée `aiZones` — de la fusion dans `CTLD.lua`.
+Contrairement à `TRZ_` (`_discoverTRZ`), `LGZ_` (`_discoverLGZ`) et `WPZ_` (`_parseWPZ`), auto-
+détectées par convention de nommage dans `env.mission.triggers.zones`, une zone `AIZ_` n'est
+**jamais** auto-découverte — documenté explicitement (`docs/mission-maker/zones.md` : *"AIZ zones
+have no naming convention"*) — elle exige une entrée explicite dans le réglage `aiZones`
+(`dcsZoneName`, `coalition`, `isPickup`/`isDropoff`, `cargoType`, `troopStock`/`vehicleStock`…).
+
+Question à instruire, et son pendant : qu'est-ce qui impose fonctionnellement cette
+config-obligatoire pour les AIZ_, et que manquerait-il pour qu'une AIZ_ soit auto-détectée et
+auto-instanciée par convention de nommage comme les autres, sans perdre les champs qu'un `aiZones`
+porte aujourd'hui ?
+
+Points à examiner (aucun tranché) :
+- **Densité d'information du nom** : `TRZ_`/`LGZ_`/`WPZ_` encodent un nombre limité de champs dans
+  le nom (coalition, stock, flag, target pour `TRZ_`). Une `AIZ_` porte potentiellement bien plus —
+  `cargoType`, `troopStock`/`vehicleStock` **par template/type avec quantité**, `aiDropMode`,
+  whitelist `troopTemplates`/`vehicleTypes` — un encodage par nom deviendrait vite illisible (un
+  `vehicleStock = { Hummer = 3, ["M1045 HMMWV TOW"] = -1 }` n'a pas d'équivalent compact en chaîne).
+- **Cargo hétérogène par zone** : une même `AIZ_` mixe troupes et véhicules (`cargoType TV`) avec
+  des stocks indépendants par template/type — une convention devrait soit se limiter à un
+  sous-ensemble (comme `TRZ_` le fait déjà, troupes seules), soit accepter un nom à rallonge.
+- **Précédent de compromis déjà proposé ailleurs** : l'entrée roadmap `extractableGroups` ci-dessus
+  propose une union config-explicite + préfixe auto-détecté pour un cas plus simple (pas de stock
+  différencié). Un compromis équivalent pour `AIZ_` — un préfixe couvrant seulement le cas simple
+  (`T` ou `V`, stock global) et laissant la richesse des stocks à `aiZones` — suffirait-il à l'usage
+  réel, ou la différenciation par template/type est-elle systématiquement nécessaire ?
+- **Coût du statu quo, mesuré concrètement** : cette zone de test a cessé de fonctionner en silence
+  pendant ~2 mois (17/07 → 23/09) sans qu'aucun garde-fou (CI, startup report) ne le signale, parce
+  que rien ne relie structurellement une mission donnée à la config `aiZones` qu'elle suppose — un
+  gap distinct de la question d'auto-détection, mais qui en est la conséquence directe : une
+  convention de nommage n'aurait pas cette classe de rupture silencieuse, ne dépendant d'aucun
+  fichier de config externe susceptible d'être décroché sans avertissement.
+
+Reste à trancher **au grill-with-docs avant to-prd** : la richesse des champs `aiZones`
+justifie-t-elle de garder le config-only comme modèle définitif (avec un garde-fou contre la
+régression silencieuse constatée), ou existe-t-il un sous-ensemble d'usages (pickup/dropoff simple,
+sans stock différencié) assez fréquent pour mériter une convention de nommage complémentaire, sur
+le modèle proposé pour `extractableGroups` (union, dédoublonnée) ?

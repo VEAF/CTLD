@@ -2,19 +2,22 @@
 -- @tier: auto-slow
 -- =============================================================================
 -- scenario_mt08b_weight_exceeded.lua
--- CTLD — Diagnostic: AI helo lands near HMMWV that exceeds maxVehicleWeight.
+-- CTLD — Diagnostic: AI helo lands near a vehicle that exceeds maxVehicleWeight.
 --
 -- Purpose: reproduce and analyse the "Leopard 2 near helo" observation.
--- NO weight override — HMMWV (2400 kg) > UH-1H maxVehicleWeight (1360 kg)
--- so C1 is expected to reject the load.
+-- The pickup zone also holds several lighter Hummers (used by MT-08's own
+-- happy path) — "Hummer" is temporarily removed from loadableVehiclesBLUE for
+-- the duration of this scenario so the type filter isolates ATGM-1 (type
+-- M1045 HMMWV TOW, 5000 kg) as the only candidate. Its weight exceeds
+-- Mi-8MT's maxVehicleWeight (3000 kg), so C1 is expected to reject it.
 -- The scenario then monitors the dropoff zone for any vehicle appearing
 -- that CTLD did NOT manage, and captures its typeName.
 --
 -- Prerequisites: same as MT-08 (heliai_vehicle, AIZ_depot_B_P_V_10,
---   AIZ_livraison_B_D_G, hmmwv_cargo, BLUE slot occupied, CTLD injected).
+--   AIZ_livraison_B_D_G, ATGM-1 [M1045 HMMWV TOW], BLUE slot occupied, CTLD injected).
 --
 -- @scenario  MT-08B
--- @version   1.0 — 2026-07-17
+-- @version   2.0 — 2026-09-23 (migrated UH-1H -> Mi-8MT; target vehicle Hummer -> ATGM-1)
 -- @coverage  diagnostic — weight-exceeded C1 path, unexpected dropoff spawn
 -- =============================================================================
 
@@ -39,9 +42,24 @@ local cfg                  = CTLDConfig.get()
 local _savedDebug          = cfg.settings["debug"]
 local _savedDebugScreenLog = cfg.settings["debugScreenLog"]
 -- NOTE: NO weight override — this is the diagnostic scenario.
--- HMMWV real weight = 2400 kg, UH-1H maxVehicleWeight = 1360 kg → C1 must reject.
+-- M1045 HMMWV TOW real weight = 5000 kg, Mi-8MT maxVehicleWeight = 3000 kg → C1 must reject.
 cfg.settings["debug"]          = true
 cfg.settings["debugScreenLog"] = false
+
+-- Temporarily exclude "Hummer" from Mi-8MT's OWN loadableVehiclesBLUE (nested under
+-- capabilitiesByType — the top-level cfg.settings["loadableVehiclesBLUE"] is a different,
+-- unrelated setting and does not gate CTLDVehicleSpawner:_isTypeLoadable at all): the pickup
+-- zone also holds MT-08's own (lighter) Hummers, which would otherwise be picked up instead of
+-- ATGM-1 and mask the weight-rejection path this scenario tests.
+local _mi8mtCaps = (cfg.settings["capabilitiesByType"] or {})["Mi-8MT"]
+local _savedLoadableVehiclesBLUE = _mi8mtCaps and _mi8mtCaps.loadableVehiclesBLUE
+if _mi8mtCaps then
+    local _lvbFiltered = {}
+    for _, t in ipairs(_savedLoadableVehiclesBLUE or {}) do
+        if t ~= "Hummer" then table.insert(_lvbFiltered, t) end
+    end
+    _mi8mtCaps.loadableVehiclesBLUE = _lvbFiltered
+end
 
 -- ── 4. Constants ──────────────────────────────────────────────────────────────
 local TAG     = "[MT-08B]"
@@ -49,6 +67,11 @@ local AI_SRC  = "heliai_vehicle"
 local AI_UNIT = "heliai_vehicle_run"
 local AIZ_P   = "AIZ_depot_B_P_V_10"
 local AIZ_D   = "AIZ_livraison_B_D_G"
+-- The pickup zone also holds MT-08's own Hummers, and this mission has ground units with
+-- playerCanDrive=true (real DCS driving AI) that can wander through either zone over time,
+-- independent of CTLD. Track this one unit by name rather than "any vehicle nearby" so
+-- unrelated ground traffic can't produce a false pass or fail.
+local TEST_VEHICLE_NAME = "ATGM-1"
 
 -- ── 5. State ──────────────────────────────────────────────────────────────────
 local S = {
@@ -119,47 +142,13 @@ local function check(id, desc, cond, details)
     else fail(id, desc..(details and (" | "..details) or "")) end
 end
 
--- Snapshot: returns set of {unitName → typeName} for all ground units within
--- radius of a DCS zone (by zone name).
-local function snapshotGroundUnitsInZone(zoneName)
-    local snapshot = {}
-    local dcsZone = trigger.misc.getZone(zoneName)
-    if not dcsZone then return snapshot end
-    local zPt = dcsZone.point
-    local zR  = dcsZone.radius
-    for _, coa in ipairs({coalition.side.BLUE, coalition.side.RED, coalition.side.NEUTRAL}) do
-        for _, grp in ipairs(coalition.getGroups(coa, Group.Category.GROUND) or {}) do
-            for _, unit in ipairs(grp:getUnits() or {}) do
-                if unit and unit:isExist() then
-                    local d = ctld.utils.getDistance("mt08b_snap", zPt, unit:getPoint())
-                    if d <= zR then
-                        snapshot[unit:getName()] = unit:getTypeName()
-                    end
-                end
-            end
-        end
-    end
-    return snapshot
-end
-
--- Returns list of {name, typeName} present in current but not in baseline.
-local function newUnitsVsSnapshot(baseline, zoneName)
-    local current = snapshotGroundUnitsInZone(zoneName)
-    local new = {}
-    for uName, uType in pairs(current) do
-        if not baseline[uName] then
-            new[#new + 1] = { name = uName, typeName = uType }
-        end
-    end
-    return new
-end
-
 -- ── 7. Cleanup ────────────────────────────────────────────────────────────────
 local function cleanup()
     if S.timerHandle then timer.removeFunction(S.timerHandle) ; S.timerHandle = nil end
     destroyClone(AI_UNIT)
     cfg.settings["debug"]          = _savedDebug
     cfg.settings["debugScreenLog"] = _savedDebugScreenLog
+    if _mi8mtCaps then _mi8mtCaps.loadableVehiclesBLUE = _savedLoadableVehiclesBLUE end
     _SCN_MT08B_RUNNING = false
     _SCN_MT08B_CLEANUP = nil
     log("cleanup done")
@@ -229,21 +218,41 @@ end
 
 -- ── S1: Init — verify weight mismatch, spawn clone ───────────────────────────
 steps[1] = function()
-    instruct("S1/4 — INIT (MT-08B)\nNo weight override. C1 must reject HMMWV (too heavy).")
+    instruct("S1/4 — INIT (MT-08B)\nNo weight override. C1 must reject M1045 HMMWV TOW (too heavy).")
     waitThen(1, function()
         cfg.settings["transportPilotNames"] = { AI_UNIT }
         CTLDCoreManager.getInstance():_initAITransports()
 
+        -- Defensive: AIZ_ zones have no naming-convention auto-discovery (unlike TRZ_/LGZ_/WPZ_,
+        -- see dev/roadmap.md "AIZ_ — pourquoi une config explicite...") — without a registered
+        -- AIZ_P, onAILand never attempts a pickup at all, and every check below would pass
+        -- vacuously (nothing loaded = "rejected") without actually exercising C1. Nothing in this
+        -- dev mission declares aiZones since USERCONFIG-LOADING (PR #32) stopped merging
+        -- CTLD_userConfig.lua (which used to). Register it here so this scenario is self-sufficient.
+        local zm0 = CTLDZoneManager.getInstance()
+        if not zm0._troopZones[AIZ_P] then
+            local az = cfg.settings["aiZones"] or {}
+            local hasEntry = false
+            for _, e in ipairs(az) do if e.dcsZoneName == AIZ_P then hasEntry = true; break end end
+            if not hasEntry then
+                table.insert(az, { dcsZoneName = AIZ_P, coalition = "BLUE", isPickup = true,
+                    cargoType = "V", vehicleStock = { Hummer = 3, ["M1045 HMMWV TOW"] = -1 } })
+                cfg.settings["aiZones"] = az
+                zm0:_validateZoneNames()
+                zm0:_loadAIZonesFromConfig()
+            end
+        end
+
         -- Verify the weight mismatch that will cause C1 to reject
-        local caps    = (ctld.gs("capabilitiesByType") or {})["UH-1H"] or {}
+        local caps    = (ctld.gs("capabilitiesByType") or {})["Mi-8MT"] or {}
         local maxW    = caps.maxVehicleWeight
         local weights = ctld.gs("groundVehicleWeights") or {}
-        local hummerW = weights["Hummer"] or 0
-        check("MT-08B.1.1", "UH-1H maxVehicleWeight configured", maxW ~= nil,
+        local vehW    = weights["M1045 HMMWV TOW"] or 0
+        check("MT-08B.1.1", "Mi-8MT maxVehicleWeight configured", maxW ~= nil,
             "maxVehicleWeight="..tostring(maxW))
-        check("MT-08B.1.2", "Hummer weight > UH-1H limit (C1 will reject)",
-            maxW ~= nil and hummerW > maxW,
-            "hummer="..hummerW.." kg, limit="..tostring(maxW).." kg")
+        check("MT-08B.1.2", "M1045 HMMWV TOW weight > Mi-8MT limit (C1 will reject)",
+            maxW ~= nil and vehW > maxW,
+            "vehicle="..vehW.." kg, limit="..tostring(maxW).." kg")
 
         local cloneG, cloneErr = spawnClone(AI_SRC, AI_UNIT)
         check("MT-08B.1.3", "Clone '"..AI_UNIT.."' spawned", cloneG ~= nil, tostring(cloneErr))
@@ -286,23 +295,21 @@ steps[2] = function()
                 check("MT-08B.2.2", "C2 did not load virtual vehicle",
                     virtualEntry == nil,
                     virtualEntry and ("virtual type="..tostring(virtualEntry.type)) or "nil")
-                -- HMMWV survival check: the physical vehicle must still be alive in the zone
-                local dcsZone = trigger.misc.getZone(AIZ_P)
-                local hummerAlive = false
-                local hummerType  = "?"
-                if ok and vs and dcsZone then
+                -- Vehicle survival check: tracked by CTLD's own record for this specific unit
+                -- (not proximity — this mission's ground traffic can wander through the zone).
+                local vehAlive   = false
+                local vehWaiting = false
+                if ok and vs then
                     for _, v in pairs(vs._vehicles) do
-                        if v.unit and v.unit:isExist() then
-                            local d = ctld.utils.getDistance("mt08b_hummer_alive", dcsZone.point, v.unit:getPoint())
-                            if d <= dcsZone.radius + 100 then
-                                hummerAlive = true
-                                hummerType  = v.vehicleType or "?"
-                            end
+                        if v.unit and v.unit:isExist() and v.unit:getName() == TEST_VEHICLE_NAME then
+                            vehAlive   = true
+                            vehWaiting = (v:getState() == CTLDVehicle.STATE.WAITING)
+                            break
                         end
                     end
                 end
-                check("MT-08B.2.3", "HMMWV still alive in pickup zone after C1 rejection",
-                    hummerAlive, "typeName_found="..hummerType)
+                check("MT-08B.2.3", TEST_VEHICLE_NAME.." still alive and WAITING after C1 rejection",
+                    vehAlive and vehWaiting, "alive="..tostring(vehAlive).." waiting="..tostring(vehWaiting))
                 -- Log helo position at pickup for comparison with dropoff detection
                 if unit and unit:isExist() then
                     local pt = unit:getPoint()
@@ -338,10 +345,6 @@ steps[3] = function()
         "Waiting for helo to LAND at "..AIZ_D.." (speed < 2 m/s in zone).\n"..
         "Timeout: 600 s."
     )
-    -- Snapshot before helo reaches dropoff
-    local baseline = snapshotGroundUnitsInZone(AIZ_D)
-    log("Dropoff snapshot: "..#baseline.." unit(s) already present")
-
     waitFor(
         function()
             local unit = Unit.getByName(AI_UNIT)
@@ -362,18 +365,21 @@ steps[3] = function()
             -- Helo confirmed landed — give CTLD 10 s to process onAILand
             log("Helo landed at dropoff confirmed — waiting 10 s for onAILand")
             waitThen(10, function()
-                local newUnits = newUnitsVsSnapshot(baseline, AIZ_D)
-                if #newUnits == 0 then
-                    pass("MT-08B.3.1", "No unexpected vehicle spawned at dropoff — correct behaviour")
-                    log("Dropoff clean: no new units. CTLD correctly ignored the overweight vehicle.")
+                -- Was TEST_VEHICLE_NAME itself delivered here? (Not "any new unit" — this
+                -- mission's own driving ground traffic can wander into the zone unrelated to CTLD.)
+                local targetDelivered = false
+                local dcsZoneD = trigger.misc.getZone(AIZ_D)
+                local tUnit = Unit.getByName(TEST_VEHICLE_NAME)
+                if dcsZoneD and tUnit and tUnit:isExist() then
+                    local d = ctld.utils.getDistance("mt08b_dropoff_check", dcsZoneD.point, tUnit:getPoint())
+                    targetDelivered = d <= dcsZoneD.radius
+                end
+                check("MT-08B.3.1", "No unexpected delivery of "..TEST_VEHICLE_NAME.." at "..AIZ_D,
+                    not targetDelivered)
+                if not targetDelivered then
+                    log("Dropoff clean: "..TEST_VEHICLE_NAME.." not there. CTLD correctly ignored the overweight vehicle.")
                 else
-                    local typeList = {}
-                    for _, u in ipairs(newUnits) do
-                        typeList[#typeList + 1] = u.name.." ("..u.typeName..")"
-                    end
-                    local detail = table.concat(typeList, ", ")
-                    fail("MT-08B.3.1", "Unexpected vehicle(s) spawned at dropoff: "..detail)
-                    log("UNEXPECTED SPAWN at "..AIZ_D..": "..detail)
+                    log("UNEXPECTED: "..TEST_VEHICLE_NAME.." delivered to "..AIZ_D)
                 end
                 -- Wait for helo to take off again before cleanup,
                 -- so the full DCS AI route completes and the clone is not destroyed mid-sequence.
@@ -426,7 +432,7 @@ if not playerFound then
 end
 
 _SCN_MT08B_CLEANUP = cleanup
-instruct("MT-08B démarré — diagnostic poids HMMWV vs UH-1H")
+instruct("MT-08B démarré — diagnostic poids M1045 HMMWV TOW vs Mi-8MT")
 advanceStep()
 
 end  -- isolation scope

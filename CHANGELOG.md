@@ -8,6 +8,22 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — UH-1H realism fix; Mi-8MT whole-vehicle transport completed (FIX-UH1H-CAPABILITIES-REALISM)
+
+- **UH-1H no longer claims whole-vehicle transport.** `capabilitiesByType.UH-1H.canTransportWholeVehicle`
+  was `true`, contradicting the published documentation, which already states a Huey moves vehicles
+  the crate way instead (no internal cargo bay for a whole ground vehicle). Requested by **a.lingo**
+  for realism; a deliberate legacy-parity deviation, not a bug fix. `maxTroopsOnboard` raised from
+  `8` to `10` to match the airframe's real troop capacity (legacy monolith hardcodes `8`).
+- **Mi-8MT's own `canTransportWholeVehicle: true` was not actually functional** — `maxWholeVehiclesOnboard: 0`
+  and no `maxVehicleWeight`/loadable-vehicle lists meant it could never load a vehicle in practice.
+  Completed with a realistic external sling-load rating (`maxVehicleWeight: 3000` kg — not the
+  13000 kg MTOW, which is the airframe's total takeoff weight, not its cargo lift capacity),
+  matching `UH-1H`'s loadable-vehicle lists, and `maxWholeVehiclesOnboard` raised to `1`.
+- The two live DCS regression scenarios that exercised AI whole-vehicle pickup/dropoff on the
+  UH-1H (MT-08, MT-08B, MT-09) are migrated to Mi-8MT — the only other helicopter-category type
+  with this capability (the other three survivors are fixed-wing).
+
 ### Fixed — a cancelled menu rebuild could still land on the next occupant (FIX-CANCELPENDING-URGENT-TIMER)
 
 - **`ctld.MenuManager:cancelPending` cancelled the ambient rebuild but not the urgent one.** The

@@ -9,12 +9,12 @@
 -- automatically (waitFor) to detect loadVehicle and unloadVehicle.
 --
 -- Prerequisites:
---   - BLUE helo named "heliai_vehicle" (UH-1H), no human pilot
+--   - BLUE helo named "heliai_vehicle" (Mi-8MT), no human pilot
 --   - Route: WP landed on AIZ_depot_B_P_V_10 → flight → WP landed on AIZ_livraison_B_D_G
 --   - DCS trigger zone "AIZ_depot_B_P_V_10"  (radius ~200 m, V=vehicles only, stock=10)
 --   - DCS trigger zone "AIZ_livraison_B_D_G" (radius ~200 m, delivery LZ)
 --   - BLUE M1045 HMMWV named "hmmwv_cargo" positioned in AIZ_depot_B_P
---   - capabilitiesByType UH-1H: canTransportWholeVehicle=true
+--   - capabilitiesByType Mi-8MT: canTransportWholeVehicle=true
 --   - BLUE slot occupied (human player for MenuManager)
 --   - CTLD.lua injected before this script (wait 3-5 s)
 --
@@ -55,9 +55,10 @@ do  -- isolation scope
 local cfg                  = CTLDConfig.get()
 local _savedDebug          = cfg.settings["debug"]
 local _savedDebugScreenLog = cfg.settings["debugScreenLog"]
--- Override Hummer weight so UH-1H (maxVehicleWeight=1360 kg) can load it.
--- Real weight is 2400 kg (intentionally above UH-1H limit for gameplay).
--- This scenario tests the pickup/dropoff detection mechanic, not weight limits.
+-- Override Hummer weight defensively so this scenario stays independent of
+-- whichever aircraft AI_SRC is typed as (Mi-8MT's maxVehicleWeight=3000 kg
+-- already clears Hummer's real 2400 kg, but this scenario tests the
+-- pickup/dropoff detection mechanic, not weight limits, so pin it low).
 local _gvw                 = cfg.settings["groundVehicleWeights"] or {}
 local _savedHummerWeight   = _gvw["Hummer"]
 _gvw["Hummer"]             = 1100
@@ -285,6 +286,29 @@ steps[1] = function()
         CTLDCoreManager.getInstance():_initAITransports()
 
         local zm = CTLDZoneManager.getInstance()
+        -- Defensive: AIZ_ zones have no naming-convention auto-discovery (unlike TRZ_/LGZ_/WPZ_,
+        -- see dev/roadmap.md "AIZ_ — pourquoi une config explicite...") — they need an explicit
+        -- aiZones entry. Nothing in this dev mission declares one for AIZ_P/AIZ_D since
+        -- USERCONFIG-LOADING (PR #32) stopped merging CTLD_userConfig.lua (which used to). Register
+        -- them here so this scenario is self-sufficient regardless of that gap.
+        if not zm._troopZones[AIZ_P] or not zm._troopZones[AIZ_D] then
+            local az = cfg.settings["aiZones"] or {}
+            local function hasEntry(dzn)
+                for _, e in ipairs(az) do if e.dcsZoneName == dzn then return true end end
+                return false
+            end
+            if not hasEntry(AIZ_P) then
+                table.insert(az, { dcsZoneName = AIZ_P, coalition = "BLUE", isPickup = true,
+                    cargoType = "V", vehicleStock = { Hummer = 3, ["M1045 HMMWV TOW"] = -1 } })
+            end
+            if not hasEntry(AIZ_D) then
+                table.insert(az, { dcsZoneName = AIZ_D, coalition = "BLUE", isDropoff = true,
+                    aiDropMode = "G" })
+            end
+            cfg.settings["aiZones"] = az
+            zm:_validateZoneNames()
+            zm:_loadAIZonesFromConfig()
+        end
         local zP = zm._troopZones[AIZ_P]
         local zD = zm._troopZones[AIZ_D]
         check("MT-08.1.1", "AIZ_P zone found: "..AIZ_P, zP ~= nil)

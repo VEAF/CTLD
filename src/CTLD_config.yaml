@@ -49,7 +49,15 @@ mm_facing:
       troopsEnabled: true
       canSlingload: true
       maxCratesOnboard: 2
-      maxWholeVehiclesOnboard: 0
+      maxVehicleWeight: 3000
+      loadableVehiclesBLUE:
+      - M1045 HMMWV TOW
+      - M1043 HMMWV Armament
+      - Hummer
+      loadableVehiclesRED:
+      - BRDM-2
+      - BTR_D
+      maxWholeVehiclesOnboard: 1
       canParachuteDrop: false
       maxTroopsOnboard: 16
       useNativeDcsCargoSystem: true
@@ -70,9 +78,9 @@ mm_facing:
       - BTR_D
       maxWholeVehiclesOnboard: 1
       canParachuteDrop: true
-      maxTroopsOnboard: 8
+      maxTroopsOnboard: 10
       useNativeDcsCargoSystem: true
-      canTransportWholeVehicle: true
+      canTransportWholeVehicle: false
     76MD:
       convertNativeLoadToCTLD: false
       cratesEnabled: true
