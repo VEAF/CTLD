@@ -385,11 +385,16 @@ Non tranché (à instruire en grill-with-docs dédié avant to-prd) :
 
 Demandé le 2026-09-23, pendant l'implémentation du ticket 01 de `FEAT-EXZ-AUTODISCOVERY`
 (config `aiZones` persistée pour la mission de test) : a.lingo veut pouvoir configurer lui-même
-`Test_CTLDNEXT_01.miz` via l'éditeur `ctld-tools` (webapp), pas seulement par script. Avant de
-livrer ce ticket, lui donner les valeurs exactes à saisir dans l'éditeur **Zones** (`aiZones`) —
-`dcsZoneName`, `coalition`, `isPickup`/`isDropoff`, `cargoType`, `troopStock`/`vehicleStock` — pour
-les trois zones `AIZ_depot_B_P_V_10`, `AIZ_depot_B_P_TV_5_10`, `AIZ_livraison_B_D_G`, dans le même
-format que celui affiché dans la capture d'écran fournie pendant le grill.
+`Test_CTLDNEXT_01.miz` via l'éditeur `ctld-tools` (webapp), pas seulement par script.
+
+**Périmètre élargi le 2026-09-23** (suite à `FEAT-CTLD-TOOLS-AIZ-SYNC`) : la mission porte en
+réalité 15 zones `AIZ_`, pas 3 — aucune n'a de config `.miz` persistée (vérifié : les 4 triggers de
+la mission ne touchent ni `aiZones` ni `configUser`), certaines n'existent qu'en filet de sécurité
+défensif dans un scénario (`MT-08`/`MT-08B`/`MT-09`), d'autres nulle part du tout (`MT-07`,
+`MT-10`–`MT-14`, `F-176`). Les 15 lignes complètes (valeurs confirmées par les tests + docs, et les
+5 zones dropoff dont le vrai `aiDropMode` reste à confirmer) sont dans
+`.backlog/FEAT-EXZ-AUTODISCOVERY/tickets/01-persist-test-mission-config.md` — donner ce tableau
+complet à a.lingo, pas seulement les 3 zones d'origine.
 
 ## `ctld-tools` — lire les zones du `.miz` pour peupler et synchroniser l'éditeur AIZ_
 
