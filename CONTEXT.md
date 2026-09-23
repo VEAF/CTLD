@@ -98,8 +98,18 @@ redefined terms are added here in the same move as the decision that introduces 
 
 ## Zones
 
-- **TRZ_** — troop zone. **LGZ_** — logistic zone. **WPZ_** — waypoint zone. **EXZ_** — extraction
-  zone. **AIZ_** — AI-transport zone (auto pickup/dropoff).
+- **Auto-discovered zone** — a DCS trigger zone CTLD finds and registers itself by parsing its
+  Mission Editor name: **TRZ_** (troop zone), **LGZ_** (logistic zone), **WPZ_** (waypoint zone).
+  The prefix and the fields after it (e.g. `TRZ_<name>_<coal>_<stock>_<flag>_<target>`) are the
+  only wiring a Mission Maker needs — no config entry.
+- **Config/API-referenced zone** — a DCS trigger zone CTLD only knows about because something
+  else names it explicitly: **AIZ_** (AI-transport pickup/dropoff, via an `aiZones` config entry)
+  and **EXZ_** (extraction, via the `createExtractZone()` scripted call). CTLD never parses these
+  two prefixes — `AIZ_`/`EXZ_` are a Mission Maker's own labeling habit, any zone name works, and
+  a zone using the prefix without the matching config/call does nothing. See
+  `dev/roadmap.md` — "AIZ_ — pourquoi une config explicite" for why AIZ_ carries this much
+  config (per-template/per-type stock tables) while EXZ_ (2 scalar fields: a flag, a smoke color)
+  plausibly wouldn't need to.
 - **Anchored zone** — any CTLD zone whose position is resolved at runtime rather than snapshotted
   at init. Two anchor mechanisms exist: a **DCS Moving Zone** (trigger zone attached to a unit in
   the ME — position retrieved via `trigger.misc.getZone()` each evaluation) and a **linked unit**
