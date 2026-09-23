@@ -404,7 +404,9 @@ def test_mission_mtime_is_cheap_and_never_opens_the_archive(monkeypatch):
     from ctld_tools import miz
 
     session.set_mission_path(MIZ)
-    monkeypatch.setattr(miz, "read_mission", lambda *_a, **_kw: (_ for _ in ()).throw(AssertionError("should not parse")))
+    monkeypatch.setattr(
+        miz, "read_mission", lambda *_a, **_kw: (_ for _ in ()).throw(AssertionError("should not parse"))
+    )
     assert client.get("/api/mission/mtime").json() == {"mtime": MIZ.stat().st_mtime}
 
 
