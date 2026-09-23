@@ -19,6 +19,7 @@ state and geometry tests.
 | Type | Prefix / source | Entity | Purpose |
 | --- | --- | --- | --- |
 | TRZ | `TRZ_` DCS trigger zone | `CTLDTroopZone` | Troop pickup, extract objective, mixed, or inert marker |
+| EXZ | `EXZ_` DCS trigger zone | `CTLDTroopZone` | Extraction-only objective (silent drop, no pickup) — converges on `createExtractZone()`, see below |
 | WPZ | `WPZ_` DCS trigger zone | `CTLDTroopZone` (`isWaypoint`) | March destination for deployed troops |
 | LGZ | `LGZ_` DCS trigger zone | `CTLDLogisticZone` | Crate / vehicle logistic services |
 | AIZ | `aiZones` config table | `CTLDTroopZone` (`isAIPickup` / `isAIDropoff`) | AI-transport-only pickup / dropoff (Feature S/T) |
@@ -27,7 +28,7 @@ state and geometry tests.
 | EXZ (dynamic) | `createExtractZone()` at runtime | `CTLDTroopZone` | Extract zone created from a mission `DO SCRIPT` |
 | TRZ (dynamic, any object) | `createTroopZoneAtObject()` at runtime | `CTLDTroopZone` | Pickup-capable TRZ created from a `DO SCRIPT`, on a trigger zone, unit, static, group, or airbase/FARP |
 
-TRZ, WPZ and LGZ are discovered by scanning `env.mission.triggers.zones` at init. AIZ zones
+TRZ, EXZ, WPZ and LGZ are discovered by scanning `env.mission.triggers.zones` at init. AIZ zones
 are loaded from `ctld.gs("aiZones")` and reference an existing Mission Editor trigger zone by
 name (`dcsZoneName`), resolved via `trigger.misc.getZone`. Legacy zones come from the
 `ctld.gs(...)` config tables and are loaded last so that a modern `TRZ_`/`LGZ_` definition
@@ -143,21 +144,31 @@ following phases **in this order**:
 2. `_discoverTRZ()` — for each trigger zone starting with `TRZ_`, parse the name with
    `_parseTRZ`; on success construct a `CTLDTroopZone` (geometry from the trigger zone,
    `smoke` from `troopZoneSmokeColor[coalition]`) and reset any `objectiveFlag` to 0.
-3. `_loadAIZonesFromConfig()` — reads `ctld.gs("aiZones")`; each valid entry becomes a
+3. `_discoverEXZ()` — for each trigger zone starting with `EXZ_`, parse `<name>_<flag>_<smoke>`
+   with `_parseEXZ` (right-anchored: only the last two fields are read, so `<name>` may itself
+   contain `_`); on success, call `createExtractZone(fullDcsName, flag, smoke)` directly — the
+   same routine the scripted API uses — rather than duplicating its zone-construction logic. A
+   parse failure is reported to the startup report, not silently skipped.
+4. `_loadAIZonesFromConfig()` — reads `ctld.gs("aiZones")`; each valid entry becomes a
    `CTLDTroopZone` marked `isAIPickup` / `isAIDropoff`, with per-template/per-type stock.
-4. `_discoverWPZ()` — trigger zones starting with `WPZ_` become waypoint troop zones
+5. `_discoverWPZ()` — trigger zones starting with `WPZ_` become waypoint troop zones
    (`isWaypoint = true`).
-5. `_discoverLGZ()` — trigger zones starting with `LGZ_` become `CTLDLogisticZone` objects
+6. `_discoverLGZ()` — trigger zones starting with `LGZ_` become `CTLDLogisticZone` objects
    (radius from `dynamicZoneRadius`, default 200 m).
-6. `_discoverTroopZoneShipTypes()` — every mission **unit** whose `getTypeName()` is listed in
+7. `_discoverTroopZoneShipTypes()` — every mission **unit** whose `getTypeName()` is listed in
    `troopZoneShipTypes` becomes a `CTLDTroopZone` anchored to it (`linkedUnit`, 200 m radius,
    unlimited stock).
-7. `_discoverLogisticUnitTypes()` — every mission unit **and static** whose `getTypeName()` is
+8. `_discoverLogisticUnitTypes()` — every mission unit **and static** whose `getTypeName()` is
    listed in `logisticUnitTypes` becomes a `CTLDLogisticZone` anchored to it (`linkedUnit`,
    radius from `maximumDistanceLogistic`). Both are skipped entirely when their list is empty.
-8. `_loadLegacyZones()` — backward-compat pass over the `troopZones`, `wpZones` and
+9. `_loadLegacyZones()` — backward-compat pass over the `troopZones`, `wpZones` and
    `logisticUnits` config tables.
-9. `_scheduleSmoke()` — starts the recurring smoke refresh loop.
+10. `_scheduleSmoke()` — starts the recurring smoke refresh loop.
+
+Unlike `TRZ_`, `EXZ_` registers under its **full, unparsed** Mission Editor name — deliberately,
+so it cannot collide the way `TRZ_`'s short-name keying does (see below). `createExtractZone`
+already keyed by the exact name it was given, so the naming-convention path inherits that for
+free by calling it directly instead of building the zone itself.
 
 Finally `init()` publishes an initial `OnLogisticZoneUpdated` and logs the zone counts. Each
 discovery phase guards on `if not self._troopZones[name]` / `_logisticZones[name]`, so the

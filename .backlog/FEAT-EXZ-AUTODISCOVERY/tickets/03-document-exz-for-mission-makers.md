@@ -1,6 +1,13 @@
 # 03 — Document `EXZ_` for Mission Makers
 
-**Status:** ⬜ ready
+**Status:** ✅ done
+
+While drafting, found that `docs/mission-maker/zones.md`/`.fr.md` and
+`docs/developer/subsystems/zones.md` all explicitly stated *"there is no separate `EXZ` prefix"*
+(true before ticket 02, now stale) — corrected those claims (the zone-types table, the naming-
+separator rule's exception, the shared-namespace warning and registration order, and the
+developer-facing numbered discovery-algorithm list) in the same PR rather than leaving a
+freshly-wrong statement next to the new section.
 
 **Blocked by:** ticket 02 (documents the shipped behaviour, including the naming convention it
 adds).

@@ -20,23 +20,29 @@ TYPE_name_param1_param2_..._paramN
 
 > **Règle :** `_` est le séparateur de champ. Il est **interdit à l'intérieur de toute valeur de
 > champ** (nom de zone, nom de flag, etc.). Utilisez `farmmain`, et non `farp_main`.
+>
+> **Exception :** le champ libre `name` d'une `EXZ_` tolère `_` — voir
+> [Zones d'extraction](#extraction-zones-exz) ci-dessous.
 
 ## Vue d'ensemble des types de zones { #zone-types-at-a-glance }
 
-Trois préfixes sont auto-découverts à partir des noms de trigger zones de DCS :
+Quatre préfixes sont auto-découverts à partir des noms de trigger zones de DCS :
 
 | Préfixe | Type de zone | Schéma |
 | --- | --- | --- |
 | `TRZ` | Zone de troupes — objectif de pickup et/ou d'extract joueur | `TRZ_<name>_<A\|R\|B\|N>_<stock>_<flag>_<target>` — **les 5 champs sont requis** |
+| `EXZ` | Zone d'extraction — dépose silencieuse sur objectif, sans pickup | `EXZ_<name>_<flag>_<smoke>` — **les 3 champs sont requis** |
 | `WPZ` | Zone de waypoint — les troupes déployées à l'intérieur marchent vers le centre de la zone | `WPZ_<name>_[R\|B\|N]` |
 | `LGZ` | Zone logistique — services de crate et de véhicules | `LGZ_<name>_[R\|B\|N]` |
 
-Un quatrième type — les **zones de transport IA (AIZ)** — n'est pas découvert par le nom. Il est
+Un cinquième type — les **zones de transport IA (AIZ)** — n'est pas découvert par le nom. Il est
 déclaré entièrement en configuration ; voir [Zones de transport IA](#ai-transport-zones-aiz).
 
-> Il n'existe pas de préfixe `EXZ` distinct. Les objectifs d'extract sont une **fonction d'une
-> TRZ** (une zone de troupes avec `stock = 0` et un flag d'objectif), décrite sous
-> [Zones de troupes](#troop-zones-trz).
+> Une `TRZ_` avec `stock = 0` et un flag d'objectif (voir [Zones de troupes](#troop-zones-trz))
+> aboutit au même résultat qu'une `EXZ_` — les deux se contentent de poser un flag d'objectif sans
+> capacité de pickup, et le moteur les traite de façon identique une fois créées. `EXZ_` existe
+> pour le cas où vous voulez un point d'extraction qui n'a jamais été une zone de pickup, sans
+> écrire un nom de `TRZ_` qui n'a de sens que lu à l'envers.
 
 **Paramètre de coalition :**
 
@@ -52,10 +58,11 @@ déclaré entièrement en configuration ; voir [Zones de transport IA](#ai-trans
 > déjà enregistré n'est jamais écrasé par un suivant.
 
 !!! warning "Un seul espace de noms pour tous les types de zones"
-    Les troop zones partagent un **unique** espace de noms — `TRZ_`, `WPZ_`, les zones IA et la
-    table héritée `troopZones` s'y enregistrent toutes, et la première enregistrée l'emporte. Ce
-    qui rend le piège facile : une zone `TRZ_` s'enregistre sous son nom **analysé** —
-    `TRZ_dropzone1_B_0_nil_0` occupe le nom `dropzone1`.
+    Les troop zones partagent un **unique** espace de noms — `TRZ_`, `EXZ_`, `WPZ_`, les zones IA
+    et la table héritée `troopZones` s'y enregistrent toutes, et la première enregistrée
+    l'emporte. Ce qui rend le piège facile : une zone `TRZ_` s'enregistre sous son nom
+    **analysé** — `TRZ_dropzone1_B_0_nil_0` occupe le nom `dropzone1`. `EXZ_` n'a pas ce problème
+    — elle s'enregistre sous son nom complet, non analysé, de l'éditeur de mission.
 
     Une entrée `aiZones` dont le `dcsZoneName` vaut `dropzone1` — pointant pourtant vers une zone
     de l'éditeur de mission bel et bien différente — entre donc en collision avec cette TRZ et
@@ -67,7 +74,7 @@ déclaré entièrement en configuration ; voir [Zones de transport IA](#ai-trans
     ```
 
     La correction est toujours la même : donner deux noms différents aux deux zones. L'ordre
-    d'enregistrement est `TRZ_` → zones IA → `WPZ_` → tables héritées.
+    d'enregistrement est `TRZ_` → `EXZ_` → zones IA → `WPZ_` → tables héritées.
 
 ---
 
@@ -445,6 +452,64 @@ retombe sur `"GP"`, une zone de pickup à laquelle manque le `troopStock` / `veh
 correspondant a ce pickup désactivé, des noms de `troopTemplates` / `vehicleTypes` inconnus, et une
 zone de pickup chevauchant une zone de drop-off de la même coalition (risque de boucle instantanée
 pickup+drop-off).
+
+---
+
+## Zones d'extraction (EXZ) { #extraction-zones-exz }
+
+Une zone d'extraction est une **dépose silencieuse sur objectif** : débarquer des troupes à
+l'intérieur incrémente un flag DCS du nombre de soldats au lieu de spawner un groupe DCS vivant au
+sol. Contrairement aux [zones de transport IA](#ai-transport-zones-aiz), elle fonctionne pour les
+transports **IA comme joueur** — voir le [guide pilote](../pilot/troop-transport.fr.md) pour ce
+qu'un pilote voit réellement.
+
+Une [`TRZ_` avec `stock = 0` et un flag d'objectif](#troop-zones-trz) aboutit exactement au même
+résultat — choisissez selon votre mission : `EXZ_` pour un point qui n'a jamais été une zone de
+pickup, `TRZ_` quand vous voulez pickup et extraction sous le même nom.
+
+### Convention de nommage
+
+**Schéma :** `EXZ_<name>_<flag>_<smoke>`
+
+**Les 3 champs sont requis.** Contrairement à tous les autres types de zone, `name` peut
+lui-même contenir des `_` — le parser lit `flag` et `smoke` depuis la **fin** du nom, pas depuis
+le début, donc la règle de séparateur en haut de cette page ne le contraint pas.
+
+| Champ | Valeurs | Signification |
+| --- | --- | --- |
+| `name` | quelconque (peut contenir `_`) | Étiquette cosmétique ; jamais réanalysée |
+| `flag` | nom/numéro de flag DCS, ou `nil` | Flag incrémenté par le nombre de soldats à l'extraction ; `nil` = pas d'objectif |
+| `smoke` | `0`-`4`, ou `nil` | Couleur de fumigène marquant la zone à la création ; `nil` = aucune |
+
+```
+EXZ_frontline_flag42_2   → flag d'objectif "flag42", fumigène rouge
+EXZ_lz1_nil_nil          → pas de flag, pas de fumigène (simple repère de position)
+```
+
+### API scriptée
+
+```lua
+ctld.createExtractZone(zoneName, flagNumber, smoke)
+ctld.removeExtractZone(zoneName, flagNumber)
+```
+
+Crée ou retire une zone d'extraction sur n'importe quelle zone de trigger DCS existante à
+l'exécution — utile quand la zone n'est pas connue à la conception de la mission (ex. liée à un
+objet spawné en cours de mission). `flagNumber` et `smoke` se comportent exactement comme dans la
+convention de nommage ci-dessus (passez `nil` pour l'un ou l'autre pour signifier « aucun »). Une
+zone créée par convention de nommage et une zone scriptée sont indiscernables une fois créées —
+les deux passent par le même chemin de création.
+
+### Étapes de mise en place
+
+1. Créez une zone de trigger dans l'éditeur de mission (nom et rayon libres).
+2. Soit nommez-la directement `EXZ_<name>_<flag>_<smoke>`, **soit** appelez
+   `ctld.createExtractZone(...)` dessus depuis un script de mission.
+3. Rien d'autre à configurer — aucune entrée `transportPilotNames` nécessaire.
+
+> Un nom `EXZ_` malformé (champ `flag`/`smoke` manquant, ou valeur `smoke` hors `0`-`4` et
+> différente de `nil`) est signalé au démarrage de la mission et la zone n'est **pas** créée —
+> vérifiez `CTLD.log` si une zone nommée `EXZ_` ne semble pas fonctionner.
 
 ---
 
