@@ -602,7 +602,7 @@
                   <div class="mission-scan">
                     <button onclick={doSelectMission}>{t('web.aizone.choose_mission')}</button>
                     <span class="val">
-                      {missionPath ? t('web.aizone.mission_tracked', { name: missionName }) : t('web.aizone.no_mission')}
+                      {missionPath ? t('web.aizone.mission_tracked', { name: missionName ?? '' }) : t('web.aizone.no_mission')}
                     </span>
                   </div>
                   <AiZonesEditor
