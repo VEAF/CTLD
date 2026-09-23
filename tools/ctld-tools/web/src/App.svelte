@@ -12,6 +12,7 @@
     injectMiz,
     loadDefault,
     loadPath,
+    getMissionZones,
     openDialog,
     putSetting,
     save,
@@ -73,6 +74,9 @@
   // by `doSelectMission`, never by `doOpen`/`doInject`, which each have their own file picks.
   let missionPath = $state<string | null>(null)
   const missionName = $derived(missionPath?.split(/[\\/]/).pop() ?? null)
+  // Real zone names from the tracked mission — generic autocomplete on AiZonesEditor's
+  // dcsZoneName, independent of the AIZ_ naming convention (tickets 03/04).
+  let missionZoneNames = $state<string[]>([])
   let dcsTypes = $state<string[]>([])
   // type → GROUND | AIRPLANE | HELICOPTER; resolves the `AIR` authoring choice on save.
   let spawnAsByType = $state<Record<string, string>>({})
@@ -335,6 +339,8 @@
       const { path } = await selectMission()
       if (!path) return
       missionPath = path
+      const { zones } = await getMissionZones()
+      missionZoneNames = zones
       error = null
     } catch (e) {
       error = String(e)
@@ -609,6 +615,7 @@
                     zones={snapshot.values.aiZones as Record<string, unknown>[]}
                     fields={schema?.tableFields?.aiZones ?? {}}
                     troopTemplates={troopTemplateNames}
+                    missionZoneNames={missionZoneNames}
                     onchange={(v) => saveData('aiZones', v)}
                   />
                 {:else if key === 'spawnableCratesModels'}

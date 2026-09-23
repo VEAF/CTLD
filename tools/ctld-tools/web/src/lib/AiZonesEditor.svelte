@@ -24,6 +24,7 @@
     zones,
     fields,
     troopTemplates = [],
+    missionZoneNames = [],
     onchange,
   }: {
     zones: Zone[]
@@ -31,6 +32,9 @@
     fields: Record<string, TableField>
     /** loadableGroups names, offered for troopTemplates and troopStock keys. */
     troopTemplates?: string[]
+    /** Real DCS trigger-zone names read from the tracked mission (ticket 01) — offered as
+     *  `dcsZoneName` autocomplete, independent of the AIZ_ naming convention (tickets 03/04). */
+    missionZoneNames?: string[]
     onchange: (v: Zone[]) => void
   } = $props()
 
@@ -40,6 +44,7 @@
   const UNLIMITED = -1
   const ALL_KEY = 'All'
   const TEMPLATE_LIST = 'ai-zone-templates'
+  const ZONE_NAME_LIST = 'ai-zone-mission-zones'
 
   const tip = (f: string) => fields?.[f]?.tip ?? undefined
   // Never a literal: the vocabulary lives in the schema so a Mission Maker editing the YAML by
@@ -126,6 +131,10 @@
   {#each troopTemplates as name (name)}<option value={name}></option>{/each}
 </datalist>
 
+<datalist id={ZONE_NAME_LIST}>
+  {#each missionZoneNames as name (name)}<option value={name}></option>{/each}
+</datalist>
+
 {#each model as zone, i (i)}
   <fieldset class="zone">
     <legend>{String(zone.dcsZoneName || t('web.aizone.untitled'))}</legend>
@@ -133,7 +142,11 @@
     <div class="row">
       <label title={tip('dcsZoneName')}>
         {fieldLabel('dcsZoneName')}
-        <input value={String(zone.dcsZoneName ?? '')} onchange={(e) => setField(i, 'dcsZoneName', e.currentTarget.value)} />
+        <input
+          list={ZONE_NAME_LIST}
+          value={String(zone.dcsZoneName ?? '')}
+          onchange={(e) => setField(i, 'dcsZoneName', e.currentTarget.value)}
+        />
       </label>
 
       <label title={tip('coalition')}>
