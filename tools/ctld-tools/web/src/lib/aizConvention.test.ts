@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { addMissingAizZones, parseAizZoneName } from './aizConvention'
+import { addMissingAizZones, findOrphanedAizZones, parseAizZoneName } from './aizConvention'
 
 test('parses a well-formed pickup zone', () => {
   expect(parseAizZoneName('AIZ_depot_B_P_V')).toEqual({
@@ -92,4 +92,21 @@ test('addMissingAizZones ignores a zone name that does not match the convention'
 test('addMissingAizZones returns the same reference when there is nothing to add', () => {
   const existing = [{ dcsZoneName: 'AIZ_depot_B_P_V' }]
   expect(addMissingAizZones(['AIZ_depot_B_P_V'], existing)).toBe(existing)
+})
+
+test('findOrphanedAizZones flags an AIZ_-convention entry whose zone is gone from the mission', () => {
+  const existing = [{ dcsZoneName: 'AIZ_depot_B_P_V' }]
+  expect(findOrphanedAizZones([], existing)).toEqual(existing)
+  expect(findOrphanedAizZones(['TRZ_pz1'], existing)).toEqual(existing)
+})
+
+test('findOrphanedAizZones never flags an entry whose zone still exists', () => {
+  const existing = [{ dcsZoneName: 'AIZ_depot_B_P_V' }]
+  expect(findOrphanedAizZones(['AIZ_depot_B_P_V'], existing)).toEqual([])
+})
+
+test('findOrphanedAizZones never flags a freely-named entry, even if its zone is gone', () => {
+  const existing = [{ dcsZoneName: 'My_Custom_Zone' }]
+  expect(findOrphanedAizZones([], existing)).toEqual([])
+  expect(findOrphanedAizZones(['TRZ_pz1'], existing)).toEqual([])
 })

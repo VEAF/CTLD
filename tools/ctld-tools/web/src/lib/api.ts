@@ -119,8 +119,10 @@ export const openDialog = (kind: 'open' | 'save' | 'miz') =>
 
 /** Open the native `.miz` picker and track the choice server-side for zone scanning. */
 export const selectMission = () => post('/api/mission/select').then((r) => json<{ path: string | null }>(r))
-/** Every trigger-zone name in the tracked mission (empty when none is tracked yet). */
-export const getMissionZones = () => fetch('/api/mission/zones').then((r) => json<{ zones: string[] }>(r))
+/** Every trigger-zone name in the tracked mission, plus the mtime read at scan time (both null/empty when none is tracked). */
+export const getMissionZones = () => fetch('/api/mission/zones').then((r) => json<{ zones: string[]; mtime: number | null }>(r))
+/** The tracked mission's current file mtime — cheap, no zip parsing (null when none is tracked). */
+export const getMissionMtime = () => fetch('/api/mission/mtime').then((r) => json<{ mtime: number | null }>(r))
 /** What an install wrote, so the UI can report it without reopening the archive. */
 export type InstallResult = {
   injected: string

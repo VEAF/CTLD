@@ -484,18 +484,35 @@ def select_mission() -> dict[str, str | None]:
 
 
 @app.get("/api/mission/zones")
-def mission_zones() -> dict[str, list[str]]:
-    """Every trigger-zone name in the tracked mission, or an empty list if none is tracked yet."""
+def mission_zones() -> dict[str, Any]:
+    """Every trigger-zone name in the tracked mission, or an empty list if none is tracked yet.
+
+    Also reports the mtime read at scan time, so a caller can later tell whether the mission
+    changed since this scan without re-parsing it — see `/api/mission/mtime`.
+    """
     from ctld_tools import miz
 
     path = session.mission_path
     if path is None or not path.is_file():
-        return {"zones": []}
+        return {"zones": [], "mtime": None}
     try:
         mission = miz.read_mission(path)
     except (zipfile.BadZipFile, OSError, ValueError):
-        return {"zones": []}
-    return {"zones": miz.zone_names(mission)}
+        return {"zones": [], "mtime": None}
+    return {"zones": miz.zone_names(mission), "mtime": path.stat().st_mtime}
+
+
+@app.get("/api/mission/mtime")
+def mission_mtime() -> dict[str, float | None]:
+    """The tracked mission's current file modification time, or null when none is tracked.
+
+    Deliberately cheap (a stat, no zip parsing) — the AI-zones editor calls this on every tab
+    activation to decide whether a full re-scan is worth doing at all.
+    """
+    path = session.mission_path
+    if path is None or not path.is_file():
+        return {"mtime": None}
+    return {"mtime": path.stat().st_mtime}
 
 
 @app.post("/api/inject")

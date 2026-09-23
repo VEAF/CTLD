@@ -369,19 +369,45 @@ def test_select_mission_cancelled_leaves_no_mission_tracked(monkeypatch):
 
 
 def test_mission_zones_empty_when_none_tracked():
-    assert client.get("/api/mission/zones").json() == {"zones": []}
+    assert client.get("/api/mission/zones").json() == {"zones": [], "mtime": None}
 
 
 def test_mission_zones_lists_real_trigger_zones():
     session.set_mission_path(MIZ)
-    zones = client.get("/api/mission/zones").json()["zones"]
-    assert isinstance(zones, list) and zones
-    assert all(isinstance(name, str) for name in zones)
+    body = client.get("/api/mission/zones").json()
+    assert isinstance(body["zones"], list) and body["zones"]
+    assert all(isinstance(name, str) for name in body["zones"])
+    assert body["mtime"] == MIZ.stat().st_mtime
 
 
 def test_mission_zones_handled_gracefully_for_a_missing_file(tmp_path):
     session.set_mission_path(tmp_path / "does-not-exist.miz")
-    assert client.get("/api/mission/zones").json() == {"zones": []}
+    assert client.get("/api/mission/zones").json() == {"zones": [], "mtime": None}
+
+
+def test_mission_mtime_null_when_none_tracked():
+    assert client.get("/api/mission/mtime").json() == {"mtime": None}
+
+
+def test_mission_mtime_matches_the_tracked_file():
+    session.set_mission_path(MIZ)
+    assert client.get("/api/mission/mtime").json() == {"mtime": MIZ.stat().st_mtime}
+
+
+def test_mission_mtime_null_for_a_missing_file(tmp_path):
+    session.set_mission_path(tmp_path / "does-not-exist.miz")
+    assert client.get("/api/mission/mtime").json() == {"mtime": None}
+
+
+def test_mission_mtime_is_cheap_and_never_opens_the_archive(monkeypatch):
+    """The whole point of this endpoint is to skip the zip/Lua parse `zones` does."""
+    from ctld_tools import miz
+
+    session.set_mission_path(MIZ)
+    monkeypatch.setattr(
+        miz, "read_mission", lambda *_a, **_kw: (_ for _ in ()).throw(AssertionError("should not parse"))
+    )
+    assert client.get("/api/mission/mtime").json() == {"mtime": MIZ.stat().st_mtime}
 
 
 # The engine is a build artifact, so a checkout can legitimately not have one. Every test that

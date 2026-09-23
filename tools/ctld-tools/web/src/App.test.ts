@@ -42,6 +42,11 @@ const SNAP = {
 const DEFAULTS = { values: { numberOfTroops: 10, aaRearmDistance: 300 } }
 
 let findings: unknown[] = []
+// The tracked mission's simulated mtime — 200 stands in for "the .miz changed on disk since the
+// last scan" and also carries a new AIZ_ zone, so the ticket 04 auto-rescan test can observe both
+// the mtime-triggered re-fetch and its downstream silent-add reconciliation in one assertion.
+let missionMtime = 100
+const zonesForMtime = (mtime: number) => (mtime >= 200 ? ['Custom_Zone_1', 'AIZ_new_R_D_G'] : ['Custom_Zone_1'])
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
@@ -49,6 +54,7 @@ function jsonResponse(body: unknown, status = 200) {
 
 beforeEach(() => {
   findings = []
+  missionMtime = 100
   vi.stubGlobal('confirm', vi.fn(() => true))
   global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
@@ -72,9 +78,8 @@ beforeEach(() => {
     if (url.endsWith('/api/dialog/save')) return Promise.resolve(jsonResponse({ path: '/out.yaml' }))
     if (url.endsWith('/api/dialog/miz')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
     if (url.endsWith('/api/mission/select')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
-    // Deliberately not an AIZ_-convention name: this fixture drives the generic-autocomplete test
-    // (ticket 02), and a matching name would also trigger ticket 03's silent-add reconciliation.
-    if (url.endsWith('/api/mission/zones')) return Promise.resolve(jsonResponse({ zones: ['Custom_Zone_1'] }))
+    if (url.endsWith('/api/mission/zones')) return Promise.resolve(jsonResponse({ zones: zonesForMtime(missionMtime), mtime: missionMtime }))
+    if (url.endsWith('/api/mission/mtime')) return Promise.resolve(jsonResponse({ mtime: missionMtime }))
     if (url.endsWith('/api/version')) return Promise.resolve(jsonResponse({ ctld: '2.0.0-rc3', docs: 'dev' }))
     if (url.endsWith('/api/inject'))
       return Promise.resolve(
@@ -296,4 +301,45 @@ test('choosing a mission also feeds its real zone names into the dcsZoneName aut
     const options = [...document.querySelectorAll(`#${input.getAttribute('list')} option`)].map((o) => (o as HTMLOptionElement).value)
     expect(options).toEqual(['Custom_Zone_1'])
   })
+})
+
+test('activating the Zones tab after the mission file changed triggers an automatic re-scan and reconciliation', async () => {
+  render(App)
+  await fireEvent.click(await screen.findByRole('button', { name: /Zones/ }))
+  await fireEvent.click(screen.getByRole('button', { name: 'Choose mission to scan…' }))
+  await screen.findByText('Tracking m.miz for zones')
+  await fireEvent.click(screen.getByText('+ AI zone')) // one manual row; Custom_Zone_1 doesn't match AIZ_
+  await waitFor(() => expect(screen.getAllByLabelText(/DCS trigger zone/i)).toHaveLength(1))
+
+  // The .miz changes on disk: same mission, later mtime, and it now carries a new AIZ_ zone.
+  missionMtime = 200
+  await fireEvent.click(screen.getByRole('button', { name: /Troops/ }))
+  await fireEvent.click(screen.getByRole('button', { name: /Zones/ }))
+
+  await waitFor(() => expect(screen.getAllByLabelText(/DCS trigger zone/i)).toHaveLength(2))
+  const values = screen.getAllByLabelText(/DCS trigger zone/i).map((el) => (el as HTMLInputElement).value)
+  expect(values).toContain('AIZ_new_R_D_G')
+})
+
+test('activating the Zones tab with no mtime change does not trigger a re-scan', async () => {
+  render(App)
+  await fireEvent.click(await screen.findByRole('button', { name: /Zones/ }))
+  await fireEvent.click(screen.getByRole('button', { name: 'Choose mission to scan…' }))
+  await screen.findByText('Tracking m.miz for zones')
+  await fireEvent.click(screen.getByText('+ AI zone'))
+  await waitFor(() => expect(screen.getAllByLabelText(/DCS trigger zone/i)).toHaveLength(1))
+
+  await fireEvent.click(screen.getByRole('button', { name: /Troops/ }))
+  await fireEvent.click(screen.getByRole('button', { name: /Zones/ })) // mtime unchanged (still 100)
+
+  await new Promise((r) => setTimeout(r, 0)) // let any stray async work settle
+  expect(screen.getAllByLabelText(/DCS trigger zone/i)).toHaveLength(1)
+})
+
+test('visiting the Zones tab before any mission is tracked never calls the mtime check', async () => {
+  render(App)
+  await fireEvent.click(await screen.findByRole('button', { name: /Zones/ }))
+  expect(screen.getByText('No mission tracked yet')).toBeInTheDocument()
+  await new Promise((r) => setTimeout(r, 0))
+  expect(global.fetch).not.toHaveBeenCalledWith(expect.stringContaining('/api/mission/mtime'))
 })
