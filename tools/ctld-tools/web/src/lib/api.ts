@@ -116,6 +116,11 @@ export const getDcsTypes = () =>
   fetch('/api/dcs-types').then((r) => json<{ types: string[]; spawnAs: Record<string, string> }>(r))
 export const openDialog = (kind: 'open' | 'save' | 'miz') =>
   fetch(`/api/dialog/${kind}`).then((r) => json<{ path: string | null }>(r))
+
+/** Open the native `.miz` picker and track the choice server-side for zone scanning. */
+export const selectMission = () => post('/api/mission/select').then((r) => json<{ path: string | null }>(r))
+/** Every trigger-zone name in the tracked mission (empty when none is tracked yet). */
+export const getMissionZones = () => fetch('/api/mission/zones').then((r) => json<{ zones: string[] }>(r))
 /** What an install wrote, so the UI can report it without reopening the archive. */
 export type InstallResult = {
   injected: string

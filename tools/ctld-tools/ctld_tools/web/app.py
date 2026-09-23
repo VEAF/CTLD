@@ -465,6 +465,39 @@ def dialog(kind: str) -> dict[str, str | None]:
     return {"path": picker()}
 
 
+@app.post("/api/mission/select")
+def select_mission() -> dict[str, str | None]:
+    """Open the native `.miz` picker and track the choice for zone scanning.
+
+    A second entry point for `session.mission_path` (see `Session.set_mission_path`), distinct from
+    `load_path`'s use of the same field: it never requires the target to already carry a CTLD
+    configuration, since the point here is to scan a mission — even a dev mission that has never
+    been through `ctld-tools install` — for its real zone names.
+    """
+    from ctld_tools.web import dialogs
+
+    chosen = dialogs.pick_miz()
+    if not chosen:
+        return {"path": None}
+    session.set_mission_path(chosen)
+    return {"path": chosen}
+
+
+@app.get("/api/mission/zones")
+def mission_zones() -> dict[str, list[str]]:
+    """Every trigger-zone name in the tracked mission, or an empty list if none is tracked yet."""
+    from ctld_tools import miz
+
+    path = session.mission_path
+    if path is None or not path.is_file():
+        return {"zones": []}
+    try:
+        mission = miz.read_mission(path)
+    except (zipfile.BadZipFile, OSError, ValueError):
+        return {"zones": []}
+    return {"zones": miz.zone_names(mission)}
+
+
 @app.post("/api/inject")
 def inject(req: InjectRequest) -> dict[str, Any]:
     """Install CTLD into a `.miz`: the engine, the beacon sounds, the configuration, the triggers.

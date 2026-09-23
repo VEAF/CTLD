@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from ctld_tools.miz import MARKER, inject_userconfig, read_mission
+from ctld_tools.miz import MARKER, inject_userconfig, read_mission, zone_names
 from ctld_tools.vendor import luadata
 
 REPO = Path(__file__).resolve().parents[3]
@@ -49,3 +49,17 @@ def test_idempotent_reinjection(tmp_path):
     markers = [r for r in m["trigrules"].values() if r.get("comment") == MARKER]
     assert len(markers) == 1
     assert "second" in m["trig"]["actions"][1]
+
+
+def test_zone_names_lists_every_trigger_zone():
+    names = zone_names(read_mission(MIZ))
+    assert isinstance(names, list) and names
+    assert all(isinstance(n, str) and n for n in names)
+    assert len(names) == len(set(names)), "the fixture must not carry duplicate zone names"
+
+
+def test_zone_names_ignores_zones_with_no_name():
+    mission = read_mission(MIZ)
+    mission["triggers"]["zones"].append({"radius": 100})  # malformed entry, no 'name' key
+    names = zone_names(mission)
+    assert len(names) == len(read_mission(MIZ)["triggers"]["zones"])

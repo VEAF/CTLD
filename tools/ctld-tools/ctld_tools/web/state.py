@@ -84,6 +84,15 @@ class Session:
         self._mission_path = None
         self._config_shape = "file"
 
+    def set_mission_path(self, path: str | Path) -> None:
+        """Track `path` as the mission to scan for zones, loading no configuration from it.
+
+        A second way to set `mission_path` (see `load_path`), for a mission that has never had a
+        CTLD configuration installed — `load_path` rejects exactly that case, since it also has to
+        find a configuration to open. `mission_path` keeps its single meaning either way.
+        """
+        self._mission_path = Path(path)
+
     def load_text(self, text: str) -> None:
         self._catalog = Catalog.loads(text)
         self._path = None

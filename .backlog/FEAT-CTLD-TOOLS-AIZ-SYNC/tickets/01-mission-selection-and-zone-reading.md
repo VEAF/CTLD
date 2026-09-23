@@ -1,6 +1,6 @@
 # 01 — Mission selection (relaxed) + zone-name reading endpoint
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** none — can start immediately.
 

@@ -3,16 +3,18 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import App from './App.svelte'
 
 const SCHEMA = {
-  families: ['aa', 'troops'],
+  families: ['aa', 'troops', 'zones'],
   keys: {
     numberOfTroops: { group: 'troops', standard: true, choices: null, label: null, unit: null, description: 'Default troop group size' },
     aaRearmDistance: { group: 'aa', standard: false, choices: null, label: null, unit: null, description: 'Rearm range (metres)' },
+    aiZones: { group: 'zones', standard: true, choices: null, label: null, unit: null, description: 'AI transport pickup/dropoff zones' },
   },
   familyMeta: {
     aa: { label: 'AA system', unit: null, description: 'Anti-air systems assembled from crates.', order: 100 },
     troops: { label: 'Troops', unit: null, description: 'Loading, deploying and extracting infantry.', order: 40 },
     crates: { label: 'Crates', unit: null, description: 'Spawning and unpacking supply crates.', order: 30 },
     aircraft: { label: 'Aircraft', unit: null, description: 'Which airframes carry what.', order: 20 },
+    zones: { label: 'Zones', unit: null, description: 'Trigger zones CTLD reacts to.', order: 10 },
   },
   tableFields: {
     spawnableCrates: {
@@ -20,18 +22,20 @@ const SCHEMA = {
       unit: { tip: 'DCS type' },
       weight_kg: { tip: 'mass' },
     },
+    aiZones: {},
   },
   zoneFields: {},
 }
 
 const SNAP = {
   path: null,
-  keys: ['numberOfTroops', 'aaRearmDistance', 'spawnableCrates', 'transportPilotNames'],
+  keys: ['numberOfTroops', 'aaRearmDistance', 'spawnableCrates', 'transportPilotNames', 'aiZones'],
   values: {
     numberOfTroops: 10,
     aaRearmDistance: 300,
     spawnableCrates: { Support: [] },
     transportPilotNames: ['Pilot #1'],
+    aiZones: [],
   },
 }
 
@@ -67,6 +71,7 @@ beforeEach(() => {
     if (url.endsWith('/api/dialog/open')) return Promise.resolve(jsonResponse({ path: '/cfg.yaml' }))
     if (url.endsWith('/api/dialog/save')) return Promise.resolve(jsonResponse({ path: '/out.yaml' }))
     if (url.endsWith('/api/dialog/miz')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
+    if (url.endsWith('/api/mission/select')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
     if (url.endsWith('/api/version')) return Promise.resolve(jsonResponse({ ctld: '2.0.0-rc3', docs: 'dev' }))
     if (url.endsWith('/api/inject'))
       return Promise.resolve(
@@ -262,4 +267,13 @@ test('opening a file warns before discarding unsaved changes', async () => {
 
   await fireEvent.click(screen.getByRole('button', { name: 'Open config or mission…' }))
   expect(confirm).toHaveBeenCalled()
+})
+
+test('choosing a mission for AI-zone scanning tracks it and shows its name', async () => {
+  render(App)
+  await fireEvent.click(await screen.findByRole('button', { name: /Zones/ }))
+  expect(screen.getByText('No mission tracked yet')).toBeInTheDocument()
+
+  await fireEvent.click(screen.getByRole('button', { name: 'Choose mission to scan…' }))
+  expect(await screen.findByText('Tracking m.miz for zones')).toBeInTheDocument()
 })

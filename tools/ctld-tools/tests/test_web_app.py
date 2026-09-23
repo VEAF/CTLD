@@ -14,6 +14,7 @@ client = TestClient(app)
 #: no shared helper exists, so the convention is one constant per file rather than the path
 #: recomputed at each use.
 REPO = Path(__file__).resolve().parents[3]
+MIZ = REPO / "missions" / "Test_CTLDNEXT_01.miz"
 
 SAMPLE = """\
 configVersion: "1.0.0"
@@ -349,6 +350,38 @@ def test_open_dialog_offers_missions(monkeypatch):
     patterns = [pattern for _label, pattern in captured["filetypes"]]
     assert "*.miz" in patterns[0], "the default filter must list missions"
     assert any("*.yaml" in p for p in patterns), "and still list plain YAML"
+
+
+def test_select_mission_tracks_the_picked_miz(monkeypatch):
+    from ctld_tools.web import dialogs
+
+    monkeypatch.setattr(dialogs, "pick_miz", lambda: str(MIZ))
+    assert client.post("/api/mission/select").json() == {"path": str(MIZ)}
+    assert session.mission_path == MIZ
+
+
+def test_select_mission_cancelled_leaves_no_mission_tracked(monkeypatch):
+    from ctld_tools.web import dialogs
+
+    monkeypatch.setattr(dialogs, "pick_miz", lambda: None)
+    assert client.post("/api/mission/select").json() == {"path": None}
+    assert session.mission_path is None
+
+
+def test_mission_zones_empty_when_none_tracked():
+    assert client.get("/api/mission/zones").json() == {"zones": []}
+
+
+def test_mission_zones_lists_real_trigger_zones():
+    session.set_mission_path(MIZ)
+    zones = client.get("/api/mission/zones").json()["zones"]
+    assert isinstance(zones, list) and zones
+    assert all(isinstance(name, str) for name in zones)
+
+
+def test_mission_zones_handled_gracefully_for_a_missing_file(tmp_path):
+    session.set_mission_path(tmp_path / "does-not-exist.miz")
+    assert client.get("/api/mission/zones").json() == {"zones": []}
 
 
 # The engine is a build artifact, so a checkout can legitimately not have one. Every test that
