@@ -1208,6 +1208,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#extraction-zones-exz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extraction zones (EXZ)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extraction zones (EXZ)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#naming-convention_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Naming convention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scripted-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scripted API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#legacy-zone-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2363,6 +2413,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#extraction-zones-exz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extraction zones (EXZ)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extraction zones (EXZ)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#naming-convention_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Naming convention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scripted-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scripted API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#legacy-zone-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2408,9 +2508,11 @@ configuration (see <a href="#ai-transport-zones-aiz">AI transport zones</a> belo
 <blockquote>
 <p><strong>Rule:</strong> <code>_</code> is the field separator. It is <strong>forbidden inside any field value</strong> (zone name,
 flag name, etc.). Use <code>farmmain</code>, not <code>farp_main</code>.</p>
+<p><strong>Exception:</strong> <code>EXZ_</code>'s free-text <code>name</code> field tolerates <code>_</code> — see
+<a href="#extraction-zones-exz">Extraction zones</a> below.</p>
 </blockquote>
 <h2 id="zone-types-at-a-glance">Zone types at a glance<a class="headerlink" href="#zone-types-at-a-glance" title="Permanent link">&para;</a></h2>
-<p>Three prefixes are auto-discovered from DCS trigger zone names:</p>
+<p>Four prefixes are auto-discovered from DCS trigger zone names:</p>
 <table>
 <thead>
 <tr>
@@ -2426,6 +2528,11 @@ flag name, etc.). Use <code>farmmain</code>, not <code>farp_main</code>.</p>
 <td><code>TRZ_&lt;name&gt;_&lt;A\|R\|B\|N&gt;_&lt;stock&gt;_&lt;flag&gt;_&lt;target&gt;</code> — <strong>all 5 fields required</strong></td>
 </tr>
 <tr>
+<td><code>EXZ</code></td>
+<td>Extraction zone — silent objective drop, no pickup</td>
+<td><code>EXZ_&lt;name&gt;_&lt;flag&gt;_&lt;smoke&gt;</code> — <strong>all 3 fields required</strong></td>
+</tr>
+<tr>
 <td><code>WPZ</code></td>
 <td>Waypoint zone — troops deployed inside march to the zone centre</td>
 <td><code>WPZ_&lt;name&gt;_[R\|B\|N]</code></td>
@@ -2437,11 +2544,14 @@ flag name, etc.). Use <code>farmmain</code>, not <code>farp_main</code>.</p>
 </tr>
 </tbody>
 </table>
-<p>A fourth kind — <strong>AI transport zones (AIZ)</strong> — is not name-discovered. It is declared entirely
+<p>A fifth kind — <strong>AI transport zones (AIZ)</strong> — is not name-discovered. It is declared entirely
 in config; see <a href="#ai-transport-zones-aiz">AI transport zones</a>.</p>
 <blockquote>
-<p>There is no separate <code>EXZ</code> prefix. Extract objectives are a <strong>function of a TRZ</strong> (a troop zone
-with <code>stock = 0</code> and an objective flag), described under <a href="#troop-zones-trz">Troop zones</a>.</p>
+<p>A <code>TRZ_</code> with <code>stock = 0</code> and an objective flag (see <a href="#troop-zones-trz">Troop zones</a>) reaches
+the same result as an <code>EXZ_</code> — both just set an objective flag with no pickup capability, and
+the engine treats them identically once created. <code>EXZ_</code> exists for the case where you want an
+extraction point that was never a pickup zone in the first place, without writing a <code>TRZ_</code> name
+that only makes sense read backwards.</p>
 </blockquote>
 <p><strong>Coalition parameter:</strong></p>
 <table>
@@ -2480,10 +2590,11 @@ registered is never overwritten by a later one.</p>
 </blockquote>
 <div class="admonition warning">
 <p class="admonition-title">One name space for every kind of zone</p>
-<p>Troop zones share a <strong>single</strong> name space — <code>TRZ_</code>, <code>WPZ_</code>, AI zones and the legacy
+<p>Troop zones share a <strong>single</strong> name space — <code>TRZ_</code>, <code>EXZ_</code>, <code>WPZ_</code>, AI zones and the legacy
 <code>troopZones</code> all register into it, and the first one registered wins. What makes this easy to
 trip over is that a <code>TRZ_</code> zone registers under its <strong>parsed</strong> name: <code>TRZ_dropzone1_B_0_nil_0</code>
-occupies the name <code>dropzone1</code>.</p>
+occupies the name <code>dropzone1</code>. <code>EXZ_</code> does not have this problem — it registers under its
+full, unparsed Mission Editor name.</p>
 <p>So an <code>aiZones</code> entry whose <code>dcsZoneName</code> is <code>dropzone1</code> — pointing at a genuinely different
 Mission Editor zone — collides with that TRZ and <strong>is dropped</strong>. CTLD reports it at mission
 start:</p>
@@ -2491,7 +2602,7 @@ start:</p>
 'TRZ_dropzone1_B_0_nil_0' — entry ignored
 </code></pre></div>
 <p>The fix is always the same: give the two zones different names. Registration order is
-<code>TRZ_</code> → AI zones → <code>WPZ_</code> → legacy tables.</p>
+<code>TRZ_</code> → <code>EXZ_</code> → AI zones → <code>WPZ_</code> → legacy tables.</p>
 </div>
 <hr />
 <h2 id="troop-zones-trz">Troop zones (TRZ)<a class="headerlink" href="#troop-zones-trz" title="Permanent link">&para;</a></h2>
@@ -3066,6 +3177,70 @@ falls back to <code>"T"</code>, an invalid <code>aiDropMode</code> falls back to
 matching <code>troopStock</code> / <code>vehicleStock</code> has that pickup disabled, unknown <code>troopTemplates</code> /
 <code>vehicleTypes</code> names, and a pickup zone overlapping a drop-off zone of the same coalition (risk of
 an instant pickup+drop-off loop).</p>
+<hr />
+<h2 id="extraction-zones-exz">Extraction zones (EXZ)<a class="headerlink" href="#extraction-zones-exz" title="Permanent link">&para;</a></h2>
+<p>An extraction zone is a <strong>silent objective drop</strong>: disembarking troops inside one increments a
+DCS flag by the soldier count instead of spawning a live DCS group on the ground. Unlike
+<a href="#ai-transport-zones-aiz">AI transport zones</a>, it works for <strong>both AI and human-piloted</strong>
+transports — see the <a href="../../pilot/troop-transport/">Pilot guide</a> for what a pilot actually sees.</p>
+<p>A <a href="#troop-zones-trz"><code>TRZ_</code> with <code>stock = 0</code> and an objective flag</a> reaches the exact same
+result — pick whichever fits your mission: <code>EXZ_</code> for a point that was never a pickup zone in the
+first place, <code>TRZ_</code> when you want pickup and extraction on the same name.</p>
+<h3 id="naming-convention_1">Naming convention<a class="headerlink" href="#naming-convention_1" title="Permanent link">&para;</a></h3>
+<p><strong>Schema:</strong> <code>EXZ_&lt;name&gt;_&lt;flag&gt;_&lt;smoke&gt;</code></p>
+<p><strong>All 3 fields are required.</strong> Unlike every other zone type, <code>&lt;name&gt;</code> may itself contain <code>_</code> —
+the parser reads <code>flag</code> and <code>smoke</code> from the <strong>end</strong> of the name, not the start, so the exact
+naming-separator rule at the top of this page doesn't constrain it.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Values</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>any (may contain <code>_</code>)</td>
+<td>Cosmetic label; never reparsed</td>
+</tr>
+<tr>
+<td><code>flag</code></td>
+<td>DCS flag name/number, or <code>nil</code></td>
+<td>Flag incremented by soldier count on extract; <code>nil</code> = no objective</td>
+</tr>
+<tr>
+<td><code>smoke</code></td>
+<td><code>0</code>-<code>4</code>, or <code>nil</code></td>
+<td>Smoke colour marking the zone at creation; <code>nil</code> = none</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code>EXZ_frontline_flag42_2   → objective flag "flag42", red smoke
+EXZ_lz1_nil_nil          → no flag tracking, no smoke (position marker only)
+</code></pre></div>
+<h3 id="scripted-api">Scripted API<a class="headerlink" href="#scripted-api" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">createExtractZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">flagNumber</span><span class="p">,</span><span class="w"> </span><span class="nv">smoke</span><span class="p">)</span>
+<span class="nv">ctld</span><span class="p">.</span><span class="nf">removeExtractZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">flagNumber</span><span class="p">)</span>
+</code></pre></div>
+<p>Creates or removes an extraction zone on any existing DCS trigger zone at runtime — useful when
+the zone isn't known at mission design time (e.g. tied to an object spawned mid-mission).
+<code>flagNumber</code> and <code>smoke</code> behave exactly as in the naming convention above (pass <code>nil</code> for either
+to mean "none"). A naming-convention zone and a scripted one are indistinguishable once created —
+both go through the same creation path.</p>
+<h3 id="setup-steps">Setup steps<a class="headerlink" href="#setup-steps" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Create a trigger zone in the ME (any name, any radius).</li>
+<li>Either name it <code>EXZ_&lt;name&gt;_&lt;flag&gt;_&lt;smoke&gt;</code> directly, <strong>or</strong> call
+   <code>ctld.createExtractZone(...)</code> on it from a mission script.</li>
+<li>Nothing else to configure — no <code>transportPilotNames</code> entry needed.</li>
+</ol>
+<blockquote>
+<p>A malformed <code>EXZ_</code> name (a missing <code>flag</code>/<code>smoke</code> field, or a <code>smoke</code> value outside <code>0</code>-<code>4</code> that
+isn't <code>nil</code>) is reported at mission start and the zone is <strong>not</strong> created — check <code>CTLD.log</code> if
+an <code>EXZ_</code>-named zone doesn't seem to be working.</p>
+</blockquote>
 <hr />
 <h2 id="legacy-zone-configuration">Legacy zone configuration<a class="headerlink" href="#legacy-zone-configuration" title="Permanent link">&para;</a></h2>
 <p>Missions built the classic CTLD v1 way — zone names listed in config tables rather than parsed

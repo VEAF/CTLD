@@ -1208,6 +1208,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#extraction-zones-exz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zones d'extraction (EXZ)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Zones d&#39;extraction (EXZ)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#convention-de-nommage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Convention de nommage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-scriptee" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API scriptée
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#etapes-de-mise-en-place" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étapes de mise en place
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#legacy-zone-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2363,6 +2413,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#extraction-zones-exz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zones d'extraction (EXZ)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Zones d&#39;extraction (EXZ)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#convention-de-nommage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Convention de nommage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-scriptee" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API scriptée
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#etapes-de-mise-en-place" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étapes de mise en place
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#legacy-zone-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2409,9 +2509,11 @@ le <a href="../../pilot/">Guide du pilote</a>.</p>
 <blockquote>
 <p><strong>Règle :</strong> <code>_</code> est le séparateur de champ. Il est <strong>interdit à l'intérieur de toute valeur de
 champ</strong> (nom de zone, nom de flag, etc.). Utilisez <code>farmmain</code>, et non <code>farp_main</code>.</p>
+<p><strong>Exception :</strong> le champ libre <code>name</code> d'une <code>EXZ_</code> tolère <code>_</code> — voir
+<a href="#extraction-zones-exz">Zones d'extraction</a> ci-dessous.</p>
 </blockquote>
 <h2 id="zone-types-at-a-glance">Vue d'ensemble des types de zones<a class="headerlink" href="#zone-types-at-a-glance" title="Permanent link">&para;</a></h2>
-<p>Trois préfixes sont auto-découverts à partir des noms de trigger zones de DCS :</p>
+<p>Quatre préfixes sont auto-découverts à partir des noms de trigger zones de DCS :</p>
 <table>
 <thead>
 <tr>
@@ -2427,6 +2529,11 @@ champ</strong> (nom de zone, nom de flag, etc.). Utilisez <code>farmmain</code>,
 <td><code>TRZ_&lt;name&gt;_&lt;A\|R\|B\|N&gt;_&lt;stock&gt;_&lt;flag&gt;_&lt;target&gt;</code> — <strong>les 5 champs sont requis</strong></td>
 </tr>
 <tr>
+<td><code>EXZ</code></td>
+<td>Zone d'extraction — dépose silencieuse sur objectif, sans pickup</td>
+<td><code>EXZ_&lt;name&gt;_&lt;flag&gt;_&lt;smoke&gt;</code> — <strong>les 3 champs sont requis</strong></td>
+</tr>
+<tr>
 <td><code>WPZ</code></td>
 <td>Zone de waypoint — les troupes déployées à l'intérieur marchent vers le centre de la zone</td>
 <td><code>WPZ_&lt;name&gt;_[R\|B\|N]</code></td>
@@ -2438,12 +2545,14 @@ champ</strong> (nom de zone, nom de flag, etc.). Utilisez <code>farmmain</code>,
 </tr>
 </tbody>
 </table>
-<p>Un quatrième type — les <strong>zones de transport IA (AIZ)</strong> — n'est pas découvert par le nom. Il est
+<p>Un cinquième type — les <strong>zones de transport IA (AIZ)</strong> — n'est pas découvert par le nom. Il est
 déclaré entièrement en configuration ; voir <a href="#ai-transport-zones-aiz">Zones de transport IA</a>.</p>
 <blockquote>
-<p>Il n'existe pas de préfixe <code>EXZ</code> distinct. Les objectifs d'extract sont une <strong>fonction d'une
-TRZ</strong> (une zone de troupes avec <code>stock = 0</code> et un flag d'objectif), décrite sous
-<a href="#troop-zones-trz">Zones de troupes</a>.</p>
+<p>Une <code>TRZ_</code> avec <code>stock = 0</code> et un flag d'objectif (voir <a href="#troop-zones-trz">Zones de troupes</a>)
+aboutit au même résultat qu'une <code>EXZ_</code> — les deux se contentent de poser un flag d'objectif sans
+capacité de pickup, et le moteur les traite de façon identique une fois créées. <code>EXZ_</code> existe
+pour le cas où vous voulez un point d'extraction qui n'a jamais été une zone de pickup, sans
+écrire un nom de <code>TRZ_</code> qui n'a de sens que lu à l'envers.</p>
 </blockquote>
 <p><strong>Paramètre de coalition :</strong></p>
 <table>
@@ -2482,10 +2591,11 @@ déjà enregistré n'est jamais écrasé par un suivant.</p>
 </blockquote>
 <div class="admonition warning">
 <p class="admonition-title">Un seul espace de noms pour tous les types de zones</p>
-<p>Les troop zones partagent un <strong>unique</strong> espace de noms — <code>TRZ_</code>, <code>WPZ_</code>, les zones IA et la
-table héritée <code>troopZones</code> s'y enregistrent toutes, et la première enregistrée l'emporte. Ce
-qui rend le piège facile : une zone <code>TRZ_</code> s'enregistre sous son nom <strong>analysé</strong> —
-<code>TRZ_dropzone1_B_0_nil_0</code> occupe le nom <code>dropzone1</code>.</p>
+<p>Les troop zones partagent un <strong>unique</strong> espace de noms — <code>TRZ_</code>, <code>EXZ_</code>, <code>WPZ_</code>, les zones IA
+et la table héritée <code>troopZones</code> s'y enregistrent toutes, et la première enregistrée
+l'emporte. Ce qui rend le piège facile : une zone <code>TRZ_</code> s'enregistre sous son nom
+<strong>analysé</strong> — <code>TRZ_dropzone1_B_0_nil_0</code> occupe le nom <code>dropzone1</code>. <code>EXZ_</code> n'a pas ce problème
+— elle s'enregistre sous son nom complet, non analysé, de l'éditeur de mission.</p>
 <p>Une entrée <code>aiZones</code> dont le <code>dcsZoneName</code> vaut <code>dropzone1</code> — pointant pourtant vers une zone
 de l'éditeur de mission bel et bien différente — entre donc en collision avec cette TRZ et
 <strong>est ignorée</strong>. CTLD le signale au démarrage de la mission :</p>
@@ -2493,7 +2603,7 @@ de l'éditeur de mission bel et bien différente — entre donc en collision ave
 'TRZ_dropzone1_B_0_nil_0' — entry ignored
 </code></pre></div>
 <p>La correction est toujours la même : donner deux noms différents aux deux zones. L'ordre
-d'enregistrement est <code>TRZ_</code> → zones IA → <code>WPZ_</code> → tables héritées.</p>
+d'enregistrement est <code>TRZ_</code> → <code>EXZ_</code> → zones IA → <code>WPZ_</code> → tables héritées.</p>
 </div>
 <hr />
 <h2 id="troop-zones-trz">Zones de troupes (TRZ)<a class="headerlink" href="#troop-zones-trz" title="Permanent link">&para;</a></h2>
@@ -3083,6 +3193,72 @@ retombe sur <code>"GP"</code>, une zone de pickup à laquelle manque le <code>tr
 correspondant a ce pickup désactivé, des noms de <code>troopTemplates</code> / <code>vehicleTypes</code> inconnus, et une
 zone de pickup chevauchant une zone de drop-off de la même coalition (risque de boucle instantanée
 pickup+drop-off).</p>
+<hr />
+<h2 id="extraction-zones-exz">Zones d'extraction (EXZ)<a class="headerlink" href="#extraction-zones-exz" title="Permanent link">&para;</a></h2>
+<p>Une zone d'extraction est une <strong>dépose silencieuse sur objectif</strong> : débarquer des troupes à
+l'intérieur incrémente un flag DCS du nombre de soldats au lieu de spawner un groupe DCS vivant au
+sol. Contrairement aux <a href="#ai-transport-zones-aiz">zones de transport IA</a>, elle fonctionne pour les
+transports <strong>IA comme joueur</strong> — voir le <a href="../../pilot/troop-transport/">guide pilote</a> pour ce
+qu'un pilote voit réellement.</p>
+<p>Une <a href="#troop-zones-trz"><code>TRZ_</code> avec <code>stock = 0</code> et un flag d'objectif</a> aboutit exactement au même
+résultat — choisissez selon votre mission : <code>EXZ_</code> pour un point qui n'a jamais été une zone de
+pickup, <code>TRZ_</code> quand vous voulez pickup et extraction sous le même nom.</p>
+<h3 id="convention-de-nommage">Convention de nommage<a class="headerlink" href="#convention-de-nommage" title="Permanent link">&para;</a></h3>
+<p><strong>Schéma :</strong> <code>EXZ_&lt;name&gt;_&lt;flag&gt;_&lt;smoke&gt;</code></p>
+<p><strong>Les 3 champs sont requis.</strong> Contrairement à tous les autres types de zone, <code>name</code> peut
+lui-même contenir des <code>_</code> — le parser lit <code>flag</code> et <code>smoke</code> depuis la <strong>fin</strong> du nom, pas depuis
+le début, donc la règle de séparateur en haut de cette page ne le contraint pas.</p>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Valeurs</th>
+<th>Signification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>quelconque (peut contenir <code>_</code>)</td>
+<td>Étiquette cosmétique ; jamais réanalysée</td>
+</tr>
+<tr>
+<td><code>flag</code></td>
+<td>nom/numéro de flag DCS, ou <code>nil</code></td>
+<td>Flag incrémenté par le nombre de soldats à l'extraction ; <code>nil</code> = pas d'objectif</td>
+</tr>
+<tr>
+<td><code>smoke</code></td>
+<td><code>0</code>-<code>4</code>, ou <code>nil</code></td>
+<td>Couleur de fumigène marquant la zone à la création ; <code>nil</code> = aucune</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code>EXZ_frontline_flag42_2   → flag d'objectif "flag42", fumigène rouge
+EXZ_lz1_nil_nil          → pas de flag, pas de fumigène (simple repère de position)
+</code></pre></div>
+<h3 id="api-scriptee">API scriptée<a class="headerlink" href="#api-scriptee" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nv">ctld</span><span class="p">.</span><span class="nf">createExtractZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">flagNumber</span><span class="p">,</span><span class="w"> </span><span class="nv">smoke</span><span class="p">)</span>
+<span class="nv">ctld</span><span class="p">.</span><span class="nf">removeExtractZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">,</span><span class="w"> </span><span class="nv">flagNumber</span><span class="p">)</span>
+</code></pre></div>
+<p>Crée ou retire une zone d'extraction sur n'importe quelle zone de trigger DCS existante à
+l'exécution — utile quand la zone n'est pas connue à la conception de la mission (ex. liée à un
+objet spawné en cours de mission). <code>flagNumber</code> et <code>smoke</code> se comportent exactement comme dans la
+convention de nommage ci-dessus (passez <code>nil</code> pour l'un ou l'autre pour signifier « aucun »). Une
+zone créée par convention de nommage et une zone scriptée sont indiscernables une fois créées —
+les deux passent par le même chemin de création.</p>
+<h3 id="etapes-de-mise-en-place">Étapes de mise en place<a class="headerlink" href="#etapes-de-mise-en-place" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Créez une zone de trigger dans l'éditeur de mission (nom et rayon libres).</li>
+<li>Soit nommez-la directement <code>EXZ_&lt;name&gt;_&lt;flag&gt;_&lt;smoke&gt;</code>, <strong>soit</strong> appelez
+   <code>ctld.createExtractZone(...)</code> dessus depuis un script de mission.</li>
+<li>Rien d'autre à configurer — aucune entrée <code>transportPilotNames</code> nécessaire.</li>
+</ol>
+<blockquote>
+<p>Un nom <code>EXZ_</code> malformé (champ <code>flag</code>/<code>smoke</code> manquant, ou valeur <code>smoke</code> hors <code>0</code>-<code>4</code> et
+différente de <code>nil</code>) est signalé au démarrage de la mission et la zone n'est <strong>pas</strong> créée —
+vérifiez <code>CTLD.log</code> si une zone nommée <code>EXZ_</code> ne semble pas fonctionner.</p>
+</blockquote>
 <hr />
 <h2 id="legacy-zone-configuration">Configuration de zone héritée (legacy)<a class="headerlink" href="#legacy-zone-configuration" title="Permanent link">&para;</a></h2>
 <p>Les missions construites à la manière classique de CTLD v1 — noms de zones listés dans des tables

@@ -2494,6 +2494,12 @@ state and geometry tests.</p>
 <td>Troop pickup, extract objective, mixed, or inert marker</td>
 </tr>
 <tr>
+<td>EXZ</td>
+<td><code>EXZ_</code> DCS trigger zone</td>
+<td><code>CTLDTroopZone</code></td>
+<td>Extraction-only objective (silent drop, no pickup) — converges on <code>createExtractZone()</code>, see below</td>
+</tr>
+<tr>
 <td>WPZ</td>
 <td><code>WPZ_</code> DCS trigger zone</td>
 <td><code>CTLDTroopZone</code> (<code>isWaypoint</code>)</td>
@@ -2537,7 +2543,7 @@ state and geometry tests.</p>
 </tr>
 </tbody>
 </table>
-<p>TRZ, WPZ and LGZ are discovered by scanning <code>env.mission.triggers.zones</code> at init. AIZ zones
+<p>TRZ, EXZ, WPZ and LGZ are discovered by scanning <code>env.mission.triggers.zones</code> at init. AIZ zones
 are loaded from <code>ctld.gs("aiZones")</code> and reference an existing Mission Editor trigger zone by
 name (<code>dcsZoneName</code>), resolved via <code>trigger.misc.getZone</code>. Legacy zones come from the
 <code>ctld.gs(...)</code> config tables and are loaded last so that a modern <code>TRZ_</code>/<code>LGZ_</code> definition
@@ -2808,6 +2814,11 @@ following phases <strong>in this order</strong>:</p>
 <li><code>_discoverTRZ()</code> — for each trigger zone starting with <code>TRZ_</code>, parse the name with
    <code>_parseTRZ</code>; on success construct a <code>CTLDTroopZone</code> (geometry from the trigger zone,
    <code>smoke</code> from <code>troopZoneSmokeColor[coalition]</code>) and reset any <code>objectiveFlag</code> to 0.</li>
+<li><code>_discoverEXZ()</code> — for each trigger zone starting with <code>EXZ_</code>, parse <code>&lt;name&gt;_&lt;flag&gt;_&lt;smoke&gt;</code>
+   with <code>_parseEXZ</code> (right-anchored: only the last two fields are read, so <code>&lt;name&gt;</code> may itself
+   contain <code>_</code>); on success, call <code>createExtractZone(fullDcsName, flag, smoke)</code> directly — the
+   same routine the scripted API uses — rather than duplicating its zone-construction logic. A
+   parse failure is reported to the startup report, not silently skipped.</li>
 <li><code>_loadAIZonesFromConfig()</code> — reads <code>ctld.gs("aiZones")</code>; each valid entry becomes a
    <code>CTLDTroopZone</code> marked <code>isAIPickup</code> / <code>isAIDropoff</code>, with per-template/per-type stock.</li>
 <li><code>_discoverWPZ()</code> — trigger zones starting with <code>WPZ_</code> become waypoint troop zones
@@ -2824,6 +2835,10 @@ following phases <strong>in this order</strong>:</p>
    <code>logisticUnits</code> config tables.</li>
 <li><code>_scheduleSmoke()</code> — starts the recurring smoke refresh loop.</li>
 </ol>
+<p>Unlike <code>TRZ_</code>, <code>EXZ_</code> registers under its <strong>full, unparsed</strong> Mission Editor name — deliberately,
+so it cannot collide the way <code>TRZ_</code>'s short-name keying does (see below). <code>createExtractZone</code>
+already keyed by the exact name it was given, so the naming-convention path inherits that for
+free by calling it directly instead of building the zone itself.</p>
 <p>Finally <code>init()</code> publishes an initial <code>OnLogisticZoneUpdated</code> and logs the zone counts. Each
 discovery phase guards on <code>if not self._troopZones[name]</code> / <code>_logisticZones[name]</code>, so the
 precedence order above is what makes modern definitions win over legacy ones.</p>
