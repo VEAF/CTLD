@@ -45,6 +45,16 @@ def read_mission(miz_path: str | Path) -> dict:
     return data
 
 
+def zone_names(mission: dict) -> list[str]:
+    """Every DCS trigger-zone name in `mission`, in Mission-Editor order.
+
+    Raw names only — no filtering or convention parsing. `ctld_tools.web.zones` and the AIZ_
+    naming-convention parser are what interpret them.
+    """
+    zones = (mission.get("triggers") or {}).get("zones") or []
+    return [z["name"] for z in zones if isinstance(z, dict) and z.get("name")]
+
+
 def write_miz(mission: dict, in_path: str | Path, out_path: str | Path) -> None:
     """Rewrite `out_path` = `in_path` with the `mission` entry replaced.
 

@@ -15,6 +15,7 @@
     openDialog,
     putSetting,
     save,
+    selectMission,
     type Finding,
     type SchemaInfo,
     type Snapshot,
@@ -68,6 +69,10 @@
       .map((g) => g?.name)
       .filter((n): n is string => typeof n === 'string'),
   )
+  // The mission tracked for AIZ_ zone scanning (ticket 01 of FEAT-CTLD-TOOLS-AIZ-SYNC) — set only
+  // by `doSelectMission`, never by `doOpen`/`doInject`, which each have their own file picks.
+  let missionPath = $state<string | null>(null)
+  const missionName = $derived(missionPath?.split(/[\\/]/).pop() ?? null)
   let dcsTypes = $state<string[]>([])
   // type → GROUND | AIRPLANE | HELICOPTER; resolves the `AIR` authoring choice on save.
   let spawnAsByType = $state<Record<string, string>>({})
@@ -322,6 +327,17 @@
     } catch (e) {
       status = null
       error = hasErrors ? t('web.outcome.inject_blocked') : String(e)
+    }
+  }
+
+  async function doSelectMission() {
+    try {
+      const { path } = await selectMission()
+      if (!path) return
+      missionPath = path
+      error = null
+    } catch (e) {
+      error = String(e)
     }
   }
 
@@ -583,6 +599,12 @@
                     onchange={(v) => saveData(key, v)}
                   />
                 {:else if key === 'aiZones'}
+                  <div class="mission-scan">
+                    <button onclick={doSelectMission}>{t('web.aizone.choose_mission')}</button>
+                    <span class="val">
+                      {missionPath ? t('web.aizone.mission_tracked', { name: missionName ?? '' }) : t('web.aizone.no_mission')}
+                    </span>
+                  </div>
                   <AiZonesEditor
                     zones={snapshot.values.aiZones as Record<string, unknown>[]}
                     fields={schema?.tableFields?.aiZones ?? {}}
@@ -673,6 +695,16 @@
     font-size: var(--fs-sm);
   }
   .readout .val.sub {
+    color: var(--ink-dim);
+  }
+  .mission-scan {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+    font-size: var(--fs-sm);
+  }
+  .mission-scan .val {
     color: var(--ink-dim);
   }
   .help {
