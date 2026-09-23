@@ -1,6 +1,6 @@
 # FEAT-CTLD-TOOLS-AIZ-SYNC — `ctld-tools` reads a mission's zones to populate and sync the AIZ_ editor
 
-**Status:** open.
+**Status:** ✅ done (PR #169).
 
 Formalizes the `grill-with-docs` session (2026-09-23) on `dev/roadmap.md`'s "`ctld-tools` — lire
 les zones du `.miz` pour peupler et synchroniser l'éditeur AIZ_" entry, opened while a.lingo was
