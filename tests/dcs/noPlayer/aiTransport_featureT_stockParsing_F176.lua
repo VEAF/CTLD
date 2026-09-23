@@ -60,6 +60,32 @@ local _ok, _err = pcall(function()
 
     local zm = CTLDZoneManager.getInstance()
 
+    -- Defensive: AIZ_ zones have no naming-convention auto-discovery (unlike TRZ_/LGZ_/WPZ_,
+    -- see dev/roadmap.md "AIZ_ — pourquoi une config explicite...") — they need an explicit
+    -- aiZones entry. Nothing in this dev mission declares one for AIZ_base_B_P_5 or
+    -- AIZ_depot_B_P_T_10 since USERCONFIG-LOADING (PR #32) stopped merging CTLD_userConfig.lua
+    -- (which used to). Register them here so this scenario is self-sufficient regardless of that
+    -- gap — same pattern already used by scenario_mt08_ai_vehicle.lua / scenario_mt09_ai_full_cycle.lua
+    -- for their own zones.
+    if not zm._troopZones["AIZ_base_B_P_5"] or not zm._troopZones["AIZ_depot_B_P_T_10"] then
+        local az = cfg.settings["aiZones"] or {}
+        local function hasEntry(dzn)
+            for _, e in ipairs(az) do if e.dcsZoneName == dzn then return true end end
+            return false
+        end
+        if not hasEntry("AIZ_base_B_P_5") then
+            table.insert(az, { dcsZoneName = "AIZ_base_B_P_5", coalition = "BLUE", isPickup = true,
+                cargoType = "T", troopStock = { ["Standard Group"] = 5, ["Anti Tank"] = 2 } })
+        end
+        if not hasEntry("AIZ_depot_B_P_T_10") then
+            table.insert(az, { dcsZoneName = "AIZ_depot_B_P_T_10", coalition = "BLUE", isPickup = true,
+                cargoType = "T", troopStock = { All = -1 } })
+        end
+        cfg.settings["aiZones"] = az
+        zm:_validateZoneNames()
+        zm:_loadAIZonesFromConfig()
+    end
+
     -- ── Zone AIZ_base_B_P_5 : troopStock={Standard Group=5, Anti Tank=2} ──────
     local zBase = zm._troopZones["AIZ_base_B_P_5"]
     check("F-176.1", "AIZ_base_B_P_5 exists", zBase ~= nil)
