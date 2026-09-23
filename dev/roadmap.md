@@ -380,3 +380,13 @@ Non tranché (à instruire en grill-with-docs dédié avant to-prd) :
   collision qu'elle détecte disparaît — son code de détection devient-il mort, ou reste-t-il un
   filet pour d'autres collisions possibles (deux zones auto-détectées de préfixes différents
   partageant le même nom complet, par exemple) ?
+
+## Rappel — donner les paramètres `ctld-tools` pour configurer `Test_CTLDNEXT_01.miz`
+
+Demandé le 2026-09-23, pendant l'implémentation du ticket 01 de `FEAT-EXZ-AUTODISCOVERY`
+(config `aiZones` persistée pour la mission de test) : a.lingo veut pouvoir configurer lui-même
+`Test_CTLDNEXT_01.miz` via l'éditeur `ctld-tools` (webapp), pas seulement par script. Avant de
+livrer ce ticket, lui donner les valeurs exactes à saisir dans l'éditeur **Zones** (`aiZones`) —
+`dcsZoneName`, `coalition`, `isPickup`/`isDropoff`, `cargoType`, `troopStock`/`vehicleStock` — pour
+les trois zones `AIZ_depot_B_P_V_10`, `AIZ_depot_B_P_TV_5_10`, `AIZ_livraison_B_D_G`, dans le même
+format que celui affiché dans la capture d'écran fournie pendant le grill.
