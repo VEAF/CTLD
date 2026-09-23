@@ -344,46 +344,39 @@ position marche déjà tel quel :
   utile comme référence si/quand le système générique ci-dessus est instruit : il confirmerait
   que l'ancrage par sondage doit bien être absorbé par le générique, pas laissé de côté.
 
-## AIZ_ — pourquoi une config explicite, contrairement à TRZ_/LGZ_/WPZ_ ?
+<!-- AIZ_ — pourquoi une config explicite : grillé le 2026-09-23, formalisé en lot
+     `.backlog/FEAT-EXZ-AUTODISCOVERY/` (aiZones injectée pour Test_CTLDNEXT_01.miz via le
+     mécanisme ctld-tools réel + auto-détection EXZ_ + doc mission-maker EXZ_). Conclusion : le
+     modèle config-only d'AIZ_ n'était pas le problème (docs/mission-maker/zones.md + l'éditeur
+     ctld-tools le servent déjà bien) — la mission de dev contournait le pipeline ctld-tools. -->
 
-Constaté en diagnostiquant l'échec live de MT-08/MT-08B/MT-09 (lot `FIX-UH1H-CAPABILITIES-REALISM`,
-2026-09-23) : les zones `AIZ_depot_B_P_V_10` etc. de la mission de test avaient cessé de
-s'enregistrer côté CTLD depuis `USERCONFIG-LOADING` (PR #32, 2026-07-17), qui a retiré
-`CTLD_userConfig.lua` — lequel déclarait leur entrée `aiZones` — de la fusion dans `CTLD.lua`.
-Contrairement à `TRZ_` (`_discoverTRZ`), `LGZ_` (`_discoverLGZ`) et `WPZ_` (`_parseWPZ`), auto-
-détectées par convention de nommage dans `env.mission.triggers.zones`, une zone `AIZ_` n'est
-**jamais** auto-découverte — documenté explicitement (`docs/mission-maker/zones.md` : *"AIZ zones
-have no naming convention"*) — elle exige une entrée explicite dans le réglage `aiZones`
-(`dcsZoneName`, `coalition`, `isPickup`/`isDropoff`, `cargoType`, `troopStock`/`vehicleStock`…).
+## Piège du nom court pour une zone auto-détectée par convention de nommage
 
-Question à instruire, et son pendant : qu'est-ce qui impose fonctionnellement cette
-config-obligatoire pour les AIZ_, et que manquerait-il pour qu'une AIZ_ soit auto-détectée et
-auto-instanciée par convention de nommage comme les autres, sans perdre les champs qu'un `aiZones`
-porte aujourd'hui ?
+Constaté en concevant la convention `EXZ_` ci-dessus (grill du 2026-09-23) : `_discoverTRZ`
+enregistre une zone `TRZ_` sous son **nom court extrait par parsing** (`parsed.zoneName`), pas son
+nom DCS complet — `TRZ_dropzone1_B_0_nil_0` occupe la clé `dropzone1`. C'est exactement le piège
+documenté dans `docs/mission-maker/zones.md:55-60` et partiellement mitigé par
+`FIX-AIZONE-NAME-COLLISION` (PR #88, archivé) : une entrée `aiZones` dont le `dcsZoneName` vaut
+`dropzone1` — pointant sur une zone ME **différente** — entre en collision silencieuse avec elle,
+l'entrée `aiZones` perdant systématiquement (la zone découverte gagne). PR #88 n'a fait
+qu'ajouter une **détection** (ERROR dans le rapport de démarrage) ; la cause racine — la clé
+d'enregistrement est un sous-nom, pas le nom complet — n'a jamais été corrigée.
 
-Points à examiner (aucun tranché) :
-- **Densité d'information du nom** : `TRZ_`/`LGZ_`/`WPZ_` encodent un nombre limité de champs dans
-  le nom (coalition, stock, flag, target pour `TRZ_`). Une `AIZ_` porte potentiellement bien plus —
-  `cargoType`, `troopStock`/`vehicleStock` **par template/type avec quantité**, `aiDropMode`,
-  whitelist `troopTemplates`/`vehicleTypes` — un encodage par nom deviendrait vite illisible (un
-  `vehicleStock = { Hummer = 3, ["M1045 HMMWV TOW"] = -1 }` n'a pas d'équivalent compact en chaîne).
-- **Cargo hétérogène par zone** : une même `AIZ_` mixe troupes et véhicules (`cargoType TV`) avec
-  des stocks indépendants par template/type — une convention devrait soit se limiter à un
-  sous-ensemble (comme `TRZ_` le fait déjà, troupes seules), soit accepter un nom à rallonge.
-- **Précédent de compromis déjà proposé ailleurs** : l'entrée roadmap `extractableGroups` ci-dessus
-  propose une union config-explicite + préfixe auto-détecté pour un cas plus simple (pas de stock
-  différencié). Un compromis équivalent pour `AIZ_` — un préfixe couvrant seulement le cas simple
-  (`T` ou `V`, stock global) et laissant la richesse des stocks à `aiZones` — suffirait-il à l'usage
-  réel, ou la différenciation par template/type est-elle systématiquement nécessaire ?
-- **Coût du statu quo, mesuré concrètement** : cette zone de test a cessé de fonctionner en silence
-  pendant ~2 mois (17/07 → 23/09) sans qu'aucun garde-fou (CI, startup report) ne le signale, parce
-  que rien ne relie structurellement une mission donnée à la config `aiZones` qu'elle suppose — un
-  gap distinct de la question d'auto-détection, mais qui en est la conséquence directe : une
-  convention de nommage n'aurait pas cette classe de rupture silencieuse, ne dépendant d'aucun
-  fichier de config externe susceptible d'être décroché sans avertissement.
+Idée : faire enregistrer **toute** zone auto-détectée par convention de nommage (`TRZ_`, `LGZ_`,
+`WPZ_`, et la future `EXZ_`) sous son **nom DCS complet**, jamais un sous-nom extrait — supprimant
+la classe de collision entière plutôt que de la détecter après coup. C'est délibérément le choix
+retenu pour la nouvelle convention `EXZ_` (elle s'enregistre sous son nom complet dès le départ,
+justement pour ne pas hériter de ce piège) ; reste à savoir si `TRZ_`/`LGZ_`/`WPZ_`, déjà en
+production, doivent être corrigées de la même façon.
 
-Reste à trancher **au grill-with-docs avant to-prd** : la richesse des champs `aiZones`
-justifie-t-elle de garder le config-only comme modèle définitif (avec un garde-fou contre la
-régression silencieuse constatée), ou existe-t-il un sous-ensemble d'usages (pickup/dropoff simple,
-sans stock différencié) assez fréquent pour mériter une convention de nommage complémentaire, sur
-le modèle proposé pour `extractableGroups` (union, dédoublonnée) ?
+Non tranché (à instruire en grill-with-docs dédié avant to-prd) :
+- **Compatibilité ascendante** : changer la clé d'enregistrement de `TRZ_` (nom court → nom complet)
+  casse tout code lisant `CTLDZoneManager._troopZones[<nom court>]` aujourd'hui — combien de call
+  sites, internes et scriptés par des missions existantes (API legacy `ctld.changeRemainingGroupsForPickupZone`,
+  par exemple), dépendent du nom court comme clé publique ?
+- **Portée** : corriger seulement `TRZ_` (le seul cas où le nom court **change** vraiment le nom —
+  `LGZ_`/`WPZ_` semble-t-il gardent le nom complet moins la coalition, à vérifier), ou les trois.
+- Lien avec `FIX-AIZONE-NAME-COLLISION` (PR #88) : si la clé devient le nom complet, la classe de
+  collision qu'elle détecte disparaît — son code de détection devient-il mort, ou reste-t-il un
+  filet pour d'autres collisions possibles (deux zones auto-détectées de préfixes différents
+  partageant le même nom complet, par exemple) ?
