@@ -98,18 +98,27 @@ redefined terms are added here in the same move as the decision that introduces 
 
 ## Zones
 
-- **Auto-discovered zone** — a DCS trigger zone CTLD finds and registers itself by parsing its
-  Mission Editor name: **TRZ_** (troop zone), **LGZ_** (logistic zone), **WPZ_** (waypoint zone).
-  The prefix and the fields after it (e.g. `TRZ_<name>_<coal>_<stock>_<flag>_<target>`) are the
-  only wiring a Mission Maker needs — no config entry.
-- **Config/API-referenced zone** — a DCS trigger zone CTLD only knows about because something
-  else names it explicitly: **AIZ_** (AI-transport pickup/dropoff, via an `aiZones` config entry)
-  and **EXZ_** (extraction, via the `createExtractZone()` scripted call). CTLD never parses these
-  two prefixes — `AIZ_`/`EXZ_` are a Mission Maker's own labeling habit, any zone name works, and
-  a zone using the prefix without the matching config/call does nothing. See
-  `dev/roadmap.md` — "AIZ_ — pourquoi une config explicite" for why AIZ_ carries this much
-  config (per-template/per-type stock tables) while EXZ_ (2 scalar fields: a flag, a smoke color)
-  plausibly wouldn't need to.
+- **Auto-discovered zone** — a DCS trigger zone the CTLD **engine** finds and registers itself by
+  parsing its Mission Editor name: **TRZ_** (troop zone), **LGZ_** (logistic zone), **WPZ_**
+  (waypoint zone), and — since `FEAT-EXZ-AUTODISCOVERY` — **EXZ_** (extraction,
+  `EXZ_<name>_<flag>_<smoke>`, ADR 0016). The prefix and the fields after it are the only wiring a
+  Mission Maker needs — no config entry, and `EXZ_`'s own scripted `createExtractZone()` API still
+  works identically alongside it (see `CTLD_zone.lua`).
+- **Config-referenced zone** — a DCS trigger zone CTLD only knows about because an explicit config
+  entry names it: **AIZ_** (AI-transport pickup/dropoff, `aiZones`). The **engine** never parses
+  an `AIZ_`-prefixed name — see `dev/roadmap.md`, "AIZ_ — pourquoi une config explicite", for why
+  its per-template/per-type stock tables don't fit a naming convention the way `EXZ_`'s two scalar
+  fields did.
+- **Tool-only naming convention** — a naming pattern **`ctld-tools`** (the authoring app)
+  recognises to pre-fill or reconcile a config entry it writes, but the CTLD **engine** never
+  parses at all — distinct from "auto-discovered" above, where the engine itself does the
+  parsing. A zone named this way behaves, from the engine's point of view, exactly like any other
+  zone with that same config entry; the pattern is purely a Mission-Maker typing shortcut inside
+  the tool. First case: a partial `AIZ_<name>_<coalition>_<P|D>_<cargoType>` convention `ctld-tools`
+  scans a `.miz` for to auto-populate/reconcile `aiZones` entries, leaving the per-template/
+  per-type stock tables for the Mission Maker to fill in — deliberately kept out of the engine to
+  avoid two sources of truth for the same zone (`dev/roadmap.md`, "`ctld-tools` — lire les zones
+  du `.miz`...", Decision 1).
 - **Anchored zone** — any CTLD zone whose position is resolved at runtime rather than snapshotted
   at init. Two anchor mechanisms exist: a **DCS Moving Zone** (trigger zone attached to a unit in
   the ME — position retrieved via `trigger.misc.getZone()` each evaluation) and a **linked unit**
