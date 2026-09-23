@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ctld-tools-backend",
+      "runtimeExecutable": "poetry",
+      "runtimeArgs": ["-C", "tools/ctld-tools", "run", "ctld-tools", "serve", "--port", "8000", "--no-browser"],
+      "port": 8000
+    },
+    {
+      "name": "ctld-tools-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "tools/ctld-tools/web", "run", "dev"],
+      "port": 5173
+    }
+  ]
+}
