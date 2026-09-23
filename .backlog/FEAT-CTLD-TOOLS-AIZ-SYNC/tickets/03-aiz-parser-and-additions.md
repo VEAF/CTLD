@@ -1,6 +1,6 @@
 # 03 — AIZ_ naming-convention parser + silent additions
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** ticket 01 (needs mission selection + zone reading; independent of ticket 02).
 

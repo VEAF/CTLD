@@ -15,6 +15,7 @@
   //     `All` as a suggestion and render -1 as "unlimited" rather than as a number to memorise.
   import { t } from './i18n.svelte'
   import type { TableField } from './api'
+  import { addMissingAizZones } from './aizConvention'
   import { DCS_TYPES_LIST, fieldLabel } from './tables'
 
   type Zone = Record<string, unknown>
@@ -71,6 +72,24 @@
   function commit() {
     onchange(published())
   }
+
+  // Silent reconciliation (ticket 03 of FEAT-CTLD-TOOLS-AIZ-SYNC): every time the mission-zone
+  // list actually changes (a fresh scan via App.svelte's "Choose mission" button, ticket 01), add
+  // an entry for each AIZ_-convention zone that doesn't have one yet. `reconciledFor` is read
+  // before `model`, so this effect stops depending on `model` the moment it early-returns — it
+  // never re-fires from an unrelated edit like `addZone`/`setField`, only from a new zone list.
+  // Removals need a confirmation recap and are ticket 04's job, not this one.
+  let reconciledFor: string[] | null = null
+  $effect(() => {
+    const names = missionZoneNames
+    if (names.length === 0 || names === reconciledFor) return
+    reconciledFor = names
+    const reconciled = addMissingAizZones(names, model)
+    if (reconciled !== model) {
+      model = reconciled
+      commit()
+    }
+  })
   function setField(i: number, field: string, value: unknown) {
     if (value === undefined || value === '') delete model[i][field]
     else model[i][field] = value
