@@ -19,22 +19,29 @@ TYPE_name_param1_param2_..._paramN
 
 > **Rule:** `_` is the field separator. It is **forbidden inside any field value** (zone name,
 > flag name, etc.). Use `farmmain`, not `farp_main`.
+>
+> **Exception:** `EXZ_`'s free-text `name` field tolerates `_` — see
+> [Extraction zones](#extraction-zones-exz) below.
 
 ## Zone types at a glance
 
-Three prefixes are auto-discovered from DCS trigger zone names:
+Four prefixes are auto-discovered from DCS trigger zone names:
 
 | Prefix | Zone type | Schema |
 | --- | --- | --- |
 | `TRZ` | Troop zone — player pickup and/or extract objective | `TRZ_<name>_<A\|R\|B\|N>_<stock>_<flag>_<target>` — **all 5 fields required** |
+| `EXZ` | Extraction zone — silent objective drop, no pickup | `EXZ_<name>_<flag>_<smoke>` — **all 3 fields required** |
 | `WPZ` | Waypoint zone — troops deployed inside march to the zone centre | `WPZ_<name>_[R\|B\|N]` |
 | `LGZ` | Logistic zone — crate and vehicle services | `LGZ_<name>_[R\|B\|N]` |
 
-A fourth kind — **AI transport zones (AIZ)** — is not name-discovered. It is declared entirely
+A fifth kind — **AI transport zones (AIZ)** — is not name-discovered. It is declared entirely
 in config; see [AI transport zones](#ai-transport-zones-aiz).
 
-> There is no separate `EXZ` prefix. Extract objectives are a **function of a TRZ** (a troop zone
-> with `stock = 0` and an objective flag), described under [Troop zones](#troop-zones-trz).
+> A `TRZ_` with `stock = 0` and an objective flag (see [Troop zones](#troop-zones-trz)) reaches
+> the same result as an `EXZ_` — both just set an objective flag with no pickup capability, and
+> the engine treats them identically once created. `EXZ_` exists for the case where you want an
+> extraction point that was never a pickup zone in the first place, without writing a `TRZ_` name
+> that only makes sense read backwards.
 
 **Coalition parameter:**
 
@@ -50,10 +57,11 @@ in config; see [AI transport zones](#ai-transport-zones-aiz).
 > registered is never overwritten by a later one.
 
 !!! warning "One name space for every kind of zone"
-    Troop zones share a **single** name space — `TRZ_`, `WPZ_`, AI zones and the legacy
+    Troop zones share a **single** name space — `TRZ_`, `EXZ_`, `WPZ_`, AI zones and the legacy
     `troopZones` all register into it, and the first one registered wins. What makes this easy to
     trip over is that a `TRZ_` zone registers under its **parsed** name: `TRZ_dropzone1_B_0_nil_0`
-    occupies the name `dropzone1`.
+    occupies the name `dropzone1`. `EXZ_` does not have this problem — it registers under its
+    full, unparsed Mission Editor name.
 
     So an `aiZones` entry whose `dcsZoneName` is `dropzone1` — pointing at a genuinely different
     Mission Editor zone — collides with that TRZ and **is dropped**. CTLD reports it at mission
@@ -65,7 +73,7 @@ in config; see [AI transport zones](#ai-transport-zones-aiz).
     ```
 
     The fix is always the same: give the two zones different names. Registration order is
-    `TRZ_` → AI zones → `WPZ_` → legacy tables.
+    `TRZ_` → `EXZ_` → AI zones → `WPZ_` → legacy tables.
 
 ---
 
@@ -428,6 +436,62 @@ falls back to `"T"`, an invalid `aiDropMode` falls back to `"GP"`, a pickup zone
 matching `troopStock` / `vehicleStock` has that pickup disabled, unknown `troopTemplates` /
 `vehicleTypes` names, and a pickup zone overlapping a drop-off zone of the same coalition (risk of
 an instant pickup+drop-off loop).
+
+---
+
+## Extraction zones (EXZ)
+
+An extraction zone is a **silent objective drop**: disembarking troops inside one increments a
+DCS flag by the soldier count instead of spawning a live DCS group on the ground. Unlike
+[AI transport zones](#ai-transport-zones-aiz), it works for **both AI and human-piloted**
+transports — see the [Pilot guide](../pilot/troop-transport.md) for what a pilot actually sees.
+
+A [`TRZ_` with `stock = 0` and an objective flag](#troop-zones-trz) reaches the exact same
+result — pick whichever fits your mission: `EXZ_` for a point that was never a pickup zone in the
+first place, `TRZ_` when you want pickup and extraction on the same name.
+
+### Naming convention
+
+**Schema:** `EXZ_<name>_<flag>_<smoke>`
+
+**All 3 fields are required.** Unlike every other zone type, `<name>` may itself contain `_` —
+the parser reads `flag` and `smoke` from the **end** of the name, not the start, so the exact
+naming-separator rule at the top of this page doesn't constrain it.
+
+| Field | Values | Meaning |
+| --- | --- | --- |
+| `name` | any (may contain `_`) | Cosmetic label; never reparsed |
+| `flag` | DCS flag name/number, or `nil` | Flag incremented by soldier count on extract; `nil` = no objective |
+| `smoke` | `0`-`4`, or `nil` | Smoke colour marking the zone at creation; `nil` = none |
+
+```
+EXZ_frontline_flag42_2   → objective flag "flag42", red smoke
+EXZ_lz1_nil_nil          → no flag tracking, no smoke (position marker only)
+```
+
+### Scripted API
+
+```lua
+ctld.createExtractZone(zoneName, flagNumber, smoke)
+ctld.removeExtractZone(zoneName, flagNumber)
+```
+
+Creates or removes an extraction zone on any existing DCS trigger zone at runtime — useful when
+the zone isn't known at mission design time (e.g. tied to an object spawned mid-mission).
+`flagNumber` and `smoke` behave exactly as in the naming convention above (pass `nil` for either
+to mean "none"). A naming-convention zone and a scripted one are indistinguishable once created —
+both go through the same creation path.
+
+### Setup steps
+
+1. Create a trigger zone in the ME (any name, any radius).
+2. Either name it `EXZ_<name>_<flag>_<smoke>` directly, **or** call
+   `ctld.createExtractZone(...)` on it from a mission script.
+3. Nothing else to configure — no `transportPilotNames` entry needed.
+
+> A malformed `EXZ_` name (a missing `flag`/`smoke` field, or a `smoke` value outside `0`-`4` that
+> isn't `nil`) is reported at mission start and the zone is **not** created — check `CTLD.log` if
+> an `EXZ_`-named zone doesn't seem to be working.
 
 ---
 
