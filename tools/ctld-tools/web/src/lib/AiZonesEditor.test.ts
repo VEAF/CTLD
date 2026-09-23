@@ -76,3 +76,24 @@ test('adding a zone seeds the fields the engine needs', async () => {
   expect(typeof zone.coalition).toBe('string')
   expect(zone.cargoType).toBe('T')
 })
+
+test('dcsZoneName suggests real zone names read from the tracked mission', () => {
+  const onchange = vi.fn()
+  render(AiZonesEditor, {
+    zones: [{ dcsZoneName: 'AIZ_1' }],
+    fields: FIELDS,
+    missionZoneNames: ['AIZ_depot_B_P_V', 'TRZ_pz1'],
+    onchange,
+  })
+  const input = screen.getByLabelText(/DCS trigger zone/i) as HTMLInputElement
+  const listId = input.getAttribute('list')
+  expect(listId).toBeTruthy()
+  const options = [...document.querySelectorAll(`#${listId} option`)].map((o) => (o as HTMLOptionElement).value)
+  expect(options).toEqual(['AIZ_depot_B_P_V', 'TRZ_pz1'])
+})
+
+test('dcsZoneName still accepts free text with no mission tracked, or a name outside the list', async () => {
+  const onchange = setup([{ dcsZoneName: 'AIZ_1' }]) // no missionZoneNames passed
+  await fireEvent.change(screen.getByLabelText(/DCS trigger zone/i), { target: { value: 'Not_A_Real_Zone' } })
+  expect(onchange.mock.lastCall![0][0].dcsZoneName).toBe('Not_A_Real_Zone')
+})

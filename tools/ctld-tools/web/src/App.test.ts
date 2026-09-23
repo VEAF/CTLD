@@ -72,6 +72,7 @@ beforeEach(() => {
     if (url.endsWith('/api/dialog/save')) return Promise.resolve(jsonResponse({ path: '/out.yaml' }))
     if (url.endsWith('/api/dialog/miz')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
     if (url.endsWith('/api/mission/select')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
+    if (url.endsWith('/api/mission/zones')) return Promise.resolve(jsonResponse({ zones: ['AIZ_depot_B_P_V'] }))
     if (url.endsWith('/api/version')) return Promise.resolve(jsonResponse({ ctld: '2.0.0-rc3', docs: 'dev' }))
     if (url.endsWith('/api/inject'))
       return Promise.resolve(
@@ -276,4 +277,21 @@ test('choosing a mission for AI-zone scanning tracks it and shows its name', asy
 
   await fireEvent.click(screen.getByRole('button', { name: 'Choose mission to scan…' }))
   expect(await screen.findByText('Tracking m.miz for zones')).toBeInTheDocument()
+})
+
+test('choosing a mission also feeds its real zone names into the dcsZoneName autocomplete', async () => {
+  render(App)
+  await fireEvent.click(await screen.findByRole('button', { name: /Zones/ }))
+  await fireEvent.click(screen.getByRole('button', { name: 'Choose mission to scan…' }))
+  await screen.findByText('Tracking m.miz for zones')
+
+  await fireEvent.click(screen.getByText('+ AI zone'))
+  const input = screen.getByLabelText(/DCS trigger zone/i) as HTMLInputElement
+  // The mission path and its zone list land from two separate awaited fetches (ticket 01, then
+  // ticket 02's own /api/mission/zones call) — waitFor rather than asserting right away, so the
+  // second one is never a race against the "Tracking…" text from the first.
+  await waitFor(() => {
+    const options = [...document.querySelectorAll(`#${input.getAttribute('list')} option`)].map((o) => (o as HTMLOptionElement).value)
+    expect(options).toEqual(['AIZ_depot_B_P_V'])
+  })
 })

@@ -1,6 +1,6 @@
 # 02 — Generic zone-name autocomplete on `dcsZoneName`
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** ticket 01 (needs the zone-listing endpoint).
 
