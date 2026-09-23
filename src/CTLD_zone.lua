@@ -477,6 +477,7 @@ function CTLDZoneManager:init()
 
     self:_validateZoneNames()
     self:_discoverTRZ()
+    self:_discoverEXZ()
     self:_loadAIZonesFromConfig()
     self:_discoverWPZ()
     self:_discoverLGZ()
@@ -681,6 +682,31 @@ end
 
 function CTLDZoneManager:_parseWPZ(name) return _parseSimpleZone("WPZ", name) end
 
+--- Parse EXZ_<name>_<flag>_<smoke>. Unlike TRZ_/LGZ_/WPZ_, <name> is free, cosmetic text --
+--- never reparsed, may itself contain underscores -- so parsing anchors on the last two
+--- fields instead of the first. Reserved word "nil" in either position means "none", mirroring
+--- TRZ_'s own reserved-word convention for its flag field.
+-- @param name string
+-- @return table {flag=string|nil, smoke=number|nil} or nil, reason
+function CTLDZoneManager:_parseEXZ(name)
+    local parts = _split(name, "_")
+    if parts[1] ~= "EXZ" then return nil, "wrong prefix" end
+    if #parts < 4 then return nil, "missing flag/smoke field" end
+    local flagStr  = parts[#parts - 1]
+    local smokeStr = parts[#parts]
+    local flag = (flagStr ~= "nil") and flagStr or nil
+    local smoke
+    if smokeStr == "nil" then
+        smoke = nil
+    else
+        smoke = tonumber(smokeStr)
+        if not smoke or smoke < 0 or smoke > 4 then
+            return nil, "invalid smoke '" .. smokeStr .. "' (expected 0-4 or 'nil')"
+        end
+    end
+    return { flag = flag, smoke = smoke }
+end
+
 -- ============================================================
 -- Discovery
 -- ============================================================
@@ -726,6 +752,28 @@ function CTLDZoneManager:_discoverTRZ()
                     parsed.zoneName, parsed.coalition,
                     tostring(parsed.pickMaxStock), tostring(parsed.objectiveFlag),
                     tostring(parsed.objectiveTarget))
+            end
+        end
+    end
+end
+
+--- Discover EXZ_<name>_<flag>_<smoke> zones by Mission-Editor naming convention -- no `aiZones`
+--- config entry needed, unlike AIZ_. Converges on `createExtractZone`, the exact creation path
+--- the scripted `ctld.createExtractZone()` API already uses, so a naming-convention zone and a
+--- scripted one are indistinguishable once created. Registers under the zone's full DCS name,
+--- not a parsed short name like TRZ_ does (see dev/roadmap.md, "Piège du nom court...") --
+--- `createExtractZone` already keys by the exact name it is given.
+function CTLDZoneManager:_discoverEXZ()
+    if not (env.mission and env.mission.triggers and env.mission.triggers.zones) then return end
+    for _, zd in pairs(env.mission.triggers.zones) do
+        local name = zd.name or ""
+        if string.sub(name, 1, 4) == "EXZ_" and not self._troopZones[name] then
+            local parsed, err = self:_parseEXZ(name)
+            if not parsed then
+                ctld.startupReport.add("ERROR", "ZoneManager",
+                    ctld.tr("  EXZ '%1': %2 — entry ignored", name, tostring(err)))
+            else
+                self:createExtractZone(name, parsed.flag, parsed.smoke)
             end
         end
     end

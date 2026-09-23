@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.18"
+ctld.i18n["fr"].translation_version = "1.19"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -596,3 +596,6 @@ ctld.i18n["fr"]["S-300 Grumble TEL C"] = "S-300 Grumble TEL C"
 ctld.i18n["fr"]["S-300 Repair"] = "S-300 - Réparation"
 ctld.i18n["fr"]["Ships"] = "Navires"
 ctld.i18n["fr"]["Unload Vehicles"] = "Décharger Vehicles"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-09-23
+ctld.i18n["fr"]["  EXZ '%1': %2 — entry ignored"] = "  EXZ '%1' : %2 — entrée ignorée"
