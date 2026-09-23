@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.18"
+ctld.i18n["ko"].translation_version = "1.19"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -450,3 +450,6 @@ ctld.i18n["ko"]["S-300 Grumble Clam Shell SR"] = "S-300 Clam Shell 탐지 레이
 ctld.i18n["ko"]["S-300 Grumble Flap Lid-A TR"] = "S-300 5N63 추적 레이더"
 ctld.i18n["ko"]["S-300 Grumble TEL C"] = "S-300 C 포대"
 ctld.i18n["ko"]["S-300 Repair"] = "S-300 수리킷"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-09-23
+ctld.i18n["ko"]["  EXZ '%1': %2 — entry ignored"] = "  EXZ '%1': %2 — 항목 무시됨"

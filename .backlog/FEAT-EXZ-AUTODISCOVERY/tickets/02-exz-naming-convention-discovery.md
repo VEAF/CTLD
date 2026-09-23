@@ -1,6 +1,6 @@
 # 02 — `EXZ_` naming-convention auto-discovery
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** none — independent of ticket 01.
 

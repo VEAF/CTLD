@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — `EXZ_` extraction zones can be created by naming convention (FEAT-EXZ-AUTODISCOVERY)
+
+- **A Mission Maker can create an extraction zone by naming a trigger zone**
+  `EXZ_<name>_<flag>_<smoke>` in the Mission Editor, the same way `TRZ_`/`LGZ_`/`WPZ_` already
+  work — no scripted trigger needed. `<flag>` (a DCS flag to increment) and `<smoke>` (a smoke
+  colour) each accept the reserved word `nil` to mean "none", mirroring `TRZ_`'s own convention.
+  The existing scripted `ctld.createExtractZone(...)` API is unaffected; the new discovery path
+  converges on it, so a naming-convention zone and a scripted one are indistinguishable once
+  created. See ADR 0016.
+
 ### Changed — UH-1H realism fix; Mi-8MT whole-vehicle transport completed (FIX-UH1H-CAPABILITIES-REALISM)
 
 - **UH-1H no longer claims whole-vehicle transport.** `capabilitiesByType.UH-1H.canTransportWholeVehicle`
