@@ -80,20 +80,60 @@ test('adding a zone seeds the fields the engine needs', async () => {
 test('dcsZoneName suggests real zone names read from the tracked mission', () => {
   const onchange = vi.fn()
   render(AiZonesEditor, {
+    // Neither name matches the AIZ_ convention (ticket 03), so this stays a pure autocomplete
+    // check with no reconciliation side effect — that has its own tests further below.
     zones: [{ dcsZoneName: 'AIZ_1' }],
     fields: FIELDS,
-    missionZoneNames: ['AIZ_depot_B_P_V', 'TRZ_pz1'],
+    missionZoneNames: ['TRZ_pz1', 'Custom_Zone_1'],
     onchange,
   })
   const input = screen.getByLabelText(/DCS trigger zone/i) as HTMLInputElement
   const listId = input.getAttribute('list')
   expect(listId).toBeTruthy()
   const options = [...document.querySelectorAll(`#${listId} option`)].map((o) => (o as HTMLOptionElement).value)
-  expect(options).toEqual(['AIZ_depot_B_P_V', 'TRZ_pz1'])
+  expect(options).toEqual(['TRZ_pz1', 'Custom_Zone_1'])
 })
 
 test('dcsZoneName still accepts free text with no mission tracked, or a name outside the list', async () => {
   const onchange = setup([{ dcsZoneName: 'AIZ_1' }]) // no missionZoneNames passed
   await fireEvent.change(screen.getByLabelText(/DCS trigger zone/i), { target: { value: 'Not_A_Real_Zone' } })
   expect(onchange.mock.lastCall![0][0].dcsZoneName).toBe('Not_A_Real_Zone')
+})
+
+test('a fresh scan silently adds an entry for an AIZ_-convention zone with none yet, stock left for the MM to fill in', async () => {
+  const onchange = vi.fn()
+  const { rerender } = render(AiZonesEditor, { zones: [], fields: FIELDS, missionZoneNames: [], onchange })
+  await rerender({ zones: [], fields: FIELDS, missionZoneNames: ['AIZ_depot_B_P_V'], onchange })
+
+  expect(onchange).toHaveBeenCalledTimes(1)
+  const added = onchange.mock.lastCall![0][0]
+  expect(added).toMatchObject({ dcsZoneName: 'AIZ_depot_B_P_V', coalition: 'BLUE', isPickup: true, cargoType: 'V' })
+  expect(added.troopStock).toBeUndefined()
+  expect(added.vehicleStock).toBeUndefined()
+})
+
+test('re-scanning the same mission again does not duplicate the entry it already added', async () => {
+  const onchange = vi.fn()
+  const { rerender } = render(AiZonesEditor, { zones: [], fields: FIELDS, missionZoneNames: [], onchange })
+  await rerender({ zones: [], fields: FIELDS, missionZoneNames: ['AIZ_depot_B_P_V'], onchange })
+  onchange.mockClear()
+
+  // A new scan is a new array from App.svelte's fetch, even when the mission itself hasn't changed.
+  await rerender({ zones: [], fields: FIELDS, missionZoneNames: ['AIZ_depot_B_P_V'], onchange })
+  expect(onchange).not.toHaveBeenCalled()
+})
+
+test('a scan never overwrites an entry that already exists, complete or not', async () => {
+  const onchange = vi.fn()
+  const zones = [{ dcsZoneName: 'AIZ_depot_B_P_V', coalition: 'RED', isPickup: false, isDropoff: true }]
+  const { rerender } = render(AiZonesEditor, { zones, fields: FIELDS, missionZoneNames: [], onchange })
+  await rerender({ zones, fields: FIELDS, missionZoneNames: ['AIZ_depot_B_P_V'], onchange })
+  expect(onchange).not.toHaveBeenCalled()
+})
+
+test('a scan never adds a zone whose name does not match the AIZ_ convention', async () => {
+  const onchange = vi.fn()
+  const { rerender } = render(AiZonesEditor, { zones: [], fields: FIELDS, missionZoneNames: [], onchange })
+  await rerender({ zones: [], fields: FIELDS, missionZoneNames: ['My_Custom_Zone', 'TRZ_pz1'], onchange })
+  expect(onchange).not.toHaveBeenCalled()
 })

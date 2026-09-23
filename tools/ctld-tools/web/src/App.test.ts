@@ -72,7 +72,9 @@ beforeEach(() => {
     if (url.endsWith('/api/dialog/save')) return Promise.resolve(jsonResponse({ path: '/out.yaml' }))
     if (url.endsWith('/api/dialog/miz')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
     if (url.endsWith('/api/mission/select')) return Promise.resolve(jsonResponse({ path: '/m.miz' }))
-    if (url.endsWith('/api/mission/zones')) return Promise.resolve(jsonResponse({ zones: ['AIZ_depot_B_P_V'] }))
+    // Deliberately not an AIZ_-convention name: this fixture drives the generic-autocomplete test
+    // (ticket 02), and a matching name would also trigger ticket 03's silent-add reconciliation.
+    if (url.endsWith('/api/mission/zones')) return Promise.resolve(jsonResponse({ zones: ['Custom_Zone_1'] }))
     if (url.endsWith('/api/version')) return Promise.resolve(jsonResponse({ ctld: '2.0.0-rc3', docs: 'dev' }))
     if (url.endsWith('/api/inject'))
       return Promise.resolve(
@@ -292,6 +294,6 @@ test('choosing a mission also feeds its real zone names into the dcsZoneName aut
   // second one is never a race against the "Tracking…" text from the first.
   await waitFor(() => {
     const options = [...document.querySelectorAll(`#${input.getAttribute('list')} option`)].map((o) => (o as HTMLOptionElement).value)
-    expect(options).toEqual(['AIZ_depot_B_P_V'])
+    expect(options).toEqual(['Custom_Zone_1'])
   })
 })

@@ -20,3 +20,6 @@ Retroactive ADRs document decisions already made during the v2.0.0 rewrite.
 | [0012](0012-canonical-names-for-custom-beacon-sounds.md) | Canonical file names for custom beacon sounds | Accepted |
 | [0013](0013-ci-i18n-dict-guard.md) | CI-enforced i18n dictionary guard, diff-scoped with a translation-only bypass | Accepted |
 | [0014](0014-i18n-claude-code-cli-fallback.md) | i18n auto-translate: Claude Code CLI as a local fallback, not a replacement | Accepted |
+| [0015](0015-safe-by-default-ambient-menu-refresh.md) | Safe-by-default delay on ambient F10 menu refreshes | Accepted |
+| [0016](0016-exz-naming-convention.md) | `EXZ_` naming-convention format for auto-discovered extraction zones | Accepted |
+| [0017](0017-aiz-naming-convention-tool-only.md) | `AIZ_` partial naming convention stays `ctld-tools`-only | Accepted |
