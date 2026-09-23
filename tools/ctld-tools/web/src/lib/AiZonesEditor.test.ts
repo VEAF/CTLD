@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/svelte'
-import { expect, test, vi } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import AiZonesEditor from './AiZonesEditor.svelte'
+
+afterEach(() => vi.unstubAllGlobals())
 
 // The two traps this editor exists to respect (FEAT-EDITOR-COVERAGE ticket 04):
 //  1. `coalition` is a STRING here, while every other coalition field is the numeric `side`.
@@ -136,4 +138,56 @@ test('a scan never adds a zone whose name does not match the AIZ_ convention', a
   const { rerender } = render(AiZonesEditor, { zones: [], fields: FIELDS, missionZoneNames: [], onchange })
   await rerender({ zones: [], fields: FIELDS, missionZoneNames: ['My_Custom_Zone', 'TRZ_pz1'], onchange })
   expect(onchange).not.toHaveBeenCalled()
+})
+
+test('a scan proposes removing an orphaned AIZ_ entry with a recap, and removes it once confirmed', async () => {
+  const confirmSpy = vi.fn((_message?: string) => true)
+  vi.stubGlobal('confirm', confirmSpy)
+  const onchange = vi.fn()
+  const zones = [{ dcsZoneName: 'AIZ_depot_B_P_V', coalition: 'BLUE', isPickup: true, cargoType: 'V' }]
+  const { rerender } = render(AiZonesEditor, { zones, fields: FIELDS, missionZoneNames: [], onchange })
+  await rerender({ zones, fields: FIELDS, missionZoneNames: ['TRZ_pz1'], onchange }) // AIZ_depot_B_P_V is gone
+
+  expect(confirmSpy).toHaveBeenCalledTimes(1)
+  expect(confirmSpy.mock.calls[0][0]).toContain('AIZ_depot_B_P_V')
+  expect(onchange.mock.lastCall![0]).toEqual([])
+})
+
+test('declining the removal recap leaves the orphaned entry untouched', async () => {
+  vi.stubGlobal('confirm', vi.fn(() => false))
+  const onchange = vi.fn()
+  const zones = [{ dcsZoneName: 'AIZ_depot_B_P_V', coalition: 'BLUE', isPickup: true, cargoType: 'V' }]
+  const { rerender } = render(AiZonesEditor, { zones, fields: FIELDS, missionZoneNames: [], onchange })
+  await rerender({ zones, fields: FIELDS, missionZoneNames: ['TRZ_pz1'], onchange })
+
+  expect(confirm).toHaveBeenCalled()
+  expect(onchange).not.toHaveBeenCalled() // nothing actually changed, so no commit
+})
+
+test('a freely-named entry is never proposed for removal, even if its zone disappears', async () => {
+  const confirmSpy = vi.fn(() => true)
+  vi.stubGlobal('confirm', confirmSpy)
+  const onchange = vi.fn()
+  const zones = [{ dcsZoneName: 'My_Custom_Zone', coalition: 'BLUE', isPickup: true }]
+  const { rerender } = render(AiZonesEditor, { zones, fields: FIELDS, missionZoneNames: [], onchange })
+  await rerender({ zones, fields: FIELDS, missionZoneNames: ['TRZ_pz1'], onchange }) // My_Custom_Zone's zone is gone
+
+  expect(confirmSpy).not.toHaveBeenCalled()
+  expect(onchange).not.toHaveBeenCalled()
+})
+
+test('a confirmed re-scan leaves AIZ_ entries exactly matching the mission — additions and removals both applied', async () => {
+  vi.stubGlobal('confirm', vi.fn(() => true))
+  const onchange = vi.fn()
+  const zones = [
+    { dcsZoneName: 'AIZ_old_B_P_V', coalition: 'BLUE', isPickup: true, cargoType: 'V' }, // orphaned by the rescan
+    { dcsZoneName: 'My_Custom_Zone', coalition: 'RED', isPickup: false, isDropoff: true }, // untouched regardless
+  ]
+  const { rerender } = render(AiZonesEditor, { zones, fields: FIELDS, missionZoneNames: [], onchange })
+  await rerender({ zones, fields: FIELDS, missionZoneNames: ['AIZ_new_R_D_G'], onchange })
+
+  const finalNames = (onchange.mock.lastCall![0] as Record<string, unknown>[]).map((z) => z.dcsZoneName)
+  expect(finalNames).toContain('AIZ_new_R_D_G')
+  expect(finalNames).toContain('My_Custom_Zone')
+  expect(finalNames).not.toContain('AIZ_old_B_P_V')
 })

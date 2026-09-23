@@ -109,6 +109,8 @@
   "web.aizone.add_zone": "+ zone IA",
   "web.aizone.all_allowed": "vide = tous",
   "web.aizone.choose_mission": "Choisir la mission à scanner…",
+  "web.aizone.confirm_removal.many": "{n} zones IA n'existent plus dans la mission et vont être supprimées : {names}",
+  "web.aizone.confirm_removal.one": "{n} zone IA n'existe plus dans la mission et va être supprimée : {names}",
   "web.aizone.mission_tracked": "Zones suivies depuis {name}",
   "web.aizone.no_mission": "Aucune mission suivie",
   "web.aizone.unlimited": "illimité",

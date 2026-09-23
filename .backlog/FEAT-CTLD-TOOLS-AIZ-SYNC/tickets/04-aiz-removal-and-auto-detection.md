@@ -1,6 +1,6 @@
 # 04 — AIZ_ orphan removal + confirmation recap + automatic re-scan
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** ticket 03 (needs the parser + reconciliation base to extend).
 

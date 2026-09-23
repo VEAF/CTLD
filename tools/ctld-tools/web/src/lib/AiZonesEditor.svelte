@@ -13,9 +13,9 @@
   //  2. `troopStock` / `vehicleStock` carry two magic values: the key `All` means every entry, and
   //     the value -1 means unlimited. A bare key/value grid hides both, so the stock rows offer
   //     `All` as a suggestion and render -1 as "unlimited" rather than as a number to memorise.
-  import { t } from './i18n.svelte'
+  import { plural, t } from './i18n.svelte'
   import type { TableField } from './api'
-  import { addMissingAizZones } from './aizConvention'
+  import { addMissingAizZones, findOrphanedAizZones } from './aizConvention'
   import { DCS_TYPES_LIST, fieldLabel } from './tables'
 
   type Zone = Record<string, unknown>
@@ -73,21 +73,39 @@
     onchange(published())
   }
 
-  // Silent reconciliation (ticket 03 of FEAT-CTLD-TOOLS-AIZ-SYNC): every time the mission-zone
-  // list actually changes (a fresh scan via App.svelte's "Choose mission" button, ticket 01), add
-  // an entry for each AIZ_-convention zone that doesn't have one yet. `reconciledFor` is read
-  // before `model`, so this effect stops depending on `model` the moment it early-returns — it
-  // never re-fires from an unrelated edit like `addZone`/`setField`, only from a new zone list.
-  // Removals need a confirmation recap and are ticket 04's job, not this one.
+  // Reconciliation (tickets 03 + 04 of FEAT-CTLD-TOOLS-AIZ-SYNC): every time the mission-zone list
+  // actually changes (a fresh scan, manual via App.svelte's "Choose mission" button or automatic
+  // via its mtime check) — `reconciledFor` is read before `model`, so this effect stops depending
+  // on `model` the moment it early-returns; it never re-fires from an unrelated edit like
+  // `addZone`/`setField`, only from a genuinely new zone list.
+  //
+  //  - Additions are silent: an entry is created for each AIZ_-convention zone that doesn't have
+  //    one yet, stock left absent on purpose (ticket 03).
+  //  - Removals always need confirmation: an entry is only a candidate when its dcsZoneName
+  //    matches the convention AND its zone is gone from the mission — declining leaves it in
+  //    place, and a non-matching entry is never a candidate regardless of its zone (ticket 04).
   let reconciledFor: string[] | null = null
   $effect(() => {
     const names = missionZoneNames
     if (names.length === 0 || names === reconciledFor) return
     reconciledFor = names
-    const reconciled = addMissingAizZones(names, model)
-    if (reconciled !== model) {
-      model = reconciled
+
+    const withAdditions = addMissingAizZones(names, model)
+    if (withAdditions !== model) {
+      model = withAdditions
       commit()
+    }
+
+    const orphaned = findOrphanedAizZones(names, model)
+    if (orphaned.length > 0) {
+      const message = plural('web.aizone.confirm_removal', orphaned.length, {
+        names: orphaned.map((z) => String(z.dcsZoneName ?? '')).join(', '),
+      })
+      if (confirm(message)) {
+        const gone = new Set(orphaned.map((z) => String(z.dcsZoneName ?? '')))
+        model = model.filter((z) => !gone.has(String(z.dcsZoneName ?? '')))
+        commit()
+      }
     }
   })
   function setField(i: number, field: string, value: unknown) {

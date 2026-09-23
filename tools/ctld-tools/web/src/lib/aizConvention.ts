@@ -73,3 +73,19 @@ export function addMissingAizZones(missionZoneNames: string[], existingZones: Zo
   }
   return additions.length ? [...existingZones, ...additions] : existingZones
 }
+
+/**
+ * Every `aiZones` entry that is a **removal candidate**: its `dcsZoneName` matches the AIZ_
+ * convention, and that exact zone is no longer in `missionZoneNames`. Never includes an entry
+ * whose name doesn't match the convention, whatever happened to its zone — that stays outside
+ * this reconciliation's scope entirely (`ctld-tools validate`'s job, not this one's).
+ *
+ * A caller must confirm before actually removing these (ticket 04) — this only identifies them.
+ */
+export function findOrphanedAizZones(missionZoneNames: string[], existingZones: Zone[]): Zone[] {
+  const present = new Set(missionZoneNames)
+  return existingZones.filter((z) => {
+    const name = String(z.dcsZoneName ?? '')
+    return parseAizZoneName(name) !== null && !present.has(name)
+  })
+}

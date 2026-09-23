@@ -100,6 +100,8 @@ export const EN_STRINGS: Record<string, string> = {
   'web.aizone.add_zone': "+ AI zone",
   'web.aizone.all_allowed': "empty = all of them",
   'web.aizone.choose_mission': "Choose mission to scan…",
+  'web.aizone.confirm_removal.many': "{n} AI zones no longer exist in the mission and will be removed: {names}",
+  'web.aizone.confirm_removal.one': "{n} AI zone no longer exists in the mission and will be removed: {names}",
   'web.aizone.mission_tracked': "Tracking {name} for zones",
   'web.aizone.no_mission': "No mission tracked yet",
   'web.aizone.unlimited': "unlimited",

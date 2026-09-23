@@ -12,6 +12,7 @@
     injectMiz,
     loadDefault,
     loadPath,
+    getMissionMtime,
     getMissionZones,
     openDialog,
     putSetting,
@@ -77,6 +78,9 @@
   // Real zone names from the tracked mission — generic autocomplete on AiZonesEditor's
   // dcsZoneName, independent of the AIZ_ naming convention (tickets 03/04).
   let missionZoneNames = $state<string[]>([])
+  // The tracked mission's mtime as of the last scan (manual or automatic) — the baseline the
+  // automatic re-scan (ticket 04) compares against on every Zones-tab activation.
+  let lastScannedMtime = $state<number | null>(null)
   let dcsTypes = $state<string[]>([])
   // type → GROUND | AIRPLANE | HELICOPTER; resolves the `AIR` authoring choice on save.
   let spawnAsByType = $state<Record<string, string>>({})
@@ -339,13 +343,44 @@
       const { path } = await selectMission()
       if (!path) return
       missionPath = path
-      const { zones } = await getMissionZones()
+      const { zones, mtime } = await getMissionZones()
       missionZoneNames = zones
+      lastScannedMtime = mtime
       error = null
     } catch (e) {
       error = String(e)
     }
   }
+
+  // Automatic re-scan (ticket 04): whenever the AI-zones editor tab becomes active, check the
+  // tracked mission's mtime — cheap, no zip parsing — and only do the full re-scan (same
+  // additions/removals as the manual button) when the file actually changed since last time.
+  // Never fires while a mission is merely being viewed elsewhere in the app.
+  async function checkForMissionChanges() {
+    if (!missionPath) return
+    try {
+      const { mtime } = await getMissionMtime()
+      if (mtime === null || mtime === lastScannedMtime) return
+      const zones = await getMissionZones()
+      missionZoneNames = zones.zones
+      lastScannedMtime = zones.mtime
+    } catch {
+      /* best-effort: a failed check just skips this tab activation, the manual button still works */
+    }
+  }
+
+  // Fires once per genuine transition INTO the Zones family, not on every unrelated re-render
+  // while already there — `lastCheckedFamilyKey` is cleared the moment the user leaves it.
+  let lastCheckedFamilyKey: string | null = null
+  $effect(() => {
+    const key = current?.key ?? null
+    if (key === 'zones' && key !== lastCheckedFamilyKey) {
+      lastCheckedFamilyKey = key
+      checkForMissionChanges()
+    } else if (key !== 'zones') {
+      lastCheckedFamilyKey = null
+    }
+  })
 
   function pickFamily(key: string) {
     activeFamily = key
