@@ -287,6 +287,11 @@ test('choosing a mission also feeds its real zone names into the dcsZoneName aut
 
   await fireEvent.click(screen.getByText('+ AI zone'))
   const input = screen.getByLabelText(/DCS trigger zone/i) as HTMLInputElement
-  const options = [...document.querySelectorAll(`#${input.getAttribute('list')} option`)].map((o) => (o as HTMLOptionElement).value)
-  expect(options).toEqual(['AIZ_depot_B_P_V'])
+  // The mission path and its zone list land from two separate awaited fetches (ticket 01, then
+  // ticket 02's own /api/mission/zones call) — waitFor rather than asserting right away, so the
+  // second one is never a race against the "Tracking…" text from the first.
+  await waitFor(() => {
+    const options = [...document.querySelectorAll(`#${input.getAttribute('list')} option`)].map((o) => (o as HTMLOptionElement).value)
+    expect(options).toEqual(['AIZ_depot_B_P_V'])
+  })
 })
