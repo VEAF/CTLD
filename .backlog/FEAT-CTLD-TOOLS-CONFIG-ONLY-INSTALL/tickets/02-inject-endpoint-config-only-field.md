@@ -1,6 +1,6 @@
 # 02 — `/api/inject` — `configOnly` field + sound-validation bypass
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** ticket 01 (needs `install()`'s `configuration_only` parameter).
 
