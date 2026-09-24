@@ -310,9 +310,11 @@ The zone stays registered and can be toggled any number of times.
 AIZ zones control the automatic behaviour of **AI transports** (units listed in
 `transportPilotNames`). Human players are never affected by them.
 
-> **AIZ zones have no naming convention.** Any DCS trigger zone can be an AIZ zone — you reference
-> it by name in the `aiZones` config array. Both pickup and drop-off fire on landing
-> (`S_EVENT_LAND`): the AI unit must physically land inside the zone radius.
+> **AIZ zones have no naming convention in CTLD itself.** Any DCS trigger zone can be an AIZ
+> zone — you reference it by name in the `aiZones` config array. Both pickup and drop-off fire on
+> landing (`S_EVENT_LAND`): the AI unit must physically land inside the zone radius. `ctld-tools`
+> does recognise an *optional* naming pattern of its own, purely to save you retyping — see
+> [`ctld-tools` naming shortcut](#ctld-tools-naming-shortcut) below.
 
 ### Roles
 
@@ -384,6 +386,32 @@ mm_facing:
     `2` = BLUE). In an `aiZones` entry it is the string `RED`, `BLUE` or `NEUTRAL`. Writing a number
     here means "any coalition", silently.
 
+### `ctld-tools` naming shortcut
+
+CTLD itself never looks at an AIZ zone's DCS name for meaning — the statement above still holds.
+But if you already name your zones something like `AIZ_depot_B_P_V`, `ctld-tools` can read that
+back: scanning your mission (the **Zones** editor's "Choose mission to scan…" button) recognises
+the pattern
+
+```
+AIZ_<name>_<coalition:R|B|N>_<P|D>_<cargoType-or-aiDropMode>
+```
+
+— `R`/`B`/`N` for coalition, `P`/`D` for pickup/drop-off, then `T`/`V`/`TV` (pickup) or
+`G`/`P`/`GP` (drop-off) — and pre-fills a new `aiZones` entry with those four fields already set,
+so you don't retype facts your zone name already states. Anything after the fourth field is
+ignored, so an existing name like `AIZ_depot_B_P_V_10` still parses fine.
+
+**Keep the pattern complete if you want the pre-fill.** A name missing a field, or not matching the
+pattern at all, is not an error — the zone still works exactly the same in DCS — but `ctld-tools`
+cannot recognise it, so you get a blank entry from the manual **+ AI zone** button instead, with
+its own generic defaults (`BLUE`, pickup, troop cargo) that may not match what you actually meant
+and have to be corrected by hand, field by field.
+
+Either way, `troopStock`, `vehicleStock` and every other complex field are never part of the name
+and always stay yours to fill in inside `ctld-tools` — see the note under [Parameters](#parameters)
+below for what a freshly created troop-cargo entry starts with.
+
 ### Parameters
 
 | Parameter | Type | Required | Description |
@@ -401,6 +429,19 @@ mm_facing:
 
 > `troopStock` and `vehicleStock` are **tables**, not plain integers. Per-template / per-type
 > stock replaced the old single-integer form.
+
+!!! info "`ctld-tools` gives a fresh troop-cargo entry a safe starting stock"
+    Whenever `ctld-tools` creates a new pickup entry whose cargo includes troops — through the
+    naming-shortcut scan above, or the manual **+ AI zone** button — it sets `troopStock` to
+    `{All: -1}` (unlimited) automatically, instead of leaving it absent. Absent `troopStock` isn't
+    a middle-ground setting: it silently disables troop pickup at that zone entirely, with no
+    fallback. This default is a safe **starting point**, not a statement of your real intent —
+    narrow it to the templates and counts you actually want. `vehicleStock` gets no equivalent
+    default: leaving it unset is a legitimate choice (the zone falls back to whichever vehicle you
+    physically place there), so `ctld-tools` never fills it in for you. Either way, an entry still
+    missing `troopStock` or `vehicleStock` shows a marker directly on the zone in the editor — ⚠
+    where troop pickup would actually fail, ⓘ where the vehicle zone is simply in physical-placement
+    mode — so you always know which of the two you're looking at.
 
 ### AI transport setup
 
