@@ -443,6 +443,48 @@ def test_inject_into_miz(tmp_path):
         assert "ctld.configUser" in z.read("l10n/DEFAULT/CTLD_userConfig.lua").decode("utf-8")
 
 
+@pytest.mark.skipif(not (REPO / "CTLD.lua").is_file(), reason="CTLD.lua not built in this checkout")
+def test_inject_config_only_writes_only_the_configuration(tmp_path):
+    import shutil
+
+    src_miz = REPO / "missions" / "Test_CTLDNEXT_01.miz"
+    miz = tmp_path / "out.miz"
+    shutil.copy(src_miz, miz)
+    client.post("/api/catalog/load-default")
+    result = client.post("/api/inject", json={"miz": str(miz), "configOnly": True}).json()
+
+    assert result["injected"] == str(miz)
+    assert result["files"] == ["CTLD_userConfig.lua"]
+    assert result["triggers"] == ["configuration"]
+    assert result["engineVersion"] is None
+    assert result["sounds"] == []
+
+
+@pytest.mark.skipif(not (REPO / "CTLD.lua").is_file(), reason="CTLD.lua not built in this checkout")
+def test_inject_config_only_ignores_an_unavailable_customised_sound(tmp_path):
+    """No sound file is ever written in this mode, so a stale customised-sound reference must
+    never block it — but the same setup still blocks a full install, unchanged."""
+    import shutil
+
+    src_miz = REPO / "missions" / "Test_CTLDNEXT_01.miz"
+    miz = tmp_path / "out.miz"
+    shutil.copy(src_miz, miz)
+    client.post("/api/catalog/load-default")
+    client.put("/api/catalog/setting", json={"key": "radioSound", "value": "CTLD_beacon_custom.ogg"})
+
+    full = client.post("/api/inject", json={"miz": str(miz)})
+    assert full.status_code == 422
+
+    config_only = client.post("/api/inject", json={"miz": str(miz), "configOnly": True})
+    assert config_only.status_code == 200
+
+
+def test_inject_config_only_still_blocks_on_an_unrelated_validation_error():
+    _load(BAD_UNIT)
+    resp = client.post("/api/inject", json={"miz": "unused.miz", "configOnly": True})
+    assert resp.status_code == 422
+
+
 def test_inject_blocked_by_validation_errors():
     _load(BAD_UNIT)
     assert client.post("/api/inject", json={"miz": "unused.miz"}).status_code == 422

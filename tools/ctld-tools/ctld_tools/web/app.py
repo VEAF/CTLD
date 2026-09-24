@@ -44,6 +44,9 @@ class SaveRequest(BaseModel):
 
 class InjectRequest(BaseModel):
     miz: str
+    #: Write just the configuration, skipping the engine and beacon sounds — for a mission whose
+    #: engine already loads some other way (see `install.install`'s own `configuration_only`).
+    configOnly: bool = False
 
 
 # ── helpers ────────────────────────────────────────────────────────
@@ -532,12 +535,14 @@ def inject(req: InjectRequest) -> dict[str, Any]:
     except LookupError as exc:
         raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
     # Validated against the **target** mission, not the open one: a customised sound already sitting
-    # in the mission being written to is not missing, wherever the configuration came from.
+    # in the mission being written to is not missing, wherever the configuration came from. In
+    # configuration-only mode no sound file is ever written, so a stale/missing customised sound
+    # must never block the install — every setting is treated as available for this call instead.
     findings = validate(
         cat,
         session.schema,
         default=session.default_catalog(),
-        sounds_available=_sounds_available(req.miz),
+        sounds_available=set(resources.SOUND_SETTINGS) if req.configOnly else _sounds_available(req.miz),
     )
     if has_errors(findings):
         raise HTTPException(status_code=422, detail="fix validation errors before injecting")
@@ -551,6 +556,7 @@ def inject(req: InjectRequest) -> dict[str, Any]:
             # the "already there" case validation just allowed. Merged, not `or`-ed: one sound may
             # come from each side.
             held_sounds={**_target_sounds(req.miz, cat), **session.sounds()},
+            configuration_only=req.configOnly,
         )
     except FileNotFoundError as exc:  # a checkout with no built engine, or a missing .miz
         raise HTTPException(status_code=500, detail=str(exc)) from exc
