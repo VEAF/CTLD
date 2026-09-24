@@ -9,9 +9,9 @@
 --
 -- Prerequisites:
 --   - BLUE heli named "heliai_mt12" (UH-60L or canTransportWholeVehicle=true)
---   - Route: WP1 = landed on AIZ_mt12_B_P_V → WP3 = landed on AIZ_mt12_B_D
+--   - Route: WP1 = landed on AIZ_mt12_B_P_V → WP3 = landed on AIZ_mt12_B_D_G
 --   - DCS trigger zone "AIZ_mt12_B_P_V" (radius ~200 m)
---   - DCS trigger zone "AIZ_mt12_B_D"   (radius ~200 m)
+--   - DCS trigger zone "AIZ_mt12_B_D_G"   (radius ~200 m)
 --   - NO DCS vehicle group inside AIZ_mt12_B_P_V (otherwise C1 takes precedence over C2)
 --   - vehicleStock = { ["Hummer"] = 2 } in the zone config
 --   - BLUE slot occupied (human player for MenuManager)
@@ -66,7 +66,7 @@ local MENU_PATH = { ctld.tr("CTLD"), MENU_NAME }
 local AI_SRC   = "heliai_mt12"      -- late-activation source in the .miz (never activated)
 local AI_UNIT  = "heliai_mt12_run"  -- temporary clone (spawned + destroyed at cleanup)
 local AIZ_P    = "AIZ_mt12_B_P_V"
-local AIZ_D    = "AIZ_mt12_B_D"
+local AIZ_D    = "AIZ_mt12_B_D_G"
 local VEH_TYPE = "Hummer"
 
 -- ── 6. State ─────────────────────────────────────────────────────────────────

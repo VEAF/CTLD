@@ -7,12 +7,12 @@
 --
 -- MISSION PREREQUISITES:
 --   - BLUE heli named "heliai_mt14" (UH-60L or any aircraft with canTransportWholeVehicle=true)
---   - Route: WP1 = landed on AIZ_mt14_B_P_V → WP2 = airborne → WP3 = landed on AIZ_mt14_B_D
+--   - Route: WP1 = landed on AIZ_mt14_B_P_V → WP2 = airborne → WP3 = landed on AIZ_mt14_B_D_G
 --   - DCS trigger zone "AIZ_mt14_B_P_V" (radius ~200 m, centered on WP1)
---   - DCS trigger zone "AIZ_mt14_B_D"   (radius ~200 m, centered on WP3)
+--   - DCS trigger zone "AIZ_mt14_B_D_G"   (radius ~200 m, centered on WP3)
 --   - NO DCS vehicle group in AIZ_mt14_B_P_V — the physical scan (C1) would take
 --     precedence over the virtual stock (C2) and _aiTransportVehicle would not be populated.
---   - Clear space near AIZ_mt14_B_D (HAWK deploys ~10 units in a 50 m circle)
+--   - Clear space near AIZ_mt14_B_D_G (HAWK deploys ~10 units in a 50 m circle)
 --   - enable_debug.lua injected before this script
 --   - ctldLogPath defined in the .miz (MISSION START trigger)
 --
@@ -33,7 +33,7 @@
 --             Re-inject after the heli has landed on AIZ_mt14_B_P_V (~2s)
 --   Step 3 — Verify dropoff (spawnSystemAt triggered = 10 HAWK units visible +
 --             _aiTransportVehicle emptied + message "delivered vehicle: HAWK AA System")
---             Re-inject after the heli has landed on AIZ_mt14_B_D
+--             Re-inject after the heli has landed on AIZ_mt14_B_D_G
 --   Step 4 — Cleanup
 -- =============================================================================
 
@@ -57,7 +57,7 @@ local STEP_N = "_MT14_STEP"
 local AI_SRC    = "heliai_mt14"      -- late-activation source in the .miz (never activated)
 local AI_UNIT   = "heliai_mt14_run"  -- temporary clone (spawned + destroyed in cleanup)
 local AIZ_P     = "AIZ_mt14_B_P_V"
-local AIZ_D     = "AIZ_mt14_B_D"
+local AIZ_D     = "AIZ_mt14_B_D_G"
 local AA_NAME   = "HAWK AA System"
 
 local function log(msg)    ctld.utils.log("INFO",  TAG .. " " .. msg) end

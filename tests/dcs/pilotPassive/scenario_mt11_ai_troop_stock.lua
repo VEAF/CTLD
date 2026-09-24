@@ -9,9 +9,9 @@
 --
 -- Pre-requisites:
 --   - BLUE helicopter named "heliai_mt11" (UH-1H), without a human pilot
---   - Route: WP1 = landed on AIZ_mt11_B_P_T → WP3 = landed on AIZ_mt11_B_D
+--   - Route: WP1 = landed on AIZ_mt11_B_P_T → WP3 = landed on AIZ_mt11_B_D_G
 --   - DCS trigger zone "AIZ_mt11_B_P_T" (radius ~200 m)
---   - DCS trigger zone "AIZ_mt11_B_D"   (radius ~200 m)
+--   - DCS trigger zone "AIZ_mt11_B_D_G"   (radius ~200 m)
 --   - troopStock = { ["Standard Group"]=3, ["Anti Tank"]=2 } in the zone config
 --   - BLUE slot occupied (human player for MenuManager)
 --   - CTLD.lua injected before this script (wait 3-5 s)
@@ -65,7 +65,7 @@ local MENU_PATH = { ctld.tr("CTLD"), MENU_NAME }
 local AI_SRC  = "heliai_mt11"      -- late-activation source in the .miz (never activated)
 local AI_UNIT = "heliai_mt11_run"  -- temporary clone (spawned + destroyed in cleanup)
 local AIZ_P   = "AIZ_mt11_B_P_T"
-local AIZ_D   = "AIZ_mt11_B_D"
+local AIZ_D   = "AIZ_mt11_B_D_G"
 
 -- ── 6. State ─────────────────────────────────────────────────────────────────
 local S = {
