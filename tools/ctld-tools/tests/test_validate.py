@@ -319,3 +319,91 @@ mm_facing:
 """)
     findings = [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.aizone.troop_stock_missing"]
     assert {f.where for f in findings} == {"aiZones[base_a]", "aiZones[base_b]"}
+
+
+# ── integer-typed fields (FIX-CTLD-TOOLS-INTEGER-FIELDS) ───────────────────────────
+
+INTEGER_SCHEMA = Schema({"numberOfTroops": {"type": "integer"}})
+
+
+def test_integer_setting_with_a_fraction_is_a_warning():
+    c = cat("""\
+mm_facing:
+  numberOfTroops: 6.01
+""")
+    findings = validate(c, INTEGER_SCHEMA, TYPES)
+    assert any(f.key == "validate.setting.not_integer" and f.severity == WARNING for f in findings)
+    assert not has_errors(findings), "a fractional count must never block export"
+
+
+def test_integer_setting_with_a_whole_value_is_not_flagged():
+    c = cat("""\
+mm_facing:
+  numberOfTroops: 10
+""")
+    assert [f for f in validate(c, INTEGER_SCHEMA, TYPES) if f.key == "validate.setting.not_integer"] == []
+
+
+def test_continuous_setting_with_a_fraction_is_never_flagged():
+    """No `type: integer` declared for this key — a weight/distance keeps accepting a decimal."""
+    c = cat("""\
+mm_facing:
+  maxDistanceFromCrate: 5.5
+""")
+    assert [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.setting.not_integer"] == []
+
+
+def test_loadable_groups_fraction_is_a_warning():
+    c = cat("""\
+mm_facing:
+  loadableGroups:
+  - name: Standard Group
+    inf: 6.01
+    mg: 2
+""")
+    findings = [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.field.not_integer"]
+    assert any(f.params.get("field") == "inf" and f.where == "loadableGroups[Standard Group]" for f in findings)
+    assert not any(f.params.get("field") == "mg" for f in findings)
+
+
+def test_capabilities_by_type_fraction_is_a_warning_but_weight_stays_continuous():
+    c = cat("""\
+mm_facing:
+  capabilitiesByType:
+    UH-1H:
+      maxCratesOnboard: 2.5
+      maxVehicleWeight: 1360.5
+""")
+    findings = [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.field.not_integer"]
+    assert any(f.params.get("field") == "maxCratesOnboard" and f.where == "capabilitiesByType[UH-1H]" for f in findings)
+    assert not any(f.params.get("field") == "maxVehicleWeight" for f in findings)
+
+
+def test_crates_required_fraction_is_a_warning_but_weight_stays_continuous():
+    c = cat("""\
+mm_facing:
+  spawnableCrates:
+    Support:
+    - unit: Ural-375
+      desc: Ural Ammo
+      weight: 1001.01
+      cratesRequired: 2.5
+""")
+    findings = [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.field.not_integer"]
+    assert any(f.params.get("field") == "cratesRequired" for f in findings)
+    assert not any(f.params.get("field") == "weight" for f in findings)
+
+
+def test_ai_zone_stock_count_fraction_is_a_warning():
+    c = cat("""\
+mm_facing:
+  aiZones:
+  - dcsZoneName: base
+    coalition: BLUE
+    isPickup: true
+    cargoType: T
+    troopStock:
+      Standard Group: 5.5
+""")
+    findings = [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.field.not_integer"]
+    assert any(f.params.get("field") == "troopStock.Standard Group" and f.where == "aiZones[base]" for f in findings)

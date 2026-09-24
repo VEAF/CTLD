@@ -212,6 +212,89 @@ def _validate_ai_zones(catalog: Catalog, out: list[Finding]) -> None:
             out.append(Finding(WARNING, where, "validate.aizone.vehicle_stock_absent", {"name": dzn}))
 
 
+# Table fields the editor now types `'integer'` (FIX-CTLD-TOOLS-INTEGER-FIELDS ticket 02) —
+# mirrored here from `web/src/lib/tables.ts`'s `TROOP_FIELDS`/`AIRCRAFT_NUMS`, since the schema
+# itself has no notion of these bespoke tables' per-field types (see ticket 01's ADR: scalar
+# settings are schema-declared, these are compile-time-known field lists instead).
+_INTEGER_TABLE_FIELDS = {
+    "loadableGroups": ("inf", "mg", "at", "aa", "mortar", "jtac"),
+    "capabilitiesByType": ("maxCratesOnboard", "maxTroopsOnboard", "maxWholeVehiclesOnboard"),
+}
+
+
+def _has_fraction(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and float(value) != int(value)
+
+
+def _validate_integer_fields(catalog: Catalog, schema: Schema, out: list[Finding]) -> None:
+    """A whole-number-only field carrying a fractional value (FIX-CTLD-TOOLS-INTEGER-FIELDS,
+    closing GitHub issue #157) — the editor itself now prevents this going forward (tickets 01/02),
+    so this only fires for a value that bypassed it: a hand-edited YAML, or a catalogue/config
+    predating the fix. `WARNING`, not `ERROR`: a fractional count doesn't structurally break an
+    export the way a missing zone does.
+    """
+    for key in catalog.keys():
+        if schema.value_type(key) != "integer":
+            continue
+        value = catalog.get(key)
+        if _has_fraction(value):
+            out.append(
+                Finding(WARNING, f"settings.{key}", "validate.setting.not_integer", {"name": key, "value": value})
+            )
+
+    for entry in catalog.get("loadableGroups") or []:
+        name = entry.get("name", "?")
+        for field_name in _INTEGER_TABLE_FIELDS["loadableGroups"]:
+            value = entry.get(field_name)
+            if _has_fraction(value):
+                out.append(
+                    Finding(
+                        WARNING,
+                        f"loadableGroups[{name}]",
+                        "validate.field.not_integer",
+                        {"field": field_name, "value": value},
+                    )
+                )
+
+    for type_name, entry in (catalog.get("capabilitiesByType") or {}).items():
+        for field_name in _INTEGER_TABLE_FIELDS["capabilitiesByType"]:
+            value = entry.get(field_name)
+            if _has_fraction(value):
+                out.append(
+                    Finding(
+                        WARNING,
+                        f"capabilitiesByType[{type_name}]",
+                        "validate.field.not_integer",
+                        {"field": field_name, "value": value},
+                    )
+                )
+
+    for section, entry in _iter_crates(catalog):
+        value = entry.get("cratesRequired")
+        if _has_fraction(value):
+            where = f"spawnableCrates.{section}[{entry.get('desc', '?')}]"
+            out.append(
+                Finding(WARNING, where, "validate.field.not_integer", {"field": "cratesRequired", "value": value})
+            )
+
+    for entry in _iter_ai_zones(catalog):
+        dzn = entry.get("dcsZoneName", "?")
+        for stock_field in ("troopStock", "vehicleStock"):
+            stock = entry.get(stock_field)
+            if not isinstance(stock, dict):
+                continue
+            for stock_name, value in stock.items():
+                if _has_fraction(value):
+                    out.append(
+                        Finding(
+                            WARNING,
+                            f"aiZones[{dzn}]",
+                            "validate.field.not_integer",
+                            {"field": f"{stock_field}.{stock_name}", "value": value},
+                        )
+                    )
+
+
 def validate(
     catalog: Catalog,
     schema: Schema,
@@ -235,6 +318,7 @@ def validate(
     _validate_type_lists(catalog, resolved, out)
     _validate_choices(catalog, schema, out)
     _validate_ai_zones(catalog, out)
+    _validate_integer_fields(catalog, schema, out)
     if default is not None:
         _validate_completeness(catalog, default, out)
     if sounds_available is not None:

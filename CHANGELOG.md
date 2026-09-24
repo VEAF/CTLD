@@ -22,6 +22,9 @@ Versioning follows [Semantic Versioning](https://semver.org/).
     `vehicleStock` counts (ticket 02).
   - Every legitimately continuous field (weights, distances/altitudes/radii, durations, the two
     multiplier factors) is unaffected and keeps accepting a decimal exactly as before.
+  - `ctld-tools validate` now reports a `WARNING` for any of the above fields that already carries
+    a fractional value — the safety net for a value that bypassed the editor entirely (a
+    hand-edited YAML, or a config/catalogue predating this fix), not just fresh edits (ticket 03).
   No engine (`src/CTLD_*.lua`) behaviour change — `CTLD_config_schema.yaml` only guides the
   authoring tool.
 
