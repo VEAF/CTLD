@@ -6,6 +6,29 @@ Chemin vers la formalisation : `grill-with-docs` → `to-prd` → `to-issues`.
 
 ---
 
+## ctld-tools — mode « configuration seule » à l'installation (évite le double chargement moteur)
+
+**Formalisé en lot `.backlog/FEAT-CTLD-TOOLS-CONFIG-ONLY-INSTALL/` (to-prd, 2026-09-24).**
+
+Constaté le 2026-09-24 en préparant l'élargissement du ticket 01 de `FEAT-EXZ-AUTODISCOVERY` à ses
+15 zones : `install()` (`ctld_tools/install.py:300`, appelé par le bouton unique « Install into
+mission… ») écrit **toujours** le moteur + les sons + la config ensemble, avec son propre trigger
+de chargement moteur — sans jamais toucher un éventuel autre mécanisme de chargement moteur déjà
+présent dans la mission (il le renumérote après le sien, ne le supprime pas).
+
+Cas concret qui bloque : `missions/Test_CTLDNEXT_01.miz` charge déjà le moteur via le trigger
+`CTLD_DEV_ROOT` (`DEV-LOCAL-MIZ`, toujours la build locale la plus fraîche). Utiliser le bouton
+d'installation de `ctld-tools` dessus ajouterait un **second** chargement moteur (celui embarqué
+dans `ctld-tools.exe`, potentiellement une version différente) — risque réel de double
+initialisation, pas seulement théorique.
+
+Idée : ajouter un mode « configuration seule » à l'installation (case à cocher à côté du bouton
+existant, décochée par défaut) qui écrit uniquement le trigger + fichier + entrée `mapResource` de
+config, sans jamais toucher au moteur ni aux sons. Points à trancher pour la PRD : le comportement
+de validation des sons personnalisés en mode config-only (ils ne sont pas installés, donc ne
+doivent pas bloquer), et si un ré-install en mode config-only doit nettoyer les triggers
+moteur/sons d'une installation complète précédente (convergence propre) ou les laisser en l'état.
+
 ## AA System → Scenes — Remplacer CTLDCrateAssemblyManager par des scènes
 
 Contexte: analyser si la mécanique AA system (`CTLD_aasystem.lua` / `CTLDCrateAssemblyManager`)
