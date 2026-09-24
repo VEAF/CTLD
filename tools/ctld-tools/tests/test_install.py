@@ -293,6 +293,84 @@ def test_the_report_says_what_was_written(tmp_path):
     assert report.engine_version and report.engine_version[0].isdigit()
 
 
+def _strip_l10n(src: Path, dest: Path) -> None:
+    """Copy `src` to `dest` with every `l10n/DEFAULT/*` member dropped — a genuinely bare mission,
+    unlike `MIZ` itself, which already carries an engine/sounds from earlier, unrelated work."""
+    with zipfile.ZipFile(src) as zin, zipfile.ZipFile(dest, "w") as zout:
+        for item in zin.infolist():
+            if not item.filename.startswith(f"{L10N}/"):
+                zout.writestr(item, zin.read(item.filename))
+
+
+def test_configuration_only_writes_no_engine_or_sounds(tmp_path):
+    bare = tmp_path / "bare.miz"
+    _strip_l10n(MIZ, bare)
+
+    out = tmp_path / "out.miz"
+    install(bare, CONFIG, out, configuration_only=True)
+
+    entries = names(out)
+    assert f"{L10N}/{CONFIG_FILE}" in entries
+    for name in (ENGINE_FILE, "beacon.ogg", "beaconsilent.ogg"):
+        assert f"{L10N}/{name}" not in entries
+
+    resmap = map_resource(out)
+    assert resmap[CONFIG_KEY] == CONFIG_FILE
+    assert ENGINE_KEY not in resmap
+    assert not (set(SOUND_KEYS.values()) & set(resmap))
+
+    m = read_mission(out)
+    comments = [r.get("comment") for r in m["trigrules"].values()]
+    assert comments.count(CONFIG_MARKER) == 1
+    assert ENGINE_MARKER not in comments
+    assert SOUNDS_MARKER not in comments
+
+
+def test_configuration_only_report_lists_only_the_configuration(tmp_path):
+    out = tmp_path / "out.miz"
+    report = install(MIZ, CONFIG, out, configuration_only=True)
+
+    assert report.files == [CONFIG_FILE]
+    assert report.triggers == ["configuration"]
+    assert report.engine_version is None
+    assert report.sounds == []
+
+
+def test_configuration_only_reinstall_removes_a_prior_full_installs_engine_and_sound_triggers(tmp_path):
+    """The triggers are what matters — a leftover engine/sound *file* with no trigger referencing
+    it any more is an orphan the Mission Editor drops on its own next save (see this module's own
+    docstring); this tool has never deleted files out of an archive, and this ticket does not
+    start now."""
+    first, second = tmp_path / "a.miz", tmp_path / "b.miz"
+    install(MIZ, CONFIG, first)  # full install: engine + sounds + configuration
+    install(first, CONFIG, second, configuration_only=True)
+
+    m = read_mission(second)
+    comments = [r.get("comment") for r in m["trigrules"].values()]
+    assert comments.count(CONFIG_MARKER) == 1
+    assert ENGINE_MARKER not in comments
+    assert SOUNDS_MARKER not in comments
+
+
+def test_configuration_only_leaves_an_unrelated_trigger_untouched(tmp_path):
+    out = tmp_path / "out.miz"
+    install(MIZ, CONFIG, out, configuration_only=True)
+
+    m_before = read_mission(MIZ)
+    m_after = read_mission(out)
+    unrelated_before = [
+        r
+        for r in m_before["trigrules"].values()
+        if r.get("comment") not in (CONFIG_MARKER, ENGINE_MARKER, SOUNDS_MARKER)
+    ]
+    unrelated_after = [
+        r
+        for r in m_after["trigrules"].values()
+        if r.get("comment") not in (CONFIG_MARKER, ENGINE_MARKER, SOUNDS_MARKER)
+    ]
+    assert len(unrelated_after) == len(unrelated_before)
+
+
 def test_installing_in_place_is_allowed(tmp_path):
     target = tmp_path / "inplace.miz"
     target.write_bytes(MIZ.read_bytes())
