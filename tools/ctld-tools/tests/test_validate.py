@@ -3,7 +3,7 @@
 from ctld_tools.catalog import Catalog
 from ctld_tools.i18n import language
 from ctld_tools.schema import Schema
-from ctld_tools.validate import ERROR, has_errors, validate
+from ctld_tools.validate import ERROR, WARNING, has_errors, validate
 
 TYPES = frozenset({"Ural-375", "M-1 Abrams", "M 818"})
 EMPTY = Schema({})
@@ -227,3 +227,95 @@ def test_missing_parameter_message_is_translated_in_both_languages():
             seen[lang] = next(f.message for f in findings if f.key == "validate.parameter.missing")
     assert "hoverTime" in seen["en"] and "hoverTime" in seen["fr"]
     assert seen["en"] != seen["fr"], "the FR string must not fall back to EN"
+
+
+# ── aiZones: troopStock / vehicleStock (FIX-CTLD-TOOLS-AIZ-STOCK-GAP) ──────────────
+
+
+def test_ai_zone_troop_pickup_with_no_stock_is_a_warning():
+    c = cat("""\
+mm_facing:
+  aiZones:
+  - dcsZoneName: my_base
+    coalition: BLUE
+    isPickup: true
+    cargoType: T
+""")
+    findings = validate(c, EMPTY, TYPES)
+    assert any(f.key == "validate.aizone.troop_stock_missing" and f.severity == WARNING for f in findings)
+    assert not has_errors(findings), "a stock warning must never block export"
+
+
+def test_ai_zone_vehicle_pickup_with_no_stock_is_a_warning():
+    c = cat("""\
+mm_facing:
+  aiZones:
+  - dcsZoneName: armor_depot
+    coalition: BLUE
+    isPickup: true
+    cargoType: V
+""")
+    findings = validate(c, EMPTY, TYPES)
+    assert any(f.key == "validate.aizone.vehicle_stock_absent" and f.severity == WARNING for f in findings)
+    assert not has_errors(findings)
+
+
+def test_ai_zone_tv_pickup_with_only_troop_stock_flags_only_the_vehicle_side():
+    c = cat("""\
+mm_facing:
+  aiZones:
+  - dcsZoneName: hub
+    coalition: BLUE
+    isPickup: true
+    cargoType: TV
+    troopStock:
+      All: -1
+""")
+    keys = [f.key for f in validate(c, EMPTY, TYPES)]
+    assert "validate.aizone.vehicle_stock_absent" in keys
+    assert "validate.aizone.troop_stock_missing" not in keys
+
+
+def test_ai_zone_complete_entry_produces_no_stock_finding():
+    c = cat("""\
+mm_facing:
+  aiZones:
+  - dcsZoneName: depot
+    coalition: BLUE
+    isPickup: true
+    cargoType: TV
+    troopStock:
+      All: -1
+    vehicleStock:
+      Hummer: 3
+""")
+    assert [f for f in validate(c, EMPTY, TYPES) if f.key.startswith("validate.aizone.")] == []
+
+
+def test_ai_zone_dropoff_only_produces_no_stock_finding():
+    c = cat("""\
+mm_facing:
+  aiZones:
+  - dcsZoneName: lz
+    coalition: BLUE
+    isDropoff: true
+    aiDropMode: G
+""")
+    assert [f for f in validate(c, EMPTY, TYPES) if f.key.startswith("validate.aizone.")] == []
+
+
+def test_ai_zone_stock_finding_identifies_its_own_entry():
+    c = cat("""\
+mm_facing:
+  aiZones:
+  - dcsZoneName: base_a
+    coalition: BLUE
+    isPickup: true
+    cargoType: T
+  - dcsZoneName: base_b
+    coalition: BLUE
+    isPickup: true
+    cargoType: T
+""")
+    findings = [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.aizone.troop_stock_missing"]
+    assert {f.where for f in findings} == {"aiZones[base_a]", "aiZones[base_b]"}

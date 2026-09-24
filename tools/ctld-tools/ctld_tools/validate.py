@@ -176,6 +176,42 @@ def _validate_custom_sounds(catalog: Catalog, available: Collection[str], out: l
         )
 
 
+def _iter_ai_zones(catalog: Catalog):
+    """Yield every `aiZones` entry."""
+    yield from catalog.get("aiZones") or []
+
+
+def _effective_cargo_type(entry: dict) -> str:
+    """The `cargoType` the engine actually uses — an invalid or missing value falls back to `"T"`,
+    the same way the engine's own validation does (see `docs/mission-maker/zones.md`)."""
+    raw = entry.get("cargoType")
+    return raw if raw in ("T", "V", "TV") else "T"
+
+
+def _validate_ai_zones(catalog: Catalog, out: list[Finding]) -> None:
+    """The two stock fields fail very differently when absent (`FIX-CTLD-TOOLS-AIZ-STOCK-GAP`):
+
+    - no `troopStock` on a troop-cargo pickup zone silently disables troop pickup there entirely —
+      no fallback exists (`CTLD_core.lua`: "troopStock=nil → pickup disabled for this zone"). Both
+      zone-creation paths in the editor default it now, so this mostly catches a hand-edited or
+      otherwise-bypassed configuration — still worth a real warning.
+    - no `vehicleStock` on a vehicle-cargo pickup zone is a legitimate, working mode instead — the
+      engine falls back to whatever DCS vehicle is physically placed in the zone. This finding is
+      informational (explaining which mode is active), not a "something's wrong" warning, even
+      though this validator has no severity below `WARNING`.
+    """
+    for entry in _iter_ai_zones(catalog):
+        if entry.get("isPickup") is not True:
+            continue
+        dzn = entry.get("dcsZoneName", "?")
+        where = f"aiZones[{dzn}]"
+        cargo = _effective_cargo_type(entry)
+        if "T" in cargo and not entry.get("troopStock"):
+            out.append(Finding(WARNING, where, "validate.aizone.troop_stock_missing", {"name": dzn}))
+        if "V" in cargo and not entry.get("vehicleStock"):
+            out.append(Finding(WARNING, where, "validate.aizone.vehicle_stock_absent", {"name": dzn}))
+
+
 def validate(
     catalog: Catalog,
     schema: Schema,
@@ -198,6 +234,7 @@ def validate(
     _validate_crates(catalog, resolved, out)
     _validate_type_lists(catalog, resolved, out)
     _validate_choices(catalog, schema, out)
+    _validate_ai_zones(catalog, out)
     if default is not None:
         _validate_completeness(catalog, default, out)
     if sounds_available is not None:

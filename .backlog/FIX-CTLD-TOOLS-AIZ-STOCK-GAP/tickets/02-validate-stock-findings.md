@@ -1,6 +1,6 @@
 # 02 — Validation: two `WARNING` findings for a stockless pickup entry
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** none — can start immediately.
 
