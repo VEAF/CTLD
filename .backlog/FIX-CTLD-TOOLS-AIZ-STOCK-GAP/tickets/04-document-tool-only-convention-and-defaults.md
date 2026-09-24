@@ -1,6 +1,6 @@
 # 04 — Mission-maker docs: document the `ctld-tools`-only convention, recommend keeping it complete
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** ticket 01 (describes real, shipped default-filling behaviour) and ticket 03 (describes the visual indicator this ticket points to) — write once both are true, not before.
 

@@ -34,6 +34,12 @@ name (`dcsZoneName`), resolved via `trigger.misc.getZone`. Legacy zones come fro
 `ctld.gs(...)` config tables and are loaded last so that a modern `TRZ_`/`LGZ_` definition
 always wins: **existing entries are never overwritten**.
 
+AIZ has no naming convention of its own in this engine — deliberately: its per-template/per-type
+stock tables (`troopStock`/`vehicleStock`) don't fit a positional name scheme the way the other
+four do. `ctld-tools` (the authoring app) does recognise a partial naming pattern for its own
+`aiZones` editor, entirely client-side and never read by this file — see ADR 0017 and
+`CONTEXT.md`'s "Tool-only naming convention" glossary entry.
+
 ## TRZ naming convention
 
 A troop zone encodes all of its behaviour in the trigger-zone name — a strict positional

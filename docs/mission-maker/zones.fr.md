@@ -322,10 +322,13 @@ La zone reste enregistrée et peut être basculée autant de fois que souhaité.
 Les zones AIZ contrôlent le comportement automatique des **transports IA** (unités listées dans
 `transportPilotNames`). Les joueurs humains ne sont jamais affectés par elles.
 
-> **Les zones AIZ n'ont pas de convention de nommage.** N'importe quelle trigger zone de DCS peut
-> être une zone AIZ — vous la référencez par son nom dans le tableau de config `aiZones`. Le
-> pickup comme le drop-off se déclenchent à l'atterrissage (`S_EVENT_LAND`) : l'unité IA doit
-> physiquement se poser à l'intérieur du rayon de la zone.
+> **Les zones AIZ n'ont pas de convention de nommage dans CTLD lui-même.** N'importe quelle trigger
+> zone de DCS peut être une zone AIZ — vous la référencez par son nom dans le tableau de config
+> `aiZones`. Le pickup comme le drop-off se déclenchent à l'atterrissage (`S_EVENT_LAND`) : l'unité
+> IA doit physiquement se poser à l'intérieur du rayon de la zone. `ctld-tools` reconnaît, lui, une
+> convention de nommage *optionnelle* qui lui est propre, uniquement pour vous éviter de ressaisir
+> l'information — voir [raccourci de nommage `ctld-tools`](#ctld-tools-naming-shortcut)
+> ci-dessous.
 
 ### Rôles
 
@@ -397,6 +400,34 @@ mm_facing:
     `2` = BLUE). Dans une entrée `aiZones`, c'est la chaîne `RED`, `BLUE` ou `NEUTRAL`. Y écrire un
     nombre signifie « n'importe quelle coalition », silencieusement.
 
+### Raccourci de nommage `ctld-tools` { #ctld-tools-naming-shortcut }
+
+CTLD lui-même ne regarde jamais le nom DCS d'une zone AIZ pour en tirer un sens — l'affirmation
+ci-dessus reste vraie. Mais si vous nommez déjà vos zones sur le modèle `AIZ_depot_B_P_V`,
+`ctld-tools` sait le relire : scanner votre mission (bouton « Choisir la mission à scanner… » de
+l'éditeur **Zones**) reconnaît le motif
+
+```
+AIZ_<nom>_<coalition:R|B|N>_<P|D>_<cargoType-ou-aiDropMode>
+```
+
+— `R`/`B`/`N` pour la coalition, `P`/`D` pour pickup/drop-off, puis `T`/`V`/`TV` (pickup) ou
+`G`/`P`/`GP` (drop-off) — et pré-remplit une nouvelle entrée `aiZones` avec ces quatre champs déjà
+renseignés, pour ne pas ressaisir ce que le nom de la zone dit déjà. Tout ce qui suit le quatrième
+champ est ignoré, donc un nom déjà utilisé comme `AIZ_depot_B_P_V_10` reste parsé correctement.
+
+**Gardez le motif complet si vous voulez le pré-remplissage.** Un nom auquel il manque un champ, ou
+qui ne correspond pas du tout au motif, n'est pas une erreur — la zone fonctionne exactement de la
+même façon dans DCS — mais `ctld-tools` ne peut pas la reconnaître : vous obtenez alors une entrée
+vierge via le bouton manuel **+ AI zone**, avec ses propres valeurs par défaut génériques (`BLUE`,
+pickup, cargo troupes), qui peuvent ne pas correspondre à votre intention réelle et doivent alors
+être corrigées à la main, champ par champ.
+
+Dans tous les cas, `troopStock`, `vehicleStock` et tout autre champ complexe ne font jamais partie
+du nom et restent toujours à votre charge dans `ctld-tools` — voir la note sous
+[Paramètres](#parameters) ci-dessous pour ce qu'une entrée pickup troupes fraîchement créée
+contient dès le départ.
+
 ### Paramètres { #parameters }
 
 | Paramètre | Type | Requis | Description |
@@ -414,6 +445,20 @@ mm_facing:
 
 > `troopStock` et `vehicleStock` sont des **tables**, pas de simples entiers. Le stock par template
 > / par type a remplacé l'ancienne forme à entier unique.
+
+!!! info "`ctld-tools` donne un stock de départ sûr à une nouvelle entrée cargo troupes"
+    Chaque fois que `ctld-tools` crée une nouvelle entrée pickup dont le cargo inclut des troupes —
+    via le scan du raccourci de nommage ci-dessus, ou via le bouton manuel **+ AI zone** — il fixe
+    `troopStock` à `{All: -1}` (illimité) automatiquement, au lieu de le laisser absent. Un
+    `troopStock` absent n'est pas un réglage intermédiaire : il désactive silencieusement le pickup
+    de troupes à cette zone, sans aucun repli. Ce défaut est un point de départ sûr, pas une
+    affirmation de votre intention réelle — resserrez-le aux templates et quantités que vous
+    voulez réellement. `vehicleStock` n'a pas de défaut équivalent : le laisser vide est un choix
+    légitime (la zone se rabat sur le véhicule que vous y placez physiquement), donc `ctld-tools`
+    ne le renseigne jamais à votre place. Dans les deux cas, une entrée à qui il manque encore
+    `troopStock` ou `vehicleStock` affiche un repère directement sur la zone dans l'éditeur — ⚠ là
+    où le pickup de troupes échouerait réellement, ⓘ là où la zone véhicule est simplement en mode
+    placement physique — pour toujours savoir lequel des deux vous regardez.
 
 ### Configuration du transport IA { #ai-transport-setup }
 
