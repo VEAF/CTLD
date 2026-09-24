@@ -40,6 +40,28 @@ test('removing a crate emits the shorter list', async () => {
   expect(lastValue(onchange).Support).toHaveLength(0)
 })
 
+test('a mixedSet crate renders the same RED/BLUE side dropdown as an ordinary crate', () => {
+  const onchange = vi.fn()
+  const crates = {
+    'All crates': [{ desc: 'All crates', side: 2, mixedSet: [1001.01, 1002.01] }],
+  }
+  render(CratesEditor, { crates, fields: {}, onchange })
+  const select = screen.getByLabelText('Coalition') as HTMLSelectElement
+  expect(select.tagName).toBe('SELECT')
+  expect([...select.options].map((o) => o.value)).toEqual(['', '1', '2'])
+  expect(select.value).toBe('2')
+})
+
+test('changing a mixedSet crate side emits the new coalition, not a free-typed number', async () => {
+  const onchange = vi.fn()
+  const crates = {
+    'All crates': [{ desc: 'All crates', side: 2, mixedSet: [1001.01] }],
+  }
+  render(CratesEditor, { crates, fields: {}, onchange })
+  await fireEvent.change(screen.getByLabelText('Coalition'), { target: { value: '1' } })
+  expect(lastValue(onchange)['All crates'][0].side).toBe(1)
+})
+
 test('cratesRequired is a whole-number field and rounds a typed decimal', async () => {
   const { onchange } = setup()
   const input = screen.getByDisplayValue('1')

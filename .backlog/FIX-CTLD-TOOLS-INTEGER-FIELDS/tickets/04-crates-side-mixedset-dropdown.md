@@ -1,6 +1,6 @@
 # 04 — `spawnableCrates.side` (mixedSet branch) → RED/BLUE dropdown
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** none — independent of the `integer`-type mechanism, can start immediately.
 
