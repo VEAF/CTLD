@@ -6,6 +6,33 @@ Chemin vers la formalisation : `grill-with-docs` → `to-prd` → `to-issues`.
 
 ---
 
+## ctld-tools — aiZones : `troopStock`/`vehicleStock` absents, aucune visibilité ni garde-fou
+
+**Formalisé en lot `.backlog/FIX-CTLD-TOOLS-AIZ-STOCK-GAP/` (to-prd, 2026-09-24).**
+
+Constaté le 2026-09-24 en revenant sur le ticket 03 de `FEAT-CTLD-TOOLS-AIZ-SYNC` : sa décision
+("stock laissé absent, l'alerte de validation existante 'stock manquant' signale déjà qu'il faut
+compléter") s'appuyait sur une alerte qui **n'existe pas** — vérifié dans `validate.py` (aucun
+contrôle sur `troopStock`/`vehicleStock`/`aiZones`) et dans `AiZonesEditor.svelte` (aucune icône,
+aucun repli/dépli de zone). Le bouton manuel « + AI zone » a le même défaut (aucun stock par
+défaut, aucun signal).
+
+En creusant le comportement réel du moteur (`CTLD_core.lua`), l'absence n'a pas le même impact
+selon le champ — **asymétrie confirmée par le code, pas juste une supposition** :
+- `troopStock` absent → `CTLD_core.lua:668-669` (*"A: troopStock=nil → pickup disabled for this
+  zone"*) : le ramassage de troupes est **réellement désactivé**, sans repli. Un stock par défaut
+  sûr (`{All: -1}`) devrait être posé automatiquement (auto-détection **et** bouton manuel) quand
+  `cargoType` inclut `T`.
+- `vehicleStock` absent → `CTLD_core.lua:619-663` : un repli **réel et fonctionnel** existe (scan
+  physique d'un véhicule DCS présent dans la zone, mécanisme pré-Feature-T, indépendant du stock
+  virtuel). Ne pas imposer de valeur par défaut ici — ça changerait silencieusement le
+  comportement de la mission bien plus largement que pour les troupes — mais rendre le mode
+  visible (icône + message clair : « pas de stock virtuel — ramassage physique uniquement »).
+
+Reste dans tous les cas : ajouter la validation manquante (`validate.py`) et l'indicateur visuel
+dans `ctld-tools` (icône sur l'entrée de zone **et** sur le champ concerné une fois la zone
+affichée) — actuellement absents des deux côtés.
+
 ## ctld-tools — mode « configuration seule » à l'installation (évite le double chargement moteur)
 
 **Formalisé en lot `.backlog/FEAT-CTLD-TOOLS-CONFIG-ONLY-INSTALL/` (to-prd, 2026-09-24).**
