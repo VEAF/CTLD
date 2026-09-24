@@ -1,6 +1,6 @@
 # FEAT-CTLD-TOOLS-CONFIG-ONLY-INSTALL — a configuration-only install mode in `ctld-tools`
 
-**Status:** open.
+**Status:** ✅ done (PR #174).
 
 Formalizes `dev/roadmap.md`'s "`ctld-tools` — mode « configuration seule » à l'installation (évite
 le double chargement moteur)" entry (added 2026-09-24), surfaced while widening

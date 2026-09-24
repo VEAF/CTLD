@@ -29,6 +29,8 @@ export const EN_STRINGS: Record<string, string> = {
   'web.action.open': 'Open config or mission…',
   'web.action.save': 'Save as…',
   'web.action.inject': 'Install into mission…',
+  'web.action.config_only': 'Configuration only',
+  'web.action.config_only_tip': 'Skip the engine and beacon sounds — for a mission whose engine already loads some other way.',
   'web.action.reset': 'Reset to default',
   'web.action.clear_search': 'Clear search',
 
@@ -74,6 +76,8 @@ export const EN_STRINGS: Record<string, string> = {
   // ── outcomes ────────────────────────────────────────────────────
   'web.outcome.injected':
     'Installed into {miz}: CTLD {version}, the beacon sounds and your configuration ({changed} setting(s) changed). Two MISSION START triggers were written — configuration, then engine.',
+  'web.outcome.injected_config_only':
+    'Installed your configuration into {miz} ({changed} setting(s) changed). One MISSION START trigger was written — the engine and beacon sounds were left untouched.',
   'web.outcome.installed_replaced': 'A previous CTLD install was replaced.',
   'web.outcome.saved_to': 'Saved to {path}',
   'web.outcome.inject_blocked': 'Fix the problems listed below, then inject again.',

@@ -95,6 +95,9 @@
   let dirty = $state(false)
   let justSaved = $state(false)
   let injected = $state(false)
+  // Off by default: today's one-click install (engine + sounds + configuration) is unchanged
+  // unless the Mission Maker opts into skipping the engine/sounds explicitly.
+  let installConfigOnly = $state(false)
   // Read once at boot: the help panel shows it, and its docs link depends on it.
   let version = $state<ToolVersion | null>(null)
   let helpOpen = $state(false)
@@ -321,17 +324,18 @@
     try {
       const { path } = await openDialog('miz')
       if (!path) return
-      const r = await injectMiz(path)
+      const r = await injectMiz(path, installConfigOnly)
       error = null
       injected = true
       // Report what actually landed in the archive: an install that only says "done" is what sent
-      // Mission Makers checking in the Mission Editor in the first place.
+      // Mission Makers checking in the Mission Editor in the first place. A different wording in
+      // config-only mode, since this report never mentions an engine or sounds that weren't
+      // touched.
       status =
-        t('web.outcome.injected', {
-          miz: r.mission,
-          version: r.engineVersion ?? '?',
-          changed: r.changedSettings,
-        }) + (r.replacedPrevious ? ' ' + t('web.outcome.installed_replaced') : '')
+        (installConfigOnly
+          ? t('web.outcome.injected_config_only', { miz: r.mission, changed: r.changedSettings })
+          : t('web.outcome.injected', { miz: r.mission, version: r.engineVersion ?? '?', changed: r.changedSettings })) +
+        (r.replacedPrevious ? ' ' + t('web.outcome.installed_replaced') : '')
     } catch (e) {
       status = null
       error = hasErrors ? t('web.outcome.inject_blocked') : String(e)
@@ -467,6 +471,10 @@
       </svg>
       {t('web.action.inject')}
     </button>
+    <label class="config-only" title={t('web.action.config_only_tip')}>
+      <input type="checkbox" bind:checked={installConfigOnly} />
+      {t('web.action.config_only')}
+    </label>
   </div>
 </div>
 
@@ -869,6 +877,14 @@
   .tools svg {
     width: 15px;
     height: 15px;
+  }
+  .config-only {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: var(--fs-sm);
+    color: var(--ink-dim);
+    white-space: nowrap;
   }
 
   /* ── banners ─────────────────────────────────────────────────── */
