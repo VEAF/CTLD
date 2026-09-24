@@ -40,6 +40,19 @@ test('removing a crate emits the shorter list', async () => {
   expect(lastValue(onchange).Support).toHaveLength(0)
 })
 
+test('cratesRequired is a whole-number field and rounds a typed decimal', async () => {
+  const { onchange } = setup()
+  const input = screen.getByDisplayValue('1')
+  expect(input).toHaveAttribute('step', '1')
+  await fireEvent.change(input, { target: { value: '2.6' } })
+  expect(lastValue(onchange).Support[0].cratesRequired).toBe(3)
+})
+
+test('weight stays a continuous field, unaffected by the integer type', () => {
+  setup()
+  expect(screen.getByDisplayValue('1001.01')).toHaveAttribute('step', '0.01')
+})
+
 test('the DCS unit field is a combo backed by the shared type list', () => {
   setup()
   const unitField = screen.getByDisplayValue('Ural-375')

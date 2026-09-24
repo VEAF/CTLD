@@ -30,8 +30,10 @@
     model[type][field] = v
     commit()
   }
-  function setNum(type: string, field: string, raw: string) {
-    model[type][field] = raw === '' ? undefined : Number(raw)
+  function setNum(type: string, field: string, raw: string, isInteger: boolean) {
+    let value: unknown = raw === '' ? undefined : Number(raw)
+    if (isInteger && typeof value === 'number' && !Number.isNaN(value)) value = Math.round(value)
+    model[type][field] = value
     commit()
   }
   function setList(type: string, field: string, v: string[]) {
@@ -70,8 +72,8 @@
       {/each}
     </div>
     <div class="nums">
-      {#each AIRCRAFT_NUMS as f (f)}
-        <label title={tip(f)}>{fieldLabel(f)}<input type="number" value={model[type][f] as number} onchange={(e) => setNum(type, f, e.currentTarget.value)} /></label>
+      {#each AIRCRAFT_NUMS as f (f.name)}
+        <label title={tip(f.name)}>{fieldLabel(f.name)}<input type="number" step={f.type === 'integer' ? '1' : 'any'} value={model[type][f.name] as number} onchange={(e) => setNum(type, f.name, e.currentTarget.value, f.type === 'integer')} /></label>
       {/each}
     </div>
     <div class="lists">

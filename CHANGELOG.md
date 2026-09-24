@@ -8,16 +8,22 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Added — `ctld-tools` gains an `integer` field type for whole-number settings (FIX-CTLD-TOOLS-INTEGER-FIELDS, ticket 01)
+### Added — `ctld-tools` gains an `integer` field type for whole-number settings (FIX-CTLD-TOOLS-INTEGER-FIELDS)
 
-- **A whole-number-only scalar setting can no longer be given a fractional value in `ctld-tools`.**
-  `numberOfTroops`, `JTAC_LIMIT_BLUE`/`RED`, `AASystemLimitBLUE`/`RED`, `aaLaunchers`,
-  `jtacLaserCodeMin`/`Max`, `JTAC_smokeColour_BLUE`/`RED` and `beaconTextSize` are now declared
-  `type: integer` in `CTLD_config_schema.yaml`: the editor enforces a whole-number step and rounds
-  a typed decimal on edit, instead of the previous blanket `step="any"` that accepted any decimal.
-  Closes GitHub issue #157 for these settings; the same fix for `loadableGroups`/
-  `capabilitiesByType`/`spawnableCrates`/`aiZones` follows in ticket 02. No engine (`src/CTLD_*.lua`)
-  behaviour changes — `CTLD_config_schema.yaml` only guides the authoring tool.
+- **A whole-number-only field can no longer be given a fractional value in `ctld-tools`.** Closes
+  GitHub issue #157 (screenshot: `loadableGroups`' infantry-count field holding `6.01`). A real
+  `integer` field type (ticket 01) enforces a whole-number step and rounds a typed decimal on
+  edit, instead of the previous blanket `step="0.01"`/`step="any"` that accepted any decimal:
+  - Scalar settings (ticket 01): `numberOfTroops`, `JTAC_LIMIT_BLUE`/`RED`, `AASystemLimitBLUE`/`RED`,
+    `aaLaunchers`, `jtacLaserCodeMin`/`Max`, `JTAC_smokeColour_BLUE`/`RED`, `beaconTextSize`.
+  - `loadableGroups`' per-template soldier/launcher counts (`inf`/`mg`/`at`/`aa`/`mortar`/`jtac`),
+    `capabilitiesByType`'s onboard-capacity limits (`maxCratesOnboard`/`maxTroopsOnboard`/
+    `maxWholeVehiclesOnboard`), `spawnableCrates.cratesRequired`, and `aiZones`' `troopStock`/
+    `vehicleStock` counts (ticket 02).
+  - Every legitimately continuous field (weights, distances/altitudes/radii, durations, the two
+    multiplier factors) is unaffected and keeps accepting a decimal exactly as before.
+  No engine (`src/CTLD_*.lua`) behaviour change — `CTLD_config_schema.yaml` only guides the
+  authoring tool.
 
 ### Added — `EXZ_` extraction zones can be created by naming convention (FEAT-EXZ-AUTODISCOVERY)
 

@@ -60,6 +60,14 @@ test('unticking unlimited turns the magic value into a plain count', async () =>
   expect(onchange.mock.lastCall![0][0].troopStock).toEqual({ 'Standard Group': 0 })
 })
 
+test('a stock count is a whole-number field and rounds a typed decimal', async () => {
+  const onchange = setup([{ dcsZoneName: 'AIZ_1', troopStock: { 'Standard Group': 5 } }])
+  const input = screen.getByDisplayValue('5')
+  expect(input).toHaveAttribute('step', '1')
+  await fireEvent.change(input, { target: { value: '6.01' } })
+  expect(onchange.mock.lastCall![0][0].troopStock).toEqual({ 'Standard Group': 6 })
+})
+
 test('the All key is offered as a placeholder rather than left as lore', () => {
   setup([{ dcsZoneName: 'AIZ_1', troopStock: { All: -1 } }])
   expect(screen.getAllByPlaceholderText('All').length).toBeGreaterThan(0)

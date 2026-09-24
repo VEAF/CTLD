@@ -65,14 +65,16 @@ export const DCS_TYPES_LIST = 'dcs-types'
 // `jtac: 2`. Typing it `boolean` (as this did) rendered a checkbox that was unchecked for any numeric
 // value, so "JTAC Group" and "JTAC Group 2" looked identical and "Single JTAC" looked empty; worse,
 // toggling it wrote `true`/`false` into the Mission Maker's YAML in place of the count.
+// `'integer'` (not `'number'`): a soldier/launcher count is whole by nature (FIX-CTLD-TOOLS-INTEGER-FIELDS
+// ticket 02, closing GitHub issue #157 — the reported bug was exactly a decimal in this table's `inf`).
 export const TROOP_FIELDS: Omit<Field, 'tip'>[] = [
   { name: 'name', type: 'string' },
-  { name: 'inf', type: 'number' },
-  { name: 'mg', type: 'number' },
-  { name: 'at', type: 'number' },
-  { name: 'aa', type: 'number' },
-  { name: 'mortar', type: 'number' },
-  { name: 'jtac', type: 'number' },
+  { name: 'inf', type: 'integer' },
+  { name: 'mg', type: 'integer' },
+  { name: 'at', type: 'integer' },
+  { name: 'aa', type: 'integer' },
+  { name: 'mortar', type: 'integer' },
+  { name: 'jtac', type: 'integer' },
 ]
 
 // Merge a field spec with the schema metadata for a table (schema.tableFields[table]): the
@@ -95,12 +97,19 @@ export const AIRCRAFT_BOOLS = [
   'canTransportWholeVehicle',
   'convertNativeLoadToCTLD',
 ]
-export const AIRCRAFT_NUMS = ['maxCratesOnboard', 'maxTroopsOnboard', 'maxWholeVehiclesOnboard', 'maxVehicleWeight']
+// Onboard-capacity limits are whole counts (FIX-CTLD-TOOLS-INTEGER-FIELDS ticket 02);
+// `maxVehicleWeight` is a continuous kg value and stays `'number'`.
+export const AIRCRAFT_NUMS: Omit<Field, 'tip'>[] = [
+  { name: 'maxCratesOnboard', type: 'integer' },
+  { name: 'maxTroopsOnboard', type: 'integer' },
+  { name: 'maxWholeVehiclesOnboard', type: 'integer' },
+  { name: 'maxVehicleWeight', type: 'number' },
+]
 
 export function blankAircraft(): Record<string, unknown> {
   const rec: Record<string, unknown> = {}
   for (const b of AIRCRAFT_BOOLS) rec[b] = false
-  for (const n of AIRCRAFT_NUMS) rec[n] = 0
+  for (const n of AIRCRAFT_NUMS) rec[n.name] = 0
   rec.loadableVehiclesBLUE = []
   rec.loadableVehiclesRED = []
   return rec

@@ -45,6 +45,12 @@
 
   const tip = (field: string) => fields?.[field]?.tip ?? undefined
   const num = (v: unknown) => (v === undefined || v === null || v === '' ? undefined : Number(v))
+  // `cratesRequired` is a whole-number count (FIX-CTLD-TOOLS-INTEGER-FIELDS ticket 02); `weight`
+  // stays continuous, unaffected.
+  const numInt = (v: unknown) => {
+    const n = num(v)
+    return typeof n === 'number' && !Number.isNaN(n) ? Math.round(n) : n
+  }
 
   // `spawnAs` is authored as GROUND or AIR — the schema's `choices`. AIR is a convenience: DCS
   // needs the exact Group.Category, so it is resolved to AIRPLANE or HELICOPTER from the unit's
@@ -90,7 +96,7 @@
           <label title={tip('desc')}>{fieldLabel('desc')}<input value={String(crate.desc ?? '')} onchange={(e) => setField(section, i, 'desc', e.currentTarget.value)} /></label>
           <label title={tip('unit')}>{fieldLabel('unit')}<input class="combo" list={DCS_TYPES_LIST} value={String(crate.unit ?? '')} onchange={(e) => setField(section, i, 'unit', e.currentTarget.value)} /></label>
           <label title={tip('weight_kg')}>{fieldLabel('weight')}<input type="number" step="0.01" value={crate.weight as number} onchange={(e) => setField(section, i, 'weight', num(e.currentTarget.value))} /></label>
-          <label title={tip('cratesRequired')}>{fieldLabel('cratesRequired')}<input type="number" value={crate.cratesRequired as number} onchange={(e) => setField(section, i, 'cratesRequired', num(e.currentTarget.value))} /></label>
+          <label title={tip('cratesRequired')}>{fieldLabel('cratesRequired')}<input type="number" step="1" value={crate.cratesRequired as number} onchange={(e) => setField(section, i, 'cratesRequired', numInt(e.currentTarget.value))} /></label>
           <label title={tip('side')}>{fieldLabel('side')}
             <select class="side" class:red={crate.side === 1} class:blue={crate.side === 2} value={crate.side === undefined ? '' : String(crate.side)} onchange={(e) => setField(section, i, 'side', e.currentTarget.value === '' ? undefined : Number(e.currentTarget.value))}>
               <option value="">{t('web.table.side_both')}</option>
