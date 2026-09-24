@@ -23,3 +23,4 @@ Retroactive ADRs document decisions already made during the v2.0.0 rewrite.
 | [0015](0015-safe-by-default-ambient-menu-refresh.md) | Safe-by-default delay on ambient F10 menu refreshes | Accepted |
 | [0016](0016-exz-naming-convention.md) | `EXZ_` naming-convention format for auto-discovered extraction zones | Accepted |
 | [0017](0017-aiz-naming-convention-tool-only.md) | `AIZ_` partial naming convention stays `ctld-tools`-only | Accepted |
+| [0018](0018-ctld-tools-integer-field-type.md) | `ctld-tools` gains a declared `integer` field type | Accepted |

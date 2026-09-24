@@ -1,6 +1,6 @@
 # FIX-CTLD-TOOLS-INTEGER-FIELDS — a real `integer` field type for ctld-tools
 
-**Status:** open.
+**Status:** ✅ done (PR #191).
 
 Closes [GitHub issue #157](https://github.com/VEAF/CTLD/issues/157) ("Fields using decimals
 instead of integers", a.lingo, 2026-09-22) on merge. Formalizes a `grill-with-docs` session held
