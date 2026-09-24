@@ -8,6 +8,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a reoccupied unit no longer inherits the previous occupant's flight state (FIX-INAIR-DEBOUNCE-LEAK)
+
+- **`CTLDPlayerManager`'s flight-state poller kept a per-unit debounce record after the player left
+  it.** DCS reuses unit names across a mission; a new occupant of a slot whose previous occupant
+  had taken off inherited that `confirmed` flight state, and the poller read the mismatch against
+  the new occupant's real (ground) state as a genuine transition — debouncing it, then firing an
+  unsolicited F10 menu rebuild about a second into the new occupant's slot. Closes
+  [GitHub issue #156](https://github.com/VEAF/CTLD/issues/156). `_forgetPlayer` now clears the
+  debounce record alongside the player registry entry it already clears, the same shared teardown
+  path used by both the leave handler and the recovery sweep.
+
 ### Added — `ctld-tools` gains an `integer` field type for whole-number settings (FIX-CTLD-TOOLS-INTEGER-FIELDS)
 
 - **A whole-number-only field can no longer be given a fractional value in `ctld-tools`.** Closes

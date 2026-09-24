@@ -344,6 +344,14 @@ describe("CTLDPlayerManager onPlayerEnterUnit + onPlayerLeaveUnit", function()
             assert.is_nil(mgr:getPlayer("mock_pilot"))
         end)
 
+        it("_inAirDebounce['mock_pilot'] == nil after leave (issue #156)", function()
+            -- Seed a populated record first, so this proves the leave path actually
+            -- clears an existing entry rather than asserting on a coincidental absence.
+            mgr._inAirDebounce["mock_pilot"] = { confirmed = true, pending = nil, ticks = 0 }
+            mgr:onPlayerLeaveUnit({ initiator = mockUnit })
+            assert.is_nil(mgr._inAirDebounce["mock_pilot"])
+        end)
+
     end)
 
 end)

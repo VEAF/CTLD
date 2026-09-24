@@ -462,6 +462,8 @@ end
 --- Forget a tracked player: tear the group's F10 menu down when nobody is left in it,
 --- and drop the registry entry. Shared by the PLAYER_LEAVE_UNIT handler and by the
 --- recovery sweep, so both paths apply the same multi-crew rule.
+--- Also drops the flight-state debounce record: DCS can reuse this unit name for a
+--- different occupant, who must not inherit a stale confirmed flight state (issue #156).
 -- @param unitName string  the unit name to forget
 function CTLDPlayerManager:_forgetPlayer(unitName)
     local playerObj = self._players[unitName]
@@ -492,6 +494,7 @@ function CTLDPlayerManager:_forgetPlayer(unitName)
     -- else: other crew members remain — preserve the DCS menu for them.
 
     self._players[unitName] = nil
+    self._inAirDebounce[unitName] = nil
     ctld.utils.log("INFO", "CTLDPlayerManager: leave unit=" .. unitName)
 end
 
