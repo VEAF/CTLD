@@ -1,4 +1,4 @@
-# CTLD 2.0.0-rc11 — release candidate
+# CTLD 2.0.0-rc12 — release candidate
 
 ## Installation
 
@@ -12,63 +12,86 @@
 **Properties** → tick **Unblock** → **OK**.
 
 Prefer doing it by hand? The files are attached to this release too — see the
-[documentation](https://veaf.github.io/CTLD/2.0.0-rc11/mission-maker/).
+[documentation](https://veaf.github.io/CTLD/2.0.0-rc12/mission-maker/).
 
 ---
 
-Changing slot no longer breaks CTLD, and a fighter pilot finally has a place in it.
+A fix-and-polish release: two real gameplay bugs closed, extraction zones gain a naming-convention
+shortcut, `ctld-tools` now reads your mission's zones back instead of asking you to retype them,
+and its numeric fields are hardened against invalid input.
 
-## Changing slot or coalition raised an error and left a ghost F10 menu
+## A reoccupied slot no longer inherits the previous pilot's flight state
 
-Reported from a live multiplayer session. Leaving a slot — switching aircraft, changing side,
-going back to spectators — threw a script error, and the CTLD menu of the pilot who had just
-left stayed on the group. Multi-crew aircraft were the worst hit: the "is anyone still in this
-group?" count kept counting pilots who had long since gone, so the menu was never removed.
+Reported from a live session. DCS reuses unit names across a mission — if a slot's previous
+occupant had taken off before leaving, the next pilot to take that same slot on the ground got an
+unsolicited F10 menu rebuild about a second into his seat, for a state transition that never
+happened to him.
 
-**Cause**: DCS releases the aircraft about a millisecond before telling the script the player
-left, so the object CTLD received still existed but answered nothing. CTLD aborted three lines
-into the handler and never got to the cleanup.
+**Cause**: CTLD's flight-state poller (it detects takeoff/landing faster than DCS's own events,
+which lag 3–5 seconds for helicopters) keeps a small per-unit record of the last confirmed state.
+Nothing cleared it when a pilot left, so a new occupant of the same unit name started from the
+previous pilot's history instead of his own.
 
-**Fix**: the seven places that read a name straight off a departing object are now protected, and
-the 30-second player scan — which until now could only ever *add* players — now also forgets those
-whose slot no longer exists, has died, or went back to AI. The event stays the fast path; the scan
-catches whatever it misses.
+**Fix**: that record is now cleared in the same place CTLD already forgets a departed pilot. A
+pilot with the F10 menu open in his first second in a reused slot no longer risks clicking an
+entry that gets rebuilt out from under him.
 
-## A fighter pilot now gets the CTLD functions that concern him
+## Extraction zones can now be created by naming a trigger zone
 
-Recon works from any aircraft — but if your mission sets `addPlayerAircraftByType = false`, a pilot
-who was not in `transportPilotNames` had **no CTLD menu at all**, and therefore no recon either. A
-setting meant to reserve the *transport* menus for a named list was cutting off every function that
-has nothing to do with transport.
+`EXZ_<name>_<flag>_<smoke>` in the Mission Editor now works exactly like `TRZ_`/`LGZ_`/`WPZ_`
+already do — no scripted trigger needed to set one up. `<flag>` (a DCS flag to increment on
+extraction) and `<smoke>` (a smoke colour) each accept `nil` to mean "none".
 
-From this release, such a pilot gets a CTLD menu with the functions that apply to him:
+The existing scripted `ctld.createExtractZone(...)` call still works unchanged — a
+naming-convention zone and a scripted one behave identically once created, so you can mix both in
+the same mission.
 
-- **Recon** — mark and report what you see.
-- **Smoke** — drops at your own position; marking a spot from a fighter is exactly what it is for.
-- **List Beacons** — a beacon's frequency is navigation information. *Drop Beacon* and *Remove
-  Closest Beacon* stay transport-only.
-- **JTAC Status**, **List active FOBs** and mine clearing were already open to everyone and are
-  unchanged.
-- **Check Cargo** is hidden from him — it could only ever report an empty hold.
+## `ctld-tools` now reads your mission's AI-zone names for you
 
-The transport menus themselves are untouched: a pilot off the list does not get them back through
-his aircraft type, whatever he flies.
+Every `dcsZoneName` field in the tool now offers an autocomplete list of your mission's real
+trigger-zone names — a typo there used to surface only when DCS refused to start the mission.
 
-## A cancelled menu rebuild could land on the next pilot in the slot
+For AI transport zones specifically: if you already name yours something like
+`AIZ_depot_B_P_V`, `ctld-tools` recognises the pattern
+(`AIZ_<name>_<coalition>_<P|D>_<cargoType-or-aiDropMode>`) when you scan your mission, and
+pre-fills a new entry with those four fields already set — no retyping facts your zone name
+already states. Keep the pattern complete if you want the pre-fill; CTLD itself never reads
+meaning from the name, so an incomplete or non-matching one still works identically in DCS, it
+just falls back to a blank entry from the manual **+ AI zone** button instead. Renaming a zone (or
+removing it from the mission) is picked up the same way — a removal is always flagged for your
+confirmation, never applied silently.
 
-DCS reuses the same internal group id for the next occupant of a slot. A menu rebuild that had been
-scheduled for a departing pilot and then cancelled could still fire a fraction of a second later —
-on a **different** player, whose menu was wiped and rebuilt for no reason. Fixed; the cancellation
-now covers both kinds of pending rebuild.
+A pickup zone missing its stock table is now flagged directly in the editor instead of only
+surfacing once the mission is running: a real warning (⚠) when troop pickup is disabled for want
+of a `troopStock`, a calmer note (ⓘ) when a vehicle zone has no `vehicleStock` and is quietly
+falling back to whatever is physically parked there.
 
-Worth noting: this only became reachable *because* of the fix above — before it, the handler never
-got that far.
+## UH-1H no longer transports a whole vehicle — Mi-8MT does it properly instead
 
-## What this means for your configuration
+Requested for realism, not a bug fix: a Huey has no internal cargo bay for a ground vehicle, and
+the documentation already said so — the config just disagreed with it. UH-1H's troop capacity is
+raised from 8 to 10 to match the airframe's real capacity instead.
 
-No setting was renamed, removed, or given a new default. One behaviour changed, though:
+Mi-8MT's own whole-vehicle transport, on the other hand, was declared but never actually worked —
+it had no weight rating or vehicle list, so it could never load one. It now carries a realistic
+external sling-load rating (3000 kg) and the same loadable-vehicle list as the UH-1H.
 
-**With `addPlayerAircraftByType = false`, a pilot absent from `transportPilotNames` used to be
-invisible to CTLD entirely.** He is now tracked and gets a menu — with the non-transport functions
-only. If your mission relied on that list to keep CTLD off certain pilots' F10 menu altogether,
-that is no longer what it does: it decides who gets the *transport* functions.
+### What this means for your mission
+
+**If you relied on the UH-1H to sling-load or carry a whole vehicle, that no longer works — use
+the Mi-8MT instead.** Crate-based cargo on the UH-1H (ammo, supplies, anything that isn't a whole
+ground vehicle) is unaffected.
+
+## `ctld-tools` no longer accepts a decimal where CTLD needs a whole number
+
+Reported by a Mission Maker: typing `6.01` into a troop template's infantry count was silently
+accepted by the editor. Every whole-number-only field — troop and launcher counts, quotas, laser
+codes, onboard-capacity limits, crate requirements, AI-zone stock — now enforces a whole-number
+step and rounds a typed decimal on the spot. Every genuinely continuous field (weights, distances,
+durations) is untouched and still accepts a decimal exactly as before. A hand-edited config that
+still carries a fractional value on one of these fields now gets a validation warning explaining
+which one.
+
+---
+
+Thanks to **Tripack** (VEAF) for testing and feedback on this release candidate.
