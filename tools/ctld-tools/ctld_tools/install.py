@@ -304,6 +304,7 @@ def install(
     *,
     catalog: object | None = None,
     held_sounds: dict[str, bytes] | None = None,
+    configuration_only: bool = False,
 ) -> InstallReport:
     """Write the engine, the sounds, the configuration and their triggers into a `.miz`.
 
@@ -314,45 +315,60 @@ def install(
     catalogue says which of the two settings names a reserved file, and `held_sounds` carries its
     bytes (see `sounds_to_write`). Without them the two bundled sounds are written, which is what
     every caller did before ADR 0012 and what a default configuration still means.
+
+    `configuration_only` writes just the configuration trigger/file/resource-map entry — no engine,
+    no sounds — for a mission whose engine already loads some other way (e.g. this project's own
+    dev/test mission, via a `CTLD_DEV_ROOT` trigger). It still removes any engine/sound triggers a
+    *previous*, non-configuration-only install left in the mission, so switching a mission into
+    this mode converges to "configuration only" rather than leaving a stale partial install behind.
     """
     miz_path = Path(miz_path)
     out_path = Path(out_path) if out_path else miz_path
-
-    engine = resources.read_engine()
-    sounds = sounds_to_write(catalog, held_sounds) if catalog is not None else resources.read_sounds()
 
     mission = read_mission(miz_path)
     map_resource = _read_map_resource(miz_path)
 
     config = _script_trigger(CONFIG_KEY, CONFIG_MARKER)
+    ours = [(config["trig"], config["rule"])]
+
+    map_resource[CONFIG_KEY] = CONFIG_FILE
+    payload: dict[str, bytes] = {f"{L10N}/{CONFIG_FILE}": userconfig_lua.encode("utf-8")}
+
+    if configuration_only:
+        # Every marker stays in the removal set even here: a mission switching into this mode must
+        # lose any engine/sound triggers a previous, non-configuration-only install left behind,
+        # not keep them alongside the new configuration-only one.
+        replaced = rebuild_triggers(mission, ours=ours, markers={CONFIG_MARKER, ENGINE_MARKER, SOUNDS_MARKER})
+        payload[MAP_RESOURCE] = ("mapResource = \n" + luadata.serialize(map_resource, indent="\t")).encode("utf-8")
+        _write_miz(mission, miz_path, out_path, payload)
+        return InstallReport(
+            miz=out_path.name,
+            engine_version=None,
+            files=[CONFIG_FILE],
+            triggers=["configuration"],
+            replaced_previous=replaced,
+            sounds=[],
+        )
+
+    engine = resources.read_engine()
+    sounds = sounds_to_write(catalog, held_sounds) if catalog is not None else resources.read_sounds()
     engine_trigger = _script_trigger(ENGINE_KEY, ENGINE_MARKER)
     sound_keys = [sound_key(name) for name in sorted(sounds)]
     sounds_trigger = _sound_trigger(sound_keys, SOUNDS_MARKER, _silent_country(mission))
 
     # Configuration first: the engine reads ctld.configUser while loading. The sounds last: their
     # trigger exists to hold a reference, and nothing depends on when it runs.
-    replaced = rebuild_triggers(
-        mission,
-        ours=[
-            (config["trig"], config["rule"]),
-            (engine_trigger["trig"], engine_trigger["rule"]),
-            (sounds_trigger["trig"], sounds_trigger["rule"]),
-        ],
-        markers={CONFIG_MARKER, ENGINE_MARKER, SOUNDS_MARKER},
-    )
+    ours.append((engine_trigger["trig"], engine_trigger["rule"]))
+    ours.append((sounds_trigger["trig"], sounds_trigger["rule"]))
+    replaced = rebuild_triggers(mission, ours=ours, markers={CONFIG_MARKER, ENGINE_MARKER, SOUNDS_MARKER})
 
-    map_resource[CONFIG_KEY] = CONFIG_FILE
     map_resource[ENGINE_KEY] = ENGINE_FILE
     for name in sorted(sounds):
         map_resource[sound_key(name)] = name
-
-    payload: dict[str, bytes] = {
-        f"{L10N}/{ENGINE_FILE}": engine,
-        f"{L10N}/{CONFIG_FILE}": userconfig_lua.encode("utf-8"),
-        MAP_RESOURCE: ("mapResource = \n" + luadata.serialize(map_resource, indent="\t")).encode("utf-8"),
-    }
+    payload[f"{L10N}/{ENGINE_FILE}"] = engine
     for name, data in sounds.items():
         payload[f"{L10N}/{name}"] = data
+    payload[MAP_RESOURCE] = ("mapResource = \n" + luadata.serialize(map_resource, indent="\t")).encode("utf-8")
 
     _write_miz(mission, miz_path, out_path, payload)
 

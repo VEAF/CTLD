@@ -1,6 +1,6 @@
 # 01 — Core `install()` — `configuration_only` mode
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** none — can start immediately.
 
