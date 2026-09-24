@@ -1,6 +1,6 @@
 # 03 — UI: "Configuration only" checkbox
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** ticket 02 (needs the `configOnly` field on `/api/inject`).
 

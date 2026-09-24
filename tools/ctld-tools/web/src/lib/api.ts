@@ -164,8 +164,10 @@ export const chooseSound = (setting: string) =>
 export const resetSound = (setting: string) =>
   post(`/api/sounds/${setting}/default`).then((r) => json<{ setting: string; file: string }>(r))
 
-export const injectMiz = (miz: string) =>
-  post('/api/inject', { miz }).then((r) => json<InstallResult>(r))
+/** `configOnly` skips the engine and beacon sounds — for a mission whose engine already loads
+ *  some other way (see the backend's own `install(configuration_only=...)`). */
+export const injectMiz = (miz: string, configOnly = false) =>
+  post('/api/inject', { miz, configOnly }).then((r) => json<InstallResult>(r))
 /** The CTLD version this build belongs to, and the docs version to link to (`dev` for an rc). */
 export type ToolVersion = { ctld: string; docs: string }
 

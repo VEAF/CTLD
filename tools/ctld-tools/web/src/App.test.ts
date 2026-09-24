@@ -81,18 +81,33 @@ beforeEach(() => {
     if (url.endsWith('/api/mission/zones')) return Promise.resolve(jsonResponse({ zones: zonesForMtime(missionMtime), mtime: missionMtime }))
     if (url.endsWith('/api/mission/mtime')) return Promise.resolve(jsonResponse({ mtime: missionMtime }))
     if (url.endsWith('/api/version')) return Promise.resolve(jsonResponse({ ctld: '2.0.0-rc3', docs: 'dev' }))
-    if (url.endsWith('/api/inject'))
+    if (url.endsWith('/api/inject')) {
+      const configOnly = init?.body ? JSON.parse(String(init.body)).configOnly : false
       return Promise.resolve(
-        jsonResponse({
-          injected: '/m.miz',
-          mission: 'm.miz',
-          engineVersion: '2.0.0-rc3',
-          files: ['CTLD.lua', 'CTLD_userConfig.lua', 'beacon.ogg', 'beaconsilent.ogg'],
-          triggers: ['configuration', 'engine'],
-          replacedPrevious: false,
-          changedSettings: 3,
-        }),
+        jsonResponse(
+          configOnly
+            ? {
+                injected: '/m.miz',
+                mission: 'm.miz',
+                engineVersion: null,
+                files: ['CTLD_userConfig.lua'],
+                triggers: ['configuration'],
+                replacedPrevious: false,
+                changedSettings: 3,
+                sounds: [],
+              }
+            : {
+                injected: '/m.miz',
+                mission: 'm.miz',
+                engineVersion: '2.0.0-rc3',
+                files: ['CTLD.lua', 'CTLD_userConfig.lua', 'beacon.ogg', 'beaconsilent.ogg'],
+                triggers: ['configuration', 'engine'],
+                replacedPrevious: false,
+                changedSettings: 3,
+              },
+        ),
       )
+    }
     if (url.endsWith('/api/catalog/setting') && init?.method === 'PUT') {
       return Promise.resolve(jsonResponse(JSON.parse(String(init.body)))) // echo {key, value}
     }
@@ -223,6 +238,34 @@ test('installing reports what landed in the mission', async () => {
   expect(screen.getByText(/CTLD 2\.0\.0-rc3/)).toBeInTheDocument()
   expect(screen.getByText(/3 setting\(s\) changed/)).toBeInTheDocument()
   expect(screen.getByText(/configuration, then engine/)).toBeInTheDocument()
+})
+
+test('the configuration-only checkbox is unchecked by default and does not change the request', async () => {
+  render(App)
+  const checkbox = await screen.findByRole('checkbox', { name: /Configuration only/ })
+  expect(checkbox).not.toBeChecked()
+
+  await fireEvent.click(screen.getByRole('button', { name: /Install into mission/ }))
+  expect(await screen.findByText(/Installed into m\.miz/)).toBeInTheDocument()
+  expect(global.fetch).toHaveBeenCalledWith(
+    '/api/inject',
+    expect.objectContaining({ body: JSON.stringify({ miz: '/m.miz', configOnly: false }) }),
+  )
+})
+
+test('checking configuration-only sends configOnly and reports the config-only outcome', async () => {
+  render(App)
+  const checkbox = await screen.findByRole('checkbox', { name: /Configuration only/ })
+  await fireEvent.click(checkbox)
+  expect(checkbox).toBeChecked()
+
+  await fireEvent.click(screen.getByRole('button', { name: /Install into mission/ }))
+  expect(await screen.findByText(/Installed your configuration into m\.miz/)).toBeInTheDocument()
+  expect(screen.getByText(/engine and beacon sounds were left untouched/)).toBeInTheDocument()
+  expect(global.fetch).toHaveBeenCalledWith(
+    '/api/inject',
+    expect.objectContaining({ body: JSON.stringify({ miz: '/m.miz', configOnly: true }) }),
+  )
 })
 
 test('switching language translates the chrome and re-fetches the schema', async () => {
