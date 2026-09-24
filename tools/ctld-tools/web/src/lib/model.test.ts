@@ -92,6 +92,7 @@ describe('hidden keys', () => {
 
 describe('editorType', () => {
   const enumMeta: SchemaKey = { group: null, standard: false, choices: ['a', 'b'], editor: null, hidden: false, label: null, unit: null, description: null }
+  const integerMeta: SchemaKey = { group: null, standard: false, choices: null, editor: null, hidden: false, label: null, unit: null, type: 'integer', description: null }
 
   it('resolves each scalar type', () => {
     expect(editorType(enumMeta, 'a')).toBe('enum')
@@ -100,9 +101,17 @@ describe('editorType', () => {
     expect(editorType(undefined, 'text')).toBe('string')
   })
 
+  it('resolves an integer-typed setting, even when its value looks like a plain number', () => {
+    expect(editorType(integerMeta, 10)).toBe('integer')
+  })
+
+  it('a schema without type: integer resolves the same setting as a plain number', () => {
+    expect(editorType(undefined, 10)).toBe('number')
+  })
+
   it('is total — every key renders an editor (generic fallback, coverage gate)', () => {
-    const valid: EditorType[] = ['boolean', 'enum', 'number', 'string']
-    const metas: (SchemaKey | undefined)[] = [undefined, enumMeta]
+    const valid: EditorType[] = ['boolean', 'enum', 'integer', 'number', 'string']
+    const metas: (SchemaKey | undefined)[] = [undefined, enumMeta, integerMeta]
     const values: unknown[] = [true, 0, 3.14, 'x', null, undefined, ['a'], { k: 1 }]
     for (const meta of metas) for (const v of values) expect(valid).toContain(editorType(meta, v))
   })
@@ -114,6 +123,16 @@ describe('coerce', () => {
     expect(coerce('not-a-number', 'number')).toBe('not-a-number')
     expect(coerce(true, 'boolean')).toBe(true)
     expect(coerce('hello', 'string')).toBe('hello')
+  })
+
+  it('rounds an integer field to the nearest whole number', () => {
+    expect(coerce('6.01', 'integer')).toBe(6)
+    expect(coerce('6.5', 'integer')).toBe(7)
+    expect(coerce('10', 'integer')).toBe(10)
+  })
+
+  it('leaves an unparseable integer input as the raw string, like number', () => {
+    expect(coerce('not-a-number', 'integer')).toBe('not-a-number')
   })
 })
 

@@ -162,6 +162,16 @@ def test_settings_that_are_not_measurements_have_no_unit():
         assert keys[key]["unit"] is None, key
 
 
+def test_schema_endpoint_exposes_integer_type():
+    # FIX-CTLD-TOOLS-INTEGER-FIELDS: a whole-number-only setting declares type: integer; a
+    # continuous one (even a counter/code/fraction with no unit, per the test above) stays None.
+    keys = client.get("/api/schema?lang=en").json()["keys"]
+    for key in ("numberOfTroops", "aaLaunchers", "JTAC_smokeColour_BLUE", "beaconTextSize"):
+        assert keys[key]["type"] == "integer", key
+    for key in ("hoverTime", "parachuteInertiaFactor", "maxTransportWeight"):
+        assert keys[key]["type"] is None, key
+
+
 def test_labels_never_use_the_banned_repack_wording():
     # Project convention: "repack" is banned, "pack" everywhere — including user-facing labels.
     for lang in ("en", "fr"):

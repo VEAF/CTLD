@@ -1,6 +1,6 @@
 # 01 — `integer` `EditorType` for scalar settings
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** none — can start immediately.
 

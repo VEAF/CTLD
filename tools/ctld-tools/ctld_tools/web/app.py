@@ -158,6 +158,7 @@ def get_schema(lang: str | None = None) -> dict[str, Any]:
             "hidden": schema.hidden(k),
             "label": schema.label(k, language),
             "unit": schema.unit(k),
+            "type": schema.value_type(k),
             "description": schema.description(k, language) or schema.description(k),
         }
         for k in schema.keys()

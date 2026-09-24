@@ -58,9 +58,9 @@
           <option value={String(choice)}>{String(choice)}</option>
         {/each}
       </select>
-    {:else if type === 'number'}
+    {:else if type === 'number' || type === 'integer'}
       <span class="numfield">
-        <input {id} type="number" step="any" value={value as number} onchange={(e) => onedit(settingKey, e.currentTarget.value, 'number')} />
+        <input {id} type="number" step={type === 'integer' ? '1' : 'any'} value={value as number} onchange={(e) => onedit(settingKey, e.currentTarget.value, type)} />
         {#if unit}<span class="unit">{unit}</span>{/if}
       </span>
     {:else}

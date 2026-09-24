@@ -16,6 +16,13 @@
 #                 the code that consumes the value (see .backlog/CTLD-TOOLS-MM-UX ticket 14);
 #                 settings that are counters, codes, fractions or multipliers have none, on
 #                 purpose. `deployedBeaconBattery` is the only one the engine converts (× 60).
+#   type:         `integer` = the value must be a whole number (a count, a quota, a code, an
+#                 index) — the editor enforces a whole-number step and rounds on edit; absent =
+#                 a continuous number (a weight, a distance, a duration, a multiplier), unchanged
+#                 from the default behaviour. Unlike the Parameter/List tier (ADR 0011 Addendum
+#                 1), this cannot be derived from the default value's shape — a genuine count and
+#                 a value that is merely whole today look identical — so it is declared here
+#                 instead (see FIX-CTLD-TOOLS-INTEGER-FIELDS's ADR).
 #   description:  { en, fr } help text — shown and searchable in the settings picker
 #
 # Two reserved top-level sections are not settings: `families:` (per-family label /
@@ -163,6 +170,7 @@ maximumDistancePackableUnitsSearch:
 numberOfTroops:
   group: troops
   standard: true
+  type: integer
   label: {en: Default troop group size, fr: Taille de groupe de troupes par défaut}
   description:
     en: Default / max troop group size per transport (overridden per aircraft by maxTroopsOnboard)
@@ -233,6 +241,7 @@ JTAC_lock:
 JTAC_LIMIT_BLUE:
   group: jtac
   standard: true
+  type: integer
   label: {en: BLUE JTAC quota, fr: Quota de JTAC BLUE}
   description:
     en: Max JTAC objects BLUE may spawn (fixed quota — not refilled when a JTAC is killed)
@@ -240,6 +249,7 @@ JTAC_LIMIT_BLUE:
 JTAC_LIMIT_RED:
   group: jtac
   standard: true
+  type: integer
   label: {en: RED JTAC quota, fr: Quota de JTAC RED}
   description:
     en: Max JTAC objects RED may spawn (same)
@@ -297,6 +307,7 @@ JTAC_smokeOn_RED:
 JTAC_smokeColour_BLUE:
   group: jtac
   standard: true
+  type: integer
   label: {en: BLUE JTAC smoke colour, fr: Couleur de fumigène des JTAC BLUE}
   description:
     en: BLUE JTAC smoke colour — 0=Green 1=Red 2=White 3=Orange 4=Blue
@@ -304,6 +315,7 @@ JTAC_smokeColour_BLUE:
 JTAC_smokeColour_RED:
   group: jtac
   standard: true
+  type: integer
   label: {en: RED JTAC smoke colour, fr: Couleur de fumigène des JTAC RED}
   description:
     en: RED JTAC smoke colour — 0=Green 1=Red 2=White 3=Orange 4=Blue
@@ -535,6 +547,7 @@ demineRadius:
 aaLaunchers:
   group: aa
   standard: true
+  type: integer
   label: {en: Launchers per AA system, fr: Lanceurs par système AA}
   description:
     en: Default number of launchers per AA system when the template does not specify
@@ -542,6 +555,7 @@ aaLaunchers:
 AASystemLimitBLUE:
   group: aa
   standard: true
+  type: integer
   label: {en: BLUE AA system limit, fr: Limite de systèmes AA BLUE}
   description:
     en: Max active AA systems for BLUE
@@ -549,6 +563,7 @@ AASystemLimitBLUE:
 AASystemLimitRED:
   group: aa
   standard: true
+  type: integer
   label: {en: RED AA system limit, fr: Limite de systèmes AA RED}
   description:
     en: Max active AA systems for RED
@@ -1028,12 +1043,14 @@ slingCutDestroyHeight:
     fr: Hauteur AGL (m) au-dessus de laquelle couper une élingue détruit la caisse à l'impact
 jtacLaserCodeMin:
   group: jtac
+  type: integer
   label: {en: Lowest laser code, fr: Code laser le plus bas}
   description:
     en: Lowest assignable JTAC laser code (NATO range)
     fr: Code laser JTAC assignable le plus bas (plage OTAN)
 jtacLaserCodeMax:
   group: jtac
+  type: integer
   label: {en: Highest laser code, fr: Code laser le plus haut}
   description:
     en: Highest assignable JTAC laser code (NATO range)
@@ -1182,6 +1199,7 @@ beaconIconRadius:
   label: {en: Beacon icon radius, fr: Rayon des icônes de beacon}
   unit: m
 beaconTextSize:
+  type: integer
   label: {en: Beacon label text size, fr: Taille du texte des étiquettes de beacon}
 beaconIconColor:
   label: {en: Beacon icon colour, fr: Couleur des icônes de beacon}

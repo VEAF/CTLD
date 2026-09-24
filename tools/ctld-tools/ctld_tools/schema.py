@@ -90,6 +90,17 @@ class Schema:
         unit = self._entry(key).get("unit")
         return str(unit) if unit is not None else None
 
+    def value_type(self, key: str) -> str | None:
+        """The declared value type ("integer"), or None for the default (a continuous number).
+
+        Unlike the Parameter/List tier (ADR 0011 Addendum 1), whether a numeric setting must be a
+        whole number cannot be derived from its default value's shape alone — a genuine count
+        (`numberOfTroops: 10`) and a value that is merely whole today but legitimately continuous
+        (`crateSpacing: 5`) look identical. Declared here instead (FIX-CTLD-TOOLS-INTEGER-FIELDS).
+        """
+        t = self._entry(key).get("type")
+        return str(t) if t is not None else None
+
     def families(self) -> list[str]:
         """The distinct functional families declared across the schema, sorted."""
         return sorted({g for k in self.keys() if (g := self.group(k))})
