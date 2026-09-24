@@ -78,6 +78,8 @@
   "tui.type.troop": "Troop group",
   "tui.validation": "Validation",
   "tui.validation.ok": "OK — no issues",
+  "validate.aizone.troop_stock_missing": "AI zone '{name}': isPickup with troop cargo but troopStock is empty — troop pickup is disabled here until it is set",
+  "validate.aizone.vehicle_stock_absent": "AI zone '{name}': isPickup with vehicle cargo but vehicleStock is not set — this zone only offers a vehicle physically placed in the Mission Editor, not virtual stock",
   "validate.array.not_appendable": "'{setting}' is not an appendable array setting",
   "validate.crate.ambiguous": "crate name '{name}' is ambiguous ({weights}); target it by weight instead",
   "validate.crate.missing_name": "missing 'name'",

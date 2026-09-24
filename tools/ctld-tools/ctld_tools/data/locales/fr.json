@@ -78,6 +78,8 @@
   "tui.type.troop": "Groupe de troupes",
   "tui.validation": "Validation",
   "tui.validation.ok": "OK — aucun problème",
+  "validate.aizone.troop_stock_missing": "Zone IA « {name} » : isPickup avec cargo troupes mais troopStock est vide — le ramassage de troupes y est désactivé tant qu'il n'est pas renseigné",
+  "validate.aizone.vehicle_stock_absent": "Zone IA « {name} » : isPickup avec cargo véhicule mais vehicleStock n'est pas renseigné — cette zone n'offre qu'un véhicule physiquement placé dans la Mission Editor, pas de stock virtuel",
   "validate.array.not_appendable": "« {setting} » n'est pas un réglage-liste où ajouter",
   "validate.crate.ambiguous": "nom de crate « {name} » ambigu ({weights}) ; ciblez-le par son poids",
   "validate.crate.missing_name": "« name » manquant",
