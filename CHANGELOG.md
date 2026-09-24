@@ -25,6 +25,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   - `ctld-tools validate` now reports a `WARNING` for any of the above fields that already carries
     a fractional value — the safety net for a value that bypassed the editor entirely (a
     hand-edited YAML, or a config/catalogue predating this fix), not just fresh edits (ticket 03).
+  - A `spawnableCrates` mixed-set entry's coalition (`side`) now uses the same RED/BLUE dropdown an
+    ordinary crate already had, instead of a free-typed number (ticket 04).
   No engine (`src/CTLD_*.lua`) behaviour change — `CTLD_config_schema.yaml` only guides the
   authoring tool.
 

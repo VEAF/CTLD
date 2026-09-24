@@ -90,7 +90,13 @@
         {#if crate.mixedSet}
           <span class="badge">{t('web.table.mixed_set')}</span>
           <label>{fieldLabel('desc')}<input value={String(crate.desc ?? '')} onchange={(e) => setField(section, i, 'desc', e.currentTarget.value)} /></label>
-          <label>{fieldLabel('side')}<input type="number" value={crate.side as number} onchange={(e) => setField(section, i, 'side', num(e.currentTarget.value))} /></label>
+          <label title={tip('side')}>{fieldLabel('side')}
+            <select class="side" class:red={crate.side === 1} class:blue={crate.side === 2} value={crate.side === undefined ? '' : String(crate.side)} onchange={(e) => setField(section, i, 'side', e.currentTarget.value === '' ? undefined : Number(e.currentTarget.value))}>
+              <option value="">{t('web.table.side_both')}</option>
+              <option value="1">RED</option>
+              <option value="2">BLUE</option>
+            </select>
+          </label>
           <span class="mixed">{t('web.table.component_weights', { weights: (crate.mixedSet as unknown[]).join(', ') })}</span>
         {:else}
           <label title={tip('desc')}>{fieldLabel('desc')}<input value={String(crate.desc ?? '')} onchange={(e) => setField(section, i, 'desc', e.currentTarget.value)} /></label>
