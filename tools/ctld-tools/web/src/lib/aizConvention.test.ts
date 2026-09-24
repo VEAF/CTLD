@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { addMissingAizZones, findOrphanedAizZones, parseAizZoneName } from './aizConvention'
+import { addMissingAizZones, defaultTroopStock, findOrphanedAizZones, parseAizZoneName } from './aizConvention'
 
 test('parses a well-formed pickup zone', () => {
   expect(parseAizZoneName('AIZ_depot_B_P_V')).toEqual({
@@ -75,6 +75,22 @@ test('addMissingAizZones creates an entry for every unmatched AIZ_ zone, stock l
   ])
   expect(result[0]).not.toHaveProperty('troopStock')
   expect(result[0]).not.toHaveProperty('vehicleStock')
+})
+
+test('defaultTroopStock is unlimited-all when cargo includes troops, absent otherwise', () => {
+  expect(defaultTroopStock('T')).toEqual({ All: -1 })
+  expect(defaultTroopStock('TV')).toEqual({ All: -1 })
+  expect(defaultTroopStock('V')).toBeUndefined()
+  expect(defaultTroopStock(undefined)).toBeUndefined()
+})
+
+test('addMissingAizZones gives a troop-cargo pickup zone a safe troopStock, never vehicleStock', () => {
+  const result = addMissingAizZones(['AIZ_depot_B_P_T', 'AIZ_hub_B_P_TV'], [])
+  expect(result).toEqual([
+    { dcsZoneName: 'AIZ_depot_B_P_T', coalition: 'BLUE', isPickup: true, isDropoff: false, cargoType: 'T', troopStock: { All: -1 } },
+    { dcsZoneName: 'AIZ_hub_B_P_TV', coalition: 'BLUE', isPickup: true, isDropoff: false, cargoType: 'TV', troopStock: { All: -1 } },
+  ])
+  for (const zone of result) expect(zone).not.toHaveProperty('vehicleStock')
 })
 
 test('addMissingAizZones never touches an already-present entry', () => {

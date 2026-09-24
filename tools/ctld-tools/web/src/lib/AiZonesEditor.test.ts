@@ -79,6 +79,14 @@ test('adding a zone seeds the fields the engine needs', async () => {
   expect(zone.cargoType).toBe('T')
 })
 
+test('adding a zone also seeds a safe troopStock, since its default cargo includes troops', async () => {
+  const onchange = setup([])
+  await fireEvent.click(screen.getByText('+ AI zone'))
+  const zone = onchange.mock.lastCall![0][0]
+  expect(zone.troopStock).toEqual({ All: -1 })
+  expect(zone.vehicleStock).toBeUndefined()
+})
+
 test('dcsZoneName suggests real zone names read from the tracked mission', () => {
   const onchange = vi.fn()
   render(AiZonesEditor, {

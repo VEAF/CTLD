@@ -1,6 +1,6 @@
 # 01 — `troopStock` default on both zone-creation paths
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** none — can start immediately.
 
