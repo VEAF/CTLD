@@ -1,6 +1,6 @@
 # FIX-CTLD-TOOLS-AIZ-STOCK-GAP — a safe troopStock default, and real visibility for a stockless AIZ_ entry
 
-**Status:** open.
+**Status:** ✅ done (PR #180).
 
 Formalizes `dev/roadmap.md`'s "`ctld-tools` — aiZones : `troopStock`/`vehicleStock` absents,
 aucune visibilité ni garde-fou" entry (added 2026-09-24). This PRD does not re-derive the engine
