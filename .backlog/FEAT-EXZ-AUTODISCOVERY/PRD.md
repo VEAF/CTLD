@@ -1,6 +1,6 @@
 # FEAT-EXZ-AUTODISCOVERY — EXZ_ naming-convention discovery, plus a real per-mission config for the dev test mission
 
-**Status:** open.
+**Status:** ✅ done (PR #181).
 
 Formalizes the `grill-with-docs` session held 2026-09-23 on `dev/roadmap.md`'s "AIZ_ — pourquoi
 une config explicite" entry, opened while diagnosing why `missions/Test_CTLDNEXT_01.miz`'s AI
