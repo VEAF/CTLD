@@ -6,55 +6,12 @@ Chemin vers la formalisation : `grill-with-docs` → `to-prd` → `to-issues`.
 
 ---
 
-## ctld-tools — aiZones : `troopStock`/`vehicleStock` absents, aucune visibilité ni garde-fou
+<!-- ctld-tools — aiZones : troopStock/vehicleStock absents : formalisé en lot
+     `.backlog/FIX-CTLD-TOOLS-AIZ-STOCK-GAP/`, mergé (PR #180, 4 tickets) — défaut troopStock
+     asymétrique, validation WARNING dans validate.py, indicateur ⚠/ⓘ inline dans l'éditeur. -->
 
-**Formalisé en lot `.backlog/FIX-CTLD-TOOLS-AIZ-STOCK-GAP/` (to-prd, 2026-09-24).**
-
-Constaté le 2026-09-24 en revenant sur le ticket 03 de `FEAT-CTLD-TOOLS-AIZ-SYNC` : sa décision
-("stock laissé absent, l'alerte de validation existante 'stock manquant' signale déjà qu'il faut
-compléter") s'appuyait sur une alerte qui **n'existe pas** — vérifié dans `validate.py` (aucun
-contrôle sur `troopStock`/`vehicleStock`/`aiZones`) et dans `AiZonesEditor.svelte` (aucune icône,
-aucun repli/dépli de zone). Le bouton manuel « + AI zone » a le même défaut (aucun stock par
-défaut, aucun signal).
-
-En creusant le comportement réel du moteur (`CTLD_core.lua`), l'absence n'a pas le même impact
-selon le champ — **asymétrie confirmée par le code, pas juste une supposition** :
-- `troopStock` absent → `CTLD_core.lua:668-669` (*"A: troopStock=nil → pickup disabled for this
-  zone"*) : le ramassage de troupes est **réellement désactivé**, sans repli. Un stock par défaut
-  sûr (`{All: -1}`) devrait être posé automatiquement (auto-détection **et** bouton manuel) quand
-  `cargoType` inclut `T`.
-- `vehicleStock` absent → `CTLD_core.lua:619-663` : un repli **réel et fonctionnel** existe (scan
-  physique d'un véhicule DCS présent dans la zone, mécanisme pré-Feature-T, indépendant du stock
-  virtuel). Ne pas imposer de valeur par défaut ici — ça changerait silencieusement le
-  comportement de la mission bien plus largement que pour les troupes — mais rendre le mode
-  visible (icône + message clair : « pas de stock virtuel — ramassage physique uniquement »).
-
-Reste dans tous les cas : ajouter la validation manquante (`validate.py`) et l'indicateur visuel
-dans `ctld-tools` (icône sur l'entrée de zone **et** sur le champ concerné une fois la zone
-affichée) — actuellement absents des deux côtés.
-
-## ctld-tools — mode « configuration seule » à l'installation (évite le double chargement moteur)
-
-**Formalisé en lot `.backlog/FEAT-CTLD-TOOLS-CONFIG-ONLY-INSTALL/` (to-prd, 2026-09-24).**
-
-Constaté le 2026-09-24 en préparant l'élargissement du ticket 01 de `FEAT-EXZ-AUTODISCOVERY` à ses
-15 zones : `install()` (`ctld_tools/install.py:300`, appelé par le bouton unique « Install into
-mission… ») écrit **toujours** le moteur + les sons + la config ensemble, avec son propre trigger
-de chargement moteur — sans jamais toucher un éventuel autre mécanisme de chargement moteur déjà
-présent dans la mission (il le renumérote après le sien, ne le supprime pas).
-
-Cas concret qui bloque : `missions/Test_CTLDNEXT_01.miz` charge déjà le moteur via le trigger
-`CTLD_DEV_ROOT` (`DEV-LOCAL-MIZ`, toujours la build locale la plus fraîche). Utiliser le bouton
-d'installation de `ctld-tools` dessus ajouterait un **second** chargement moteur (celui embarqué
-dans `ctld-tools.exe`, potentiellement une version différente) — risque réel de double
-initialisation, pas seulement théorique.
-
-Idée : ajouter un mode « configuration seule » à l'installation (case à cocher à côté du bouton
-existant, décochée par défaut) qui écrit uniquement le trigger + fichier + entrée `mapResource` de
-config, sans jamais toucher au moteur ni aux sons. Points à trancher pour la PRD : le comportement
-de validation des sons personnalisés en mode config-only (ils ne sont pas installés, donc ne
-doivent pas bloquer), et si un ré-install en mode config-only doit nettoyer les triggers
-moteur/sons d'une installation complète précédente (convergence propre) ou les laisser en l'état.
+<!-- ctld-tools — mode « configuration seule » à l'installation : formalisé en lot
+     `.backlog/FEAT-CTLD-TOOLS-CONFIG-ONLY-INSTALL/`, mergé (PR #174). -->
 
 ## AA System → Scenes — Remplacer CTLDCrateAssemblyManager par des scènes
 
@@ -431,84 +388,12 @@ Non tranché (à instruire en grill-with-docs dédié avant to-prd) :
   filet pour d'autres collisions possibles (deux zones auto-détectées de préfixes différents
   partageant le même nom complet, par exemple) ?
 
-## Rappel — donner les paramètres `ctld-tools` pour configurer `Test_CTLDNEXT_01.miz`
+<!-- Rappel — donner les paramètres ctld-tools pour configurer Test_CTLDNEXT_01.miz : résolu
+     2026-09-24 — table des 15 zones donnée à a.lingo, saisie via ctld-tools, config persistée et
+     vérifiée en live DCS (F-176, MT-07/08/08B/09/10/11/12/13/14 tous PASS), lot
+     `FEAT-EXZ-AUTODISCOVERY` ticket 01, PR #181. -->
 
-Demandé le 2026-09-23, pendant l'implémentation du ticket 01 de `FEAT-EXZ-AUTODISCOVERY`
-(config `aiZones` persistée pour la mission de test) : a.lingo veut pouvoir configurer lui-même
-`Test_CTLDNEXT_01.miz` via l'éditeur `ctld-tools` (webapp), pas seulement par script.
-
-**Périmètre élargi le 2026-09-23** (suite à `FEAT-CTLD-TOOLS-AIZ-SYNC`) : la mission porte en
-réalité 15 zones `AIZ_`, pas 3 — aucune n'a de config `.miz` persistée (vérifié : les 4 triggers de
-la mission ne touchent ni `aiZones` ni `configUser`), certaines n'existent qu'en filet de sécurité
-défensif dans un scénario (`MT-08`/`MT-08B`/`MT-09`), d'autres nulle part du tout (`MT-07`,
-`MT-10`–`MT-14`, `F-176`). Les 15 lignes complètes (valeurs confirmées par les tests + docs, et les
-5 zones dropoff dont le vrai `aiDropMode` reste à confirmer) sont dans
-`.backlog/FEAT-EXZ-AUTODISCOVERY/tickets/01-persist-test-mission-config.md` — donner ce tableau
-complet à a.lingo, pas seulement les 3 zones d'origine.
-
-## `ctld-tools` — lire les zones du `.miz` pour peupler et synchroniser l'éditeur AIZ_
-
-**Formalisé en lot `.backlog/FEAT-CTLD-TOOLS-AIZ-SYNC/` (to-prd, 2026-09-23).** Conclusions
-ci-dessous conservées comme référence pour le découpage en tickets — le PRD y renvoie
-explicitement plutôt que de les redupliquer.
-
-Constaté le 2026-09-23 en préparant le ticket 01 de `FEAT-EXZ-AUTODISCOVERY` : a.lingo doit
-ressaisir dans `ctld-tools` des informations (coalition, pickup/dropoff, cargoType) déjà présentes
-dans le nom DCS de ses zones `AIZ_` (ex. `AIZ_depot_B_P_V_10`) — décoratif aujourd'hui, puisque
-`_loadAIZonesFromConfig` ne lit jamais `dcsZoneName`, seulement `ctld.gs("aiZones")`. Grillé en
-profondeur le même jour ; conclusions ci-dessous, prêt pour `to-prd`.
-
-**Constat de code qui a lancé le grill** : `ctld_tools/web/app.py` garde déjà un
-`session.mission_path` (le `.miz` suivi par toute l'appli, aujourd'hui utilisé seulement pour
-vérifier quels sons il contient) et `ctld_tools/miz.py` a déjà `read_mission()` (utilisé pour
-l'injection) — mais rien ne relit jamais la liste des zones de trigger d'un `.miz` pour l'édition.
-`AiZonesEditor.svelte`'s `dcsZoneName` est un `<input>` texte libre, sans la `<datalist>`
-d'auto-complétion que le champ voisin des templates de troupes a déjà.
-
-**Décisions retenues (grill du 2026-09-23) :**
-
-1. **Convention partielle, côté outil uniquement — jamais interprétée par le moteur Lua.**
-   `AIZ_<name>_<coalition>_<P|D>_<cargoType-ou-aiDropMode>`, analysé strictement de gauche à
-   droite (4 premiers champs utiles seulement, tout ce qui suit — ex. le suffixe de stock `_10`
-   déjà présent dans les zones réelles — est ignoré, pas rejeté). Décidé explicitement contre une
-   auto-détection moteur (comme `EXZ_`, ticket 02) : une zone ainsi créée par le moteur aurait
-   toujours `isPickup`/`isDropoff` vrai mais jamais de `troopStock`/`vehicleStock` (des tables, ne
-   rentrent pas dans un nom — même limite qu'`AIZ_` avait déjà, cf. ADR 0016) → avertissement
-   systématique « pickup activé mais stock manquant » par construction, et surtout **deux sources
-   de vérité pour la même zone** (le nom auto-parsé et la config qui la complète après coup) — le
-   piège exact qu'on vient de refermer avec `FEAT-EXZ-AUTODISCOVERY` ticket 01. En restant
-   côté outil, le seul artefact réel produit reste toujours une entrée `aiZones` complète et
-   explicite ; la convention n'est qu'un raccourci de saisie humain, réversible sans aucun risque
-   runtime.
-2. **Deux capacités livrées ensemble** : (A) une `datalist` générique sur `dcsZoneName` listant
-   **toutes** les zones réelles du `.miz` (utile même sans rapport avec `AIZ_`, tue la classe de
-   bug "faute de frappe non détectée avant le démarrage de la mission DCS") ; (B) une
-   réconciliation ciblée des zones `AIZ_` avec la config.
-3. **Sélection du `.miz` source = `session.mission_path` existant**, pas un second concept de
-   "fichier source" séparé du `.miz` cible de l'injection — un MM travaille presque toujours sur
-   le même fichier pour les deux.
-4. **Réconciliation bidirectionnelle à chaque scan** (bouton manuel de sélection du `.miz`, **et**
-   détection automatique par comparaison de la date de modification (mtime) du fichier à chaque
-   fois que l'onglet Zones IA redevient actif — pas de watcher permanent, une appli locale
-   mono-utilisateur n'en a pas besoin) :
-   - **Ajout** : toute zone `AIZ_` trouvée dans le `.miz` sans entrée `aiZones` correspondante en
-     obtient une automatiquement, les 4 champs simples renseignés, `troopStock`/`vehicleStock`
-     **absents** (pas juste vides — l'avertissement de validation déjà existant du moteur/de
-     l'outil sert de TODO visible sans code supplémentaire). Appliqué silencieusement, sans risque
-     de perte.
-   - **Suppression** : toute entrée dont le `dcsZoneName` matche la convention `AIZ_` et dont la
-     zone n'existe plus dans le `.miz` fraîchement scanné est proposée au retrait — **jamais
-     silencieusement** : un récapitulatif (« N zones vont être retirées ») doit être confirmé
-     avant application, pour rester rattrapable en cas de mauvais `.miz` sélectionné par erreur.
-   - **Jamais touché** : une entrée déjà importée (complétée ou non) n'est jamais réécrite par un
-     re-scan ; une entrée à nom libre (pas `AIZ_`) reste hors de cette réconciliation quoi qu'il
-     arrive à sa zone — ça reste la responsabilité de `ctld-tools validate`, déjà existant.
-   - L'obligation de sélectionner un `.miz` ne porte que sur la fonctionnalité de scan/import — un
-     MM qui édite une config déjà chargée sans vouloir importer de nouvelles zones ne doit pas en
-     avoir besoin.
-
-**Candidat ADR** pour le ticket d'implémentation : la décision 1 (côté outil, jamais moteur) est
-difficile à revenir en arrière une fois des MM habitués au pré-remplissage, surprenante sans
-contexte (« pourquoi `EXZ_` est auto-détecté par le moteur mais pas `AIZ_` ? »), et le résultat
-d'un vrai compromis pesé — mérite son propre ADR dans `dev/adr/` (le dossier couvre déjà des
-décisions `ctld-tools`, cf. ADR 0009/0011), pas seulement cette note de roadmap.
+<!-- ctld-tools — lire les zones du .miz pour peupler et synchroniser l'éditeur AIZ_ : formalisé
+     en lot `.backlog/FEAT-CTLD-TOOLS-AIZ-SYNC/`, mergé (PR #169) — datalist dcsZoneName +
+     réconciliation ajout/suppression des zones AIZ_, convention `AIZ_<name>_<coalition>_<P|D>_
+     <cargoType-ou-aiDropMode>` côté outil uniquement (ADR dédié dans dev/adr/). -->
