@@ -8,6 +8,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — `ctld-tools` gains an `integer` field type for whole-number settings (FIX-CTLD-TOOLS-INTEGER-FIELDS, ticket 01)
+
+- **A whole-number-only scalar setting can no longer be given a fractional value in `ctld-tools`.**
+  `numberOfTroops`, `JTAC_LIMIT_BLUE`/`RED`, `AASystemLimitBLUE`/`RED`, `aaLaunchers`,
+  `jtacLaserCodeMin`/`Max`, `JTAC_smokeColour_BLUE`/`RED` and `beaconTextSize` are now declared
+  `type: integer` in `CTLD_config_schema.yaml`: the editor enforces a whole-number step and rounds
+  a typed decimal on edit, instead of the previous blanket `step="any"` that accepted any decimal.
+  Closes GitHub issue #157 for these settings; the same fix for `loadableGroups`/
+  `capabilitiesByType`/`spawnableCrates`/`aiZones` follows in ticket 02. No engine (`src/CTLD_*.lua`)
+  behaviour changes — `CTLD_config_schema.yaml` only guides the authoring tool.
+
 ### Added — `EXZ_` extraction zones can be created by naming convention (FEAT-EXZ-AUTODISCOVERY)
 
 - **A Mission Maker can create an extraction zone by naming a trigger zone**

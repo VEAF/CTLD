@@ -45,6 +45,20 @@ def test_uncovered_setting_is_none_not_error():
     assert s.standard("__no_such_setting__") is False
 
 
+def test_integer_settings_are_declared():
+    """FIX-CTLD-TOOLS-INTEGER-FIELDS: a whole-number-only setting declares `type: integer`.
+
+    Unlike the Parameter/List tier (ADR 0011 Addendum 1), this cannot be derived from the
+    default value's shape alone, so it must be declared — confirmed for a representative setting
+    per family, plus a continuous setting that must stay undeclared.
+    """
+    s = sch()
+    for key in ("numberOfTroops", "JTAC_LIMIT_BLUE", "jtacLaserCodeMin", "beaconTextSize"):
+        assert s.value_type(key) == "integer", f"{key} must declare type: integer"
+    for key in ("aaRearmDistance", "hoverTime", "__no_such_setting__"):
+        assert s.value_type(key) is None, f"{key} must stay a continuous number"
+
+
 def test_sound_settings_declare_their_editor():
     """The picker is bound to `editor: sound`, never to a setting name in a component."""
     s = sch()

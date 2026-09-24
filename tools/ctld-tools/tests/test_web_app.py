@@ -162,6 +162,16 @@ def test_settings_that_are_not_measurements_have_no_unit():
         assert keys[key]["unit"] is None, key
 
 
+def test_schema_endpoint_exposes_integer_type():
+    # FIX-CTLD-TOOLS-INTEGER-FIELDS: a whole-number-only setting declares type: integer; a
+    # continuous one (even a counter/code/fraction with no unit, per the test above) stays None.
+    keys = client.get("/api/schema?lang=en").json()["keys"]
+    for key in ("numberOfTroops", "aaLaunchers", "JTAC_smokeColour_BLUE", "beaconTextSize"):
+        assert keys[key]["type"] == "integer", key
+    for key in ("hoverTime", "parachuteInertiaFactor", "maxTransportWeight"):
+        assert keys[key]["type"] is None, key
+
+
 def test_labels_never_use_the_banned_repack_wording():
     # Project convention: "repack" is banned, "pack" everywhere — including user-facing labels.
     for lang in ("en", "fr"):
@@ -414,14 +424,13 @@ def test_mission_mtime_is_cheap_and_never_opens_the_archive(monkeypatch):
 # installs it says so and steps aside (see test_install.py); this one used to fail instead, deep in
 # the response payload, on a `KeyError: 'injected'` that named neither the engine nor the build.
 @pytest.mark.skipif(not (REPO / "CTLD.lua").is_file(), reason="CTLD.lua not built in this checkout")
-def test_inject_into_miz(tmp_path):
+def test_inject_into_miz(pristine_miz, tmp_path):
     import shutil
 
     from ctld_tools.miz import MARKER, read_mission
 
-    src_miz = REPO / "missions" / "Test_CTLDNEXT_01.miz"
     miz = tmp_path / "out.miz"
-    shutil.copy(src_miz, miz)
+    shutil.copy(pristine_miz, miz)
     client.post("/api/catalog/load-default")  # clean catalogue, no validation errors
     result = client.post("/api/inject", json={"miz": str(miz)}).json()
     assert result["injected"] == str(miz)

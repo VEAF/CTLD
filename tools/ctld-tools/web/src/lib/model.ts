@@ -73,12 +73,17 @@ export function settingKeys(snap: Snapshot, schema?: SchemaInfo): string[] {
 }
 
 // ── scalar editors ────────────────────────────────────────────────
-export type EditorType = 'boolean' | 'enum' | 'number' | 'string'
+// `'integer'` is a whole-number-only `'number'` — a count, a quota, a code, an index — declared
+// via the schema's `type: integer` (FIX-CTLD-TOOLS-INTEGER-FIELDS, closing GitHub issue #157).
+// Unlike `'number'`, it cannot be inferred from the value alone: a genuine count and a value that
+// is merely whole today but legitimately continuous look identical at runtime.
+export type EditorType = 'boolean' | 'enum' | 'integer' | 'number' | 'string'
 
 // Resolve the editor for a scalar setting. Never returns "nothing": an uncovered key
 // falls back to a typed text field, so the coverage gate is always satisfiable.
 export function editorType(meta: SchemaKey | undefined, value: unknown): EditorType {
   if (meta?.choices && meta.choices.length > 0) return 'enum'
+  if (meta?.type === 'integer') return 'integer'
   if (typeof value === 'boolean') return 'boolean'
   if (typeof value === 'number') return 'number'
   return 'string'
@@ -87,9 +92,10 @@ export function editorType(meta: SchemaKey | undefined, value: unknown): EditorT
 // Coerce an editor's raw output back to the value type before sending it to the backend.
 export function coerce(raw: string | boolean, type: EditorType): unknown {
   if (type === 'boolean') return Boolean(raw)
-  if (type === 'number') {
+  if (type === 'number' || type === 'integer') {
     const n = Number(raw)
-    return Number.isNaN(n) ? raw : n
+    if (Number.isNaN(n)) return raw
+    return type === 'integer' ? Math.round(n) : n
   }
   return raw
 }

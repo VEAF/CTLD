@@ -19,10 +19,10 @@ def test_injects_mission_start_trigger_at_rank1(tmp_path):
     assert "numberOfTroops = 8" in m["trig"]["actions"][1]
 
 
-def test_shifts_and_rewrites_existing_indices(tmp_path):
+def test_shifts_and_rewrites_existing_indices(pristine_miz, tmp_path):
     out = tmp_path / "out.miz"
-    n0 = len(read_mission(MIZ)["trig"]["actions"])
-    inject_userconfig(MIZ, "-- x", out)
+    n0 = len(read_mission(pristine_miz)["trig"]["actions"])
+    inject_userconfig(pristine_miz, "-- x", out)
     m = read_mission(out)
     assert len(m["trig"]["actions"]) == n0 + 1
     # every shifted func self-reference matches its new key (in-code [idx] rewritten)

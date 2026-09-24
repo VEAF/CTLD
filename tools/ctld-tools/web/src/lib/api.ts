@@ -19,6 +19,8 @@ export interface SchemaKey {
   label: string | null
   /** Authored unit symbol ("m", "s", "kg", …); null → fall back to reading the description. */
   unit: string | null
+  /** Declared value type ("integer"); null → a continuous number, inferred from the value. */
+  type?: string | null
   description: string | null
 }
 
