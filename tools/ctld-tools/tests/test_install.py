@@ -89,9 +89,11 @@ def test_every_payload_gets_a_resource_key(tmp_path):
     assert resmap[CONFIG_KEY] == CONFIG_FILE
     assert resmap[ENGINE_KEY] == ENGINE_FILE
 
+    # CONFIG_KEY is not part of the delta: the fixture mission already carries a persisted
+    # configuration (FEAT-EXZ-AUTODISCOVERY ticket 01) -- its presence and value are asserted
+    # above regardless of whether this install added it or found it already there.
     added = {k: v for k, v in resmap.items() if k not in before}
     assert added == {
-        CONFIG_KEY: CONFIG_FILE,
         ENGINE_KEY: ENGINE_FILE,
         SOUND_KEYS["beacon.ogg"]: "beacon.ogg",
         SOUND_KEYS["beaconsilent.ogg"]: "beaconsilent.ogg",
@@ -207,10 +209,10 @@ def test_both_trigger_shapes_agree(tmp_path):
         )
 
 
-def test_existing_triggers_survive_with_rewritten_indices(tmp_path):
+def test_existing_triggers_survive_with_rewritten_indices(pristine_miz, tmp_path):
     out = tmp_path / "out.miz"
-    n0 = len(read_mission(MIZ)["trig"]["actions"])
-    install(MIZ, CONFIG, out)
+    n0 = len(read_mission(pristine_miz)["trig"]["actions"])
+    install(pristine_miz, CONFIG, out)
     m = read_mission(out)
 
     # Three of ours: configuration, engine, sound preload.
@@ -220,9 +222,9 @@ def test_existing_triggers_survive_with_rewritten_indices(tmp_path):
             assert f"conditions[{key}]" in val
 
 
-def test_installing_twice_replaces_and_does_not_accumulate(tmp_path):
+def test_installing_twice_replaces_and_does_not_accumulate(pristine_miz, tmp_path):
     first, second = tmp_path / "a.miz", tmp_path / "b.miz"
-    report1 = install(MIZ, CONFIG, first)
+    report1 = install(pristine_miz, CONFIG, first)
     report2 = install(first, CONFIG.replace("slingLoad: true", "slingLoad: false"), second)
 
     m = read_mission(second)
@@ -397,11 +399,11 @@ def test_reads_back_the_configuration_it_installed(tmp_path):
     assert found.yaml == yaml
 
 
-def test_reads_back_a_configuration_injected_by_rc1_to_rc3(tmp_path):
+def test_reads_back_a_configuration_injected_by_rc1_to_rc3(pristine_miz, tmp_path):
     """The old injector wrote the snapshot into a trigger; those missions must still open."""
     out = tmp_path / "old.miz"
     yaml = "mm_facing:\n  slingLoad: false\n"
-    inject_userconfig(MIZ, wrap(yaml, "configUser"), out)
+    inject_userconfig(pristine_miz, wrap(yaml, "configUser"), out)
 
     found = read_config(out)
     assert found is not None
@@ -409,9 +411,9 @@ def test_reads_back_a_configuration_injected_by_rc1_to_rc3(tmp_path):
     assert found.yaml == yaml
 
 
-def test_a_mission_with_no_ctld_config_reads_as_nothing():
+def test_a_mission_with_no_ctld_config_reads_as_nothing(pristine_miz):
     """Not an error: that is what a first install looks like."""
-    assert read_config(MIZ) is None
+    assert read_config(pristine_miz) is None
 
 
 @pytest.mark.parametrize(
@@ -459,8 +461,8 @@ def test_the_session_opens_a_miz_like_a_yaml(tmp_path):
     assert session.config_shape == "file"
 
 
-def test_opening_a_mission_without_a_configuration_says_so(tmp_path):
+def test_opening_a_mission_without_a_configuration_says_so(pristine_miz):
     from ctld_tools.web.state import Session
 
     with pytest.raises(ValueError, match="no CTLD configuration"):
-        Session().load_path(MIZ)
+        Session().load_path(pristine_miz)
