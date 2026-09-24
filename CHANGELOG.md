@@ -51,6 +51,30 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   converges on it, so a naming-convention zone and a scripted one are indistinguishable once
   created. See ADR 0016.
 
+### Added — `ctld-tools` reads a mission's zones back and pre-fills AI-zone entries (FEAT-CTLD-TOOLS-AIZ-SYNC)
+
+- **Every `dcsZoneName` field now autocompletes from the mission's real DCS trigger-zone names**,
+  tracked via the same mission path the tool already uses for injection — killing the class of bug
+  where a typo in a zone name only surfaced once DCS refused to start.
+- **AI transport zones (`AIZ_`) get a recognised naming convention**
+  (`AIZ_<name>_<coalition>_<P|D>_<cargoType-or-aiDropMode>`), scanned for on demand and on mission
+  re-open: a matching zone with no `aiZones` entry yet gets one, pre-filled from its name; an entry
+  whose zone has since been removed is proposed for removal, always with a confirmation recap,
+  never silently. `troopStock`/`vehicleStock` are never part of the convention and stay yours to
+  fill in either way. Tool-side only, never engine-level — see ADR 0017.
+- **A pickup zone missing its stock table is now flagged in the editor** (⚠ on the zone heading and
+  the field itself when troop pickup is disabled for want of `troopStock`; a calmer ⓘ when a
+  vehicle zone has no `vehicleStock` and falls back to a physically-placed vehicle instead) — both
+  zone-creation paths now also default `troopStock` to unlimited when cargo includes troops, and a
+  matching `validate` `WARNING` catches a hand-edited config that bypasses the editor
+  (FIX-CTLD-TOOLS-AIZ-STOCK-GAP).
+
+### Added — a "configuration only" install mode avoids a double engine load (FEAT-CTLD-TOOLS-CONFIG-ONLY-INSTALL)
+
+- A mission that already loads CTLD another way (a dev/CI setup, or a custom loader) can now ask
+  `ctld-tools`' installer to write just the configuration — engine and beacon sounds left untouched
+  — via a new checkbox next to **Install into mission…**.
+
 ### Changed — UH-1H realism fix; Mi-8MT whole-vehicle transport completed (FIX-UH1H-CAPABILITIES-REALISM)
 
 - **UH-1H no longer claims whole-vehicle transport.** `capabilitiesByType.UH-1H.canTransportWholeVehicle`
