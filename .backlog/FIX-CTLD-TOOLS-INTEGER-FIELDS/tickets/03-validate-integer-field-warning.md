@@ -1,6 +1,6 @@
 # 03 — `validate.py` check for a fractional value on an `integer`-typed field
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** tickets 01 and 02 (needs both sets of `integer`-typed fields to exist to check
 against).
