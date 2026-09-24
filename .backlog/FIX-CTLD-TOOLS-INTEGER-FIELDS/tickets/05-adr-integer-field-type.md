@@ -1,6 +1,6 @@
 # 05 — ADR: `integer` field type as a deliberate exception to ADR 0011 Addendum 1
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** tickets 01 and 02 (describes the real, shipped mechanism — write it once both are
 true, not before).
