@@ -134,7 +134,7 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: CTLD
       - name: Install Lua 5.1
