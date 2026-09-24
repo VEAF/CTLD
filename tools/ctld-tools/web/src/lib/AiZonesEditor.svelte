@@ -271,7 +271,7 @@
               {t('web.aizone.unlimited')}
             </label>
             {#if count !== UNLIMITED}
-              <input type="number" min="0" value={count} onchange={(e) => setStockCount(i, stockField, n, Number(e.currentTarget.value))} />
+              <input type="number" min="0" step="1" value={count} onchange={(e) => setStockCount(i, stockField, n, Math.round(Number(e.currentTarget.value)))} />
             {/if}
             <button class="danger rm" aria-label={t('web.table.remove', { what: name })} onclick={() => removeStock(i, stockField, n)}>✕</button>
           </div>

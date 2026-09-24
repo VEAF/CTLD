@@ -40,3 +40,21 @@ test('names the coalition vehicle lists by side, not by schema key', () => {
   expect(screen.getByText('Whole vehicles — BLUE')).toBeInTheDocument()
   expect(screen.getByText('Whole vehicles — RED')).toBeInTheDocument()
 })
+
+test('an onboard-capacity limit renders a whole-number step and rounds a typed decimal', async () => {
+  const { onchange } = setup()
+  const input = screen.getByDisplayValue('1')
+  expect(input).toHaveAttribute('step', '1')
+  await fireEvent.change(input, { target: { value: '2.7' } })
+  expect(last(onchange)['UH-1H'].maxCratesOnboard).toBe(3)
+})
+
+test('maxVehicleWeight stays a continuous field, unaffected by the integer type', () => {
+  const onchange = vi.fn()
+  render(AircraftEditor, {
+    capabilities: { 'UH-1H': { maxVehicleWeight: 1360.5 } },
+    fields: {},
+    onchange,
+  })
+  expect(screen.getByDisplayValue('1360.5')).toHaveAttribute('step', 'any')
+})

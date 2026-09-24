@@ -5,7 +5,7 @@ import type { Field } from './tables'
 
 const FIELDS: Field[] = [
   { name: 'name', type: 'string' },
-  { name: 'inf', type: 'number' },
+  { name: 'inf', type: 'integer' },
   { name: 'jtac', type: 'boolean' },
 ]
 
@@ -35,6 +35,24 @@ test('editing a numeric field coerces and emits', async () => {
   const { onchange } = setup()
   await fireEvent.change(screen.getByDisplayValue('6'), { target: { value: '9' } })
   expect(last(onchange)[0].inf).toBe(9)
+})
+
+test('an integer field renders a whole-number step and rounds a typed decimal', async () => {
+  const { onchange } = setup()
+  const input = screen.getByDisplayValue('6')
+  expect(input).toHaveAttribute('step', '1')
+  await fireEvent.change(input, { target: { value: '6.01' } })
+  expect(last(onchange)[0].inf).toBe(6)
+})
+
+test('a plain number field keeps its 0.01 step, unaffected by the integer type', () => {
+  render(RecordListEditor, {
+    records: [{ name: 'x', weight: 5.5 }],
+    fields: [{ name: 'weight', type: 'number' }],
+    blank: () => ({}),
+    onchange: vi.fn(),
+  })
+  expect(screen.getByDisplayValue('5.5')).toHaveAttribute('step', '0.01')
 })
 
 test('add and remove emit the new list', async () => {

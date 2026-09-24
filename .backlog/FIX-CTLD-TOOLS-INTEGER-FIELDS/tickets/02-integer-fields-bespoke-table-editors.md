@@ -1,6 +1,6 @@
 # 02 — `integer` fields in the three bespoke table editors
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** ticket 01 (reuses the `'integer'` `EditorType` it defines).
 
