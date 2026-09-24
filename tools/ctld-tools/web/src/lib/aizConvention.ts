@@ -26,6 +26,19 @@ const COALITION_CODES: Record<string, Coalition> = { R: 'RED', B: 'BLUE', N: 'NE
 const CARGO_TYPES = new Set(['T', 'V', 'TV'])
 const DROP_MODES = new Set(['G', 'P', 'GP'])
 
+/**
+ * The safe `troopStock` a newly created pickup zone needs when its cargo includes troops — absent
+ * `troopStock` does not mean "unlimited", it means the engine never offers troops there at all
+ * (`CTLD_core.lua`: "troopStock=nil → pickup disabled for this zone", no fallback). `vehicleStock`
+ * gets no equivalent default: its absence is a legitimate mode (the engine falls back to whatever
+ * is physically placed in the zone), so leaving it unset is a real Mission Maker choice, not a gap.
+ * Shared by every zone-creation path (the naming-convention reconciliation below, and
+ * `AiZonesEditor`'s own "+ AI zone" button) so neither ever behaves differently from the other.
+ */
+export function defaultTroopStock(cargoType: string | undefined): Record<string, number> | undefined {
+  return cargoType?.includes('T') ? { All: -1 } : undefined
+}
+
 /** Parses one DCS zone name against the AIZ_ convention, or returns null when it doesn't match. */
 export function parseAizZoneName(dcsZoneName: string): AizParsed | null {
   const parts = dcsZoneName.split('_')
@@ -52,9 +65,10 @@ export function parseAizZoneName(dcsZoneName: string): AizParsed | null {
 
 /**
  * Every AIZ_-convention zone in `missionZoneNames` with no existing `aiZones` entry for that exact
- * `dcsZoneName` gets a new one, its 4 parseable fields filled in — `troopStock`/`vehicleStock` are
- * deliberately left absent, not an empty table, so the existing "pickup zone missing stock"
- * validation warning already signals "still needs attention".
+ * `dcsZoneName` gets a new one, its 4 parseable fields filled in. `troopStock` gets the safe
+ * `defaultTroopStock` above when the cargo includes troops — absent `troopStock` isn't a "still
+ * needs attention" placeholder, it silently disables troop pickup entirely. `vehicleStock` stays
+ * genuinely absent either way (see `defaultTroopStock`'s own doc for why the two differ).
  *
  * Additions only: an existing entry is never overwritten, and a zone name that doesn't match the
  * convention is never touched, whatever happens to it in the mission — see ticket 04 for the
@@ -69,7 +83,9 @@ export function addMissingAizZones(missionZoneNames: string[], existingZones: Zo
   for (const name of missionZoneNames) {
     if (known.has(name)) continue
     const parsed = parseAizZoneName(name)
-    if (parsed) additions.push(parsed as unknown as Zone)
+    if (!parsed) continue
+    const troopStock = defaultTroopStock(parsed.cargoType)
+    additions.push((troopStock ? { ...parsed, troopStock } : parsed) as unknown as Zone)
   }
   return additions.length ? [...existingZones, ...additions] : existingZones
 }

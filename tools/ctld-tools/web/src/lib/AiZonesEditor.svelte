@@ -15,7 +15,7 @@
   //     `All` as a suggestion and render -1 as "unlimited" rather than as a number to memorise.
   import { plural, t } from './i18n.svelte'
   import type { TableField } from './api'
-  import { addMissingAizZones, findOrphanedAizZones } from './aizConvention'
+  import { addMissingAizZones, defaultTroopStock, findOrphanedAizZones } from './aizConvention'
   import { DCS_TYPES_LIST, fieldLabel } from './tables'
 
   type Zone = Record<string, unknown>
@@ -114,7 +114,11 @@
     commit()
   }
   function addZone() {
-    model.push({ dcsZoneName: '', coalition: 'BLUE', isPickup: true, isDropoff: false, cargoType: 'T' })
+    const cargoType = 'T'
+    const zone: Zone = { dcsZoneName: '', coalition: 'BLUE', isPickup: true, isDropoff: false, cargoType }
+    const troopStock = defaultTroopStock(cargoType)
+    if (troopStock) zone.troopStock = troopStock
+    model.push(zone)
     commit()
   }
   function removeZone(i: number) {
