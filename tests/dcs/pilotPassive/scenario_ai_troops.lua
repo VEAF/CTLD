@@ -9,9 +9,9 @@
 --
 -- Prerequisites:
 --   - BLUE helo named "heliai_troops" (UH-1H), no human pilot
---   - Route: WP1 = on AIZ_base_B_P_5 (landed) → WP2 = flight → WP3 = on AIZ_front_B_D (landed)
---   - DCS trigger zone "AIZ_base_B_P_5"  (radius ~200 m, centered on WP1)
---   - DCS trigger zone "AIZ_front_B_D"   (radius ~200 m, centered on WP3)
+--   - Route: WP1 = on AIZ_base_B_P_T (landed) → WP2 = flight → WP3 = on AIZ_front_B_D_G (landed)
+--   - DCS trigger zone "AIZ_base_B_P_T"  (radius ~200 m, centered on WP1)
+--   - DCS trigger zone "AIZ_front_B_D_G"   (radius ~200 m, centered on WP3)
 --   - BLUE slot occupied (human player in a slot for MenuManager)
 --   - CTLD.lua injected before this script (wait 3-5 s)
 --
@@ -62,8 +62,8 @@ local MENU_NAME       = "CTLD Test"
 local MENU_PATH       = { ctld.tr("CTLD"), MENU_NAME }
 
 local AI_UNIT = "heliai_troops"
-local AIZ_P   = "AIZ_base_B_P_5"
-local AIZ_D   = "AIZ_front_B_D"
+local AIZ_P   = "AIZ_base_B_P_T"
+local AIZ_D   = "AIZ_front_B_D_G"
 
 -- ── 6. State ─────────────────────────────────────────────────────────────────
 local S = {
