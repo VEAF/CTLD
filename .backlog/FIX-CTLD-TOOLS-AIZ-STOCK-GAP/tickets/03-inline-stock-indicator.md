@@ -1,6 +1,6 @@
 # 03 — Inline indicator for a stockless zone in the editor
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** none — client-side logic mirroring the same two conditions as ticket 02, not a
 round trip to it; can start immediately.
