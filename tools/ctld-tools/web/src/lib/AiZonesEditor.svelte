@@ -52,6 +52,22 @@
   // hand reads the same list, and so the UI cannot drift from the engine's VALID_* tables.
   const choices = (f: string, fallback: string[]) => fields?.[f]?.choices ?? fallback
 
+  // Mirrors ctld_tools/validate.py's _validate_ai_zones exactly (FIX-CTLD-TOOLS-AIZ-STOCK-GAP
+  // ticket 02) — same two conditions, computed here so the indicator never waits on a round trip
+  // to /api/validate. `troopStockMissing` is a real warning (the engine has no fallback: absent
+  // troopStock silently disables troop pickup); `vehicleStockAbsent` is calmly informational (the
+  // engine falls back to a physically-placed vehicle instead) — never conflate the two.
+  function effectiveCargoType(zone: Zone): string {
+    const raw = zone.cargoType
+    return raw === 'T' || raw === 'V' || raw === 'TV' ? raw : 'T'
+  }
+  function troopStockMissing(zone: Zone): boolean {
+    return zone.isPickup === true && effectiveCargoType(zone).includes('T') && !zone.troopStock
+  }
+  function vehicleStockAbsent(zone: Zone): boolean {
+    return zone.isPickup === true && effectiveCargoType(zone).includes('V') && !zone.vehicleStock
+  }
+
   // A stock row starts life with an empty name — the Mission Maker types it after adding the row.
   // The local model keeps it so the row stays on screen; it is stripped on the way out, because an
   // empty key would reach the engine as a template named "".
@@ -178,7 +194,15 @@
 
 {#each model as zone, i (i)}
   <fieldset class="zone">
-    <legend>{String(zone.dcsZoneName || t('web.aizone.untitled'))}</legend>
+    <legend>
+      {String(zone.dcsZoneName || t('web.aizone.untitled'))}
+      {#if troopStockMissing(zone)}
+        <span class="stock-flag warn" title={t('web.aizone.troop_stock_missing_tip')}>⚠</span>
+      {/if}
+      {#if vehicleStockAbsent(zone)}
+        <span class="stock-flag info" title={t('web.aizone.vehicle_stock_absent_tip')}>ⓘ</span>
+      {/if}
+    </legend>
 
     <div class="row">
       <label title={tip('dcsZoneName')}>
@@ -226,7 +250,15 @@
 
     {#each [['troopStock', TEMPLATE_LIST], ['vehicleStock', DCS_TYPES_LIST]] as [stockField, listId] (stockField)}
       <div class="stock">
-        <span class="stock-label" title={tip(stockField)}>{fieldLabel(stockField)}</span>
+        <span class="stock-label" title={tip(stockField)}>
+          {fieldLabel(stockField)}
+          {#if stockField === 'troopStock' && troopStockMissing(zone)}
+            <span class="stock-flag warn" title={t('web.aizone.troop_stock_missing_tip')}>⚠</span>
+          {/if}
+          {#if stockField === 'vehicleStock' && vehicleStockAbsent(zone)}
+            <span class="stock-flag info" title={t('web.aizone.vehicle_stock_absent_tip')}>ⓘ</span>
+          {/if}
+        </span>
         {#each stockRows(zone, stockField) as [name, count], n (n)}
           <div class="stock-row">
             <input class="combo" list={listId} placeholder={ALL_KEY} value={name} onchange={(e) => renameStock(i, stockField, n, e.currentTarget.value)} />
@@ -326,5 +358,18 @@
   .hint {
     font-size: 0.8rem;
     opacity: 0.6;
+  }
+  /* Two distinct treatments, on purpose: the troop case is a real warning (the engine has no
+     fallback, this zone plainly won't work), the vehicle case is a calm, informational note about
+     which of two legitimate modes is active — never let the two look like the same severity. */
+  .stock-flag {
+    cursor: help;
+    font-size: 0.85rem;
+  }
+  .stock-flag.warn {
+    color: var(--warn);
+  }
+  .stock-flag.info {
+    color: var(--ink-dim);
   }
 </style>

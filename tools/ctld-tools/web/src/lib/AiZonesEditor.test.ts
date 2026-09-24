@@ -199,3 +199,63 @@ test('a confirmed re-scan leaves AIZ_ entries exactly matching the mission — a
   expect(finalNames).toContain('My_Custom_Zone')
   expect(finalNames).not.toContain('AIZ_old_B_P_V')
 })
+
+// ── FIX-CTLD-TOOLS-AIZ-STOCK-GAP ticket 03: inline stock indicator ────────────────
+
+test('a troop-cargo pickup zone with no troopStock shows the warning indicator on the heading and the field', () => {
+  setup([{ dcsZoneName: 'base', coalition: 'BLUE', isPickup: true, cargoType: 'T' }])
+  const flags = screen.getAllByTitle('Troop pickup is disabled here until troopStock is set')
+  expect(flags).toHaveLength(2) // one on the legend, one beside the troopStock field
+  for (const flag of flags) expect(flag).toHaveClass('warn')
+})
+
+test('a vehicle-cargo pickup zone with no vehicleStock shows the informational indicator on the heading and the field', () => {
+  setup([{ dcsZoneName: 'depot', coalition: 'BLUE', isPickup: true, cargoType: 'V' }])
+  const flags = screen.getAllByTitle('No virtual stock set — this zone only offers a vehicle physically placed in the Mission Editor')
+  expect(flags).toHaveLength(2)
+  for (const flag of flags) expect(flag).toHaveClass('info')
+})
+
+test('the troop and vehicle indicators are visually distinguishable from each other', () => {
+  setup([{ dcsZoneName: 'hub', coalition: 'BLUE', isPickup: true, cargoType: 'TV' }])
+  const warn = screen.getAllByTitle('Troop pickup is disabled here until troopStock is set')
+  const info = screen.getAllByTitle('No virtual stock set — this zone only offers a vehicle physically placed in the Mission Editor')
+  expect(warn[0]).toHaveClass('warn')
+  expect(info[0]).toHaveClass('info')
+  expect(warn[0].className).not.toBe(info[0].className)
+})
+
+test('a complete pickup entry shows neither indicator', () => {
+  setup([
+    {
+      dcsZoneName: 'depot',
+      coalition: 'BLUE',
+      isPickup: true,
+      cargoType: 'TV',
+      troopStock: { All: -1 },
+      vehicleStock: { Hummer: 3 },
+    },
+  ])
+  expect(screen.queryByTitle('Troop pickup is disabled here until troopStock is set')).not.toBeInTheDocument()
+  expect(
+    screen.queryByTitle('No virtual stock set — this zone only offers a vehicle physically placed in the Mission Editor'),
+  ).not.toBeInTheDocument()
+})
+
+test('a dropoff-only entry shows neither indicator', () => {
+  setup([{ dcsZoneName: 'lz', coalition: 'BLUE', isDropoff: true, aiDropMode: 'G' }])
+  expect(screen.queryByTitle('Troop pickup is disabled here until troopStock is set')).not.toBeInTheDocument()
+  expect(
+    screen.queryByTitle('No virtual stock set — this zone only offers a vehicle physically placed in the Mission Editor'),
+  ).not.toBeInTheDocument()
+})
+
+test('filling in the missing troopStock removes the warning indicator immediately', async () => {
+  setup([{ dcsZoneName: 'base', coalition: 'BLUE', isPickup: true, cargoType: 'T' }])
+  expect(screen.getAllByTitle('Troop pickup is disabled here until troopStock is set')).toHaveLength(2)
+
+  await fireEvent.click(screen.getAllByText('+ stock entry')[0]) // troopStock is the first stock row
+  await fireEvent.change(screen.getAllByPlaceholderText('All')[0], { target: { value: 'Standard Group' } })
+
+  expect(screen.queryByTitle('Troop pickup is disabled here until troopStock is set')).not.toBeInTheDocument()
+})
