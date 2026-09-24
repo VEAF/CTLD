@@ -1170,6 +1170,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ctld-tools-naming-shortcut" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raccourci de nommage ctld-tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2375,6 +2386,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ctld-tools-naming-shortcut" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raccourci de nommage ctld-tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2995,10 +3017,13 @@ basées sur <code>logisticUnits</code> :</p>
 <p>Les zones AIZ contrôlent le comportement automatique des <strong>transports IA</strong> (unités listées dans
 <code>transportPilotNames</code>). Les joueurs humains ne sont jamais affectés par elles.</p>
 <blockquote>
-<p><strong>Les zones AIZ n'ont pas de convention de nommage.</strong> N'importe quelle trigger zone de DCS peut
-être une zone AIZ — vous la référencez par son nom dans le tableau de config <code>aiZones</code>. Le
-pickup comme le drop-off se déclenchent à l'atterrissage (<code>S_EVENT_LAND</code>) : l'unité IA doit
-physiquement se poser à l'intérieur du rayon de la zone.</p>
+<p><strong>Les zones AIZ n'ont pas de convention de nommage dans CTLD lui-même.</strong> N'importe quelle trigger
+zone de DCS peut être une zone AIZ — vous la référencez par son nom dans le tableau de config
+<code>aiZones</code>. Le pickup comme le drop-off se déclenchent à l'atterrissage (<code>S_EVENT_LAND</code>) : l'unité
+IA doit physiquement se poser à l'intérieur du rayon de la zone. <code>ctld-tools</code> reconnaît, lui, une
+convention de nommage <em>optionnelle</em> qui lui est propre, uniquement pour vous éviter de ressaisir
+l'information — voir <a href="#ctld-tools-naming-shortcut">raccourci de nommage <code>ctld-tools</code></a>
+ci-dessous.</p>
 </blockquote>
 <h3 id="roles">Rôles<a class="headerlink" href="#roles" title="Permanent link">&para;</a></h3>
 <table>
@@ -3081,6 +3106,27 @@ dans la famille <strong>Zones</strong> ; dans un instantané écrit à la main, 
 <code>2</code> = BLUE). Dans une entrée <code>aiZones</code>, c'est la chaîne <code>RED</code>, <code>BLUE</code> ou <code>NEUTRAL</code>. Y écrire un
 nombre signifie « n'importe quelle coalition », silencieusement.</p>
 </div>
+<h3 id="ctld-tools-naming-shortcut">Raccourci de nommage <code>ctld-tools</code><a class="headerlink" href="#ctld-tools-naming-shortcut" title="Permanent link">&para;</a></h3>
+<p>CTLD lui-même ne regarde jamais le nom DCS d'une zone AIZ pour en tirer un sens — l'affirmation
+ci-dessus reste vraie. Mais si vous nommez déjà vos zones sur le modèle <code>AIZ_depot_B_P_V</code>,
+<code>ctld-tools</code> sait le relire : scanner votre mission (bouton « Choisir la mission à scanner… » de
+l'éditeur <strong>Zones</strong>) reconnaît le motif</p>
+<div class="highlight"><pre><span></span><code>AIZ_&lt;nom&gt;_&lt;coalition:R|B|N&gt;_&lt;P|D&gt;_&lt;cargoType-ou-aiDropMode&gt;
+</code></pre></div>
+<p>— <code>R</code>/<code>B</code>/<code>N</code> pour la coalition, <code>P</code>/<code>D</code> pour pickup/drop-off, puis <code>T</code>/<code>V</code>/<code>TV</code> (pickup) ou
+<code>G</code>/<code>P</code>/<code>GP</code> (drop-off) — et pré-remplit une nouvelle entrée <code>aiZones</code> avec ces quatre champs déjà
+renseignés, pour ne pas ressaisir ce que le nom de la zone dit déjà. Tout ce qui suit le quatrième
+champ est ignoré, donc un nom déjà utilisé comme <code>AIZ_depot_B_P_V_10</code> reste parsé correctement.</p>
+<p><strong>Gardez le motif complet si vous voulez le pré-remplissage.</strong> Un nom auquel il manque un champ, ou
+qui ne correspond pas du tout au motif, n'est pas une erreur — la zone fonctionne exactement de la
+même façon dans DCS — mais <code>ctld-tools</code> ne peut pas la reconnaître : vous obtenez alors une entrée
+vierge via le bouton manuel <strong>+ AI zone</strong>, avec ses propres valeurs par défaut génériques (<code>BLUE</code>,
+pickup, cargo troupes), qui peuvent ne pas correspondre à votre intention réelle et doivent alors
+être corrigées à la main, champ par champ.</p>
+<p>Dans tous les cas, <code>troopStock</code>, <code>vehicleStock</code> et tout autre champ complexe ne font jamais partie
+du nom et restent toujours à votre charge dans <code>ctld-tools</code> — voir la note sous
+<a href="#parameters">Paramètres</a> ci-dessous pour ce qu'une entrée pickup troupes fraîchement créée
+contient dès le départ.</p>
 <h3 id="parameters">Paramètres<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3158,6 +3204,21 @@ nombre signifie « n'importe quelle coalition », silencieusement.</p>
 <p><code>troopStock</code> et <code>vehicleStock</code> sont des <strong>tables</strong>, pas de simples entiers. Le stock par template
 / par type a remplacé l'ancienne forme à entier unique.</p>
 </blockquote>
+<div class="admonition info">
+<p class="admonition-title"><code>ctld-tools</code> donne un stock de départ sûr à une nouvelle entrée cargo troupes</p>
+<p>Chaque fois que <code>ctld-tools</code> crée une nouvelle entrée pickup dont le cargo inclut des troupes —
+via le scan du raccourci de nommage ci-dessus, ou via le bouton manuel <strong>+ AI zone</strong> — il fixe
+<code>troopStock</code> à <code>{All: -1}</code> (illimité) automatiquement, au lieu de le laisser absent. Un
+<code>troopStock</code> absent n'est pas un réglage intermédiaire : il désactive silencieusement le pickup
+de troupes à cette zone, sans aucun repli. Ce défaut est un point de départ sûr, pas une
+affirmation de votre intention réelle — resserrez-le aux templates et quantités que vous
+voulez réellement. <code>vehicleStock</code> n'a pas de défaut équivalent : le laisser vide est un choix
+légitime (la zone se rabat sur le véhicule que vous y placez physiquement), donc <code>ctld-tools</code>
+ne le renseigne jamais à votre place. Dans les deux cas, une entrée à qui il manque encore
+<code>troopStock</code> ou <code>vehicleStock</code> affiche un repère directement sur la zone dans l'éditeur — ⚠ là
+où le pickup de troupes échouerait réellement, ⓘ là où la zone véhicule est simplement en mode
+placement physique — pour toujours savoir lequel des deux vous regardez.</p>
+</div>
 <h3 id="ai-transport-setup">Configuration du transport IA<a class="headerlink" href="#ai-transport-setup" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Créez des trigger zones dans le ME (nom quelconque, rayon adapté à l'atterrissage).</li>

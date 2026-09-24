@@ -1170,6 +1170,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ctld-tools-naming-shortcut" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ctld-tools naming shortcut
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2375,6 +2386,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ctld-tools-naming-shortcut" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ctld-tools naming shortcut
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2983,9 +3005,11 @@ loss. This works for both <code>LGZ_</code> trigger zones and <code>logisticUnit
 <p>AIZ zones control the automatic behaviour of <strong>AI transports</strong> (units listed in
 <code>transportPilotNames</code>). Human players are never affected by them.</p>
 <blockquote>
-<p><strong>AIZ zones have no naming convention.</strong> Any DCS trigger zone can be an AIZ zone — you reference
-it by name in the <code>aiZones</code> config array. Both pickup and drop-off fire on landing
-(<code>S_EVENT_LAND</code>): the AI unit must physically land inside the zone radius.</p>
+<p><strong>AIZ zones have no naming convention in CTLD itself.</strong> Any DCS trigger zone can be an AIZ
+zone — you reference it by name in the <code>aiZones</code> config array. Both pickup and drop-off fire on
+landing (<code>S_EVENT_LAND</code>): the AI unit must physically land inside the zone radius. <code>ctld-tools</code>
+does recognise an <em>optional</em> naming pattern of its own, purely to save you retyping — see
+<a href="#ctld-tools-naming-shortcut"><code>ctld-tools</code> naming shortcut</a> below.</p>
 </blockquote>
 <h3 id="roles">Roles<a class="headerlink" href="#roles" title="Permanent link">&para;</a></h3>
 <table>
@@ -3068,6 +3092,25 @@ the <strong>Zones</strong> family; in a hand-written snapshot it lives under <co
 <code>2</code> = BLUE). In an <code>aiZones</code> entry it is the string <code>RED</code>, <code>BLUE</code> or <code>NEUTRAL</code>. Writing a number
 here means "any coalition", silently.</p>
 </div>
+<h3 id="ctld-tools-naming-shortcut"><code>ctld-tools</code> naming shortcut<a class="headerlink" href="#ctld-tools-naming-shortcut" title="Permanent link">&para;</a></h3>
+<p>CTLD itself never looks at an AIZ zone's DCS name for meaning — the statement above still holds.
+But if you already name your zones something like <code>AIZ_depot_B_P_V</code>, <code>ctld-tools</code> can read that
+back: scanning your mission (the <strong>Zones</strong> editor's "Choose mission to scan…" button) recognises
+the pattern</p>
+<div class="highlight"><pre><span></span><code>AIZ_&lt;name&gt;_&lt;coalition:R|B|N&gt;_&lt;P|D&gt;_&lt;cargoType-or-aiDropMode&gt;
+</code></pre></div>
+<p>— <code>R</code>/<code>B</code>/<code>N</code> for coalition, <code>P</code>/<code>D</code> for pickup/drop-off, then <code>T</code>/<code>V</code>/<code>TV</code> (pickup) or
+<code>G</code>/<code>P</code>/<code>GP</code> (drop-off) — and pre-fills a new <code>aiZones</code> entry with those four fields already set,
+so you don't retype facts your zone name already states. Anything after the fourth field is
+ignored, so an existing name like <code>AIZ_depot_B_P_V_10</code> still parses fine.</p>
+<p><strong>Keep the pattern complete if you want the pre-fill.</strong> A name missing a field, or not matching the
+pattern at all, is not an error — the zone still works exactly the same in DCS — but <code>ctld-tools</code>
+cannot recognise it, so you get a blank entry from the manual <strong>+ AI zone</strong> button instead, with
+its own generic defaults (<code>BLUE</code>, pickup, troop cargo) that may not match what you actually meant
+and have to be corrected by hand, field by field.</p>
+<p>Either way, <code>troopStock</code>, <code>vehicleStock</code> and every other complex field are never part of the name
+and always stay yours to fill in inside <code>ctld-tools</code> — see the note under <a href="#parameters">Parameters</a>
+below for what a freshly created troop-cargo entry starts with.</p>
 <h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3145,6 +3188,20 @@ here means "any coalition", silently.</p>
 <p><code>troopStock</code> and <code>vehicleStock</code> are <strong>tables</strong>, not plain integers. Per-template / per-type
 stock replaced the old single-integer form.</p>
 </blockquote>
+<div class="admonition info">
+<p class="admonition-title"><code>ctld-tools</code> gives a fresh troop-cargo entry a safe starting stock</p>
+<p>Whenever <code>ctld-tools</code> creates a new pickup entry whose cargo includes troops — through the
+naming-shortcut scan above, or the manual <strong>+ AI zone</strong> button — it sets <code>troopStock</code> to
+<code>{All: -1}</code> (unlimited) automatically, instead of leaving it absent. Absent <code>troopStock</code> isn't
+a middle-ground setting: it silently disables troop pickup at that zone entirely, with no
+fallback. This default is a safe <strong>starting point</strong>, not a statement of your real intent —
+narrow it to the templates and counts you actually want. <code>vehicleStock</code> gets no equivalent
+default: leaving it unset is a legitimate choice (the zone falls back to whichever vehicle you
+physically place there), so <code>ctld-tools</code> never fills it in for you. Either way, an entry still
+missing <code>troopStock</code> or <code>vehicleStock</code> shows a marker directly on the zone in the editor — ⚠
+where troop pickup would actually fail, ⓘ where the vehicle zone is simply in physical-placement
+mode — so you always know which of the two you're looking at.</p>
+</div>
 <h3 id="ai-transport-setup">AI transport setup<a class="headerlink" href="#ai-transport-setup" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Create trigger zones in the ME (any name, any radius suitable for landing).</li>

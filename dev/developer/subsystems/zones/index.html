@@ -2548,6 +2548,11 @@ are loaded from <code>ctld.gs("aiZones")</code> and reference an existing Missio
 name (<code>dcsZoneName</code>), resolved via <code>trigger.misc.getZone</code>. Legacy zones come from the
 <code>ctld.gs(...)</code> config tables and are loaded last so that a modern <code>TRZ_</code>/<code>LGZ_</code> definition
 always wins: <strong>existing entries are never overwritten</strong>.</p>
+<p>AIZ has no naming convention of its own in this engine — deliberately: its per-template/per-type
+stock tables (<code>troopStock</code>/<code>vehicleStock</code>) don't fit a positional name scheme the way the other
+four do. <code>ctld-tools</code> (the authoring app) does recognise a partial naming pattern for its own
+<code>aiZones</code> editor, entirely client-side and never read by this file — see ADR 0017 and
+<code>CONTEXT.md</code>'s "Tool-only naming convention" glossary entry.</p>
 <h2 id="trz-naming-convention">TRZ naming convention<a class="headerlink" href="#trz-naming-convention" title="Permanent link">&para;</a></h2>
 <p>A troop zone encodes all of its behaviour in the trigger-zone name — a strict positional
 scheme with <strong>all five fields required</strong>:</p>
