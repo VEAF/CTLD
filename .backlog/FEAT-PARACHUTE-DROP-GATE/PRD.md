@@ -1,6 +1,6 @@
 # FEAT-PARACHUTE-DROP-GATE — `enableParachuteDrop`, a global switch ahead of `canParachuteDrop`
 
-**Status:** 🔄 in-progress (all 5 tickets done; PR pending).
+**Status:** 🔄 in review (PR #198).
 
 Formalizes the `dev/roadmap.md` entry "Parachutage — garde générale d'activation, prioritaire sur
 `canParachuteDrop`" and a `grill-with-docs` session held 2026-09-27 that resolved the question the
