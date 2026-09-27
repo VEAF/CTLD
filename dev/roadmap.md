@@ -158,6 +158,11 @@ comme aujourd'hui pour la création elle-même ?
      CTLD_vehicle.lua, une négation simplifiable dans CTLD_jtac.lua, et le gros du volume dans
      legacy_api.lua où un paramètre `_préfixé` est en fait utilisé). -->
 
+<!-- luacheck cleanup, Lot A — legacy_api.lua : formalisé en lot
+     `.backlog/FIX-LEGACY-API-PARAM-PREFIX/`, mergé — 58 des 89 warnings corrigés (préfixe `_`
+     retiré sur les 58 paramètres, tous réellement utilisés), plafond CI abaissé à 31. Lot B (les
+     31 restants, ~9 fichiers, jugement au cas par cas) reste candidat de lot séparé. -->
+
 ## TRZ_ automatique — création liée au spawn d'un objet (FOB, FARP, etc.)
 
 Demandé le 2026-08-26. `CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)`

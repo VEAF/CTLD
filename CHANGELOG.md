@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — `legacy_api.lua` parameter names no longer carry a misleading `_` prefix (FIX-LEGACY-API-PARAM-PREFIX)
+
+- Internal-only cleanup, no behavior change: every one of the 22 legacy wrapper functions'
+  parameters is renamed to drop the codebase's "deliberately unused" `_` prefix, since every one of
+  them is actually used (forwarded verbatim to the corresponding v2 manager call). Fixes 58 of the
+  89 `luacheck` warnings quantified by `TOOLING-LUACHECK-CI-RATCHET`; its CI ratchet ceiling is
+  lowered accordingly (89 → 31).
+
 ### Added — `EXTR_<name>` Mission Editor naming convention for extractable groups (FEAT-EXTR-GROUP-NAMING-CONVENTION)
 
 - **A pre-placed group can now be made extractable by naming it `EXTR_<name>` in the Mission
