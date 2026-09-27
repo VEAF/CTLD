@@ -2615,17 +2615,11 @@ déjà enregistré n'est jamais écrasé par un suivant.</p>
 <p class="admonition-title">Un seul espace de noms pour tous les types de zones</p>
 <p>Les troop zones partagent un <strong>unique</strong> espace de noms — <code>TRZ_</code>, <code>EXZ_</code>, <code>WPZ_</code>, les zones IA
 et la table héritée <code>troopZones</code> s'y enregistrent toutes, et la première enregistrée
-l'emporte. Ce qui rend le piège facile : une zone <code>TRZ_</code> s'enregistre sous son nom
-<strong>analysé</strong> — <code>TRZ_dropzone1_B_0_nil_0</code> occupe le nom <code>dropzone1</code>. <code>EXZ_</code> n'a pas ce problème
-— elle s'enregistre sous son nom complet, non analysé, de l'éditeur de mission.</p>
-<p>Une entrée <code>aiZones</code> dont le <code>dcsZoneName</code> vaut <code>dropzone1</code> — pointant pourtant vers une zone
-de l'éditeur de mission bel et bien différente — entre donc en collision avec cette TRZ et
-<strong>est ignorée</strong>. CTLD le signale au démarrage de la mission :</p>
-<div class="highlight"><pre><span></span><code>[ERROR] ZoneManager:   AIZ[1] ERROR 'dropzone1': name already taken by zone
-'TRZ_dropzone1_B_0_nil_0' — entry ignored
-</code></pre></div>
-<p>La correction est toujours la même : donner deux noms différents aux deux zones. L'ordre
-d'enregistrement est <code>TRZ_</code> → <code>EXZ_</code> → zones IA → <code>WPZ_</code> → tables héritées.</p>
+l'emporte. Chaque zone à convention de nommage s'enregistre sous son <strong>nom complet et non
+analysé de l'éditeur de mission</strong> — <code>TRZ_dropzone1_B_0_nil_0</code> occupe exactement ce nom, pas
+un sous-champ extrait de celui-ci. Deux zones ne peuvent entrer en collision ici que si vous
+leur donnez réellement le même nom.</p>
+<p>L'ordre d'enregistrement est <code>TRZ_</code> → <code>EXZ_</code> → zones IA → <code>WPZ_</code> → tables héritées.</p>
 </div>
 <hr />
 <h2 id="troop-zones-trz">Zones de troupes (TRZ)<a class="headerlink" href="#troop-zones-trz" title="Permanent link">&para;</a></h2>
