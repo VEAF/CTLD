@@ -639,6 +639,86 @@ describe("F-063/F-064 — canParachuteDrop menu", function()
 
 end)
 
+-- ── FEAT-PARACHUTE-DROP-GATE ticket 03 : enableParachuteDrop menu (Troops) ────
+-- No dedicated toggle test existed for "Parachute Troops" before this lot — only
+-- incidental coverage at canParachuteDrop=true in menu_gating_spec.lua/troop_fastrope_spec.lua.
+describe("enableParachuteDrop — Parachute Troops menu", function()
+
+    local tm
+    local _origGs
+    local _origGetByName
+
+    before_each(function()
+        resetAll()
+        _origGs        = ctld.gs
+        _origGetByName = Unit.getByName
+
+        Unit.getByName = function(n)
+            if n == "UH-1H-1" then
+                return {
+                    getName  = function() return "UH-1H-1" end,
+                    isExist  = function() return true end,
+                    getPoint = function() return { x = 0, y = 0, z = 0 } end,
+                }
+            end
+            return _origGetByName and _origGetByName(n) or nil
+        end
+
+        tm = CTLDTroopManager.getInstance()
+    end)
+
+    after_each(function()
+        ctld.gs        = _origGs
+        Unit.getByName = _origGetByName
+    end)
+
+    local function buildTroopMenu(enableParachuteDropOverride)
+        ctld.gs = function(k)
+            if k == "capabilitiesByType" then
+                return { ["UH-1H"] = { troopsEnabled=true, canParachuteDrop=true, maxTroopsOnboard=10 } }
+            end
+            if k == "numberOfTroops" then return 10 end
+            if k == "enableParachuteDrop" then
+                if enableParachuteDropOverride == nil then return true end
+                return enableParachuteDropOverride
+            end
+            return _origGs(k)
+        end
+
+        local playerObj = {
+            unitName="UH-1H-1", groupId=9901, groupName="Grp_troop_gate",
+            coalition=2, typeName="UH-1H", isTransport=true, canCarryVehicles=false,
+        }
+        CTLDPlayerManager.getInstance():buildMenu(playerObj)
+        tm._inTransit["UH-1H-1"] = { { templateName="Test Squad", unitTotal=4, weight=100 } }
+        tm:refreshMenuSection(playerObj, true)  -- overrideInAir=true: troops onboard + in flight
+        return ctld.MenuManager:getInstance():getMenuByGroupId(9901)
+    end
+
+    describe("enableParachuteDrop=false — overrides canParachuteDrop=true", function()
+
+        it("Parachute Troops node NOT present", function()
+            local menu = buildTroopMenu(false)
+            local node = menu and menu:_getNode({ ctld.tr("CTLD"), ctld.tr("Troop Commands"),
+                                                  ctld.tr("Parachute Troops") })
+            assert.is_nil(node)
+        end)
+
+    end)
+
+    describe("enableParachuteDrop=true (default) — canParachuteDrop=true unaffected", function()
+
+        it("Parachute Troops node present", function()
+            local menu = buildTroopMenu(true)
+            local node = menu and menu:_getNode({ ctld.tr("CTLD"), ctld.tr("Troop Commands"),
+                                                  ctld.tr("Parachute Troops") })
+            assert.is_not_nil(node)
+        end)
+
+    end)
+
+end)
+
 -- ── F-065 / F-066 / F-067 : canSlingload menu ─────────────────────────────────
 describe("F-065/F-066/F-067 — canSlingload menu", function()
 

@@ -1,6 +1,6 @@
 # 03 — Gate "Parachute Troops"/"Parachute All" on `enableParachuteDrop`, new tests
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** ticket 01 (the setting must exist before any code reads it).
 
