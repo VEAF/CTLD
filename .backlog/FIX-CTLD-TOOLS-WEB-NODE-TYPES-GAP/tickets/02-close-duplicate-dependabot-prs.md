@@ -1,6 +1,6 @@
 # 02 — Close Dependabot PR #193/#194 as superseded
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** ticket 01 (must be merged first — closing the Dependabot PRs before the real fix
 lands would leave the `vitest` bump unresolved with nothing proposing it).
