@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — `EXTR_<name>` Mission Editor naming convention for extractable groups (FEAT-EXTR-GROUP-NAMING-CONVENTION)
+
+- **A pre-placed group can now be made extractable by naming it `EXTR_<name>` in the Mission
+  Editor**, with no `extractableGroups` config entry needed — the same authoring pattern already
+  used for `TRZ_…` troop pickup zones. The existing explicit `extractableGroups` list keeps working
+  unchanged; a group named both ways registers once (deduplicated union), so it never appears
+  twice in the "Extract from field" F10 submenu. Scans RED, BLUE and NEUTRAL (covers a civilian
+  group). Init-only, same as the explicit list — a group activated after mission start is not
+  picked up.
+
 ### Added — `enableParachuteDrop`, a global switch ahead of `canParachuteDrop` (FEAT-PARACHUTE-DROP-GATE)
 
 - **A new setting disables parachute dropping mission-wide** instead of requiring `canParachuteDrop`

@@ -114,44 +114,11 @@ des lignes.
      1 CTLD_troop.lua, 2 CTLD_vehicle.lua), pas de mécanisme centralisé ni de helper partagé —
      voir l'ADR pour le raisonnement complet. -->
 
-## extractableGroups — détection automatique par convention de nommage
-
-Constaté en expliquant `extractableGroups` : aujourd'hui, rendre un groupe pré-placé dans le Mission
-Editor extractible au F10 exige que le MM ajoute son nom à la table de config `extractableGroups`
-(`INIT-E`, `CTLDCoreManager:_initExtractableGroups`, `CTLD_core.lua:520`) — une étape manuelle,
-séparée du placement du groupe lui-même, à la manière de `logisticUnits` avant l'introduction de
-`logisticUnitTypes`.
-
-Idée : offrir au MM le choix entre la liste explicite existante et une **convention de nommage**
-détectée automatiquement à l'init, sans toucher à la config — le MM place son groupe et le nomme
-directement dans l'éditeur, comme il le fait déjà pour les zones `TRZ_…`. Les deux mécanismes
-coexistent (union, dédoublonnée) : un groupe listé dans `extractableGroups` *et* nommé selon la
-convention ne compte qu'une fois.
-
-Décisions retenues (pseudo-grill du 2026-08-11, alignées sur les conventions de nommage déjà
-présentes dans `src/`) :
-- **Style** : préfixe strict `EXTR_<nom>`, sur le modèle de `SVNT_` (`_isServantUnitName`,
-  `^SVNT`, `CTLD_troop.lua:37`) plutôt que la sous-chaîne libre de `_isJTACGroup` (`"jtac"` n'importe
-  où dans le nom, insensible à la casse, `CTLD_core.lua:549`) — un préfixe ancré évite les faux
-  positifs sur un nom de groupe qui contiendrait le mot par coïncidence.
-- **Mot-clé** : `EXTR` — court, cohérent avec les préfixes existants (`SVNT_`, `TRZ_`), distinct de
-  `JTAC`/`SVNT`.
-- **Périmètre coalition du scan** : RED + BLUE + NEUTRAL. Plus large que le seul autre scan par nom
-  existant (`_initMMJTACs` ne couvre que RED/BLUE, `CTLD_core.lua:488`), choisi pour rester cohérent
-  avec la liste explicite `extractableGroups` — celle-ci accepte déjà n'importe quelle coalition
-  puisqu'elle lit `group:getCoalition()` sur le groupe résolu, sans restriction dans
-  `_initExtractableGroups`. Inclure NEUTRAL sert notamment le cas des **civils** (par nature neutres)
-  — un groupe de civils à évacuer/extraire, par exemple — que le périmètre RED/BLUE seul de
-  `_initMMJTACs` ne couvrirait pas.
-- **Mécanisme** : étendre `INIT-E` pour scanner `coalition.getGroups(side)` sur les trois côtés (comme
-  `_initMMJTACs` le fait pour RED/BLUE) et tester le préfixe `^EXTR` sur chaque nom, en plus de la
-  résolution des noms listés dans `extractableGroups` — même passage d'init, résultat fusionné dans
-  `CTLDTroopManager._droppedGroups[coalition]`.
-
-Reste à trancher **au to-prd/to-issues** (implémentation, pas conception) : convention exacte du nom
-après le préfixe (`EXTR_<name>` libre, ou faut-il aussi extraire des métadonnées du nom comme `TRZ_`
-le fait pour ses 5 champs ?) et mise à jour de la doc mission-maker (`configuration.md` /
-`.fr.md`) pour documenter les deux voies côte à côte.
+<!-- extractableGroups — détection automatique par convention de nommage EXTR_ : formalisé en lot
+     `.backlog/FEAT-EXTR-GROUP-NAMING-CONVENTION/` (grill-with-docs, 2026-09-27). Le point resté
+     ouvert ici (métadonnée dans le nom) est résolu : aucune, `EXTR_<name>` reste un préfixe nu —
+     rien à configurer, la coalition est déjà lue en direct sur l'objet DCS. Nouveau terme
+     CONTEXT.md "Auto-discovered group", sibling de "Auto-discovered zone". -->
 
 ## Zones dynamiques — aucun rafraîchissement du menu F10 des joueurs déjà sur place
 

@@ -70,12 +70,16 @@ Configuration is read-only via `ctld.gs("paramName")` — never `config:getSetti
 | INIT-B | `_initMMCrates()` | Scan coalition statics for MM-placed cargo objects |
 | INIT-C | `_initMMJTACs()` | Scan coalition groups for MM-placed JTAC groups |
 | INIT-D | `CTLDVehicleSpawner:scanMMVehicles()` | Scan coalition ground groups for MM-placed vehicles |
-| INIT-E | `_initExtractableGroups()` | Register `extractableGroups` names into `CTLDTroopManager._droppedGroups` |
+| INIT-E | `_initExtractableGroups()` | Register `extractableGroups` names + `EXTR_`-named groups into `CTLDTroopManager._droppedGroups` |
 | INIT-A | `_initAITransports()` | Build AI team lists and start the auto-pickup/dropoff loop |
 
 **INIT-E detail:** reads `ctld.gs("extractableGroups")`, calls `Group.getByName()` for each entry,
 and inserts the group name into `CTLDTroopManager._droppedGroups[coalition]`. Groups not found are
-logged as `WARN` and skipped. There is no late activation (iso-legacy) and no `_droppedTemplates`
+logged as `WARN` and skipped. Then scans `coalition.getGroups(side)` on RED/BLUE/NEUTRAL for a
+group whose name matches the anchored prefix `EXTR_` — a Mission Editor naming convention needing
+no config entry — skipping any name already registered by the list above (deduplicated union).
+Both passes are init-only: there is no late activation (iso-legacy for the list; deliberate for
+`EXTR_`, unlike `_initMMJTACs`' `markPendingJTAC`/`onBirth` mechanism) and no `_droppedTemplates`
 entry — `embarkFromField` uses a 130 kg/unit fallback.
 
 ## Adding a new module
