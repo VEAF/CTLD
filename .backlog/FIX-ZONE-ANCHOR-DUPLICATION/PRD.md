@@ -1,6 +1,6 @@
 # FIX-ZONE-ANCHOR-DUPLICATION — one shared anchor implementation for `CTLDTroopZone`/`CTLDLogisticZone`
 
-**Status:** 🔄 in-progress.
+**Status:** 🔄 in review (PR #213).
 
 Formalizes `dev/roadmap.md`'s "Lien générique zone ↔ objet de référence (owner-triggered)" entry —
 launched directly to `to-prd` (skipping a dedicated `grill-with-docs` session, per explicit
