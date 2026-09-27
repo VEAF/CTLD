@@ -148,43 +148,15 @@ dans chaque fonction de création. Reste à trancher **au to-prd/to-issues** : u
 générique pour les deux familles de zones, ou deux événements distincts (troupe/logistique)
 comme aujourd'hui pour la création elle-même ?
 
-## luacheck n'est en réalité vérifié nulle part (ni local, ni CI)
-
-Constaté en vérifiant l'état de `develop` après le merge de `FEAT-TROOP-ZONE-SCRIPTED-API` (PR
-#129, 2026-08-26) : `CLAUDE.md` affirme "`luacheck --config .luacheckrc src/` must be clean (rely
-on CI if not installed locally)", mais **aucun job CI n'exécute luacheck** (grep confirmé sur
-`.github/workflows/` — zéro occurrence). Le job `Lua 5.1 Syntax Check` ne fait qu'un `luac5.1 -p`
-(compilation/syntaxe), pas d'analyse statique (variables inutilisées, globals implicites, etc.).
-
-Côté local, le hook `tools/hooks/luacheck-on-edit.sh` (PostToolUse sur Edit/Write d'un fichier
-`src/*.lua`) est un **no-op silencieux** quand `luacheck` n'est pas installé (`command -v
-luacheck` échoue) — le cas sur cette machine Windows (absent du PATH et de
-`luarocks/rocks/bin`). Résultat : le code fusionné dans cette même PR (`src/CTLD_zone.lua`) n'a
-jamais été passé au luacheck réel, ni pendant la session (hook muet), ni en CI (job absent) — la
-garantie de qualité annoncée dans `CLAUDE.md` est un filet vide depuis on ne sait combien de temps.
-
-Idée de lot : soit ajouter un vrai job CI luacheck (le plus simple — `luacheck` s'installe via
-`luarocks` sur le runner ubuntu déjà utilisé par `busted Tests`), soit rendre le hook local
-bloquant/visible plutôt que silencieux quand le binaire manque, soit les deux. Reste à trancher
-**au to-prd/to-issues** : faire de ce nouveau job un gate bloquant dès le départ, ou l'ajouter en
-mode rapport seul le temps de nettoyer une éventuelle dette luacheck déjà accumulée dans `src/`.
-
-**Mise à jour (2026-08-26)** : luacheck installé en local (résolu deux `luarocks` en conflit sur
-cette machine — celui bundlé dans `lua-for-windows`, cassé pour compiler des extensions C, shadowait
-celui de scoop ; supprimé ses shims, gardé `lua-for-windows` pour son runtime Lua 5.1) et lancé sur
-`src/` pour de vrai la première fois. Résultat : **0 erreur**, 206 warnings dans 33 fichiers.
-**117 (57 %) étaient des faux positifs de config**, corrigés dans la foulée (`.luacheckrc`) :
-`class`/`AI`/`Spot`/`STTS`/`ctld_config_user` sont des globals réels (DCS ou legacy) absents de
-`read_globals`/`globals` (47 warnings), et les 70 restants étaient des lignes de traduction i18n
-dépassant `max_line_length=200` — limite sans objet sur du texte traduit, désormais exemptée pour
-`CTLD_i18n_{en,fr,es,ko}.lua`. Total ramené à **89 warnings, 0 erreur**, dette réelle et déjà
-quantifiée (donc le "reste à trancher" ci-dessus n'est plus une inconnue) :
-variables inutilisées et shadowing éparpillés sur ~8 fichiers, 2 branches `if` vides dans
-`CTLD_vehicle.lua`, une négation simplifiable dans `CTLD_jtac.lua`, et surtout **58 occurrences dans
-`legacy_api.lua`** où un paramètre nommé `_préfixé` (convention "volontairement inutilisé") est en
-fait utilisé — la convention de nommage elle-même est trompeuse à corriger, pas le code qui
-l'entoure. Chacune de ces ~89 lignes demande un vrai jugement au cas par cas, pas un simple réglage
-de config — candidat pour un futur lot de nettoyage dédié, hors scope de celui-ci.
+<!-- luacheck n'est en réalité vérifié nulle part (ni local, ni CI) : formalisé en lot
+     `.backlog/TOOLING-LUACHECK-CI-RATCHET/` (grill-with-docs, 2026-09-27). Résolu : nouveau job
+     CI dédié avec un ratchet inversé (LUACHECK_WARNING_CEILING, démarre à 89, ne peut que baisser
+     — miroir de COVERAGE_FLOOR), 0 erreur toujours bloquant. Hook local rendu visible (message
+     une fois, marqueur simple dans .git/, jamais réinitialisé). Le nettoyage des 89 warnings
+     eux-mêmes reste hors scope, candidat de lot séparé (détail de la dette toujours ci-dessous
+     pour référence future — variables inutilisées/shadowing sur ~8 fichiers, 2 `if` vides dans
+     CTLD_vehicle.lua, une négation simplifiable dans CTLD_jtac.lua, et le gros du volume dans
+     legacy_api.lua où un paramètre `_préfixé` est en fait utilisé). -->
 
 ## TRZ_ automatique — création liée au spawn d'un objet (FOB, FARP, etc.)
 
