@@ -91,8 +91,11 @@ chaque résultat.
 
 Chaque réglage affiche un **nom en langage clair**, son unité quand CTLD la documente (mètres,
 kilogrammes, secondes), une courte description, et l'éditeur adapté à son type — un interrupteur pour
-on/off, une liste déroulante pour les choix fixes, un champ nombre ou texte sinon. Le **nom technique
-du réglage** (celui utilisé dans la documentation CTLD et sur les forums) est affiché à côté en petit.
+on/off, une liste déroulante pour les choix fixes, un champ nombre ou texte sinon. Un champ **nombre
+entier** (un effectif de soldats, un quota, une limite, un code laser) arrondit ou refuse une
+décimale saisie ; un champ continu (un poids, une distance, une durée) ne le fait pas. Le **nom
+technique du réglage** (celui utilisé dans la documentation CTLD et sur les forums) est affiché à
+côté en petit.
 
 Les entrées de catalogue — **caisses**, **groupes de troupes**, **capacités des aéronefs** (choisir un
 type d'aéronef dans la liste DCS), **zones**, noms des pilotes de transport, poids des véhicules —
@@ -140,8 +143,9 @@ avertissent d'abord si vous avez des modifications non enregistrées.
 
 La **validation en direct** s'exécute pendant que vous éditez. Un voyant dans l'en-tête indique
 **VALIDE** ou **À VÉRIFIER**, et un panneau au-dessus des réglages liste chaque problème en langage
-clair — types d'unités DCS inconnus, poids de caisse en double, etc. Cliquez sur un problème et
-l'application saute directement au réglage concerné.
+clair — types d'unités DCS inconnus, poids de caisse en double, un champ nombre entier contenant une
+décimale (issue d'un YAML modifié à la main, ou d'une configuration enregistrée avant l'existence de
+ce contrôle), etc. Cliquez sur un problème et l'application saute directement au réglage concerné.
 
 ## Enregistrer et utiliser { #saving-and-using-it }
 

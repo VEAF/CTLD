@@ -82,8 +82,10 @@ by name or by description, and tells you which family each result belongs to.
 
 Each setting shows a **plain-language name**, its unit where CTLD documents one (metres, kilograms,
 seconds), a short description, and the right editor for its type — a switch for on/off, a dropdown
-for fixed choices, a number or text box otherwise. The **raw config name** (the one used in the CTLD
-documentation and on the forums) is shown next to it in small type.
+for fixed choices, a number or text box otherwise. A whole-number field (a soldier count, a quota,
+a limit, a laser code) rounds or rejects a typed decimal; a continuous one (a weight, a distance,
+a duration) does not. The **raw config name** (the one used in the CTLD documentation and on the
+forums) is shown next to it in small type.
 
 Catalogue entries — **crates**, **troop groups**, **aircraft capabilities** (pick an aircraft type
 from the DCS list), **zones**, transport pilot names, vehicle weights — are edited as tables, at the
@@ -130,7 +132,9 @@ changes.
 
 **Live validation** runs as you edit. A lamp in the header reads **VALID** or **CHECK**, and a panel
 above the settings lists any problem in plain words — unknown DCS unit types, duplicate crate
-weights, and so on. Click a problem and the app jumps straight to the setting it concerns.
+weights, a whole-number field holding a decimal (from a hand-edited YAML, or a configuration saved
+before this check existed), and so on. Click a problem and the app jumps straight to the setting it
+concerns.
 
 ## Saving and using it
 
