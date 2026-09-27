@@ -47,7 +47,7 @@ function ctld.utils.compareVersions(a, b)
 end
 
 function ctld.utils.drawQuad(coalitionId, vec3Points1To4, message)
-    local coalitionId = coalitionId or 2
+    coalitionId = coalitionId or 2
     local markId = ctld.utils.getNextMarkId()
 
     -- Color
@@ -64,10 +64,11 @@ function ctld.utils.drawQuad(coalitionId, vec3Points1To4, message)
 
     local tableFillColor = { 0, 0, 255, 0.4 } --tableColor
     local lineType = 1                        --solid
-    local message = message or ""
+    message = message or ""
     ctld.utils.marks[markId] = message
 
-    --trigger.action.quadToAll(number coalition , number id , vec3 point1 , vec3 point2 , vec3 point3 , vec3 point4 , table color , table fillColor , number lineType , boolean readOnly, string message)
+    --trigger.action.quadToAll(number coalition , number id , vec3 point1 , vec3 point2 , vec3 point3 ,
+    --vec3 point4 , table color , table fillColor , number lineType , boolean readOnly, string message)
     trigger.action.quadToAll(coalitionId, markId,
         vec3Points1To4[1], vec3Points1To4[2], vec3Points1To4[3], vec3Points1To4[4],
         tableColor, tableFillColor, lineType, true, message)
@@ -223,7 +224,6 @@ function ctld.utils.getRelativeBearing(
     local destLonRad = math.rad(destLon)
 
     -- Calculate delta in radians
-    local dLat = destLatRad - refLatRad
     local dLon = destLonRad - refLonRad
 
     -- Calculate bearing using haversine-like formula (forward azimuth)
@@ -301,7 +301,9 @@ end
 -- @-- borrowed from mist
 ---@param unitObject any
 ---@param rawHeading boolean (true=geographic/false=magnetic)
----@return integer       --- @--return "magneticHeading : "..tostring(math.deg(ctld.utils.getHeadingInRadians(triggerUnitObj, false)))..", geographicHeading : "..tostring(math.deg(ctld.utils.getHeadingInRadians(triggerUnitObj, true)))
+---@return integer
+--- @--return "magneticHeading : "..tostring(math.deg(ctld.utils.getHeadingInRadians(triggerUnitObj, false)))
+--- ..", geographicHeading : "..tostring(math.deg(ctld.utils.getHeadingInRadians(triggerUnitObj, true)))
 function ctld.utils.getHeadingInRadians(caller, unitObject, rawHeading) --rawHeading: boolean (true=geographic/false=magnetic)
     if not unitObject then
         if env and env.error then
@@ -546,17 +548,17 @@ function ctld.utils.get2DDist(caller, point1, point2)
 end
 
 --get distance in meters assuming a Flat world
-function ctld.utils.getDistance(caller, _point1, _point2)
-    if _point1 == nil or _point2 == nil then
+function ctld.utils.getDistance(caller, point1, point2)
+    if point1 == nil or point2 == nil then
         if env and env.error then
             env.error("ctld.utils.getDistance()." .. tostring(caller) .. ": Both input values cannot be nil.")
         end
         return 0
     end
-    local xUnit = _point1.x
-    local yUnit = _point1.z
-    local xZone = _point2.x
-    local yZone = _point2.z
+    local xUnit = point1.x
+    local yUnit = point1.z
+    local xZone = point2.x
+    local yZone = point2.z
 
     local xDiff = xUnit - xZone
     local yDiff = yUnit - yZone
@@ -567,20 +569,20 @@ end
 ----------------------------------------------------------------------------------------------------------
 -- gets the center of a bunch of points!
 -- return proper DCS point with height
-function ctld.utils.getCentroid(caller, _points)
-    if _points == nil or #_points == 0 then
+function ctld.utils.getCentroid(caller, points)
+    if points == nil or #points == 0 then
         if env and env.error then
             env.error("ctld.utils.getCentroid()." .. tostring(caller) .. ": Invalid points provided.")
         end
         return nil
     end
     local _tx, _ty = 0, 0
-    for _index, _point in ipairs(_points) do
+    for _index, _point in ipairs(points) do
         _tx = _tx + _point.x
         _ty = _ty + _point.z
     end
 
-    local _npoints = #_points
+    local _npoints = #points
 
     local _point = { x = _tx / _npoints, z = _ty / _npoints }
 
@@ -862,7 +864,7 @@ function ctld.utils.buildWP(caller, point, overRideForm, overRideSpeed)
     else
         wp.y = point.y
     end
-    local form, speed
+    local form
 
     if point.speed and not overRideSpeed then
         wp.speed = point.speed
@@ -952,7 +954,9 @@ function ctld.utils.getUnitsLOS(caller, unitset1, altoffset1, unitset2, altoffse
     for unit1_ind = 1, #unit_info1 do
         local unit_added = false
         for unit2_ind = 1, #unit_info2 do
-            if radius == math.huge or (ctld.utils.vec3Mag("ctld.utils.getUnitsLOS()", ctld.utils.subVec3("ctld.utils.getUnitsLOS()", unit_info1[unit1_ind].pos, unit_info2[unit2_ind].pos)) < radius) then -- inside radius
+            local dist = ctld.utils.vec3Mag("ctld.utils.getUnitsLOS()",
+                ctld.utils.subVec3("ctld.utils.getUnitsLOS()", unit_info1[unit1_ind].pos, unit_info2[unit2_ind].pos))
+            if radius == math.huge or dist < radius then -- inside radius
                 local point1 = {
                     x = unit_info1[unit1_ind].pos.x,
                     y = unit_info1[unit1_ind].pos.y + altoffset1,
@@ -1051,7 +1055,7 @@ function ctld.utils.getGroupRoute(caller, groupName, task)
                         if obj_cat_name == "helicopter" or obj_cat_name == "ship" or obj_cat_name == "plane" or obj_cat_name == "vehicle" then                       -- only these types have points
                             if ((type(obj_cat_data) == 'table') and obj_cat_data.group and (type(obj_cat_data.group) == 'table') and (#obj_cat_data.group > 0)) then --there's a group!
                                 for group_num, group_data in pairs(obj_cat_data.group) do
-                                    if group_data and group_data.groupId == gpId then                                                                                -- this is the group we are looking for
+                                    if group_data and group_data.groupId == gpId then -- this is the group we are looking for
                                         if group_data.route and group_data.route.points and #group_data.route.points > 0 then
                                             local points = {}
 
@@ -1100,15 +1104,15 @@ end
 
 --------------------------------------------------------------------------------------------------------
 --- Returns the groupId for a given unit.
-function ctld.utils.getGroupId(caller, _unitId)
-    if _unitId == nil then
+function ctld.utils.getGroupId(caller, unitId)
+    if unitId == nil then
         if env and env.error then
             env.error("ctld.utils.getGroupId()." .. tostring(caller) .. ": Invalid unit provided.")
         end
         return nil
     end
 
-    return _unitId:getGroup():getID()
+    return unitId:getGroup():getID()
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -1497,7 +1501,6 @@ function ctld.utils.dynAdd(caller, ng)
 
 
     for unitIndex, unitData in pairs(newGroup.units) do
-        local originalName = newGroup.units[unitIndex].unitName or newGroup.units[unitIndex].name
         if newGroup.clone or not unitData.unitId then
             newGroup.units[unitIndex].unitId = ctld.utils.getNextUniqId()
         end
@@ -1653,19 +1656,19 @@ end
 
 --------------------------------------------------------------------------------------------------------
 --- Counts the number of entries in a table.
-function ctld.utils.countTableEntries(caller, _table)
-    if type(_table) ~= "table" then
+function ctld.utils.countTableEntries(caller, tbl)
+    if type(tbl) ~= "table" then
         if env and env.error then
             env.error("ctld.utils.countTableEntries()." .. tostring(caller) .. ": Invalid table provided.")
         end
         return 0
     end
-    if _table == nil then
+    if tbl == nil then
         return 0
     end
 
     local _count = 0
-    for _key, _value in pairs(_table) do
+    for _key, _value in pairs(tbl) do
         _count = _count + 1
     end
 
@@ -1679,9 +1682,9 @@ end
 -- See also: from http://lua-users.org/wiki/CopyTable
 -- @param object object to copy
 -- @return copy of object
-function ctld.utils.deepCopy(caller, object)
+function ctld.utils.deepCopy(caller, obj)
     local lookup_table = {}
-    if object == nil then
+    if obj == nil then
         if env and env.error then
             env.error("ctld.utils.deepCopy()." .. tostring(caller) .. ": Attempt to deep copy a nil object.")
         end
@@ -1700,7 +1703,7 @@ function ctld.utils.deepCopy(caller, object)
         end
         return setmetatable(new_table, getmetatable(object))
     end
-    return _copy(object)
+    return _copy(obj)
 end
 
 --------------------------------------------------------------------------------------------------------

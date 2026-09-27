@@ -194,8 +194,11 @@ jobs:
       # Warning-count ratchet ceiling. RULE: only ever decrease, never increase.
       # First real run (2026-09-27, TOOLING-LUACHECK-CI-RATCHET) measured 89 warnings, 0 errors —
       # ceiling seeded at that exact count. Lowered to 31 (FIX-LEGACY-API-PARAM-PREFIX, same day):
-      # legacy_api.lua's 58 misleadingly-`_`-prefixed-but-actually-used parameters fixed.
-      LUACHECK_WARNING_CEILING: '31'
+      # legacy_api.lua's 58 misleadingly-`_`-prefixed-but-actually-used parameters fixed. Lowered
+      # to 0 (FIX-LUACHECK-REMAINING-WARNINGS, same day): the remaining 30 fixed individually; one
+      # (CTLD_vehicle.lua:734, a documented-unimplemented feature) suppressed inline instead of
+      # deleted — see dev/roadmap.md.
+      LUACHECK_WARNING_CEILING: '0'
     steps:
       - uses: actions/checkout@v7
       - name: Install Lua + LuaRocks + luacheck

@@ -187,10 +187,10 @@ function CTLDBeaconManager:_buildFreqPools()
     end
 
     -- UHF: 220–398.5 MHz by 0.5 MHz (stops before 399 MHz, matching source)
-    local f = 220000000
-    while f < 399000000 do
-        self._freeUHF[#self._freeUHF + 1] = f
-        f = f + 500000
+    local uhfFreq = 220000000
+    while uhfFreq < 399000000 do
+        self._freeUHF[#self._freeUHF + 1] = uhfFreq
+        uhfFreq = uhfFreq + 500000
     end
 
     -- FM: (100*f + 10*s + t) * 100000 Hz, f=3..7, t=0..9. s=0..9 for f=3..6 (closes the four

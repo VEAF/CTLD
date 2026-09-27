@@ -160,8 +160,31 @@ comme aujourd'hui pour la création elle-même ?
 
 <!-- luacheck cleanup, Lot A — legacy_api.lua : formalisé en lot
      `.backlog/FIX-LEGACY-API-PARAM-PREFIX/`, mergé — 58 des 89 warnings corrigés (préfixe `_`
-     retiré sur les 58 paramètres, tous réellement utilisés), plafond CI abaissé à 31. Lot B (les
-     31 restants, ~9 fichiers, jugement au cas par cas) reste candidat de lot séparé. -->
+     retiré sur les 58 paramètres, tous réellement utilisés), plafond CI abaissé à 31. -->
+
+## Native-cargo bbox-exit detection is unimplemented (`CTLDVehicleSpawner`)
+
+Constaté en nettoyant les warnings `luacheck` restants (2026-09-27) : dans la boucle de détection
+bbox (`CTLD_vehicle.lua`, autour de la ligne 733), la branche qui devrait détecter la **sortie**
+d'un véhicule chargé nativement (`dcs_native`) de la zone de chargement est **entièrement
+composée de commentaires** décrivant le mécanisme prévu — aucun code réel. L'entrée bbox (chargement)
+fonctionne ; la sortie (déchargement natif détecté automatiquement) ne l'a jamais été.
+
+Portée du gap, telle que décrite par les commentaires en place : un véhicule chargé en mode
+`dcs_native` reste en état `LOADED` indéfiniment tant que rien ne détecte sa sortie — pas de
+transition automatique vers un état de déchargement, contrairement au chemin `menu_ctld`
+(chargement/déchargement explicites via le menu F10). Le commentaire suggère une piste : détecter
+la réapparition de l'unité spawnée (un nouvel `isExist()` vrai) au tick suivant comme signal de
+sortie (parachute ou débarquement au sol), mais rien de tout ça n'est implémenté ni vérifié.
+
+Marqué `-- luacheck: ignore 542` sur place (pas de lot de nettoyage lint qui supprimerait
+silencieusement l'intention documentée) — reste candidat de lot séparé si le besoin réel (un
+véhicule `dcs_native` qui ne sort jamais formellement de l'état `LOADED`) est confirmé en jeu.
+
+<!-- luacheck cleanup, Lot B — le reste (30 des 31 restants après le gap ci-dessus, ~9 fichiers) :
+     formalisé en lot `.backlog/FIX-LUACHECK-REMAINING-WARNINGS/`, mergé — plafond CI abaissé à 0.
+     Le nettoyage luacheck complet (89 → 0) est terminé ; le seul résidu (bbox-exit ci-dessus) est
+     un gap de fonctionnalité documenté, pas une dette de lint. -->
 
 ## TRZ_ automatique — création liée au spawn d'un objet (FOB, FARP, etc.)
 
