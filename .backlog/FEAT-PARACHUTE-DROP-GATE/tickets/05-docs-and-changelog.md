@@ -1,6 +1,6 @@
 # 05 — Document `enableParachuteDrop`, CHANGELOG entry
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** tickets 01, 02, 03, 04 — documents the finished, fully-tested behavior.
 
