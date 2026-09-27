@@ -1,6 +1,6 @@
 # DOC-CTLD-TOOLS-INTEGER-FIELDS — document `ctld-tools`' whole-number field behavior
 
-**Status:** 🔄 in-progress (ticket 01 done; PR pending).
+**Status:** ✅ done (PR #202).
 
 Found during a post-merge documentation audit (2026-09-27, covering the last 10 merged PRs): the
 `FIX-CTLD-TOOLS-INTEGER-FIELDS` lot (PRs #188-191, merged 2026-09-24) changed `ctld-tools`' UI
