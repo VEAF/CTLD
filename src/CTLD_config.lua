@@ -311,8 +311,6 @@ function CTLDConfig.parseYAML(data)
     return result
 end
 
-local config = CTLDConfig.get() -- get the singleton instance
-
 -- Global shortcut for config access.
 -- Usage: ctld.gs("paramName")  instead of  CTLDConfig.get():getSetting("paramName")
 -- This is the ONLY authorised form to read config parameters throughout src/.

@@ -704,7 +704,7 @@ end
 -- @param countryId  number  country.id.*
 -- @return boolean  true if spawn succeeded
 function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryId)
-    if not (ctld.gs("JTAC_dropEnabled") ~= false) then
+    if ctld.gs("JTAC_dropEnabled") == false then
         ctld.utils.log("INFO", "CTLDJTACManager:deployAirJTAC — JTAC_dropEnabled=false, skipped")
         return false
     end

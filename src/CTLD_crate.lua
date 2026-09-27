@@ -400,7 +400,6 @@ function CTLDCrateManager:_injectSceneCrate(sceneName, model)
     if not already then
         local showCrateSets = ctld.gs("enableAllCrates") ~= false
         local pe = { singleCrate = entry }
-        local cr = entry.cratesRequired
         if cr > 1 and showCrateSets and entry.showSets then
             local weights = {}
             for i = 1, cr do weights[i] = w end
@@ -688,7 +687,7 @@ end
 -- Each entry spawns the vehicle at unpack time.
 -- Called on land, crate spawn, crate cleared.
 -- @param playerObj CTLDPlayer
-function CTLDCrateManager:refreshUnpackSection(playerObj, _noRefresh)
+function CTLDCrateManager:refreshUnpackSection(playerObj, noRefresh)
     local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
     if not (playerObj.isTransport and caps and caps.cratesEnabled) then return end
 
@@ -706,7 +705,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, _noRefresh)
     if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then
         menu:addCommand({ root, cratesSub, unpackSub },
             ctld.tr("Land to unpack crates"), function() end, {})
-         if not _noRefresh then menu:refresh() end
+         if not noRefresh then menu:refresh() end
         return
     end
 
@@ -905,7 +904,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, _noRefresh)
         menu:addCommand({ root, cratesSub, unpackSub },
             ctld.tr("No complete crate sets nearby"), function() end, {})
     end
-     if not _noRefresh then menu:refresh() end
+     if not noRefresh then menu:refresh() end
 end
 
 --- Rebuild the unified "Pack Equipt" dynamic submenu for playerObj.
@@ -913,7 +912,7 @@ end
 -- Visible only when on the ground — absent in flight.
 -- Lists repackable FARP scenes (within 300 m) and packable vehicles nearby.
 -- @param playerObj CTLDPlayer
-function CTLDCrateManager:refreshPackEquiptSection(playerObj, overrideInAir, _noRefresh)
+function CTLDCrateManager:refreshPackEquiptSection(playerObj, overrideInAir, noRefresh)
     local farpEnabled    = ctld.gs("enableFARPRepack") == true
     local vehicleEnabled = ctld.gs("enablePackingVehicles") == true
     if not (farpEnabled or vehicleEnabled) then return end
@@ -935,7 +934,7 @@ function CTLDCrateManager:refreshPackEquiptSection(playerObj, overrideInAir, _no
 
     local transport = Unit.getByName(playerObj.unitName)
     if not (transport and transport:isExist()) then
-        if not _noRefresh then menu:refresh() end
+        if not noRefresh then menu:refresh() end
         return
     end
 
@@ -953,7 +952,7 @@ function CTLDCrateManager:refreshPackEquiptSection(playerObj, overrideInAir, _no
         -- clearBranch empties children but keeps the node in the tree (enabled=true).
         -- setBranchEnabled hides it from DCS rendering on next refresh().
         menu:setBranchEnabled({ root, cratesSub, packSub }, false)
-        if not _noRefresh then menu:refresh() end
+        if not noRefresh then menu:refresh() end
         return
     end
 
@@ -976,7 +975,7 @@ function CTLDCrateManager:refreshPackEquiptSection(playerObj, overrideInAir, _no
     -- If nothing to pack, hide the submenu and return.
     if #scenes == 0 and #packableVehicles == 0 then
         menu:setBranchEnabled({ root, cratesSub, packSub }, false)
-        if not _noRefresh then menu:refresh() end
+        if not noRefresh then menu:refresh() end
         return
     end
 
@@ -1048,7 +1047,7 @@ function CTLDCrateManager:refreshPackEquiptSection(playerObj, overrideInAir, _no
               coalition        = playerObj.coalition })
     end
 
-    if not _noRefresh then menu:refresh() end
+    if not noRefresh then menu:refresh() end
 end
 
 --- Replace the parachute visual effect handler.
@@ -2819,7 +2818,7 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj, overrideInAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Drop Crate(s)") },      not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Unpack Crate") },       not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
-    self:refreshPackEquiptSection(playerObj, inAir, true)  -- _noRefresh: final refresh() below covers it
+    self:refreshPackEquiptSection(playerObj, inAir, true)  -- noRefresh: final refresh() below covers it
 
     -- Parachute Crates: enabled only in air + CTLD crates loaded
     if caps.canParachuteDrop and ctld.gs("enableParachuteDrop") then
@@ -2928,7 +2927,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
 
     local unpackSub = ctld.tr("Unpack Crate")
     menu:addSubMenu({ root, cratesSub }, unpackSub, { order = 20 })
-    self:refreshUnpackSection(playerObj, true)  -- _noRefresh: buildMenu calls refresh() at end
+    self:refreshUnpackSection(playerObj, true)  -- noRefresh: buildMenu calls refresh() at end
 
     menu:addCommand({ root, cratesSub }, ctld.tr("List Nearby Crates"),
         function(arg)
@@ -2973,7 +2972,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
         end,
         { unitName = playerObj.unitName })
 
-    self:refreshPackEquiptSection(playerObj, nil, true)  -- _noRefresh: buildMenu calls refresh() at end
+    self:refreshPackEquiptSection(playerObj, nil, true)  -- noRefresh: buildMenu calls refresh() at end
 
     -- Parachute Crates: added when cap allows; visibility managed by refreshCrateFlightSection.
     if caps.canParachuteDrop and ctld.gs("enableParachuteDrop") then

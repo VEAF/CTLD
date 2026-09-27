@@ -1886,7 +1886,8 @@ function CTLDZoneManager:_validateZoneNames()
             -- G5: cargoType V/TV on a pickup zone but no transport has canTransportWholeVehicle
             local effCargoIsVehicle = (entry.cargoType == "V" or entry.cargoType == "TV")
             if not hasErr and entry.isPickup and effCargoIsVehicle and not hasVehicleTransport() then
-                errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored", i, tostring(dzn), tostring(entry.cargoType))
+                errors[#errors + 1] = ctld.tr("  AIZ[%1] ERROR '%2': cargoType '%3' requires whole-vehicle transport but no aircraft has canTransportWholeVehicle=true — entry ignored",
+                    i, tostring(dzn), tostring(entry.cargoType))
                 hasErr = true
             end
             -- aiDropMode (Fix 6 applied in _loadAIZonesFromConfig — WARN only here)

@@ -670,7 +670,7 @@ function CTLDReconManager:scan(playerUnit, player)
     })
 
     -- Auto-refresh always enabled when RECON starts.
-    -- Pass _fromScan=true so enableAutoRefresh skips its own rebuild
+    -- Pass fromScan=true so enableAutoRefresh skips its own rebuild
     -- (scan() already calls _rebuildReconBranch below).
     self:enableAutoRefresh(playerUnit, player, true)
 
@@ -727,8 +727,8 @@ end
 --- Enable auto-refresh (menu F10 "Auto-Refresh: [OFF]" → ON).
 -- @param playerUnit DCS Unit
 -- @param player     string
--- @param _fromScan  boolean  internal flag — skip menu rebuild when called from scan()
-function CTLDReconManager:enableAutoRefresh(playerUnit, player, _fromScan)
+-- @param fromScan  boolean  internal flag — skip menu rebuild when called from scan()
+function CTLDReconManager:enableAutoRefresh(playerUnit, player, fromScan)
     local scan = self._activeScans[player]
     if not scan then
         trigger.action.outTextForGroup(ctld.utils.getGroupId(playerUnit),
@@ -763,7 +763,7 @@ function CTLDReconManager:enableAutoRefresh(playerUnit, player, _fromScan)
         timestamp       = timer.getAbsTime(),
     })
 
-    if not _fromScan then
+    if not fromScan then
         self:_rebuildReconBranch(player, playerUnit)
     end
 end

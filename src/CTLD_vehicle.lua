@@ -730,8 +730,13 @@ function CTLDVehicleSpawner:_checkNativeLoading()
                         end
 
                         -- Check LOADED (native) vehicles for bbox exit
+                        -- KNOWN GAP (dev/roadmap.md, "Native-cargo bbox-exit detection is
+                        -- unimplemented"): this branch is intentionally empty -- the exit-detection
+                        -- logic described below was never built. luacheck: ignore 542 (empty if
+                        -- branch) -- suppressed deliberately, not a warning to silently delete
+                        -- the documented intent behind.
                         for id, veh in pairs(nativeLoaded) do
-                            if veh.loadTransportName == tName then
+                            if veh.loadTransportName == tName then -- luacheck: ignore 542
                                 -- Vehicle is LOADED but we can't query its position (unit destroyed)
                                 -- Use the tracked entry: if transport still alive, consider still loaded
                                 -- Exit is detected by the transport being gone or in a different state
@@ -1266,14 +1271,8 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
         return
     end
 
-    local isDynamic    = _isNativeCargoCapable(transport)
-    local hdg          = ctld.utils.getHeadingInRadians("CTLDVehicleSpawner:packVehicle", transport, true)
-    local offset       = _secureOffset(transport)
     local cratesReq    = descriptor.cratesRequired or 1
-    local modelKey     = isDynamic and "dynamic" or "load"
     local coa          = transport:getCoalition()
-    local cId          = transport:getCountry()
-    local tPos         = transport:getPoint()
     local packPos      = packableUnit:getPoint()   -- capture before destroy
 
     -- Silently deregister JTAC before destroy to prevent false OnJTACDead event.
@@ -1377,10 +1376,8 @@ function CTLDVehicleSpawner:findLoadableVehicles(transport)
     local result  = {}
     for id, veh in pairs(self._vehicles) do
         if veh:getState() == CTLDVehicle.STATE.WAITING then
-            -- Coalition filter (GAP-Q1)
-            if veh.spawnData and veh.spawnData.coalitionId ~= tCoa then
-                -- skip: wrong coalition
-            else
+            -- Coalition filter (GAP-Q1) -- proceed only when not the wrong coalition
+            if (not veh.spawnData) or veh.spawnData.coalitionId == tCoa then
                 -- Lazy resolve: unit ref may be nil if registered before DCS group was ready.
                 if not veh.unit and veh.spawnData and veh.spawnData.groupName then
                     local g = Group.getByName(veh.spawnData.groupName)

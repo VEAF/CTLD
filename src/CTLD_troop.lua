@@ -950,7 +950,6 @@ end
 function CTLDTroopManager:returnToTroopZone(unit, zone)
     local unitName  = unit:getName()
     local list      = self._inTransit[unitName]
-    local coalition = unit:getCoalition()
 
     if not list or #list == 0 then
         trigger.action.outTextForGroup(ctld.utils.getGroupId(unit),
