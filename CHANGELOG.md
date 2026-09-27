@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — the last 30 `luacheck` warnings resolved, CI ratchet reaches 0 (FIX-LUACHECK-REMAINING-WARNINGS)
+
+- Internal-only cleanup, no behavior change: unused-variable removals (each verified
+  side-effect-free before deletion), misleadingly-`_`-prefixed-but-actually-used parameter
+  renames, shadowing fixes, line-wraps, a simplifiable negation, and a trivial empty-`if`
+  inversion, across 9 `src/` files. One case (`CTLD_vehicle.lua`'s native-cargo bbox-exit
+  detection, never implemented) is deliberately left as-is — suppressed inline, tracked as a real
+  feature gap in `dev/roadmap.md` instead of silently deleted. `luacheck` reports 0 warnings for
+  the first time; the CI ratchet ceiling drops accordingly (31 → 0).
+
 ### Changed — `legacy_api.lua` parameter names no longer carry a misleading `_` prefix (FIX-LEGACY-API-PARAM-PREFIX)
 
 - Internal-only cleanup, no behavior change: every one of the 22 legacy wrapper functions'
