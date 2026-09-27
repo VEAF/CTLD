@@ -183,6 +183,50 @@ jobs:
           }
 
   # ─────────────────────────────────────────────────────────────
+  # luacheck static analysis over src/, with an inverted ratchet on the warning
+  # count (mirrors busted's COVERAGE_FLOOR, but the ceiling only ever goes down).
+  # 0 errors is always non-negotiable, regardless of the ceiling.
+  # ─────────────────────────────────────────────────────────────
+  luacheck:
+    name: luacheck
+    runs-on: ubuntu-latest
+    env:
+      # Warning-count ratchet ceiling. RULE: only ever decrease, never increase.
+      # First real run (2026-09-27, TOOLING-LUACHECK-CI-RATCHET) measured 89 warnings, 0 errors —
+      # ceiling seeded at that exact count.
+      LUACHECK_WARNING_CEILING: '89'
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Lua + LuaRocks + luacheck
+        run: |
+          sudo apt-get install -y lua5.1 liblua5.1-dev luarocks
+          sudo luarocks install luacheck
+      - name: Run luacheck and enforce the warning-count ratchet
+        run: |
+          set +e
+          output=$(luacheck --config .luacheckrc src/)
+          status=$?
+          set -e
+          echo "$output"
+          # luacheck's summary line: "Total: <N> warnings / <M> errors in <K> files"
+          warnings=$(echo "$output" | awk '/^Total:/ { print $2 }' | tail -1)
+          errors=$(echo "$output" | awk '/^Total:/ { print $5 }' | tail -1)
+          if [ -z "$warnings" ] || [ -z "$errors" ]; then
+            echo "::error::Could not parse luacheck's Total summary line."
+            exit 1
+          fi
+          echo "luacheck: ${warnings} warning(s), ${errors} error(s) (ceiling: ${LUACHECK_WARNING_CEILING} warnings, 0 errors)"
+          if [ "$errors" -gt 0 ]; then
+            echo "::error::luacheck reported ${errors} error(s) — always non-negotiable, regardless of the ratchet."
+            exit 1
+          fi
+          if [ "$warnings" -gt "$LUACHECK_WARNING_CEILING" ]; then
+            echo "::error::luacheck warning count ${warnings} exceeds the ratchet ceiling ${LUACHECK_WARNING_CEILING}. Fix the new warning(s), or if it's a genuine false positive, address it permanently in .luacheckrc."
+            exit 1
+          fi
+          exit 0
+
+  # ─────────────────────────────────────────────────────────────
   # CHANGELOG guard — a PR that touches src/** must also update CHANGELOG.md.
   # Runs on pull requests only. Escape hatch: add the 'skip-changelog' label
   # to the PR (handled inside the step so the job succeeds rather than being
