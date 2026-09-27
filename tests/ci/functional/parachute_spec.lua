@@ -535,6 +535,67 @@ describe("F-061/F-062 — parachuteVehicle", function()
 
 end)
 
+-- ── FEAT-PARACHUTE-DROP-GATE ticket 04 : enableParachuteDrop menu (Vehicles) ──
+-- No dedicated toggle test existed for "Parachute Vehicle" before this lot — only
+-- incidental coverage at canParachuteDrop=true elsewhere.
+describe("enableParachuteDrop — Parachute Vehicle menu", function()
+
+    local _origGs
+
+    before_each(function()
+        resetAll()
+        _origGs = ctld.gs
+    end)
+
+    after_each(function()
+        ctld.gs = _origGs
+    end)
+
+    local function buildVehicleMenu(enableParachuteDropOverride)
+        CTLDVehicleSpawner.getInstance()  -- register vehicle menu section in CTLDPlayerManager
+        ctld.gs = function(k)
+            if k == "capabilitiesByType" then
+                return { ["UH-1H"] = { canParachuteDrop=true } }
+            end
+            if k == "enableParachuteDrop" then
+                if enableParachuteDropOverride == nil then return true end
+                return enableParachuteDropOverride
+            end
+            return _origGs(k)
+        end
+
+        local playerObj = {
+            unitName="UH-1H-1", groupId=9901, groupName="Grp_veh_gate",
+            coalition=2, typeName="UH-1H", isTransport=true, canCarryVehicles=true,
+        }
+        CTLDPlayerManager.getInstance():buildMenu(playerObj)
+        return ctld.MenuManager:getInstance():getMenuByGroupId(9901)
+    end
+
+    describe("enableParachuteDrop=false — overrides canParachuteDrop=true", function()
+
+        it("Parachute Vehicle node NOT present", function()
+            local menu = buildVehicleMenu(false)
+            local node = menu and menu:_getNode({ ctld.tr("CTLD"), ctld.tr("Vehicle Commands"),
+                                                  ctld.tr("Parachute Vehicle") })
+            assert.is_nil(node)
+        end)
+
+    end)
+
+    describe("enableParachuteDrop=true (default) — canParachuteDrop=true unaffected", function()
+
+        it("Parachute Vehicle node present", function()
+            local menu = buildVehicleMenu(true)
+            local node = menu and menu:_getNode({ ctld.tr("CTLD"), ctld.tr("Vehicle Commands"),
+                                                  ctld.tr("Parachute Vehicle") })
+            assert.is_not_nil(node)
+        end)
+
+    end)
+
+end)
+
 -- ── F-063 / F-064 : canParachuteDrop menu presence ────────────────────────────
 describe("F-063/F-064 — canParachuteDrop menu", function()
 
