@@ -1,6 +1,6 @@
 # FIX-LUACHECK-REMAINING-WARNINGS — "Lot B", the last 30 of the 89 `luacheck` warnings
 
-**Status:** ⬜ ready-for-agent.
+**Status:** 🔄 in review (PR #208).
 
 Formalizes "Lot B" of the `luacheck` warning-cleanup work, following `FIX-LEGACY-API-PARAM-PREFIX`
 ("Lot A", the 58 `legacy_api.lua` parameters). This closes out the debt `TOOLING-LUACHECK-CI-RATCHET`
