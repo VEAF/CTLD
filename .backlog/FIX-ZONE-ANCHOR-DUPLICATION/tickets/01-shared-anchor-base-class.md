@@ -1,6 +1,6 @@
 # 01 — Extract `CTLDAnchoredZone`, reconcile `CTLDLogisticZone`'s field names
 
-**Status:** 🔄 in review (PR #213)
+**Status:** ✅ done (PR #213)
 
 **Blocked by:** none.
 
