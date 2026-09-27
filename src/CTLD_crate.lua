@@ -2822,7 +2822,7 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj, overrideInAir)
     self:refreshPackEquiptSection(playerObj, inAir, true)  -- _noRefresh: final refresh() below covers it
 
     -- Parachute Crates: enabled only in air + CTLD crates loaded
-    if caps.canParachuteDrop then
+    if caps.canParachuteDrop and ctld.gs("enableParachuteDrop") then
         local onboard = 0
         if transport and transport:isExist() then
             for _, c in pairs(self.crates) do
@@ -2976,7 +2976,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
     self:refreshPackEquiptSection(playerObj, nil, true)  -- _noRefresh: buildMenu calls refresh() at end
 
     -- Parachute Crates: added when cap allows; visibility managed by refreshCrateFlightSection.
-    if caps.canParachuteDrop then
+    if caps.canParachuteDrop and ctld.gs("enableParachuteDrop") then
         menu:addCommand({ root, cratesSub }, ctld.tr("Parachute Crates"),
             function(arg)
                 local transport = Unit.getByName(arg.unitName)

@@ -1,6 +1,6 @@
 # 02 — Gate "Parachute Crates" on `enableParachuteDrop`, extend F-063/F-064
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** ticket 01 (the setting must exist before any code reads it).
 
