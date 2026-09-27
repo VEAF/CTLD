@@ -187,6 +187,12 @@ randomised 90–120 % of `SOLDIER_WEIGHT`, plus kit and role-specific gear.
 | `groundVehicleWeights` | `{...}` | Weight (kg) per vehicle DCS type, checked against each aircraft's `maxVehicleWeight` for whole-vehicle transport (Lua table) |
 | `capabilitiesByType` | `{...}` | Unified per-aircraft capability table — see [Per-aircraft capabilities](#per-aircraft-capabilities) below |
 
+### Parachute
+
+| Parameter | Default | Description |
+|---|---|---|
+| `enableParachuteDrop` | `true` | Master switch for parachute dropping (crates, troops, vehicles). When `false`, every "Parachute" F10 entry is hidden for every aircraft, regardless of that aircraft's own `canParachuteDrop` capability |
+
 ### Beacons
 
 | Parameter | Default | Description |

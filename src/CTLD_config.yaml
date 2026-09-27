@@ -234,6 +234,7 @@ mm_facing:
   enableFastRopeInsertion: true
   enableHoverSlingload: true
   enablePackingVehicles: true
+  enableParachuteDrop: true
   enableSmokeDrop: true
   enabledFOBBuilding: true
   enabledRadioBeaconDrop: true

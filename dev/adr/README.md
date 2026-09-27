@@ -24,3 +24,4 @@ Retroactive ADRs document decisions already made during the v2.0.0 rewrite.
 | [0016](0016-exz-naming-convention.md) | `EXZ_` naming-convention format for auto-discovered extraction zones | Accepted |
 | [0017](0017-aiz-naming-convention-tool-only.md) | `AIZ_` partial naming convention stays `ctld-tools`-only | Accepted |
 | [0018](0018-ctld-tools-integer-field-type.md) | `ctld-tools` gains a declared `integer` field type | Accepted |
+| [0019](0019-parachute-drop-global-gate-inline.md) | `enableParachuteDrop` gates 5 call sites inline, not via `registerMenuSection` | Accepted |

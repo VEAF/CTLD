@@ -108,37 +108,11 @@ des lignes.
      formalisé en lot `.backlog/FIX-I18N-STALE-COMMENT-PARSING/` (grill-with-docs, 2026-08-10).
      Pas d'ADR (bug factuel, pas de trade-off de conception). -->
 
-## Parachutage — garde générale d'activation, prioritaire sur `canParachuteDrop`
-
-Constaté en répondant à une question sur `ctld-tools.exe` : le groupe de settings **Parachute**
-(`CTLD_config_schema.yaml`) ne couvre que la *physique* du parachutage (vitesse de descente, dérive,
-altitude d'ouverture, rayon de déballage auto). Il n'existe aucune garde globale pour activer/
-désactiver la fonctionnalité elle-même — seul `canParachuteDrop` (`capabilitiesByType`, par type
-d'appareil) conditionne l'apparition des entrées F10 « Parachute », appareil par appareil.
-
-Idée : ajouter un réglage global `enableParachuteDrop` (pseudo-grill du 2026-08-11 — décisions ci-dessous,
-pas encore formalisées en lot) qui fait office de garde de premier rang. `canParachuteDrop` ne serait
-évalué qu'en second rang, seulement si la garde générale vaut `true` ; si elle vaut `false`, le
-parachutage est désactivé pour tous les appareils sans avoir à repasser `canParachuteDrop: false` un
-par un dans `capabilitiesByType`.
-
-Décisions retenues (alignées sur les gardes globales existantes du même genre) :
-- **Nom** : `enableParachuteDrop` — suit la convention `enable<Feature>` déjà en place
-  (`enableCrates`, `enableSmokeDrop`, `enableFastRopeInsertion`, `enableHoverSlingload`,
-  `enableFARPRepack`), plutôt qu'un suffixe `*Enabled` (seul `reconEnabled` fait exception aujourd'hui).
-- **Comportement** : masque entièrement les entrées F10 « Parachute » quand `false`, même si
-  `canParachuteDrop=true` pour l'appareil — comme `enableCrates`/`enableSmokeDrop` qui gatent
-  l'enregistrement de toute la section de menu (`CTLD_crate.lua:281-282`) et `enableFastRopeInsertion`
-  qui conditionne à la fois la logique et l'apparition de l'entrée menu (`CTLD_troop.lua:1316`,
-  `CTLD_troop.lua:2024`). Pas de message d'erreur à l'action : le garde retire l'entrée, il ne la
-  laisse pas visible pour échouer ensuite.
-- **Emplacement schéma** : nouveau champ dans le groupe `parachute` existant de
-  `CTLD_config_schema.yaml`, à côté des réglages de physique — reste dans la famille ctld-tools
-  « Parachute ».
-
-Reste à trancher **au to-prd/to-issues** (implémentation, pas conception) : quels points d'appel côté
-menu (troops/vehicles/crates parachute — sections distinctes ou un seul gate ?) doivent lire
-`enableParachuteDrop`, et l'impact sur les tests busted existants du groupe parachute.
+<!-- Parachutage — garde générale d'activation `enableParachuteDrop` : formalisé en lot
+     `.backlog/FEAT-PARACHUTE-DROP-GATE/` (grill-with-docs, 2026-09-27, ADR 0019). Le point resté
+     ouvert ici (quels points d'appel menu) est résolu : 5 sites inline (2 CTLD_crate.lua,
+     1 CTLD_troop.lua, 2 CTLD_vehicle.lua), pas de mécanisme centralisé ni de helper partagé —
+     voir l'ADR pour le raisonnement complet. -->
 
 ## extractableGroups — détection automatique par convention de nommage
 

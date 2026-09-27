@@ -2058,7 +2058,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj, overrideInAir)
     -- "Parachute Troops" — in-flight only, if capable and troops onboard
     if unit and inAir then
         local caps2 = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
-        if caps2 and caps2.canParachuteDrop and hasTroops then
+        if caps2 and caps2.canParachuteDrop and ctld.gs("enableParachuteDrop") and hasTroops then
             local inTransitList = self._inTransit[playerObj.unitName]
             if inTransitList and #inTransitList > 1 then
                 -- Multi-group: submenu per group + "Parachute All"

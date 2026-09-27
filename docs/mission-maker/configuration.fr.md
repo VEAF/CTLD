@@ -193,6 +193,12 @@ aléatoire de 90–120 % de `SOLDIER_WEIGHT`, plus l'équipement et le matériel
 | `groundVehicleWeights` | `{...}` | Poids (kg) par type DCS de véhicule, comparé au `maxVehicleWeight` de chaque appareil pour le transport de véhicule entier (table Lua) |
 | `capabilitiesByType` | `{...}` | Table unifiée des capacités par appareil — voir [Capacités par appareil](#per-aircraft-capabilities) ci-dessous |
 
+### Parachute
+
+| Paramètre | Défaut | Description |
+|---|---|---|
+| `enableParachuteDrop` | `true` | Interrupteur maître pour le parachutage (caisses, troupes, véhicules). À `false`, toutes les entrées F10 « Parachute » sont masquées pour tous les appareils, quelle que soit leur capacité `canParachuteDrop` |
+
 ### Beacons
 
 | Paramètre | Défaut | Description |

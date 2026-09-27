@@ -535,6 +535,67 @@ describe("F-061/F-062 — parachuteVehicle", function()
 
 end)
 
+-- ── FEAT-PARACHUTE-DROP-GATE ticket 04 : enableParachuteDrop menu (Vehicles) ──
+-- No dedicated toggle test existed for "Parachute Vehicle" before this lot — only
+-- incidental coverage at canParachuteDrop=true elsewhere.
+describe("enableParachuteDrop — Parachute Vehicle menu", function()
+
+    local _origGs
+
+    before_each(function()
+        resetAll()
+        _origGs = ctld.gs
+    end)
+
+    after_each(function()
+        ctld.gs = _origGs
+    end)
+
+    local function buildVehicleMenu(enableParachuteDropOverride)
+        CTLDVehicleSpawner.getInstance()  -- register vehicle menu section in CTLDPlayerManager
+        ctld.gs = function(k)
+            if k == "capabilitiesByType" then
+                return { ["UH-1H"] = { canParachuteDrop=true } }
+            end
+            if k == "enableParachuteDrop" then
+                if enableParachuteDropOverride == nil then return true end
+                return enableParachuteDropOverride
+            end
+            return _origGs(k)
+        end
+
+        local playerObj = {
+            unitName="UH-1H-1", groupId=9901, groupName="Grp_veh_gate",
+            coalition=2, typeName="UH-1H", isTransport=true, canCarryVehicles=true,
+        }
+        CTLDPlayerManager.getInstance():buildMenu(playerObj)
+        return ctld.MenuManager:getInstance():getMenuByGroupId(9901)
+    end
+
+    describe("enableParachuteDrop=false — overrides canParachuteDrop=true", function()
+
+        it("Parachute Vehicle node NOT present", function()
+            local menu = buildVehicleMenu(false)
+            local node = menu and menu:_getNode({ ctld.tr("CTLD"), ctld.tr("Vehicle Commands"),
+                                                  ctld.tr("Parachute Vehicle") })
+            assert.is_nil(node)
+        end)
+
+    end)
+
+    describe("enableParachuteDrop=true (default) — canParachuteDrop=true unaffected", function()
+
+        it("Parachute Vehicle node present", function()
+            local menu = buildVehicleMenu(true)
+            local node = menu and menu:_getNode({ ctld.tr("CTLD"), ctld.tr("Vehicle Commands"),
+                                                  ctld.tr("Parachute Vehicle") })
+            assert.is_not_nil(node)
+        end)
+
+    end)
+
+end)
+
 -- ── F-063 / F-064 : canParachuteDrop menu presence ────────────────────────────
 describe("F-063/F-064 — canParachuteDrop menu", function()
 
@@ -549,7 +610,7 @@ describe("F-063/F-064 — canParachuteDrop menu", function()
         ctld.gs = _origGs
     end)
 
-    local function buildPlayerMenu(capsOverride)
+    local function buildPlayerMenu(capsOverride, enableParachuteDropOverride)
         CTLDCrateManager.getInstance()  -- register crate menu sections in CTLDPlayerManager
         ctld.gs = function(k)
             if k == "capabilitiesByType" then
@@ -564,6 +625,10 @@ describe("F-063/F-064 — canParachuteDrop menu", function()
             if k == "JTAC_jtacStatusF10" then return false end
             if k == "JTAC_dropEnabled"   then return false end
             if k == "ctldCrateDescriptors" then return {} end
+            if k == "enableParachuteDrop" then
+                if enableParachuteDropOverride == nil then return true end
+                return enableParachuteDropOverride
+            end
             return _origGs(k)
         end
 
@@ -597,6 +662,117 @@ describe("F-063/F-064 — canParachuteDrop menu", function()
             local root = ctld.tr("CTLD")
             local cc   = ctld.tr("Crate Commands")
             local node = menu and menu:_getNode({ root, cc, ctld.tr("Parachute Crates") })
+            assert.is_not_nil(node)
+        end)
+
+    end)
+
+    -- FEAT-PARACHUTE-DROP-GATE ticket 02: enableParachuteDrop is a first-rank gate ahead of
+    -- canParachuteDrop — false must hide the entry even when the per-type capability allows it.
+    describe("enableParachuteDrop=false — overrides canParachuteDrop=true", function()
+
+        it("Parachute Crates node NOT present", function()
+            local menu = buildPlayerMenu(
+                { cratesEnabled=true, canParachuteDrop=true, canSlingload=false },
+                false)
+            local root = ctld.tr("CTLD")
+            local cc   = ctld.tr("Crate Commands")
+            local node = menu and menu:_getNode({ root, cc, ctld.tr("Parachute Crates") })
+            assert.is_nil(node)
+        end)
+
+    end)
+
+    describe("enableParachuteDrop=true (default) — canParachuteDrop=true unaffected", function()
+
+        it("Parachute Crates node present", function()
+            local menu = buildPlayerMenu(
+                { cratesEnabled=true, canParachuteDrop=true, canSlingload=false,
+                  troopsEnabled=true, maxTroopsOnboard=10 },
+                true)
+            local root = ctld.tr("CTLD")
+            local cc   = ctld.tr("Crate Commands")
+            local node = menu and menu:_getNode({ root, cc, ctld.tr("Parachute Crates") })
+            assert.is_not_nil(node)
+        end)
+
+    end)
+
+end)
+
+-- ── FEAT-PARACHUTE-DROP-GATE ticket 03 : enableParachuteDrop menu (Troops) ────
+-- No dedicated toggle test existed for "Parachute Troops" before this lot — only
+-- incidental coverage at canParachuteDrop=true in menu_gating_spec.lua/troop_fastrope_spec.lua.
+describe("enableParachuteDrop — Parachute Troops menu", function()
+
+    local tm
+    local _origGs
+    local _origGetByName
+
+    before_each(function()
+        resetAll()
+        _origGs        = ctld.gs
+        _origGetByName = Unit.getByName
+
+        Unit.getByName = function(n)
+            if n == "UH-1H-1" then
+                return {
+                    getName  = function() return "UH-1H-1" end,
+                    isExist  = function() return true end,
+                    getPoint = function() return { x = 0, y = 0, z = 0 } end,
+                }
+            end
+            return _origGetByName and _origGetByName(n) or nil
+        end
+
+        tm = CTLDTroopManager.getInstance()
+    end)
+
+    after_each(function()
+        ctld.gs        = _origGs
+        Unit.getByName = _origGetByName
+    end)
+
+    local function buildTroopMenu(enableParachuteDropOverride)
+        ctld.gs = function(k)
+            if k == "capabilitiesByType" then
+                return { ["UH-1H"] = { troopsEnabled=true, canParachuteDrop=true, maxTroopsOnboard=10 } }
+            end
+            if k == "numberOfTroops" then return 10 end
+            if k == "enableParachuteDrop" then
+                if enableParachuteDropOverride == nil then return true end
+                return enableParachuteDropOverride
+            end
+            return _origGs(k)
+        end
+
+        local playerObj = {
+            unitName="UH-1H-1", groupId=9901, groupName="Grp_troop_gate",
+            coalition=2, typeName="UH-1H", isTransport=true, canCarryVehicles=false,
+        }
+        CTLDPlayerManager.getInstance():buildMenu(playerObj)
+        tm._inTransit["UH-1H-1"] = { { templateName="Test Squad", unitTotal=4, weight=100 } }
+        tm:refreshMenuSection(playerObj, true)  -- overrideInAir=true: troops onboard + in flight
+        return ctld.MenuManager:getInstance():getMenuByGroupId(9901)
+    end
+
+    describe("enableParachuteDrop=false — overrides canParachuteDrop=true", function()
+
+        it("Parachute Troops node NOT present", function()
+            local menu = buildTroopMenu(false)
+            local node = menu and menu:_getNode({ ctld.tr("CTLD"), ctld.tr("Troop Commands"),
+                                                  ctld.tr("Parachute Troops") })
+            assert.is_nil(node)
+        end)
+
+    end)
+
+    describe("enableParachuteDrop=true (default) — canParachuteDrop=true unaffected", function()
+
+        it("Parachute Troops node present", function()
+            local menu = buildTroopMenu(true)
+            local node = menu and menu:_getNode({ ctld.tr("CTLD"), ctld.tr("Troop Commands"),
+                                                  ctld.tr("Parachute Troops") })
             assert.is_not_nil(node)
         end)
 

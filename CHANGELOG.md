@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — `enableParachuteDrop`, a global switch ahead of `canParachuteDrop` (FEAT-PARACHUTE-DROP-GATE)
+
+- **A new setting disables parachute dropping mission-wide** instead of requiring `canParachuteDrop`
+  to be turned off on every aircraft type individually. `enableParachuteDrop` (default `true` — no
+  behavior change for any existing mission) acts as a first-rank gate: when `false`, "Parachute
+  Crates", "Parachute Troops"/"Parachute All" and "Parachute Vehicle" all disappear from the F10
+  menu for every aircraft, regardless of that aircraft's own `canParachuteDrop`. See **ADR 0019**
+  for why the gate is checked inline at the 5 existing call sites rather than through a new
+  centralized mechanism.
+
 ### Fixed — a reoccupied unit no longer inherits the previous occupant's flight state (FIX-INAIR-DEBOUNCE-LEAK)
 
 - **`CTLDPlayerManager`'s flight-state poller kept a per-unit debounce record after the player left

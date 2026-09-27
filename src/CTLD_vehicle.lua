@@ -1583,7 +1583,7 @@ end
 -- @param playerObj CTLDPlayer
 function CTLDVehicleSpawner:refreshParachuteVehicleSection(playerObj)
     local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
-    if not (playerObj.canCarryVehicles and caps and caps.canParachuteDrop) then return end
+    if not (playerObj.canCarryVehicles and caps and caps.canParachuteDrop and ctld.gs("enableParachuteDrop")) then return end
 
     local mm   = ctld.MenuManager:getInstance()
     local menu = mm:getMenuByGroupId(playerObj.groupId)
@@ -1637,7 +1637,7 @@ function CTLDVehicleSpawner:buildMenuSection(playerObj, menu)
     -- Parachute Vehicle: only if canParachuteDrop=true for this unit type.
     -- Created disabled; refreshParachuteVehicleSection enables it only when in air + vehicle loaded.
     local caps = (ctld.gs("capabilitiesByType") or {})[playerObj.typeName]
-    if caps and caps.canParachuteDrop then
+    if caps and caps.canParachuteDrop and ctld.gs("enableParachuteDrop") then
         menu:addCommand({ root, vehSub }, ctld.tr("Parachute Vehicle"),
             function(arg)
                 local transport = Unit.getByName(arg.unitName)
