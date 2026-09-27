@@ -583,6 +583,13 @@ autoUnpackRadiusParachute:
   description:
     en: Radius (m) within which a parachuted crate auto-unpacks on landing
     fr: Rayon (m) dans lequel une crate parachutée se déballe automatiquement à l'atterrissage
+enableParachuteDrop:
+  group: parachute
+  standard: true
+  label: {en: Enable parachute dropping, fr: Activer le parachutage}
+  description:
+    en: Master switch for parachute dropping (crates, troops, vehicles). When false, every "Parachute" F10 entry is hidden for every aircraft, regardless of its own canParachuteDrop capability
+    fr: Interrupteur maître pour le parachutage (caisses, troupes, véhicules). À false, toutes les entrées F10 « Parachute » sont masquées pour tous les appareils, quelle que soit leur capacité canParachuteDrop
 parachuteDescentRateCrates:
   group: parachute
   label: {en: Crate descent rate, fr: Vitesse de descente des caisses}
