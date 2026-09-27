@@ -147,6 +147,12 @@ réglages devenus inutiles, valeurs par défaut déplacées — sans jamais rien
 | `fastRopeMaximumHeight` | `18.28` | Hauteur max (m) pour l'insertion fast-rope (≈ 60 ft) |
 | `allowRandomAiTeamPickups` | `false` | Autorise les transports IA à choisir aléatoirement un template de troop aux zones de pickup. Si `false`, l'IA prend toujours le premier template disponible pour sa coalition |
 | `nbLimitSpawnedTroops` | `{0, 0}` | Plafond cumulé de troops par coalition `{RED, BLUE}` — `0` = illimité (table Lua) |
+| `extractableGroups` | `[]` | Noms des groupes pré-placés dans le Mission Editor extractibles au menu F10 (liste de chaînes) |
+
+Au lieu de (ou en plus de) lister un groupe dans `extractableGroups`, vous pouvez simplement le
+nommer `EXTR_<nom>` dans le Mission Editor — aucune entrée de config nécessaire. Les deux voies
+n'enregistrent le même groupe qu'une seule fois si vous utilisez les deux. Un groupe doit exister
+au démarrage de la mission ; un groupe spawné ou activé plus tard n'est pas détecté.
 
 ### Simulation du poids de l'infanterie { #infantry-weight-simulation }
 

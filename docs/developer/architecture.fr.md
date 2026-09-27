@@ -72,13 +72,18 @@ dans l'ordre :
 | INIT-B | `_initMMCrates()` | Scanne les statics de la coalition à la recherche des objets de cargo placés par le MM |
 | INIT-C | `_initMMJTACs()` | Scanne les groupes de la coalition à la recherche des groupes JTAC placés par le MM |
 | INIT-D | `CTLDVehicleSpawner:scanMMVehicles()` | Scanne les groupes terrestres de la coalition à la recherche des vehicles placés par le MM |
-| INIT-E | `_initExtractableGroups()` | Enregistre les noms de `extractableGroups` dans `CTLDTroopManager._droppedGroups` |
+| INIT-E | `_initExtractableGroups()` | Enregistre les noms de `extractableGroups` + les groupes nommés `EXTR_` dans `CTLDTroopManager._droppedGroups` |
 | INIT-A | `_initAITransports()` | Construit les listes d'équipes IA et démarre la boucle d'auto-pickup/dropoff |
 
 **Détail INIT-E :** lit `ctld.gs("extractableGroups")`, appelle `Group.getByName()` pour chaque
 entrée, et insère le nom du groupe dans `CTLDTroopManager._droppedGroups[coalition]`. Les groupes
-introuvables sont journalisés en `WARN` et ignorés. Il n'y a pas d'activation tardive (iso-legacy)
-ni d'entrée `_droppedTemplates` — `embarkFromField` utilise un repli à 130 kg/unité.
+introuvables sont journalisés en `WARN` et ignorés. Scanne ensuite `coalition.getGroups(side)` sur
+RED/BLUE/NEUTRAL à la recherche d'un nom de groupe portant le préfixe ancré `EXTR_` — une convention
+de nommage Mission Editor ne nécessitant aucune entrée de config — en ignorant tout nom déjà
+enregistré par la liste ci-dessus (union dédoublonnée). Les deux passes sont init-only : il n'y a
+pas d'activation tardive (iso-legacy pour la liste ; délibéré pour `EXTR_`, contrairement au
+mécanisme `markPendingJTAC`/`onBirth` de `_initMMJTACs`) ni d'entrée `_droppedTemplates` —
+`embarkFromField` utilise un repli à 130 kg/unité.
 
 ## Ajouter un nouveau module { #adding-a-new-module }
 

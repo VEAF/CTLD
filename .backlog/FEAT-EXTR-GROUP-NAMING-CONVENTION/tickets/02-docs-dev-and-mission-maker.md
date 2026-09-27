@@ -1,6 +1,6 @@
 # 02 — Document `EXTR_` (developer + mission-maker), including the pre-existing `extractableGroups` gap
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** ticket 01 — documents the finished, tested behavior.
 

@@ -1,6 +1,6 @@
 # FEAT-EXTR-GROUP-NAMING-CONVENTION — `EXTR_<name>` auto-discovery for extractable groups
 
-**Status:** 🔄 in-progress (ticket 01 done; ticket 02 pending).
+**Status:** 🔄 in-progress (all tickets done; PR pending).
 
 Formalizes the `dev/roadmap.md` entry "extractableGroups — détection automatique par convention de
 nommage" and a `grill-with-docs` session held 2026-09-27 that resolved every point the roadmap
