@@ -127,6 +127,16 @@ redefined terms are added here in the same move as the decision that introduces 
 - **Anchor** — the DCS object (unit or Moving Zone) to which a CTLD zone is attached for dynamic
   position resolution. Destroying the anchor freezes the zone at its last known position.
 
+## Naming conventions
+
+- **Auto-discovered group** — a DCS **group or unit** (not a zone — see "Auto-discovered zone"
+  above) the CTLD engine recognizes by a prefix or substring in its Mission Editor name, with no
+  config entry required. Existing cases: the JTAC substring match (any name containing "jtac",
+  case-insensitive — `CTLDCoreManager:_isJTACGroup`) and the `SVNT_` prefix marking a mortar's
+  cosmetic servant unit (`_isServantUnitName`, excluded from logical troop counts). A candidate
+  third case, `EXTR_<name>` for an extractable troop group, is proposed in `dev/roadmap.md` — not
+  yet implemented.
+
 ## Testing terms
 
 - **Integration test** — a test injecting Lua into a live DCS mission (the practice previously

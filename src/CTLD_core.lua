@@ -377,8 +377,11 @@ end
 -- No _droppedTemplates entry — embarkFromField falls back to 130 kg per alive unit (iso-legacy).
 function CTLDCoreManager:_initExtractableGroups()
     local names = ctld.gs("extractableGroups") or {}
-    local count = 0
     local tm = CTLDTroopManager.getInstance()
+    local registered = {}  -- [groupName] = true, across both sources below (dedup)
+    local listCount = 0
+    local extrCount = 0
+
     for _, groupName in ipairs(names) do
         local group = Group.getByName(groupName)
         if group == nil or not group:isExist() then
@@ -389,12 +392,41 @@ function CTLDCoreManager:_initExtractableGroups()
             local coa = group:getCoalition()
             if not tm._droppedGroups[coa] then tm._droppedGroups[coa] = {} end
             table.insert(tm._droppedGroups[coa], groupName)
-            count = count + 1
-            ctld.utils.log("INFO", "CTLDCoreManager: INIT-E — registered extractable group '%s' (coalition %d)",
+            registered[groupName] = true
+            listCount = listCount + 1
+            ctld.utils.log("INFO",
+                "CTLDCoreManager: INIT-E — registered extractable group '%s' (coalition %d, source=list)",
                 groupName, coa)
         end
     end
-    ctld.utils.log("INFO", "CTLDCoreManager: INIT-E complete — %d extractable group(s) registered", count)
+
+    -- EXTR_<name> naming convention (FEAT-EXTR-GROUP-NAMING-CONVENTION): a pre-placed group named
+    -- this way in the Mission Editor becomes extractable with no extractableGroups config entry
+    -- needed. Bare prefix, no positional metadata (unlike TRZ_) — coalition is read live from the
+    -- group object, same as the explicit-list path above. RED+BLUE+NEUTRAL (wider than the
+    -- RED/BLUE-only JTAC scan, _initMMJTACs, to also cover a neutral civilian group). Init-only,
+    -- like the explicit list itself — deliberately no late-activation support (unlike _initMMJTACs'
+    -- markPendingJTAC/onBirth mechanism): a group activated after this runs is not picked up.
+    local sides = { coalition.side.RED, coalition.side.BLUE, coalition.side.NEUTRAL }
+    for _, side in ipairs(sides) do
+        for _, group in ipairs(coalition.getGroups(side) or {}) do
+            local groupName = group:getName()
+            if group:isExist() and groupName:match("^EXTR") and not registered[groupName] then
+                local coa = group:getCoalition()
+                if not tm._droppedGroups[coa] then tm._droppedGroups[coa] = {} end
+                table.insert(tm._droppedGroups[coa], groupName)
+                registered[groupName] = true
+                extrCount = extrCount + 1
+                ctld.utils.log("INFO",
+                    "CTLDCoreManager: INIT-E — registered extractable group '%s' (coalition %d, source=EXTR_)",
+                    groupName, coa)
+            end
+        end
+    end
+
+    ctld.utils.log("INFO",
+        "CTLDCoreManager: INIT-E complete — %d from list + %d from EXTR_ = %d extractable group(s) registered",
+        listCount, extrCount, listCount + extrCount)
 end
 
 --- Return true if group should be managed as a JTAC by CTLD.
