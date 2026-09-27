@@ -2286,8 +2286,10 @@ by name or by description, and tells you which family each result belongs to.</p
 <h2 id="editing-your-configuration">Editing your configuration<a class="headerlink" href="#editing-your-configuration" title="Permanent link">&para;</a></h2>
 <p>Each setting shows a <strong>plain-language name</strong>, its unit where CTLD documents one (metres, kilograms,
 seconds), a short description, and the right editor for its type — a switch for on/off, a dropdown
-for fixed choices, a number or text box otherwise. The <strong>raw config name</strong> (the one used in the CTLD
-documentation and on the forums) is shown next to it in small type.</p>
+for fixed choices, a number or text box otherwise. A whole-number field (a soldier count, a quota,
+a limit, a laser code) rounds or rejects a typed decimal; a continuous one (a weight, a distance,
+a duration) does not. The <strong>raw config name</strong> (the one used in the CTLD documentation and on the
+forums) is shown next to it in small type.</p>
 <p>Catalogue entries — <strong>crates</strong>, <strong>troop groups</strong>, <strong>aircraft capabilities</strong> (pick an aircraft type
 from the DCS list), <strong>zones</strong>, transport pilot names, vehicle weights — are edited as tables, at the
 bottom of the family they belong to.</p>
@@ -2326,7 +2328,9 @@ changes.</p>
 <h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
 <p><strong>Live validation</strong> runs as you edit. A lamp in the header reads <strong>VALID</strong> or <strong>CHECK</strong>, and a panel
 above the settings lists any problem in plain words — unknown DCS unit types, duplicate crate
-weights, and so on. Click a problem and the app jumps straight to the setting it concerns.</p>
+weights, a whole-number field holding a decimal (from a hand-edited YAML, or a configuration saved
+before this check existed), and so on. Click a problem and the app jumps straight to the setting it
+concerns.</p>
 <h2 id="saving-and-using-it">Saving and using it<a class="headerlink" href="#saving-and-using-it" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Save as…</strong> writes your configuration to a file (a native save dialog) so you can reopen it later.</li>

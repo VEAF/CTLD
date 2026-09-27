@@ -2295,8 +2295,11 @@ chaque résultat.</p>
 <h2 id="editing-your-configuration">Éditer votre configuration<a class="headerlink" href="#editing-your-configuration" title="Permanent link">&para;</a></h2>
 <p>Chaque réglage affiche un <strong>nom en langage clair</strong>, son unité quand CTLD la documente (mètres,
 kilogrammes, secondes), une courte description, et l'éditeur adapté à son type — un interrupteur pour
-on/off, une liste déroulante pour les choix fixes, un champ nombre ou texte sinon. Le <strong>nom technique
-du réglage</strong> (celui utilisé dans la documentation CTLD et sur les forums) est affiché à côté en petit.</p>
+on/off, une liste déroulante pour les choix fixes, un champ nombre ou texte sinon. Un champ <strong>nombre
+entier</strong> (un effectif de soldats, un quota, une limite, un code laser) arrondit ou refuse une
+décimale saisie ; un champ continu (un poids, une distance, une durée) ne le fait pas. Le <strong>nom
+technique du réglage</strong> (celui utilisé dans la documentation CTLD et sur les forums) est affiché à
+côté en petit.</p>
 <p>Les entrées de catalogue — <strong>caisses</strong>, <strong>groupes de troupes</strong>, <strong>capacités des aéronefs</strong> (choisir un
 type d'aéronef dans la liste DCS), <strong>zones</strong>, noms des pilotes de transport, poids des véhicules —
 s'éditent sous forme de tableaux, en bas de la famille à laquelle elles appartiennent.</p>
@@ -2336,8 +2339,9 @@ avertissent d'abord si vous avez des modifications non enregistrées.</p>
 <h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
 <p>La <strong>validation en direct</strong> s'exécute pendant que vous éditez. Un voyant dans l'en-tête indique
 <strong>VALIDE</strong> ou <strong>À VÉRIFIER</strong>, et un panneau au-dessus des réglages liste chaque problème en langage
-clair — types d'unités DCS inconnus, poids de caisse en double, etc. Cliquez sur un problème et
-l'application saute directement au réglage concerné.</p>
+clair — types d'unités DCS inconnus, poids de caisse en double, un champ nombre entier contenant une
+décimale (issue d'un YAML modifié à la main, ou d'une configuration enregistrée avant l'existence de
+ce contrôle), etc. Cliquez sur un problème et l'application saute directement au réglage concerné.</p>
 <h2 id="saving-and-using-it">Enregistrer et utiliser<a class="headerlink" href="#saving-and-using-it" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Enregistrer sous…</strong> écrit votre configuration dans un fichier (dialogue d'enregistrement natif)
