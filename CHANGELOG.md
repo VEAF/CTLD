@@ -8,6 +8,21 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — `TRZ_`/`LGZ_`/`WPZ_` zones register under their full name, closing an `aiZones` collision class (FIX-AUTODISCOVERED-ZONE-FULLNAME-KEY)
+
+- **`TRZ_`/`LGZ_`/`WPZ_` zones (and the scripted `createTroopZoneAtObject` API) now register
+  under their full name**, matching `EXZ_`'s existing convention — instead of a short name
+  extracted by parsing (`TRZ_dropzone1_B_0_nil_0` used to occupy the key `dropzone1`). This closes,
+  rather than merely detects (`FIX-AIZONE-NAME-COLLISION`, PR #88), the class of bug where an
+  `aiZones` entry whose `dcsZoneName` happened to match that short key silently lost to it.
+- **Breaking change, deliberate (see ADR 0020):** the seven public `CTLDZoneManager` accessors
+  (`getTroopZone`, `setTroopZoneActive`, `changeRemainingGroups`, `activateWaypointZone`,
+  `deactivateWaypointZone`, etc.) and their legacy wrapper equivalents
+  (`ctld.activatePickupZone`, `ctld.changeRemainingGroupsForPickupZone`, etc.) now expect the
+  zone's **full** name. A mission script calling one of these with the old short name will no
+  longer find the zone. No backward-compatible fallback is provided — accepted because CTLD has
+  not yet shipped a public stable release.
+
 ### Changed — the last 30 `luacheck` warnings resolved, CI ratchet reaches 0 (FIX-LUACHECK-REMAINING-WARNINGS)
 
 - Internal-only cleanup, no behavior change: unused-variable removals (each verified

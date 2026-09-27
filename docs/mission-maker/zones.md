@@ -58,22 +58,12 @@ in config; see [AI transport zones](#ai-transport-zones-aiz).
 
 !!! warning "One name space for every kind of zone"
     Troop zones share a **single** name space — `TRZ_`, `EXZ_`, `WPZ_`, AI zones and the legacy
-    `troopZones` all register into it, and the first one registered wins. What makes this easy to
-    trip over is that a `TRZ_` zone registers under its **parsed** name: `TRZ_dropzone1_B_0_nil_0`
-    occupies the name `dropzone1`. `EXZ_` does not have this problem — it registers under its
-    full, unparsed Mission Editor name.
+    `troopZones` all register into it, and the first one registered wins. Every naming-convention
+    zone registers under its **full, unparsed Mission Editor name** — `TRZ_dropzone1_B_0_nil_0`
+    occupies exactly that name, not a sub-field extracted from it. Two zones can only collide here
+    if you genuinely give them the identical name.
 
-    So an `aiZones` entry whose `dcsZoneName` is `dropzone1` — pointing at a genuinely different
-    Mission Editor zone — collides with that TRZ and **is dropped**. CTLD reports it at mission
-    start:
-
-    ```
-    [ERROR] ZoneManager:   AIZ[1] ERROR 'dropzone1': name already taken by zone
-    'TRZ_dropzone1_B_0_nil_0' — entry ignored
-    ```
-
-    The fix is always the same: give the two zones different names. Registration order is
-    `TRZ_` → `EXZ_` → AI zones → `WPZ_` → legacy tables.
+    Registration order is `TRZ_` → `EXZ_` → AI zones → `WPZ_` → legacy tables.
 
 ---
 
