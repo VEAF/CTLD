@@ -1,6 +1,6 @@
 # FIX-AUTODISCOVERED-ZONE-FULLNAME-KEY — register `TRZ_`/`LGZ_`/`WPZ_` under their full DCS name
 
-**Status:** 🔄 in review (PR #210).
+**Status:** ✅ done (PR #210).
 
 Formalizes `dev/roadmap.md`'s "Piège du nom court pour une zone auto-détectée par convention de
 nommage" and a `grill-with-docs` session held 2026-09-27. See **ADR 0020** for the central
