@@ -722,7 +722,7 @@ function CTLDZoneManager:_discoverTRZ()
             local parsed, err = self:parseTRZ(name)
             if not parsed then
                 ctld.utils.log("WARN", "CTLDZoneManager: cannot parse TRZ '%s': %s", name, tostring(err))
-            elseif not self._troopZones[parsed.zoneName] then
+            elseif not self._troopZones[name] then
                 local anchorName = zd.linkUnit and _resolveUnitNameById(zd.linkUnit) or nil
                 -- Anchored polygon (type=2 + linkUnit): vertices in env.mission are relative offsets.
                 -- Static polygon (type=2, no linkUnit): vertices are absolute world coordinates.
@@ -746,10 +746,10 @@ function CTLDZoneManager:_discoverTRZ()
                 if zone.objectiveFlag then
                     trigger.action.setUserFlag(zone.objectiveFlag, 0)
                 end
-                self._troopZones[parsed.zoneName] = zone
+                self._troopZones[name] = zone
                 ctld.utils.log("INFO",
                     "CTLDZoneManager: TRZ '%s' coalition=%d stock=%s flag=%s target=%s",
-                    parsed.zoneName, parsed.coalition,
+                    name, parsed.coalition,
                     tostring(parsed.pickMaxStock), tostring(parsed.objectiveFlag),
                     tostring(parsed.objectiveTarget))
             end
@@ -785,7 +785,7 @@ function CTLDZoneManager:_discoverLGZ()
         local name = zd.name or ""
         if string.sub(name, 1, 4) == "LGZ_" then
             local parsed = self:_parseLGZ(name)
-            if parsed and not self._logisticZones[parsed.name] then
+            if parsed and not self._logisticZones[name] then
                 local anchorName = zd.linkUnit and _resolveUnitNameById(zd.linkUnit) or nil
                 local zone = CTLDLogisticZone:new({
                     name            = parsed.name,
@@ -796,9 +796,9 @@ function CTLDZoneManager:_discoverLGZ()
                     anchorUnitName  = anchorName,
                     active          = true,
                 })
-                self._logisticZones[parsed.name] = zone
+                self._logisticZones[name] = zone
                 ctld.utils.log("INFO", "CTLDZoneManager: LGZ '%s' coalition=%d",
-                    parsed.name, parsed.coalition)
+                    name, parsed.coalition)
             end
         end
     end
@@ -993,7 +993,7 @@ function CTLDZoneManager:_discoverWPZ()
             local parsed, err = self:_parseWPZ(name)
             if not parsed then
                 ctld.utils.log("WARN", "CTLDZoneManager: cannot parse WPZ '%s': %s", name, tostring(err))
-            elseif not self._troopZones[parsed.zoneName] then
+            elseif not self._troopZones[name] then
                 local zone = CTLDTroopZone:new({
                     dcsName    = name,
                     zoneName   = parsed.zoneName,
@@ -1004,9 +1004,9 @@ function CTLDZoneManager:_discoverWPZ()
                     isWaypoint = true,
                     active     = true,
                 })
-                self._troopZones[parsed.zoneName] = zone
+                self._troopZones[name] = zone
                 ctld.utils.log("INFO", "CTLDZoneManager: WPZ '%s' coalition=%d",
-                    parsed.zoneName, parsed.coalition)
+                    name, parsed.coalition)
             end
         end
     end
@@ -1704,9 +1704,9 @@ function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
         return false
     end
 
-    if self._troopZones[parsed.zoneName] then
+    if self._troopZones[trzName] then
         ctld.utils.log("WARN", "CTLDZoneManager:createTroopZoneAtObject — zone already registered: %s",
-            parsed.zoneName)
+            trzName)
         return false
     end
 
@@ -1717,7 +1717,7 @@ function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
         return false
     end
 
-    self._troopZones[parsed.zoneName] = CTLDTroopZone:new({
+    self._troopZones[trzName] = CTLDTroopZone:new({
         dcsName         = dcsName,
         zoneName        = parsed.zoneName,
         coalition       = parsed.coalition,
@@ -1730,7 +1730,7 @@ function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
         active          = true,
     })
     ctld.utils.log("INFO", "CTLDZoneManager:createTroopZoneAtObject — '%s' at '%s' (coalition=%s, stock=%s)",
-        parsed.zoneName, objectName, tostring(parsed.coalition), tostring(parsed.pickMaxStock))
+        trzName, objectName, tostring(parsed.coalition), tostring(parsed.pickMaxStock))
     return true
 end
 

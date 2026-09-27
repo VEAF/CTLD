@@ -65,7 +65,7 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
             local ok = zm:createTroopZoneAtObject("myZone", "TRZ_camp1_B_999_nil_0")
 
             assert.is_true(ok)
-            local zone = zm._troopZones["camp1"]
+            local zone = zm._troopZones["TRZ_camp1_B_999_nil_0"]
             assert.is_not_nil(zone)
             assert.is_true(zone:hasPickup())
             assert.equals(coalition.side.BLUE, zone.coalition)
@@ -80,7 +80,7 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
             end
 
             zm:createTroopZoneAtObject("myZone", "TRZ_camp1_B_999_nil_0")
-            local zone = zm._troopZones["camp1"]
+            local zone = zm._troopZones["TRZ_camp1_B_999_nil_0"]
             assert.equals(100, zone:getCenter().x)
 
             currentPoint = { x = 999, y = 0, z = 200 }
@@ -96,7 +96,7 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
             local ok = zm:createTroopZoneAtObject("Ship-1", "TRZ_dock_R_999_nil_0")
 
             assert.is_true(ok)
-            local zone = zm._troopZones["dock"]
+            local zone = zm._troopZones["TRZ_dock_R_999_nil_0"]
             assert.is_not_nil(zone)
             assert.equals(200, zone.radius)
             assert.equals(10, zone:getCenter().x)
@@ -107,7 +107,7 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
             Unit.getByName = function(_) return u end
 
             zm:createTroopZoneAtObject("Ship-1", "TRZ_dock_R_999_nil_0")
-            local zone = zm._troopZones["dock"]
+            local zone = zm._troopZones["TRZ_dock_R_999_nil_0"]
             assert.equals(10, zone:getCenter().x)
 
             u._point = { x = 500, y = 0, z = 20 }
@@ -123,7 +123,7 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
             local ok = zm:createTroopZoneAtObject("Container-1", "TRZ_depot_A_10_nil_0")
 
             assert.is_true(ok)
-            local zone = zm._troopZones["depot"]
+            local zone = zm._troopZones["TRZ_depot_A_10_nil_0"]
             assert.is_not_nil(zone)
             assert.equals(200, zone.radius)
             assert.equals(10, zone.pickMaxStock)
@@ -139,7 +139,7 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
             local ok = zm:createTroopZoneAtObject("Convoy-1", "TRZ_convoy_B_999_nil_0")
 
             assert.is_true(ok)
-            local zone = zm._troopZones["convoy"]
+            local zone = zm._troopZones["TRZ_convoy_B_999_nil_0"]
             assert.is_not_nil(zone)
             assert.equals(5, zone:getCenter().x)
         end)
@@ -153,7 +153,7 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
             local ok = zm:createTroopZoneAtObject("FARP Alpha", "TRZ_farp1_B_999_nil_0")
 
             assert.is_true(ok)
-            local zone = zm._troopZones["farp1"]
+            local zone = zm._troopZones["TRZ_farp1_B_999_nil_0"]
             assert.is_not_nil(zone)
             assert.equals(200, zone.radius)
             assert.equals(50, zone:getCenter().x)
@@ -170,25 +170,41 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
             local ok = zm:createTroopZoneAtObject("myZone", "NOT_A_TRZ_NAME")
 
             assert.is_false(ok)
-            assert.is_nil(zm._troopZones["myZone"])
+            assert.is_nil(zm._troopZones["NOT_A_TRZ_NAME"])
         end)
 
         it("returns false and registers nothing when the named object can't be resolved", function()
             local ok = zm:createTroopZoneAtObject("Nothing", "TRZ_ghost_B_999_nil_0")
 
             assert.is_false(ok)
-            assert.is_nil(zm._troopZones["ghost"])
+            assert.is_nil(zm._troopZones["TRZ_ghost_B_999_nil_0"])
         end)
 
-        it("refuses and leaves the existing zone untouched on a duplicate zoneName", function()
+        -- FIX-AUTODISCOVERED-ZONE-FULLNAME-KEY: registration keys on the full trzName string now,
+        -- not the parsed short zoneName -- two different full names sharing the same parsed
+        -- zoneName ("dup") no longer collide (each gets its own key). Duplicate detection is
+        -- exercised here with the exact same trzName called twice instead.
+        it("refuses and leaves the existing zone untouched on a duplicate full trzName", function()
             trigger.misc.getZone = function(_) return fakeZone({ x = 1, y = 0, z = 1 }, 100) end
             zm:createTroopZoneAtObject("myZone", "TRZ_dup_B_999_nil_0")
-            local firstZone = zm._troopZones["dup"]
+            local firstZone = zm._troopZones["TRZ_dup_B_999_nil_0"]
 
-            local ok = zm:createTroopZoneAtObject("myZone", "TRZ_dup_R_10_nil_0")
+            local ok = zm:createTroopZoneAtObject("myZone", "TRZ_dup_B_999_nil_0")
 
             assert.is_false(ok)
-            assert.equals(firstZone, zm._troopZones["dup"])
+            assert.equals(firstZone, zm._troopZones["TRZ_dup_B_999_nil_0"])
+        end)
+
+        it("two different full names sharing the same parsed zoneName both register", function()
+            trigger.misc.getZone = function(_) return fakeZone({ x = 1, y = 0, z = 1 }, 100) end
+            local ok1 = zm:createTroopZoneAtObject("myZone", "TRZ_dup_B_999_nil_0")
+            local ok2 = zm:createTroopZoneAtObject("myZone", "TRZ_dup_R_10_nil_0")
+
+            assert.is_true(ok1)
+            assert.is_true(ok2)
+            assert.is_not_nil(zm._troopZones["TRZ_dup_B_999_nil_0"])
+            assert.is_not_nil(zm._troopZones["TRZ_dup_R_10_nil_0"])
+            assert.are_not.equals(zm._troopZones["TRZ_dup_B_999_nil_0"], zm._troopZones["TRZ_dup_R_10_nil_0"])
         end)
     end)
 
@@ -196,18 +212,18 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
         it("removeExtractZone tears down a zone created this way", function()
             trigger.misc.getZone = function(_) return fakeZone({ x = 1, y = 0, z = 1 }, 100) end
             zm:createTroopZoneAtObject("myZone", "TRZ_temp_B_999_nil_0")
-            assert.is_not_nil(zm._troopZones["temp"])
+            assert.is_not_nil(zm._troopZones["TRZ_temp_B_999_nil_0"])
 
-            zm:removeExtractZone("temp")
+            zm:removeExtractZone("TRZ_temp_B_999_nil_0")
 
-            assert.is_nil(zm._troopZones["temp"])
+            assert.is_nil(zm._troopZones["TRZ_temp_B_999_nil_0"])
         end)
 
         it("getTroopZone finds a zone created this way", function()
             trigger.misc.getZone = function(_) return fakeZone({ x = 1, y = 0, z = 1 }, 100) end
             zm:createTroopZoneAtObject("myZone", "TRZ_findme_B_999_nil_0")
 
-            assert.equals(zm._troopZones["findme"], zm:getTroopZone("findme"))
+            assert.equals(zm._troopZones["TRZ_findme_B_999_nil_0"], zm:getTroopZone("TRZ_findme_B_999_nil_0"))
         end)
     end)
 end)

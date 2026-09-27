@@ -298,36 +298,14 @@ position marche déjà tel quel :
      modèle config-only d'AIZ_ n'était pas le problème (docs/mission-maker/zones.md + l'éditeur
      ctld-tools le servent déjà bien) — la mission de dev contournait le pipeline ctld-tools. -->
 
-## Piège du nom court pour une zone auto-détectée par convention de nommage
-
-Constaté en concevant la convention `EXZ_` ci-dessus (grill du 2026-09-23) : `_discoverTRZ`
-enregistre une zone `TRZ_` sous son **nom court extrait par parsing** (`parsed.zoneName`), pas son
-nom DCS complet — `TRZ_dropzone1_B_0_nil_0` occupe la clé `dropzone1`. C'est exactement le piège
-documenté dans `docs/mission-maker/zones.md:55-60` et partiellement mitigé par
-`FIX-AIZONE-NAME-COLLISION` (PR #88, archivé) : une entrée `aiZones` dont le `dcsZoneName` vaut
-`dropzone1` — pointant sur une zone ME **différente** — entre en collision silencieuse avec elle,
-l'entrée `aiZones` perdant systématiquement (la zone découverte gagne). PR #88 n'a fait
-qu'ajouter une **détection** (ERROR dans le rapport de démarrage) ; la cause racine — la clé
-d'enregistrement est un sous-nom, pas le nom complet — n'a jamais été corrigée.
-
-Idée : faire enregistrer **toute** zone auto-détectée par convention de nommage (`TRZ_`, `LGZ_`,
-`WPZ_`, et la future `EXZ_`) sous son **nom DCS complet**, jamais un sous-nom extrait — supprimant
-la classe de collision entière plutôt que de la détecter après coup. C'est délibérément le choix
-retenu pour la nouvelle convention `EXZ_` (elle s'enregistre sous son nom complet dès le départ,
-justement pour ne pas hériter de ce piège) ; reste à savoir si `TRZ_`/`LGZ_`/`WPZ_`, déjà en
-production, doivent être corrigées de la même façon.
-
-Non tranché (à instruire en grill-with-docs dédié avant to-prd) :
-- **Compatibilité ascendante** : changer la clé d'enregistrement de `TRZ_` (nom court → nom complet)
-  casse tout code lisant `CTLDZoneManager._troopZones[<nom court>]` aujourd'hui — combien de call
-  sites, internes et scriptés par des missions existantes (API legacy `ctld.changeRemainingGroupsForPickupZone`,
-  par exemple), dépendent du nom court comme clé publique ?
-- **Portée** : corriger seulement `TRZ_` (le seul cas où le nom court **change** vraiment le nom —
-  `LGZ_`/`WPZ_` semble-t-il gardent le nom complet moins la coalition, à vérifier), ou les trois.
-- Lien avec `FIX-AIZONE-NAME-COLLISION` (PR #88) : si la clé devient le nom complet, la classe de
-  collision qu'elle détecte disparaît — son code de détection devient-il mort, ou reste-t-il un
-  filet pour d'autres collisions possibles (deux zones auto-détectées de préfixes différents
-  partageant le même nom complet, par exemple) ?
+<!-- Piège du nom court pour une zone auto-détectée par convention de nommage : formalisé en lot
+     `.backlog/FIX-AUTODISCOVERED-ZONE-FULLNAME-KEY/` (grill-with-docs, 2026-09-27, ADR 0020).
+     Vérifié pendant le grill : LGZ_/WPZ_ ont exactement le même piège que TRZ_ (la roadmap en
+     doutait) et `createTroopZoneAtObject` (API scriptée) aussi — 4 sites corrigés, pas 1. Décision :
+     nom complet uniquement, aucune rétrocompatibilité sur le nom court (projet encore en RC, non
+     diffusé) — voir l'ADR pour le raisonnement et sa limite de validité dans le temps. Le code de
+     détection de FIX-AIZONE-NAME-COLLISION (PR #88) reste en place, désormais un filet inatteignable
+     en pratique plutôt que du code prouvé mort. -->
 
 <!-- Rappel — donner les paramètres ctld-tools pour configurer Test_CTLDNEXT_01.miz : résolu
      2026-09-24 — table des 15 zones donnée à a.lingo, saisie via ctld-tools, config persistée et

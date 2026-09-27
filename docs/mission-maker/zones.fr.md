@@ -60,21 +60,12 @@ déclaré entièrement en configuration ; voir [Zones de transport IA](#ai-trans
 !!! warning "Un seul espace de noms pour tous les types de zones"
     Les troop zones partagent un **unique** espace de noms — `TRZ_`, `EXZ_`, `WPZ_`, les zones IA
     et la table héritée `troopZones` s'y enregistrent toutes, et la première enregistrée
-    l'emporte. Ce qui rend le piège facile : une zone `TRZ_` s'enregistre sous son nom
-    **analysé** — `TRZ_dropzone1_B_0_nil_0` occupe le nom `dropzone1`. `EXZ_` n'a pas ce problème
-    — elle s'enregistre sous son nom complet, non analysé, de l'éditeur de mission.
+    l'emporte. Chaque zone à convention de nommage s'enregistre sous son **nom complet et non
+    analysé de l'éditeur de mission** — `TRZ_dropzone1_B_0_nil_0` occupe exactement ce nom, pas
+    un sous-champ extrait de celui-ci. Deux zones ne peuvent entrer en collision ici que si vous
+    leur donnez réellement le même nom.
 
-    Une entrée `aiZones` dont le `dcsZoneName` vaut `dropzone1` — pointant pourtant vers une zone
-    de l'éditeur de mission bel et bien différente — entre donc en collision avec cette TRZ et
-    **est ignorée**. CTLD le signale au démarrage de la mission :
-
-    ```
-    [ERROR] ZoneManager:   AIZ[1] ERROR 'dropzone1': name already taken by zone
-    'TRZ_dropzone1_B_0_nil_0' — entry ignored
-    ```
-
-    La correction est toujours la même : donner deux noms différents aux deux zones. L'ordre
-    d'enregistrement est `TRZ_` → `EXZ_` → zones IA → `WPZ_` → tables héritées.
+    L'ordre d'enregistrement est `TRZ_` → `EXZ_` → zones IA → `WPZ_` → tables héritées.
 
 ---
 

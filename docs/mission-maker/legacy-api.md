@@ -50,10 +50,13 @@ ctld.spawnGroupAtTrigger(coalition.side.BLUE, 6, "LZ_NORTH", 1000)
 | `ctld.countDroppedGroupsInZone(zone, blueFlag, redFlag)` | `CTLDTroopManager:startGroupCountWatcher()` |
 | `ctld.countDroppedUnitsInZone(zone, blueFlag, redFlag)` | `CTLDTroopManager:startUnitCountWatcher()` |
 
+Every `zoneName` above is the zone's **exact, full Mission Editor name** — copy it as-is, not a
+shortened form.
+
 **Example — activate a pickup zone at mission start:**
 
 ```lua
-ctld.activatePickupZone("TRZ_ALPHA")
+ctld.activatePickupZone("TRZ_ALPHA_B_0_nil_0")
 ```
 
 See [Zone setup](zones.md) for how these zones are defined in the Mission Editor.

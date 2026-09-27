@@ -2,7 +2,15 @@
 -- tests/ci/unit/aizone_name_collision_spec.lua
 -- FIX-AIZONE-NAME-COLLISION ticket 01 — an aiZones entry whose dcsZoneName is already a
 -- registered troop zone is skipped. The skip is right (a discovered zone wins); the silence
--- was not. It is reachable by accident because a TRZ registers under its *parsed* name.
+-- was not.
+--
+-- FIX-AUTODISCOVERED-ZONE-FULLNAME-KEY note: this file seeds `_troopZones` directly with a
+-- literal key (e.g. "dropzone1"), so it keeps testing the collision-detection logic in the
+-- abstract regardless of that fix. The concrete scenario that originally motivated this ticket —
+-- a TRZ_ registering under a *parsed short* name that an aiZones entry could accidentally match —
+-- is no longer reachable through real `_discoverTRZ` discovery once zones register under their
+-- full DCS name (see zone_fullname_discovery_spec.lua for that guarantee); this file's synthetic
+-- fixture is what still exercises the detection code as a general-purpose safety net.
 -- ============================================================
 
 describe("an aiZones entry whose name is already taken", function()
