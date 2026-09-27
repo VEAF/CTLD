@@ -1,6 +1,6 @@
 # FIX-LEGACY-API-PARAM-PREFIX — drop the misleading `_` prefix in `legacy_api.lua`
 
-**Status:** 🔄 in review (PR #206).
+**Status:** ✅ done (PR #206).
 
 Formalizes "Lot A" of the luacheck warning-cleanup work identified in `dev/roadmap.md`'s (now
 closed) "luacheck n'est en réalité vérifié nulle part" entry and `TOOLING-LUACHECK-CI-RATCHET`'s
