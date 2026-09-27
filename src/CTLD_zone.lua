@@ -34,10 +34,47 @@
 ctld = ctld or {}
 
 -- ============================================================
+-- CTLDAnchoredZone  (shared base — TroopZone + LogisticZone)
+-- ============================================================
+-- Anchor resolution shared by CTLDTroopZone and CTLDLogisticZone: a zone is either
+-- static (center), tied to a live Mission Editor trigger zone (dcsName), or following
+-- a linked DCS unit (_linkedUnit / _anchorUnitName). Subclasses set these fields
+-- themselves in their own init() — this class only supplies the resolution logic.
+
+CTLDAnchoredZone = class()
+
+--- Return current center. Priority: linkedUnit > trigger.misc.getZone(dcsName) > center.
+-- A ship-backed zone rides its ship; a Moving Zone follows its DCS trigger zone; a sunk
+-- ship leaves the zone at its last known point.
+function CTLDAnchoredZone:getCenter()
+    if self._linkedUnit and self._linkedUnit:isExist() then
+        return self._linkedUnit:getPoint()
+    end
+    if self.dcsName then
+        local trig = trigger.misc.getZone(self.dcsName)
+        if trig then return trig.point end
+    end
+    return self.center
+end
+
+--- True if this zone is anchored to a moving DCS unit (Moving Zone or legacy linkedUnit).
+function CTLDAnchoredZone:isDynamic()
+    return self._linkedUnit ~= nil or self._anchorUnitName ~= nil
+end
+
+--- True if the anchor unit is still alive (always true for static zones).
+function CTLDAnchoredZone:isAlive()
+    if self._linkedUnit then return self._linkedUnit:isExist() end
+    if not self._anchorUnitName then return true end
+    local u = Unit.getByName(self._anchorUnitName)
+    return u ~= nil and u:isExist()
+end
+
+-- ============================================================
 -- CTLDTroopZone  (entity)
 -- ============================================================
 
-CTLDTroopZone = class()
+CTLDTroopZone = class(CTLDAnchoredZone)
 
 --- Constructor.
 -- @param data table
@@ -337,33 +374,6 @@ function CTLDTroopZone:incrementObjective(soldierCount)
     return true, before, after
 end
 
---- Return current center. Priority: linkedUnit > trigger.misc.getZone > center.
--- Same order as CTLDLogisticZone:getCenter(). A ship-backed zone rides its ship; a Moving
--- Zone follows its DCS trigger zone; a sunk ship leaves the zone at its last known point.
-function CTLDTroopZone:getCenter()
-    if self._linkedUnit and self._linkedUnit:isExist() then
-        return self._linkedUnit:getPoint()
-    end
-    if self.dcsName then
-        local trig = trigger.misc.getZone(self.dcsName)
-        if trig then return trig.point end
-    end
-    return self.center
-end
-
---- True if this zone is anchored to a moving DCS unit (Moving Zone or legacy linkedUnit).
-function CTLDTroopZone:isDynamic()
-    return self._linkedUnit ~= nil or self._anchorUnitName ~= nil
-end
-
---- True if the anchor unit is still alive (always true for static zones).
-function CTLDTroopZone:isAlive()
-    if self._linkedUnit then return self._linkedUnit:isExist() end
-    if not self._anchorUnitName then return true end
-    local u = Unit.getByName(self._anchorUnitName)
-    return u ~= nil and u:isExist()
-end
-
 function CTLDTroopZone:activate()   self.active = true  end
 function CTLDTroopZone:deactivate() self.active = false end
 
@@ -372,21 +382,21 @@ function CTLDTroopZone:deactivate() self.active = false end
 -- CTLDLogisticZone  (entity)
 -- ============================================================
 
-CTLDLogisticZone = class()
+CTLDLogisticZone = class(CTLDAnchoredZone)
 
 --- Constructor.
 -- @param data table
 --   Required : name, coalition, center (vec3), radius
 --   Optional : linkedUnit (Unit — dynamic zone follows this unit),
---              dcsZoneName (string — ME trigger zone name for live lookup),
+--              dcsName (string — ME trigger zone name for live lookup),
 --              active, services table
 function CTLDLogisticZone:init(data)
     self.name          = data.name
     self.coalition     = data.coalition or 0
-    self._center       = data.center
+    self.center        = data.center
     self.radius        = data.radius   or 200
     self._linkedUnit      = data.linkedUnit      or nil
-    self._dcsZoneName     = data.dcsZoneName     or nil
+    self.dcsName          = data.dcsName         or nil
     self._anchorUnitName  = data.anchorUnitName  or nil
     self.active           = (data.active ~= nil) and data.active or true
     self.services      = data.services or {
@@ -394,33 +404,6 @@ function CTLDLogisticZone:init(data)
         cratesDropoff = true,
         vehicleSpawn  = true,
     }
-end
-
---- Return current center. Priority: linkedUnit > trigger.misc.getZone > _center.
-function CTLDLogisticZone:getCenter()
-    if self._linkedUnit and self._linkedUnit:isExist() then
-        return self._linkedUnit:getPoint()
-    end
-    if self._dcsZoneName then
-        local trig = trigger.misc.getZone(self._dcsZoneName)
-        if trig then return trig.point end
-    end
-    return self._center
-end
-
---- True if this zone is anchored to a moving DCS unit (Moving Zone or legacy linkedUnit).
-function CTLDLogisticZone:isDynamic()
-    return self._linkedUnit ~= nil or self._anchorUnitName ~= nil
-end
-
---- True if the anchor unit is still alive (always true for static zones).
-function CTLDLogisticZone:isAlive()
-    if self._linkedUnit then return self._linkedUnit:isExist() end
-    if self._anchorUnitName then
-        local u = Unit.getByName(self._anchorUnitName)
-        return u ~= nil and u:isExist()
-    end
-    return true
 end
 
 --- True if point is inside the zone (circular only — logistic zones are always circular).
@@ -792,7 +775,7 @@ function CTLDZoneManager:_discoverLGZ()
                     coalition       = parsed.coalition,
                     center          = _buildCenter(zd),
                     radius          = ctld.gs("dynamicZoneRadius"),
-                    dcsZoneName     = name,
+                    dcsName         = name,
                     anchorUnitName  = anchorName,
                     active          = true,
                 })

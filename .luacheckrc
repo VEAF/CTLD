@@ -69,6 +69,7 @@ globals = {
     "CTLDReconRenderer",
     "CTLDReconManager",
     "CTLDZoneManager",
+    "CTLDAnchoredZone",
     "CTLDLogisticZone",
     "CTLDTroopZone",
     "CTLDSceneManager",

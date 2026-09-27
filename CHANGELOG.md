@@ -8,6 +8,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — shared `CTLDAnchoredZone` base class removes anchor-logic duplication (FIX-ZONE-ANCHOR-DUPLICATION)
+
+- Internal-only refactor, no behavior change: `getCenter()`/`isDynamic()`/`isAlive()` — previously
+  implemented near-identically in both `CTLDTroopZone` and `CTLDLogisticZone` — now live once, in a
+  new shared base class `CTLDAnchoredZone`, which both entity classes inherit from.
+- `CTLDLogisticZone`'s internal fields `_dcsZoneName`/`_center` are renamed to `dcsName`/`center`,
+  matching `CTLDTroopZone`'s existing naming — including the constructor's accepted key, now
+  `dcsName` (was `dcsZoneName`; the one internal call site passing it was updated to match).
+
 ### Fixed — `TRZ_`/`LGZ_`/`WPZ_` zones register under their full name, closing an `aiZones` collision class (FIX-AUTODISCOVERED-ZONE-FULLNAME-KEY)
 
 - **`TRZ_`/`LGZ_`/`WPZ_` zones (and the scripted `createTroopZoneAtObject` API) now register
