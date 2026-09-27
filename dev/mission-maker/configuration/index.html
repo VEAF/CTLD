@@ -2677,8 +2677,17 @@ snapshot produced by the tool is always complete.</p>
 <td><code>{0, 0}</code></td>
 <td>Cumulative troop cap per coalition <code>{RED, BLUE}</code> — <code>0</code> = unlimited (Lua table)</td>
 </tr>
+<tr>
+<td><code>extractableGroups</code></td>
+<td><code>[]</code></td>
+<td>Names of pre-placed Mission Editor groups that can be extracted at the F10 menu (list of strings)</td>
+</tr>
 </tbody>
 </table>
+<p>Instead of (or in addition to) listing a group in <code>extractableGroups</code>, you can simply name it
+<code>EXTR_&lt;name&gt;</code> in the Mission Editor — no config entry needed. Both ways register the same group
+only once if you happen to use both. A group must exist when the mission starts; one spawned or
+activated later is not picked up.</p>
 <h3 id="infantry-weight-simulation">Infantry weight simulation<a class="headerlink" href="#infantry-weight-simulation" title="Permanent link">&para;</a></h3>
 <p>CTLD estimates each troop group's weight to check whether it fits inside a transport (see
 <code>capabilitiesByType[type].maxTroopsOnboard</code> and vehicle weights). Every soldier weighs a

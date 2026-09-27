@@ -2233,7 +2233,7 @@ dans l'ordre :</p>
 <tr>
 <td>INIT-E</td>
 <td><code>_initExtractableGroups()</code></td>
-<td>Enregistre les noms de <code>extractableGroups</code> dans <code>CTLDTroopManager._droppedGroups</code></td>
+<td>Enregistre les noms de <code>extractableGroups</code> + les groupes nommés <code>EXTR_</code> dans <code>CTLDTroopManager._droppedGroups</code></td>
 </tr>
 <tr>
 <td>INIT-A</td>
@@ -2244,8 +2244,13 @@ dans l'ordre :</p>
 </table>
 <p><strong>Détail INIT-E :</strong> lit <code>ctld.gs("extractableGroups")</code>, appelle <code>Group.getByName()</code> pour chaque
 entrée, et insère le nom du groupe dans <code>CTLDTroopManager._droppedGroups[coalition]</code>. Les groupes
-introuvables sont journalisés en <code>WARN</code> et ignorés. Il n'y a pas d'activation tardive (iso-legacy)
-ni d'entrée <code>_droppedTemplates</code> — <code>embarkFromField</code> utilise un repli à 130 kg/unité.</p>
+introuvables sont journalisés en <code>WARN</code> et ignorés. Scanne ensuite <code>coalition.getGroups(side)</code> sur
+RED/BLUE/NEUTRAL à la recherche d'un nom de groupe portant le préfixe ancré <code>EXTR_</code> — une convention
+de nommage Mission Editor ne nécessitant aucune entrée de config — en ignorant tout nom déjà
+enregistré par la liste ci-dessus (union dédoublonnée). Les deux passes sont init-only : il n'y a
+pas d'activation tardive (iso-legacy pour la liste ; délibéré pour <code>EXTR_</code>, contrairement au
+mécanisme <code>markPendingJTAC</code>/<code>onBirth</code> de <code>_initMMJTACs</code>) ni d'entrée <code>_droppedTemplates</code> —
+<code>embarkFromField</code> utilise un repli à 130 kg/unité.</p>
 <h2 id="adding-a-new-module">Ajouter un nouveau module<a class="headerlink" href="#adding-a-new-module" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Créer <code>src/CTLD_mymodule.lua</code> en utilisant l'idiome class/singleton ci-dessus (<code>CTLDMyManager = class()</code>,

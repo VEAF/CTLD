@@ -2683,8 +2683,17 @@ un instantané produit par l'outil est donc toujours complet.</p>
 <td><code>{0, 0}</code></td>
 <td>Plafond cumulé de troops par coalition <code>{RED, BLUE}</code> — <code>0</code> = illimité (table Lua)</td>
 </tr>
+<tr>
+<td><code>extractableGroups</code></td>
+<td><code>[]</code></td>
+<td>Noms des groupes pré-placés dans le Mission Editor extractibles au menu F10 (liste de chaînes)</td>
+</tr>
 </tbody>
 </table>
+<p>Au lieu de (ou en plus de) lister un groupe dans <code>extractableGroups</code>, vous pouvez simplement le
+nommer <code>EXTR_&lt;nom&gt;</code> dans le Mission Editor — aucune entrée de config nécessaire. Les deux voies
+n'enregistrent le même groupe qu'une seule fois si vous utilisez les deux. Un groupe doit exister
+au démarrage de la mission ; un groupe spawné ou activé plus tard n'est pas détecté.</p>
 <h3 id="infantry-weight-simulation">Simulation du poids de l'infanterie<a class="headerlink" href="#infantry-weight-simulation" title="Permanent link">&para;</a></h3>
 <p>CTLD estime le poids de chaque groupe de troops pour vérifier s'il tient dans un transport (voir
 <code>capabilitiesByType[type].maxTroopsOnboard</code> et les poids de véhicules). Chaque soldat pèse un

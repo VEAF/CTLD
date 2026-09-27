@@ -2231,7 +2231,7 @@ that bypasses <code>:new()</code> and calls <code>init()</code> on first access:
 <tr>
 <td>INIT-E</td>
 <td><code>_initExtractableGroups()</code></td>
-<td>Register <code>extractableGroups</code> names into <code>CTLDTroopManager._droppedGroups</code></td>
+<td>Register <code>extractableGroups</code> names + <code>EXTR_</code>-named groups into <code>CTLDTroopManager._droppedGroups</code></td>
 </tr>
 <tr>
 <td>INIT-A</td>
@@ -2242,7 +2242,11 @@ that bypasses <code>:new()</code> and calls <code>init()</code> on first access:
 </table>
 <p><strong>INIT-E detail:</strong> reads <code>ctld.gs("extractableGroups")</code>, calls <code>Group.getByName()</code> for each entry,
 and inserts the group name into <code>CTLDTroopManager._droppedGroups[coalition]</code>. Groups not found are
-logged as <code>WARN</code> and skipped. There is no late activation (iso-legacy) and no <code>_droppedTemplates</code>
+logged as <code>WARN</code> and skipped. Then scans <code>coalition.getGroups(side)</code> on RED/BLUE/NEUTRAL for a
+group whose name matches the anchored prefix <code>EXTR_</code> — a Mission Editor naming convention needing
+no config entry — skipping any name already registered by the list above (deduplicated union).
+Both passes are init-only: there is no late activation (iso-legacy for the list; deliberate for
+<code>EXTR_</code>, unlike <code>_initMMJTACs</code>' <code>markPendingJTAC</code>/<code>onBirth</code> mechanism) and no <code>_droppedTemplates</code>
 entry — <code>embarkFromField</code> uses a 130 kg/unit fallback.</p>
 <h2 id="adding-a-new-module">Adding a new module<a class="headerlink" href="#adding-a-new-module" title="Permanent link">&para;</a></h2>
 <ol>
