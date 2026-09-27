@@ -1,6 +1,6 @@
 # FIX-CTLD-TOOLS-WEB-NODE-TYPES-GAP — declare Node ambient types for `ctld-tools`' web app type-check
 
-**Status:** 🔄 in-progress (ticket 01 done; ticket 02 pending merge).
+**Status:** ✅ done (PR #196). Dependabot PR #193/#194 closed as superseded.
 
 Formalizes investigation into [Dependabot PR #193](https://github.com/VEAF/CTLD/pull/193)
 ("ci: bump @vitest/mocker and vitest in /tools/ctld-tools/web") and
