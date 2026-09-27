@@ -215,51 +215,17 @@ Non tranché (à instruire en grill-with-docs avant to-prd) :
      réglage/mécanisme le plus proche déjà existant plutôt qu'un système de sélection par
      type/convention. -->
 
-## Lien générique zone ↔ objet de référence (owner-triggered)
+<!-- Lien générique zone ↔ objet de référence (owner-triggered) — le volet "duplication d'ancrage
+     entre CTLDTroopZone/CTLDLogisticZone" est formalisé en lot
+     `.backlog/FIX-ZONE-ANCHOR-DUPLICATION/` (lancé directement en to-prd le 2026-09-27, sans grill
+     dédié, sur instruction explicite). Le registre générique linkZonesToOwner/unlinkOwner que
+     cette entrée proposait n'est PAS construit : FEAT-FARP-TROOP-PICKUP a confirmé que le FARP
+     (le seul second candidat "propriétaire composite" envisagé) n'en a pas besoin (Airbase
+     binaire, pas un jugement composite comme le FOB) — il ne reste qu'un seul consommateur réel
+     (le FOB), ce qui rend le registre générique prématuré (CLAUDE.md, pas d'abstraction
+     spéculative). À reconsidérer si un vrai deuxième propriétaire composite apparaît un jour. -->
 
-Constaté en grillant le fix `troopPickupAtFOB` (2026-08-26, voir aussi le lot
-`FIX-FOB-TROOP-PICKUP` qui corrige le bug lui-même sans attendre cette généralisation) : la
-plomberie d'ancrage est **dupliquée, pas partagée**, entre `CTLDTroopZone` et `CTLDLogisticZone`
-(`CTLD_zone.lua:40` et `:372`) — `_linkedUnit`, `_anchorUnitName`, `getCenter()`, `isDynamic()`,
-`isAlive()` existent en code quasi identique dans les deux classes. Et l'enregistrement/nettoyage
-d'une zone liée à un FOB est ad hoc par type : `registerFOBAsLogistic` + `unregisterLogistic`
-existent pour la logistique ; le fix `FIX-FOB-TROOP-PICKUP` ajoute leur symétrique
-(`registerFOBAsTroopZone` + `unregisterTroopZone`) pour les troupes, appelé explicitement depuis
-`CTLDFOBManager:_destroyFOB`. Un troisième type de zone lié à un FOB demain exigerait un troisième
-couple register/unregister et un troisième appel dans `_destroyFOB` à ne pas oublier.
-
-Constat important qui écarte une généralisation naïve de l'ancrage existant : il y a en réalité
-**deux mécanismes de cycle de vie**, pas un — l'ancrage par sondage (`_linkedUnit:isExist()`,
-marche pour un objet DCS unique) et la notification par le propriétaire (le FOB n'utilise pas
-`_linkedUnit` ; sa mort est un jugement composite — seuil d'intégrité sur plusieurs
-`sceneObjects` — que rien ne peut déduire en sondant un seul objet).
-
-<!-- Correction (vérification roadmap, 2026-08-26, FEAT-FARP-TROOP-PICKUP) : le FARP ne suit PAS
-     le schéma composite du FOB, contrairement à ce que cette entrée supposait initialement. Un
-     FARP s'enregistre comme un vrai Airbase DCS (statique catégorie Heliports), donc sa
-     destruction est binaire et native (Airbase:isExist()) — pas de seuil d'intégrité multi-objets
-     nécessaire. Le lot a réutilisé CTLDStaticWatcher (sondage générique déjà existant, déjà
-     éprouvé par le Recon pour ce même type d'objet) plutôt qu'un troisième mécanisme de cycle de
-     vie. Voir aussi l'entrée ci-dessous (camion de transport) : un troisième cas concret,
-     lui aussi purement poll-based (_linkedUnit), déjà couvert par le mécanisme existant. -->
-
-Idée : un registre de liens orthogonal aux tables de zones existantes —
-`CTLDZoneManager:linkZonesToOwner(ownerId, { {type="logistic", key=...}, {type="troop", key=...},
-... })` côté création, et un seul `CTLDZoneManager:unlinkOwner(ownerId)` côté suppression, qui sait
-par type dans quelle table `nil`-er et quel événement `OnXxxZoneUpdated` publier. `_destroyFOB`
-(et demain le teardown FARP, et tout futur propriétaire composite) n'aurait plus qu'un seul appel
-à faire, quel que soit le nombre de types de zones liés. Referme aussi, comme effet de bord,
-l'entrée roadmap « Zones dynamiques — aucun rafraîchissement du menu F10 » ci-dessus : un point
-d'entrée unique de création/suppression est le bon endroit pour garantir ce rafraîchissement,
-au lieu de compter sur chaque fonction de création pour y penser séparément.
-
-Non tranché (à instruire en grill-with-docs dédié avant to-prd) : le générique doit-il aussi
-absorber l'ancrage par sondage (`_linkedUnit`) existant, ou rester un mécanisme séparé pour les
-propriétaires composites uniquement ; forme exacte de `ownerId` et de la table d'entrées ; est-ce
-que `createTroopZoneAtObject`/`createExtractZone` (aujourd'hui sans notion de propriétaire ni
-d'événement publié) migrent vers ce registre ou restent à part.
-
-### Cas d'usage additionnel — pickup zone mobile sur un camion de transport
+## Pickup zone mobile sur un camion de transport (vérification live requise)
 
 Demandé le 2026-08-26. Idée : associer une TRZ_ à un camion de transport pour simuler des troupes
 transportées au sol, qu'un appareil viendrait embarquer en se posant à proximité du camion — la
