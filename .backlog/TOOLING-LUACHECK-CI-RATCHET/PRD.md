@@ -1,6 +1,6 @@
 # TOOLING-LUACHECK-CI-RATCHET — a real luacheck gate, and a visible local hook
 
-**Status:** 🔄 in review (PR #204).
+**Status:** ✅ done (PR #204).
 
 Formalizes the `dev/roadmap.md` entry "luacheck n'est en réalité vérifié nulle part (ni local, ni
 CI)" and a `grill-with-docs` session held 2026-09-27 that resolved every point the entry had left
