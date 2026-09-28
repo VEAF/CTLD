@@ -1,6 +1,6 @@
 # FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY — `TRZ_` on any static/unit/group, F10 refresh, real anchor removal
 
-**Status:** ready
+**Status:** ✅ done (PR #217)
 
 Formalizes the `dev/roadmap.md` entries "TRZ_ automatique — création liée au spawn d'un objet" and
 "Zones dynamiques — aucun rafraîchissement du menu F10 des joueurs déjà sur place" (grilled jointly,
