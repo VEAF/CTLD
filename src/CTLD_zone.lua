@@ -452,14 +452,18 @@ function CTLDZoneManager:init()
     self._troopZones    = {}   -- zoneName -> CTLDTroopZone
     self._logisticZones = {}   -- name     -> CTLDLogisticZone
 
-    -- Register S_EVENT_DEAD for dynamic logistic zone tracking
+    -- Register S_EVENT_DEAD for dynamic logistic/troop zone anchor tracking, S_EVENT_BIRTH for
+    -- late-activated TRZ_-named static/unit/group discovery (_discoverTRZDynamicObjects below
+    -- covers the mission-start case; onBirth covers anything appearing after).
     local ok, bridge = pcall(CTLDDCSEventBridge.getInstance)
     if ok and bridge then
         bridge:register(self, world.event.S_EVENT_DEAD, "onDead")
+        bridge:register(self, world.event.S_EVENT_BIRTH, "onBirth")
     end
 
     self:_validateZoneNames()
     self:_discoverTRZ()
+    self:_discoverTRZDynamicObjects()
     self:_discoverEXZ()
     self:_loadAIZonesFromConfig()
     self:_discoverWPZ()
@@ -737,6 +741,70 @@ function CTLDZoneManager:_discoverTRZ()
                     tostring(parsed.objectiveTarget))
             end
         end
+    end
+end
+
+--- Attempt TRZ_ dynamic-object registration for name (a static/unit/group's own DCS name),
+-- logging which discovery path found it — Mission-Editor discovery and the scripted
+-- createTroopZoneAtObject API already log their own source inline; this is the source tag for
+-- the two paths added by this ticket (mirrors EXTR_'s own explicit-list-vs-convention tagging).
+-- No-op for a name that doesn't start with TRZ_. createTroopZoneAtObject's own log line and
+-- collision guard (WARN, never overwrite) still fire exactly as they do for a scripted call.
+-- @param source string  "init scan" | "S_EVENT_BIRTH"
+local function _registerTRZDynamicObject(self, name, source)
+    if string.sub(name, 1, 4) ~= "TRZ_" then return end
+    if self:createTroopZoneAtObject(name, name) then
+        ctld.utils.log("INFO", "CTLDZoneManager: TRZ_ dynamic-object discovery (%s) — '%s'", source, name)
+    end
+end
+
+--- Discover TRZ_<...> on a static, unit, or group — the same naming convention _discoverTRZ
+-- recognizes on a Mission Editor trigger zone, now also recognized on these other DCS object
+-- kinds (a bunker, a convoy, a ship). Reuses createTroopZoneAtObject's own resolution and
+-- construction unchanged — the object's own DCS name serves as both the objectName to resolve
+-- and the trzName to parse, so a zone discovered this way is indistinguishable from one created
+-- by a scripted call. Runs after _discoverTRZ so a Mission-Editor trigger zone always wins a
+-- name collision (createTroopZoneAtObject's own collision guard refuses and WARNs, never
+-- overwrites). Covers the mission-start case only; a late-activated object is caught by onBirth.
+function CTLDZoneManager:_discoverTRZDynamicObjects()
+    local self_ref = self
+
+    _forEachMissionStatic(function(obj)
+        _registerTRZDynamicObject(self_ref, obj:getName(), "init scan")
+    end)
+
+    _forEachMissionUnit(function(unit)
+        _registerTRZDynamicObject(self_ref, unit:getName(), "init scan")
+    end)
+
+    local sides = { coalition.side.RED, coalition.side.BLUE, coalition.side.NEUTRAL }
+    for _, side in ipairs(sides) do
+        for _, group in ipairs(coalition.getGroups(side) or {}) do
+            if group:isExist() then
+                _registerTRZDynamicObject(self_ref, group:getName(), "init scan")
+            end
+        end
+    end
+end
+
+--- S_EVENT_BIRTH: recognize a static/unit/group named TRZ_<...> that appears after init (a
+-- late-activated convoy, a scripted spawn) — the continuous half of TRZ_ dynamic-object
+-- discovery, alongside the mission-start scan in _discoverTRZDynamicObjects. Reuses
+-- createTroopZoneAtObject exactly as that scan does. No DCS category check is needed to tell a
+-- static from a unit here: a StaticObject exposes no getGroup(), so the group-name check below
+-- naturally skips it without one. DCS fires this event once per unit, so a multi-unit group
+-- birth would otherwise attempt the group-name registration once per member; only the group's
+-- own first unit checks the group's name, keeping that attempt to exactly one per group
+-- (createTroopZoneAtObject's collision guard would only WARN on the extras anyway).
+function CTLDZoneManager:onBirth(event)
+    local obj = event and event.initiator
+    if not (obj and obj.isExist and obj:isExist() and obj.getName) then return end
+
+    _registerTRZDynamicObject(self, obj:getName(), "S_EVENT_BIRTH")
+
+    local group = obj.getGroup and obj:getGroup()
+    if group and group:getUnit(1) == obj then
+        _registerTRZDynamicObject(self, group:getName(), "S_EVENT_BIRTH")
     end
 end
 
@@ -1196,15 +1264,55 @@ function CTLDZoneManager:_publishLogisticZoneUpdated(added, removed)
     })
 end
 
---- S_EVENT_DEAD: remove dynamic logistic zones whose linked unit died.
+--- Published whenever a troop zone is dynamically created or removed (Mission-Editor init
+-- discovery does NOT call this — no player is tracked yet at that point in the boot sequence).
+-- Mirrors _publishLogisticZoneUpdated's shape. A single CTLDPlayerManager subscriber reacts to
+-- this (and to OnLogisticZoneUpdated) by refreshing every currently on-ground tracked player's
+-- menu, closing the "player already standing there" gap for a zone that just appeared/disappeared.
+function CTLDZoneManager:_publishTroopZoneUpdated(added, removed)
+    local zones = {}
+    for _, zone in pairs(self._troopZones) do
+        zones[#zones + 1] = {
+            name       = zone.zoneName,
+            type       = "troop",
+            linkedUnit = zone._linkedUnit,
+            position   = zone:getCenter(),
+            coalition  = zone.coalition,
+        }
+    end
+    EventDispatcher.getInstance():publish("OnTroopZoneUpdated", {
+        zones        = zones,
+        unitsAdded   = added,
+        unitsRemoved = removed,
+        timestamp    = timer.getAbsTime(),
+    })
+end
+
+--- S_EVENT_DEAD: remove dynamic logistic zones whose linked unit died, and any troop zone
+-- anchored to a unit or group whose anchor unit died (unit/group anchor only — a static anchor
+-- has no reliable S_EVENT_DEAD signal, see the CTLDStaticWatcher wiring in
+-- createTroopZoneAtObject instead, ADR 0021). Covers every linkedUnit-anchored troop zone
+-- (ship, ground vehicle via createTroopZoneAtObject) and a Mission-Editor Moving-Zone-anchored
+-- TRZ_ (its _anchorUnitName is populated at discovery), not just zones created after this ticket.
 function CTLDZoneManager:onDead(event)
     local unitName = ctld.utils.safeObjectName(event and event.initiator)
     if not unitName then return end
+
     local zone = self._logisticZones[unitName]
     if zone and zone:isDynamic() then
         self._logisticZones[unitName] = nil
         ctld.utils.log("INFO", "CTLDZoneManager: dynamic logistic zone '%s' removed (unit dead)", unitName)
         self:_publishLogisticZoneUpdated({}, { { unitName = unitName, coalition = zone.coalition, reason = "dead" } })
+    end
+
+    for trzName, tZone in pairs(self._troopZones) do
+        if (tZone._linkedUnit and tZone._linkedUnit == event.initiator)
+           or (tZone._anchorUnitName and tZone._anchorUnitName == unitName) then
+            self._troopZones[trzName] = nil
+            ctld.utils.log("INFO", "CTLDZoneManager: troop zone '%s' removed (anchor dead: %s)",
+                trzName, unitName)
+            self:_publishTroopZoneUpdated({}, { { zoneName = trzName, coalition = tZone.coalition, reason = "dead" } })
+        end
     end
 end
 
@@ -1616,6 +1724,7 @@ function CTLDZoneManager:createExtractZone(zoneName, flagNumber, smoke)
     })
     if smokeColor >= 0 then trigger.action.smoke(pt, smokeColor) end
     ctld.utils.log("INFO", "CTLDZoneManager:createExtractZone — '%s' flag=%s", zoneName, tostring(flagNumber))
+    self:_publishTroopZoneUpdated({ { zoneName = zoneName, coalition = 0 } }, {})
     return true
 end
 
@@ -1625,9 +1734,11 @@ end
 -- @param flagNumber number|string  (ignored)
 -- @return boolean
 function CTLDZoneManager:removeExtractZone(zoneName, flagNumber)
-    if self._troopZones[zoneName] then
+    local zone = self._troopZones[zoneName]
+    if zone then
         self._troopZones[zoneName] = nil
         ctld.utils.log("INFO", "CTLDZoneManager:removeExtractZone — '%s' removed", zoneName)
+        self:_publishTroopZoneUpdated({}, { { zoneName = zoneName, coalition = zone.coalition, reason = "removed" } })
         return true
     end
     ctld.utils.log("WARN", "CTLDZoneManager:removeExtractZone — not found: %s", tostring(zoneName))
@@ -1638,32 +1749,39 @@ end
 -- (only a Mission Editor trigger zone carries a native radius here).
 local _TROOP_ZONE_DEFAULT_RADIUS = 200
 
---- Resolves objectName to (center, radius, dcsName, linkedUnit) for createTroopZoneAtObject, in
--- order: a Mission Editor trigger zone, a unit or static, a group's first unit, an airbase.
--- Returns nil on no match. dcsName/linkedUnit are the anchor fields to pass through to
--- CTLDTroopZone:new — set for whichever kind can move, nil for a fixed position.
+--- Resolves objectName to (center, radius, dcsName, linkedUnit, isStatic) for
+-- createTroopZoneAtObject, in order: a Mission Editor trigger zone, a unit or static, a group's
+-- first unit, an airbase. Returns nil on no match. dcsName/linkedUnit are the anchor fields to
+-- pass through to CTLDTroopZone:new — set for whichever kind can move, nil for a fixed position.
+-- isStatic distinguishes a StaticObject-anchored match (S_EVENT_DEAD is unreliable for statics —
+-- see the CTLDStaticWatcher wiring this return value feeds in createTroopZoneAtObject, ADR 0021)
+-- from a Unit-anchored one (S_EVENT_DEAD works, handled generically by CTLDZoneManager:onDead).
 local function _resolveTroopZoneObject(objectName)
     local trig = trigger.misc.getZone(objectName)
     if trig then
-        return trig.point, trig.radius, objectName, nil
+        return trig.point, trig.radius, objectName, nil, false
     end
 
-    local unitOrStatic = Unit.getByName(objectName) or StaticObject.getByName(objectName)
-    if unitOrStatic then
-        return unitOrStatic:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, unitOrStatic
+    local unit = Unit.getByName(objectName)
+    if unit then
+        return unit:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, unit, false
+    end
+    local static = StaticObject.getByName(objectName)
+    if static then
+        return static:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, static, true
     end
 
     local group = Group.getByName(objectName)
     if group then
         local firstUnit = group:getUnit(1)
         if firstUnit then
-            return firstUnit:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, firstUnit
+            return firstUnit:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, firstUnit, false
         end
     end
 
     local airbase = Airbase.getByName(objectName)
     if airbase then
-        return airbase:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, nil
+        return airbase:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, nil, false
     end
 
     return nil
@@ -1693,7 +1811,7 @@ function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
         return false
     end
 
-    local center, radius, dcsName, linkedUnit = _resolveTroopZoneObject(objectName)
+    local center, radius, dcsName, linkedUnit, isStatic = _resolveTroopZoneObject(objectName)
     if not center then
         ctld.utils.log("ERROR", "CTLDZoneManager:createTroopZoneAtObject — object not found: %s",
             tostring(objectName))
@@ -1714,6 +1832,27 @@ function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
     })
     ctld.utils.log("INFO", "CTLDZoneManager:createTroopZoneAtObject — '%s' at '%s' (coalition=%s, stock=%s)",
         trzName, objectName, tostring(parsed.coalition), tostring(parsed.pickMaxStock))
+    self:_publishTroopZoneUpdated({ { zoneName = trzName, coalition = parsed.coalition } }, {})
+
+    -- Static anchor: S_EVENT_DEAD is documented unreliable for statics elsewhere in this
+    -- codebase (see CTLD_core.lua/CTLD_crate.lua), so poll isExist() instead — same mechanism
+    -- already proven for the FARP troop-pickup path (ADR 0021). A unit/group anchor needs no
+    -- watch here: CTLDZoneManager:onDead already handles it generically via S_EVENT_DEAD.
+    if isStatic then
+        local self_ref = self
+        CTLDStaticWatcher.getInstance():watch(
+            "trz_static_" .. trzName,
+            function() return linkedUnit:isExist() end,
+            function()
+                if self_ref._troopZones[trzName] then
+                    self_ref._troopZones[trzName] = nil
+                    ctld.utils.log("INFO",
+                        "CTLDZoneManager: troop zone '%s' removed (static anchor destroyed)", trzName)
+                    self_ref:_publishTroopZoneUpdated({},
+                        { { zoneName = trzName, coalition = parsed.coalition, reason = "dead" } })
+                end
+            end)
+    end
     return true
 end
 

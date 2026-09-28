@@ -54,6 +54,19 @@ end
 A.is_truthy = function(v, m) if not v then fail(m or "expected a truthy value") end end
 A.is_falsy  = function(v, m) if v then fail(m or "expected a falsy value") end end
 A.not_equal = function(e, a, m) if e == a then fail(m or ("expected something else than " .. tostring(e))) end end
+A.matches   = function(pattern, s, m)
+    if not string.find(tostring(s), pattern) then
+        fail(m or ("expected '" .. tostring(s) .. "' to match pattern '" .. tostring(pattern) .. "'"))
+    end
+end
+
+-- Real busted (luassert) lets a spec write the chained negation form assert.are_not.X(...) /
+-- assert.has_no.X(...) as an alternative to the underscore form (assert.not_equal(...) /
+-- assert.has_no_error(...)) already implemented above. This runner doesn't reimplement luassert's
+-- general modifier-proxy mechanism — just the two concrete dotted aliases specs in this repo
+-- actually use, routed to the same underlying functions so the two spellings can never disagree.
+A.are_not = { equals = A.not_equal, equal = A.not_equal }
+A.has_no  = { error = A.has_no_error, errors = A.has_no_error }
 
 local function title()
     return table.concat(stack, " ")

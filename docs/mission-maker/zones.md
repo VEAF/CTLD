@@ -193,6 +193,12 @@ ship); an airbase/FARP match stays fixed instead. Anything other than a trigger 
 CTLDZoneManager.getInstance():removeExtractZone("farpAlpha")
 ```
 
+**No script needed for a static, unit, or group**: just name it `TRZ_<name>_<coalition>_<stock>_
+<flag>_<target>` directly in the Mission Editor — a bunker, a convoy, a ship. CTLD picks it up
+automatically, at mission start or whenever it appears later (a late-activated convoy, a spawned
+object). Only reach for the script above when the object genuinely has no name of its own to give
+yet (e.g. it doesn't exist before the mission starts and nothing lets you rename it once it does).
+
 ---
 
 ## Waypoint zones (WPZ)

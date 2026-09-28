@@ -27,6 +27,7 @@ de simples types `class()` instanciés via `:new(data)`.
 | Découverte par type | config `logisticUnitTypes` / `troopZoneShipTypes` | `CTLDLogisticZone` / `CTLDTroopZone` | Chaque objet de la mission d'un type DCS listé, ancré à cet objet |
 | EXZ (dynamique) | `createExtractZone()` à l'exécution | `CTLDTroopZone` | Extract zone créée depuis un `DO SCRIPT` de mission |
 | TRZ (dynamique, tout objet) | `createTroopZoneAtObject()` à l'exécution | `CTLDTroopZone` | TRZ pickup créée depuis un `DO SCRIPT`, sur une zone de trigger, une unité, un statique, un groupe, ou un airbase/FARP |
+| TRZ (nommage sur objet dynamique) | nom `TRZ_…` sur un statique, une unité, ou un groupe | `CTLDTroopZone` | Même convention qu'une TRZ placée dans l'éditeur, reconnue sur ces autres types d'objets DCS — scan à l'init + `S_EVENT_BIRTH` pour tout ce qui apparaît ensuite ; voir [TRZ sur un objet dynamique](#trz-sur-un-objet-dynamique-statique-unite-ou-groupe) ci-dessous |
 
 Les zones TRZ, WPZ et LGZ sont découvertes en parcourant `env.mission.triggers.zones` à
 l'init. Les zones AIZ sont chargées depuis `ctld.gs("aiZones")` et référencent par leur nom une
@@ -299,10 +300,18 @@ Publiés via `EventDispatcher` (voir [Architecture](../architecture.md)) :
 | --- | --- |
 | `OnZoneSmokeRefreshed` | Toutes les `smokeRefreshInterval` secondes par la boucle de smoke |
 | `OnLogisticZoneUpdated` | À l'init, à la mort d'une unité dynamique, et lors d'un register / unregister / (dé)activation de FOB / logistique |
+| `OnTroopZoneUpdated` | À la création dynamique d'une troop zone (`createTroopZoneAtObject`, `createExtractZone`, découverte TRZ sur objet dynamique) ou à sa suppression (`removeExtractZone`, mort de l'ancre) — jamais à la découverte à l'init de l'éditeur de mission |
 
 Le manager enregistre `onDead` pour `S_EVENT_DEAD` via `CTLDDCSEventBridge` : lorsque l'unité
 liée d'une logistic zone dynamique meurt, la zone est retirée et un `OnLogisticZoneUpdated` est
-publié avec le retrait.
+publié avec le retrait. `onDead` teste aussi une troop zone via son `_linkedUnit`/
+`_anchorUnitName` (ancre unité/groupe, ou une TRZ ancrée sur une Moving Zone de l'éditeur) et la
+retire de la même façon, en publiant `OnTroopZoneUpdated`. Une troop zone ancrée sur un
+**statique** utilise en revanche `CTLDStaticWatcher` (polling `isExist()`, câblé dans
+`createTroopZoneAtObject`) — `S_EVENT_DEAD` n'est pas un signal fiable pour un objet statique
+(ADR 0021). Dans les deux cas, le nom de la zone est libéré pour réutilisation — elle n'est pas
+simplement gelée à sa dernière position, contrairement à une ancre sans référence unité/statique
+vivante (zone fixe, ou référence de zone de trigger propre à une Moving Zone).
 
 ## API de requête — troop zones { #query-api-troop-zones }
 
@@ -380,6 +389,30 @@ transformer un nom `TRZ_…` en `{zoneName, coalition, pickMaxStock, objectiveFl
 objectiveTarget}` (ou `nil` + une raison) — voir la
 [convention de nommage TRZ](#trz-naming-convention) plus haut.
 
+### TRZ sur un objet dynamique (statique, unité, ou groupe) { #trz-sur-un-objet-dynamique-statique-unite-ou-groupe }
+
+Au-delà d'une zone de trigger de l'éditeur, la même convention de nommage `TRZ_…` est aussi
+reconnue sur un **objet statique, une unité, ou un groupe** — le mission maker nomme directement
+l'objet, sans script ni réglage de config :
+
+```
+TRZ_bunker1_B_999_nil_0        -- un statique, ex. une fortification
+TRZ_convoy1_R_999_nil_0        -- un groupe (la zone s'ancre à sa première unité)
+TRZ_dock1_B_999_nil_0          -- une unité isolée, ex. un navire
+```
+
+`CTLDZoneManager:_discoverTRZDynamicObjects()` parcourt `coalition.getStaticObjects`/
+`coalition.getGroups` (les trois coalitions) à l'init ; `onBirth` (`S_EVENT_BIRTH`) couvre tout ce
+qui apparaît ensuite (un convoi activé tardivement, un spawn scripté). Les deux réutilisent
+`createTroopZoneAtObject(name, name)` sans le modifier — le nom DCS de l'objet sert à la fois
+d'`objectName` à résoudre et de `trzName` à parser, donc une zone découverte ainsi est
+indiscernable d'une zone créée par script. Un groupe déclenche `S_EVENT_BIRTH` une fois par unité
+membre ; seule la première unité du groupe est testée contre le nom du groupe, donc un convoi
+multi-unités s'enregistre exactement une fois. Un nom déjà enregistré par une autre source (éditeur
+de mission, script, ce scan) est refusé avec un `WARN`, jamais écrasé — même garde de collision que
+`createTroopZoneAtObject`. `LGZ_`/`WPZ_`/`EXZ_` restent réservées aux zones de trigger ; cet
+élargissement est spécifique à `TRZ_`.
+
 ## Priorité de déchargement : extract avant RTB { #unload-priority-extract-before-rtb }
 
 Lorsqu'un joueur décharge des troops, la zone contenante est évaluée dans cet ordre (géré par le
@@ -401,6 +434,14 @@ de la position courante du joueur et de l'état de sa cargaison :
 - Au sol dans une pickup TRZ : une option « Load from `<zoneName>` » apparaît.
 - Au sol avec des troops à bord : une option « Unload / Extract » apparaît.
 - Au sol hors de toute TRZ : aucune option de chargement.
+
+Il se reconstruit aussi immédiatement — pas seulement au décollage/atterrissage — dès qu'une
+troop zone ou une logistic zone est créée ou supprimée dynamiquement pendant qu'un joueur est
+déjà au sol : `CTLDZoneManager` publie `OnTroopZoneUpdated`/`OnLogisticZoneUpdated`, et
+`CTLDPlayerManager` rafraîchit `CTLDTroopManager:refreshMenuSection`/`CTLDCrateManager:
+refreshRequestEquipmentSection` pour tout joueur transport actuellement au sol trackée. Aucun
+calcul de proximité n'est fait côté abonné — les deux fonctions de rafraîchissement recalculent
+déjà elles-mêmes l'appartenance de zone du joueur appelant.
 
 ## Validation des noms de zone { #zone-name-validation }
 

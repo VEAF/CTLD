@@ -26,3 +26,4 @@ Retroactive ADRs document decisions already made during the v2.0.0 rewrite.
 | [0018](0018-ctld-tools-integer-field-type.md) | `ctld-tools` gains a declared `integer` field type | Accepted |
 | [0019](0019-parachute-drop-global-gate-inline.md) | `enableParachuteDrop` gates 5 call sites inline, not via `registerMenuSection` | Accepted |
 | [0020](0020-auto-discovered-zones-full-name-key.md) | Auto-discovered zones register under their full DCS name; short-name lookup is not preserved | Accepted |
+| [0021](0021-anchor-death-detection-event-vs-poll.md) | Anchor-death detection: DCS event for unit/group, poll for static | Accepted |

@@ -104,6 +104,14 @@ redefined terms are added here in the same move as the decision that introduces 
   `EXZ_<name>_<flag>_<smoke>`, ADR 0016). The prefix and the fields after it are the only wiring a
   Mission Maker needs — no config entry, and `EXZ_`'s own scripted `createExtractZone()` API still
   works identically alongside it (see `CTLD_zone.lua`).
+  - **`TRZ_` beyond trigger zones** (`FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY`) — the same
+    `TRZ_<name>_<coalition>_<stock>_<flag>_<target>` name, unchanged, is also recognized on a
+    **static, unit, or group** (a bunker, a convoy, a ship) instead of a trigger zone — discovered
+    continuously (init scan + `S_EVENT_BIRTH` for anything appearing later), not just at startup.
+    Reuses the exact resolution `createTroopZoneAtObject` already does for a scripted call
+    (`_resolveTroopZoneObject`), just triggered by the naming convention instead of a script. `LGZ_`/
+    `WPZ_`/`EXZ_` stay trigger-zone-only — this widening is `TRZ_`-specific, driven by a concrete
+    troop-RV need, not a general "any zone kind can anchor to anything" rule.
 - **Config-referenced zone** — a DCS trigger zone CTLD only knows about because an explicit config
   entry names it: **AIZ_** (AI-transport pickup/dropoff, `aiZones`). The **engine** never parses
   an `AIZ_`-prefixed name — see `dev/roadmap.md`, "AIZ_ — pourquoi une config explicite", for why
@@ -124,8 +132,17 @@ redefined terms are added here in the same move as the decision that introduces 
   the ME — position retrieved via `trigger.misc.getZone()` each evaluation) and a **linked unit**
   (legacy `logisticUnits` config — position retrieved via `unit:getPoint()` each evaluation).
   A zone without an anchor has a fixed position captured once at init.
-- **Anchor** — the DCS object (unit or Moving Zone) to which a CTLD zone is attached for dynamic
-  position resolution. Destroying the anchor freezes the zone at its last known position.
+- **Anchor** — the DCS object (unit, static, or Moving Zone) to which a CTLD zone is attached for
+  dynamic position resolution. Destroying a **unit or static** anchor **removes the zone outright**
+  (its name freed for reuse) — both a `linkedUnit`-anchored logistic zone and a `linkedUnit`/
+  `_anchorUnitName`-anchored troop zone (ship, ground vehicle, a Mission-Editor Moving-Zone-anchored
+  `TRZ_`, or one discovered on a static/unit/group per `FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY`)
+  behave the same way (**ADR 0021**). Detection differs by anchor kind, not by choice but because
+  DCS offers no single uniform destruction signal: `S_EVENT_DEAD` (`CTLDZoneManager:onDead`) for a
+  unit/group anchor, `CTLDStaticWatcher` polling `isExist()` for a static anchor (`S_EVENT_DEAD` is
+  documented unreliable for statics — see `CTLD_core.lua`, `CTLD_crate.lua`). A zone with no live
+  unit/static anchor (fixed position, or a Moving Zone's own `dcsName` trigger-zone reference with
+  no linked unit) has nothing that can "die" this way.
 
 ## Naming conventions
 
