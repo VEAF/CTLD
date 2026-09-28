@@ -104,6 +104,14 @@ redefined terms are added here in the same move as the decision that introduces 
   `EXZ_<name>_<flag>_<smoke>`, ADR 0016). The prefix and the fields after it are the only wiring a
   Mission Maker needs — no config entry, and `EXZ_`'s own scripted `createExtractZone()` API still
   works identically alongside it (see `CTLD_zone.lua`).
+  - **`TRZ_` beyond trigger zones** — proposed in `dev/roadmap.md` ("TRZ_ automatique"), not yet
+    implemented: the same `TRZ_<name>_<coalition>_<stock>_<flag>_<target>` name, unchanged, found on
+    a **static, unit, or group** (a bunker, a convoy truck, a ship) instead of a trigger zone —
+    discovered continuously (init + late activation), not just at startup. Reuses the exact
+    resolution `createTroopZoneAtObject` already does for a scripted call
+    (`_resolveTroopZoneObject`), just triggered by the naming convention instead of a script. `LGZ_`/
+    `WPZ_`/`EXZ_` stay trigger-zone-only — this widening is `TRZ_`-specific, driven by a concrete
+    troop-RV need, not a general "any zone kind can anchor to anything" rule.
 - **Config-referenced zone** — a DCS trigger zone CTLD only knows about because an explicit config
   entry names it: **AIZ_** (AI-transport pickup/dropoff, `aiZones`). The **engine** never parses
   an `AIZ_`-prefixed name — see `dev/roadmap.md`, "AIZ_ — pourquoi une config explicite", for why
@@ -126,6 +134,14 @@ redefined terms are added here in the same move as the decision that introduces 
   A zone without an anchor has a fixed position captured once at init.
 - **Anchor** — the DCS object (unit or Moving Zone) to which a CTLD zone is attached for dynamic
   position resolution. Destroying the anchor freezes the zone at its last known position.
+  - **Revision proposed** (`dev/roadmap.md`, "Zones dynamiques" / "TRZ_ automatique", ADR 0021), not
+    yet implemented: an anchored **troop** zone should instead be **removed outright** on anchor
+    death (freeing its zone name), matching what a `linkedUnit`-anchored **logistic** zone already
+    does today (`CTLDZoneManager:onDead`, `S_EVENT_DEAD`). Detection mechanism differs by anchor
+    kind, not by choice but because DCS itself offers no single uniform signal: `S_EVENT_DEAD` for a
+    unit/group anchor (already proven reliable in this codebase), `CTLDStaticWatcher` polling
+    `isExist()` for a static anchor (`S_EVENT_DEAD` is documented unreliable for statics — see
+    `CTLD_core.lua`, `CTLD_crate.lua`).
 
 ## Naming conventions
 

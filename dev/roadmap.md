@@ -120,33 +120,17 @@ des lignes.
      rien à configurer, la coalition est déjà lue en direct sur l'objet DCS. Nouveau terme
      CONTEXT.md "Auto-discovered group", sibling de "Auto-discovered zone". -->
 
-## Zones dynamiques — aucun rafraîchissement du menu F10 des joueurs déjà sur place
-
-Constaté en testant en direct `createTroopZoneAtObject` (`FEAT-TROOP-ZONE-SCRIPTED-API`,
-2026-08-26) : un joueur déjà posé pile à l'endroit où une `TRZ_` vient d'être créée par script ne
-voit **rien** dans son menu F10 tant qu'il ne redécolle/ratterrit pas — `CTLDTroopManager` ne
-reconstruit la branche "Troop Commands" que sur `S_EVENT_LAND`/`S_EVENT_TAKEOFF`
-(`CTLD_troop.lua:1854-1857`), jamais en continu ni sur un événement de création de zone.
-
-Ce n'est pas propre aux zones de troupes : `CTLDZoneManager:registerFOBAsLogistic` (zones
-logistiques sur FOB) publie bien un événement `OnLogisticZoneUpdated`
-(`CTLD_zone.lua:1157`), mais **rien dans tout `src/` ne s'y abonne** (grep confirmé) — aucun menu
-de joueur n'est rafraîchi en réaction. Le même vide existe donc pour `createExtractZone`,
-`registerFOBAsLogistic` et `createTroopZoneAtObject` : les trois créent la zone et s'arrêtent là,
-sans jamais toucher au menu d'un joueur déjà présent.
-
-Dans le cas d'usage principal (un MM construit un FOB/FARP puis un joueur y atterrit *après*),
-ça ne se voit pas : l'atterrissage qui suit déclenche naturellement le rafraîchissement. Le trou
-ne touche que le cas où un joueur est **déjà posé** au moment où la zone apparaît.
-
-Idée de lot (portée transverse, pas spécifique à un seul type de zone) : que la création/
-suppression dynamique d'une zone (troupe ou logistique) déclenche un rafraîchissement ciblé du
-menu de tout joueur actuellement à portée — probablement en s'abonnant enfin à
-`OnLogisticZoneUpdated` côté `CTLDCrateManager`, et en publiant/écoutant un événement équivalent
-pour les zones de troupes, plutôt qu'en ajoutant des appels de rafraîchissement au cas par cas
-dans chaque fonction de création. Reste à trancher **au to-prd/to-issues** : un seul mécanisme
-générique pour les deux familles de zones, ou deux événements distincts (troupe/logistique)
-comme aujourd'hui pour la création elle-même ?
+<!-- Zones dynamiques — aucun rafraîchissement du menu F10 des joueurs déjà sur place : grillé le
+     2026-09-28 avec "TRZ_ automatique" ci-dessous (couplés : toute TRZ_ auto-créée en cours de
+     mission touche ce trou plus souvent qu'aujourd'hui), formalisé en lot
+     `.backlog/FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY/`. Conclusion : pas de calcul de portée
+     géométrique — toute création/suppression dynamique de zone (troupe ou logistique) rafraîchit
+     CTLDTroopManager:refreshMenuSection/CTLDCrateManager:refreshCrateFlightSection pour tous les
+     joueurs transport au sol trackés, chaque fonction filtrant déjà elle-même par appartenance de
+     zone. Un bug d'asymétrie trouvé en creusant la destruction d'ancre (bunker/convoi/navire) dans
+     le même gril : une zone logistique linkedUnit est déjà réellement supprimée à la mort de son
+     ancre, une zone de troupe équivalente (navire, camion) ne l'était jamais — unifié sur la
+     suppression réelle pour les deux familles, voir ADR 0021. -->
 
 <!-- luacheck n'est en réalité vérifié nulle part (ni local, ni CI) : formalisé en lot
      `.backlog/TOOLING-LUACHECK-CI-RATCHET/` (grill-with-docs, 2026-09-27). Résolu : nouveau job
@@ -186,28 +170,17 @@ véhicule `dcs_native` qui ne sort jamais formellement de l'état `LOADED`) est 
      Le nettoyage luacheck complet (89 → 0) est terminé ; le seul résidu (bbox-exit ci-dessus) est
      un gap de fonctionnalité documenté, pas une dette de lint. -->
 
-## TRZ_ automatique — création liée au spawn d'un objet (FOB, FARP, etc.)
-
-Demandé le 2026-08-26. `CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)`
-(`FEAT-TROOP-ZONE-SCRIPTED-API`, PR #129) permet déjà de créer une `TRZ_` sur n'importe quel objet
-DCS nommé après coup, mais uniquement via un appel scripté explicite — un MM ou une intégration
-externe (ex. VMCT) doit le déclencher lui-même, objet par objet.
-
-Idée : un réglage de config qui automatise cet appel — dès qu'un objet correspondant à un critère
-donné (type, ex. FOB/FARP, ou convention de nommage) apparaît en mission, CTLD crée automatiquement
-une `TRZ_` dessus, sans script dédié côté MM.
-
-Non tranché (à instruire en grill-with-docs avant to-prd) :
-- **Déclencheur** : quel événement DCS marque un objet comme « spawné » selon son type (FOB/FARP
-  vs. unité/statique/groupe classique) — à vérifier contre le mécanisme de détection déjà utilisé
-  par `createTroopZoneAtObject` et par les zones dynamiques existantes.
-- **Critère de sélection** : liste explicite de types, convention de nommage (à la `TRZ_`/`EXTR_`/
-  `SVNT_`), ou les deux — voir l'entrée roadmap `extractableGroups` ci-dessus pour un précédent de
-  décision sur ce même choix.
-- **Nommage de la `TRZ_` générée** : quels champs (coalition/stock/flag/target) par défaut quand
-  rien n'est fourni par le MM, et est-ce que le `trzName` reste dérivable du nom de l'objet source.
-- **Portée** : lié au rafraîchissement menu F10 pour un joueur déjà sur place, voir l'entrée
-  roadmap « Zones dynamiques — aucun rafraîchissement... » ci-dessus (même trou probable).
+<!-- TRZ_ automatique — création liée au spawn d'un objet (FOB, FARP, etc.) : demandé le 2026-08-26,
+     grillé le 2026-09-28 avec "Zones dynamiques" ci-dessus, formalisé en lot
+     `.backlog/FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY/`. FOB/FARP hors périmètre final (mécanisme
+     dédié déjà existant, troopPickupAtFOB/troopPickupAtFARP) ; le vrai besoin, confirmé par un cas
+     concret (RV avec un convoi, un navire, ou un bunker/fortification statique pour embarquer/
+     déposer des troupes) : auto-détection TRZ_<name>_<coalition>_<stock>_<flag>_<target> — syntaxe
+     inchangée — sur un static, unit ou group quelconque, détection continue (init +
+     S_EVENT_BIRTH, déjà prouvé fiable pour les trois types d'objets dans ce code), même chemin de
+     résolution/construction que createTroopZoneAtObject, aucun réglage global (le nommage est déjà
+     l'opt-in, cohérent avec EXTR_). Voir CONTEXT.md ("Auto-discovered zone", "Anchor") et ADR 0021
+     pour le détail des décisions couplées. -->
 
 <!-- Volet FOB formalisé/livré via FIX-FOB-TROOP-PICKUP (PR #136) ; volet FARP formalisé en lot
      `.backlog/FEAT-FARP-TROOP-PICKUP/` (grill-with-docs, 2026-08-26). Les deux couvrent l'idée
