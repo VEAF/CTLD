@@ -226,4 +226,50 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
             assert.equals(zm._troopZones["TRZ_findme_B_999_nil_0"], zm:getTroopZone("TRZ_findme_B_999_nil_0"))
         end)
     end)
+
+    describe("createTroopZoneAtObject / removeExtractZone publish OnTroopZoneUpdated", function()
+
+        local function capture(eventName, fn)
+            local ed    = EventDispatcher.getInstance()
+            local fired = {}
+            local cb    = function(p) fired[#fired + 1] = p end
+            ed:subscribe(eventName, cb)
+            local ok, err = pcall(fn)
+            ed:unsubscribe(eventName, cb)
+            assert(ok, err)
+            return fired
+        end
+
+        it("createTroopZoneAtObject publishes on success", function()
+            trigger.misc.getZone = function(_) return fakeZone({ x = 1, y = 0, z = 1 }, 100) end
+            local fired = capture("OnTroopZoneUpdated", function()
+                zm:createTroopZoneAtObject("myZone", "TRZ_evt_B_999_nil_0")
+            end)
+            assert.equals(1, #fired)
+        end)
+
+        it("createTroopZoneAtObject does not publish on failure (unresolvable object)", function()
+            local fired = capture("OnTroopZoneUpdated", function()
+                zm:createTroopZoneAtObject("nope", "TRZ_evt2_B_999_nil_0")
+            end)
+            assert.equals(0, #fired)
+        end)
+
+        it("removeExtractZone publishes on success", function()
+            trigger.misc.getZone = function(_) return fakeZone({ x = 1, y = 0, z = 1 }, 100) end
+            zm:createTroopZoneAtObject("myZone", "TRZ_evt3_B_999_nil_0")
+
+            local fired = capture("OnTroopZoneUpdated", function()
+                zm:removeExtractZone("TRZ_evt3_B_999_nil_0")
+            end)
+            assert.equals(1, #fired)
+        end)
+
+        it("removeExtractZone does not publish when the zone is not found", function()
+            local fired = capture("OnTroopZoneUpdated", function()
+                zm:removeExtractZone("TRZ_nonexistent_B_999_nil_0")
+            end)
+            assert.equals(0, #fired)
+        end)
+    end)
 end)

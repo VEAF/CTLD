@@ -8,6 +8,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — dynamic troop/logistic zone changes refresh a grounded player's F10 menu immediately (FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY, ticket 01)
+
+- A troop zone (`createTroopZoneAtObject`, `createExtractZone`) or logistic zone
+  (`registerFOBAsLogistic`, the existing dynamic-death removal) that appears or disappears while a
+  player is already standing on the ground where it changed now updates that player's F10 menu
+  right away — previously nothing refreshed until the player's next takeoff or landing.
+- New `OnTroopZoneUpdated` event (`CTLDZoneManager`), mirroring the existing
+  `OnLogisticZoneUpdated`, published on every dynamic troop-zone create/remove. `CTLDPlayerManager`
+  subscribes to both and refreshes `refreshMenuSection`/`refreshRequestEquipmentSection` for every
+  currently on-ground tracked transport player — no new proximity/geometry calculation, both
+  functions already recompute the calling player's own zone membership internally.
+
 ### Changed — shared `CTLDAnchoredZone` base class removes anchor-logic duplication (FIX-ZONE-ANCHOR-DUPLICATION)
 
 - Internal-only refactor, no behavior change: `getCenter()`/`isDynamic()`/`isAlive()` — previously

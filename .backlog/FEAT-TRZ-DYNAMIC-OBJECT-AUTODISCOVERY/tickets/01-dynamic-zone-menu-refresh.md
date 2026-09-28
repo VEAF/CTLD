@@ -1,6 +1,6 @@
 # 01 — F10 menu refresh on any dynamic troop/logistic zone create/remove
 
-**Status:** ready
+**Status:** ✅ done
 
 **Blocked by:** none — can start immediately.
 

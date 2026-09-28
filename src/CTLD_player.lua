@@ -182,6 +182,35 @@ function CTLDPlayerManager:init()
         end
     end)
 
+    -- Any dynamic zone (troop or logistic) appearing or disappearing refreshes every currently
+    -- on-ground tracked player, closing the gap where a player already standing where the zone
+    -- changed saw nothing until their next takeoff/landing. Same on-ground pattern as
+    -- OnFOBDeployed above; kept separate rather than folded into it, since OnLogisticZoneUpdated/
+    -- OnTroopZoneUpdated fire from more places than just a FOB deploying (createTroopZoneAtObject,
+    -- createExtractZone, removeExtractZone, an anchor dying, …).
+    local function refreshOnGroundPlayers(sectionFn)
+        for _, playerObj in pairs(self._players) do
+            local unit = Unit.getByName(playerObj.unitName)
+            if unit and unit:isExist() and not ctld.utils.inAir(unit) then
+                sectionFn(playerObj)
+            end
+        end
+    end
+
+    ed:subscribe("OnLogisticZoneUpdated", function(_p)
+        local crateMgr = CTLDCrateManager.getInstance()
+        refreshOnGroundPlayers(function(playerObj)
+            crateMgr:refreshRequestEquipmentSection(playerObj)
+        end)
+    end)
+
+    ed:subscribe("OnTroopZoneUpdated", function(_p)
+        local troopMgr = CTLDTroopManager.getInstance()
+        refreshOnGroundPlayers(function(playerObj)
+            troopMgr:refreshMenuSection(playerObj)
+        end)
+    end)
+
     -- Flush pre-init deferred sections (registered by scene files before getInstance()).
     for _, s in ipairs(CTLDPlayerManager._deferredSections) do
         self:registerMenuSection(s)

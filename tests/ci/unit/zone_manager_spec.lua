@@ -577,6 +577,57 @@ describe("CTLDZoneManager dynamic zone methods", function()
 
     end)
 
+    -- ── createExtractZone / removeExtractZone publish OnTroopZoneUpdated ─────
+    describe("createExtractZone / removeExtractZone publish OnTroopZoneUpdated", function()
+
+        local function capture(eventName, fn)
+            local ed    = EventDispatcher.getInstance()
+            local fired = {}
+            local cb    = function(p) fired[#fired + 1] = p end
+            ed:subscribe(eventName, cb)
+            local ok, err = pcall(fn)
+            ed:unsubscribe(eventName, cb)
+            assert(ok, err)
+            return fired
+        end
+
+        it("createExtractZone publishes on success", function()
+            registerZone("EXZ1", 1000, 2000, 150)
+            local zm = CTLDZoneManager.getInstance()
+            local fired = capture("OnTroopZoneUpdated", function()
+                zm:createExtractZone("EXZ1", 42, -1)
+            end)
+            assert.equals(1, #fired)
+        end)
+
+        it("createExtractZone does not publish on failure (unresolvable zone)", function()
+            local zm = CTLDZoneManager.getInstance()
+            local fired = capture("OnTroopZoneUpdated", function()
+                zm:createExtractZone("NO_SUCH_ZONE", 1)
+            end)
+            assert.equals(0, #fired)
+        end)
+
+        it("removeExtractZone publishes on success", function()
+            registerZone("EXZ1", 1000, 2000, 150)
+            local zm = CTLDZoneManager.getInstance()
+            zm:createExtractZone("EXZ1", 42, -1)
+            local fired = capture("OnTroopZoneUpdated", function()
+                zm:removeExtractZone("EXZ1", 42)
+            end)
+            assert.equals(1, #fired)
+        end)
+
+        it("removeExtractZone does not publish when the zone is not found", function()
+            local zm = CTLDZoneManager.getInstance()
+            local fired = capture("OnTroopZoneUpdated", function()
+                zm:removeExtractZone("NO_ZONE")
+            end)
+            assert.equals(0, #fired)
+        end)
+
+    end)
+
     -- ── changeRemainingGroups (U-082) ─────────────────────────
     describe("changeRemainingGroups (U-082)", function()
 

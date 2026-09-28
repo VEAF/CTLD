@@ -1196,6 +1196,30 @@ function CTLDZoneManager:_publishLogisticZoneUpdated(added, removed)
     })
 end
 
+--- Published whenever a troop zone is dynamically created or removed (Mission-Editor init
+-- discovery does NOT call this — no player is tracked yet at that point in the boot sequence).
+-- Mirrors _publishLogisticZoneUpdated's shape. A single CTLDPlayerManager subscriber reacts to
+-- this (and to OnLogisticZoneUpdated) by refreshing every currently on-ground tracked player's
+-- menu, closing the "player already standing there" gap for a zone that just appeared/disappeared.
+function CTLDZoneManager:_publishTroopZoneUpdated(added, removed)
+    local zones = {}
+    for _, zone in pairs(self._troopZones) do
+        zones[#zones + 1] = {
+            name       = zone.zoneName,
+            type       = "troop",
+            linkedUnit = zone._linkedUnit,
+            position   = zone:getCenter(),
+            coalition  = zone.coalition,
+        }
+    end
+    EventDispatcher.getInstance():publish("OnTroopZoneUpdated", {
+        zones        = zones,
+        unitsAdded   = added,
+        unitsRemoved = removed,
+        timestamp    = timer.getAbsTime(),
+    })
+end
+
 --- S_EVENT_DEAD: remove dynamic logistic zones whose linked unit died.
 function CTLDZoneManager:onDead(event)
     local unitName = ctld.utils.safeObjectName(event and event.initiator)
@@ -1616,6 +1640,7 @@ function CTLDZoneManager:createExtractZone(zoneName, flagNumber, smoke)
     })
     if smokeColor >= 0 then trigger.action.smoke(pt, smokeColor) end
     ctld.utils.log("INFO", "CTLDZoneManager:createExtractZone — '%s' flag=%s", zoneName, tostring(flagNumber))
+    self:_publishTroopZoneUpdated({ { zoneName = zoneName, coalition = 0 } }, {})
     return true
 end
 
@@ -1625,9 +1650,11 @@ end
 -- @param flagNumber number|string  (ignored)
 -- @return boolean
 function CTLDZoneManager:removeExtractZone(zoneName, flagNumber)
-    if self._troopZones[zoneName] then
+    local zone = self._troopZones[zoneName]
+    if zone then
         self._troopZones[zoneName] = nil
         ctld.utils.log("INFO", "CTLDZoneManager:removeExtractZone — '%s' removed", zoneName)
+        self:_publishTroopZoneUpdated({}, { { zoneName = zoneName, coalition = zone.coalition, reason = "removed" } })
         return true
     end
     ctld.utils.log("WARN", "CTLDZoneManager:removeExtractZone — not found: %s", tostring(zoneName))
@@ -1714,6 +1741,7 @@ function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
     })
     ctld.utils.log("INFO", "CTLDZoneManager:createTroopZoneAtObject — '%s' at '%s' (coalition=%s, stock=%s)",
         trzName, objectName, tostring(parsed.coalition), tostring(parsed.pickMaxStock))
+    self:_publishTroopZoneUpdated({ { zoneName = trzName, coalition = parsed.coalition } }, {})
     return true
 end
 
