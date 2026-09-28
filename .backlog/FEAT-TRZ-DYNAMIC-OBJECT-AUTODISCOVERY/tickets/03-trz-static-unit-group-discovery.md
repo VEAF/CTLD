@@ -1,6 +1,6 @@
 # 03 — `TRZ_` auto-discovery on a static, unit, or group
 
-**Status:** ready
+**Status:** ✅ done
 
 **Blocked by:** [02](02-anchor-death-real-removal.md) — a zone discovered this way on a destructible
 static/unit/group needs working removal from day one; it inherits ticket 02's fix for free only
@@ -19,9 +19,11 @@ mission start and for anything appearing later), with no new syntax and no confi
   of anchor kind). A group match resolves to its first unit as anchor, producing **one** zone per
   group, not one per member unit.
 - **Late activation**: extend the `S_EVENT_BIRTH` handling already registered on
-  `CTLDDCSEventBridge` so `CTLDZoneManager` also reacts to a static or unit born after init — for a
-  static (`Object.getCategory(obj) == 6`), test its own name; for a unit, test both its own name and
-  its group's name, guarded so only the **first** unit of a newly-born group triggers registration.
+  `CTLDDCSEventBridge` so `CTLDZoneManager` also reacts to a static or unit born after init — no
+  DCS-category check needed to tell them apart (a `StaticObject` exposes no `getGroup()`, so the
+  group-name check below naturally skips it): test the born object's own name always, and — only
+  when it exposes `getGroup()` and is that group's first unit — also test its group's name, so a
+  multi-unit convoy attempts group registration exactly once, not once per member.
 - **Construction**: both paths build the zone through the exact same `_resolveTroopZoneObject` +
   `CTLDTroopZone:new` sequence `createTroopZoneAtObject` already uses (as modified by ticket 02) —
   only the trigger differs (a name match during a scan, instead of a script calling the method).

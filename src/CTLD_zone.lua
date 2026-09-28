@@ -452,14 +452,18 @@ function CTLDZoneManager:init()
     self._troopZones    = {}   -- zoneName -> CTLDTroopZone
     self._logisticZones = {}   -- name     -> CTLDLogisticZone
 
-    -- Register S_EVENT_DEAD for dynamic logistic zone tracking
+    -- Register S_EVENT_DEAD for dynamic logistic/troop zone anchor tracking, S_EVENT_BIRTH for
+    -- late-activated TRZ_-named static/unit/group discovery (_discoverTRZDynamicObjects below
+    -- covers the mission-start case; onBirth covers anything appearing after).
     local ok, bridge = pcall(CTLDDCSEventBridge.getInstance)
     if ok and bridge then
         bridge:register(self, world.event.S_EVENT_DEAD, "onDead")
+        bridge:register(self, world.event.S_EVENT_BIRTH, "onBirth")
     end
 
     self:_validateZoneNames()
     self:_discoverTRZ()
+    self:_discoverTRZDynamicObjects()
     self:_discoverEXZ()
     self:_loadAIZonesFromConfig()
     self:_discoverWPZ()
@@ -737,6 +741,70 @@ function CTLDZoneManager:_discoverTRZ()
                     tostring(parsed.objectiveTarget))
             end
         end
+    end
+end
+
+--- Attempt TRZ_ dynamic-object registration for name (a static/unit/group's own DCS name),
+-- logging which discovery path found it — Mission-Editor discovery and the scripted
+-- createTroopZoneAtObject API already log their own source inline; this is the source tag for
+-- the two paths added by this ticket (mirrors EXTR_'s own explicit-list-vs-convention tagging).
+-- No-op for a name that doesn't start with TRZ_. createTroopZoneAtObject's own log line and
+-- collision guard (WARN, never overwrite) still fire exactly as they do for a scripted call.
+-- @param source string  "init scan" | "S_EVENT_BIRTH"
+local function _registerTRZDynamicObject(self, name, source)
+    if string.sub(name, 1, 4) ~= "TRZ_" then return end
+    if self:createTroopZoneAtObject(name, name) then
+        ctld.utils.log("INFO", "CTLDZoneManager: TRZ_ dynamic-object discovery (%s) — '%s'", source, name)
+    end
+end
+
+--- Discover TRZ_<...> on a static, unit, or group — the same naming convention _discoverTRZ
+-- recognizes on a Mission Editor trigger zone, now also recognized on these other DCS object
+-- kinds (a bunker, a convoy, a ship). Reuses createTroopZoneAtObject's own resolution and
+-- construction unchanged — the object's own DCS name serves as both the objectName to resolve
+-- and the trzName to parse, so a zone discovered this way is indistinguishable from one created
+-- by a scripted call. Runs after _discoverTRZ so a Mission-Editor trigger zone always wins a
+-- name collision (createTroopZoneAtObject's own collision guard refuses and WARNs, never
+-- overwrites). Covers the mission-start case only; a late-activated object is caught by onBirth.
+function CTLDZoneManager:_discoverTRZDynamicObjects()
+    local self_ref = self
+
+    _forEachMissionStatic(function(obj)
+        _registerTRZDynamicObject(self_ref, obj:getName(), "init scan")
+    end)
+
+    _forEachMissionUnit(function(unit)
+        _registerTRZDynamicObject(self_ref, unit:getName(), "init scan")
+    end)
+
+    local sides = { coalition.side.RED, coalition.side.BLUE, coalition.side.NEUTRAL }
+    for _, side in ipairs(sides) do
+        for _, group in ipairs(coalition.getGroups(side) or {}) do
+            if group:isExist() then
+                _registerTRZDynamicObject(self_ref, group:getName(), "init scan")
+            end
+        end
+    end
+end
+
+--- S_EVENT_BIRTH: recognize a static/unit/group named TRZ_<...> that appears after init (a
+-- late-activated convoy, a scripted spawn) — the continuous half of TRZ_ dynamic-object
+-- discovery, alongside the mission-start scan in _discoverTRZDynamicObjects. Reuses
+-- createTroopZoneAtObject exactly as that scan does. No DCS category check is needed to tell a
+-- static from a unit here: a StaticObject exposes no getGroup(), so the group-name check below
+-- naturally skips it without one. DCS fires this event once per unit, so a multi-unit group
+-- birth would otherwise attempt the group-name registration once per member; only the group's
+-- own first unit checks the group's name, keeping that attempt to exactly one per group
+-- (createTroopZoneAtObject's collision guard would only WARN on the extras anyway).
+function CTLDZoneManager:onBirth(event)
+    local obj = event and event.initiator
+    if not (obj and obj.isExist and obj:isExist() and obj.getName) then return end
+
+    _registerTRZDynamicObject(self, obj:getName(), "S_EVENT_BIRTH")
+
+    local group = obj.getGroup and obj:getGroup()
+    if group and group:getUnit(1) == obj then
+        _registerTRZDynamicObject(self, group:getName(), "S_EVENT_BIRTH")
     end
 end
 

@@ -8,6 +8,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — `TRZ_` naming convention recognized on a static, unit, or group, not just a trigger zone (FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY, ticket 03)
+
+- A mission maker can now name a **bunker (static), an isolated vehicle or ship (unit), or a
+  convoy (group)** `TRZ_<name>_<coalition>_<stock>_<flag>_<target>` — the exact convention already
+  used for a Mission-Editor trigger zone — and get a working troop pickup/extract zone there, with
+  no script and no config setting. Detected continuously: present at mission start, or appearing
+  later (a late-activated convoy, a scripted spawn).
+- Reuses `createTroopZoneAtObject`'s own object resolution and zone construction unchanged — a
+  zone discovered this way is indistinguishable from one placed in the editor or created by
+  script. A Mission-Editor trigger zone always wins a name collision (refused with a `WARN`, never
+  overwritten). `LGZ_`/`WPZ_`/`EXZ_` are unaffected — this widening is `TRZ_`-specific.
+
 ### Fixed — a troop zone anchored to a unit/group/static is now actually removed when its anchor dies (FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY, ticket 02)
 
 - **Behavior change for an existing zone**: a `linkedUnit`-anchored troop zone (a ship or ground
