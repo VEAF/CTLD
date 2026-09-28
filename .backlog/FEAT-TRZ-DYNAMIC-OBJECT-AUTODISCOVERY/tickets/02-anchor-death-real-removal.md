@@ -1,6 +1,6 @@
 # 02 — Anchor-death real removal for troop zones (ADR 0021)
 
-**Status:** ready
+**Status:** ✅ done
 
 **Blocked by:** [01](01-dynamic-zone-menu-refresh.md) — removal must publish the troop-zone event
 ticket 01 introduces, so a player standing in a zone whose anchor just died sees it disappear

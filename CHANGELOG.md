@@ -8,6 +8,22 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a troop zone anchored to a unit/group/static is now actually removed when its anchor dies (FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY, ticket 02)
+
+- **Behavior change for an existing zone**: a `linkedUnit`-anchored troop zone (a ship or ground
+  vehicle created via `createTroopZoneAtObject`) previously froze at its last known position when
+  its anchor died and stayed fully usable there forever — unlike the equivalent logistic zone,
+  which was already removed outright. Troop zones now match that behavior: the zone is removed and
+  its name freed for reuse.
+- `CTLDZoneManager:onDead` (the existing `S_EVENT_DEAD` handler) now also matches a troop zone by
+  its `_linkedUnit`/`_anchorUnitName`, not just a logistic zone by its direct unit-name key — this
+  covers every unit/group-anchored troop zone, including a Mission-Editor Moving-Zone-anchored
+  `TRZ_`, not only zones created by the scripted API.
+- A **static**-anchored troop zone is instead watched via `CTLDStaticWatcher` (`isExist()`
+  polling), wired directly into `createTroopZoneAtObject` — `S_EVENT_DEAD` is documented unreliable
+  for static objects elsewhere in this codebase, so it can't be the removal signal for that case.
+  See **ADR 0021** for why the mechanism differs by anchor kind.
+
 ### Added — dynamic troop/logistic zone changes refresh a grounded player's F10 menu immediately (FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY, ticket 01)
 
 - A troop zone (`createTroopZoneAtObject`, `createExtractZone`) or logistic zone

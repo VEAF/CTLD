@@ -1220,15 +1220,31 @@ function CTLDZoneManager:_publishTroopZoneUpdated(added, removed)
     })
 end
 
---- S_EVENT_DEAD: remove dynamic logistic zones whose linked unit died.
+--- S_EVENT_DEAD: remove dynamic logistic zones whose linked unit died, and any troop zone
+-- anchored to a unit or group whose anchor unit died (unit/group anchor only — a static anchor
+-- has no reliable S_EVENT_DEAD signal, see the CTLDStaticWatcher wiring in
+-- createTroopZoneAtObject instead, ADR 0021). Covers every linkedUnit-anchored troop zone
+-- (ship, ground vehicle via createTroopZoneAtObject) and a Mission-Editor Moving-Zone-anchored
+-- TRZ_ (its _anchorUnitName is populated at discovery), not just zones created after this ticket.
 function CTLDZoneManager:onDead(event)
     local unitName = ctld.utils.safeObjectName(event and event.initiator)
     if not unitName then return end
+
     local zone = self._logisticZones[unitName]
     if zone and zone:isDynamic() then
         self._logisticZones[unitName] = nil
         ctld.utils.log("INFO", "CTLDZoneManager: dynamic logistic zone '%s' removed (unit dead)", unitName)
         self:_publishLogisticZoneUpdated({}, { { unitName = unitName, coalition = zone.coalition, reason = "dead" } })
+    end
+
+    for trzName, tZone in pairs(self._troopZones) do
+        if (tZone._linkedUnit and tZone._linkedUnit == event.initiator)
+           or (tZone._anchorUnitName and tZone._anchorUnitName == unitName) then
+            self._troopZones[trzName] = nil
+            ctld.utils.log("INFO", "CTLDZoneManager: troop zone '%s' removed (anchor dead: %s)",
+                trzName, unitName)
+            self:_publishTroopZoneUpdated({}, { { zoneName = trzName, coalition = tZone.coalition, reason = "dead" } })
+        end
     end
 end
 
@@ -1665,32 +1681,39 @@ end
 -- (only a Mission Editor trigger zone carries a native radius here).
 local _TROOP_ZONE_DEFAULT_RADIUS = 200
 
---- Resolves objectName to (center, radius, dcsName, linkedUnit) for createTroopZoneAtObject, in
--- order: a Mission Editor trigger zone, a unit or static, a group's first unit, an airbase.
--- Returns nil on no match. dcsName/linkedUnit are the anchor fields to pass through to
--- CTLDTroopZone:new — set for whichever kind can move, nil for a fixed position.
+--- Resolves objectName to (center, radius, dcsName, linkedUnit, isStatic) for
+-- createTroopZoneAtObject, in order: a Mission Editor trigger zone, a unit or static, a group's
+-- first unit, an airbase. Returns nil on no match. dcsName/linkedUnit are the anchor fields to
+-- pass through to CTLDTroopZone:new — set for whichever kind can move, nil for a fixed position.
+-- isStatic distinguishes a StaticObject-anchored match (S_EVENT_DEAD is unreliable for statics —
+-- see the CTLDStaticWatcher wiring this return value feeds in createTroopZoneAtObject, ADR 0021)
+-- from a Unit-anchored one (S_EVENT_DEAD works, handled generically by CTLDZoneManager:onDead).
 local function _resolveTroopZoneObject(objectName)
     local trig = trigger.misc.getZone(objectName)
     if trig then
-        return trig.point, trig.radius, objectName, nil
+        return trig.point, trig.radius, objectName, nil, false
     end
 
-    local unitOrStatic = Unit.getByName(objectName) or StaticObject.getByName(objectName)
-    if unitOrStatic then
-        return unitOrStatic:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, unitOrStatic
+    local unit = Unit.getByName(objectName)
+    if unit then
+        return unit:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, unit, false
+    end
+    local static = StaticObject.getByName(objectName)
+    if static then
+        return static:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, static, true
     end
 
     local group = Group.getByName(objectName)
     if group then
         local firstUnit = group:getUnit(1)
         if firstUnit then
-            return firstUnit:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, firstUnit
+            return firstUnit:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, firstUnit, false
         end
     end
 
     local airbase = Airbase.getByName(objectName)
     if airbase then
-        return airbase:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, nil
+        return airbase:getPoint(), _TROOP_ZONE_DEFAULT_RADIUS, nil, nil, false
     end
 
     return nil
@@ -1720,7 +1743,7 @@ function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
         return false
     end
 
-    local center, radius, dcsName, linkedUnit = _resolveTroopZoneObject(objectName)
+    local center, radius, dcsName, linkedUnit, isStatic = _resolveTroopZoneObject(objectName)
     if not center then
         ctld.utils.log("ERROR", "CTLDZoneManager:createTroopZoneAtObject — object not found: %s",
             tostring(objectName))
@@ -1742,6 +1765,26 @@ function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
     ctld.utils.log("INFO", "CTLDZoneManager:createTroopZoneAtObject — '%s' at '%s' (coalition=%s, stock=%s)",
         trzName, objectName, tostring(parsed.coalition), tostring(parsed.pickMaxStock))
     self:_publishTroopZoneUpdated({ { zoneName = trzName, coalition = parsed.coalition } }, {})
+
+    -- Static anchor: S_EVENT_DEAD is documented unreliable for statics elsewhere in this
+    -- codebase (see CTLD_core.lua/CTLD_crate.lua), so poll isExist() instead — same mechanism
+    -- already proven for the FARP troop-pickup path (ADR 0021). A unit/group anchor needs no
+    -- watch here: CTLDZoneManager:onDead already handles it generically via S_EVENT_DEAD.
+    if isStatic then
+        local self_ref = self
+        CTLDStaticWatcher.getInstance():watch(
+            "trz_static_" .. trzName,
+            function() return linkedUnit:isExist() end,
+            function()
+                if self_ref._troopZones[trzName] then
+                    self_ref._troopZones[trzName] = nil
+                    ctld.utils.log("INFO",
+                        "CTLDZoneManager: troop zone '%s' removed (static anchor destroyed)", trzName)
+                    self_ref:_publishTroopZoneUpdated({},
+                        { { zoneName = trzName, coalition = parsed.coalition, reason = "dead" } })
+                end
+            end)
+    end
     return true
 end
 

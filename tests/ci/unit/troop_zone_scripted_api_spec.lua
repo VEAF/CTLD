@@ -34,6 +34,7 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
 
     before_each(function()
         zm = setmetatable({ _troopZones = {}, _logisticZones = {} }, CTLDZoneManager)
+        CTLDStaticWatcher._instance = nil
 
         origGetZone            = trigger.misc.getZone
         origUnitGetByName      = Unit.getByName
@@ -270,6 +271,105 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
                 zm:removeExtractZone("TRZ_nonexistent_B_999_nil_0")
             end)
             assert.equals(0, #fired)
+        end)
+    end)
+
+    -- FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY ticket 02 — anchor-death real removal (ADR 0021).
+    describe("anchor-death real removal", function()
+
+        local function capture(eventName, fn)
+            local ed    = EventDispatcher.getInstance()
+            local fired = {}
+            local cb    = function(p) fired[#fired + 1] = p end
+            ed:subscribe(eventName, cb)
+            local ok, err = pcall(fn)
+            ed:unsubscribe(eventName, cb)
+            assert(ok, err)
+            return fired
+        end
+
+        -- ctld.utils.safeObjectName (used by onDead) needs a getName() — fakeUnit doesn't have
+        -- one (nothing else in this file's existing tests needs it).
+        local function fakeNamedUnit(name, point)
+            local u = fakeUnit(point)
+            function u:getName() return name end
+            return u
+        end
+
+        it("removes a unit-anchored zone on a simulated S_EVENT_DEAD for its anchor", function()
+            local u = fakeNamedUnit("Ship-1", { x = 10, y = 0, z = 20 })
+            Unit.getByName = function(name) if name == "Ship-1" then return u end end
+            zm:createTroopZoneAtObject("Ship-1", "TRZ_dock_R_999_nil_0")
+            assert.is_not_nil(zm:getTroopZone("TRZ_dock_R_999_nil_0"))
+
+            local fired = capture("OnTroopZoneUpdated", function()
+                zm:onDead({ initiator = u })
+            end)
+
+            assert.is_nil(zm:getTroopZone("TRZ_dock_R_999_nil_0"))
+            assert.equals(1, #fired)
+        end)
+
+        it("removes a group-anchored zone on a simulated S_EVENT_DEAD for its first unit", function()
+            local firstUnit = fakeNamedUnit("Convoy-1-lead", { x = 5, y = 0, z = 5 })
+            local g = fakeGroup(firstUnit)
+            Group.getByName = function(name) if name == "Convoy-1" then return g end end
+            zm:createTroopZoneAtObject("Convoy-1", "TRZ_convoy_B_999_nil_0")
+            assert.is_not_nil(zm:getTroopZone("TRZ_convoy_B_999_nil_0"))
+
+            zm:onDead({ initiator = firstUnit })
+
+            assert.is_nil(zm:getTroopZone("TRZ_convoy_B_999_nil_0"))
+        end)
+
+        it("onDead ignores a zone anchored to a different, still-alive unit", function()
+            local u1 = fakeNamedUnit("Truck-1", { x = 1, y = 0, z = 1 })
+            local u2 = fakeNamedUnit("SomeOtherUnit", { x = 2, y = 0, z = 2 })
+            Unit.getByName = function(name) if name == "Truck-1" then return u1 end end
+            zm:createTroopZoneAtObject("Truck-1", "TRZ_truck_B_999_nil_0")
+
+            zm:onDead({ initiator = u2 })
+
+            assert.is_not_nil(zm:getTroopZone("TRZ_truck_B_999_nil_0"))
+        end)
+
+        it("does not touch a fixed-position zone (trigger zone) on any S_EVENT_DEAD", function()
+            trigger.misc.getZone = function(_) return fakeZone({ x = 1, y = 0, z = 1 }, 100) end
+            zm:createTroopZoneAtObject("myZone", "TRZ_fixed_B_999_nil_0")
+            local unrelated = fakeNamedUnit("SomeUnit", { x = 0, y = 0, z = 0 })
+
+            assert.has_no_error(function() zm:onDead({ initiator = unrelated }) end)
+            assert.is_not_nil(zm:getTroopZone("TRZ_fixed_B_999_nil_0"))
+        end)
+
+        it("removes a static-anchored zone once CTLDStaticWatcher detects it gone", function()
+            local s = fakeUnit({ x = 30, y = 0, z = 40 })
+            StaticObject.getByName = function(name) if name == "Bunker-1" then return s end end
+            zm:createTroopZoneAtObject("Bunker-1", "TRZ_bunker_B_999_nil_0")
+            assert.is_not_nil(zm:getTroopZone("TRZ_bunker_B_999_nil_0"))
+
+            s._exists = false
+            function s:isExist() return self._exists end
+
+            local fired = capture("OnTroopZoneUpdated", function()
+                CTLDStaticWatcher.getInstance():_tick(0)
+            end)
+
+            assert.is_nil(zm:getTroopZone("TRZ_bunker_B_999_nil_0"))
+            assert.equals(1, #fired)
+        end)
+
+        it("does not watch a unit anchor via CTLDStaticWatcher (S_EVENT_DEAD handles it)", function()
+            local u = fakeUnit({ x = 1, y = 0, z = 1 })
+            Unit.getByName = function(name) if name == "Truck-2" then return u end end
+            zm:createTroopZoneAtObject("Truck-2", "TRZ_truck2_B_999_nil_0")
+
+            local sw = CTLDStaticWatcher.getInstance()
+            local watching = false
+            for id in pairs(sw._watched) do
+                if id == "trz_static_TRZ_truck2_B_999_nil_0" then watching = true end
+            end
+            assert.is_false(watching)
         end)
     end)
 end)
