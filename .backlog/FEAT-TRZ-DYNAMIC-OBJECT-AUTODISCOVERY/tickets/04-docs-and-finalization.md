@@ -1,6 +1,6 @@
 # 04 — Developer docs, `CONTEXT.md` finalization, `CHANGELOG.md`
 
-**Status:** ready
+**Status:** ✅ done
 
 **Blocked by:** [03](03-trz-static-unit-group-discovery.md) — needs the shipped behavior to
 document accurately.

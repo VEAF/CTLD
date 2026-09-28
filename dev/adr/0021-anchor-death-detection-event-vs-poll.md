@@ -1,7 +1,6 @@
 # Anchor-death detection: DCS event for unit/group, poll for static
 
-**Status:** Proposed (`dev/roadmap.md`, "Zones dynamiques" / "TRZ_ automatique" — not yet
-implemented).
+**Status:** Accepted — implemented in `FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY` ticket 02.
 
 **Context:** An anchored CTLD zone (troop or logistic) should be removed outright — not merely
 frozen at its last position — when its anchor DCS object is destroyed, freeing the zone's name for
@@ -22,6 +21,6 @@ mechanism forced onto both.
 
 **Consequences:** A future anchor kind must be checked against DCS's own `S_EVENT_DEAD` reliability
 before picking a detection path, rather than assuming one mechanism fits every kind. This also
-changes existing behavior for a `linkedUnit`-anchored troop zone (ship, ground vehicle via
-`createTroopZoneAtObject`): today it freezes forever at the wreck; once implemented, it is removed
-instead, matching what a logistic zone already does.
+changed existing behavior for a `linkedUnit`-anchored troop zone (ship, ground vehicle via
+`createTroopZoneAtObject`): it previously froze forever at the wreck; it is now removed instead,
+matching what a logistic zone already did.

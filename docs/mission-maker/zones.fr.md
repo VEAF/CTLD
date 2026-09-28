@@ -200,6 +200,13 @@ troupes :
 CTLDZoneManager.getInstance():removeExtractZone("farpAlpha")
 ```
 
+**Aucun script nécessaire pour un statique, une unité, ou un groupe** : nommez-le directement
+`TRZ_<nom>_<coalition>_<stock>_<flag>_<target>` dans l'éditeur de mission — un bunker, un convoi,
+un navire. CTLD le détecte automatiquement, au démarrage de la mission ou dès qu'il apparaît plus
+tard (un convoi activé tardivement, un objet spawné). Ne recourez au script ci-dessus que quand
+l'objet n'a vraiment pas encore de nom à donner (ex. il n'existe pas avant le démarrage de la
+mission et rien ne permet de le renommer une fois apparu).
+
 ---
 
 ## Zones de waypoint (WPZ) { #waypoint-zones-wpz }

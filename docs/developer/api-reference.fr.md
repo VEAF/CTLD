@@ -91,9 +91,9 @@ scripting des troops IA.*
 | `changeRemainingGroups` | `(zoneName, amount)` | Ajoute ou retranche au nombre de groupes restants d'une zone TRZ. `amount` peut être négatif. |
 | `activateWaypointZone` | `(zoneName)` | Active une WPZ pour que les troops nouvellement déployées marchent vers elle. |
 | `deactivateWaypointZone` | `(zoneName)` | Désactive une WPZ. |
-| `createExtractZone` | `(zoneName, flagNumber, smoke)` | Enregistre une zone de trigger DCS comme extract zone. `smoke` : `0`=Green … `4`=Blue, `-1`=aucune. |
-| `removeExtractZone` | `(zoneName, flagNumber)` | Désenregistre une extract zone. |
-| `createTroopZoneAtObject` | `(objectName, trzName)` | Ajoute une zone TRZ pickup sur n'importe quel objet DCS nommé (zone de trigger, unité, statique, groupe, ou airbase/FARP). `trzName` est un nom complet `TRZ_<nom>_<coal>_<stock>_<flag>_<target>`. S'ancre à `objectName` s'il peut bouger ; se retire avec `removeExtractZone`. |
+| `createExtractZone` | `(zoneName, flagNumber, smoke)` | Enregistre une zone de trigger DCS comme extract zone. `smoke` : `0`=Green … `4`=Blue, `-1`=aucune. Publie `OnTroopZoneUpdated`. |
+| `removeExtractZone` | `(zoneName, flagNumber)` | Désenregistre une extract zone. Publie `OnTroopZoneUpdated`. |
+| `createTroopZoneAtObject` | `(objectName, trzName)` | Ajoute une zone TRZ pickup sur n'importe quel objet DCS nommé (zone de trigger, unité, statique, groupe, ou airbase/FARP). `trzName` est un nom complet `TRZ_<nom>_<coal>_<stock>_<flag>_<target>`. S'ancre à `objectName` s'il peut bouger ; se retire avec `removeExtractZone`. Ce même nom d'objet, testé contre cette même convention, est aussi reconnu automatiquement s'il commence par `TRZ_` — voir [TRZ sur un objet dynamique](subsystems/zones.fr.md#trz-sur-un-objet-dynamique-statique-unite-ou-groupe). Publie `OnTroopZoneUpdated`. |
 | `parseTRZ` | `(name) → table \| nil, string` | Parse un nom `TRZ_…` en `{zoneName, coalition, pickMaxStock, objectiveFlag, objectiveTarget}`, ou `nil` + une raison. |
 | `activateLogisticZone` | `(name)` | Réactive une LGZ suspendue. Déclenche `OnLogisticZoneUpdated`. |
 | `deactivateLogisticZone` | `(name)` | Suspend une LGZ — les joueurs à l'intérieur ne peuvent plus faire spawn de crates. Déclenche `OnLogisticZoneUpdated`. |

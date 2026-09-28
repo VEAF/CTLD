@@ -90,9 +90,9 @@ Full event catalogue: [Events](events.md).
 | `changeRemainingGroups` | `(zoneName, amount)` | Add or subtract from a TRZ zone's remaining group count. `amount` may be negative. |
 | `activateWaypointZone` | `(zoneName)` | Enable a WPZ so newly deployed troops march toward it. |
 | `deactivateWaypointZone` | `(zoneName)` | Disable a WPZ. |
-| `createExtractZone` | `(zoneName, flagNumber, smoke)` | Register a DCS trigger zone as an extract zone. `smoke`: `0`=Green … `4`=Blue, `-1`=none. |
-| `removeExtractZone` | `(zoneName, flagNumber)` | Unregister an extract zone. |
-| `createTroopZoneAtObject` | `(objectName, trzName)` | Add a pickup-capable TRZ zone on any named DCS object (trigger zone, unit, static, group, or airbase/FARP). `trzName` is a full `TRZ_<name>_<coal>_<stock>_<flag>_<target>` name. Anchors to `objectName` when it can move; remove with `removeExtractZone`. |
+| `createExtractZone` | `(zoneName, flagNumber, smoke)` | Register a DCS trigger zone as an extract zone. `smoke`: `0`=Green … `4`=Blue, `-1`=none. Fires `OnTroopZoneUpdated`. |
+| `removeExtractZone` | `(zoneName, flagNumber)` | Unregister an extract zone. Fires `OnTroopZoneUpdated`. |
+| `createTroopZoneAtObject` | `(objectName, trzName)` | Add a pickup-capable TRZ zone on any named DCS object (trigger zone, unit, static, group, or airbase/FARP). `trzName` is a full `TRZ_<name>_<coal>_<stock>_<flag>_<target>` name. Anchors to `objectName` when it can move; remove with `removeExtractZone`. The same object name matched against this same convention is also recognized automatically if it starts with `TRZ_` — see [TRZ on a dynamic object](subsystems/zones.md#trz-on-a-dynamic-object-static-unit-or-group). Fires `OnTroopZoneUpdated`. |
 | `parseTRZ` | `(name) → table \| nil, string` | Parse a `TRZ_…` name into `{zoneName, coalition, pickMaxStock, objectiveFlag, objectiveTarget}`, or `nil` + a reason. |
 | `activateLogisticZone` | `(name)` | Re-enable a suspended LGZ. Fires `OnLogisticZoneUpdated`. |
 | `deactivateLogisticZone` | `(name)` | Suspend a LGZ — players inside can no longer spawn crates. Fires `OnLogisticZoneUpdated`. |
