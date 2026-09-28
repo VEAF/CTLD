@@ -2473,17 +2473,17 @@ event.</em></p>
 <tr>
 <td><code>createExtractZone</code></td>
 <td><code>(zoneName, flagNumber, smoke)</code></td>
-<td>Register a DCS trigger zone as an extract zone. <code>smoke</code>: <code>0</code>=Green … <code>4</code>=Blue, <code>-1</code>=none.</td>
+<td>Register a DCS trigger zone as an extract zone. <code>smoke</code>: <code>0</code>=Green … <code>4</code>=Blue, <code>-1</code>=none. Fires <code>OnTroopZoneUpdated</code>.</td>
 </tr>
 <tr>
 <td><code>removeExtractZone</code></td>
 <td><code>(zoneName, flagNumber)</code></td>
-<td>Unregister an extract zone.</td>
+<td>Unregister an extract zone. Fires <code>OnTroopZoneUpdated</code>.</td>
 </tr>
 <tr>
 <td><code>createTroopZoneAtObject</code></td>
 <td><code>(objectName, trzName)</code></td>
-<td>Add a pickup-capable TRZ zone on any named DCS object (trigger zone, unit, static, group, or airbase/FARP). <code>trzName</code> is a full <code>TRZ_&lt;name&gt;_&lt;coal&gt;_&lt;stock&gt;_&lt;flag&gt;_&lt;target&gt;</code> name. Anchors to <code>objectName</code> when it can move; remove with <code>removeExtractZone</code>.</td>
+<td>Add a pickup-capable TRZ zone on any named DCS object (trigger zone, unit, static, group, or airbase/FARP). <code>trzName</code> is a full <code>TRZ_&lt;name&gt;_&lt;coal&gt;_&lt;stock&gt;_&lt;flag&gt;_&lt;target&gt;</code> name. Anchors to <code>objectName</code> when it can move; remove with <code>removeExtractZone</code>. The same object name matched against this same convention is also recognized automatically if it starts with <code>TRZ_</code> — see <a href="../subsystems/zones/#trz-on-a-dynamic-object-static-unit-or-group">TRZ on a dynamic object</a>. Fires <code>OnTroopZoneUpdated</code>.</td>
 </tr>
 <tr>
 <td><code>parseTRZ</code></td>

@@ -2474,17 +2474,17 @@ scripting des troops IA.</em></p>
 <tr>
 <td><code>createExtractZone</code></td>
 <td><code>(zoneName, flagNumber, smoke)</code></td>
-<td>Enregistre une zone de trigger DCS comme extract zone. <code>smoke</code> : <code>0</code>=Green … <code>4</code>=Blue, <code>-1</code>=aucune.</td>
+<td>Enregistre une zone de trigger DCS comme extract zone. <code>smoke</code> : <code>0</code>=Green … <code>4</code>=Blue, <code>-1</code>=aucune. Publie <code>OnTroopZoneUpdated</code>.</td>
 </tr>
 <tr>
 <td><code>removeExtractZone</code></td>
 <td><code>(zoneName, flagNumber)</code></td>
-<td>Désenregistre une extract zone.</td>
+<td>Désenregistre une extract zone. Publie <code>OnTroopZoneUpdated</code>.</td>
 </tr>
 <tr>
 <td><code>createTroopZoneAtObject</code></td>
 <td><code>(objectName, trzName)</code></td>
-<td>Ajoute une zone TRZ pickup sur n'importe quel objet DCS nommé (zone de trigger, unité, statique, groupe, ou airbase/FARP). <code>trzName</code> est un nom complet <code>TRZ_&lt;nom&gt;_&lt;coal&gt;_&lt;stock&gt;_&lt;flag&gt;_&lt;target&gt;</code>. S'ancre à <code>objectName</code> s'il peut bouger ; se retire avec <code>removeExtractZone</code>.</td>
+<td>Ajoute une zone TRZ pickup sur n'importe quel objet DCS nommé (zone de trigger, unité, statique, groupe, ou airbase/FARP). <code>trzName</code> est un nom complet <code>TRZ_&lt;nom&gt;_&lt;coal&gt;_&lt;stock&gt;_&lt;flag&gt;_&lt;target&gt;</code>. S'ancre à <code>objectName</code> s'il peut bouger ; se retire avec <code>removeExtractZone</code>. Ce même nom d'objet, testé contre cette même convention, est aussi reconnu automatiquement s'il commence par <code>TRZ_</code> — voir <a href="../subsystems/zones/#trz-sur-un-objet-dynamique-statique-unite-ou-groupe">TRZ sur un objet dynamique</a>. Publie <code>OnTroopZoneUpdated</code>.</td>
 </tr>
 <tr>
 <td><code>parseTRZ</code></td>

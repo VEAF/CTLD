@@ -1724,6 +1724,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Runtime registration and legacy-compatible API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#trz-on-a-dynamic-object-static-unit-or-group" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TRZ on a dynamic object (static, unit, or group)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2409,6 +2426,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Runtime registration and legacy-compatible API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#trz-on-a-dynamic-object-static-unit-or-group" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TRZ on a dynamic object (static, unit, or group)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2540,6 +2574,12 @@ state and geometry tests.</p>
 <td><code>createTroopZoneAtObject()</code> at runtime</td>
 <td><code>CTLDTroopZone</code></td>
 <td>Pickup-capable TRZ created from a <code>DO SCRIPT</code>, on a trigger zone, unit, static, group, or airbase/FARP</td>
+</tr>
+<tr>
+<td>TRZ (dynamic-object naming)</td>
+<td><code>TRZ_…</code> name on a static, unit, or group</td>
+<td><code>CTLDTroopZone</code></td>
+<td>Same convention as an editor-placed TRZ, recognized on these other DCS object kinds — init scan + <code>S_EVENT_BIRTH</code> for anything appearing later; see <a href="#trz-on-a-dynamic-object-static-unit-or-group">TRZ on a dynamic object</a> below</td>
 </tr>
 </tbody>
 </table>
@@ -3006,11 +3046,21 @@ both zone sets (positions, stock, objective progress, colours).</p>
 <td><code>OnLogisticZoneUpdated</code></td>
 <td>At init, on dynamic-unit death, and on FOB / logistic register / unregister / (de)activate</td>
 </tr>
+<tr>
+<td><code>OnTroopZoneUpdated</code></td>
+<td>On a dynamic troop-zone create (<code>createTroopZoneAtObject</code>, <code>createExtractZone</code>, TRZ dynamic-object discovery) or remove (<code>removeExtractZone</code>, anchor death) — never at Mission-Editor init discovery</td>
+</tr>
 </tbody>
 </table>
 <p>The manager registers <code>onDead</code> for <code>S_EVENT_DEAD</code> via <code>CTLDDCSEventBridge</code>: when a dynamic
 logistic zone's linked unit dies, the zone is removed and an <code>OnLogisticZoneUpdated</code> is
-published with the removal.</p>
+published with the removal. <code>onDead</code> also matches a troop zone by its <code>_linkedUnit</code>/
+<code>_anchorUnitName</code> (unit/group anchor, or a Mission-Editor Moving-Zone-anchored TRZ) and removes
+it the same way, publishing <code>OnTroopZoneUpdated</code>. A <strong>static</strong>-anchored troop zone instead uses
+<code>CTLDStaticWatcher</code> (<code>isExist()</code> polling, wired in <code>createTroopZoneAtObject</code>) — <code>S_EVENT_DEAD</code> is
+not a reliable signal for a static object (ADR 0021). Either way, the zone's name is freed for
+reuse — it is not merely frozen at its last position the way an anchor without a live unit/static
+reference (a fixed zone, or a Moving Zone's own trigger-zone reference) still is.</p>
 <h2 id="query-api-troop-zones">Query API — troop zones<a class="headerlink" href="#query-api-troop-zones" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">)</span><span class="w">                     </span><span class="c1">-- → CTLDTroopZone | nil</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZonesForCoalition</span><span class="p">(</span><span class="nv">coalition</span><span class="p">)</span><span class="w">       </span><span class="c1">-- active zones for coalition (0 = both)</span>
@@ -3067,6 +3117,25 @@ an airbase/FARP match is fixed. A trigger zone's own radius is used; every other
 <p><code>parseTRZ</code> is what both this method and the init-time TRZ discovery use to turn a <code>TRZ_…</code>
 string into <code>{zoneName, coalition, pickMaxStock, objectiveFlag, objectiveTarget}</code> (or <code>nil</code> plus
 a reason) — see <a href="#trz-naming-convention">TRZ naming convention</a> above.</p>
+<h3 id="trz-on-a-dynamic-object-static-unit-or-group">TRZ on a dynamic object (static, unit, or group)<a class="headerlink" href="#trz-on-a-dynamic-object-static-unit-or-group" title="Permanent link">&para;</a></h3>
+<p>Beyond a Mission-Editor trigger zone, the same <code>TRZ_…</code> naming convention is also recognized on a
+<strong>static object, a unit, or a group</strong> — a mission maker names the object directly, no script and
+no config setting needed:</p>
+<div class="highlight"><pre><span></span><code>TRZ_bunker1_B_999_nil_0        -- a static, e.g. a fortification
+TRZ_convoy1_R_999_nil_0        -- a group (the zone anchors to its first unit)
+TRZ_dock1_B_999_nil_0          -- an isolated unit, e.g. a ship
+</code></pre></div>
+<p><code>CTLDZoneManager:_discoverTRZDynamicObjects()</code> scans <code>coalition.getStaticObjects</code>/
+<code>coalition.getGroups</code> (all three coalitions) at init; <code>onBirth</code> (<code>S_EVENT_BIRTH</code>) covers anything
+appearing later (a late-activated convoy, a scripted spawn). Both reuse
+<code>createTroopZoneAtObject(name, name)</code> unchanged — the object's own DCS name serves as both the
+<code>objectName</code> to resolve and the <code>trzName</code> to parse, so a zone discovered this way is
+indistinguishable from one created by script. A group fires <code>S_EVENT_BIRTH</code> once per member unit;
+only the group's own first unit is checked against its group's name, so a multi-unit convoy
+registers exactly once. A name already registered by any source (Mission Editor, script, this
+scan) is refused with a <code>WARN</code>, never overwritten — the same collision guard
+<code>createTroopZoneAtObject</code> already applies. <code>LGZ_</code>/<code>WPZ_</code>/<code>EXZ_</code> stay trigger-zone-only; this
+widening is <code>TRZ_</code>-specific.</p>
 <h2 id="unload-priority-extract-before-rtb">Unload priority: extract before RTB<a class="headerlink" href="#unload-priority-extract-before-rtb" title="Permanent link">&para;</a></h2>
 <p>When a player unloads troops, the containing zone is evaluated in this order (handled by the
 troop subsystem, not the zone manager itself):</p>
@@ -3086,6 +3155,12 @@ current position and cargo state:</p>
 <li>On the ground with troops onboard: an "Unload / Extract" option appears.</li>
 <li>On the ground outside any TRZ: no load options.</li>
 </ul>
+<p>It also rebuilds immediately — not just on takeoff/landing — whenever a troop or logistic zone
+is dynamically created or removed while a player is already on the ground: <code>CTLDZoneManager</code>
+publishes <code>OnTroopZoneUpdated</code>/<code>OnLogisticZoneUpdated</code>, and <code>CTLDPlayerManager</code> refreshes
+<code>CTLDTroopManager:refreshMenuSection</code>/<code>CTLDCrateManager:refreshRequestEquipmentSection</code> for
+every currently on-ground tracked transport player. No proximity calculation is done at the
+subscriber — both refresh functions already recompute the calling player's own zone membership.</p>
 <h2 id="zone-name-validation">Zone-name validation<a class="headerlink" href="#zone-name-validation" title="Permanent link">&para;</a></h2>
 <p><code>_validateZoneNames()</code> runs first in <code>init()</code> and produces a single grouped report
 (<code>trigger.action.outText</code> + DCS log + <code>env.warning</code>). It covers:</p>

@@ -1724,6 +1724,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Enregistrement à l&#39;exécution et API rétrocompatible">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#trz-sur-un-objet-dynamique-statique-unite-ou-groupe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TRZ sur un objet dynamique (statique, unité, ou groupe)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2409,6 +2426,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Enregistrement à l&#39;exécution et API rétrocompatible">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#trz-sur-un-objet-dynamique-statique-unite-ou-groupe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TRZ sur un objet dynamique (statique, unité, ou groupe)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2535,6 +2569,12 @@ de simples types <code>class()</code> instanciés via <code>:new(data)</code>.</
 <td><code>createTroopZoneAtObject()</code> à l'exécution</td>
 <td><code>CTLDTroopZone</code></td>
 <td>TRZ pickup créée depuis un <code>DO SCRIPT</code>, sur une zone de trigger, une unité, un statique, un groupe, ou un airbase/FARP</td>
+</tr>
+<tr>
+<td>TRZ (nommage sur objet dynamique)</td>
+<td>nom <code>TRZ_…</code> sur un statique, une unité, ou un groupe</td>
+<td><code>CTLDTroopZone</code></td>
+<td>Même convention qu'une TRZ placée dans l'éditeur, reconnue sur ces autres types d'objets DCS — scan à l'init + <code>S_EVENT_BIRTH</code> pour tout ce qui apparaît ensuite ; voir <a href="#trz-sur-un-objet-dynamique-statique-unite-ou-groupe">TRZ sur un objet dynamique</a> ci-dessous</td>
 </tr>
 </tbody>
 </table>
@@ -2996,11 +3036,22 @@ deux ensembles de zones (positions, stock, progression d'objectif, couleurs).</p
 <td><code>OnLogisticZoneUpdated</code></td>
 <td>À l'init, à la mort d'une unité dynamique, et lors d'un register / unregister / (dé)activation de FOB / logistique</td>
 </tr>
+<tr>
+<td><code>OnTroopZoneUpdated</code></td>
+<td>À la création dynamique d'une troop zone (<code>createTroopZoneAtObject</code>, <code>createExtractZone</code>, découverte TRZ sur objet dynamique) ou à sa suppression (<code>removeExtractZone</code>, mort de l'ancre) — jamais à la découverte à l'init de l'éditeur de mission</td>
+</tr>
 </tbody>
 </table>
 <p>Le manager enregistre <code>onDead</code> pour <code>S_EVENT_DEAD</code> via <code>CTLDDCSEventBridge</code> : lorsque l'unité
 liée d'une logistic zone dynamique meurt, la zone est retirée et un <code>OnLogisticZoneUpdated</code> est
-publié avec le retrait.</p>
+publié avec le retrait. <code>onDead</code> teste aussi une troop zone via son <code>_linkedUnit</code>/
+<code>_anchorUnitName</code> (ancre unité/groupe, ou une TRZ ancrée sur une Moving Zone de l'éditeur) et la
+retire de la même façon, en publiant <code>OnTroopZoneUpdated</code>. Une troop zone ancrée sur un
+<strong>statique</strong> utilise en revanche <code>CTLDStaticWatcher</code> (polling <code>isExist()</code>, câblé dans
+<code>createTroopZoneAtObject</code>) — <code>S_EVENT_DEAD</code> n'est pas un signal fiable pour un objet statique
+(ADR 0021). Dans les deux cas, le nom de la zone est libéré pour réutilisation — elle n'est pas
+simplement gelée à sa dernière position, contrairement à une ancre sans référence unité/statique
+vivante (zone fixe, ou référence de zone de trigger propre à une Moving Zone).</p>
 <h2 id="query-api-troop-zones">API de requête — troop zones<a class="headerlink" href="#query-api-troop-zones" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">)</span><span class="w">                     </span><span class="c1">-- → CTLDTroopZone | nil</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZonesForCoalition</span><span class="p">(</span><span class="nv">coalition</span><span class="p">)</span><span class="w">       </span><span class="c1">-- zones actives pour la coalition (0 = les deux)</span>
@@ -3061,6 +3112,25 @@ pickup sur un FARP placé dans l'éditeur de mission :</p>
 transformer un nom <code>TRZ_…</code> en <code>{zoneName, coalition, pickMaxStock, objectiveFlag,
 objectiveTarget}</code> (ou <code>nil</code> + une raison) — voir la
 <a href="#trz-naming-convention">convention de nommage TRZ</a> plus haut.</p>
+<h3 id="trz-sur-un-objet-dynamique-statique-unite-ou-groupe">TRZ sur un objet dynamique (statique, unité, ou groupe)<a class="headerlink" href="#trz-sur-un-objet-dynamique-statique-unite-ou-groupe" title="Permanent link">&para;</a></h3>
+<p>Au-delà d'une zone de trigger de l'éditeur, la même convention de nommage <code>TRZ_…</code> est aussi
+reconnue sur un <strong>objet statique, une unité, ou un groupe</strong> — le mission maker nomme directement
+l'objet, sans script ni réglage de config :</p>
+<div class="highlight"><pre><span></span><code>TRZ_bunker1_B_999_nil_0        -- un statique, ex. une fortification
+TRZ_convoy1_R_999_nil_0        -- un groupe (la zone s'ancre à sa première unité)
+TRZ_dock1_B_999_nil_0          -- une unité isolée, ex. un navire
+</code></pre></div>
+<p><code>CTLDZoneManager:_discoverTRZDynamicObjects()</code> parcourt <code>coalition.getStaticObjects</code>/
+<code>coalition.getGroups</code> (les trois coalitions) à l'init ; <code>onBirth</code> (<code>S_EVENT_BIRTH</code>) couvre tout ce
+qui apparaît ensuite (un convoi activé tardivement, un spawn scripté). Les deux réutilisent
+<code>createTroopZoneAtObject(name, name)</code> sans le modifier — le nom DCS de l'objet sert à la fois
+d'<code>objectName</code> à résoudre et de <code>trzName</code> à parser, donc une zone découverte ainsi est
+indiscernable d'une zone créée par script. Un groupe déclenche <code>S_EVENT_BIRTH</code> une fois par unité
+membre ; seule la première unité du groupe est testée contre le nom du groupe, donc un convoi
+multi-unités s'enregistre exactement une fois. Un nom déjà enregistré par une autre source (éditeur
+de mission, script, ce scan) est refusé avec un <code>WARN</code>, jamais écrasé — même garde de collision que
+<code>createTroopZoneAtObject</code>. <code>LGZ_</code>/<code>WPZ_</code>/<code>EXZ_</code> restent réservées aux zones de trigger ; cet
+élargissement est spécifique à <code>TRZ_</code>.</p>
 <h2 id="unload-priority-extract-before-rtb">Priorité de déchargement : extract avant RTB<a class="headerlink" href="#unload-priority-extract-before-rtb" title="Permanent link">&para;</a></h2>
 <p>Lorsqu'un joueur décharge des troops, la zone contenante est évaluée dans cet ordre (géré par le
 sous-système troop, pas par le zone manager lui-même) :</p>
@@ -3080,6 +3150,13 @@ de la position courante du joueur et de l'état de sa cargaison :</p>
 <li>Au sol avec des troops à bord : une option « Unload / Extract » apparaît.</li>
 <li>Au sol hors de toute TRZ : aucune option de chargement.</li>
 </ul>
+<p>Il se reconstruit aussi immédiatement — pas seulement au décollage/atterrissage — dès qu'une
+troop zone ou une logistic zone est créée ou supprimée dynamiquement pendant qu'un joueur est
+déjà au sol : <code>CTLDZoneManager</code> publie <code>OnTroopZoneUpdated</code>/<code>OnLogisticZoneUpdated</code>, et
+<code>CTLDPlayerManager</code> rafraîchit <code>CTLDTroopManager:refreshMenuSection</code>/<code>CTLDCrateManager:
+refreshRequestEquipmentSection</code> pour tout joueur transport actuellement au sol trackée. Aucun
+calcul de proximité n'est fait côté abonné — les deux fonctions de rafraîchissement recalculent
+déjà elles-mêmes l'appartenance de zone du joueur appelant.</p>
 <h2 id="zone-name-validation">Validation des noms de zone<a class="headerlink" href="#zone-name-validation" title="Permanent link">&para;</a></h2>
 <p><code>_validateZoneNames()</code> s'exécute en premier dans <code>init()</code> et produit un unique rapport groupé
 (<code>trigger.action.outText</code> + log DCS + <code>env.warning</code>). Il couvre :</p>

@@ -2868,6 +2868,11 @@ ship); an airbase/FARP match stays fixed instead. Anything other than a trigger 
 200 m radius. Remove it the same way as any other troop zone:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">CTLDZoneManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">():</span><span class="nf">removeExtractZone</span><span class="p">(</span><span class="s2">"farpAlpha"</span><span class="p">)</span>
 </code></pre></div>
+<p><strong>No script needed for a static, unit, or group</strong>: just name it <code>TRZ_&lt;name&gt;_&lt;coalition&gt;_&lt;stock&gt;_
+&lt;flag&gt;_&lt;target&gt;</code> directly in the Mission Editor — a bunker, a convoy, a ship. CTLD picks it up
+automatically, at mission start or whenever it appears later (a late-activated convoy, a spawned
+object). Only reach for the script above when the object genuinely has no name of its own to give
+yet (e.g. it doesn't exist before the mission starts and nothing lets you rename it once it does).</p>
 <hr />
 <h2 id="waypoint-zones-wpz">Waypoint zones (WPZ)<a class="headerlink" href="#waypoint-zones-wpz" title="Permanent link">&para;</a></h2>
 <p>When troops are deployed (fast-rope or ground drop) at a point that falls <strong>inside</strong> an active
