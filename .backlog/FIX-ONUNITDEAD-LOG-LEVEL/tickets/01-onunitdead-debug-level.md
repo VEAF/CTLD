@@ -1,6 +1,6 @@
 # 01 — Log "no group found" at DEBUG in `CTLDTroopManager:onUnitDead`
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 **Blocked by:** none — can start immediately.
 

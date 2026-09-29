@@ -1,6 +1,6 @@
 # FIX-ONUNITDEAD-LOG-LEVEL — stop `onUnitDead` flooding the log for deaths CTLD has no business with
 
-**Status:** ⬜ ready
+**Status:** ✅ done (PR #218).
 
 Closes [GitHub issue #212](https://github.com/VEAF/CTLD/issues/212) ("onUnitDead logs at INFO on the
 normal case, flooding the log (1264 lines in one session)", davidp57/Zip) on merge. The issue text
