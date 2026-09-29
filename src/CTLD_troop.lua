@@ -1187,7 +1187,7 @@ function CTLDTroopManager:onUnitDead(event)
 
     local grp = self:_findGroupByAliveUnit(unitName)
     if not grp then
-        ctld.utils.log("INFO", "onUnitDead: no group found for unit '%s' — skipping", unitName)
+        ctld.utils.log("DEBUG", "onUnitDead: no group found for unit '%s' — skipping", unitName)
         return
     end
     -- Capture JTAC status before _removeDeadUnit erases the entry
