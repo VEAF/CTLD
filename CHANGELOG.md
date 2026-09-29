@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — `onUnitDead` no longer floods the log for deaths CTLD has no business with (FIX-ONUNITDEAD-LOG-LEVEL)
+
+- `CTLDTroopManager:onUnitDead` logged `no group found for unit '…' — skipping` at `INFO`, yet that
+  is the normal outcome for almost every death DCS reports (scenery, debris, units owned by other
+  scripts) — 1264 lines in one multiplayer session. It now logs at `DEBUG`, like its sibling
+  early-exit branches. Behaviour is unchanged; genuine troop/JTAC death lines stay at `INFO`.
+  Closes [#212](https://github.com/VEAF/CTLD/issues/212).
+
 ### Added — `TRZ_` naming convention recognized on a static, unit, or group, not just a trigger zone (FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY, ticket 03)
 
 - A mission maker can now name a **bunker (static), an isolated vehicle or ship (unit), or a

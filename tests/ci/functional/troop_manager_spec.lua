@@ -646,6 +646,48 @@ describe("CTLDTroopManager", function()
             assert.equals("JTAC_u1", deregistered[1])
         end)
 
+        -- FIX-ONUNITDEAD-LOG-LEVEL (#212): a death owned by no CTLD group is the normal case.
+        local function captureLogs(fn)
+            local origLog = ctld.utils.log
+            local lines = {}
+            ctld.utils.log = function(level, ...)
+                lines[#lines + 1] = { level = level, msg = string.format(...) }
+            end
+            local ok, err = pcall(fn)
+            ctld.utils.log = origLog
+            assert(ok, err)
+            return lines
+        end
+
+        it("unit belonging to no CTLD group: logged at DEBUG, never INFO", function()
+            local lines = captureLogs(function()
+                tm:onUnitDead({ initiator = mockDeadUnit("12345") })
+            end)
+
+            local debugSeen = false
+            for _, l in ipairs(lines) do
+                assert.are_not.equals("INFO", l.level)
+                if l.level == "DEBUG" and l.msg:find("12345", 1, true) then debugSeen = true end
+            end
+            assert.is_true(debugSeen)
+        end)
+
+        it("unit in a CTLD group: 'removed from group' still logged at INFO", function()
+            registerDroppedGroup("MockDropped_037_5", { "INF_u1", "INF_u2" })
+
+            local lines = captureLogs(function()
+                tm:onUnitDead({ initiator = mockDeadUnit("INF_u1") })
+            end)
+
+            local infoSeen = false
+            for _, l in ipairs(lines) do
+                if l.level == "INFO" and l.msg:find("removed from group", 1, true) then
+                    infoSeen = true
+                end
+            end
+            assert.is_true(infoSeen)
+        end)
+
     end)
 
 end)
