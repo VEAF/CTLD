@@ -81,6 +81,18 @@ redefined terms are added here in the same move as the decision that introduces 
 - **Pack / unpack** — the sanctioned verbs for crate assembly/disassembly. The old term
   **"repack" is banned**.
 - **Vehicle transport** — carrying a whole vehicle (spawn/load/unload/parachute/pack).
+- **Virtual carry** — cargo (crate or whole vehicle) held by CTLD through its F10 menu: the DCS
+  object is removed and CTLD simulates the weight; loading, unloading and parachuting all go through
+  F10. _Avoid_: "menu load", "CTLD load".
+- **Native carry** — cargo physically inside the aircraft through DCS's own cargo system: the DCS
+  object stays alive, CTLD only observes the load and the unload, and the crew uses the DCS controls.
+  A cargo item is in exactly one of the two modes (**virtual carry** or **native carry**) and is
+  unloaded the way it was loaded. _Avoid_: "DCS-managed", "dynamic cargo" (the DCS feature name, not
+  the CTLD concept).
+- **Aircraft hold box** — the zone, in an aircraft's own frame, inside which a whole vehicle counts
+  as carried natively. Defaults to the box DCS reports for the type (its **UserBox**, authored by
+  the module's designers) and can be narrowed per type. _Avoid_: "bounding box" (a different DCS
+  notion, larger than what the sim reports).
 - **Slingload (virtual)** — CTLD's simulated sling-loading, independent of DCS native sling.
 - **JTAC** — Joint Terminal Attack Controller: lases targets, may be drone-based (orbit), with
   target deconfliction and a laser pool.
