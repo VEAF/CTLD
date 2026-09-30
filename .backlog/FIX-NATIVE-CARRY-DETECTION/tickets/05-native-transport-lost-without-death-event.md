@@ -1,4 +1,4 @@
-# 06 — Native-carry vehicle whose transport vanishes without a death event
+# 05 — Native-carry vehicle whose transport vanishes without a death event
 
 **Status:** ⬜ ready · **Type:** AFK
 
@@ -12,6 +12,8 @@ CTLD already handles a transport destroyed by a death event: its loaded vehicles
 tracking, a JTAC is deregistered silently and `OnVehicleDead` is published. A transport can also
 vanish without any death event (slot change, despawn). The native tick now detects that the
 recorded transport of a native-carry vehicle no longer exists and applies **the same handling**.
+A vehicle that is already falling after an in-flight release is not affected by the transport
+disappearing (it keeps being tracked until it lands).
 
 The handling is idempotent: if a death event arrives as well, the vehicle is not processed twice.
 Virtual-carry vehicles keep their current behavior.
@@ -22,9 +24,10 @@ Virtual-carry vehicles keep their current behavior.
       any) is deregistered silently, and `OnVehicleDead` is published once.
 - [ ] The same vehicle handled after a death event is not handled a second time.
 - [ ] The vehicle's laser code and claim are freed when it was a JTAC.
+- [ ] A vehicle already falling after a release is not removed when its former transport vanishes.
 - [ ] Busted spec covers disappearance with and without a death event.
 - [ ] `CHANGELOG.md` `[Unreleased]` has a `Fixed` entry.
 
 ## Blocked by
 
-- [04 — Native vehicle release by drift](04-native-vehicle-release-by-drift.md)
+- [04 — Native vehicle release](04-native-vehicle-release-on-board-list.md)
