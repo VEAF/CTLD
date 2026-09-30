@@ -8,6 +8,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — F10 *Unload Vehicles* and *Parachute Vehicle* no longer offer native-carry vehicles (FIX-NATIVE-CARRY-DETECTION, ticket 01)
+
+- A whole vehicle loaded through the DCS cargo system (native carry) is still held by DCS as a live
+  unit, yet the two F10 entries listed it like a vehicle loaded through the F10 menu. Unloading or
+  parachuting it would have spawned a duplicate. Both entries now consider virtual-carry vehicles
+  only: with only a native-carry vehicle aboard, the unload submenu is hidden and *Parachute
+  Vehicle* stays disabled, exactly as if nothing were loaded. Weight accounting, the onboard cargo
+  report and the AI dropoff are unchanged.
+
 ### Fixed — `onUnitDead` no longer floods the log for deaths CTLD has no business with (FIX-ONUNITDEAD-LOG-LEVEL)
 
 - `CTLDTroopManager:onUnitDead` logged `no group found for unit '…' — skipping` at `INFO`, yet that

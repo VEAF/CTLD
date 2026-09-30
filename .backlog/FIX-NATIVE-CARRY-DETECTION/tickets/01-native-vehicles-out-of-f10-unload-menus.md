@@ -1,6 +1,6 @@
 # 01 — F10 unload and parachute lists show virtual-carry vehicles only
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -19,15 +19,15 @@ nothing were loaded.
 
 ## Acceptance criteria
 
-- [ ] With one native-carry vehicle aboard, the unload list is empty and the parachute entry stays
+- [x] With one native-carry vehicle aboard, the unload list is empty and the parachute entry stays
       disabled.
-- [ ] With one virtual-carry vehicle aboard, the unload list and the parachute entry behave as
+- [x] With one virtual-carry vehicle aboard, the unload list and the parachute entry behave as
       before.
-- [ ] With both kinds aboard, only the virtual-carry vehicle is listed and can be unloaded or
+- [x] With both kinds aboard, only the virtual-carry vehicle is listed and can be unloaded or
       parachuted.
-- [ ] The AI dropoff path that unloads a loaded vehicle is unchanged.
-- [ ] Busted spec covers the three cases through what the menu-facing list returns.
-- [ ] `CHANGELOG.md` `[Unreleased]` has a `Fixed` entry.
+- [x] The AI dropoff path that unloads a loaded vehicle is unchanged.
+- [x] Busted spec covers the three cases through what the menu-facing list returns.
+- [x] `CHANGELOG.md` `[Unreleased]` has a `Fixed` entry.
 
 ## Blocked by
 

@@ -1000,7 +1000,8 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
         vehicle = self._vehicles[vehicleId]
     else
         for _, v in pairs(self._vehicles) do
-            if v.state == CTLDVehicle.STATE.LOADED and v.loadTransportName == transport:getName() then
+            if v.state == CTLDVehicle.STATE.LOADED and v.loadTransportName == transport:getName()
+                and v.loadMethod ~= "dcs_native" then
                 vehicle = v
                 break
             end
@@ -1418,6 +1419,21 @@ function CTLDVehicleSpawner:findLoadedVehicles(transport)
     return result
 end
 
+--- Return vehicles LOADED on a transport in virtual carry (held by CTLD through its F10 menu).
+-- Native-carry vehicles (loadMethod "dcs_native") are excluded: DCS still holds their live unit,
+-- so offering them to the F10 unload / parachute entries would spawn a duplicate.
+-- @param transport DCS Unit
+-- @return table  array of CTLDVehicle
+function CTLDVehicleSpawner:findVirtualCarryVehicles(transport)
+    local result = {}
+    for _, veh in ipairs(self:findLoadedVehicles(transport)) do
+        if veh.loadMethod ~= "dcs_native" then
+            table.insert(result, veh)
+        end
+    end
+    return result
+end
+
 --- Returns total weight of CTLD-loaded (menu_ctld) vehicles on a transport.
 --- dcs_native vehicles are excluded: DCS manages their physical weight.
 --- @param transportUnitName string
@@ -1521,7 +1537,7 @@ function CTLDVehicleSpawner:refreshUnloadSection(playerObj)
 
     local transport = Unit.getByName(playerObj.unitName)
     local inAir     = (transport and transport:isExist()) and ctld.utils.inAir(transport) or false
-    local loaded    = (transport and transport:isExist()) and self:findLoadedVehicles(transport) or {}
+    local loaded    = (transport and transport:isExist()) and self:findVirtualCarryVehicles(transport) or {}
 
     if #loaded == 0 then
         -- No vehicle loaded: hide the entire submenu
@@ -1591,7 +1607,7 @@ function CTLDVehicleSpawner:refreshParachuteVehicleSection(playerObj)
 
     local transport = Unit.getByName(playerObj.unitName)
     local inAir     = transport and transport:isExist() and ctld.utils.inAir(transport) or false
-    local loaded    = (transport and transport:isExist()) and self:findLoadedVehicles(transport) or {}
+    local loaded    = (transport and transport:isExist()) and self:findVirtualCarryVehicles(transport) or {}
 
     menu:setBranchEnabled({ root, vehSub, ctld.tr("Parachute Vehicle") }, inAir and #loaded > 0)
     menu:refresh()

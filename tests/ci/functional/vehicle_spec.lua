@@ -516,4 +516,48 @@ describe("CTLDVehicleSpawner", function()
 
     end)
 
+    -- ── FIX-NATIVE-CARRY-DETECTION ticket 01 : F10 unload / parachute lists ──────
+    describe("findVirtualCarryVehicles — F10 unload and parachute lists", function()
+
+        local function loadedVehicle(id, method)
+            local veh = CTLDVehicle:new({
+                id = id, vehicleType = "M1045 HMMWV TOW", unit = nil,
+                spawnData = { groupName = id, unitName = id,
+                              vehicleType = "M1045 HMMWV TOW", countryId = 2, coalitionId = 2 },
+            })
+            veh:setState(CTLDVehicle.STATE.LOADED)
+            veh.loadTransportName = mockTransport:getName()
+            veh.loadMethod        = method
+            vs._vehicles[id]      = veh
+            return veh
+        end
+
+        it("lists nothing when only a native-carry vehicle is aboard", function()
+            loadedVehicle("nc1_native", "dcs_native")
+            assert.equals(0, #vs:findVirtualCarryVehicles(mockTransport))
+        end)
+
+        it("lists a virtual-carry vehicle", function()
+            local virt = loadedVehicle("nc1_virtual", "menu_ctld")
+            local r = vs:findVirtualCarryVehicles(mockTransport)
+            assert.equals(1, #r)
+            assert.equals(virt, r[1])
+        end)
+
+        it("lists only the virtual-carry vehicle when both kinds are aboard", function()
+            loadedVehicle("nc1_native", "dcs_native")
+            local virt = loadedVehicle("nc1_virtual", "menu_ctld")
+            local r = vs:findVirtualCarryVehicles(mockTransport)
+            assert.equals(1, #r)
+            assert.equals(virt, r[1])
+        end)
+
+        it("findLoadedVehicles still returns both kinds (weight accounting, AI dropoff)", function()
+            loadedVehicle("nc1_native", "dcs_native")
+            loadedVehicle("nc1_virtual", "menu_ctld")
+            assert.equals(2, #vs:findLoadedVehicles(mockTransport))
+        end)
+
+    end)
+
 end)

@@ -533,6 +533,50 @@ describe("F-061/F-062 — parachuteVehicle", function()
 
     end)
 
+    -- FIX-NATIVE-CARRY-DETECTION ticket 01: the menu entry calls parachuteVehicle without an id;
+    -- a native-carry vehicle (still held by DCS) must never be the one picked.
+    describe("F-061b — native-carry vehicle is never parachuted by the menu", function()
+
+        local native, virtual
+
+        local function loaded(id, method)
+            local v = CTLDVehicle:new({
+                id = id, vehicleType = "M1045 HMMWV TOW", unit = nil,
+                spawnData = { coalitionId=2, country=2, vehicleType="M1045 HMMWV TOW",
+                              groupName="VehGroup_"..id, unitName="VehUnit_"..id },
+            })
+            v:setState(CTLDVehicle.STATE.LOADED)
+            v.loadTransportName = mockTransport:getName()
+            v.loadMethod        = method
+            vs._vehicles[id]    = v
+            return v
+        end
+
+        before_each(function()
+            land.getHeight = function(_) return 10 end
+        end)
+
+        it("does nothing when only a native-carry vehicle is aboard", function()
+            native = loaded("nc1_native", "dcs_native")
+            local fired = false
+            EventDispatcher.getInstance():subscribe("OnVehicleParachuting", function() fired = true end)
+            vs:parachuteVehicle(mockTransport, nil, { unitName="UH-1H-1", groupId=9901, coalition=2 })
+            assert.is_false(fired)
+            assert.equals(CTLDVehicle.STATE.LOADED, native.state)
+        end)
+
+        it("parachutes the virtual-carry vehicle when both kinds are aboard", function()
+            native  = loaded("nc1_native",  "dcs_native")
+            virtual = loaded("nc1_virtual", "menu_ctld")
+            local payload = nil
+            EventDispatcher.getInstance():subscribe("OnVehicleParachuting", function(p) payload = p end)
+            vs:parachuteVehicle(mockTransport, nil, { unitName="UH-1H-1", groupId=9901, coalition=2 })
+            assert.equals(virtual, payload.vehicle)
+            assert.equals(CTLDVehicle.STATE.LOADED, native.state)
+        end)
+
+    end)
+
 end)
 
 -- ── FEAT-PARACHUTE-DROP-GATE ticket 04 : enableParachuteDrop menu (Vehicles) ──
