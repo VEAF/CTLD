@@ -232,3 +232,18 @@ véhicule `dcs_native` qui ne sort jamais formellement de l'état `LOADED`) est 
      en lot `.backlog/FEAT-CTLD-TOOLS-AIZ-SYNC/`, mergé (PR #169) — datalist dcsZoneName +
      réconciliation ajout/suppression des zones AIZ_, convention `AIZ_<name>_<coalition>_<P|D>_
      <cargoType-ou-aiDropMode>` côté outil uniquement (ADR dédié dans dev/adr/). -->
+
+## Crate request menu — logistic zone looked up by short name (regression of PR #210)
+
+Context (live DCS test, 2026-09-30, `c130-1` C-130J-30 inside zone `LGZ_log1_B`, 137 m from its
+centre): every F10 "Request Equipment" crate answers "You are not close enough to friendly
+logistics to get a crate!" and nothing spawns. Confirmed live: `getLogisticZone('log1')` = nil,
+`getLogisticZone('LGZ_log1_B')` = the zone (its `.name` is `log1`).
+
+Cause: `FIX-AUTODISCOVERED-ZONE-FULLNAME-KEY` (PR #210, ADR 0020) moved `_logisticZones` to the full
+DCS name as key, but the crate request menu (`src/CTLD_crate.lua`, `lgzName = lgz.name`) still
+passes the short name to the callback's `getLogisticZone(arg.zoneName)` — a consumer of the
+registry that lot did not update. To do: reproduce in busted, grep every other caller of the
+logistic/troop zone accessors for the same short-name assumption, check legacy parity, then fix
+minimally (the menu should pass the registry key; display can keep the short name). A separate
+task was also proposed in the session that found it.
