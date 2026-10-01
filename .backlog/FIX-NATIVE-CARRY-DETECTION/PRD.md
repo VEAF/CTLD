@@ -1,6 +1,6 @@
 # FIX-NATIVE-CARRY-DETECTION — make native carry loads and unloads fully tracked by CTLD
 
-**Status:** ⬜ ready.
+**Status:** ✅ done (PR #220).
 
 Formalizes the `dev/roadmap.md` entry "Native-cargo bbox-exit detection is unimplemented" plus
 `grill-with-docs` sessions (2026-09-29, revised 2026-10-01) that widened it: the gap found in the
