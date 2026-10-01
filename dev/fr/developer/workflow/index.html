@@ -1336,6 +1336,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dependency-updates-dependabot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mises à jour des dépendances (Dependabot)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#release-process" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2089,6 +2100,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dependency-updates-dependabot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mises à jour des dépendances (Dependabot)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#release-process" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2253,6 +2275,27 @@ couverture, la journalisation et la configuration de débogage.</p>
 <li><strong>Docs</strong> — quand un comportement ou une interface change, les pages <code>docs/</code> concernées changent
   dans la même PR.</li>
 </ul>
+<h2 id="dependency-updates-dependabot">Mises à jour des dépendances (Dependabot)<a class="headerlink" href="#dependency-updates-dependabot" title="Permanent link">&para;</a></h2>
+<p><code>.github/dependabot.yml</code> déclare chaque endroit qui porte des dépendances : les GitHub Actions, l'application web de
+ctld-tools (npm), le projet Poetry de ctld-tools, les requirements de la documentation et ceux du build. Une seule
+politique s'applique :</p>
+<ul>
+<li><strong>Mensuel</strong>, une seule pull request groupée par écosystème pour les mises à jour <strong>mineures et correctifs</strong> (les
+  Actions restent hebdomadaires).</li>
+<li>Une mise à jour <strong>majeure</strong> n'est jamais groupée : elle a sa propre pull request, à lire et tester seule.</li>
+<li>Les <strong>mises à jour de sécurité</strong> suivent aussi un groupe, mais s'ouvrent dès qu'une alerte apparaît, sans attendre le
+  mois.</li>
+<li>Au plus trois pull requests ouvertes par écosystème ; les commits s'écrivent <code>chore(deps)</code> / <code>chore(deps-dev)</code>
+  (<code>ci</code> pour les Actions).</li>
+</ul>
+<p><strong>Traiter une pull request Dependabot :</strong> la merger quand la CI est verte ; lire les notes de version d'une majeure
+avant de merger ; fermer une pull request pour dire à Dependabot de laisser cette version tranquille ; ne jamais
+recréer un doublon à la main. Si la CI échoue sur une montée de version, corriger la cause sur une branche
+séparée plutôt que d'éditer la branche Dependabot (c'est ainsi que la montée de <code>vitest</code> 5 a été livrée, lot
+<code>FIX-CTLD-TOOLS-WEB-NODE-TYPES-GAP</code>).</p>
+<p><strong>Tout nouveau manifeste de dépendances</strong> (un <code>package.json</code>, un <code>pyproject.toml</code>, un <code>requirements*.txt</code>) <strong>est
+déclaré dans <code>.github/dependabot.yml</code></strong>. Le job <code>python-quality</code> échoue sinon (<code>test_dependabot_coverage.py</code>), en
+nommant le manifeste et l'entrée à ajouter.</p>
 <h2 id="release-process">Processus de release<a class="headerlink" href="#release-process" title="Permanent link">&para;</a></h2>
 <p>Les releases sont <strong>pilotées par tag</strong>, pas par branche — aucun push sur <code>develop</code> ou <code>master</code> ne
 publie quoi que ce soit. Le skill Claude Code interactif <strong><code>release</code></strong> (invoqué avec <code>/release</code>)

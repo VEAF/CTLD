@@ -1336,6 +1336,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dependency-updates-dependabot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency updates (Dependabot)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#release-process" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2089,6 +2100,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dependency-updates-dependabot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency updates (Dependabot)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#release-process" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2249,6 +2271,22 @@ logging, and debug configuration.</p>
 <li><strong>Docs</strong> — when a behaviour or interface changes, the relevant <code>docs/</code> pages change in the same
   PR.</li>
 </ul>
+<h2 id="dependency-updates-dependabot">Dependency updates (Dependabot)<a class="headerlink" href="#dependency-updates-dependabot" title="Permanent link">&para;</a></h2>
+<p><code>.github/dependabot.yml</code> declares every place that carries dependencies: the GitHub Actions, the ctld-tools web app
+(npm), the ctld-tools Poetry project, the documentation requirements and the build requirements. One policy applies:</p>
+<ul>
+<li><strong>Monthly</strong>, one grouped pull request per ecosystem for <strong>minor and patch</strong> updates (the Actions stay weekly).</li>
+<li>A <strong>major</strong> update is never grouped: it gets its own pull request, to be read and tested alone.</li>
+<li><strong>Security updates</strong> follow a group too, but open as soon as an alert appears instead of waiting for the month.</li>
+<li>At most three open pull requests per ecosystem; commits read <code>chore(deps)</code> / <code>chore(deps-dev)</code> (<code>ci</code> for the Actions).</li>
+</ul>
+<p><strong>Handling a Dependabot pull request:</strong> merge it when CI is green; read the release notes of a major before merging;
+close a pull request to tell Dependabot to leave that version alone; never recreate a duplicate by hand. If CI fails
+on a bump, fix the cause on a separate branch rather than editing the Dependabot branch (this is how the <code>vitest</code> 5
+bump was landed, lot <code>FIX-CTLD-TOOLS-WEB-NODE-TYPES-GAP</code>).</p>
+<p><strong>Every new dependency manifest</strong> (a <code>package.json</code>, a <code>pyproject.toml</code>, a <code>requirements*.txt</code>) <strong>is declared in
+<code>.github/dependabot.yml</code></strong>. The <code>python-quality</code> job fails otherwise (<code>test_dependabot_coverage.py</code>), naming the
+manifest and the entry to add.</p>
 <h2 id="release-process">Release process<a class="headerlink" href="#release-process" title="Permanent link">&para;</a></h2>
 <p>Releases are <strong>tag-driven</strong>, not branch-driven — no push to <code>develop</code> or <code>master</code> publishes
 anything. The interactive Claude Code skill <strong><code>release</code></strong> (invoke it with <code>/release</code>) drives the
