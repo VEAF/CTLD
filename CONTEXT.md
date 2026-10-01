@@ -95,6 +95,12 @@ redefined terms are added here in the same move as the decision that introduces 
   it appears on this list and leaves it when it disappears. Items on the list that CTLD does not
   track (for example cargo created by the loadmaster tablet) are ignored. _Avoid_: "hold box",
   "bounding box" (geometric tests, no longer used to decide what is on board).
+- **Crate spawn clearance** — where the crates requested for (or produced by packing near) a
+  native-cargo aircraft appear: a **sector** of the aircraft (rear, side or front) and a **distance** from
+  its centre, equal to the real hull's radius at crate height over that sector plus a margin, so the crate
+  is just clear of the hull and still within the DCS native loading range. Crates of one wave stand in a
+  row, `crate size + 0.5 m` apart. An aircraft type that declares neither keeps the secure-distance rule.
+  _Avoid_: "spawn offset", "spawn radius" (the secure distance is a different, box-based rule).
 - **Slingload (virtual)** — CTLD's simulated sling-loading, independent of DCS native sling.
 - **JTAC** — Joint Terminal Attack Controller: lases targets, may be drone-based (orbit), with
   target deconfliction and a laser pool.
