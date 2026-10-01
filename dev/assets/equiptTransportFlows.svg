@@ -114,8 +114,8 @@
   <text x="697" y="407" fill="#6e7681" font-size="11">—</text>
   <text x="800" y="407" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
 
-  <text x="35"  y="424" fill="#e6edf3" font-size="11">DCS native bbox (C-130 / Il-76)</text>
-  <text x="280" y="424" fill="#e6edf3" font-size="11">Caisse entre dans bbox cargo automatiquement</text>
+  <text x="35"  y="424" fill="#e6edf3" font-size="11">DCS native (C-130J-30)</text>
+  <text x="280" y="424" fill="#e6edf3" font-size="11">Caisse listée à bord par DCS : suivie automatiquement</text>
   <rect x="557" y="413" width="14" height="14" fill="#f85149" rx="2"/>
   <rect x="617" y="413" width="14" height="14" fill="#484f58" rx="2"/>
   <text x="697" y="424" fill="#6e7681" font-size="11">—</text>
@@ -147,7 +147,7 @@
   <text x="800" y="505" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
 
   <text x="35"  y="522" fill="#e6edf3" font-size="11">DCS native parachute (1b.c)</text>
-  <text x="280" y="522" fill="#e6edf3" font-size="11">Sortie bbox cargo en vol automatique</text>
+  <text x="280" y="522" fill="#e6edf3" font-size="11">Sortie de la liste en vol : suivie automatiquement</text>
   <rect x="557" y="511" width="14" height="14" fill="#f85149" rx="2"/>
   <rect x="617" y="511" width="14" height="14" fill="#484f58" rx="2"/>
   <text x="697" y="522" fill="#6e7681" font-size="11">—</text>
@@ -196,8 +196,8 @@
   <text x="710" y="694" fill="#bc8cff" font-size="10">setJTACInTransit</text>
   <text x="800" y="694" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
 
-  <text x="35"  y="714" fill="#e6edf3" font-size="11">DCS native bbox (C-130 / Il-76)</text>
-  <text x="280" y="714" fill="#e6edf3" font-size="11">Véhicule entre dans bbox cargo automatiquement</text>
+  <text x="35"  y="714" fill="#e6edf3" font-size="11">DCS native (C-130J-30)</text>
+  <text x="280" y="714" fill="#e6edf3" font-size="11">Véhicule listé à bord par DCS : suivi automatiquement</text>
   <rect x="557" y="703" width="14" height="14" fill="#f85149" rx="2"/>
   <rect x="617" y="703" width="14" height="14" fill="#484f58" rx="2"/>
   <rect x="694" y="703" width="14" height="14" fill="#bc8cff" rx="2"/>
@@ -231,8 +231,8 @@
   <text x="710" y="795" fill="#bc8cff" font-size="10">resumeJTAC + laser code</text>
   <text x="800" y="795" fill="#2ea043" font-size="11" font-weight="bold">✅</text>
 
-  <text x="35"  y="812" fill="#e6edf3" font-size="11">DCS native (sol/air bbox exit)</text>
-  <text x="280" y="812" fill="#e6edf3" font-size="11">Sortie bbox cargo automatique (sol ou en vol)</text>
+  <text x="35"  y="812" fill="#e6edf3" font-size="11">DCS native (sol / vol)</text>
+  <text x="280" y="812" fill="#e6edf3" font-size="11">Sortie de la liste à bord automatique (sol ou en vol)</text>
   <rect x="557" y="801" width="14" height="14" fill="#f85149" rx="2"/>
   <rect x="617" y="801" width="14" height="14" fill="#484f58" rx="2"/>
   <rect x="694" y="801" width="14" height="14" fill="#bc8cff" rx="2"/>

@@ -1477,6 +1477,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dcs-native-cargo-_checknativedcscargo-1-s-tick" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DCS-native cargo — _checkNativeDCSCargo (1 s tick)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-unpack-pipeline-_spawnunpacked" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2041,6 +2052,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dcs-native-cargo-_checknativedcscargo-1-s-tick" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DCS-native cargo — _checkNativeDCSCargo (1 s tick)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-unpack-pipeline-_spawnunpacked" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2274,6 +2296,28 @@ non-overlapping positions avoiding other dynamic-cargo aircraft bounding boxes, 
 <p>Loading and unloading both call <code>ctld.utils.updateTransportWeight</code> so the transport's mass reflects
 its cargo. Because the DCS static is destroyed on load, <code>unloadCrate</code> recreates it via
 <code>_respawnStatic</code>, which mints a fresh unique name and re-indexes <code>self.crates</code> under it.</p>
+<h2 id="dcs-native-cargo-_checknativedcscargo-1-s-tick">DCS-native cargo — <code>_checkNativeDCSCargo</code> (1 s tick)<a class="headerlink" href="#dcs-native-cargo-_checknativedcscargo-1-s-tick" title="Permanent link">&para;</a></h2>
+<p>Crates carried through the DCS cargo system are read from the on-board list, like native vehicles
+(ADR 0022). A tracked crate is in native carry exactly while it is on the
+<code>unit:getCargosOnBoard()</code> list (read with <code>ctld.utils.getOnBoardCargo</code>) of a player aircraft whose type sets
+<code>useNativeDcsCargoSystem</code>; there is no bounding-box test, speed guard or drift reference. The tick returns at
+once when no crate is tracked.</p>
+<ul>
+<li><strong>Entry:</strong> a tracked crate <strong>on the ground</strong> whose <code>crateName</code> appears on a list becomes native carry
+  (<code>OnCrateLoaded</code>, <code>method = "dcs_native"</code>, <code>loadedByDCSNative = true</code>). Entries CTLD does not track are ignored
+  with one debug trace; a vehicle's <code>CRG:</code> companion entry belongs to the vehicle scan. An unreadable list
+  logs one warning for the type and the type is no longer watched.</li>
+<li><strong>Conversion:</strong> for a type with <code>convertNativeLoadToCTLD</code> (UH-1H and CH-47Fbl1 by default) the appearance is
+  the trigger of the hand-over: <code>UnloadCargo</code> releases the DCS load and, 0.5 s later, <code>loadCrate</code> loads it as
+  a CTLD crate. The crate is still listed during that delay, so <code>_convertingCrates</code> marks it as being
+  converted and it is handled once.</li>
+<li><strong>Release:</strong> a native-carry crate that has left its transport's list is released (<code>OnCrateUnloaded</code>,
+  <code>method = "dcs_native"</code>): <code>LANDED</code> with the transport on the ground, <code>FALLING</code> with <code>fromParachute</code> when
+  <code>ctld.utils.inAir(transport)</code>, then followed to the ground by <code>_scheduleParachuteLandingPoll</code>
+  (<code>ctld.utils.hasLanded</code>). A native-carry crate whose transport no longer exists is reset to the ground state.</li>
+</ul>
+<p>The spawn-time check that keeps a fresh crate out of a neighbouring aircraft's volume
+(<code>_getDynamicBBoxes</code>) is unrelated to detection and unchanged.</p>
 <h2 id="the-unpack-pipeline-_spawnunpacked">The unpack pipeline: <code>_spawnUnpacked</code><a class="headerlink" href="#the-unpack-pipeline-_spawnunpacked" title="Permanent link">&para;</a></h2>
 <p>Every unpack outcome — ground vehicle, air JTAC, or static — is deployed through a single
 three-step pipeline in <code>_spawnUnpacked(desc, pos, coa, cId, playerName)</code>:</p>

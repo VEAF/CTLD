@@ -1477,6 +1477,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dcs-native-cargo-_checknativedcscargo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cargo natif DCS — _checkNativeDCSCargo (tick 1 s)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-unpack-pipeline-_spawnunpacked" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2041,6 +2052,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dcs-native-cargo-_checknativedcscargo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cargo natif DCS — _checkNativeDCSCargo (tick 1 s)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-unpack-pipeline-_spawnunpacked" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2286,6 +2308,28 @@ sinon <code>"load"</code>.</p>
 <p>Le load et le unload appellent tous deux <code>ctld.utils.updateTransportWeight</code> pour que la masse du
 transport reflète son cargo. Comme le static DCS est détruit au load, <code>unloadCrate</code> le recrée via
 <code>_respawnStatic</code>, qui génère un nouveau nom unique et ré-indexe <code>self.crates</code> sous celui-ci.</p>
+<h2 id="dcs-native-cargo-_checknativedcscargo">Cargo natif DCS — <code>_checkNativeDCSCargo</code> (tick 1 s)<a class="headerlink" href="#dcs-native-cargo-_checknativedcscargo" title="Permanent link">&para;</a></h2>
+<p>Les caisses transportées par le système cargo DCS sont lues dans la liste de bord, comme les véhicules natifs
+(ADR 0022). Une caisse suivie est en carry natif exactement tant qu'elle figure dans la liste
+<code>unit:getCargosOnBoard()</code> (lue par <code>ctld.utils.getOnBoardCargo</code>) d'un appareil joueur dont le type fixe
+<code>useNativeDcsCargoSystem</code> ; il n'y a ni test de bounding box, ni garde-fou de vitesse, ni référence de dérive.
+Le tick retourne aussitôt quand aucune caisse n'est suivie.</p>
+<ul>
+<li><strong>Entrée :</strong> une caisse suivie <strong>au sol</strong> dont le <code>crateName</code> apparaît dans une liste passe en carry natif
+  (<code>OnCrateLoaded</code>, <code>method = "dcs_native"</code>, <code>loadedByDCSNative = true</code>). Les entrées que CTLD ne suit pas sont
+  ignorées avec une trace debug ; l'entrée compagnon <code>CRG:</code> d'un véhicule relève du scan des véhicules. Une
+  liste illisible journalise un avertissement pour le type et le type n'est plus surveillé.</li>
+<li><strong>Conversion :</strong> pour un type avec <code>convertNativeLoadToCTLD</code> (UH-1H et CH-47Fbl1 par défaut), l'apparition
+  déclenche la passation : <code>UnloadCargo</code> libère le chargement DCS et, 0,5 s plus tard, <code>loadCrate</code> la charge
+  comme caisse CTLD. La caisse reste listée pendant ce délai ; <code>_convertingCrates</code> la marque donc comme en
+  cours de conversion et elle n'est traitée qu'une fois.</li>
+<li><strong>Libération :</strong> une caisse en carry natif qui a quitté la liste de son transport est libérée
+  (<code>OnCrateUnloaded</code>, <code>method = "dcs_native"</code>) : <code>LANDED</code> transport au sol, <code>FALLING</code> avec <code>fromParachute</code> si
+  <code>ctld.utils.inAir(transport)</code>, puis suivie jusqu'au sol par <code>_scheduleParachuteLandingPoll</code>
+  (<code>ctld.utils.hasLanded</code>). Une caisse en carry natif dont le transport n'existe plus est remise à l'état sol.</li>
+</ul>
+<p>La vérification à l'apparition qui garde une caisse neuve hors du volume d'un appareil voisin
+(<code>_getDynamicBBoxes</code>) n'a rien à voir avec la détection et reste inchangée.</p>
 <h2 id="the-unpack-pipeline-_spawnunpacked">Le pipeline de unpack : <code>_spawnUnpacked</code><a class="headerlink" href="#the-unpack-pipeline-_spawnunpacked" title="Permanent link">&para;</a></h2>
 <p>Chaque issue de unpack — véhicule au sol, JTAC aérien ou static — est déployée via un unique
 pipeline en trois étapes dans <code>_spawnUnpacked(desc, pos, coa, cId, playerName)</code> :</p>

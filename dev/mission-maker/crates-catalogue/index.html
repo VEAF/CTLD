@@ -1131,6 +1131,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#native-cargo-by-aircraft-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native cargo by aircraft type
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2170,6 +2181,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#native-cargo-by-aircraft-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native cargo by aircraft type
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2474,8 +2496,9 @@ You rarely need to touch it; leave the defaults unless you want a different carg
 </tbody>
 </table>
 <h2 id="whole-vehicle-transport">Whole-vehicle transport<a class="headerlink" href="#whole-vehicle-transport" title="Permanent link">&para;</a></h2>
-<p>Beyond crates, CTLD can carry <strong>whole ground vehicles</strong> inside capable aircraft (C-130, Il-76,
-CH-47, UH-1H…). What a given airframe may carry is defined per aircraft in
+<p>Beyond crates, CTLD can carry <strong>whole ground vehicles</strong> inside capable aircraft: the C-130J-30 through the
+DCS cargo bay, helicopters such as the CH-47F or the Mi-8MT through the F10 menu. What a given airframe
+may carry is defined per aircraft in
 <a href="../configuration/"><code>capabilitiesByType</code></a>, not in a separate global list:</p>
 <table>
 <thead>
@@ -2491,7 +2514,7 @@ CH-47, UH-1H…). What a given airframe may carry is defined per aircraft in
 </tr>
 <tr>
 <td><code>useNativeDcsCargoSystem</code></td>
-<td><code>true</code> = use the DCS native cargo bay (C-130, Il-76, CH-47…); otherwise the F10 menu handles loading.</td>
+<td><code>true</code> = the aircraft has a DCS native cargo system (C-130J-30, CH-47F, Mi-8MT, UH-1H, Mi-24P): CTLD follows what DCS reports on board; otherwise the F10 menu handles loading.</td>
 </tr>
 <tr>
 <td><code>maxWholeVehiclesOnboard</code></td>
@@ -2541,6 +2564,74 @@ pilot packs the vehicle into crates, transports them, and unpacks at the destina
 <code>cratesRequired</code> crates of the vehicle's crate type around the aircraft. There is no separate
 "packable vehicles" list: any vehicle whose DCS type matches a <code>spawnableCrates</code> descriptor <code>unit</code>
 is packable.</p>
+<h3 id="native-cargo-by-aircraft-type">Native cargo by aircraft type<a class="headerlink" href="#native-cargo-by-aircraft-type" title="Permanent link">&para;</a></h3>
+<p>What each aircraft does through the <strong>DCS cargo system</strong>, as checked in a live mission (2026-10-01). CTLD reads
+<code>unit:getCargosOnBoard()</code> of the aircraft: an item is carried exactly while DCS lists it on board.</p>
+<table>
+<thead>
+<tr>
+<th>Aircraft</th>
+<th>List readable</th>
+<th>Crates</th>
+<th>Whole vehicle through DCS</th>
+<th>Released in flight (DCS parachute)</th>
+<th>Converted to a CTLD crate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C-130J-30</td>
+<td>yes</td>
+<td>yes (loadmaster tablet)</td>
+<td>yes (a <code>CRG:&lt;unit&gt;</code> entry)</td>
+<td>yes: crates and vehicles fall alive and are followed to the ground</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Mi-8MT</td>
+<td>yes</td>
+<td>yes, from about 5 m away</td>
+<td><strong>no</strong> (DCS lists crates only; use the F10 menu)</td>
+<td>not tested</td>
+<td>no (default)</td>
+</tr>
+<tr>
+<td>UH-1H</td>
+<td>yes</td>
+<td>yes</td>
+<td>not applicable (no whole-vehicle carry by default)</td>
+<td>not tested</td>
+<td>yes (default)</td>
+</tr>
+<tr>
+<td>CH-47F</td>
+<td>not verified in game</td>
+<td>not verified</td>
+<td>not verified</td>
+<td>not verified</td>
+<td>yes (default)</td>
+</tr>
+<tr>
+<td>Mi-24P</td>
+<td>not verified in game</td>
+<td>not verified</td>
+<td>not verified</td>
+<td>not verified</td>
+<td>no (default)</td>
+</tr>
+<tr>
+<td>Il-76</td>
+<td>AI-flown only, no native cargo</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>An item that CTLD does not track (cargo created by the loadmaster tablet, editor crates of an unknown type) is
+ignored. If DCS cannot give the list for a type, CTLD warns once for that type and stops watching it; it never
+falls back to a geometric guess.</p>
 <h2 id="aa-systems">AA systems<a class="headerlink" href="#aa-systems" title="Permanent link">&para;</a></h2>
 <p>AA systems are <strong>multi-crate kits</strong>: a mission maker declares the system once in
 <code>CTLDCrateAssemblyManager.TEMPLATES</code>, and CTLD automatically injects the matching part crates and

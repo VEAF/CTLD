@@ -628,7 +628,7 @@
   <a href="#load-a-vehicle-dynamic-cargo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Charger un véhicule (dynamic cargo)
+        Charger un véhicule (cargo natif DCS)
       
     </span>
   </a>
@@ -1967,7 +1967,7 @@
   <a href="#load-a-vehicle-dynamic-cargo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Charger un véhicule (dynamic cargo)
+        Charger un véhicule (cargo natif DCS)
       
     </span>
   </a>
@@ -2056,17 +2056,26 @@ vehicles"</strong>. Le nombre de véhicules que vous pouvez emporter à la fois 
 <p><strong>Activation :</strong> F10 → CTLD → <strong>Vehicle Commands</strong> → <strong>Load / Extract Vehicles</strong> → <em>[nom du véhicule]</em>
 (nécessite d'être posé ; le sous-menu est grisé en vol et affiche <strong>"No vehicles nearby"</strong> quand
 aucun n'est à portée).</p>
-<h2 id="load-a-vehicle-dynamic-cargo">Charger un véhicule (dynamic cargo)<a class="headerlink" href="#load-a-vehicle-dynamic-cargo" title="Permanent link">&para;</a></h2>
-<p><strong>Utilité :</strong> Permet à un C-130 ou un Il-76 d'avaler un véhicule par la rampe de chargement à la
-manière dont DCS gère son propre dynamic cargo — sans aucun clic de menu.</p>
-<p><strong>Fonctionnement :</strong> Faites entrer le véhicule dans la soute de l'appareil. CTLD surveille la boîte
-englobante de la soute ; lorsque le véhicule est à l'intérieur, il est chargé automatiquement et DCS
-gère le poids nativement (les limites de nombre et de poids par appareil ci-dessus ne s'appliquent
-<strong>pas</strong> à ce chemin). Le déchargement se fait de la même façon en sens inverse — le véhicule
-réapparaît au sol lorsqu'il quitte la soute.</p>
-<p><strong>Activation :</strong> Automatique lorsque le véhicule entre dans la soute. Seuls les appareils de classe
-C-130 / Il-76 (capables de dynamic cargo) utilisent ce chemin ; les autres transports capables
-chargent via le menu ci-dessus.</p>
+<h2 id="load-a-vehicle-dynamic-cargo">Charger un véhicule (cargo natif DCS)<a class="headerlink" href="#load-a-vehicle-dynamic-cargo" title="Permanent link">&para;</a></h2>
+<p><strong>Utilité :</strong> Permet à un C-130J-30 de prendre un véhicule avec la tablette de loadmaster de DCS — sans
+aucun clic de menu CTLD.</p>
+<p><strong>Fonctionnement :</strong> Chargez le véhicule avec la tablette cargo DCS de l'appareil. CTLD lit la liste de ce
+que DCS déclare à bord de l'appareil ; quand le véhicule y apparaît, CTLD le suit comme transporté et DCS
+gère le poids nativement (les limites de nombre et de poids par appareil ci-dessus ne s'appliquent <strong>pas</strong>
+à ce chemin). Un véhicule simplement garé à côté ou sous l'appareil n'est <strong>jamais</strong> compté : seul ce que
+DCS liste lui-même à bord l'est.</p>
+<p><strong>Déchargement :</strong> un véhicule transporté est déchargé <strong>de la façon dont il a été chargé</strong>. Un véhicule
+chargé par la tablette se décharge avec la tablette (il n'apparaît pas dans la liste <em>Unload Vehicles</em> de
+CTLD). Quand DCS le libère, CTLD le voit quitter la liste de l'appareil et le véhicule est de nouveau prêt
+à être chargé. Libéré au sol, c'est le même véhicule, là où DCS l'a posé (il n'est pas respawné). Libéré en
+vol avec le parachute natif de DCS, il tombe sous sa voilure, toujours le même véhicule ; une fois posé, il
+est de nouveau prêt. Le <em>Parachute Vehicle</em> propre à CTLD fonctionne autrement : il respawne le véhicule à
+sa position d'atterrissage.</p>
+<p><strong>À savoir :</strong> Le cargo créé par la tablette elle-même, ou les caisses de l'éditeur que CTLD ne connaît
+pas, sont ignorés par CTLD. Parmi les appareils à voilure fixe, seul le C-130J-30 utilise ce chemin (l'Il-76
+n'est piloté que par l'IA et n'a pas de cargo natif) ; l'interface cargo DCS des hélicoptères accepte des
+caisses, pas des véhicules entiers, donc les hélicoptères chargent les véhicules par le menu ci-dessus.</p>
+<p><strong>Activation :</strong> Automatique lorsque DCS liste le véhicule à bord.</p>
 <h2 id="unload-a-vehicle">Décharger un véhicule<a class="headerlink" href="#unload-a-vehicle" title="Permanent link">&para;</a></h2>
 <p><strong>Utilité :</strong> Repose au sol, là où vous êtes, un véhicule que vous transportez.</p>
 <p><strong>Fonctionnement :</strong> Pour un véhicule chargé par le menu, CTLD le fait réapparaître (spawn) au sol
@@ -2084,7 +2093,7 @@ du dépackage.</p>
 <p><strong>Fonctionnement :</strong> Posez-vous près d'un véhicule packable (à moins de
 <code>maximumDistancePackableUnitsSearch</code>, 200 m). Le véhicule est retiré et ses <code>cratesRequired</code> crates
 apparaissent autour de vous : dans le secteur <strong>avant</strong> (±45°) pour un hélicoptère, dans le secteur
-<strong>arrière</strong> pour un C-130 / Il-76. De là, déplacez les crates en sling-load ou par le menu et
+<strong>arrière</strong> pour un C-130. De là, déplacez les crates en sling-load ou par le menu et
 <a href="../crates/">dépackez-les</a> à destination. Le packing n'est disponible que si la mission l'autorise
 (<code>enablePackingVehicles</code>).</p>
 <p><strong>Activation :</strong> F10 → CTLD → <strong>Crate Commands</strong> → <strong>Pack Equipt</strong> → <em>[nom du véhicule]</em> (apparaît au
