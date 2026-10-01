@@ -455,9 +455,9 @@ The troop-command menu is rebuilt on `S_EVENT_LAND` / `S_EVENT_TAKEOFF` from the
 current position and cargo state:
 
 - In flight: the "Troop Commands" submenu is empty.
-- On the ground inside a pickup TRZ: a "Load from `<zoneName>`" option appears (the label is the
-  short name; the callback receives the zone's registry key). The "Request Equipment" menu labels its zone
-  submenu with the registry key itself and passes it to its callbacks.
+- On the ground inside a pickup TRZ: a "Load from `<registry key>`" option appears (the label and the
+  callback both use the zone's registry key). The "Request Equipment" menu does the same for its zone
+  submenu.
 - On the ground with troops onboard: an "Unload / Extract" option appears.
 - On the ground outside any TRZ: no load options.
 

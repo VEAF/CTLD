@@ -17,8 +17,8 @@ reports the key it is filed under, and the two menus hand that key to their call
   for troop zones, `name` for logistic zones).
 - **Request Equipment** (single crates, sets, whole-vehicle entries) and **Load from <zone>** pass
   `registryKey()` as the callback's zone argument. The registry lookup stays in the callback, so the
-  active / alive / in-zone checks still run at click time. The troop label keeps its short form; the Request Equipment zone submenu is labelled with the registry key
-  (follow-up decided in PR review).
+  active / alive / in-zone checks still run at click time. Both menu labels are the registry key (follow-up decided in PR review); the FOB-only `displayName` field
+  is removed.
 - Order of work: first a busted reproduction of each menu callback over an auto-discovered zone
   (both fail today: "not close enough to friendly logistics" and "Zone not found."), then the fix.
 - A round-trip test covers every registration path (auto-discovered TRZ / LGZ / WPZ / EXZ, FOB troop
@@ -35,8 +35,7 @@ reports the key it is filed under, and the two menus hand that key to their call
 - [ ] A troop load from an auto-discovered troop zone embarks the troops; a FOB troop zone still works.
 - [ ] `registryKey()` exists on both zone classes and the round-trip test passes for every
       registration path listed above.
-- [ ] The troop label still shows its short form (or the existing `displayName` override); the Request
-      Equipment zone submenu shows the registry key.
+- [ ] The Request Equipment zone submenu and the troop "Load from" entry both show the registry key.
 - [ ] No i18n string added or changed; luacheck clean; `busted tests/ci` green.
 - [ ] `CHANGELOG.md` `[Unreleased]` has a `Fixed` entry.
 

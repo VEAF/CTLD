@@ -35,9 +35,9 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   **Load from <zone>** troop menu answered "Zone not found.", because both handed the zone's short name to a
   registry now keyed by the full DCS name. A troop or logistic zone now reports its own registry key
   (`registryKey()`: the DCS name when it has one, otherwise its own name — FOB, ship, logistic unit) and both
-  menus pass it to their callbacks. The Request Equipment zone submenu is now labelled with the full name too
-  (two zones sharing a short name used to merge into one submenu with duplicated crates); the troop
-  "Load from" label keeps its short form. See ADR 0023.
+  menus pass it to their callbacks. The Request Equipment zone submenu and the troop "Load from" entry are now labelled with the full
+  name too (two zones sharing a short name used to merge into one submenu, with duplicated crates for
+  Request Equipment); the FOB-only `displayName` zone field is gone, a FOB's name being its key. See ADR 0023.
 
 ### Fixed — `onUnitDead` no longer floods the log for deaths CTLD has no business with (FIX-ONUNITDEAD-LOG-LEVEL)
 

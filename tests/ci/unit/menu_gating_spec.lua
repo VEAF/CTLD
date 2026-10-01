@@ -438,7 +438,7 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
             zm.getTroopZonesForCoalition = function()
                 return { {
                     zoneName        = "Z1",
-                    registryKey     = function() return "Z1" end,
+                    registryKey     = function() return "TRZ_Z1_B_999_nil_0" end,
                     pickMaxStock    = 0,           -- 0 → infinite (see refreshMenuSection)
                     pickCurrentStock = 0,
                     hasPickup       = function() return true end,
@@ -471,7 +471,7 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
 
         local function loadPath(name)
             return { ROOT, tr("Troop Commands"), tr("Embark / Extract Troops"),
-                     tr("Load from %1", "TRZ_Z1"), tr("Load ") .. name }
+                     tr("Load from %1", "TRZ_Z1_B_999_nil_0"), tr("Load ") .. name }
         end
 
         it("Standard Group present (6 ≤ cap 8, no side restriction)", function()
@@ -511,14 +511,13 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
             tm._findAllNearbyDropped = function() return {} end
 
             -- A zone shaped exactly like the one registerFOBAsTroopZone produces: zoneName is
-            -- the human-readable FOB name, never a parsed TRZ_ token — displayName carries the
-            -- label the F10 menu should actually show.
+            -- the human-readable FOB name, never a parsed TRZ_ token, and it is the registry key
+            -- the F10 menu shows as the label.
             local zm = CTLDZoneManager.getInstance()
             zm.getTroopZonesForCoalition = function()
                 return { {
                     zoneName         = "Deployed FOB #1",
                     registryKey      = function() return "Deployed FOB #1" end,
-                    displayName      = "Deployed FOB #1",
                     pickMaxStock     = 0,
                     pickCurrentStock = 0,
                     hasPickup        = function() return true end,

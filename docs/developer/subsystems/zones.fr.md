@@ -455,9 +455,9 @@ Le menu de commande des troops est reconstruit sur `S_EVENT_LAND` / `S_EVENT_TAK
 de la position courante du joueur et de l'état de sa cargaison :
 
 - En vol : le sous-menu « Troop Commands » est vide.
-- Au sol dans une pickup TRZ : une option « Load from `<zoneName>` » apparaît (le libellé est le
-  nom court ; le callback reçoit la clé de registre de la zone). Le menu « Request Equipment » nomme son
-  sous-menu de zone avec la clé de registre elle-même et la transmet à ses callbacks.
+- Au sol dans une pickup TRZ : une option « Load from `<clé de registre>` » apparaît (le libellé et le
+  callback utilisent tous deux la clé de registre de la zone). Le menu « Request Equipment » fait de même
+  pour son sous-menu de zone.
 - Au sol avec des troops à bord : une option « Unload / Extract » apparaît.
 - Au sol hors de toute TRZ : aucune option de chargement.
 

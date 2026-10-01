@@ -82,16 +82,13 @@ CTLDTroopZone = class(CTLDAnchoredZone)
 --   Optional : verticies, pickMaxStock, objectiveFlag, objectiveTarget,
 --              smoke (trigger.smokeColor.* or -1), active,
 --              isWaypoint (bool), isDropoff (bool),
---              isAIPickup (bool), isAIDropoff (bool), displayName (string)
+--              isAIPickup (bool), isAIDropoff (bool), registryKey (string)
 function CTLDTroopZone:init(data)
     self.dcsName          = data.dcsName
     self.zoneName         = data.zoneName
     -- Only for a zone filed under a key that is neither its dcsName nor its zoneName
     -- (createTroopZoneAtObject: dcsName is the anchor object, the key is the TRZ_ name).
     self._registryKey     = data.registryKey
-    -- F10 label override: when set, the menu shows this instead of "TRZ_"..zoneName. Needed for
-    -- a zone whose zoneName isn't a parsed TRZ_ token (e.g. a FOB's own name).
-    self.displayName      = data.displayName
     self.coalition        = data.coalition  or 0
     self.center           = data.center
     self.radius           = data.radius     or 0
@@ -1372,7 +1369,6 @@ function CTLDZoneManager:registerFOBAsTroopZone(fobName, point, radius, coalitio
     end
     local zone = CTLDTroopZone:new({
         zoneName     = fobName,
-        displayName  = fobName,   -- not a parsed TRZ_ name — show it as-is, no "TRZ_" prefix
         coalition    = coalitionId or 0,
         center       = point,
         radius       = radius or 150,

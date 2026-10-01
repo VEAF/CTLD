@@ -172,6 +172,34 @@ describe("F10 menus designate an auto-discovered zone by its registry key", func
         assert.equals("LGZ_dup_B2", firstCommand(second).anyArgument.zoneName)
     end)
 
+    it("Load from <zone>: two troop zones sharing a short name get two separate entries", function()
+        env.mission = { triggers = { zones = {
+            { name = "TRZ_dup_B_999_nil_0" },
+            { name = "TRZ_dup_B_999_nil_1" },
+        } } }
+        CTLDZoneManager._instance = nil
+        resetSingletons()
+        EventDispatcher.getInstance()
+        CTLDDCSEventBridge.getInstance()
+        CTLDZoneManager.getInstance()
+        CTLDPlayerManager.getInstance()
+        local tm = CTLDTroopManager.getInstance()
+        tm._templates = {}
+        tm:createLoadableGroup({ name = "Standard Group", composition = { inf = 4 } })
+        tm._isInAir              = function() return false end
+        tm._findAllNearbyDropped = function() return {} end
+
+        local menu = buildMenuFor(makePlayer())
+        local base = { ROOT, tr("Troop Commands"), tr("Embark / Extract Troops") }
+        local function path(label) return { base[1], base[2], base[3], tr("Load from %1", label) } end
+        local first  = menu:_getNode(path("TRZ_dup_B_999_nil_0"))
+        local second = menu:_getNode(path("TRZ_dup_B_999_nil_1"))
+        assert.is_not_nil(first)
+        assert.is_not_nil(second)
+        assert.equals("TRZ_dup_B_999_nil_0", firstCommand(first).anyArgument.zoneName)
+        assert.equals("TRZ_dup_B_999_nil_1", firstCommand(second).anyArgument.zoneName)
+    end)
+
     it("Request Equipment: a request is still refused once the zone is inactive", function()
         local menu = buildMenuFor(makePlayer())
         local cmd = firstCommand(menu:_getNode({ ROOT, tr("Request Equipment") }))
@@ -198,7 +226,7 @@ describe("F10 menus designate an auto-discovered zone by its registry key", func
 
         local menu = buildMenuFor(makePlayer())
         local loadNode = menu:_getNode({ ROOT, tr("Troop Commands"), tr("Embark / Extract Troops"),
-                                         tr("Load from %1", "TRZ_pickup1") })
+                                         tr("Load from %1", "TRZ_pickup1_B_999_nil_0") })
         assert.is_not_nil(loadNode, "no Load from entry for the auto-discovered zone")
         local cmd = firstCommand(loadNode)
         assert.is_not_nil(cmd)

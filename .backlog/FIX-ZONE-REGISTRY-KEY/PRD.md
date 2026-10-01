@@ -87,9 +87,9 @@ breaking change with no compatibility field (ADR 0023).
   where it does not hold is fixed in this lot, not worked around.
 - **Menus.** The Request Equipment menu and the Load from <zone> menu pass the zone's registry key as the
   callback's zone argument and keep their registry lookup, so liveness and in-zone checks run at click
-  time. The troop menu label keeps its short form (and the existing `displayName` override); the Request Equipment
-  zone submenu is labelled with the registry key itself, decided in review of the PR, so that two zones
-  sharing a short name no longer merge into one submenu.
+  time. Both menu labels (Request Equipment zone submenu, troop "Load from" entry) are the registry key itself,
+  decided in review of the PR, so that two zones sharing a short name no longer merge into one entry; the
+  FOB-only `displayName` zone field is removed (a FOB's name is its key).
 - **Payloads** (`OnZoneSmokeRefreshed`, `OnTroopZoneUpdated`, `OnLogisticZoneUpdated`, and the
   `unitsAdded` / `unitsRemoved` lists): `name` is the registry key for troop and logistic entries alike.
   The `fullName` field and the troop-zone `zoneName` payload field are removed. No short-name field is
