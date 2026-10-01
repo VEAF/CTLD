@@ -143,6 +143,12 @@ redefined terms are added here in the same move as the decision that introduces 
   documented unreliable for statics — see `CTLD_core.lua`, `CTLD_crate.lua`). A zone with no live
   unit/static anchor (fixed position, or a Moving Zone's own `dcsName` trigger-zone reference with
   no linked unit) has nothing that can "die" this way.
+- **Zone registry key** — the one identifier under which the zone manager files a troop or
+  logistic zone, and the only value a lookup or an event consumer may use to designate that zone:
+  the full DCS name for an auto-discovered zone, the unit or FOB name otherwise. A zone reports it
+  itself (`registryKey()`). The **short name** (the field a naming convention parses out of the
+  Mission Editor name, e.g. `log1` in `LGZ_log1_B`) is a display label only and never designates a
+  zone. Event payloads that describe a zone carry its registry key as `name`.
 
 ## Naming conventions
 

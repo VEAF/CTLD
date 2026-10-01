@@ -91,8 +91,8 @@ a warning is written to `CTLD.log` and the zone is ignored.
 | `stock` | Pickup capability | What the pilot sees |
 | --- | --- | --- |
 | `0` | **None** — no pickup | No "Load from" entry in the F10 menu |
-| `1–998` | Limited — decrements on each load | "Load from `<name>` (N remaining)" |
-| `999` | **Unlimited** — never exhausted | "Load from `<name>`" |
+| `1–998` | Limited — decrements on each load | "Load from `<zone name>` (N remaining)" |
+| `999` | **Unlimited** — never exhausted | "Load from `<zone name>`" (the zone's full Mission Editor name) |
 
 > Use `999` for unlimited pickup — **not** `0`. `0` means *no pickup capability*.
 

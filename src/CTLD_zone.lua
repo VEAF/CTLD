@@ -82,13 +82,13 @@ CTLDTroopZone = class(CTLDAnchoredZone)
 --   Optional : verticies, pickMaxStock, objectiveFlag, objectiveTarget,
 --              smoke (trigger.smokeColor.* or -1), active,
 --              isWaypoint (bool), isDropoff (bool),
---              isAIPickup (bool), isAIDropoff (bool), displayName (string)
+--              isAIPickup (bool), isAIDropoff (bool), registryKey (string)
 function CTLDTroopZone:init(data)
     self.dcsName          = data.dcsName
     self.zoneName         = data.zoneName
-    -- F10 label override: when set, the menu shows this instead of "TRZ_"..zoneName. Needed for
-    -- a zone whose zoneName isn't a parsed TRZ_ token (e.g. a FOB's own name).
-    self.displayName      = data.displayName
+    -- Only for a zone filed under a key that is neither its dcsName nor its zoneName
+    -- (createTroopZoneAtObject: dcsName is the anchor object, the key is the TRZ_ name).
+    self._registryKey     = data.registryKey
     self.coalition        = data.coalition  or 0
     self.center           = data.center
     self.radius           = data.radius     or 0
@@ -141,6 +141,13 @@ function CTLDTroopZone:init(data)
     -- For anchored polygon zones: vertices are relative offsets from the anchor unit.
     -- For static polygon zones: verticies already contains absolute world coordinates.
     self._vertexOffsets   = data.vertexOffsets   or nil
+end
+
+--- The key CTLDZoneManager files this zone under (ADR 0023): the key the registration gave it
+-- when it differs from the DCS name (createTroopZoneAtObject), else the DCS name, else its own
+-- name (FOB, ship, scripted zone). `zoneName` alone is a display label.
+function CTLDTroopZone:registryKey()
+    return self._registryKey or self.dcsName or self.zoneName
 end
 
 --- True if this zone acts as a pickup zone (troops can board here).
@@ -404,6 +411,12 @@ function CTLDLogisticZone:init(data)
         cratesDropoff = true,
         vehicleSpawn  = true,
     }
+end
+
+--- The key CTLDZoneManager files this zone under (ADR 0023): the DCS name when the zone has
+-- one, otherwise its own name (logistic unit, FOB). `name` alone is a display label.
+function CTLDLogisticZone:registryKey()
+    return self.dcsName or self.name
 end
 
 --- True if point is inside the zone (circular only — logistic zones are always circular).
@@ -881,7 +894,7 @@ function CTLDZoneManager:_discoverLogisticUnitTypes()
             linkedUnit = obj,
             active     = true,
         })
-        added[#added + 1] = { unitName = name, coalition = coal }
+        added[#added + 1] = { name = name, coalition = coal }
         ctld.utils.log("INFO", "CTLDZoneManager: logistic unit '%s' (type '%s')",
             name, obj:getTypeName())
     end
@@ -1154,7 +1167,7 @@ function CTLDZoneManager:_loadLegacyZones()
                     linkedUnit  = obj,
                     active      = true,
                 })
-                added[#added + 1] = { unitName = unitName, coalition = coal }
+                added[#added + 1] = { name = unitName, coalition = coal }
                 ctld.utils.log("INFO", "CTLDZoneManager: logistic unit '%s'", unitName)
             else
                 ctld.utils.log("WARN",
@@ -1188,8 +1201,7 @@ function CTLDZoneManager:_scheduleSmoke()
             if zone.active and zone.smoke and zone.smoke >= 0 then
                 trigger.action.smoke(zone:getCenter(), zone.smoke)
                 tZoneData[#tZoneData + 1] = {
-                    fullName        = zone.dcsName,
-                    zoneName        = zone.zoneName,
+                    name            = zone:registryKey(),
                     coalition       = zone.coalition,
                     position        = zone:getCenter(),
                     radius          = zone.radius,
@@ -1215,7 +1227,7 @@ function CTLDZoneManager:_scheduleSmoke()
                     trigger.action.smoke(zone:getCenter(), color)
                 end
                 lZoneData[#lZoneData + 1] = {
-                    name       = zone.name,
+                    name       = zone:registryKey(),
                     coalition  = zone.coalition,
                     position   = zone:getCenter(),
                     radius     = zone.radius,
@@ -1247,7 +1259,7 @@ function CTLDZoneManager:_publishLogisticZoneUpdated(added, removed)
     local zones = {}
     for _, zone in pairs(self._logisticZones) do
         zones[#zones + 1] = {
-            name       = zone.name,
+            name       = zone:registryKey(),
             type       = "logistic",
             linkedUnit = zone._linkedUnit,
             position   = zone:getCenter(),
@@ -1273,7 +1285,7 @@ function CTLDZoneManager:_publishTroopZoneUpdated(added, removed)
     local zones = {}
     for _, zone in pairs(self._troopZones) do
         zones[#zones + 1] = {
-            name       = zone.zoneName,
+            name       = zone:registryKey(),
             type       = "troop",
             linkedUnit = zone._linkedUnit,
             position   = zone:getCenter(),
@@ -1302,7 +1314,7 @@ function CTLDZoneManager:onDead(event)
     if zone and zone:isDynamic() then
         self._logisticZones[unitName] = nil
         ctld.utils.log("INFO", "CTLDZoneManager: dynamic logistic zone '%s' removed (unit dead)", unitName)
-        self:_publishLogisticZoneUpdated({}, { { unitName = unitName, coalition = zone.coalition, reason = "dead" } })
+        self:_publishLogisticZoneUpdated({}, { { name = unitName, coalition = zone.coalition, reason = "dead" } })
     end
 
     for trzName, tZone in pairs(self._troopZones) do
@@ -1311,7 +1323,7 @@ function CTLDZoneManager:onDead(event)
             self._troopZones[trzName] = nil
             ctld.utils.log("INFO", "CTLDZoneManager: troop zone '%s' removed (anchor dead: %s)",
                 trzName, unitName)
-            self:_publishTroopZoneUpdated({}, { { zoneName = trzName, coalition = tZone.coalition, reason = "dead" } })
+            self:_publishTroopZoneUpdated({}, { { name = trzName, coalition = tZone.coalition, reason = "dead" } })
         end
     end
 end
@@ -1340,7 +1352,7 @@ function CTLDZoneManager:registerFOBAsLogistic(fobName, point, radius, coalition
     })
     self._logisticZones[fobName] = zone
     ctld.utils.log("INFO", "CTLDZoneManager: FOB logistic zone '%s' r=%dm", fobName, radius or 150)
-    self:_publishLogisticZoneUpdated({ { unitName = fobName, coalition = coalitionId } }, {})
+    self:_publishLogisticZoneUpdated({ { name = fobName, coalition = coalitionId } }, {})
     return true
 end
 
@@ -1357,7 +1369,6 @@ function CTLDZoneManager:registerFOBAsTroopZone(fobName, point, radius, coalitio
     end
     local zone = CTLDTroopZone:new({
         zoneName     = fobName,
-        displayName  = fobName,   -- not a parsed TRZ_ name — show it as-is, no "TRZ_" prefix
         coalition    = coalitionId or 0,
         center       = point,
         radius       = radius or 150,
@@ -1424,7 +1435,7 @@ function CTLDZoneManager:unregisterLogistic(name)
     if zone then
         self._logisticZones[name] = nil
         ctld.utils.log("INFO", "CTLDZoneManager: logistic zone '%s' unregistered", name)
-        self:_publishLogisticZoneUpdated({}, { { unitName = name, coalition = zone.coalition, reason = "removed" } })
+        self:_publishLogisticZoneUpdated({}, { { name = name, coalition = zone.coalition, reason = "removed" } })
     end
 end
 
@@ -1440,7 +1451,7 @@ function CTLDZoneManager:deactivateLogisticZone(name)
     end
     zone:deactivate()
     ctld.utils.log("INFO", "CTLDZoneManager: logistic zone '%s' deactivated", name)
-    self:_publishLogisticZoneUpdated({}, { { unitName = name, coalition = zone.coalition, reason = "deactivated" } })
+    self:_publishLogisticZoneUpdated({}, { { name = name, coalition = zone.coalition, reason = "deactivated" } })
 end
 
 --- Reactivate a previously deactivated logistic zone.
@@ -1453,7 +1464,7 @@ function CTLDZoneManager:activateLogisticZone(name)
     end
     zone:activate()
     ctld.utils.log("INFO", "CTLDZoneManager: logistic zone '%s' activated", name)
-    self:_publishLogisticZoneUpdated({ { unitName = name, coalition = zone.coalition } }, {})
+    self:_publishLogisticZoneUpdated({ { name = name, coalition = zone.coalition } }, {})
 end
 
 -- ============================================================
@@ -1724,7 +1735,7 @@ function CTLDZoneManager:createExtractZone(zoneName, flagNumber, smoke)
     })
     if smokeColor >= 0 then trigger.action.smoke(pt, smokeColor) end
     ctld.utils.log("INFO", "CTLDZoneManager:createExtractZone — '%s' flag=%s", zoneName, tostring(flagNumber))
-    self:_publishTroopZoneUpdated({ { zoneName = zoneName, coalition = 0 } }, {})
+    self:_publishTroopZoneUpdated({ { name = zoneName, coalition = 0 } }, {})
     return true
 end
 
@@ -1738,7 +1749,7 @@ function CTLDZoneManager:removeExtractZone(zoneName, flagNumber)
     if zone then
         self._troopZones[zoneName] = nil
         ctld.utils.log("INFO", "CTLDZoneManager:removeExtractZone — '%s' removed", zoneName)
-        self:_publishTroopZoneUpdated({}, { { zoneName = zoneName, coalition = zone.coalition, reason = "removed" } })
+        self:_publishTroopZoneUpdated({}, { { name = zoneName, coalition = zone.coalition, reason = "removed" } })
         return true
     end
     ctld.utils.log("WARN", "CTLDZoneManager:removeExtractZone — not found: %s", tostring(zoneName))
@@ -1819,7 +1830,8 @@ function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
     end
 
     self._troopZones[trzName] = CTLDTroopZone:new({
-        dcsName         = dcsName,
+        dcsName         = dcsName,      -- the anchor object / trigger zone, not the registry key
+        registryKey     = trzName,
         zoneName        = parsed.zoneName,
         coalition       = parsed.coalition,
         center          = center,
@@ -1832,7 +1844,7 @@ function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
     })
     ctld.utils.log("INFO", "CTLDZoneManager:createTroopZoneAtObject — '%s' at '%s' (coalition=%s, stock=%s)",
         trzName, objectName, tostring(parsed.coalition), tostring(parsed.pickMaxStock))
-    self:_publishTroopZoneUpdated({ { zoneName = trzName, coalition = parsed.coalition } }, {})
+    self:_publishTroopZoneUpdated({ { name = trzName, coalition = parsed.coalition } }, {})
 
     -- Static anchor: S_EVENT_DEAD is documented unreliable for statics elsewhere in this
     -- codebase (see CTLD_core.lua/CTLD_crate.lua), so poll isExist() instead — same mechanism
@@ -1849,7 +1861,7 @@ function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
                     ctld.utils.log("INFO",
                         "CTLDZoneManager: troop zone '%s' removed (static anchor destroyed)", trzName)
                     self_ref:_publishTroopZoneUpdated({},
-                        { { zoneName = trzName, coalition = parsed.coalition, reason = "dead" } })
+                        { { name = trzName, coalition = parsed.coalition, reason = "dead" } })
                 end
             end)
     end

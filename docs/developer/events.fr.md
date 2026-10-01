@@ -782,29 +782,52 @@ Un système AA complet est réparé et re-spawné. Mêmes champs que `OnAASystem
 
 **Published by** : `CTLDCrateAssemblyManager:_repair()`
 
-### Événements zone (2) { #zone-events-2 }
+### Événements zone (3) { #zone-events-3 }
+
+Chaque entrée de zone de ces payloads identifie la zone par `name`, sa **clé de registre de zone** : le
+nom DCS complet pour une zone auto-découverte (`LGZ_depot1_B`, et non `depot1`), le nom de l'unité ou
+du FOB dans les autres cas. C'est la valeur qu'attendent les accesseurs de `CTLDZoneManager`
+(`getTroopZone`, `getLogisticZone`, …). Le nom court extrait d'un nom `TRZ_` / `LGZ_` n'est qu'un
+libellé d'affichage et n'est porté par aucun payload.
 
 #### `OnZoneSmokeRefreshed`
 Émis à chaque cycle du timer de smoke-refresh.
 
 | Champ | Type | Description |
 | --- | --- | --- |
-| `troopZones` | table | Tableau de payloads troop-zone |
-| `logisticZones` | table | Tableau de payloads logistic-zone |
+| `troopZones` | table | Tableau d'entrées troop-zone (`name` = clé de registre, `coalition`, `position`, `radius`, `hasPickup`, `hasExtract`, `pickMaxStock`, `pickCurrentStock`, `objectiveFlag`, `objectiveTarget`, `objectiveCurrent`, `smokeColor`) |
+| `logisticZones` | table | Tableau d'entrées logistic-zone (`name` = clé de registre, `coalition`, `position`, `radius`, `type`, `linkedUnit`, `smokeColor`) |
 | `refreshInterval` | number | Secondes |
 
 **Published by** : `CTLDZoneManager:_scheduleSmoke()` (timer périodique)
 
 #### `OnLogisticZoneUpdated`
-Des units de zone dynamique sont ajoutées ou retirées.
+Des zones logistiques sont enregistrées, retirées ou (dés)activées.
 
 | Champ | Type | Description |
 | --- | --- | --- |
-| `zones` | table | Toutes les zones après mise à jour |
-| `unitsAdded` | table | Units nouvellement enregistrées |
-| `unitsRemoved` | table | Units ayant quitté la zone |
+| `zones` | table | Toutes les zones logistiques après mise à jour (`name` = clé de registre, `type`, `linkedUnit`, `position`, `coalition`, `radius`, `services`) |
+| `unitsAdded` | table | Entrées `{ name, coalition }` des zones venant d'être enregistrées ou réactivées |
+| `unitsRemoved` | table | Entrées `{ name, coalition, reason }` des zones retirées ou désactivées (`reason` : `dead`, `removed`, `deactivated`) |
 
 **Published by** : `CTLDZoneManager:_publishLogisticZoneUpdated()`
+
+#### `OnTroopZoneUpdated`
+Une troop zone est créée ou retirée à l'exécution (jamais pour une zone découverte à l'init de l'éditeur de mission).
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `zones` | table | Toutes les troop zones après mise à jour (`name` = clé de registre, `type`, `linkedUnit`, `position`, `coalition`) |
+| `unitsAdded` | table | Entrées `{ name, coalition }` des zones venant d'être créées |
+| `unitsRemoved` | table | Entrées `{ name, coalition, reason }` des zones retirées (`reason` : `dead`, `removed`) |
+
+**Published by** : `CTLDZoneManager:_publishTroopZoneUpdated()`
+
+!!! warning "Rupture de compatibilité (2.0.0-rc)"
+    Avant ce changement, `name` portait le nom court, les entrées troupes de `OnZoneSmokeRefreshed`
+    avaient aussi `fullName` et `zoneName`, et les entrées `unitsAdded` / `unitsRemoved` utilisaient
+    `unitName` ou `zoneName` selon le type de zone. `fullName` et `zoneName` disparaissent et les
+    entrées utilisent `name`. Les scripts de mission qui lisent ces champs doivent passer à `name`.
 
 ### Résumé du catalogue { #catalogue-summary }
 
@@ -818,8 +841,8 @@ Des units de zone dynamique sont ajoutées ou retirées.
 | RECON | 8 |
 | FOB | 2 |
 | AA System | 3 |
-| Zone | 2 |
-| **Total** | **49** |
+| Zone | 3 |
+| **Total** | **50** |
 
 Une dizaine d'événements environ ont des abonnés internes (rafraîchissement de menu et
 coordination entre managers) ; les autres sont publiés purement pour la consommation par le

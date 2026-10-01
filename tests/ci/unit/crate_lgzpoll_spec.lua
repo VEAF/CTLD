@@ -72,11 +72,11 @@ describe("CTLDCrateManager LGZ ground-position poll guard", function()
         }
     end
 
-    -- Stub Zone manager to return one zone named "log1".
+    -- Stub Zone manager to return one zone (short name "log1", registry key "LGZ_log1_B").
     local function stubOneZone()
         local origFn = CTLDZoneManager.getInstance().getLogisticZonesAtPoint
         CTLDZoneManager.getInstance().getLogisticZonesAtPoint =
-            function() return {{ name = "log1" }} end
+            function() return {{ name = "log1", registryKey = function() return "LGZ_log1_B" end }} end
         return origFn
     end
 
@@ -99,8 +99,8 @@ describe("CTLDCrateManager LGZ ground-position poll guard", function()
         Unit.getByName = origGetByName
         CTLDZoneManager.getInstance().getLogisticZonesAtPoint = origZones
 
-        -- _lgzKey was nil; poll should have set it to "log1"
-        assert.equals("log1", p._lgzKey)
+        -- _lgzKey was nil; poll should have set it to the zone's registry key (not its short name)
+        assert.equals("LGZ_log1_B", p._lgzKey)
     end)
 
     -- ── false case: player has landed (existing behaviour must not regress) ───
@@ -117,7 +117,7 @@ describe("CTLDCrateManager LGZ ground-position poll guard", function()
         Unit.getByName = origGetByName
         CTLDZoneManager.getInstance().getLogisticZonesAtPoint = origZones
 
-        assert.equals("log1", p._lgzKey)
+        assert.equals("LGZ_log1_B", p._lgzKey)
     end)
 
     -- ── true case: player is in-flight, must be skipped ───────────────────────

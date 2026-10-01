@@ -1936,8 +1936,8 @@ function CTLDTroopManager:refreshMenuSection(playerObj, overrideInAir)
         for _, zone in pairs(CTLDZoneManager.getInstance():getTroopZonesForCoalition(playerObj.coalition)) do
             if zone:hasPickup() and zone:isInZone(pt) then
                 hasEmbarkContent = true
-                local zName     = zone.zoneName
-                local zoneSub   = ctld.tr("Load from %1", zone.displayName or ("TRZ_" .. zName))
+                local zKey      = zone:registryKey()   -- label and callback key: the full name
+                local zoneSub   = ctld.tr("Load from %1", zKey)
                 local zoneStock = (zone.pickMaxStock == 0) and math.huge or zone.pickCurrentStock
                 menu:addSubMenu({ root, troopSub, embarkSub }, zoneSub)
                 for _, tmpl in ipairs(self._templates) do
@@ -1946,7 +1946,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj, overrideInAir)
                     local stockOk = (tmpl.total <= zoneStock)
                     if not tmpl.disabled and sideOk and sizeOk and stockOk then
                         local capturedTmpl  = tmpl
-                        local capturedZName = zName
+                        local capturedZKey  = zKey
                         menu:addCommand({ root, troopSub, embarkSub, zoneSub },
                             ctld.tr("Load ") .. tmpl.name,
                             function(arg)
@@ -1960,7 +1960,7 @@ function CTLDTroopManager:refreshMenuSection(playerObj, overrideInAir)
                                 end
                                 CTLDTroopManager.getInstance():embarkFromTroopZone(u, z, arg.tmpl)
                             end,
-                            { unitName = playerObj.unitName, zoneName = capturedZName, tmpl = capturedTmpl })
+                            { unitName = playerObj.unitName, zoneName = capturedZKey, tmpl = capturedTmpl })
                     end
                 end
             end

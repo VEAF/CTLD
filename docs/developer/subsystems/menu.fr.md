@@ -434,7 +434,7 @@ Troop Commands
 │       ├── [1] TemplateNameA
 │       └── [2] TemplateNameB
 ├── Embark / Extract Troops     [SOL — if TRZ zones or field groups nearby]
-│   ├── Load from TRZ_ZoneName
+│   ├── Load from <zone registry key>
 │   │   ├── Load Template-Infantry
 │   │   └── Load Template-Mixed
 │   └── Extract from field      [if dropped troops nearby]

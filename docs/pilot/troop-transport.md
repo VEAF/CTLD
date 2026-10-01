@@ -44,7 +44,7 @@ CTLD
         │       ├── [1] <group name>
         │       └── [2] <group name>
         ├── Embark / Extract Troops             ← on the ground
-        │     ├── Load from TRZ_<zone>          ←   one submenu per pickup zone you are inside
+        │     ├── Load from <zone name>         ←   one submenu per pickup zone you are inside (its full name)
         │     │     ├── Load <team name>        ←     teams that fit your remaining capacity
         │     │     └── ...
         │     ├── Extract: <group name>         ←   a single group is nearby
@@ -65,7 +65,7 @@ pickup zone is in reach, and no friendly group is within extract range — it is
 ## Loading troops
 
 Land inside a pickup zone (`TRZ_`), then **F10 → CTLD → Troop Commands → Embark / Extract
-Troops → Load from TRZ_&lt;zone&gt;**, and pick a team. Only teams that fit your aircraft's
+Troops → Load from &lt;zone name&gt;**, and pick a team. Only teams that fit your aircraft's
 remaining troop capacity (and that the zone still has in stock) are listed.
 
 You must actually be **inside** the zone and on the ground, the zone must be **active**, and it

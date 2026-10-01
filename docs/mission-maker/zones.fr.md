@@ -93,8 +93,8 @@ invalide — un avertissement est écrit dans `CTLD.log` et la zone est ignorée
 | `stock` | Capacité de pickup | Ce que voit le pilote |
 | --- | --- | --- |
 | `0` | **Aucune** — pas de pickup | Pas d'entrée « Load from » dans le menu F10 |
-| `1–998` | Limité — décrémente à chaque chargement | « Load from `<name>` (N remaining) » |
-| `999` | **Illimité** — jamais épuisé | « Load from `<name>` » |
+| `1–998` | Limité — décrémente à chaque chargement | « Load from `<zone name>` (N remaining) » |
+| `999` | **Illimité** — jamais épuisé | « Load from `<zone name>` » (le nom complet de la zone dans l'éditeur de mission) |
 
 > Utilisez `999` pour un pickup illimité — **pas** `0`. `0` signifie *aucune capacité de pickup*.
 

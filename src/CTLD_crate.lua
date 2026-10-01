@@ -298,7 +298,7 @@ function CTLDCrateManager.getInstance()
         local function _lgzZoneKey(zones)
             if not next(zones) then return "" end
             local names = {}
-            for _, z in ipairs(zones) do names[#names + 1] = z.name end
+            for _, z in ipairs(zones) do names[#names + 1] = z:registryKey() end
             table.sort(names)
             return table.concat(names, ",")
         end
@@ -2725,7 +2725,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
     end
 
     for _, lgz in ipairs(lgZones) do
-        local lgzName = lgz.name
+        local lgzName = lgz:registryKey()   -- label and callback key: the full name, never the short one
         menu:addSubMenu({ root, spawnSub }, lgzName)
         for category, data in pairs(processed) do
             menu:addSubMenu({ root, spawnSub, lgzName }, category)
