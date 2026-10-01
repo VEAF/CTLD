@@ -2725,8 +2725,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
     end
 
     for _, lgz in ipairs(lgZones) do
-        local lgzName = lgz.name
-        local lgzKey  = lgz:registryKey()
+        local lgzName = lgz:registryKey()   -- label and callback key: the full name, never the short one
         menu:addSubMenu({ root, spawnSub }, lgzName)
         for category, data in pairs(processed) do
             menu:addSubMenu({ root, spawnSub, lgzName }, category)
@@ -2747,7 +2746,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                     crateOrder = crateOrder + 1
                     menu:addCommand({ root, spawnSub, lgzName, category }, sc.desc,
                         spawnFn,
-                        { unit = sc.unit, desc = sc.desc, zoneName = lgzKey,
+                        { unit = sc.unit, desc = sc.desc, zoneName = lgzName,
                           unitName = playerObj.unitName, coalition = playerObj.coalition,
                           spawnAsVehicle = spawnAsVehicle },
                         { order = crateOrder })
@@ -2757,7 +2756,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                         crateOrder = crateOrder + 1
                         menu:addCommand({ root, spawnSub, lgzName, category }, sts.desc,
                             spawnFn,
-                            { multiple = sts.multiple, zoneName = lgzKey, unitName = playerObj.unitName,
+                            { multiple = sts.multiple, zoneName = lgzName, unitName = playerObj.unitName,
                               coalition = playerObj.coalition },
                             { order = crateOrder })
                     end
@@ -2772,7 +2771,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                         crateOrder = crateOrder + 1
                         menu:addCommand({ root, spawnSub, lgzName, category }, ms.desc,
                             spawnFn,
-                            { multiple = ms.multiple, zoneName = lgzKey, unitName = playerObj.unitName,
+                            { multiple = ms.multiple, zoneName = lgzName, unitName = playerObj.unitName,
                               coalition = playerObj.coalition },
                             { order = crateOrder })
                     end

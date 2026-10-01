@@ -456,7 +456,8 @@ current position and cargo state:
 
 - In flight: the "Troop Commands" submenu is empty.
 - On the ground inside a pickup TRZ: a "Load from `<zoneName>`" option appears (the label is the
-  short name; the callback receives the zone's registry key, as does the "Request Equipment" menu).
+  short name; the callback receives the zone's registry key). The "Request Equipment" menu labels its zone
+  submenu with the registry key itself and passes it to its callbacks.
 - On the ground with troops onboard: an "Unload / Extract" option appears.
 - On the ground outside any TRZ: no load options.
 

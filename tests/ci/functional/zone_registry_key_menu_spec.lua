@@ -148,6 +148,30 @@ describe("F10 menus designate an auto-discovered zone by its registry key", func
         end
     end)
 
+    it("Request Equipment: the zone submenu is labelled by the registry key, never the short name", function()
+        local menu = buildMenuFor(makePlayer())
+        assert.is_not_nil(menu:_getNode({ ROOT, tr("Request Equipment"), "LGZ_log1_B" }))
+        assert.is_nil(menu:_getNode({ ROOT, tr("Request Equipment"), "log1" }))
+    end)
+
+    it("Request Equipment: two zones sharing a short name get two separate submenus", function()
+        local zm = CTLDZoneManager.getInstance()
+        for _, key in ipairs({ "LGZ_dup_B", "LGZ_dup_B2" }) do
+            zm._logisticZones[key] = CTLDLogisticZone:new({
+                name = "dup", dcsName = key, coalition = coalition.side.BLUE,
+                center = ZONE_CENTER, radius = 300, active = true,
+            })
+        end
+        local menu = buildMenuFor(makePlayer())
+        local first  = menu:_getNode({ ROOT, tr("Request Equipment"), "LGZ_dup_B" })
+        local second = menu:_getNode({ ROOT, tr("Request Equipment"), "LGZ_dup_B2" })
+        assert.is_not_nil(first)
+        assert.is_not_nil(second)
+        assert.are_not.equals(first, second)
+        assert.equals("LGZ_dup_B",  firstCommand(first).anyArgument.zoneName)
+        assert.equals("LGZ_dup_B2", firstCommand(second).anyArgument.zoneName)
+    end)
+
     it("Request Equipment: a request is still refused once the zone is inactive", function()
         local menu = buildMenuFor(makePlayer())
         local cmd = firstCommand(menu:_getNode({ ROOT, tr("Request Equipment") }))
