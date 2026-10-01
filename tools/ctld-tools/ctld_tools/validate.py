@@ -295,6 +295,45 @@ def _validate_integer_fields(catalog: Catalog, schema: Schema, out: list[Finding
                     )
 
 
+_CRATE_SPAWN_SECTORS = ("side", "rear", "front")
+
+
+def _is_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _validate_crate_spawn_plans(catalog: Catalog, out: list[Finding]) -> None:
+    """Where an aircraft's crates spawn (FEAT-NATIVE-CRATE-SPAWN-NEAR, ADR 0024): a known sector and a
+    non-negative number, and the two together. A zero distance is what the editor writes for an empty
+    number, so it counts as undeclared and is not reported on its own."""
+    for type_name, entry in (catalog.get("capabilitiesByType") or {}).items():
+        where = f"capabilitiesByType[{type_name}]"
+        sector = entry.get("crateSpawnSector")
+        distance = entry.get("crateSpawnDistance")
+        usable = True
+        if sector not in (None, "") and sector not in _CRATE_SPAWN_SECTORS:
+            usable = False
+            out.append(
+                Finding(
+                    ERROR,
+                    where,
+                    "validate.capability.bad_sector",
+                    {"type": type_name, "value": sector, "choices": ", ".join(_CRATE_SPAWN_SECTORS)},
+                )
+            )
+        if distance is not None and (not _is_number(distance) or distance < 0):
+            usable = False
+            out.append(
+                Finding(ERROR, where, "validate.capability.bad_distance", {"type": type_name, "value": distance})
+            )
+        if not usable:
+            continue
+        has_sector = sector not in (None, "")
+        has_distance = _is_number(distance) and distance > 0
+        if has_sector != has_distance:
+            out.append(Finding(WARNING, where, "validate.capability.spawn_pair_incomplete", {"type": type_name}))
+
+
 def validate(
     catalog: Catalog,
     schema: Schema,
@@ -319,6 +358,7 @@ def validate(
     _validate_choices(catalog, schema, out)
     _validate_ai_zones(catalog, out)
     _validate_integer_fields(catalog, schema, out)
+    _validate_crate_spawn_plans(catalog, out)
     if default is not None:
         _validate_completeness(catalog, default, out)
     if sounds_available is not None:

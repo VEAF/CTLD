@@ -57,3 +57,17 @@ test('the retired category field is never introduced', async () => {
     expect(model).not.toHaveProperty('category')
   }
 })
+
+// ── FEAT-NATIVE-CRATE-SPAWN-NEAR ticket 01: the size of a crate ───────────────────────────────────
+
+test('the crate size is a number of metres written back per mode', async () => {
+  const onchange = setup()
+  await fireEvent.change(screen.getAllByLabelText(/Crate size/i)[2], { target: { value: '1.31' } })
+  expect(onchange.mock.lastCall![0].dynamic.size).toBe(1.31)
+})
+
+test('clearing the crate size omits the key rather than writing an empty value', async () => {
+  const onchange = setup({ ...MODELS, load: { ...MODELS.load, size: 1.31 } } as typeof MODELS)
+  await fireEvent.change(screen.getAllByLabelText(/Crate size/i)[0], { target: { value: '' } })
+  expect(onchange.mock.lastCall![0].load).not.toHaveProperty('size')
+})

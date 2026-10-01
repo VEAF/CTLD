@@ -40,6 +40,11 @@ land first.
 
 **Activation:** F10 → CTLD → Crate Commands → Load Crate → *[crate type]*
 
+!!! tip "Native-cargo aircraft"
+    With a native-cargo aircraft (C-130J-30, Mi-8MT, UH-1H, CH-47F, Mi-24P), crates you request appear
+    **right beside the aircraft** (behind it for the C-130J-30), within reach of the DCS cargo window: open
+    it and load them without repositioning. A helicopter's cabin takes only a few crates at once.
+
 > Menu loading is one of two pickup methods. The other is hover pickup (fly a steady hover
 > over the crate), covered in [Sling-load](slingload.md).
 

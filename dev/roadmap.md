@@ -245,13 +245,6 @@ exclure ces caisses des menus (DCS les libère lui-même) ou corriger les commen
 `maxVehicleWeight` n'est appliqué qu'au chargement automatique par l'IA ; un chargement natif par un joueur
 n'est limité que par DCS. Idée : une limite manuelle configurable, si le besoin se confirme.
 
-## Pack — distance de spawn des caisses trop grande pour un chargement natif (Mi-8MT)
-
-Les caisses issues d'un *Pack Equipt* apparaissent à 23 à 28 m du Mi-8MT, alors que DCS ne charge une caisse
-par son interface cargo native que d'environ 5 m (« FAILED TO LOAD CARGO » au-delà, constaté en jeu le
-2026-10-01). Idée : rapprocher le spawn des caisses du pack pour les aéronefs à cargo natif de type hélicoptère
-(Mi-8MT d'abord), afin qu'elles soient directement chargeables sans repositionner l'appareil.
-
 ## Véhicule `WAITING` dont l'unité a disparu reste suivi
 
 Constaté en jeu le 2026-10-01 : `veh_15`, demandé par Request Equipment, est resté en état `WAITING` dans

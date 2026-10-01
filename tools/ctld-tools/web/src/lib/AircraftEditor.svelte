@@ -4,7 +4,7 @@
   import StringListEditor from './StringListEditor.svelte'
   import type { TableField } from './api'
   import { t } from './i18n.svelte'
-  import { AIRCRAFT_BOOLS, AIRCRAFT_NUMS, blankAircraft, DCS_TYPES_LIST, fieldLabel } from './tables'
+  import { AIRCRAFT_BOOLS, AIRCRAFT_NUMS, blankAircraft, CRATE_SPAWN_SECTORS, DCS_TYPES_LIST, fieldLabel } from './tables'
 
   type Rec = Record<string, unknown>
 
@@ -34,6 +34,12 @@
     let value: unknown = raw === '' ? undefined : Number(raw)
     if (isInteger && typeof value === 'number' && !Number.isNaN(value)) value = Math.round(value)
     model[type][field] = value
+    commit()
+  }
+  // An empty choice means "not declared": the key is removed, never written as an empty string.
+  function setChoice(type: string, field: string, value: string) {
+    if (value === '') delete model[type][field]
+    else model[type][field] = value
     commit()
   }
   function setList(type: string, field: string, v: string[]) {
@@ -75,6 +81,16 @@
       {#each AIRCRAFT_NUMS as f (f.name)}
         <label title={tip(f.name)}>{fieldLabel(f.name)}<input type="number" step={f.type === 'integer' ? '1' : 'any'} value={model[type][f.name] as number} onchange={(e) => setNum(type, f.name, e.currentTarget.value, f.type === 'integer')} /></label>
       {/each}
+    </div>
+    <div class="nums">
+      <label title={tip('crateSpawnSector')}>{fieldLabel('crateSpawnSector')}
+        <select value={String(model[type].crateSpawnSector ?? '')} onchange={(e) => setChoice(type, 'crateSpawnSector', e.currentTarget.value)}>
+          <option value=""></option>
+          {#each fields?.crateSpawnSector?.choices ?? CRATE_SPAWN_SECTORS as c (c)}
+            <option value={String(c)}>{c}</option>
+          {/each}
+        </select>
+      </label>
     </div>
     <div class="lists">
       <div><h4 class="blue" title={tip('loadableVehiclesBLUE')}>{t('web.table.vehicles_blue')}</h4>
