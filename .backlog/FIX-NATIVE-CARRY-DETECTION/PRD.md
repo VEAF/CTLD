@@ -265,8 +265,10 @@ itself reports:
   matched the live positions; it is no longer used.
 - **Unverified in game:** the on-board list on the CH-47F, Mi-8MT, UH-1H and Mi-24P; several items
   aboard at once; a crate released in flight; whether a whole vehicle is accepted by helicopters
-  with native cargo. All are covered by the live-validation ticket. The design tolerates a type
-  failing: it is then handled as a special case (for example by disabling its native flag).
+  with native cargo. All are covered by the live-validation ticket, except the **CH-47F and the
+  Mi-24P, which the project owner does not own**: they stay unverified in game after this lot (the
+  CH-47F default is covered by busted only). The design tolerates a type failing: it is then handled
+  as a special case (for example by disabling its native flag).
 - Existing diagnostics that read the list: `tests/dcs/dev/diag/diag_cargos_*.lua`,
   `tests/dcs/util/dump_cargos.lua`.
 - The DCS bridge MCP server was unavailable during the grill; live measurements went through the

@@ -15,8 +15,9 @@ opens (project rule: live tests come before the PR, not after).
    natively (loadmaster tablet), unloaded on the ground, and released in flight. It checks the list
    contents, that CTLD follows each change, that the vehicle's unit stays alive and is not
    duplicated, and that a vehicle released in flight lands alive and returns to `WAITING`.
-2. **Manual checklist, run by the user, on every native-cargo type** (C-130J-30, CH-47F, Mi-8MT,
-   UH-1H, Mi-24P):
+2. **Manual checklist, run by the user, on every native-cargo type the user owns** (C-130J-30,
+   Mi-8MT, UH-1H; the CH-47F and the Mi-24P are not owned, so they stay unverified in game and are
+   recorded as such in the PRD):
    - the on-board list exists and reports a crate and a whole vehicle loaded through the DCS cargo
      UI (a type that cannot be read must show the one-time warning);
    - something parked beside or under the aircraft (wing, rotor disc) is **never** counted;
@@ -36,7 +37,8 @@ live player aircraft.
 
 - [ ] The C-130J-30 scenario passes against a live mission, or its failures are fixed and it is
       rerun.
-- [ ] Every line of the manual checklist is ticked by the user for every native-cargo type.
+- [ ] Every line of the manual checklist is ticked by the user for every owned native-cargo type
+      (C-130J-30, Mi-8MT, UH-1H); the CH-47F and the Mi-24P are recorded as unverified in game.
 - [ ] The PRD records the results and the status of each unverified assumption.
 
 ## Blocked by
