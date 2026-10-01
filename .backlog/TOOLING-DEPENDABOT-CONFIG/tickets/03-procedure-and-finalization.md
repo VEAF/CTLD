@@ -1,6 +1,6 @@
 # 03 — Written procedure for Dependabot pull requests, and finalization
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -19,10 +19,10 @@ Finalization: the PRD status is set to done and the lot's index line in the back
 
 ## Acceptance criteria
 
-- [ ] The English and French pages carry the same section, matching the delivered `dependabot.yml` and guard.
-- [ ] The section states the rule "declare every new manifest" and points at the guard.
-- [ ] The PRD status is done and the index line is `merged (PR #NN)`.
-- [ ] `pytest`, `ruff check`, `ruff format --check` pass on the whole branch.
+- [x] The English and French pages carry the same section, matching the delivered `dependabot.yml` and guard.
+- [x] The section states the rule "declare every new manifest" and points at the guard.
+- [x] The PRD status is done and the index line is `merged (PR #NN)`.
+- [x] `pytest`, `ruff check`, `ruff format --check` pass on the whole branch.
 
 ## Blocked by
 

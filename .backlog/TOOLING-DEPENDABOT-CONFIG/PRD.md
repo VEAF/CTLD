@@ -1,6 +1,6 @@
 # TOOLING-DEPENDABOT-CONFIG — declare every dependency ecosystem to Dependabot, grouped and capped
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 Follows the Dependabot pull request #223 (an automatic npm security update nobody had configured) and a
 `grill-with-docs` session held 2026-10-01. No ADR: the decision is reversible by editing one file.

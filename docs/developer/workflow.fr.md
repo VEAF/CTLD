@@ -80,6 +80,30 @@ couverture, la journalisation et la configuration de débogage.
 - **Docs** — quand un comportement ou une interface change, les pages `docs/` concernées changent
   dans la même PR.
 
+## Mises à jour des dépendances (Dependabot) { #dependency-updates-dependabot }
+
+`.github/dependabot.yml` déclare chaque endroit qui porte des dépendances : les GitHub Actions, l'application web de
+ctld-tools (npm), le projet Poetry de ctld-tools, les requirements de la documentation et ceux du build. Une seule
+politique s'applique :
+
+- **Mensuel**, une seule pull request groupée par écosystème pour les mises à jour **mineures et correctifs** (les
+  Actions restent hebdomadaires).
+- Une mise à jour **majeure** n'est jamais groupée : elle a sa propre pull request, à lire et tester seule.
+- Les **mises à jour de sécurité** suivent aussi un groupe, mais s'ouvrent dès qu'une alerte apparaît, sans attendre le
+  mois.
+- Au plus trois pull requests ouvertes par écosystème ; les commits s'écrivent `chore(deps)` / `chore(deps-dev)`
+  (`ci` pour les Actions).
+
+**Traiter une pull request Dependabot :** la merger quand la CI est verte ; lire les notes de version d'une majeure
+avant de merger ; fermer une pull request pour dire à Dependabot de laisser cette version tranquille ; ne jamais
+recréer un doublon à la main. Si la CI échoue sur une montée de version, corriger la cause sur une branche
+séparée plutôt que d'éditer la branche Dependabot (c'est ainsi que la montée de `vitest` 5 a été livrée, lot
+`FIX-CTLD-TOOLS-WEB-NODE-TYPES-GAP`).
+
+**Tout nouveau manifeste de dépendances** (un `package.json`, un `pyproject.toml`, un `requirements*.txt`) **est
+déclaré dans `.github/dependabot.yml`**. Le job `python-quality` échoue sinon (`test_dependabot_coverage.py`), en
+nommant le manifeste et l'entrée à ajouter.
+
 ## Processus de release { #release-process }
 
 Les releases sont **pilotées par tag**, pas par branche — aucun push sur `develop` ou `master` ne
