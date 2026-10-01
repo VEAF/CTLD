@@ -2417,15 +2417,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#zone-events-2" class="md-nav__link">
+  <a href="#zone-events-3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Événements zone (2)
+        Événements zone (3)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Événements zone (2)">
+    <nav class="md-nav" aria-label="Événements zone (3)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2444,6 +2444,17 @@
     <span class="md-ellipsis">
       
         OnLogisticZoneUpdated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontroopzoneupdated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnTroopZoneUpdated
       
     </span>
   </a>
@@ -3419,15 +3430,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#zone-events-2" class="md-nav__link">
+  <a href="#zone-events-3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Événements zone (2)
+        Événements zone (3)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Événements zone (2)">
+    <nav class="md-nav" aria-label="Événements zone (3)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -3446,6 +3457,17 @@
     <span class="md-ellipsis">
       
         OnLogisticZoneUpdated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontroopzoneupdated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnTroopZoneUpdated
       
     </span>
   </a>
@@ -5656,7 +5678,12 @@ véhicule JTAC est ré-embarqué.</p>
 <h4 id="onaasystemrepaired"><code>OnAASystemRepaired</code><a class="headerlink" href="#onaasystemrepaired" title="Permanent link">&para;</a></h4>
 <p>Un système AA complet est réparé et re-spawné. Mêmes champs que <code>OnAASystemRearmed</code>.</p>
 <p><strong>Published by</strong> : <code>CTLDCrateAssemblyManager:_repair()</code></p>
-<h3 id="zone-events-2">Événements zone (2)<a class="headerlink" href="#zone-events-2" title="Permanent link">&para;</a></h3>
+<h3 id="zone-events-3">Événements zone (3)<a class="headerlink" href="#zone-events-3" title="Permanent link">&para;</a></h3>
+<p>Chaque entrée de zone de ces payloads identifie la zone par <code>name</code>, sa <strong>clé de registre de zone</strong> : le
+nom DCS complet pour une zone auto-découverte (<code>LGZ_depot1_B</code>, et non <code>depot1</code>), le nom de l'unité ou
+du FOB dans les autres cas. C'est la valeur qu'attendent les accesseurs de <code>CTLDZoneManager</code>
+(<code>getTroopZone</code>, <code>getLogisticZone</code>, …). Le nom court extrait d'un nom <code>TRZ_</code> / <code>LGZ_</code> n'est qu'un
+libellé d'affichage et n'est porté par aucun payload.</p>
 <h4 id="onzonesmokerefreshed"><code>OnZoneSmokeRefreshed</code><a class="headerlink" href="#onzonesmokerefreshed" title="Permanent link">&para;</a></h4>
 <p>Émis à chaque cycle du timer de smoke-refresh.</p>
 <table>
@@ -5671,12 +5698,12 @@ véhicule JTAC est ré-embarqué.</p>
 <tr>
 <td><code>troopZones</code></td>
 <td>table</td>
-<td>Tableau de payloads troop-zone</td>
+<td>Tableau d'entrées troop-zone (<code>name</code> = clé de registre, <code>coalition</code>, <code>position</code>, <code>radius</code>, <code>hasPickup</code>, <code>hasExtract</code>, <code>pickMaxStock</code>, <code>pickCurrentStock</code>, <code>objectiveFlag</code>, <code>objectiveTarget</code>, <code>objectiveCurrent</code>, <code>smokeColor</code>)</td>
 </tr>
 <tr>
 <td><code>logisticZones</code></td>
 <td>table</td>
-<td>Tableau de payloads logistic-zone</td>
+<td>Tableau d'entrées logistic-zone (<code>name</code> = clé de registre, <code>coalition</code>, <code>position</code>, <code>radius</code>, <code>type</code>, <code>linkedUnit</code>, <code>smokeColor</code>)</td>
 </tr>
 <tr>
 <td><code>refreshInterval</code></td>
@@ -5687,7 +5714,7 @@ véhicule JTAC est ré-embarqué.</p>
 </table>
 <p><strong>Published by</strong> : <code>CTLDZoneManager:_scheduleSmoke()</code> (timer périodique)</p>
 <h4 id="onlogisticzoneupdated"><code>OnLogisticZoneUpdated</code><a class="headerlink" href="#onlogisticzoneupdated" title="Permanent link">&para;</a></h4>
-<p>Des units de zone dynamique sont ajoutées ou retirées.</p>
+<p>Des zones logistiques sont enregistrées, retirées ou (dés)activées.</p>
 <table>
 <thead>
 <tr>
@@ -5700,21 +5727,57 @@ véhicule JTAC est ré-embarqué.</p>
 <tr>
 <td><code>zones</code></td>
 <td>table</td>
-<td>Toutes les zones après mise à jour</td>
+<td>Toutes les zones logistiques après mise à jour (<code>name</code> = clé de registre, <code>type</code>, <code>linkedUnit</code>, <code>position</code>, <code>coalition</code>, <code>radius</code>, <code>services</code>)</td>
 </tr>
 <tr>
 <td><code>unitsAdded</code></td>
 <td>table</td>
-<td>Units nouvellement enregistrées</td>
+<td>Entrées <code>{ name, coalition }</code> des zones venant d'être enregistrées ou réactivées</td>
 </tr>
 <tr>
 <td><code>unitsRemoved</code></td>
 <td>table</td>
-<td>Units ayant quitté la zone</td>
+<td>Entrées <code>{ name, coalition, reason }</code> des zones retirées ou désactivées (<code>reason</code> : <code>dead</code>, <code>removed</code>, <code>deactivated</code>)</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Published by</strong> : <code>CTLDZoneManager:_publishLogisticZoneUpdated()</code></p>
+<h4 id="ontroopzoneupdated"><code>OnTroopZoneUpdated</code><a class="headerlink" href="#ontroopzoneupdated" title="Permanent link">&para;</a></h4>
+<p>Une troop zone est créée ou retirée à l'exécution (jamais pour une zone découverte à l'init de l'éditeur de mission).</p>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>zones</code></td>
+<td>table</td>
+<td>Toutes les troop zones après mise à jour (<code>name</code> = clé de registre, <code>type</code>, <code>linkedUnit</code>, <code>position</code>, <code>coalition</code>)</td>
+</tr>
+<tr>
+<td><code>unitsAdded</code></td>
+<td>table</td>
+<td>Entrées <code>{ name, coalition }</code> des zones venant d'être créées</td>
+</tr>
+<tr>
+<td><code>unitsRemoved</code></td>
+<td>table</td>
+<td>Entrées <code>{ name, coalition, reason }</code> des zones retirées (<code>reason</code> : <code>dead</code>, <code>removed</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Published by</strong> : <code>CTLDZoneManager:_publishTroopZoneUpdated()</code></p>
+<div class="admonition warning">
+<p class="admonition-title">Rupture de compatibilité (2.0.0-rc)</p>
+<p>Avant ce changement, <code>name</code> portait le nom court, les entrées troupes de <code>OnZoneSmokeRefreshed</code>
+avaient aussi <code>fullName</code> et <code>zoneName</code>, et les entrées <code>unitsAdded</code> / <code>unitsRemoved</code> utilisaient
+<code>unitName</code> ou <code>zoneName</code> selon le type de zone. <code>fullName</code> et <code>zoneName</code> disparaissent et les
+entrées utilisent <code>name</code>. Les scripts de mission qui lisent ces champs doivent passer à <code>name</code>.</p>
+</div>
 <h3 id="catalogue-summary">Résumé du catalogue<a class="headerlink" href="#catalogue-summary" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -5758,11 +5821,11 @@ véhicule JTAC est ré-embarqué.</p>
 </tr>
 <tr>
 <td>Zone</td>
-<td>2</td>
+<td>3</td>
 </tr>
 <tr>
 <td><strong>Total</strong></td>
-<td><strong>49</strong></td>
+<td><strong>50</strong></td>
 </tr>
 </tbody>
 </table>

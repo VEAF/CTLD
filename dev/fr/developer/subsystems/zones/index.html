@@ -1694,6 +1694,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#zone-registry-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clé de registre de zone
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#query-api-troop-zones" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2396,6 +2407,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#zone-registry-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clé de registre de zone
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#query-api-troop-zones" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3052,8 +3074,43 @@ retire de la même façon, en publiant <code>OnTroopZoneUpdated</code>. Une troo
 (ADR 0021). Dans les deux cas, le nom de la zone est libéré pour réutilisation — elle n'est pas
 simplement gelée à sa dernière position, contrairement à une ancre sans référence unité/statique
 vivante (zone fixe, ou référence de zone de trigger propre à une Moving Zone).</p>
+<h2 id="zone-registry-key">Clé de registre de zone<a class="headerlink" href="#zone-registry-key" title="Permanent link">&para;</a></h2>
+<p><code>CTLDZoneManager</code> range chaque troop zone et chaque logistic zone sous une <strong>clé de registre</strong>, et
+tout accesseur qui prend un nom de zone (<code>getTroopZone</code>, <code>getLogisticZone</code>, <code>setTroopZoneActive</code>,
+<code>activateLogisticZone</code>, <code>removeExtractZone</code>, …) attend exactement cette clé. Une zone la fournit
+elle-même :</p>
+<div class="highlight"><pre><span></span><code><span class="nv">zone</span><span class="p">:</span><span class="nf">registryKey</span><span class="p">()</span><span class="w">   </span><span class="c1">-- CTLDTroopZone : clé explicite, sinon dcsName, sinon zoneName · CTLDLogisticZone : dcsName ou name</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Façon dont la zone a été enregistrée</th>
+<th>Clé de registre</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Zone auto-découverte <code>TRZ_</code> / <code>LGZ_</code> / <code>WPZ_</code> / <code>EXZ_</code>, zone de config <code>AIZ_</code>, zone de config legacy</td>
+<td>le nom DCS complet (<code>LGZ_depot1_B</code>)</td>
+</tr>
+<tr>
+<td><code>createExtractZone</code> / <code>createTroopZoneAtObject</code></td>
+<td>le nom donné par l'appelant (pour <code>createTroopZoneAtObject</code>, le nom <code>TRZ_</code> — pas celui de l'objet ancre, qui reste le <code>dcsName</code> de la zone)</td>
+</tr>
+<tr>
+<td>FOB (troop ou logistique), unité logistique, FARP</td>
+<td>le nom du FOB / de l'unité</td>
+</tr>
+</tbody>
+</table>
+<p>Le nom court extrait d'un nom <code>TRZ_</code> / <code>LGZ_</code> (<code>depot1</code>) n'est qu'un <strong>libellé d'affichage</strong> : il ne
+désigne jamais une zone, donc aucun accesseur ne l'accepte, aucun callback de menu ne le reçoit et
+aucun payload d'événement ne le porte (ADR 0020 et ADR 0023). Les constructeurs de menu et les
+publicateurs d'événements lisent <code>zone:registryKey()</code> ; un nouveau chemin d'enregistrement doit
+seulement rendre cette méthode correcte (<code>zone_registry_key_roundtrip_spec.lua</code> vérifie l'aller-retour
+pour chaque chemin).</p>
 <h2 id="query-api-troop-zones">API de requête — troop zones<a class="headerlink" href="#query-api-troop-zones" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">)</span><span class="w">                     </span><span class="c1">-- → CTLDTroopZone | nil</span>
+<div class="highlight"><pre><span></span><code><span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZone</span><span class="p">(</span><span class="nv">zoneName</span><span class="p">)</span><span class="w">                     </span><span class="c1">-- → CTLDTroopZone | nil  (zoneName = clé de registre)</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZonesForCoalition</span><span class="p">(</span><span class="nv">coalition</span><span class="p">)</span><span class="w">       </span><span class="c1">-- zones actives pour la coalition (0 = les deux)</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZoneAtPoint</span><span class="p">(</span><span class="nv">point</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="p">)</span><span class="w">      </span><span class="c1">-- zone contenante ; exclut les pickup zones réservées à l'IA</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getTroopZoneForUnit</span><span class="p">(</span><span class="nv">unitName</span><span class="p">)</span><span class="w">              </span><span class="c1">-- zone sous la position d'une unité live</span>
@@ -3069,7 +3126,7 @@ monde), ou les deux camps sont égaux. <code>getNearestWaypointZone</code> sous-
 (<code>gotoNearestWPZ</code>), et les getters de pickup/dropoff IA sous-tendent la boucle de transport IA
 (<code>_checkAIStatus</code>).</p>
 <h2 id="query-api-logistic-zones">API de requête — logistic zones<a class="headerlink" href="#query-api-logistic-zones" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="nv">zm</span><span class="p">:</span><span class="nf">getLogisticZone</span><span class="p">(</span><span class="nv">name</span><span class="p">)</span><span class="w">                             </span><span class="c1">-- → CTLDLogisticZone | nil</span>
+<div class="highlight"><pre><span></span><code><span class="nv">zm</span><span class="p">:</span><span class="nf">getLogisticZone</span><span class="p">(</span><span class="nv">name</span><span class="p">)</span><span class="w">                             </span><span class="c1">-- → CTLDLogisticZone | nil  (name = clé de registre)</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getLogisticZonesForCoalition</span><span class="p">(</span><span class="nv">coalition</span><span class="p">)</span><span class="w">           </span><span class="c1">-- zones actives + vivantes pour la coalition</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getLogisticZoneAtPoint</span><span class="p">(</span><span class="nv">point</span><span class="p">,</span><span class="w"> </span><span class="nv">coalition</span><span class="p">)</span><span class="w">          </span><span class="c1">-- première zone contenante</span>
 <span class="nv">zm</span><span class="p">:</span><span class="nf">getLogisticZoneForUnit</span><span class="p">(</span><span class="nv">unitName</span><span class="p">)</span><span class="w">                  </span><span class="c1">-- zone sous une unité / static</span>
@@ -3146,7 +3203,9 @@ d'extract plutôt que de simplement renvoyer les troops au stock.</p>
 de la position courante du joueur et de l'état de sa cargaison :</p>
 <ul>
 <li>En vol : le sous-menu « Troop Commands » est vide.</li>
-<li>Au sol dans une pickup TRZ : une option « Load from <code>&lt;zoneName&gt;</code> » apparaît.</li>
+<li>Au sol dans une pickup TRZ : une option « Load from <code>&lt;clé de registre&gt;</code> » apparaît (le libellé et le
+  callback utilisent tous deux la clé de registre de la zone). Le menu « Request Equipment » fait de même
+  pour son sous-menu de zone.</li>
 <li>Au sol avec des troops à bord : une option « Unload / Extract » apparaît.</li>
 <li>Au sol hors de toute TRZ : aucune option de chargement.</li>
 </ul>
