@@ -9,6 +9,7 @@ on:
       - "tools/build/**"
       - "tests/ci/data/config_defaults.json"
       - "tests/ci/data/catalogue_shapes/**"
+      - ".github/dependabot.yml"
       - ".github/workflows/python-quality.yml"
   pull_request:
     paths:
@@ -17,6 +18,7 @@ on:
       - "tools/build/**"
       - "tests/ci/data/config_defaults.json"
       - "tests/ci/data/catalogue_shapes/**"
+      - ".github/dependabot.yml"
       - ".github/workflows/python-quality.yml"
 
 jobs:

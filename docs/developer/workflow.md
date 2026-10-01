@@ -76,6 +76,25 @@ logging, and debug configuration.
 - **Docs** — when a behaviour or interface changes, the relevant `docs/` pages change in the same
   PR.
 
+## Dependency updates (Dependabot)
+
+`.github/dependabot.yml` declares every place that carries dependencies: the GitHub Actions, the ctld-tools web app
+(npm), the ctld-tools Poetry project, the documentation requirements and the build requirements. One policy applies:
+
+- **Monthly**, one grouped pull request per ecosystem for **minor and patch** updates (the Actions stay weekly).
+- A **major** update is never grouped: it gets its own pull request, to be read and tested alone.
+- **Security updates** follow a group too, but open as soon as an alert appears instead of waiting for the month.
+- At most three open pull requests per ecosystem; commits read `chore(deps)` / `chore(deps-dev)` (`ci` for the Actions).
+
+**Handling a Dependabot pull request:** merge it when CI is green; read the release notes of a major before merging;
+close a pull request to tell Dependabot to leave that version alone; never recreate a duplicate by hand. If CI fails
+on a bump, fix the cause on a separate branch rather than editing the Dependabot branch (this is how the `vitest` 5
+bump was landed, lot `FIX-CTLD-TOOLS-WEB-NODE-TYPES-GAP`).
+
+**Every new dependency manifest** (a `package.json`, a `pyproject.toml`, a `requirements*.txt`) **is declared in
+`.github/dependabot.yml`**. The `python-quality` job fails otherwise (`test_dependabot_coverage.py`), naming the
+manifest and the entry to add.
+
 ## Release process
 
 Releases are **tag-driven**, not branch-driven — no push to `develop` or `master` publishes
