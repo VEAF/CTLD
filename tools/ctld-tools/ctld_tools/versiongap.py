@@ -90,7 +90,7 @@ def _is_scalar(value: Any) -> bool:
     return not isinstance(value, (dict, list, tuple))
 
 
-def _entry_tables(catalog: Catalog):
+def entry_tables(catalog: Catalog):
     """The maps of maps of the catalogue: `(key, {entry name: {field: value}})`."""
     for key in catalog.keys():
         value = catalog.get(key)
@@ -106,7 +106,7 @@ def entry_field_gap(user: Catalog, current: Catalog) -> tuple[list[EntryField], 
     """
     added: list[EntryField] = []
     changed: list[EntryFieldChange] = []
-    for container, entries in _entry_tables(current):
+    for container, entries in entry_tables(current):
         mine = user.get(container)
         if not isinstance(mine, dict):
             continue

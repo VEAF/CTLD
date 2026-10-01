@@ -66,6 +66,15 @@ la référence de round-trip committée `tests/ci/data/config_defaults.json` (é
 doit égaler une génération fraîche depuis le YAML. La suite busted vérifie ensuite que le
 `CTLDConfig.parseYAML` Lua reproduit cet oracle — deux parsers indépendants qui concordent.
 
+**Règle de version du catalogue.** Le catalogue porte une balise de version (`configVersion` dans
+`src/CTLD_config.yaml`, indépendante du numéro de release de CTLD). ctld-tools lit la balise d'une configuration
+qu'il ouvre pour distinguer un champ que le Mission Maker a retiré d'un champ que la configuration antécède, et ne
+complète que ce dernier. Donc **ajouter ou retirer une clé, ou un champ d'une entrée de liste (un type
+d'aéronef, un modèle de crate), incrémente `configVersion`** et ajoute le snapshot de la nouvelle version :
+`ctld-tools shape --yaml src/CTLD_config.yaml --out tests/ci/data/catalogue_shapes/<version>.json`. Une valeur qui
+change n'est pas un changement de forme. Le job `python-quality` l'impose : `test_catalogue_shape.py` échoue, en
+nommant ce qui a changé, quand le catalogue ne correspond plus au snapshot de sa propre version.
+
 ## Exécuter les tests (busted, sans DCS) { #running-tests-busted-no-dcs }
 
 La suite automatisée s'exécute avec [busted](https://lunarmodules.github.io/busted/). Chaque appel

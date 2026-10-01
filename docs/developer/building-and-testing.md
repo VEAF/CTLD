@@ -62,6 +62,15 @@ guard**: the committed round-trip reference `tests/ci/data/config_defaults.json`
 `ctld-tools gen`) must equal a fresh emit from the YAML. The busted suite then checks the Lua
 `CTLDConfig.parseYAML` reproduces that oracle — two independent parsers agreeing.
 
+**Catalogue version rule.** The catalogue carries a version tag (`configVersion` in `src/CTLD_config.yaml`,
+independent of the CTLD release number). ctld-tools reads the tag of a configuration it opens to tell a field the
+Mission Maker removed from one the configuration simply predates, and completes only the latter. So **adding or
+removing a key, or a field of a list entry (an aircraft type, a crate model), increments `configVersion`** and adds
+the snapshot of the new version: `ctld-tools shape --yaml src/CTLD_config.yaml --out
+tests/ci/data/catalogue_shapes/<version>.json`. A value changing is not a change of shape. The `python-quality`
+job enforces it: `test_catalogue_shape.py` fails, naming what changed, when the catalogue no longer matches the
+snapshot of its own version.
+
 ## Running tests (busted, no DCS)
 
 The automated suite runs on [busted](https://lunarmodules.github.io/busted/). Every DCS API call

@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — a guard that a catalogue change increments the version (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 04)
+
+- The shape of the catalogue (its keys and the scalar fields of its list entries) is pinned per version under
+  `tests/ci/data/catalogue_shapes/`, and a `python-quality` test fails, naming what changed, when
+  `src/CTLD_config.yaml` gained or lost a key or an entry field without `configVersion` moving. The new
+  `ctld-tools shape` command writes the snapshot of a version. The rule is written in `CLAUDE.md` and in the
+  developer build page (English and French).
+
 ### Changed — the configuration and catalogue versions are visible (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 03)
 
 - The engine's start-up notice for settings absent from the mission config now names the version the snapshot

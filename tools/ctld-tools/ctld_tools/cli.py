@@ -74,6 +74,21 @@ def gen_cmd(
     typer.echo(f"gen: wrote {out}")
 
 
+@app.command("shape")
+def shape_cmd(
+    yaml_path: Path = typer.Option(..., "--yaml", help="path to the catalogue YAML (src/CTLD_config.yaml)"),
+    out: Path = typer.Option(
+        ..., "--out", help="where to write the shape snapshot (tests/ci/data/catalogue_shapes/<version>.json)"
+    ),
+) -> None:
+    """Pin the catalogue's shape (keys and list-entry fields) for its version: the guard's reference snapshot."""
+    from ctld_tools.catalog import Catalog
+    from ctld_tools.shape import write_shape
+
+    write_shape(Catalog.load(yaml_path), out)
+    typer.echo(f"shape: wrote {out}")
+
+
 @app.command("validate")
 def validate_cmd(
     yaml_path: Path = typer.Option(..., "--yaml", help="path to a complete config YAML to validate"),

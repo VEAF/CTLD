@@ -1,6 +1,6 @@
 # 04 — CI guard and written rule: a catalogue change increments the version
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -17,13 +17,13 @@ changed and what to do. The rule is written in the contributor instructions and 
 
 ## Acceptance criteria
 
-- [ ] A reference snapshot exists for the current version (`2.1.0`) and matches the catalogue.
-- [ ] Adding a key or a list-entry field to the catalogue without incrementing the version makes the test fail, with
+- [x] A reference snapshot exists for the current version (`2.1.0`) and matches the catalogue.
+- [x] Adding a key or a list-entry field to the catalogue without incrementing the version makes the test fail, with
       a message naming the added item and the step to take.
-- [ ] Incrementing the version and adding its snapshot makes it pass.
-- [ ] A fixture-based test proves the guard fails when it should (a deliberately changed copy of the catalogue).
-- [ ] The rule appears in `CLAUDE.md` and in the developer page, English and French.
-- [ ] `busted tests/ci/` and the ctld-tools tests pass.
+- [x] Incrementing the version and adding its snapshot makes it pass.
+- [x] A fixture-based test proves the guard fails when it should (a deliberately changed copy of the catalogue).
+- [x] The rule appears in `CLAUDE.md` and in the developer page, English and French.
+- [x] `busted tests/ci/` and the ctld-tools tests pass.
 
 ## Blocked by
 
