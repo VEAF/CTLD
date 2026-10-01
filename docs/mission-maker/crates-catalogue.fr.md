@@ -190,7 +190,10 @@ recalcule depuis une installation DCS (voir `tools/dcs-data/README.md`).
 !!! warning "Les missions existantes gardent leur configuration embarquée"
     Une mission embarque un instantané complet de `CTLD_userConfig.lua`, écrit lors de son export. Une mission
     exportée avant cette fonctionnalité n'a ni `crateSpawnSector` ni `crateSpawnDistance` : ses crates gardent
-    l'ancienne distance d'apparition tant que vous n'avez pas **réexporté la configuration avec ctld-tools**.
+    l'ancienne distance d'apparition. La rouvrir et l'enregistrer avec un ctld-tools qui ne complète pas
+    automatiquement les clés manquantes ne les ajoute **pas** : tant qu'une version de ctld-tools qui les
+    complète n'est pas disponible, saisissez ces champs vous-même dans l'éditeur (capacités de chaque type
+    d'appareil).
 
 ## Systèmes AA { #aa-systems }
 

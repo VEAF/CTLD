@@ -185,7 +185,9 @@ DCS install (see `tools/dcs-data/README.md`).
 !!! warning "Existing missions keep their embedded configuration"
     A mission embeds a complete snapshot of `CTLD_userConfig.lua`, written when it was exported. A mission
     exported before this feature has no `crateSpawnSector` or `crateSpawnDistance`, so its crates keep the
-    older spawn distance until you **re-export the configuration with ctld-tools**.
+    older spawn distance. Re-opening and saving it with a ctld-tools that predates the automatic
+    completion of missing keys does **not** add them: until a ctld-tools release that completes them is
+    available, enter the fields yourself in the editor (capabilities of each aircraft type).
 
 ## AA systems
 
