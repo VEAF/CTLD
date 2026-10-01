@@ -1,6 +1,6 @@
 # 02 — CI guard: every manifest of the repository is covered by `dependabot.yml`
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -18,14 +18,14 @@ caught before it merges. The guard is proven against a deliberately changed fixt
 
 ## Acceptance criteria
 
-- [ ] The test passes on the real repository and its `dependabot.yml`.
-- [ ] A fixture with a manifest that has no entry makes it fail, with a message naming the manifest, its ecosystem
+- [x] The test passes on the real repository and its `dependabot.yml`.
+- [x] A fixture with a manifest that has no entry makes it fail, with a message naming the manifest, its ecosystem
       and the entry to add.
-- [ ] A fixture where an entry is removed, or where its directory no longer matches, makes it fail.
-- [ ] Directories such as `node_modules`, `.git`, build outputs and the legacy `migration/` tree are not mistaken
+- [x] A fixture where an entry is removed, or where its directory no longer matches, makes it fail.
+- [x] Directories such as `node_modules`, `.git`, build outputs and the legacy `migration/` tree are not mistaken
       for manifests.
-- [ ] `python-quality` triggers on a change of `.github/dependabot.yml` (push and pull request).
-- [ ] `pytest`, `ruff check` and `ruff format --check` pass.
+- [x] `python-quality` triggers on a change of `.github/dependabot.yml` (push and pull request).
+- [x] `pytest`, `ruff check` and `ruff format --check` pass.
 
 ## Blocked by
 
