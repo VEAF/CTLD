@@ -8,6 +8,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — crate requests and troop loads from auto-discovered zones work again (FIX-ZONE-REGISTRY-KEY, ticket 01)
+
+- Regression of `FIX-AUTODISCOVERED-ZONE-FULLNAME-KEY` (PR #210, ADR 0020): the **Request Equipment** F10 menu
+  answered "You are not close enough to friendly logistics to get a crate!" for every crate, and the
+  **Load from <zone>** troop menu answered "Zone not found.", because both handed the zone's short name to a
+  registry now keyed by the full DCS name. A troop or logistic zone now reports its own registry key
+  (`registryKey()`: the DCS name when it has one, otherwise its own name — FOB, ship, logistic unit) and both
+  menus pass it to their callbacks. Menu labels still show the short name. See ADR 0023.
+
 ### Fixed — `onUnitDead` no longer floods the log for deaths CTLD has no business with (FIX-ONUNITDEAD-LOG-LEVEL)
 
 - `CTLDTroopManager:onUnitDead` logged `no group found for unit '…' — skipping` at `INFO`, yet that

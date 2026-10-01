@@ -143,6 +143,12 @@ function CTLDTroopZone:init(data)
     self._vertexOffsets   = data.vertexOffsets   or nil
 end
 
+--- The key CTLDZoneManager files this zone under (ADR 0023): the DCS name when the zone has
+-- one, otherwise its own name (FOB, ship, scripted zone). `zoneName` alone is a display label.
+function CTLDTroopZone:registryKey()
+    return self.dcsName or self.zoneName
+end
+
 --- True if this zone acts as a pickup zone (troops can board here).
 function CTLDTroopZone:hasPickup()
     return self.pickMaxStock ~= nil
@@ -404,6 +410,12 @@ function CTLDLogisticZone:init(data)
         cratesDropoff = true,
         vehicleSpawn  = true,
     }
+end
+
+--- The key CTLDZoneManager files this zone under (ADR 0023): the DCS name when the zone has
+-- one, otherwise its own name (logistic unit, FOB). `name` alone is a display label.
+function CTLDLogisticZone:registryKey()
+    return self.dcsName or self.name
 end
 
 --- True if point is inside the zone (circular only — logistic zones are always circular).

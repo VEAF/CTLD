@@ -438,6 +438,7 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
             zm.getTroopZonesForCoalition = function()
                 return { {
                     zoneName        = "Z1",
+                    registryKey     = function() return "Z1" end,
                     pickMaxStock    = 0,           -- 0 → infinite (see refreshMenuSection)
                     pickCurrentStock = 0,
                     hasPickup       = function() return true end,
@@ -516,6 +517,7 @@ describe("F10 menu gating (config + capability) + player-manager wiring", functi
             zm.getTroopZonesForCoalition = function()
                 return { {
                     zoneName         = "Deployed FOB #1",
+                    registryKey      = function() return "Deployed FOB #1" end,
                     displayName      = "Deployed FOB #1",
                     pickMaxStock     = 0,
                     pickCurrentStock = 0,

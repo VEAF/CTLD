@@ -1,6 +1,6 @@
 # 01 — Zone registry key and the two F10 menu fixes
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
