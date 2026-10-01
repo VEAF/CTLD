@@ -69,8 +69,10 @@ aircraft type declares its own crate spawn sector and distance, computed from th
   the current rule (secure distance + 5 m, rear sector for native-cargo types, front otherwise, radial layout,
   `crateSpacing` between crates). The schema, the default configuration, the generated defaults, the editor and
   the documentation of `capabilitiesByType` carry the fields.
-- **New settings:** `crateSizeByType` (largest horizontal extent in metres per crate DCS type, `ammo_cargo: 1.31`;
-  unknown type: 1.5) and `crateSpawnGap` (0.5 m between neighbouring crates' edges).
+- **Crate size and gap:** a `size` field in each `spawnableCratesModels` entry (largest horizontal extent in metres,
+  `1.31` for the `ammo_cargo` models; a model with no size counts as 1.5) and a new setting `crateSpawnGap`
+  (0.5 m between neighbouring crates' edges). The size lives in the model entry, not in a separate table, because
+  that entry already has its editor; a catalogue-truth test names `getCrateSize` as the reader of the field.
 - **Defaults by type** (hull radius at crate height plus 1.5 m): UH-1H side 3.0, Mi-8MT side 4.0, CH-47Fbl1 side
   3.7, Mi-24P side 5.1, C-130J-30 rear 11.3. `Hercules` and `76MD` have no native cargo and no value.
 - **Layout.** One pure function takes the aircraft position and heading, the sector, the distance, the crate sizes

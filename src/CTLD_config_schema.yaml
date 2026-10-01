@@ -915,6 +915,13 @@ tableFields:
     loadableVehiclesRED:
       en: List of RED coalition vehicle types this aircraft can carry whole
       fr: Liste des types de véhicules de la coalition RED que cet appareil peut transporter entiers
+    crateSpawnSector:
+      en: "Side of the aircraft where the crates requested for it appear: side (a random side), rear or front. Set it together with crateSpawnDistance; leave both empty to keep the default rule (secure distance from the aircraft box + 5 m)."
+      fr: "Côté de l'appareil où apparaissent les crates qui lui sont destinées : side (un côté au hasard), rear (arrière) ou front (avant). À renseigner avec crateSpawnDistance ; laisser les deux vides conserve la règle par défaut (distance de sécurité de la boîte de l'appareil + 5 m)."
+      choices: [side, rear, front]
+    crateSpawnDistance:
+      en: "Distance (m) from the centre of the aircraft to the first crate requested for it, in the crateSpawnSector. Use the radius of the hull at crate height plus a margin, so the crate is clear of the hull yet within the DCS native loading range. Leave empty (or 0) to keep the default rule."
+      fr: "Distance (m) du centre de l'appareil à la première crate qui lui est destinée, dans le crateSpawnSector. Utiliser le rayon de la coque à hauteur de crate plus une marge, pour que la crate soit hors de la coque tout en restant à portée du chargement natif DCS. Laisser vide (ou 0) conserve la règle par défaut."
   troopZones:
     zoneName:
       en: DCS trigger zone name (must exist in the mission editor)
@@ -1099,6 +1106,12 @@ transportPilotNames:
 crateSpacing:
   label: {en: Spacing between spawned crates, fr: Espacement entre les caisses créées}
   unit: m
+crateSpawnGap:
+  label: {en: Gap between neighbouring crates beside an aircraft, fr: Jeu entre caisses voisines près d'un appareil}
+  unit: m
+  description:
+    en: Free space (m) left between the edges of two neighbouring crates when a wave is laid out in a row beside an aircraft that declares a crateSpawnSector and crateSpawnDistance. Aircraft that declare none use crateSpacing.
+    fr: Espace libre (m) laissé entre les bords de deux caisses voisines quand un lot est disposé en rangée à côté d'un appareil qui déclare un crateSpawnSector et une crateSpawnDistance. Les appareils qui n'en déclarent pas utilisent crateSpacing.
 maxDistanceFromCrate:
   label: {en: Max distance to a crate, fr: Distance max à une caisse}
   unit: m

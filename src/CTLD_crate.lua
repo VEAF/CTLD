@@ -1634,6 +1634,39 @@ function CTLDCrateManager:_isDynamicCapable(unit)
     return caps ~= nil and caps.useNativeDcsCargoSystem == true
 end
 
+local _CRATE_SPAWN_SECTORS = { front = true, rear = true, side = true }
+
+--- Where the crates requested for an aircraft type spawn (ADR 0024): the sector and the distance
+-- (metres, aircraft centre to the first crate) its `capabilitiesByType` entry declares. A type that
+-- declares both, with a known sector and a positive distance, has a plan; any other type has none and
+-- keeps the secure-distance rule. A zero distance is what the editor writes for an empty number.
+-- @param typeName string  DCS type name
+-- @return table|nil  { sector = "front"|"rear"|"side", distance = number }
+function CTLDCrateManager:getCrateSpawnPlan(typeName)
+    local caps = (ctld.gs("capabilitiesByType") or {})[typeName]
+    if not caps then return nil end
+    local sector   = caps.crateSpawnSector
+    local distance = tonumber(caps.crateSpawnDistance)
+    if _CRATE_SPAWN_SECTORS[sector] and distance and distance > 0 then
+        return { sector = sector, distance = distance }
+    end
+    return nil
+end
+
+local _DEFAULT_CRATE_SIZE = 1.5   -- m: a crate model that declares no size
+
+--- Largest horizontal extent (metres) of a crate of the given model key (`load`, `sling`, `dynamic`),
+-- read from its `spawnableCratesModels` entry; 1.5 m when the model declares none.
+-- DCS gives the UserBox of a static only once it exists, so the size is configuration, not a live read.
+-- @param modelKey string
+-- @return number
+function CTLDCrateManager:getCrateSize(modelKey)
+    local model = (ctld.gs("spawnableCratesModels") or {})[modelKey]
+    local size  = model and tonumber(model.size)
+    if size and size > 0 then return size end
+    return _DEFAULT_CRATE_SIZE
+end
+
 --- Returns bbox descriptors for all DynamicCargo-capable transports except the requester.
 -- Used by spawnCratesAligned to avoid spawning crates inside a neighbour's bbox.
 -- @param requester  DCS Unit  the aircraft that requested the spawn (excluded from results)

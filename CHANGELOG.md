@@ -8,6 +8,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — where an aircraft's crates spawn is declared in its capabilities (FEAT-NATIVE-CRATE-SPAWN-NEAR, ticket 01)
+
+- `capabilitiesByType` entries accept two optional fields, `crateSpawnSector` (`side`, `rear` or `front`) and
+  `crateSpawnDistance` (metres from the aircraft centre to the first crate), declared together. The five
+  native-cargo types carry defaults taken from the hull in each model's collision shell at crate height plus a
+  1.5 m margin: UH-1H side 3.0 m, Mi-8MT side 4.0 m, CH-47Fbl1 side 3.7 m, Mi-24P side 5.1 m, C-130J-30 rear
+  11.3 m. Every other type, and any type that declares nothing usable, keeps the current secure-distance rule.
+  A crate model entry in `spawnableCratesModels` accepts a `size` (largest horizontal extent in metres, 1.31 for
+  `ammo_cargo`; 1.5 when absent) and a new setting `crateSpawnGap` (0.5 m) leaves room between neighbouring
+  crates. `ctld-tools` knows the new fields: the editor writes and clears them, and `validate` reports an unknown
+  sector or a negative distance as an error and a half-declared plan as a warning. Nothing spawns differently
+  yet: the layout that uses these values follows in the same lot.
+
 ### Docs — native cargo documented as it actually works (FIX-NATIVE-CARRY-DETECTION, ticket 08)
 
 - The pilot, mission-maker and developer pages (English and French) no longer describe native cargo as a

@@ -407,3 +407,53 @@ mm_facing:
 """)
     findings = [f for f in validate(c, EMPTY, TYPES) if f.key == "validate.field.not_integer"]
     assert any(f.params.get("field") == "troopStock.Standard Group" and f.where == "aiZones[base]" for f in findings)
+
+
+# ── capabilitiesByType: where an aircraft's crates spawn (FEAT-NATIVE-CRATE-SPAWN-NEAR, ADR 0024) ──
+
+
+def _caps(fields: str) -> Catalog:
+    return cat("mm_facing:\n  capabilitiesByType:\n    UH-1H:\n" + fields)
+
+
+def test_a_complete_crate_spawn_plan_is_ok():
+    c = _caps("      crateSpawnSector: side\n      crateSpawnDistance: 3.0\n")
+    assert validate(c, EMPTY, TYPES) == []
+
+
+def test_an_aircraft_with_no_crate_spawn_plan_is_ok():
+    assert validate(_caps("      cratesEnabled: true\n"), EMPTY, TYPES) == []
+
+
+def test_unknown_crate_spawn_sector_is_error():
+    c = _caps("      crateSpawnSector: top\n      crateSpawnDistance: 3.0\n")
+    findings = validate(c, EMPTY, TYPES)
+    assert any(f.key == "validate.capability.bad_sector" and f.severity == ERROR for f in findings)
+
+
+def test_negative_crate_spawn_distance_is_error():
+    c = _caps("      crateSpawnSector: side\n      crateSpawnDistance: -2\n")
+    findings = validate(c, EMPTY, TYPES)
+    assert any(f.key == "validate.capability.bad_distance" and f.severity == ERROR for f in findings)
+
+
+def test_non_numeric_crate_spawn_distance_is_error():
+    c = _caps("      crateSpawnSector: side\n      crateSpawnDistance: far\n")
+    findings = validate(c, EMPTY, TYPES)
+    assert any(f.key == "validate.capability.bad_distance" for f in findings)
+
+
+def test_a_sector_without_a_distance_is_a_warning():
+    findings = validate(_caps("      crateSpawnSector: side\n"), EMPTY, TYPES)
+    assert any(f.key == "validate.capability.spawn_pair_incomplete" and f.severity == WARNING for f in findings)
+    assert not has_errors(findings)
+
+
+def test_a_distance_without_a_sector_is_a_warning():
+    findings = validate(_caps("      crateSpawnDistance: 3.0\n"), EMPTY, TYPES)
+    assert any(f.key == "validate.capability.spawn_pair_incomplete" and f.severity == WARNING for f in findings)
+
+
+def test_a_zero_distance_with_no_sector_is_silent():
+    # the editor writes 0 for an empty number: nothing declared, nothing to report
+    assert validate(_caps("      crateSpawnDistance: 0\n"), EMPTY, TYPES) == []

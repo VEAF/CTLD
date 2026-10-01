@@ -14,7 +14,7 @@ Stories 17, 20.
   the ground, and prints the hull radius per sector for each native-cargo type, with the file each value comes
   from. A short README says how to run it and which DCS paths it expects.
 - **Docs, English and French:** the mission-maker pages describe `crateSpawnSector`, `crateSpawnDistance`,
-  `crateSizeByType` and `crateSpawnGap` and the fallback; the pilot pages say crates appear beside a
+  the model `size` field and `crateSpawnGap` and the fallback; the pilot pages say crates appear beside a
   native-cargo helicopter within loading range; the developer page of the crate manager describes the layout. The
   per-type table says which values are measured in game and which come from the file alone.
 - **Roadmap:** the Pack spawn-distance entry is closed.

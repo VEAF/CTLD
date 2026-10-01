@@ -135,12 +135,26 @@ def test_the_dead_category_field_is_gone(catalogue):
         assert "category" not in model, f"{mode} still declares the inert category field"
 
 
+# A model field that is not copied onto the static is read by its own function (ADR 0024: the size of a
+# crate, used to lay a wave of crates out). Named here so the test still catches a field nobody reads.
+_MODEL_FIELDS_READ_ELSEWHERE = {"size": "function CTLDCrateManager:getCrateSize"}
+
+
+def _function_body(source: str, header: str) -> str:
+    body = source[source.index(header) :]
+    return body[: body.index("\nend")]
+
+
 def test_crate_models_declare_only_fields_the_engine_reads(catalogue):
     crate_lua = (SRC / "CTLD_crate.lua").read_text(encoding="utf-8")
     static = crate_lua[crate_lua.index("function CTLDCrateManager:_spawnStatic") :]
     static = static[: static.index("\nfunction ")]
     for mode, model in catalogue["spawnableCratesModels"].items():
         for field in model:
+            if field in _MODEL_FIELDS_READ_ELSEWHERE:
+                reader = _function_body(crate_lua, _MODEL_FIELDS_READ_ELSEWHERE[field])
+                assert f"model.{field}" in reader, f"{mode}.{field} is authored but never read"
+                continue
             assert f"model.{field}" in static, f"{mode}.{field} is authored but never read"
 
 

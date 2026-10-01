@@ -60,6 +60,15 @@
         onchange={(e) => setField(mode, 'shape_name', e.currentTarget.value)}
       />
     </label>
+    <label title={t('web.crate_model.size_tip')}>
+      {t('web.crate_model.size')}
+      <input
+        type="number"
+        step="any"
+        value={model[mode]?.size === undefined ? '' : String(model[mode]?.size)}
+        onchange={(e) => setField(mode, 'size', e.currentTarget.value === '' ? undefined : Number(e.currentTarget.value))}
+      />
+    </label>
     <label class="flag" title={t('web.crate_model.cargo_tip')}>
       {t('web.crate_model.cargo')}
       <input

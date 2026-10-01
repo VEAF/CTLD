@@ -43,6 +43,8 @@ mm_facing:
       maxTroopsOnboard: 80
       useNativeDcsCargoSystem: true
       canTransportWholeVehicle: true
+      crateSpawnSector: rear
+      crateSpawnDistance: 11.3
     Mi-8MT:
       convertNativeLoadToCTLD: false
       cratesEnabled: true
@@ -62,6 +64,8 @@ mm_facing:
       maxTroopsOnboard: 16
       useNativeDcsCargoSystem: true
       canTransportWholeVehicle: true
+      crateSpawnSector: side
+      crateSpawnDistance: 4.0
     UH-1H:
       convertNativeLoadToCTLD: true
       cratesEnabled: true
@@ -81,6 +85,8 @@ mm_facing:
       maxTroopsOnboard: 10
       useNativeDcsCargoSystem: true
       canTransportWholeVehicle: false
+      crateSpawnSector: side
+      crateSpawnDistance: 3.0
     76MD:
       convertNativeLoadToCTLD: false
       cratesEnabled: true
@@ -122,6 +128,8 @@ mm_facing:
       maxTroopsOnboard: 10
       useNativeDcsCargoSystem: true
       canTransportWholeVehicle: false
+      crateSpawnSector: side
+      crateSpawnDistance: 5.1
     UH-60L:
       convertNativeLoadToCTLD: false
       cratesEnabled: true
@@ -152,6 +160,8 @@ mm_facing:
       maxTroopsOnboard: 40
       useNativeDcsCargoSystem: true
       canTransportWholeVehicle: true
+      crateSpawnSector: side
+      crateSpawnDistance: 3.7
     Hercules:
       convertNativeLoadToCTLD: false
       cratesEnabled: true
@@ -1006,6 +1016,7 @@ advanced:
   beaconRemovalRadius: 500
   beaconTextSize: 12
   crateSpacing: 5
+  crateSpawnGap: 0.5
   ctldLogPath: ''
   debug: false
   debugScreenLog: false
@@ -1041,6 +1052,7 @@ advanced:
     load:
       canCargo: true
       type: ammo_cargo
+      size: 1.31
     sling:
       canCargo: true
       shape_name: bw_container_cargo
@@ -1048,3 +1060,4 @@ advanced:
     dynamic:
       canCargo: true
       type: ammo_cargo
+      size: 1.31

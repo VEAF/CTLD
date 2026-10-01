@@ -104,7 +104,13 @@ export const AIRCRAFT_NUMS: Omit<Field, 'tip'>[] = [
   { name: 'maxTroopsOnboard', type: 'integer' },
   { name: 'maxWholeVehiclesOnboard', type: 'integer' },
   { name: 'maxVehicleWeight', type: 'number' },
+  // Where the crates requested for this aircraft spawn (FEAT-NATIVE-CRATE-SPAWN-NEAR): metres to the first
+  // crate, in the sector chosen below. Empty / 0 = not declared, the default spawn rule applies.
+  { name: 'crateSpawnDistance', type: 'number' },
 ]
+
+// The closed set of sectors the engine accepts for `crateSpawnSector`; the schema's own `choices` win when present.
+export const CRATE_SPAWN_SECTORS = ['side', 'rear', 'front']
 
 export function blankAircraft(): Record<string, unknown> {
   const rec: Record<string, unknown> = {}

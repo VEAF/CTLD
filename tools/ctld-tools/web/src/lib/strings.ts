@@ -118,6 +118,8 @@ export const EN_STRINGS: Record<string, string> = {
   'web.crate_model.load': "Carried inside",
   'web.crate_model.shape': "Shape name",
   'web.crate_model.shape_tip': "Optional 3D shape override. Leave empty to omit it \u2014 an empty value would change the DCS definition.",
+  'web.crate_model.size': "Crate size (m)",
+  'web.crate_model.size_tip': "Largest horizontal extent of a crate of this model. It spaces a wave of crates beside an aircraft that declares where its crates spawn. Leave empty for 1.5 m.",
   'web.crate_model.sling': "Slung underneath",
   'web.crate_model.type': "DCS static type",
   'web.crate_model.type_tip': "The DCS static object a crate is drawn as in this mode.",

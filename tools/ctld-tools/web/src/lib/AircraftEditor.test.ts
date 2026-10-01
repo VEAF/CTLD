@@ -58,3 +58,37 @@ test('maxVehicleWeight stays a continuous field, unaffected by the integer type'
   })
   expect(screen.getByDisplayValue('1360.5')).toHaveAttribute('step', 'any')
 })
+
+// ── FEAT-NATIVE-CRATE-SPAWN-NEAR ticket 01: where an aircraft's crates spawn ──────────────────────
+
+test('choosing a crate spawn sector writes it, and clearing it removes the key', async () => {
+  const { onchange } = setup()
+  const select = screen.getByLabelText('Crate spawn sector') as HTMLSelectElement
+  await fireEvent.change(select, { target: { value: 'side' } })
+  expect(last(onchange)['UH-1H'].crateSpawnSector).toBe('side')
+  await fireEvent.change(select, { target: { value: '' } })
+  expect(last(onchange)['UH-1H']).not.toHaveProperty('crateSpawnSector')
+})
+
+test('the crate spawn distance is a free number of metres, cleared to absent', async () => {
+  const { onchange } = setup()
+  const input = screen.getByLabelText('Crate spawn distance') as HTMLInputElement
+  expect(input).toHaveAttribute('step', 'any')
+  await fireEvent.change(input, { target: { value: '3.7' } })
+  expect(last(onchange)['UH-1H'].crateSpawnDistance).toBe(3.7)
+  await fireEvent.change(input, { target: { value: '' } })
+  expect(last(onchange)['UH-1H'].crateSpawnDistance).toBeUndefined()
+})
+
+test('editing another capability keeps a declared crate spawn plan', async () => {
+  const onchange = vi.fn()
+  render(AircraftEditor, {
+    capabilities: { 'Mi-8MT': { cratesEnabled: true, crateSpawnSector: 'side', crateSpawnDistance: 4.0, loadableVehiclesBLUE: [], loadableVehiclesRED: [] } },
+    fields: {},
+    onchange,
+  })
+  await fireEvent.click(screen.getByLabelText('Crates enabled'))
+  const rec = last(onchange)['Mi-8MT']
+  expect(rec.crateSpawnSector).toBe('side')
+  expect(rec.crateSpawnDistance).toBe(4)
+})

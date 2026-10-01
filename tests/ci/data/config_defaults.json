@@ -84,6 +84,8 @@
       "canSlingload": false,
       "canTransportWholeVehicle": true,
       "convertNativeLoadToCTLD": false,
+      "crateSpawnDistance": 11.3,
+      "crateSpawnSector": "rear",
       "cratesEnabled": true,
       "loadableVehiclesBLUE": [
         "M1045 HMMWV TOW",
@@ -106,6 +108,8 @@
       "canSlingload": true,
       "canTransportWholeVehicle": true,
       "convertNativeLoadToCTLD": true,
+      "crateSpawnDistance": 3.7,
+      "crateSpawnSector": "side",
       "cratesEnabled": true,
       "loadableVehiclesBLUE": [
         "M1045 HMMWV TOW",
@@ -150,6 +154,8 @@
       "canSlingload": false,
       "canTransportWholeVehicle": false,
       "convertNativeLoadToCTLD": false,
+      "crateSpawnDistance": 5.1,
+      "crateSpawnSector": "side",
       "cratesEnabled": true,
       "maxCratesOnboard": 1,
       "maxTroopsOnboard": 10,
@@ -162,6 +168,8 @@
       "canSlingload": true,
       "canTransportWholeVehicle": true,
       "convertNativeLoadToCTLD": false,
+      "crateSpawnDistance": 4.0,
+      "crateSpawnSector": "side",
       "cratesEnabled": true,
       "loadableVehiclesBLUE": [
         "M1045 HMMWV TOW",
@@ -244,6 +252,8 @@
       "canSlingload": true,
       "canTransportWholeVehicle": false,
       "convertNativeLoadToCTLD": true,
+      "crateSpawnDistance": 3.0,
+      "crateSpawnSector": "side",
       "cratesEnabled": true,
       "loadableVehiclesBLUE": [
         "M1045 HMMWV TOW",
@@ -288,6 +298,7 @@
   },
   "configVersion": "2.0.0",
   "crateSpacing": 5,
+  "crateSpawnGap": 0.5,
   "ctldLogPath": "",
   "debug": false,
   "debugScreenLog": false,
@@ -982,10 +993,12 @@
   "spawnableCratesModels": {
     "dynamic": {
       "canCargo": true,
+      "size": 1.31,
       "type": "ammo_cargo"
     },
     "load": {
       "canCargo": true,
+      "size": 1.31,
       "type": "ammo_cargo"
     },
     "sling": {
