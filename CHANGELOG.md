@@ -19,7 +19,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   default `ammo_cargo` crate), so every crate of a wave is as close as the first. A row holds as many crates as
   fit along the aircraft's own box; the next row is one step further out. The side sector picks left or right
   for the whole wave and uses the other side when the first is inside another aircraft's volume. A type that
-  declares nothing keeps the previous layout exactly.
+  declares nothing keeps the previous layout exactly. The single crate chosen in Request Equipment follows the
+  same rule, as a set of one.
 
 ### Added — where an aircraft's crates spawn is declared in its capabilities (FEAT-NATIVE-CRATE-SPAWN-NEAR, ticket 01)
 

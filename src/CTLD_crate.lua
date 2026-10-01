@@ -2788,12 +2788,20 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                 ctld.tr("Vehicle ready for loading", arg.desc), 20)
         else
             local mKey      = mgr:_crateModelKey(t)
-            local spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
-            local pos       = spawnInfo.positions[1]
             local descriptor = mgr:findDescriptorByTypeName(arg.unit)
             if descriptor then
-                local spawned = mgr:spawnCrate(descriptor, pos, arg.coalition, arg.unitName,
-                    CTLDCrate.SPAWN_METHOD.MENU_CTLD, nil, mKey)
+                local spawned, spawnInfo
+                if mgr:getCrateSpawnPlan(t:getTypeName()) then
+                    -- A type that declares where its crates spawn: a set of one, so it stands exactly where
+                    -- the first crate of a wave would (ADR 0024).
+                    local count, info = mgr:spawnCratesAligned({ descriptor }, t, arg.coalition, arg.unitName,
+                        CTLDCrate.SPAWN_METHOD.MENU_CTLD)
+                    spawned, spawnInfo = count > 0, info
+                else
+                    spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
+                    spawned   = mgr:spawnCrate(descriptor, spawnInfo.positions[1], arg.coalition, arg.unitName,
+                        CTLDCrate.SPAWN_METHOD.MENU_CTLD, nil, mKey)
+                end
                 if spawned then
                     trigger.action.outTextForGroup(gid,
                         ctld.tr("A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock ",

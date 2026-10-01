@@ -1,6 +1,6 @@
 # 03 — The single crate of Request Equipment uses the same clearance
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
