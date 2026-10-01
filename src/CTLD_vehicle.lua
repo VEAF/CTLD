@@ -728,8 +728,10 @@ end
 -- through the DCS cargo system. A WAITING vehicle whose `CRG:` entry is on a list is loaded
 -- (method="dcs_native"); a native-carry vehicle whose entry has left its transport's list is
 -- released: on the ground it is WAITING again at once, in flight it is published as a parachute
--- release and FALLING until it lands. No position, ground, speed or coalition test: DCS decides
--- what it accepts and when it releases. AI-flown aircraft are never scanned.
+-- release and FALLING until it lands. A native-carry vehicle whose transport no longer exists
+-- (slot change, despawn: no death event) is dropped like one lost with a destroyed transport.
+-- No position, ground, speed or coalition test: DCS decides what it accepts and when it
+-- releases. AI-flown aircraft are never scanned.
 function CTLDVehicleSpawner:_checkNativeLoading()
 
     -- Collect all active WAITING vehicles with live units, by unit name
@@ -796,14 +798,30 @@ function CTLDVehicleSpawner:_checkNativeLoading()
     end
 
     -- Release: a native-carry vehicle whose entry is no longer on its transport's list. A
-    -- transport whose list was not read this tick (gone, unreadable) releases nothing.
-    for _, veh in pairs(nativeLoaded) do
+    -- transport whose list was not read this tick (unreadable, or not a player aircraft any more)
+    -- releases nothing; one that no longer exists at all takes its vehicles with it.
+    for id, veh in pairs(nativeLoaded) do
         local names     = namesOnBoard[veh.loadTransportName]
         local unitName  = veh.spawnData and veh.spawnData.unitName
-        if names and unitName and not names[_COMPANION_PREFIX .. unitName] then
-            local transport = transports[veh.loadTransportName]
-            local method    = ctld.utils.inAir(transport) and "parachute" or "dcs_native"
-            self:unloadVehicle(veh, transport, nil, method)
+        if names then
+            if unitName and not names[_COMPANION_PREFIX .. unitName] then
+                local transport = transports[veh.loadTransportName]
+                local method    = ctld.utils.inAir(transport) and "parachute" or "dcs_native"
+                self:unloadVehicle(veh, transport, nil, method)
+            end
+        else
+            local transport = Unit.getByName(veh.loadTransportName)
+            if not (transport and transport:isExist()) then
+                local position = { x = 0, y = 0, z = 0 }
+                if veh.unit then
+                    local okPos, pos = pcall(veh.unit.getPoint, veh.unit)
+                    if okPos and pos then position = pos end
+                end
+                self:_dropLostVehicle(id, veh, position)
+                ctld.utils.log("INFO", string.format(
+                    "CTLDVehicleSpawner: vehicle %s (%s) lost — transport %s no longer exists",
+                    id, veh.vehicleType, tostring(veh.loadTransportName)))
+            end
         end
     end
 end

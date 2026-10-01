@@ -1,6 +1,6 @@
 # 05 — Native-carry vehicle whose transport vanishes without a death event
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 

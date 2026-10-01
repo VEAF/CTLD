@@ -8,6 +8,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a native-carry vehicle is dropped when its transport vanishes without a death event (FIX-NATIVE-CARRY-DETECTION, ticket 05)
+
+- CTLD already dropped the vehicles loaded on a transport destroyed by a death event. A transport can also
+  vanish with no such event (slot change, despawn), which left its native-carry vehicles `LOADED` forever,
+  and their JTAC claim and laser code held. The native tick now notices that the recorded transport no longer
+  exists and applies the same handling: removed from tracking, JTAC deregistered silently, `OnVehicleDead`
+  published once (a later death event does not process it again). A vehicle already falling after an in-flight
+  release is not affected, and virtual-carry vehicles keep their current behavior.
+
 ### Fixed — a native-carry vehicle released by DCS is detected when it leaves the on-board cargo list (FIX-NATIVE-CARRY-DETECTION, ticket 04)
 
 - The exit detection of a vehicle carried through the DCS cargo system was never built (an empty, commented

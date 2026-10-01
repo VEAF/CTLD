@@ -825,6 +825,59 @@ describe("CTLDVehicleSpawner", function()
                 assert.equals(CTLDVehicle.STATE.WAITING, veh:getState())
             end)
 
+            -- ── ticket 05 : the transport vanishes without a death event ──────────────
+            local function transportVanishes()
+                CTLDPlayerManager.getInstance()._players["nc3_player"] = nil
+                Unit.getByName = function() return nil end
+            end
+
+            it("transport gone without a death event: vehicle dropped, JTAC deregistered, OnVehicleDead once", function()
+                local veh = loadThroughList("nc5_a", "nc5_unit_a")
+                jtacMgr.jtacs["nc5_a"] = {}
+                transportVanishes()
+                vs:_checkNativeLoading()
+                assert.is_nil(vs._vehicles["nc5_a"])
+                assert.is_nil(vs._unitToVehicle["nc5_unit_a"])
+                assert.same({ "nc5_a" }, deregistered)
+                assert.equals(1, #dead)
+                assert.equals("nc5_a", dead[1].vehicleId)
+                vs:_checkNativeLoading()
+                assert.equals(1, #dead, "a second tick must not report it again")
+            end)
+
+            it("a death event arriving after the tick does not process the vehicle a second time", function()
+                loadThroughList("nc5_b", "nc5_unit_b")
+                transportVanishes()
+                vs:_checkNativeLoading()
+                vs:onDead({ initiator = aircraft })
+                assert.equals(1, #dead)
+            end)
+
+            it("a death event arriving before the tick leaves nothing for the tick to process", function()
+                loadThroughList("nc5_c", "nc5_unit_c")
+                vs:onDead({ initiator = aircraft })
+                assert.equals(1, #dead)
+                transportVanishes()
+                vs:_checkNativeLoading()
+                assert.equals(1, #dead)
+            end)
+
+            it("a virtual-carry vehicle is left alone when its transport vanishes", function()
+                local veh = CTLDVehicle:new({
+                    id = "nc5_v", vehicleType = "M1045 HMMWV TOW", unit = nil,
+                    spawnData = { groupName = "nc5_v", unitName = "nc5_unit_v",
+                                  vehicleType = "M1045 HMMWV TOW", countryId = 2, coalitionId = 2 },
+                })
+                veh:setState(CTLDVehicle.STATE.LOADED)
+                veh.loadMethod, veh.loadTransportName = "menu_ctld", "nc3_player"
+                vs._vehicles["nc5_v"] = veh
+                waitingVehicle("nc5_w", "nc5_unit_w")   -- keep the tick from returning early
+                transportVanishes()
+                vs:_checkNativeLoading()
+                assert.is_not_nil(vs._vehicles["nc5_v"])
+                assert.equals(CTLDVehicle.STATE.LOADED, veh:getState())
+                assert.equals(0, #dead)
+            end)
             it("a virtual-carry unload still respawns the vehicle, whatever method is published", function()
                 local veh = CTLDVehicle:new({
                     id = "nc4_v", vehicleType = "M1045 HMMWV TOW", unit = nil,
