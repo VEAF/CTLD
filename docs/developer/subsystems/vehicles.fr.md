@@ -37,12 +37,13 @@ stationnaire).
 
 ## Machine à états { #state-machine }
 
-`CTLDVehicle.STATE` déclare trois états :
+`CTLDVehicle.STATE` déclare quatre états :
 
 | État | Signification |
 | --- | --- |
 | `WAITING` | Au sol, suivi, prêt à être chargé |
 | `LOADED` | Transporté par un transport (unité DCS détruite pour `menu_ctld`, ou physiquement liée pour `dcs_native`) |
+| `FALLING` | Libéré en vol par le système cargo natif DCS : l'unité reste vivante et tombe sous son parachute DCS ; retour à `WAITING` une fois posé |
 | `DELIVERED` | Déclaré mais **actuellement non assigné** — réservé à un futur état de livraison dédié |
 
 Les transitions réellement effectuées par le code actuel sont :
@@ -68,10 +69,14 @@ Le chargement et le déchargement portent chacun une chaîne `method` :
 | Sens | Méthode | Déclencheur |
 | --- | --- | --- |
 | Load | `menu_ctld` | Le joueur choisit un véhicule dans le sous-menu F10 **Load / Extract Vehicles** ; l'unité DCS est détruite au chargement |
-| Load | `dcs_native` | Un véhicule entier entre dans la bounding box d'un transport à cargo natif (classe C-130 / Il-76) ; DCS garde l'unité physiquement liée |
+| Load | `dcs_native` | L'entrée compagnon `CRG:<nom d'unité>` du véhicule apparaît dans la liste de cargo à bord d'un appareil joueur (`unit:getCargosOnBoard()`) ; DCS garde l'unité physiquement liée |
 | Unload | `menu_ctld` | Le joueur choisit un véhicule dans **Unload Vehicles** ; l'unité est respawnée près du transport |
-| Unload | `dcs_native` | DCS a déjà posé l'unité au sol ; CTLD ne récupère que la référence vivante |
-| Unload | `parachute` | Largage en vol via **Parachute Vehicle** |
+| Unload | `dcs_native` | L'entrée quitte la liste, transport au sol ; DCS a déjà posé l'unité, CTLD récupère la référence vivante (jamais respawnée) |
+| Unload | `parachute` | Largage en vol : **Parachute Vehicle** virtuel de CTLD (l'unité est respawnée à sa position d'atterrissage), ou véhicule en carry natif dont l'entrée quitte la liste en vol (l'unité n'est **pas** respawnée ; état `FALLING` jusqu'à l'atterrissage) |
+
+La règle derrière les deux modes de carry est qu'un objet cargo est **déchargé de la façon dont il a été
+chargé** : les entrées F10 de déchargement et de parachutage (`findVirtualCarryVehicles`) ne listent que les
+véhicules en carry virtuel, et un véhicule en carry natif est libéré par DCS.
 
 ## D'où vient un véhicule `WAITING` { #where-a-waiting-vehicle-comes-from }
 
@@ -124,13 +129,18 @@ dans `findLoadableVehicles` (≤ `maximumDistancePackableUnitsSearch`, défaut 2
 
 1. Rejeter sauf si le véhicule est `LOADED`.
 2. Calculer une position de spawn avec `_computeSpawnPosition(transport, rearSector)`.
-3. `menu_ctld` / `parachute` : respawner l'unité près du transport avec `ctld.utils.dynAdd`, en
-   réutilisant `spawnData.groupName` / `spawnData.unitName`. `dcs_native` : récupérer l'unité vivante
-   que DCS a déjà posée via `Group.getByName(spawnData.groupName)`.
-4. Repasser à l'état `WAITING` ; ré-enregistrer la recherche inverse.
-5. Non-`dcs_native` : recalculer le poids de cargo. Reprendre le lasing JTAC le cas échéant.
+3. Un véhicule en carry virtuel (`loadMethod ~= "dcs_native"`) est respawné près du transport avec
+   `ctld.utils.dynAdd`, en réutilisant `spawnData.groupName` / `spawnData.unitName`, quel que soit le
+   `method` publié. Un véhicule en carry natif (`loadMethod == "dcs_native"`) n'est **jamais** respawné :
+   l'unité vivante que DCS a gardée est récupérée via `Group.getByName(spawnData.groupName)`. Le mécanisme
+   découle de la façon dont le véhicule a été chargé, pas du motif publié.
+4. Repasser à l'état `WAITING` (`FALLING` pour un véhicule en carry natif libéré avec `method = "parachute"`) ;
+   ré-enregistrer la recherche inverse.
+5. Carry virtuel : recalculer le poids de cargo (le poids d'un carry natif est laissé à DCS). Reprendre le
+   lasing JTAC le cas échéant (un véhicule en chute le reprend à l'atterrissage).
 6. `menu_ctld` uniquement : envoyer un message de confirmation.
-7. Publier `OnVehicleUnloaded`.
+7. Publier `OnVehicleUnloaded` ; pour un véhicule libéré en vol, démarrer le suivi d'atterrissage
+   (`_scheduleNativeLandingPoll`).
 
 > Le brouillon du guide développeur décrivait le déchargement comme un respawn via
 > `CTLDObjectRegistry.spawnObject` ; le code actuel respawne via `ctld.utils.dynAdd` et n'utilise
@@ -145,24 +155,35 @@ trajectoire de décollage d'un hélicoptère IA. Le décalage radial provient de
 diagonale de la bounding box `sqrt(halfLen² + halfWid²) × 2 + 10` m, avec un repli à 60 m lorsque
 `getDesc().box` est indisponible.
 
-## Chargement de véhicule entier natif DCS — `_checkNativeLoading` (tick 1 s) { #dcs-native-whole-vehicle-loading-_checknativeloading-1-s-tick }
+## Chargement et libération de véhicule entier natif DCS — `_checkNativeLoading` (tick 1 s) { #dcs-native-whole-vehicle-loading-_checknativeloading-1-s-tick }
 
-Pour les transports à cargo natif, le chargement est détecté géométriquement plutôt que via un
-menu. À chaque tick :
+Un véhicule en carry natif est lu dans la liste que DCS déclare à bord de l'appareil, pas par géométrie
+(ADR 0022). À chaque tick :
 
-- Collecter les véhicules `WAITING` avec unités vivantes et les véhicules `LOADED` dont
-  `loadMethod == "dcs_native"`.
-- Itérer sur les groupes `Group.Category.AIRPLANE` des deux coalitions ; pour chaque unité qui est
-  `_isNativeCargoCapable` (son entrée `capabilitiesByType` fixe `canTransportWholeVehicle == true`),
-  lire `getTransformation()` et `getDesc().box`.
-- Pour chaque véhicule `WAITING`, convertir sa position monde dans le repère local du transport
-  (`_worldToLocal`) et la tester contre la box (`_isInBbox`). À l'entrée, appeler
-  `loadVehicle(veh, transport, nil, "dcs_native")` et enregistrer le transport dans `_nativeTracked`
-  pour éviter un double déclenchement.
+- Collecter les véhicules `WAITING` avec unités vivantes, et les véhicules `LOADED` dont
+  `loadMethod == "dcs_native"`. S'il n'y en a aucun, le tick retourne avant de lire une liste.
+- Les candidats sont les unités **joueur** (`CTLDPlayerManager._players` ; un appareil piloté par l'IA n'est
+  jamais scanné), de toute catégorie, dont l'entrée `capabilitiesByType` fixe `useNativeDcsCargoSystem` et
+  `canTransportWholeVehicle`. Leur liste est lue par `ctld.utils.getOnBoardCargo(unit)`. Si elle est
+  illisible, un seul avertissement est journalisé pour le type et le type n'est plus surveillé
+  (`_unreadableCargoTypes`) ; il n'y a aucun repli géométrique.
+- **Entrée :** un véhicule entier apparaît comme une entrée compagnon nommée `CRG:<nom d'unité>`. Si elle
+  correspond à un véhicule `WAITING`, appeler `loadVehicle(veh, transport, nil, "dcs_native")`. Aucun test de
+  position, de sol, de vitesse ou de coalition : DCS décide de ce qu'il accepte. Une entrée qui n'est pas un
+  véhicule en attente (cargo créé par la tablette de loadmaster, caisse d'éditeur inconnue) est ignorée avec
+  une seule trace debug (`_ignoredCargoNames`).
+- **Libération :** un véhicule en carry natif dont l'entrée a quitté la liste de son transport est libéré par
+  `unloadVehicle` : `method = "dcs_native"` transport au sol (`WAITING` de nouveau aussitôt), ou
+  `method = "parachute"` si `ctld.utils.inAir(transport)` (état `FALLING`). `_scheduleNativeLandingPoll` suit
+  ensuite l'unité (vivante pendant toute la chute) jusqu'à ce que `ctld.utils.hasLanded` la dise au sol
+  (critère des caisses parachutées), puis reprend son JTAC. Une unité disparue est abandonnée comme tout
+  véhicule perdu (`_dropLostVehicle` : JTAC désenregistré, `OnVehicleDead`).
+- **Transport disparu** (changement de slot, despawn : pas d'événement de mort) : un véhicule en carry natif
+  dont le transport enregistré n'existe plus subit le même `_dropLostVehicle` qu'un transport détruit, une fois.
+  Un transport dont la liste n'a pas été lue à ce tick ne libère rien. Un véhicule déjà `FALLING` n'est pas
+  affecté.
 
-La branche de **sortie** de bbox est présente mais actuellement inopérante (la position de l'unité
-chargée ne peut plus être interrogée une fois détruite) ; le déchargement natif est géré via le
-chemin de déchargement `dcs_native` plutôt que par cette boucle.
+Un véhicule libéré ne peut pas être rechargé par CTLD : il n'est rechargé qu'en réapparaissant dans la liste.
 
 ## Filtrage des chargeables — `findLoadableVehicles` / `_isTypeLoadable` { #loadable-filtering-findloadablevehicles-_istypeloadable }
 

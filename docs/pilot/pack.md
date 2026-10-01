@@ -24,7 +24,7 @@ Equipment** — can be folded back into crates.
 2. Open **F10 → CTLD → Crate Commands → Pack Equipt**. Each packable vehicle in range is listed
    by name (e.g. the vehicle's crate description).
 3. **Select the vehicle.** It is removed from the map and its crates spawn next to you —
-   in front of a helicopter, or behind a C-130 / Il-76 that uses native cargo.
+   in front of a helicopter, or behind a C-130 that uses native cargo.
 4. Load the crates and fly them to the new site, then unpack as usual.
 
 The number of crates that appear matches how many that vehicle needs (`cratesRequired`) — a

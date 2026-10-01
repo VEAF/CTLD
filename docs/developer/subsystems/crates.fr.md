@@ -125,6 +125,30 @@ Le load et le unload appellent tous deux `ctld.utils.updateTransportWeight` pour
 transport reflète son cargo. Comme le static DCS est détruit au load, `unloadCrate` le recrée via
 `_respawnStatic`, qui génère un nouveau nom unique et ré-indexe `self.crates` sous celui-ci.
 
+## Cargo natif DCS — `_checkNativeDCSCargo` (tick 1 s) { #dcs-native-cargo-_checknativedcscargo }
+
+Les caisses transportées par le système cargo DCS sont lues dans la liste de bord, comme les véhicules natifs
+(ADR 0022). Une caisse suivie est en carry natif exactement tant qu'elle figure dans la liste
+`unit:getCargosOnBoard()` (lue par `ctld.utils.getOnBoardCargo`) d'un appareil joueur dont le type fixe
+`useNativeDcsCargoSystem` ; il n'y a ni test de bounding box, ni garde-fou de vitesse, ni référence de dérive.
+Le tick retourne aussitôt quand aucune caisse n'est suivie.
+
+- **Entrée :** une caisse suivie **au sol** dont le `crateName` apparaît dans une liste passe en carry natif
+  (`OnCrateLoaded`, `method = "dcs_native"`, `loadedByDCSNative = true`). Les entrées que CTLD ne suit pas sont
+  ignorées avec une trace debug ; l'entrée compagnon `CRG:` d'un véhicule relève du scan des véhicules. Une
+  liste illisible journalise un avertissement pour le type et le type n'est plus surveillé.
+- **Conversion :** pour un type avec `convertNativeLoadToCTLD` (UH-1H et CH-47Fbl1 par défaut), l'apparition
+  déclenche la passation : `UnloadCargo` libère le chargement DCS et, 0,5 s plus tard, `loadCrate` la charge
+  comme caisse CTLD. La caisse reste listée pendant ce délai ; `_convertingCrates` la marque donc comme en
+  cours de conversion et elle n'est traitée qu'une fois.
+- **Libération :** une caisse en carry natif qui a quitté la liste de son transport est libérée
+  (`OnCrateUnloaded`, `method = "dcs_native"`) : `LANDED` transport au sol, `FALLING` avec `fromParachute` si
+  `ctld.utils.inAir(transport)`, puis suivie jusqu'au sol par `_scheduleParachuteLandingPoll`
+  (`ctld.utils.hasLanded`). Une caisse en carry natif dont le transport n'existe plus est remise à l'état sol.
+
+La vérification à l'apparition qui garde une caisse neuve hors du volume d'un appareil voisin
+(`_getDynamicBBoxes`) n'a rien à voir avec la détection et reste inchangée.
+
 ## Le pipeline de unpack : `_spawnUnpacked` { #the-unpack-pipeline-_spawnunpacked }
 
 Chaque issue de unpack — véhicule au sol, JTAC aérien ou static — est déployée via un unique

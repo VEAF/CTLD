@@ -146,24 +146,11 @@ des lignes.
      `.backlog/FIX-LEGACY-API-PARAM-PREFIX/`, mergé — 58 des 89 warnings corrigés (préfixe `_`
      retiré sur les 58 paramètres, tous réellement utilisés), plafond CI abaissé à 31. -->
 
-## Native-cargo bbox-exit detection is unimplemented (`CTLDVehicleSpawner`)
-
-Constaté en nettoyant les warnings `luacheck` restants (2026-09-27) : dans la boucle de détection
-bbox (`CTLD_vehicle.lua`, autour de la ligne 733), la branche qui devrait détecter la **sortie**
-d'un véhicule chargé nativement (`dcs_native`) de la zone de chargement est **entièrement
-composée de commentaires** décrivant le mécanisme prévu — aucun code réel. L'entrée bbox (chargement)
-fonctionne ; la sortie (déchargement natif détecté automatiquement) ne l'a jamais été.
-
-Portée du gap, telle que décrite par les commentaires en place : un véhicule chargé en mode
-`dcs_native` reste en état `LOADED` indéfiniment tant que rien ne détecte sa sortie — pas de
-transition automatique vers un état de déchargement, contrairement au chemin `menu_ctld`
-(chargement/déchargement explicites via le menu F10). Le commentaire suggère une piste : détecter
-la réapparition de l'unité spawnée (un nouvel `isExist()` vrai) au tick suivant comme signal de
-sortie (parachute ou débarquement au sol), mais rien de tout ça n'est implémenté ni vérifié.
-
-Marqué `-- luacheck: ignore 542` sur place (pas de lot de nettoyage lint qui supprimerait
-silencieusement l'intention documentée) — reste candidat de lot séparé si le besoin réel (un
-véhicule `dcs_native` qui ne sort jamais formellement de l'état `LOADED`) est confirmé en jeu.
+<!-- Détection de la sortie d'un véhicule en carry natif (`CTLDVehicleSpawner`, branche bbox vide) :
+     fermé par le lot `.backlog/FIX-NATIVE-CARRY-DETECTION/` (2026-10-01, ADR 0022). La détection
+     native, véhicules et caisses, lit désormais la liste de cargo à bord (`unit:getCargosOnBoard()`) :
+     la sortie est vue quand l'objet quitte la liste (au sol : `WAITING` ; en vol : `FALLING` puis
+     `WAITING` à l'atterrissage), validée en jeu sur le C-130J-30. -->
 
 <!-- luacheck cleanup, Lot B — le reste (30 des 31 restants après le gap ci-dessus, ~9 fichiers) :
      formalisé en lot `.backlog/FIX-LUACHECK-REMAINING-WARNINGS/`, mergé — plafond CI abaissé à 0.
@@ -232,3 +219,49 @@ véhicule `dcs_native` qui ne sort jamais formellement de l'état `LOADED`) est 
      en lot `.backlog/FEAT-CTLD-TOOLS-AIZ-SYNC/`, mergé (PR #169) — datalist dcsZoneName +
      réconciliation ajout/suppression des zones AIZ_, convention `AIZ_<name>_<coalition>_<P|D>_
      <cargoType-ou-aiDropMode>` côté outil uniquement (ADR dédié dans dev/adr/). -->
+
+## Cargo natif — adopter les objets que CTLD ne suit pas
+
+Le lot `FIX-NATIVE-CARRY-DETECTION` ignore (trace debug) tout objet de la liste de cargo à bord qui n'est pas un
+véhicule ou une caisse suivi : cargo créé par la tablette de loadmaster, caisses d'éditeur de type inconnu
+(`ammo_cargo` posé dans l'éditeur). Idée : les adopter comme caisses génériques CTLD, pour qu'elles
+bénéficient du suivi (déballage, menus). À cadrer : quel descripteur, quelle coalition, quel poids.
+
+## Cargo natif — étendre `convertNativeLoadToCTLD` aux véhicules
+
+La conversion d'un chargement natif en chargement CTLD (UH-1H, CH-47Fbl1 par défaut) ne s'applique qu'aux
+caisses. Pour les types dont l'interface cargo DCS accepterait un véhicule entier, la même conversion
+donnerait accès au parachute virtuel et aux menus de CTLD. Non applicable au Mi-8MT, dont l'interface cargo
+DCS n'accepte que des caisses (constaté en jeu).
+
+## Cargo natif — menus F10 des caisses natives
+
+Les listes F10 *Drop Crate(s)* et *Parachute Crates* incluent des caisses en carry natif, alors que les
+commentaires du code et la page `docs/pilot/parachute.md` disent que le cargo natif en est exclu. À trancher :
+exclure ces caisses des menus (DCS les libère lui-même) ou corriger les commentaires et la page.
+
+## Cargo natif — limite de poids des véhicules appliquée pour l'IA seulement
+
+`maxVehicleWeight` n'est appliqué qu'au chargement automatique par l'IA ; un chargement natif par un joueur
+n'est limité que par DCS. Idée : une limite manuelle configurable, si le besoin se confirme.
+
+## Pack — distance de spawn des caisses trop grande pour un chargement natif (Mi-8MT)
+
+Les caisses issues d'un *Pack Equipt* apparaissent à 23 à 28 m du Mi-8MT, alors que DCS ne charge une caisse
+par son interface cargo native que d'environ 5 m (« FAILED TO LOAD CARGO » au-delà, constaté en jeu le
+2026-10-01). Idée : rapprocher le spawn des caisses du pack pour les aéronefs à cargo natif de type hélicoptère
+(Mi-8MT d'abord), afin qu'elles soient directement chargeables sans repositionner l'appareil.
+
+## Véhicule `WAITING` dont l'unité a disparu reste suivi
+
+Constaté en jeu le 2026-10-01 : `veh_15`, demandé par Request Equipment, est resté en état `WAITING` dans
+`CTLDVehicleSpawner` sans unité vivante (`isExist() == false`), sans événement `OnVehicleDead`. Cause non
+établie (hors du lot natif : il n'a jamais été chargé). À reproduire et à traiter.
+
+## Cargo natif — types non vérifiés en jeu
+
+Le CH-47F et le Mi-24P n'ont pas été vérifiés en jeu (modules non possédés) : lecture de la liste de cargo
+à bord, chargement et libération. Le défaut `canTransportWholeVehicle: true` du CH-47F n'est couvert que par
+busted. Une libération de caisse native est détectée environ 5 s après la vidange de la liste, car la passe
+de libération attend que le statique DCS de la caisse existe de nouveau : à surveiller sur un type où DCS
+recréerait l'objet avec une nouvelle identité.

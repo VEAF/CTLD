@@ -43,10 +43,13 @@ Two things are worth knowing before you drop:
   group — no ground crew and no F10 unpack step needed. Drop the full set of crates over the
   same point and the vehicle builds itself where they land.
 
-For fixed-wing transports such as the C-130, Il-76 and Hercules, crates use the **DCS native
+For fixed-wing transports such as the C-130 and the Hercules, crates use the **DCS native
 parachute** instead: load them, climb to drop altitude, and use the aircraft's own DCS
-parachute function (not the CTLD menu). DCS animates a real canopy and CTLD claims the crates
-when they touch down. Which aircraft behave which way is a mission-maker setting.
+parachute function (not the CTLD menu). DCS animates a real canopy and CTLD follows the crates
+down and claims them when they touch down. A whole vehicle carried by the C-130J-30 works the same way:
+released in flight with the DCS parachute, it falls alive under its canopy and is ready to load again once
+it has landed. Drop it from a high enough altitude (a test drop from about 700 m destroyed the vehicle at
+release, one from about 1500 m landed intact). Which aircraft behave which way is a mission-maker setting.
 
 > **DCS native cargo cannot be parachuted from the CTLD menu.** Crates loaded through the DCS
 > standard cargo UI (rather than the CTLD **Load Crate** menu) are excluded from **Parachute

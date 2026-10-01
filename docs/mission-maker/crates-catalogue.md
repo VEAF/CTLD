@@ -97,14 +97,15 @@ You rarely need to touch it; leave the defaults unless you want a different carg
 
 ## Whole-vehicle transport
 
-Beyond crates, CTLD can carry **whole ground vehicles** inside capable aircraft (C-130, Il-76,
-CH-47, UH-1H…). What a given airframe may carry is defined per aircraft in
+Beyond crates, CTLD can carry **whole ground vehicles** inside capable aircraft: the C-130J-30 through the
+DCS cargo bay, helicopters such as the CH-47F or the Mi-8MT through the F10 menu. What a given airframe
+may carry is defined per aircraft in
 [`capabilitiesByType`](configuration.md), not in a separate global list:
 
 | `capabilitiesByType` field | Meaning |
 |---|---|
 | `canTransportWholeVehicle` | `true` = this airframe can load/unload whole vehicles. |
-| `useNativeDcsCargoSystem` | `true` = use the DCS native cargo bay (C-130, Il-76, CH-47…); otherwise the F10 menu handles loading. |
+| `useNativeDcsCargoSystem` | `true` = the aircraft has a DCS native cargo system (C-130J-30, CH-47F, Mi-8MT, UH-1H, Mi-24P): CTLD follows what DCS reports on board; otherwise the F10 menu handles loading. |
 | `maxWholeVehiclesOnboard` | Max whole vehicles held at once (`0` = no vehicle transport). |
 | `maxVehicleWeight` | Max liftable vehicle mass (kg). |
 | `loadableVehiclesBLUE` / `loadableVehiclesRED` | The DCS type names this airframe may carry whole, per coalition. |
@@ -127,6 +128,24 @@ The reverse operation — [packing](../pilot/vehicles.md) a vehicle back into cr
 `cratesRequired` crates of the vehicle's crate type around the aircraft. There is no separate
 "packable vehicles" list: any vehicle whose DCS type matches a `spawnableCrates` descriptor `unit`
 is packable.
+
+### Native cargo by aircraft type
+
+What each aircraft does through the **DCS cargo system**, as checked in a live mission (2026-10-01). CTLD reads
+`unit:getCargosOnBoard()` of the aircraft: an item is carried exactly while DCS lists it on board.
+
+| Aircraft | List readable | Crates | Whole vehicle through DCS | Released in flight (DCS parachute) | Converted to a CTLD crate |
+|---|---|---|---|---|---|
+| C-130J-30 | yes | yes (loadmaster tablet) | yes (a `CRG:<unit>` entry) | yes: crates and vehicles fall alive and are followed to the ground | no |
+| Mi-8MT | yes | yes, from about 5 m away | **no** (DCS lists crates only; use the F10 menu) | not tested | no (default) |
+| UH-1H | yes | yes | not applicable (no whole-vehicle carry by default) | not tested | yes (default) |
+| CH-47F | not verified in game | not verified | not verified | not verified | yes (default) |
+| Mi-24P | not verified in game | not verified | not verified | not verified | no (default) |
+| Il-76 | AI-flown only, no native cargo | | | | |
+
+An item that CTLD does not track (cargo created by the loadmaster tablet, editor crates of an unknown type) is
+ignored. If DCS cannot give the list for a type, CTLD warns once for that type and stops watching it; it never
+falls back to a geometric guess.
 
 ## AA systems
 

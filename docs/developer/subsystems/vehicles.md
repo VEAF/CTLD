@@ -34,12 +34,13 @@ At `init()` the singleton registers its F10 menu section (`order = 30`), subscri
 
 ## State machine
 
-`CTLDVehicle.STATE` declares three states:
+`CTLDVehicle.STATE` declares four states:
 
 | State | Meaning |
 | --- | --- |
 | `WAITING` | On the ground, tracked, ready to be loaded |
 | `LOADED` | Carried by a transport (DCS unit destroyed for `menu_ctld`, or physically linked for `dcs_native`) |
+| `FALLING` | Released in flight by the DCS native cargo system: the unit stays alive and falls under its DCS parachute; back to `WAITING` once landed |
 | `DELIVERED` | Declared but **not currently assigned** — reserved for a future dedicated delivered state |
 
 The transitions actually performed by the current code are:
@@ -65,10 +66,14 @@ Load and unload each carry a `method` string:
 | Direction | Method | Trigger |
 | --- | --- | --- |
 | Load | `menu_ctld` | Player picks a vehicle from the **Load / Extract Vehicles** F10 submenu; the DCS unit is destroyed on load |
-| Load | `dcs_native` | A whole vehicle enters a native-cargo transport's bounding box (C-130 / Il-76 class); DCS keeps the unit physically linked |
+| Load | `dcs_native` | The vehicle's `CRG:<unit name>` companion entry appears on a player aircraft's on-board cargo list (`unit:getCargosOnBoard()`); DCS keeps the unit physically linked |
 | Unload | `menu_ctld` | Player picks a vehicle from **Unload Vehicles**; the unit is respawned near the transport |
-| Unload | `dcs_native` | DCS has already placed the unit on the ground; CTLD only recovers the live reference |
-| Unload | `parachute` | Airborne drop via **Parachute Vehicle** |
+| Unload | `dcs_native` | The entry leaves the list with the transport on the ground; DCS has already placed the unit, CTLD recovers the live reference (never respawned) |
+| Unload | `parachute` | Airborne drop: CTLD's virtual **Parachute Vehicle** (the unit is respawned at its landing position), or a native-carry vehicle whose entry leaves the list in flight (the unit is **not** respawned; state `FALLING` until it lands) |
+
+The rule behind the two carry modes is that a cargo item is **unloaded the way it was loaded**: the F10
+unload and parachute entries (`findVirtualCarryVehicles`) list virtual-carry vehicles only, and a native-carry
+vehicle is released by DCS.
 
 ## Where a `WAITING` vehicle comes from
 
@@ -120,13 +125,18 @@ The maximum pick-up distance is **not** enforced in `loadVehicle`; it is applied
 
 1. Reject unless the vehicle is `LOADED`.
 2. Compute a spawn position with `_computeSpawnPosition(transport, rearSector)`.
-3. `menu_ctld` / `parachute`: respawn the unit near the transport with `ctld.utils.dynAdd`,
-   reusing `spawnData.groupName` / `spawnData.unitName`. `dcs_native`: recover the live unit that
-   DCS already placed via `Group.getByName(spawnData.groupName)`.
-4. Set state back to `WAITING`; re-register the reverse lookup.
-5. Non-`dcs_native`: recompute cargo weight. Resume JTAC lasing if applicable.
+3. A virtual-carry vehicle (`loadMethod ~= "dcs_native"`) is respawned near the transport with
+   `ctld.utils.dynAdd`, reusing `spawnData.groupName` / `spawnData.unitName`, whatever `method` is
+   published. A native-carry vehicle (`loadMethod == "dcs_native"`) is **never** respawned: the live unit
+   DCS kept is recovered via `Group.getByName(spawnData.groupName)`. The mechanism follows how the vehicle
+   was loaded, not the published reason.
+4. Set state back to `WAITING` (`FALLING` for a native-carry vehicle released with `method = "parachute"`);
+   re-register the reverse lookup.
+5. Virtual-carry: recompute cargo weight (a native-carry weight is left to DCS). Resume JTAC lasing if
+   applicable (a falling vehicle resumes on landing).
 6. `menu_ctld` only: send a confirmation message.
-7. Publish `OnVehicleUnloaded`.
+7. Publish `OnVehicleUnloaded`; for a vehicle released in flight, start the landing poll
+   (`_scheduleNativeLandingPoll`).
 
 > The dev-guide draft described unload as re-spawning through `CTLDObjectRegistry.spawnObject`;
 > the current code respawns through `ctld.utils.dynAdd` and does not use the object registry here.
@@ -139,23 +149,32 @@ sector (`hdg + π`) when `rearSector` is true, which keeps the drop clear of an 
 takeoff path. The radial offset comes from `_secureOffset`, the bounding-box diagonal
 `sqrt(halfLen² + halfWid²) × 2 + 10` m, falling back to 60 m when `getDesc().box` is unavailable.
 
-## DCS-native whole-vehicle loading — `_checkNativeLoading` (1 s tick)
+## DCS-native whole-vehicle loading and release — `_checkNativeLoading` (1 s tick)
 
-For native-cargo transports the load is detected geometrically rather than through a menu.
-Each tick:
+A native-carry vehicle is read from the list DCS reports on board the aircraft, not from geometry
+(ADR 0022). Each tick:
 
-- Collect `WAITING` vehicles with live units and `LOADED` vehicles whose `loadMethod == "dcs_native"`.
-- Iterate `Group.Category.AIRPLANE` groups of both coalitions; for each unit that is
-  `_isNativeCargoCapable` (its `capabilitiesByType` entry sets `canTransportWholeVehicle == true`),
-  read `getTransformation()` and `getDesc().box`.
-- For each `WAITING` vehicle, convert its world position into the transport's local frame
-  (`_worldToLocal`) and test it against the box (`_isInBbox`). On entry, call
-  `loadVehicle(veh, transport, nil, "dcs_native")` and record the transport in `_nativeTracked`
-  to prevent a double-fire.
+- Collect `WAITING` vehicles with live units, and `LOADED` vehicles whose `loadMethod == "dcs_native"`. With
+  neither, the tick returns before reading any list.
+- Candidates are the **player** units (`CTLDPlayerManager._players`; an AI-flown aircraft is never scanned) of
+  any category whose `capabilitiesByType` entry sets `useNativeDcsCargoSystem` and `canTransportWholeVehicle`.
+  Their list is read with `ctld.utils.getOnBoardCargo(unit)`. If it cannot be read, one warning is logged for
+  the type and the type is no longer watched (`_unreadableCargoTypes`); there is no geometric fallback.
+- **Entry:** a whole vehicle shows up as a companion entry named `CRG:<unit name>`. When it matches a
+  `WAITING` vehicle, call `loadVehicle(veh, transport, nil, "dcs_native")`. No position, ground, speed or
+  coalition test applies: DCS decides what it accepts. An entry that is not a waiting vehicle (cargo created
+  with the loadmaster tablet, an unknown editor crate) is ignored with one debug trace (`_ignoredCargoNames`).
+- **Release:** a native-carry vehicle whose entry has left its transport's list is released through
+  `unloadVehicle`: `method = "dcs_native"` with the transport on the ground (`WAITING` again at once), or
+  `method = "parachute"` when `ctld.utils.inAir(transport)` (state `FALLING`).
+  `_scheduleNativeLandingPoll` then follows the unit (alive all the way down) until `ctld.utils.hasLanded`
+  says it is on the ground (the criterion the parachuted crates use), and resumes its JTAC. A unit that is gone
+  is dropped like any lost vehicle (`_dropLostVehicle`: JTAC deregistered, `OnVehicleDead`).
+- **Transport gone** (slot change, despawn: no death event): a native-carry vehicle whose recorded transport no
+  longer exists gets the same `_dropLostVehicle` handling as a destroyed transport, once. A transport whose list
+  was not read this tick releases nothing. A vehicle already `FALLING` is not affected.
 
-The bbox **exit** branch is present but currently a no-op (the loaded unit's position cannot be
-queried once destroyed); native unload is handled through the `dcs_native` unload path rather than
-this loop.
+A released vehicle cannot be reloaded by CTLD: it is loaded again only by reappearing on the list.
 
 ## Loadable filtering — `findLoadableVehicles` / `_isTypeLoadable`
 

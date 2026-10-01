@@ -8,6 +8,85 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Docs — native cargo documented as it actually works (FIX-NATIVE-CARRY-DETECTION, ticket 08)
+
+- The pilot, mission-maker and developer pages (English and French) no longer describe native cargo as a
+  bounding-box detection or its exit as a no-op: they describe the on-board cargo list, the release on the
+  ground and in flight, the `FALLING` state, and the rule that a cargo item is unloaded the way it was loaded.
+  The Il-76 is documented as AI-flown only, with no native cargo, and the C-130J-30 as the only fixed-wing
+  native-carry aircraft. A per-type table (C-130J-30, Mi-8MT, UH-1H, CH-47F, Mi-24P) gives what each does
+  natively, with the result of the live validation; the CH-47F and the Mi-24P are marked unverified in game.
+  Cargo created with the loadmaster tablet is documented as ignored by CTLD. The equipment transport diagram and
+  the code comments that promised the old mechanism are corrected. The roadmap closes the native exit entry and
+  records the follow-ups (adopting untracked cargo, converting vehicles, native crate F10 lists, manual weight
+  limit, the pack spawn distance for the Mi-8MT, a stale waiting vehicle, unverified types).
+
+### Changed — native crate load and release are read from the DCS on-board cargo list (FIX-NATIVE-CARRY-DETECTION, ticket 06)
+
+- Crates carried through the DCS cargo system were detected by testing their position against the aircraft's
+  bounding box (far larger than a cargo bay), with a ground-speed guard for entry and a local-frame drift of
+  more than 1 m for release. They now follow the same rule as native vehicles: a tracked crate is in native
+  carry exactly while it is on the `unit:getCargosOnBoard()` list of a player aircraft CTLD watches. It enters
+  when it appears there (`OnCrateLoaded`, method `dcs_native`, payload unchanged) and is released when it leaves:
+  `LANDED` on the ground, `FALLING` then ground when the aircraft is airborne (`OnCrateUnloaded`, method
+  `dcs_native`). The bounding-box test, speed guard, drift reference and native link table are removed; the
+  spawn-time check that keeps a fresh crate out of a neighbouring aircraft's volume is unchanged.
+- Types with `convertNativeLoadToCTLD` (UH-1H, CH-47Fbl1 by default) keep the conversion to a CTLD load, triggered
+  by the crate appearing on the list; the crate stays listed until DCS processes the release, so it is marked as
+  being converted and handled once. Entries CTLD does not track (loadmaster-tablet cargo, editor crates of an
+  unknown type) are ignored with one debug line, and a type whose list cannot be read is warned about once and
+  no longer watched (ADR 0022). An on-board entry whose name cannot be read is skipped by both native scans
+  (vehicles and crates) instead of stopping their periodic timer.
+
+### Fixed — a native-carry vehicle is dropped when its transport vanishes without a death event (FIX-NATIVE-CARRY-DETECTION, ticket 05)
+
+- CTLD already dropped the vehicles loaded on a transport destroyed by a death event. A transport can also
+  vanish with no such event (slot change, despawn), which left its native-carry vehicles `LOADED` forever,
+  and their JTAC claim and laser code held. The native tick now notices that the recorded transport no longer
+  exists and applies the same handling: removed from tracking, JTAC deregistered silently, `OnVehicleDead`
+  published once (a later death event does not process it again). A vehicle already falling after an in-flight
+  release is not affected, and virtual-carry vehicles keep their current behavior.
+
+### Fixed — a native-carry vehicle released by DCS is detected when it leaves the on-board cargo list (FIX-NATIVE-CARRY-DETECTION, ticket 04)
+
+- The exit detection of a vehicle carried through the DCS cargo system was never built (an empty, commented
+  branch). CTLD now notices, on the next tick, that the vehicle's `CRG:<unit name>` entry has left its
+  transport's on-board cargo list. Released on the ground, the vehicle is `WAITING` again at once with its live
+  unit recovered (never respawned) and its JTAC resumes lasing; `OnVehicleUnloaded` carries method `dcs_native`.
+  Released in flight (the DCS native parachute), it is published as method `parachute` and enters a new
+  `FALLING` state, is not offered for loading, and becomes `WAITING` once landed (the AGL criterion the
+  parachuted crates use, now shared as `ctld.utils.hasLanded`); its JTAC resumes then. A vehicle destroyed or
+  lost while falling is dropped like any lost vehicle (JTAC deregistered, `OnVehicleDead`). Virtual-carry
+  unloads (menu, AI dropoff) and CTLD's own virtual parachute still respawn the vehicle as before. A vehicle
+  released on the ground when DCS has already removed its unit is dropped like a lost vehicle, rather than left
+  `WAITING` with no unit.
+
+### Changed — the CH-47F carries whole vehicles by default (FIX-NATIVE-CARRY-DETECTION, ticket 02)
+
+- The default aircraft capabilities mark the `CH-47Fbl1` as `canTransportWholeVehicle: true`; its loadable
+  vehicle types, `maxVehicleWeight` and `maxWholeVehiclesOnboard` were already declared and are unchanged. A
+  CH-47F pilot now gets the *Vehicle Commands* F10 menu (virtual-carry load, unload, parachute). No other
+  aircraft entry changes. Covered by busted only: not yet checked in a live DCS CH-47F.
+
+### Fixed — native whole-vehicle loading is read from the DCS on-board cargo list (FIX-NATIVE-CARRY-DETECTION, ticket 03)
+
+- A vehicle waiting for a native-cargo aircraft was loaded when it merely stood inside the aircraft's
+  bounding box, a box DCS reports far larger than any cargo bay (41 m wide for the C-130J-30, the whole rotor
+  disc for the Mi-8MT). CTLD now reads `unit:getCargosOnBoard()` of every player aircraft whose type carries
+  whole vehicles through the DCS cargo system, and loads a waiting vehicle exactly when its `CRG:<unit name>`
+  companion entry appears on that list; no position, ground, speed or coalition test remains. AI-flown aircraft
+  are never scanned, entries that are not a waiting vehicle are ignored (one debug line each), and a type whose
+  list cannot be read is warned about once and no longer watched, with no geometric fallback (ADR 0022).
+
+### Fixed — F10 *Unload Vehicles* and *Parachute Vehicle* no longer offer native-carry vehicles (FIX-NATIVE-CARRY-DETECTION, ticket 01)
+
+- A whole vehicle loaded through the DCS cargo system (native carry) is still held by DCS as a live
+  unit, yet the two F10 entries listed it like a vehicle loaded through the F10 menu. Unloading or
+  parachuting it would have spawned a duplicate. Both entries now consider virtual-carry vehicles
+  only: with only a native-carry vehicle aboard, the unload submenu is hidden and *Parachute
+  Vehicle* stays disabled, exactly as if nothing were loaded. Weight accounting, the onboard cargo
+  report and the AI dropoff are unchanged.
+
 ### Fixed — two more zone identity mix-ups found by the registry-key audit (FIX-ZONE-REGISTRY-KEY, ticket 03)
 
 - The crate manager's "did the player's logistic zones change?" check (which decides when to rebuild the

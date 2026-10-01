@@ -276,7 +276,9 @@ function CTLDCrateManager.getInstance()
         _cmInstance.crates            = {}   -- [crateName] = CTLDCrate
         _cmInstance._parachuteEffect  = CTLDNullParachuteEffect:new()
         _cmInstance._hoverStatus      = {}   -- [unitName] = secondsRemaining
-        _cmInstance._nativeCrateLink  = {}   -- [crateName] = {lx,ly,lz} local-frame offset at DCS-native load time
+        _cmInstance._unreadableCargoTypes = {}   -- [typeName] = true: on-board cargo list unreadable, warned once
+        _cmInstance._ignoredCargoNames    = {}   -- [name] = true: on-board entry already traced as not a tracked crate
+        _cmInstance._convertingCrates     = {}   -- [crateName] = true: DCS load being converted to a CTLD load
         local pm = CTLDPlayerManager.getInstance()
         pm:registerMenuSection({ key = "crates", manager = _cmInstance, method = "buildMenuSection",  configKey = "enableCrates",    order = 40 })
         pm:registerMenuSection({ key = "smoke",  manager = _cmInstance, method = "buildSmokeSection", configKey = "enableSmokeDrop", order = 80 })
@@ -1271,227 +1273,203 @@ function CTLDCrateManager:checkHoverStatus()
     end
 end
 
---- Return true if world-space point `pt` is inside the bounding box of `unitPos`.
--- unitPos : result of unit:getPosition() = { p=Vec3, x=Vec3, y=Vec3, z=Vec3 }
--- bbox    : { min=Vec3, max=Vec3 } in local coords (from unit:getDesc().box)
--- margin  : extra metres added on every face (default 0)
-local function _pointInBBox(unitPos, bbox, pt, margin)
-    margin = margin or 0
-    local dx = pt.x - unitPos.p.x
-    local dy = pt.y - unitPos.p.y
-    local dz = pt.z - unitPos.p.z
-    local lx = dx * unitPos.x.x + dy * unitPos.x.y + dz * unitPos.x.z
-    local ly = dx * unitPos.y.x + dy * unitPos.y.y + dz * unitPos.y.z
-    local lz = dx * unitPos.z.x + dy * unitPos.z.y + dz * unitPos.z.z
-    return lx >= (bbox.min.x - margin) and lx <= (bbox.max.x + margin)
-       and ly >= (bbox.min.y - margin) and ly <= (bbox.max.y + margin)
-       and lz >= (bbox.min.z - margin) and lz <= (bbox.max.z + margin)
-end
+-- A whole vehicle shows up on an on-board cargo list as a `CRG:<unit name>` companion entry:
+-- the vehicle scan (CTLDVehicleSpawner) owns it, the crate scan leaves it alone.
+local _VEHICLE_COMPANION_PREFIX = "CRG:"
 
---- Detect DCS-native cargo load/unload via bounding-box containment (1 s tick).
+--- Detect DCS-native cargo load/unload from the aircraft's on-board cargo list (1 s tick).
 -- Called from checkHoverStatus() unconditionally.
 --
--- No S_EVENT_CARGO_LOADED / S_EVENT_CARGO_UNLOADED exists in the DCS API.
--- Detection is purely positional:
---   LOAD  : crate.dcsStatic:getPoint() is inside the transport's 3-D bounding box.
---           Works while the aircraft is still on the ground (before takeoff),
---           so CTLD marks the crate as taken before any other transport sees it.
---   UNLOAD: crate state is LOADED (via dcs_native, so dcsStatic still exists),
---           and the static's current position is now OUTSIDE the transport's bbox.
+-- No S_EVENT_CARGO_LOADED / S_EVENT_CARGO_UNLOADED exists in the DCS API, but DCS itself reports
+-- what is on board a native-cargo aircraft (unit:getCargosOnBoard(), ADR 0022). A tracked crate is
+-- in native carry exactly while it is on the list of a player aircraft CTLD watches: it enters
+-- when it appears there and is released when it leaves. No bounding box, speed guard or drift
+-- reference: DCS is the authority. Entries CTLD does not track are ignored (one debug trace).
 --
--- CTLD-managed loads call crate:destroy() → dcsStatic = nil: those crates are
--- silently skipped here (outer check `dcsStatic and dcsStatic:isExist()`).
+-- CTLD-managed loads call crate:destroy() → dcsStatic = nil: those crates are not on any list and
+-- are skipped by the release pass (`dcsStatic and dcsStatic:isExist()`).
 function CTLDCrateManager:_checkNativeDCSCargo()
 
-    -- Build candidate transport list (ALL dynamic transports, ground OR air).
-    -- We pre-fetch position and bbox so we don't call getPosition()/getDesc()
-    -- more than once per transport per tick.
-    local pm         = CTLDPlayerManager.getInstance()
-    local transports = {}   -- array of { transport, unitName, playerObj, unitPos, bbox }
+    -- Idle: no tracked crate, nothing to load or release.
+    if not next(self.crates) then return end
+
+    -- Read the on-board list of every player aircraft whose type uses the DCS cargo system
+    -- (any category). An unreadable list: one warning for the type, then it is not watched.
+    local pm = CTLDPlayerManager.getInstance()
+    local transports, namesOnBoard = {}, {}   -- by transport unit name
     for unitName, playerObj in pairs(pm._players) do
         local transport = Unit.getByName(unitName)
         if transport and transport:isExist() and self:_isDynamicCapable(transport) then
-            local desc = transport:getDesc()
-            if desc and desc.box then
-                transports[#transports + 1] = {
-                    transport = transport,
-                    unitName  = unitName,
-                    playerObj = playerObj,
-                    unitPos   = transport:getPosition(),
-                    bbox      = desc.box,
-                }
+            local typeName = transport:getTypeName()
+            if not self._unreadableCargoTypes[typeName] then
+                local list, err = ctld.utils.getOnBoardCargo(transport)
+                if not list then
+                    self._unreadableCargoTypes[typeName] = true
+                    ctld.utils.log("WARN",
+                        "CTLDCrateManager: on-board cargo list of type '%s' cannot be read (%s) — native crate detection not watched for this type",
+                        typeName, tostring(err))
+                else
+                    transports[unitName]   = { transport = transport, playerObj = playerObj }
+                    namesOnBoard[unitName] = {}
+                    for _, cargo in ipairs(list) do
+                        local name = ctld.utils.cargoName(cargo)
+                        if name then namesOnBoard[unitName][name] = true end
+                    end
+                end
             end
         end
     end
 
+    -- ── Entry: a tracked crate on the ground that appears on a list ─────────────────
+    for unitName, entry in pairs(transports) do
+        for name in pairs(namesOnBoard[unitName]) do
+            local crate = self.crates[name]
+            if crate then
+                if crate:isOnGround() and not self._convertingCrates[name] then
+                    self:_onNativeCrateEntered(crate, unitName, entry)
+                end
+            elseif string.sub(name, 1, #_VEHICLE_COMPANION_PREFIX) ~= _VEHICLE_COMPANION_PREFIX
+                and not self._ignoredCargoNames[name] then
+                self._ignoredCargoNames[name] = true
+                ctld.utils.log("DEBUG",
+                    "CTLDCrateManager: on-board cargo '%s' is not a tracked crate — ignored", name)
+            end
+        end
+    end
+
+    -- ── Release: a native-carry crate that has left its transport's list ───────────
     for _, crate in pairs(self.crates) do
         local dcsStatic = crate.dcsStatic
-        if dcsStatic and dcsStatic:isExist() then
-            local cratePos = dcsStatic:getPoint()
-
-            -- ── LOAD detection ─────────────────────────────────────────────
-            -- Crate is on ground AND its static is inside a transport's bbox.
-            -- 0.5 m margin to account for attachment offsets.
-            -- Speed guard: DCS Dynamic Cargo UI is only accessible when the aircraft
-            -- is stationary on the ground.  A transport that is taxiing can sweep its
-            -- bbox over a parked crate and trigger a false positive.  We reject any
-            -- entry whose ground-speed exceeds 0.5 m/s (speed² > 0.25).
-            if crate:isOnGround() then
-                for _, entry in ipairs(transports) do
-                    local vel  = entry.transport:getVelocity()
-                    local spd2 = vel.x * vel.x + vel.y * vel.y + vel.z * vel.z
-                    if spd2 <= 0.25 and _pointInBBox(entry.unitPos, entry.bbox, cratePos, 0.5) then
-                        local _caps = (ctld.gs("capabilitiesByType") or {})[entry.transport:getTypeName()]
-                        local _convertToCTLD = _caps and _caps.convertNativeLoadToCTLD
-
-                        if _convertToCTLD then
-                            -- Undo the DCS UI load, then trigger the full CTLD load path
-                            -- (identical to the F10 menu): UnloadCargo() releases the DCS
-                            -- cargo slot; after DCS processes the release (0.5 s), loadCrate()
-                            -- handles state transition, static destruction, weight update,
-                            -- OnCrateLoaded + OnCrateCleared events, and menu refresh.
-                            local _origStatic = crate.dcsStatic
-                            local _crateName  = crate.crateName
-                            local _transport  = entry.transport
-                            local _unitName   = entry.unitName
-                            local _groupId    = entry.playerObj.groupId
-                            local _okUL, _errUL = pcall(function() _transport:UnloadCargo(_origStatic) end)
-                            if not _okUL then
-                                ctld.utils.log("WARN", "CTLDCrateManager: UnloadCargo failed: %s", tostring(_errUL))
-                            end
-                            timer.scheduleFunction(function()
-                                self:loadCrate(_crateName, _transport)
-                                local _c = self.crates[_crateName]
-                                local _lbl = _c and _c.descriptor and _c.descriptor.desc or _crateName
-                                ctld.utils.log("INFO",
-                                    "CTLDCrateManager: DCS UI LOAD → CTLD-managed — crate=%s carrier=%s",
-                                    _crateName, _unitName)
-                                trigger.action.outTextForGroup(_groupId,
-                                    string.format("[CTLD] Crate loaded (parachute-ready): %s", _lbl), 8)
-                            end, nil, timer.getTime() + 0.5)
-                        else
-                            -- DCS-native: memorize local-frame offset for drift-based unload
-                            -- detection, mark as DCS-managed (no parachute available in-flight).
-                            local up = entry.unitPos
-                            local dx = cratePos.x - up.p.x
-                            local dy = cratePos.y - up.p.y
-                            local dz = cratePos.z - up.p.z
-                            self._nativeCrateLink[crate.crateName] = {
-                                lx = dx * up.x.x + dy * up.x.y + dz * up.x.z,
-                                ly = dx * up.y.x + dy * up.y.y + dz * up.y.z,
-                                lz = dx * up.z.x + dy * up.z.y + dz * up.z.z,
-                            }
-                            crate:load(entry.transport)
-                            crate.loadedByDCSNative = true
-                            self:_publish("OnCrateLoaded", {
-                                crate           = crate,
-                                crateName       = crate.crateName,
-                                carrierUnitName = entry.unitName,
-                                coalition       = crate.coalition,
-                                descriptor      = crate.descriptor,
-                                method          = "dcs_native",
-                                timestamp       = timer.getAbsTime(),
-                            })
-                            pm:refreshForUnit(entry.unitName)
-                            self:refreshUnpackSectionForUnit(entry.unitName)
-                            self:refreshCrateFlightSectionForUnit(entry.unitName)
-                            local _descLabel = crate.descriptor and crate.descriptor.desc or crate.crateName
-                            ctld.utils.log("INFO",
-                                "CTLDCrateManager: DCS native LOAD (DCS-managed, no parachute) — crate=%s carrier=%s",
-                                crate.crateName, entry.unitName)
-                            trigger.action.outTextForGroup(entry.playerObj.groupId,
-                                string.format("[CTLD] Crate loaded (DCS native): %s", _descLabel), 8)
-                        end
-                        break
-                    end
-                end
-
-            -- ── UNLOAD detection ───────────────────────────────────────────
-            -- Crate is LOADED and dcsStatic is still alive → DCS-native path.
-            -- (CTLD-managed loads destroy the static → dcsStatic = nil, never reach here.)
-            -- Detect unload by local-frame offset drift: recompute {lx,ly,lz} each tick
-            -- and compare to linkOffsetRef memorised at load time.
-            -- DCS places the released crate *behind* the aircraft (collision avoidance),
-            -- so the offset changes immediately on release — seuil 1 m is sufficient.
-            elseif crate:isLoaded() then
-                local transport = crate.loadedBy
-                if not transport or not transport:isExist() then
-                    -- Transport destroyed while crate was natively loaded: reset.
-                    self._nativeCrateLink[crate.crateName] = nil
-                    crate.position     = cratePos
-                    crate.state        = CTLDCrate.STATE.LANDED
-                    crate.loadedBy     = nil
-                    crate.loadTime     = nil
-                    crate.fromParachute = false
-                    ctld.utils.log("INFO",
-                        "CTLDCrateManager: DCS native UNLOAD (transport lost) — crate=%s",
-                        crate.crateName)
-                else
-                    local ref = self._nativeCrateLink[crate.crateName]
-                    if ref then
-                        local up = transport:getPosition()
-                        local dx = cratePos.x - up.p.x
-                        local dy = cratePos.y - up.p.y
-                        local dz = cratePos.z - up.p.z
-                        local lx = dx * up.x.x + dy * up.x.y + dz * up.x.z
-                        local ly = dx * up.y.x + dy * up.y.y + dz * up.y.z
-                        local lz = dx * up.z.x + dy * up.z.y + dz * up.z.z
-                        local dlx = lx - ref.lx
-                        local dly = ly - ref.ly
-                        local dlz = lz - ref.lz
-                        local drift = math.sqrt(dlx*dlx + dly*dly + dlz*dlz)
-                        if drift > 1.0 then
-                            local carrierName = transport:getName()
-                            local playerObj   = pm:getPlayer(carrierName)
-                            -- Determine if transport is airborne at release time
-                            local tp        = transport:getPoint()
-                            local groundH   = land.getHeight({ x = tp.x, y = tp.z })
-                            local inFlight  = (tp.y - groundH) > 5
-                            self._nativeCrateLink[crate.crateName] = nil
-                            crate.position = cratePos
-                            crate.loadedBy = nil
-                            crate.loadTime = nil
-                            if inFlight then
-                                -- DCS physically simulates the parachute descent.
-                                -- Stay FALLING until the static actually touches ground.
-                                crate.state         = CTLDCrate.STATE.FALLING
-                                crate.fromParachute = true
-                            else
-                                crate.state = CTLDCrate.STATE.LANDED
-                            end
-                            self:_publish("OnCrateUnloaded", {
-                                crate      = crate,
-                                crateName  = crate.crateName,
-                                coalition  = crate.coalition,
-                                descriptor = crate.descriptor,
-                                method     = "dcs_native",
-                                timestamp  = timer.getAbsTime(),
-                            })
-                            if playerObj then
-                                pm:refreshForUnit(carrierName)
-                                self:refreshUnpackSectionForUnit(carrierName)
-                                self:refreshLoadCrateSection(playerObj)
-                                self:refreshRequestEquipmentSection(playerObj)
-                            end
-                            ctld.utils.log("INFO",
-                                "CTLDCrateManager: DCS native UNLOAD — crate=%s drift=%.2f inFlight=%s fromParachute=%s",
-                                crate.crateName, drift, tostring(inFlight), tostring(crate.fromParachute))
-                            local _descLabel2 = crate.descriptor and crate.descriptor.desc or crate.crateName
-                            local _unloadMsg  = inFlight
-                                and string.format("[CTLD] Crate falling (DCS native parachute): %s", _descLabel2)
-                                or  string.format("[CTLD] Crate unloaded (DCS native): %s", _descLabel2)
-                            if playerObj then
-                                trigger.action.outTextForGroup(playerObj.groupId, _unloadMsg, 8)
-                            end
-                            if inFlight then
-                                -- Poll dcsStatic altitude until ground contact, then auto-unpack.
-                                self:_scheduleParachuteLandingPoll(crate)
-                            end
-                        end
-                    end
+        if crate:isLoaded() and crate.loadedByDCSNative and dcsStatic and dcsStatic:isExist() then
+            local cratePos  = dcsStatic:getPoint()
+            local transport = crate.loadedBy
+            if not transport or not transport:isExist() then
+                -- Transport gone while the crate was natively loaded: reset to the ground.
+                crate.position      = cratePos
+                crate.state         = CTLDCrate.STATE.LANDED
+                crate.loadedBy      = nil
+                crate.loadTime      = nil
+                crate.fromParachute = false
+                ctld.utils.log("INFO",
+                    "CTLDCrateManager: DCS native UNLOAD (transport lost) — crate=%s",
+                    crate.crateName)
+            else
+                -- A transport whose list was not read this tick (unreadable) releases nothing.
+                local names = namesOnBoard[transport:getName()]
+                if names and not names[crate.crateName] then
+                    self:_onNativeCrateReleased(crate, transport, cratePos)
                 end
             end
         end
+    end
+end
+
+--- A tracked crate appeared on a player aircraft's on-board cargo list.
+-- convertNativeLoadToCTLD types: hand the load over to CTLD; otherwise it is DCS-managed.
+function CTLDCrateManager:_onNativeCrateEntered(crate, unitName, entry)
+    local pm        = CTLDPlayerManager.getInstance()
+    local transport = entry.transport
+    local _caps     = (ctld.gs("capabilitiesByType") or {})[transport:getTypeName()]
+    local _convertToCTLD = _caps and _caps.convertNativeLoadToCTLD
+
+    if _convertToCTLD then
+        -- Undo the DCS UI load, then trigger the full CTLD load path
+        -- (identical to the F10 menu): UnloadCargo() releases the DCS
+        -- cargo slot; after DCS processes the release (0.5 s), loadCrate()
+        -- handles state transition, static destruction, weight update,
+        -- OnCrateLoaded + OnCrateCleared events, and menu refresh.
+        -- The crate stays listed until DCS processes the release, so it is marked as being
+        -- converted: the next ticks must not handle it a second time.
+        local _origStatic = crate.dcsStatic
+        local _crateName  = crate.crateName
+        local _transport  = transport
+        local _unitName   = unitName
+        local _groupId    = entry.playerObj.groupId
+        self._convertingCrates[_crateName] = true
+        local _okUL, _errUL = pcall(function() _transport:UnloadCargo(_origStatic) end)
+        if not _okUL then
+            ctld.utils.log("WARN", "CTLDCrateManager: UnloadCargo failed: %s", tostring(_errUL))
+        end
+        timer.scheduleFunction(function()
+            self._convertingCrates[_crateName] = nil
+            self:loadCrate(_crateName, _transport)
+            local _c = self.crates[_crateName]
+            local _lbl = _c and _c.descriptor and _c.descriptor.desc or _crateName
+            ctld.utils.log("INFO",
+                "CTLDCrateManager: DCS UI LOAD → CTLD-managed — crate=%s carrier=%s",
+                _crateName, _unitName)
+            trigger.action.outTextForGroup(_groupId,
+                string.format("[CTLD] Crate loaded (parachute-ready): %s", _lbl), 8)
+        end, nil, timer.getTime() + 0.5)
+    else
+        -- DCS-native: mark as DCS-managed (no parachute available in-flight).
+        crate:load(transport)
+        crate.loadedByDCSNative = true
+        self:_publish("OnCrateLoaded", {
+            crate           = crate,
+            crateName       = crate.crateName,
+            carrierUnitName = unitName,
+            coalition       = crate.coalition,
+            descriptor      = crate.descriptor,
+            method          = "dcs_native",
+            timestamp       = timer.getAbsTime(),
+        })
+        pm:refreshForUnit(unitName)
+        self:refreshUnpackSectionForUnit(unitName)
+        self:refreshCrateFlightSectionForUnit(unitName)
+        local _descLabel = crate.descriptor and crate.descriptor.desc or crate.crateName
+        ctld.utils.log("INFO",
+            "CTLDCrateManager: DCS native LOAD (DCS-managed, no parachute) — crate=%s carrier=%s",
+            crate.crateName, unitName)
+        trigger.action.outTextForGroup(entry.playerObj.groupId,
+            string.format("[CTLD] Crate loaded (DCS native): %s", _descLabel), 8)
+    end
+end
+
+--- A native-carry crate left its transport's on-board cargo list: DCS released it.
+-- On the ground it is LANDED; released in flight DCS simulates the parachute descent and the
+-- crate stays FALLING until its static touches the ground (_scheduleParachuteLandingPoll).
+function CTLDCrateManager:_onNativeCrateReleased(crate, transport, cratePos)
+    local pm          = CTLDPlayerManager.getInstance()
+    local carrierName = transport:getName()
+    local playerObj   = pm:getPlayer(carrierName)
+    local inFlight    = ctld.utils.inAir(transport)
+    crate.position = cratePos
+    crate.loadedBy = nil
+    crate.loadTime = nil
+    if inFlight then
+        crate.state         = CTLDCrate.STATE.FALLING
+        crate.fromParachute = true
+    else
+        crate.state = CTLDCrate.STATE.LANDED
+    end
+    self:_publish("OnCrateUnloaded", {
+        crate      = crate,
+        crateName  = crate.crateName,
+        coalition  = crate.coalition,
+        descriptor = crate.descriptor,
+        method     = "dcs_native",
+        timestamp  = timer.getAbsTime(),
+    })
+    if playerObj then
+        pm:refreshForUnit(carrierName)
+        self:refreshUnpackSectionForUnit(carrierName)
+        self:refreshLoadCrateSection(playerObj)
+        self:refreshRequestEquipmentSection(playerObj)
+    end
+    ctld.utils.log("INFO",
+        "CTLDCrateManager: DCS native UNLOAD — crate=%s inFlight=%s fromParachute=%s",
+        crate.crateName, tostring(inFlight), tostring(crate.fromParachute))
+    local _descLabel2 = crate.descriptor and crate.descriptor.desc or crate.crateName
+    local _unloadMsg  = inFlight
+        and string.format("[CTLD] Crate falling (DCS native parachute): %s", _descLabel2)
+        or  string.format("[CTLD] Crate unloaded (DCS native): %s", _descLabel2)
+    if playerObj then
+        trigger.action.outTextForGroup(playerObj.groupId, _unloadMsg, 8)
+    end
+    if inFlight then
+        -- Poll dcsStatic altitude until ground contact, then auto-unpack.
+        self:_scheduleParachuteLandingPoll(crate)
     end
 end
 
@@ -2407,18 +2385,18 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
 end
 
 --- Poll the DCS-simulated altitude of a natively parachuted crate until it lands.
--- Called when a C-130 (or any dynamic-cargo aircraft) releases a crate in flight via the
--- DCS Dynamic Cargo UI. DCS physically animates the descent; CTLD must NOT auto-unpack
--- before the static actually touches the ground.
+-- Called when a crate leaves the on-board cargo list of a native-cargo aircraft (a C-130,
+-- say) in flight, i.e. DCS released it with its own parachute. DCS physically animates the
+-- descent; CTLD must NOT auto-unpack before the static actually touches the ground.
 --
--- Polls every 1 s. Declares the crate landed when AGL ≤ 3 m, then calls _checkAutoUnpack.
+-- Polls every 1 s. Declares the crate landed when ctld.utils.hasLanded says so (AGL ≤ 3 m), then
+-- calls _checkAutoUnpack.
 -- Falls back to a 120-second timeout in case of degenerate AGL (unlikely terrain artefacts).
 --
 -- @param crate CTLDCrate   crate in STATE.FALLING with a live dcsStatic
 function CTLDCrateManager:_scheduleParachuteLandingPoll(crate)
     local POLL_INTERVAL = 1.0   -- seconds between altitude checks
     local MAX_WAIT      = 120   -- safety timeout (seconds)
-    local AGL_THRESHOLD = 3.0   -- metres AGL to declare landed
     local startTime     = timer.getTime()
 
     local function poll(_, t)
@@ -2444,10 +2422,10 @@ function CTLDCrateManager:_scheduleParachuteLandingPoll(crate)
             return nil
         end
 
-        local p   = crate.dcsStatic:getPoint()
-        local agl = p.y - land.getHeight({ x = p.x, y = p.z })
+        local p = crate.dcsStatic:getPoint()
+        local landed, agl = ctld.utils.hasLanded(p)
 
-        if agl <= AGL_THRESHOLD then
+        if landed then
             crate.state    = CTLDCrate.STATE.LANDED
             crate.position = { x = p.x, y = p.y, z = p.z }
             ctld.utils.log("INFO",

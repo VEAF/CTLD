@@ -104,7 +104,7 @@
     "CH-47Fbl1": {
       "canParachuteDrop": true,
       "canSlingload": true,
-      "canTransportWholeVehicle": false,
+      "canTransportWholeVehicle": true,
       "convertNativeLoadToCTLD": true,
       "cratesEnabled": true,
       "loadableVehiclesBLUE": [

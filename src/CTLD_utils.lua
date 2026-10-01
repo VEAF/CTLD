@@ -1948,7 +1948,7 @@ end
 
 -- ====================================================================================================
 -- SECTION: Spawn positions on a random axis (used by CTLDCrateManager and CTLDSceneManager)
--- Local bbox containment helper (mirrors CTLDCrateManager._pointInBBox).
+-- Local bbox containment helper.
 -- Returns true if world point pt lies inside the bbox of a unit described by unitPos + bbox.
 local function _pointInBBoxLocal(unitPos, bbox, pt, margin)
     margin = margin or 0
@@ -1980,7 +1980,7 @@ end
 -- ====================================================================================================
 
 -- @param avoidBBoxes  array|nil  list of { unitPos, bbox } tables (DynamicCargo transports to avoid).
---                                 Each entry must have the same structure as CTLDCrateManager._checkNativeDCSCargo
+--                                 Each entry must have the same structure as CTLDCrateManager:_getDynamicBBoxes
 --                                 transports: { unitPos = unit:getPosition(), bbox = desc.box }.
 --                                 When provided, the chosen axis is rotated by 45° increments (up to 8 tries)
 --                                 until all candidate positions are outside every listed bbox.
@@ -2015,7 +2015,7 @@ function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing, axis
 
     -- Helper: returns true if any candidate point falls inside any avoided bbox.
     -- Uses a 2-D ground-plane check (y=0) so we don't need a full unit:getPosition() here —
-    -- the avoidBBoxes entries already carry unitPos from _checkNativeDCSCargo.
+    -- the avoidBBoxes entries already carry unitPos from CTLDCrateManager:_getDynamicBBoxes.
     local function _anyCollision(pts)
         if not avoidBBoxes or #avoidBBoxes == 0 then return false end
         for _, avoid in ipairs(avoidBBoxes) do
@@ -2090,6 +2090,40 @@ function ctld.utils.getGroupId(unit)
     if not unit then return -1 end
     local grp = unit:getGroup()
     return grp and grp:getID() or -1
+end
+
+--- Name of an on-board cargo object, or nil when the object cannot be read (a stale or invalid
+-- handle). The native scans run in periodic timers that DCS stops for good once they raise, so a
+-- bad entry is skipped instead of stopping the scan.
+function ctld.utils.cargoName(cargo)
+    local ok, name = pcall(cargo.getName, cargo)
+    if ok and type(name) == "string" then return name end
+    return nil
+end
+
+--- Objects DCS reports as on board a unit (`unit:getCargosOnBoard()`).
+-- A whole vehicle shows up through a companion entry named `CRG:<unit name>`; a crate shows up
+-- under its own name. Shared by the native vehicle and crate detection (ADR 0022).
+-- @param unit  DCS Unit
+-- @return table|nil  array of cargo objects (empty when nothing is aboard);
+--                    nil and a reason string when the list cannot be read
+function ctld.utils.getOnBoardCargo(unit)
+    if not (unit and unit.getCargosOnBoard) then return nil, "getCargosOnBoard is not available" end
+    local ok, list = pcall(unit.getCargosOnBoard, unit)
+    if not ok then return nil, tostring(list) end
+    return list or {}
+end
+
+--- Height (m) above ground under which something that fell (a parachuted crate or a vehicle
+-- released in flight) counts as landed.
+ctld.utils.LANDED_AGL = 3.0
+
+--- True when a point is at ground level, i.e. its AGL is within `ctld.utils.LANDED_AGL`.
+-- @param point vec3
+-- @return boolean landed, number agl
+function ctld.utils.hasLanded(point)
+    local agl = point.y - land.getHeight({ x = point.x, y = point.z })
+    return agl <= ctld.utils.LANDED_AGL, agl
 end
 
 -- @return boolean

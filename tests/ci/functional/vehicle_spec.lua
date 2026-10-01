@@ -516,4 +516,408 @@ describe("CTLDVehicleSpawner", function()
 
     end)
 
+    -- ── FIX-NATIVE-CARRY-DETECTION ticket 01 : F10 unload / parachute lists ──────
+    describe("findVirtualCarryVehicles — F10 unload and parachute lists", function()
+
+        local function loadedVehicle(id, method)
+            local veh = CTLDVehicle:new({
+                id = id, vehicleType = "M1045 HMMWV TOW", unit = nil,
+                spawnData = { groupName = id, unitName = id,
+                              vehicleType = "M1045 HMMWV TOW", countryId = 2, coalitionId = 2 },
+            })
+            veh:setState(CTLDVehicle.STATE.LOADED)
+            veh.loadTransportName = mockTransport:getName()
+            veh.loadMethod        = method
+            vs._vehicles[id]      = veh
+            return veh
+        end
+
+        it("lists nothing when only a native-carry vehicle is aboard", function()
+            loadedVehicle("nc1_native", "dcs_native")
+            assert.equals(0, #vs:findVirtualCarryVehicles(mockTransport))
+        end)
+
+        it("lists a virtual-carry vehicle", function()
+            local virt = loadedVehicle("nc1_virtual", "menu_ctld")
+            local r = vs:findVirtualCarryVehicles(mockTransport)
+            assert.equals(1, #r)
+            assert.equals(virt, r[1])
+        end)
+
+        it("lists only the virtual-carry vehicle when both kinds are aboard", function()
+            loadedVehicle("nc1_native", "dcs_native")
+            local virt = loadedVehicle("nc1_virtual", "menu_ctld")
+            local r = vs:findVirtualCarryVehicles(mockTransport)
+            assert.equals(1, #r)
+            assert.equals(virt, r[1])
+        end)
+
+        it("findLoadedVehicles still returns both kinds (weight accounting, AI dropoff)", function()
+            loadedVehicle("nc1_native", "dcs_native")
+            loadedVehicle("nc1_virtual", "menu_ctld")
+            assert.equals(2, #vs:findLoadedVehicles(mockTransport))
+        end)
+
+    end)
+
+    -- ── FIX-NATIVE-CARRY-DETECTION ticket 03 : entry read from the on-board cargo list ──
+    describe("_checkNativeLoading — entry read from the DCS on-board cargo list", function()
+
+        local origGetByName, origGs2
+        local aircraft, cargoList, listFails, listGets
+
+        local function cargoObj(name)
+            return { getName = function() return name end }
+        end
+
+        local function waitingVehicle(id, unitName)
+            local veh = CTLDVehicle:new({
+                id = id, vehicleType = "M1045 HMMWV TOW",
+                unit = makeVehicleUnit(unitName, 500, 500),   -- far from the aircraft: position is irrelevant
+                spawnData = { groupName = id, unitName = unitName,
+                              vehicleType = "M1045 HMMWV TOW", countryId = 2, coalitionId = 2 },
+            })
+            vs._vehicles[id]         = veh
+            vs._unitToVehicle[unitName] = id
+            return veh
+        end
+
+        before_each(function()
+            cargoList, listFails, listGets = {}, false, 0
+            aircraft = makeTransport("nc3_player")
+            aircraft.getTypeName      = function() return "Mi-8MT" end
+            aircraft.getCargosOnBoard = function()
+                listGets = listGets + 1
+                if listFails then error("no such function") end
+                return cargoList
+            end
+            CTLDPlayerManager.getInstance()._players["nc3_player"] = { groupId = 9901 }
+            origGetByName = Unit.getByName
+            Unit.getByName = function(n) if n == "nc3_player" then return aircraft end end
+            origGs2 = ctld.gs
+            ctld.gs = function(k)
+                if k == "capabilitiesByType" then
+                    return { ["Mi-8MT"] = { canTransportWholeVehicle = true,
+                                            useNativeDcsCargoSystem  = true } }
+                end
+                return origGs2(k)
+            end
+        end)
+
+        after_each(function()
+            Unit.getByName = origGetByName
+            ctld.gs = origGs2
+            CTLDPlayerManager.getInstance()._players["nc3_player"] = nil
+        end)
+
+        it("loads a WAITING vehicle whose CRG: entry is on the list, wherever the vehicle is", function()
+            local veh = waitingVehicle("nc3_a", "nc3_unit_a")
+            cargoList = { cargoObj("CRG:nc3_unit_a") }
+            vs:_checkNativeLoading()
+            assert.equals(CTLDVehicle.STATE.LOADED, veh:getState())
+            assert.equals("dcs_native", veh.loadMethod)
+            assert.equals("nc3_player", veh.loadTransportName)
+        end)
+
+        it("does not load a WAITING vehicle that is not on the list", function()
+            local veh = waitingVehicle("nc3_b", "nc3_unit_b")
+            cargoList = { cargoObj("CRG:some_other_unit") }
+            vs:_checkNativeLoading()
+            assert.equals(CTLDVehicle.STATE.WAITING, veh:getState())
+        end)
+
+        it("ignores an untracked entry without changing any state", function()
+            local veh = waitingVehicle("nc3_c", "nc3_unit_c")
+            cargoList = { cargoObj("cr1-1"), cargoObj("tablet-crate") }
+            vs:_checkNativeLoading()
+            assert.equals(CTLDVehicle.STATE.WAITING, veh:getState())
+        end)
+
+        it("scans a player aircraft of any category (helicopter here)", function()
+            waitingVehicle("nc3_d", "nc3_unit_d")
+            vs:_checkNativeLoading()
+            assert.equals(1, listGets)
+        end)
+
+        it("never scans an AI-flown aircraft (not a registered player unit)", function()
+            CTLDPlayerManager.getInstance()._players["nc3_player"] = nil
+            waitingVehicle("nc3_e", "nc3_unit_e")
+            vs:_checkNativeLoading()
+            assert.equals(0, listGets)
+        end)
+
+        it("logs exactly one warning per type for an unreadable list and stops watching the type", function()
+            waitingVehicle("nc3_f", "nc3_unit_f")
+            listFails = true
+            local warns = 0
+            local origLog = ctld.utils.log
+            ctld.utils.log = function(level)
+                if level == "WARN" or level == "WARNING" then warns = warns + 1 end
+            end
+            vs:_checkNativeLoading()
+            vs:_checkNativeLoading()
+            ctld.utils.log = origLog
+            assert.equals(1, warns)
+            assert.equals(1, listGets)
+        end)
+
+        it("returns before any scan when no vehicle is waiting or in native carry", function()
+            vs:_checkNativeLoading()
+            assert.equals(0, listGets)
+        end)
+
+        it("skips an invalid list entry whose name cannot be read, and still loads the valid one", function()
+            local veh = waitingVehicle("nc3_g", "nc3_unit_g")
+            cargoList = {
+                { getName = function() error("invalid object") end },
+                cargoObj("CRG:nc3_unit_g"),
+            }
+            assert.has_no.errors(function() vs:_checkNativeLoading() end)
+            assert.equals(CTLDVehicle.STATE.LOADED, veh:getState())
+        end)
+
+        -- ── ticket 04 : release read from the on-board cargo list ────────────────────
+        describe("release when the vehicle leaves the list", function()
+
+            local airborne, altitude, resumed, deregistered, unloaded, dead, polls
+            local origInAir, origSchedule, origGroupGet, origDynAdd, jtacMgr, origResume, origDereg
+            local dynAddCalls
+
+            local function loadThroughList(id, unitName)
+                local veh = waitingVehicle(id, unitName)
+                veh.unit.getPoint = function() return { x = 500, y = altitude, z = 500 } end
+                cargoList = { cargoObj("CRG:" .. unitName) }
+                vs:_checkNativeLoading()
+                assert.equals(CTLDVehicle.STATE.LOADED, veh:getState())
+                return veh
+            end
+
+            before_each(function()
+                airborne, altitude, dynAddCalls = false, 0, 0
+                resumed, deregistered, unloaded, dead, polls = {}, {}, {}, {}, {}
+                origInAir = ctld.utils.inAir
+                ctld.utils.inAir = function() return airborne end
+                origDynAdd = ctld.utils.dynAdd
+                ctld.utils.dynAdd = function() dynAddCalls = dynAddCalls + 1; return nil end
+                origGroupGet = Group.getByName
+                jtacMgr = CTLDJTACManager.getInstance()
+                origResume, origDereg = jtacMgr.resumeJTAC, jtacMgr.deregisterJTAC
+                jtacMgr.resumeJTAC     = function(_, g) resumed[#resumed + 1] = g end
+                jtacMgr.deregisterJTAC = function(_, g) deregistered[#deregistered + 1] = g end
+                jtacMgr.jtacs = jtacMgr.jtacs or {}
+                origSchedule = timer.scheduleFunction
+                timer.scheduleFunction = function(fn) polls[#polls + 1] = fn; return 0 end
+                local ed = EventDispatcher.getInstance()
+                ed:subscribe("OnVehicleUnloaded", function(p) unloaded[#unloaded + 1] = p end)
+                ed:subscribe("OnVehicleDead",     function(p) dead[#dead + 1] = p end)
+            end)
+
+            after_each(function()
+                ctld.utils.inAir       = origInAir
+                ctld.utils.dynAdd      = origDynAdd
+                Group.getByName        = origGroupGet
+                jtacMgr.resumeJTAC     = origResume
+                jtacMgr.deregisterJTAC = origDereg
+                jtacMgr.jtacs          = {}
+                timer.scheduleFunction = origSchedule
+            end)
+
+            it("on the ground: back to WAITING, unit recovered not respawned, JTAC resumes, method dcs_native", function()
+                local veh = loadThroughList("nc4_a", "nc4_unit_a")
+                local unit = veh.unit
+                Group.getByName = function() return { getUnit = function() return unit end } end
+                cargoList = {}
+                vs:_checkNativeLoading()
+                assert.equals(CTLDVehicle.STATE.WAITING, veh:getState())
+                assert.equals(unit, veh.unit)
+                assert.equals(0, dynAddCalls)
+                assert.equals("nc4_a", vs._unitToVehicle["nc4_unit_a"])
+                assert.same({ "nc4_a" }, resumed)
+                assert.equals(1, #unloaded)
+                assert.equals("dcs_native", unloaded[1].method)
+            end)
+
+            it("in flight: published as parachute, FALLING, WAITING only after landing, JTAC resumes then", function()
+                local veh = loadThroughList("nc4_b", "nc4_unit_b")
+                local unit = veh.unit
+                Group.getByName = function() return { getUnit = function() return unit end } end
+                airborne, altitude = true, 600
+                cargoList = {}
+                vs:_checkNativeLoading()
+                assert.equals(CTLDVehicle.STATE.FALLING, veh:getState())
+                assert.equals("parachute", unloaded[1].method)
+                assert.equals(unit, veh.unit)
+                assert.equals(0, dynAddCalls)
+                assert.same({}, resumed)
+                assert.equals(1, #polls, "a landing poll must be scheduled")
+
+                altitude = 80
+                assert.is_not_nil(polls[1](nil, 0))
+                assert.equals(CTLDVehicle.STATE.FALLING, veh:getState())
+                assert.same({}, resumed)
+
+                altitude = 1
+                assert.is_nil(polls[1](nil, 1))
+                assert.equals(CTLDVehicle.STATE.WAITING, veh:getState())
+                assert.same({ "nc4_b" }, resumed)
+            end)
+
+            it("a falling vehicle is not a waiting vehicle, so it is never loaded again by the scan", function()
+                local veh = loadThroughList("nc4_c", "nc4_unit_c")
+                local unit = veh.unit
+                Group.getByName = function() return { getUnit = function() return unit end } end
+                airborne, altitude = true, 600
+                cargoList = {}
+                vs:_checkNativeLoading()
+                cargoList = { cargoObj("CRG:nc4_unit_c") }
+                vs:_checkNativeLoading()
+                assert.equals(CTLDVehicle.STATE.FALLING, veh:getState())
+            end)
+
+            it("does not release while the entry stays on the list", function()
+                local veh = loadThroughList("nc4_d", "nc4_unit_d")
+                vs:_checkNativeLoading()
+                vs:_checkNativeLoading()
+                assert.equals(CTLDVehicle.STATE.LOADED, veh:getState())
+                assert.equals(0, #unloaded)
+            end)
+
+            it("does not release anything when the list cannot be read", function()
+                local veh = loadThroughList("nc4_e", "nc4_unit_e")
+                listFails = true
+                vs:_checkNativeLoading()
+                assert.equals(CTLDVehicle.STATE.LOADED, veh:getState())
+            end)
+
+            it("destroyed while falling: removed from tracking, JTAC deregistered, OnVehicleDead", function()
+                local veh = loadThroughList("nc4_f", "nc4_unit_f")
+                local unit = veh.unit
+                jtacMgr.jtacs["nc4_f"] = {}
+                Group.getByName = function() return { getUnit = function() return unit end } end
+                airborne, altitude = true, 600
+                cargoList = {}
+                vs:_checkNativeLoading()
+                unit.isExist = function() return false end
+                assert.is_nil(polls[1](nil, 0))
+                assert.is_nil(vs._vehicles["nc4_f"])
+                assert.is_nil(vs._unitToVehicle["nc4_unit_f"])
+                assert.same({ "nc4_f" }, deregistered)
+                assert.equals(1, #dead)
+                assert.equals("nc4_f", dead[1].vehicleId)
+            end)
+
+            it("S_EVENT_DEAD on a falling vehicle: removed from tracking, JTAC deregistered, OnVehicleDead", function()
+                local veh = loadThroughList("nc4_h", "nc4_unit_h")
+                local unit = veh.unit
+                jtacMgr.jtacs["nc4_h"] = {}
+                Group.getByName = function() return { getUnit = function() return unit end } end
+                airborne, altitude = true, 600
+                cargoList = {}
+                vs:_checkNativeLoading()
+                vs:onDead({ initiator = unit })
+                assert.is_nil(vs._vehicles["nc4_h"])
+                assert.same({ "nc4_h" }, deregistered)
+                assert.equals(1, #dead)
+                assert.is_nil(polls[1](nil, 0), "the landing poll stops once the vehicle is gone")
+            end)
+
+            it("the transport disappearing while the vehicle falls does not stop the landing", function()
+                local veh = loadThroughList("nc4_g", "nc4_unit_g")
+                local unit = veh.unit
+                Group.getByName = function() return { getUnit = function() return unit end } end
+                airborne, altitude = true, 600
+                cargoList = {}
+                vs:_checkNativeLoading()
+                CTLDPlayerManager.getInstance()._players["nc3_player"] = nil
+                Unit.getByName = function() return nil end
+                altitude = 1
+                assert.is_nil(polls[1](nil, 0))
+                assert.equals(CTLDVehicle.STATE.WAITING, veh:getState())
+            end)
+
+            -- ── ticket 05 : the transport vanishes without a death event ──────────────
+            local function transportVanishes()
+                CTLDPlayerManager.getInstance()._players["nc3_player"] = nil
+                Unit.getByName = function() return nil end
+            end
+
+            it("transport gone without a death event: vehicle dropped, JTAC deregistered, OnVehicleDead once", function()
+                local veh = loadThroughList("nc5_a", "nc5_unit_a")
+                jtacMgr.jtacs["nc5_a"] = {}
+                transportVanishes()
+                vs:_checkNativeLoading()
+                assert.is_nil(vs._vehicles["nc5_a"])
+                assert.is_nil(vs._unitToVehicle["nc5_unit_a"])
+                assert.same({ "nc5_a" }, deregistered)
+                assert.equals(1, #dead)
+                assert.equals("nc5_a", dead[1].vehicleId)
+                vs:_checkNativeLoading()
+                assert.equals(1, #dead, "a second tick must not report it again")
+            end)
+
+            it("a death event arriving after the tick does not process the vehicle a second time", function()
+                loadThroughList("nc5_b", "nc5_unit_b")
+                transportVanishes()
+                vs:_checkNativeLoading()
+                vs:onDead({ initiator = aircraft })
+                assert.equals(1, #dead)
+            end)
+
+            it("a death event arriving before the tick leaves nothing for the tick to process", function()
+                loadThroughList("nc5_c", "nc5_unit_c")
+                vs:onDead({ initiator = aircraft })
+                assert.equals(1, #dead)
+                transportVanishes()
+                vs:_checkNativeLoading()
+                assert.equals(1, #dead)
+            end)
+
+            it("a virtual-carry vehicle is left alone when its transport vanishes", function()
+                local veh = CTLDVehicle:new({
+                    id = "nc5_v", vehicleType = "M1045 HMMWV TOW", unit = nil,
+                    spawnData = { groupName = "nc5_v", unitName = "nc5_unit_v",
+                                  vehicleType = "M1045 HMMWV TOW", countryId = 2, coalitionId = 2 },
+                })
+                veh:setState(CTLDVehicle.STATE.LOADED)
+                veh.loadMethod, veh.loadTransportName = "menu_ctld", "nc3_player"
+                vs._vehicles["nc5_v"] = veh
+                waitingVehicle("nc5_w", "nc5_unit_w")   -- keep the tick from returning early
+                transportVanishes()
+                vs:_checkNativeLoading()
+                assert.is_not_nil(vs._vehicles["nc5_v"])
+                assert.equals(CTLDVehicle.STATE.LOADED, veh:getState())
+                assert.equals(0, #dead)
+            end)
+            it("released on the ground with no live unit left: dropped as lost, not left WAITING without a unit", function()
+                local veh = loadThroughList("nc4_i", "nc4_unit_i")
+                jtacMgr.jtacs["nc4_i"] = {}
+                Group.getByName = function() return nil end   -- DCS removed the unit
+                cargoList = {}
+                vs:_checkNativeLoading()
+                assert.is_nil(vs._vehicles["nc4_i"])
+                assert.is_nil(vs._unitToVehicle["nc4_unit_i"])
+                assert.same({ "nc4_i" }, deregistered)
+                assert.equals(1, #dead)
+                assert.equals("nc4_i", dead[1].vehicleId)
+                assert.equals(0, #unloaded, "a vehicle that is gone is not reported as unloaded")
+                assert.equals(0, dynAddCalls)
+            end)
+
+            it("a virtual-carry unload still respawns the vehicle, whatever method is published", function()
+                local veh = CTLDVehicle:new({
+                    id = "nc4_v", vehicleType = "M1045 HMMWV TOW", unit = nil,
+                    spawnData = { groupName = "nc4_v", unitName = "nc4_unit_v",
+                                  vehicleType = "M1045 HMMWV TOW", countryId = 2, coalitionId = 2 },
+                })
+                veh:setState(CTLDVehicle.STATE.LOADED)
+                veh.loadMethod, veh.loadTransportName = "menu_ctld", "nc3_player"
+                vs._vehicles["nc4_v"] = veh
+                vs:unloadVehicle(veh, aircraft, nil, "menu_ctld")
+                assert.equals(1, dynAddCalls)
+            end)
+
+        end)
+
+    end)
+
 end)
