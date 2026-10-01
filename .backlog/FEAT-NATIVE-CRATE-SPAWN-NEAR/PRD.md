@@ -1,6 +1,6 @@
 # FEAT-NATIVE-CRATE-SPAWN-NEAR — spawn crates just clear of a native-cargo aircraft so DCS can load them
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 Follows `FIX-NATIVE-CARRY-DETECTION` (roadmap entry "Pack — distance de spawn des caisses trop grande pour un
 chargement natif (Mi-8MT)") and a `grill-with-docs` session held 2026-10-01. See **ADR 0024** for the decision
@@ -114,6 +114,21 @@ aircraft type declares its own crate spawn sector and distance, computed from th
 - Fixed-wing types other than the C-130J-30 (`Hercules`, `76MD` have no native cargo), and any other helicopter
   with no collision shell available (such a type keeps the old rule until someone declares values).
 - Adopting untracked cargo, converting vehicles and the other native-carry follow-ups already in the roadmap.
+
+## Live validation (2026-10-01)
+
+- **Mi-8MT, 4.0 m side:** a row of four crates stood 4.10 to 4.85 m from the centre, 1.82 m apart; three
+  loaded through the DCS cargo UI without moving, the fourth was refused because the cabin holds three
+  crates (capacity, not distance). The weight shown in the resources window is not enforced by DCS.
+- **Native loading range (Mi-8MT):** a crate at about 8 m loaded; a crate at 23 m was refused for its
+  distance. The upper bound between 8 and 23 m and the point DCS measures from were not narrowed: the
+  declared value is the closest safe distance, so the bound does not change it.
+- **UH-1H, 3.0 m side:** two crates stood at 3.11 and 3.14 m; one loaded, the other was refused because the
+  UH-1H takes a single crate (capacity, not distance).
+- **C-130J-30, 11.3 m rear:** three crates stood in a row at 11.31 m (1.81 m apart) and all three loaded
+  through the DCS UI without moving the aircraft.
+- **No declared value was lowered.** The CH-47F (3.7 m) and the Mi-24P (5.1 m) stay unverified in game: the
+  project owner has neither module.
 
 ## Further Notes
 

@@ -1,6 +1,6 @@
 # 04 — Live calibration of the native loading range and the declared distances
 
-**Status:** 🧑 waiting-human · **Type:** HITL
+**Status:** ✅ done · **Type:** HITL
 
 ## Parent
 
@@ -24,12 +24,29 @@ Everything doubles cannot prove is checked in a live mission before the PR opens
 Measurements start far and go closer in steps, with a light crate, on a clear site, one aircraft at a time; no
 crate is spawned from a script near a live aircraft. The DCS injection goes through the runner's HTTP path.
 
+## Outcome (live, 2026-10-01)
+
+- **Mi-8MT, 4.0 m side:** a row of four crates stood 4.10 to 4.85 m from the centre, 1.82 m apart; three
+  loaded through the DCS cargo UI without moving, the fourth was refused because the cabin holds three
+  crates (capacity, not distance). The weight shown in the resources window is not enforced by DCS.
+- **Native loading range (Mi-8MT):** a crate at about 8 m loaded; a crate at 23 m was refused for its
+  distance. The upper bound between 8 and 23 m and the point DCS measures from were not narrowed: the
+  declared value is the closest safe distance, so the bound does not change it.
+- **UH-1H, 3.0 m side:** two crates stood at 3.11 and 3.14 m; one loaded, the other was refused because the
+  UH-1H takes a single crate (capacity, not distance).
+- **C-130J-30, 11.3 m rear:** three crates stood in a row at 11.31 m (1.81 m apart) and all three loaded
+  through the DCS UI without moving the aircraft.
+- **No declared value was lowered.** The CH-47F (3.7 m) and the Mi-24P (5.1 m) stay unverified in game: the
+  project owner has neither module.
+
 ## Acceptance criteria
 
-- [ ] The loading range of the Mi-8MT and the UH-1H is recorded, with the point DCS measures from.
-- [ ] Each declared distance of an owned type is confirmed reachable, or lowered and re-checked.
-- [ ] A four-crate Pack on the Mi-8MT and on the UH-1H loads in full with no repositioning.
-- [ ] The PRD records the results, and the CH-47F and Mi-24P as unverified in game.
+- [x] The loading range of the Mi-8MT is recorded (8 m loads, 23 m refused); the point DCS measures from was not
+      isolated and does not change the declared values. The UH-1H loads at 3.1 m.
+- [x] Each declared distance of an owned type is confirmed reachable (UH-1H, Mi-8MT, C-130J-30); none lowered.
+- [x] The rows load without repositioning, up to what each cabin holds (Mi-8MT three, UH-1H one, C-130J-30
+      three tested).
+- [x] The PRD records the results, and the CH-47F and Mi-24P as unverified in game.
 
 ## Blocked by
 

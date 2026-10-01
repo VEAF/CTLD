@@ -110,6 +110,18 @@ chevauchement en évitant les bounding boxes des autres aéronefs à cargo dynam
 lorsque `slingLoad` est positionné, `"dynamic"` pour les transports capables de native-cargo,
 sinon `"load"`.
 
+Quand le type du transport déclare un plan de spawn des crates (`getCrateSpawnPlan` :
+`crateSpawnSector` + `crateSpawnDistance` dans `capabilitiesByType`, voir
+[ADR 0024](https://github.com/FullGas1/CTLD/blob/develop/dev/adr/0024-native-crates-spawn-at-hull-clearance.md)),
+`spawnCratesAligned` appelle `_spawnCratesInRow` au lieu de la règle radiale. Il construit une rangée
+perpendiculaire à l'axe du secteur avec `ctld.utils.getCrateRowPositions` : crates espacées de
+`size + crateSpawnGap` (`getCrateSize` lit le `size` du modèle, `1.5` si absent), centrées sur l'axe,
+autant par rangée qu'il en tient le long de l'aéronef (longueur de la UserBox pour `side`, largeur pour
+`rear`/`front`), la rangée suivante un pas plus loin. Un plan `side` tire le côté au hasard ;
+`ctld.utils.positionsInsideAnyBBox` le bascule quand la rangée tomberait dans le volume d'un autre
+aéronef, et le premier côté est conservé si les deux sont pris. La crate unique de Request Equipment
+passe par le même chemin. Un type sans plan garde la règle radiale ci-dessus.
+
 ## Transitions de cycle de vie sur le manager { #lifecycle-transitions-on-the-manager }
 
 Le manager reflète les transitions de l'entité et détient la publication des événements :

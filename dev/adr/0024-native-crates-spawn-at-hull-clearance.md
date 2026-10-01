@@ -59,6 +59,10 @@ collision shell it can be read from) and then checked in a live mission.
 - A pilot of a native-cargo helicopter requests crates and loads them without repositioning the aircraft.
 - The values depend on the collision shells of the installed DCS version; a script keeps them
   reproducible, and a model update can be re-measured.
+- The UH-1H (3.0 m), Mi-8MT (4.0 m) and C-130J-30 (11.3 m) values were confirmed in game on 2026-10-01: rows of
+  crates load through the DCS cargo UI without moving the aircraft (a crate at about 8 m also loaded on the
+  Mi-8MT, one at 23 m was refused). What limits a load beyond that is the cabin capacity (Mi-8MT three crates,
+  UH-1H one), not the distance, and DCS does not enforce the weight shown in the resources window.
 - The CH-47F and the Mi-24P values come from their collision shell only (the project owner has neither
   module): unverified in game.
 - Reverting to the UserBox rule is a configuration change (remove the fields), not a code change.

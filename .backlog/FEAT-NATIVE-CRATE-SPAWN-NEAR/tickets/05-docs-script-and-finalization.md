@@ -1,6 +1,6 @@
 # 05 — Derivation script, documentation, roadmap and finalization
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -24,11 +24,11 @@ Stories 17, 20.
 
 ## Acceptance criteria
 
-- [ ] The script reproduces the declared defaults from the installed collision files.
-- [ ] The English and French pages carry the same content and mark unverified types.
-- [ ] The roadmap entry is closed; the backlog index line is `merged (PR #NN)`.
-- [ ] `CHANGELOG.md` `[Unreleased]` covers the lot without duplicates.
-- [ ] `busted tests/ci/` and luacheck pass on the whole branch.
+- [x] The script reproduces the declared defaults from the installed collision files.
+- [x] The English and French pages carry the same content and mark unverified types.
+- [x] The roadmap entry is closed; the backlog index line is `merged (PR #NN)`.
+- [x] `CHANGELOG.md` `[Unreleased]` covers the lot without duplicates.
+- [x] `busted tests/ci/` and luacheck pass on the whole branch.
 
 ## Blocked by
 

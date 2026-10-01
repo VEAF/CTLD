@@ -26,7 +26,8 @@ Tout ground vehicle que vous avez déployé via CTLD — depuis un dépaquetage 
 2. Ouvrez **F10 → CTLD → Crate Commands → Pack Equipt**. Chaque vehicle packable à portée est
    listé par son nom (par ex. la description de crate du vehicle).
 3. **Sélectionnez le vehicle.** Il est retiré de la carte et ses crates apparaissent à côté de
-   vous — devant un helicopter, ou derrière un C-130 qui utilise le cargo natif.
+   vous — à côté d'un helicopter à cargo natif (à portée de la fenêtre cargo de DCS), derrière un
+   C-130, ou devant tout autre helicopter.
 4. Chargez les crates et transportez-les vers le nouveau site, puis dépaquetez comme d'habitude.
 
 Le nombre de crates qui apparaissent correspond au nombre dont ce vehicle a besoin

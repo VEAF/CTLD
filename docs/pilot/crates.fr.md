@@ -44,6 +44,12 @@ d'abord.
 
 **Activation :** F10 → CTLD → Crate Commands → Load Crate → *[type de crate]*
 
+!!! tip "Aéronefs à cargo natif"
+    Avec un aéronef à cargo natif (C-130J-30, Mi-8MT, UH-1H, CH-47F, Mi-24P), les crates que vous demandez
+    apparaissent **juste à côté de l'aéronef** (derrière pour le C-130J-30), à portée de la fenêtre cargo
+    de DCS : ouvrez-la et chargez-les sans repositionner l'appareil. La soute d'un hélicoptère ne prend
+    que quelques crates à la fois.
+
 > Le loading par menu est l'une des deux méthodes de ramassage. L'autre est le ramassage en
 > hover (maintenir un vol stationnaire stable au-dessus de la crate), décrit dans
 > [Sling-load](slingload.md).

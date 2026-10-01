@@ -70,6 +70,8 @@ mm_facing:
 `spawnableCratesModels` définit les formes statiques DCS utilisées par les crates (`load`, `sling`,
 `dynamic`). Vous avez rarement besoin d'y toucher ; laissez les valeurs par défaut, sauf si vous
 voulez une apparence de cargo différente.
+Chaque entrée peut porter un `size` (m) : l'arête de la crate, utilisée pour espacer les crates d'une rangée à
+côté d'un appareil à cargo natif (`1.5` si absent).
 
 ### Catalogue par défaut (out of the box) { #default-catalogue-out-of-the-box }
 
@@ -97,6 +99,7 @@ voulez une apparence de cargo différente.
 | `maxDistanceFromCrate` | `5.5` | Distance horizontale max (m) à un crate pendant le ramassage en hover. |
 | `maxSlingloadSpeed` | `26` | Vitesse (**m/s**) au-delà de laquelle un crate en slingload est largué — ≈ 94 km/h / 50 kt. À augmenter si votre appareil supporte une limite plus élevée. |
 | `crateSpacing` | `5` | Espacement (m) entre les crates spawnés dans un jeu. |
+| `crateSpawnGap` | `0.5` | Écart (m) entre deux crates d'une rangée à côté d'un appareil à cargo natif (voir [ci-dessous](#crate-spawn-near)). |
 
 ## Transport de véhicules complets { #whole-vehicle-transport }
 
@@ -150,6 +153,44 @@ bord.
 Un objet que CTLD ne suit pas (cargo créé par la tablette de loadmaster, caisses d'éditeur d'un type inconnu)
 est ignoré. Si DCS ne peut pas fournir la liste d'un type, CTLD avertit une fois pour ce type et cesse de le
 surveiller ; il ne se rabat jamais sur une estimation géométrique.
+
+## Où apparaissent les crates d'un appareil à cargo natif { #crate-spawn-near }
+
+Un appareil à cargo natif ne charge une crate par la fenêtre cargo de DCS que si elle est à quelques mètres de
+lui. Les crates qu'il demande (**Request Equipment**, **Pack Equipt**) apparaissent donc **juste à l'écart de la
+coque**, en rangée, au lieu de la distance générique. Chaque type le déclare dans
+[`capabilitiesByType`](configuration.md) :
+
+| Champ | Signification |
+|---|---|
+| `crateSpawnSector` | Où se place la rangée : `side` (un hélicoptère : sur le travers, d'un côté tiré au hasard), `rear` (le C-130J-30) ou `front`. |
+| `crateSpawnDistance` | Mètres du centre de l'appareil à la première crate (rayon de coque à hauteur de crate plus 1,5 m). `0` ou absent = le type n'a pas de valeur. |
+
+Un type qui ne déclare ni secteur ni distance garde l'ancienne règle : les crates se répartissent autour de
+l'appareil à une distance calculée d'après sa taille. Les crates d'une rangée sont espacées de `taille de crate
++ crateSpawnGap` (écart par défaut `0.5` m, donc jamais en contact) ; la taille d'une crate est le champ `size`
+de son entrée dans `spawnableCratesModels` (`1.5` m si absent, `1.31` m pour les modèles `load` et `dynamic` par
+défaut). Une rangée contient autant de crates qu'il en tient le long de l'appareil ; la rangée suivante se place
+un pas plus loin. Si un côté est occupé par un autre appareil, la rangée passe de l'autre côté. Les véhicules, le
+dépaquetage, les scènes et les troupes ne sont pas concernés.
+
+Valeurs par défaut, en mètres du centre de l'appareil :
+
+| Appareil | Secteur | Distance | Statut |
+|---|---|---|---|
+| UH-1H | `side` | 3.0 | mesuré en jeu |
+| Mi-8MT | `side` | 4.0 | mesuré en jeu (une crate se charge à 8 m ; une à 23 m est refusée) |
+| C-130J-30 | `rear` | 11.3 | mesuré en jeu |
+| CH-47F | `side` | 3.7 | issu de la coque de collision seule, **non vérifié en jeu** |
+| Mi-24P | `side` | 5.1 | issu de la coque de collision seule, **non vérifié en jeu** |
+
+Les valeurs viennent de la coque de collision de chaque modèle ; `tools/dcs-data/derive_crate_spawn.py` les
+recalcule depuis une installation DCS (voir `tools/dcs-data/README.md`).
+
+!!! warning "Les missions existantes gardent leur configuration embarquée"
+    Une mission embarque un instantané complet de `CTLD_userConfig.lua`, écrit lors de son export. Une mission
+    exportée avant cette fonctionnalité n'a ni `crateSpawnSector` ni `crateSpawnDistance` : ses crates gardent
+    l'ancienne distance d'apparition tant que vous n'avez pas **réexporté la configuration avec ctld-tools**.
 
 ## Systèmes AA { #aa-systems }
 

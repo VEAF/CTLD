@@ -67,6 +67,8 @@ mm_facing:
 
 `spawnableCratesModels` defines the DCS static shapes crates use (`load`, `sling`, `dynamic`).
 You rarely need to touch it; leave the defaults unless you want a different cargo appearance.
+Each entry may carry a `size` (m): the crate's edge, used to space crates in a row beside a native-cargo
+aircraft (`1.5` when absent).
 
 ### Default catalogue (out of the box)
 
@@ -94,6 +96,7 @@ You rarely need to touch it; leave the defaults unless you want a different carg
 | `maxDistanceFromCrate` | `5.5` | Max horizontal distance (m) to a crate during hover pickup. |
 | `maxSlingloadSpeed` | `26` | Speed (**m/s**) above which a slingloaded crate is cut loose — ≈ 94 km/h / 50 kt. Raise it if your airframe warrants a higher limit. |
 | `crateSpacing` | `5` | Spacing (m) between crates spawned in a set. |
+| `crateSpawnGap` | `0.5` | Gap (m) between two crates in a row beside a native-cargo aircraft (see [below](#crate-spawn-near)). |
 
 ## Whole-vehicle transport
 
@@ -146,6 +149,43 @@ What each aircraft does through the **DCS cargo system**, as checked in a live m
 An item that CTLD does not track (cargo created by the loadmaster tablet, editor crates of an unknown type) is
 ignored. If DCS cannot give the list for a type, CTLD warns once for that type and stops watching it; it never
 falls back to a geometric guess.
+
+## Where crates spawn for a native-cargo aircraft { #crate-spawn-near }
+
+A native-cargo aircraft loads a crate through the DCS cargo window only when the crate is within a few metres
+of it. So the crates it requests (**Request Equipment**, **Pack Equipt**) appear **just clear of the hull**,
+in a row, instead of at the generic distance. Each type declares this in
+[`capabilitiesByType`](configuration.md):
+
+| Field | Meaning |
+|---|---|
+| `crateSpawnSector` | Where the row stands: `side` (a helicopter: abeam, on a randomly chosen side), `rear` (the C-130J-30) or `front`. |
+| `crateSpawnDistance` | Metres from the aircraft centre to the first crate (the hull radius at crate height plus 1.5 m). `0` or absent = the type has no value. |
+
+A type that declares no sector and distance keeps the older rule: crates spread around the aircraft at a
+distance computed from its size. Crates in a row are `crate size + crateSpawnGap` apart (default gap `0.5` m,
+so they never touch); the crate size is the `size` field of its entry in `spawnableCratesModels` (`1.5` m when
+absent, `1.31` m for the default `load` and `dynamic` models). A row holds as many crates as fit along the
+aircraft; the next row stands one step further out. If a side is taken by another aircraft, the row flips to the
+other side. Vehicles, unpacking, scenes and troops are not affected.
+
+Default values, in metres from the aircraft centre:
+
+| Aircraft | Sector | Distance | Status |
+|---|---|---|---|
+| UH-1H | `side` | 3.0 | measured in game |
+| Mi-8MT | `side` | 4.0 | measured in game (a crate loads from 8 m; one at 23 m is refused) |
+| C-130J-30 | `rear` | 11.3 | measured in game |
+| CH-47F | `side` | 3.7 | from the collision shell only, **not verified in game** |
+| Mi-24P | `side` | 5.1 | from the collision shell only, **not verified in game** |
+
+The values come from each model's collision shell; `tools/dcs-data/derive_crate_spawn.py` recomputes them from a
+DCS install (see `tools/dcs-data/README.md`).
+
+!!! warning "Existing missions keep their embedded configuration"
+    A mission embeds a complete snapshot of `CTLD_userConfig.lua`, written when it was exported. A mission
+    exported before this feature has no `crateSpawnSector` or `crateSpawnDistance`, so its crates keep the
+    older spawn distance until you **re-export the configuration with ctld-tools**.
 
 ## AA systems
 

@@ -98,6 +98,17 @@ non-overlapping positions avoiding other dynamic-cargo aircraft bounding boxes, 
 `spawnCrate` for each descriptor. The model key is chosen by `_crateModelKey`: `"sling"` when
 `slingLoad` is set, `"dynamic"` for native-cargo-capable transports, otherwise `"load"`.
 
+When the transport's type declares a crate spawn plan (`getCrateSpawnPlan`: `crateSpawnSector` +
+`crateSpawnDistance` in `capabilitiesByType`, see
+[ADR 0024](https://github.com/FullGas1/CTLD/blob/develop/dev/adr/0024-native-crates-spawn-at-hull-clearance.md)),
+`spawnCratesAligned` calls `_spawnCratesInRow` instead of the radial rule. It builds a row perpendicular to
+the sector axis with `ctld.utils.getCrateRowPositions`: crates `size + crateSpawnGap` apart (`getCrateSize`
+reads the model's `size`, `1.5` when absent), centred on the axis, as many per row as fit along the
+aircraft (UserBox length for `side`, width for `rear`/`front`), the next row one step further out. A `side`
+plan picks the side at random; `ctld.utils.positionsInsideAnyBBox` flips it when the row would stand inside
+another aircraft's volume, and the first side is kept when both are taken. The single crate of Request
+Equipment goes through the same path. A type without a plan keeps the radial rule above.
+
 ## Lifecycle transitions on the manager
 
 The manager mirrors the entity transitions and owns event publication:
