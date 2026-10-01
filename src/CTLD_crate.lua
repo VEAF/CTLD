@@ -2411,14 +2411,14 @@ end
 -- DCS Dynamic Cargo UI. DCS physically animates the descent; CTLD must NOT auto-unpack
 -- before the static actually touches the ground.
 --
--- Polls every 1 s. Declares the crate landed when AGL ≤ 3 m, then calls _checkAutoUnpack.
+-- Polls every 1 s. Declares the crate landed when ctld.utils.hasLanded says so (AGL ≤ 3 m), then
+-- calls _checkAutoUnpack.
 -- Falls back to a 120-second timeout in case of degenerate AGL (unlikely terrain artefacts).
 --
 -- @param crate CTLDCrate   crate in STATE.FALLING with a live dcsStatic
 function CTLDCrateManager:_scheduleParachuteLandingPoll(crate)
     local POLL_INTERVAL = 1.0   -- seconds between altitude checks
     local MAX_WAIT      = 120   -- safety timeout (seconds)
-    local AGL_THRESHOLD = 3.0   -- metres AGL to declare landed
     local startTime     = timer.getTime()
 
     local function poll(_, t)
@@ -2444,10 +2444,10 @@ function CTLDCrateManager:_scheduleParachuteLandingPoll(crate)
             return nil
         end
 
-        local p   = crate.dcsStatic:getPoint()
-        local agl = p.y - land.getHeight({ x = p.x, y = p.z })
+        local p = crate.dcsStatic:getPoint()
+        local landed, agl = ctld.utils.hasLanded(p)
 
-        if agl <= AGL_THRESHOLD then
+        if landed then
             crate.state    = CTLDCrate.STATE.LANDED
             crate.position = { x = p.x, y = p.y, z = p.z }
             ctld.utils.log("INFO",

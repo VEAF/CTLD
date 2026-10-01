@@ -2105,6 +2105,18 @@ function ctld.utils.getOnBoardCargo(unit)
     return list or {}
 end
 
+--- Height (m) above ground under which something that fell (a parachuted crate or a vehicle
+-- released in flight) counts as landed.
+ctld.utils.LANDED_AGL = 3.0
+
+--- True when a point is at ground level, i.e. its AGL is within `ctld.utils.LANDED_AGL`.
+-- @param point vec3
+-- @return boolean landed, number agl
+function ctld.utils.hasLanded(point)
+    local agl = point.y - land.getHeight({ x = point.x, y = point.z })
+    return agl <= ctld.utils.LANDED_AGL, agl
+end
+
 -- @return boolean
 function ctld.utils.inAir(unit)
     if not unit or not unit.inAir then return false end

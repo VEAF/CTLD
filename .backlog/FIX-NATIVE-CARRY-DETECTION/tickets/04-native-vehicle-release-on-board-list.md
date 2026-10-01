@@ -1,6 +1,6 @@
 # 04 — Native vehicle release detected when it leaves the on-board cargo list
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 

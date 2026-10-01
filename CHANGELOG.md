@@ -8,6 +8,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a native-carry vehicle released by DCS is detected when it leaves the on-board cargo list (FIX-NATIVE-CARRY-DETECTION, ticket 04)
+
+- The exit detection of a vehicle carried through the DCS cargo system was never built (an empty, commented
+  branch). CTLD now notices, on the next tick, that the vehicle's `CRG:<unit name>` entry has left its
+  transport's on-board cargo list. Released on the ground, the vehicle is `WAITING` again at once with its live
+  unit recovered (never respawned) and its JTAC resumes lasing; `OnVehicleUnloaded` carries method `dcs_native`.
+  Released in flight (the DCS native parachute), it is published as method `parachute` and enters a new
+  `FALLING` state, is not offered for loading, and becomes `WAITING` once landed (the AGL criterion the
+  parachuted crates use, now shared as `ctld.utils.hasLanded`); its JTAC resumes then. A vehicle destroyed or
+  lost while falling is dropped like any lost vehicle (JTAC deregistered, `OnVehicleDead`). Virtual-carry
+  unloads (menu, AI dropoff) and CTLD's own virtual parachute still respawn the vehicle as before.
+
 ### Changed — the CH-47F carries whole vehicles by default (FIX-NATIVE-CARRY-DETECTION, ticket 02)
 
 - The default aircraft capabilities mark the `CH-47Fbl1` as `canTransportWholeVehicle: true`; its loadable

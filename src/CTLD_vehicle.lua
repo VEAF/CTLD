@@ -55,6 +55,9 @@ CTLDVehicle.STATE = {
     WAITING   = "WAITING",
     LOADED    = "LOADED",
     DELIVERED = "DELIVERED",
+    -- Released in flight by the DCS native cargo system: the unit stays alive and falls under
+    -- its DCS parachute; back to WAITING once landed (ADR 0022).
+    FALLING   = "FALLING",
 }
 
 --- Constructor.
@@ -515,8 +518,11 @@ end
 -- ============================================================
 
 --- Unload a vehicle from a transport.
--- For menu_ctld / parachute: respawns DCS unit near transport via dynAdd.
--- For dcs_native: DCS has already placed the unit on the ground — just refresh the ref.
+-- A virtual-carry vehicle (menu_ctld load) is respawned near the transport via dynAdd, whatever
+-- method is published. A native-carry vehicle (dcs_native load) is never respawned: DCS kept
+-- the unit alive, so the live ref is recovered. That mechanism follows from how the vehicle was
+-- loaded, not from the published reason (ADR 0022). Released in flight ("parachute"), a
+-- native-carry vehicle enters FALLING and is followed down until it lands.
 -- Publishes OnVehicleUnloaded.
 --
 -- @param vehicle    CTLDVehicle
@@ -531,12 +537,14 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method, re
         return
     end
 
-    local sd       = vehicle.spawnData
-    local spawnPos = _computeSpawnPosition(transport, rearSector)
+    local sd            = vehicle.spawnData
+    local spawnPos      = _computeSpawnPosition(transport, rearSector)
+    local nativeCarried = vehicle.loadMethod == "dcs_native"
+    local inFlight      = nativeCarried and method == "parachute"
     local unloadedUnit
 
-    if method == "dcs_native" then
-        -- DCS has already placed the unit on the ground — recover the live ref.
+    if nativeCarried then
+        -- DCS owns the unit and kept it alive — recover the live ref, never respawn it.
         local g = Group.getByName(sd.groupName)
         unloadedUnit = g and g:getUnit(1) or nil
     else
@@ -577,22 +585,23 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method, re
 
     vehicle.unit = unloadedUnit
     -- Vehicle is physically back on the ground — return to WAITING so it can be re-loaded.
-    -- DELIVERED is reserved for parachute delivery (_parachuteVehicle).
-    vehicle:setState(CTLDVehicle.STATE.WAITING)
+    -- DELIVERED is reserved for parachute delivery (_parachuteVehicle). Released in flight it
+    -- is still falling: not offered for loading until it has landed.
+    vehicle:setState(inFlight and CTLDVehicle.STATE.FALLING or CTLDVehicle.STATE.WAITING)
 
     -- Re-register reverse lookup
     if unloadedUnit then
         self._unitToVehicle[unloadedUnit:getName()] = vehicle.id
     end
 
-    -- Update DCS internal cargo weight (dcs_native weight is managed by DCS itself).
-    if method ~= "dcs_native" then
+    -- Update DCS internal cargo weight (a native-carry weight is managed by DCS itself).
+    if not nativeCarried then
         self:_updateVehicleCargo(transport:getName())
     end
 
-    -- Resume JTAC lasing if this vehicle is a registered JTAC.
+    -- Resume JTAC lasing if this vehicle is a registered JTAC (a falling one resumes on landing).
     local groupName = sd and sd.groupName
-    if groupName then
+    if groupName and not inFlight then
         CTLDJTACManager.getInstance():resumeJTAC(groupName)
     end
 
@@ -623,6 +632,79 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method, re
     ctld.utils.log("INFO", string.format(
         "CTLDVehicleSpawner: unloaded %s id=%s method=%s from %s",
         vehicle.vehicleType, vehicle.id, method, transport:getName()))
+
+    if inFlight then self:_scheduleNativeLandingPoll(vehicle) end
+end
+
+--- Silently deregister the JTAC of a vehicle that is lost (frees laser code + claim, no
+-- OnJTACDead). No-op for a vehicle that is not a registered JTAC.
+function CTLDVehicleSpawner:_deregisterJTACSilently(vehicle)
+    local gname   = vehicle.spawnData and vehicle.spawnData.groupName
+    local jtacMgr = CTLDJTACManager.getInstance()
+    if gname and jtacMgr.jtacs and jtacMgr.jtacs[gname] then
+        jtacMgr:deregisterJTAC(gname)
+    end
+end
+
+--- Remove a lost vehicle from tracking: JTAC deregistered, reverse lookup cleared, OnVehicleDead
+-- published (no live DCS ref).
+-- @param id string  @param veh CTLDVehicle  @param position vec3
+function CTLDVehicleSpawner:_dropLostVehicle(id, veh, position)
+    self:_deregisterJTACSilently(veh)
+
+    -- Clear reverse lookup if still present (a native-carry load keeps the unit alive).
+    if veh.unit then
+        local okName, unitName = pcall(veh.unit.getName, veh.unit)
+        if okName and unitName then self._unitToVehicle[unitName] = nil end
+    end
+    self._vehicles[id] = nil
+
+    EventDispatcher.getInstance():publish("OnVehicleDead", {
+        vehicleId     = id,
+        vehicle       = nil,   -- no live DCS ref
+        vehicleType   = veh.vehicleType,
+        coalition     = veh.spawnData and veh.spawnData.coalitionId or nil,
+        position      = position,
+        durationAlive = timer.getTime() - (veh.spawnTime or 0),
+        timestamp     = timer.getAbsTime(),
+    })
+end
+
+--- Follow a vehicle released in flight by the DCS native cargo system until it lands.
+-- DCS keeps the unit alive all the way down (measured), so nothing is respawned: the vehicle
+-- returns to WAITING once its unit is at ground level (ctld.utils.hasLanded, the criterion the
+-- parachuted crates use) and its JTAC resumes; if the unit is gone it is lost like any vehicle.
+function CTLDVehicleSpawner:_scheduleNativeLandingPoll(vehicle)
+    local function poll(_, t)
+        -- Gone from tracking (destroyed, event handled elsewhere) or no longer falling.
+        if self._vehicles[vehicle.id] ~= vehicle
+            or vehicle:getState() ~= CTLDVehicle.STATE.FALLING then
+            return nil
+        end
+
+        local unit = vehicle.unit
+        if not (unit and unit:isExist()) then
+            self:_dropLostVehicle(vehicle.id, vehicle, { x = 0, y = 0, z = 0 })
+            ctld.utils.log("INFO", string.format(
+                "CTLDVehicleSpawner: vehicle %s (%s) lost while falling",
+                vehicle.id, vehicle.vehicleType))
+            return nil
+        end
+
+        if ctld.utils.hasLanded(unit:getPoint()) then
+            vehicle:setState(CTLDVehicle.STATE.WAITING)
+            local groupName = vehicle.spawnData and vehicle.spawnData.groupName
+            if groupName then
+                CTLDJTACManager.getInstance():resumeJTAC(groupName)
+            end
+            ctld.utils.log("INFO", string.format(
+                "CTLDVehicleSpawner: vehicle %s (%s) landed", vehicle.id, vehicle.vehicleType))
+            return nil
+        end
+
+        return t + 1
+    end
+    timer.scheduleFunction(poll, nil, timer.getTime() + 1)
 end
 
 -- ============================================================
@@ -641,11 +723,13 @@ local function _isNativeVehicleCarrier(unit)
         and caps.canTransportWholeVehicle == true
 end
 
---- Periodic check for DCS-native whole-vehicle loading.
+--- Periodic check for DCS-native whole-vehicle loading and release.
 -- Reads the on-board cargo list of every player aircraft whose type carries whole vehicles
--- through the DCS cargo system; a WAITING vehicle whose `CRG:` entry is on a list is loaded
--- (method="dcs_native"). No position, ground, speed or coalition test: DCS decides what it
--- accepts. AI-flown aircraft are never scanned.
+-- through the DCS cargo system. A WAITING vehicle whose `CRG:` entry is on a list is loaded
+-- (method="dcs_native"); a native-carry vehicle whose entry has left its transport's list is
+-- released: on the ground it is WAITING again at once, in flight it is published as a parachute
+-- release and FALLING until it lands. No position, ground, speed or coalition test: DCS decides
+-- what it accepts and when it releases. AI-flown aircraft are never scanned.
 function CTLDVehicleSpawner:_checkNativeLoading()
 
     -- Collect all active WAITING vehicles with live units, by unit name
@@ -658,9 +742,12 @@ function CTLDVehicleSpawner:_checkNativeLoading()
         end
     end
 
-    -- Collect all LOADED vehicles tracked via dcs_native
-    local nativeLoaded = {}
+    -- Collect all LOADED vehicles tracked via dcs_native, and every tracked unit name
+    local nativeLoaded, knownUnits = {}, {}
     for id, veh in pairs(self._vehicles) do
+        if veh.spawnData and veh.spawnData.unitName then
+            knownUnits[veh.spawnData.unitName] = true
+        end
         if veh:getState() == CTLDVehicle.STATE.LOADED
             and veh.loadMethod == "dcs_native" then
             nativeLoaded[id] = veh
@@ -670,6 +757,7 @@ function CTLDVehicleSpawner:_checkNativeLoading()
     -- Idle: nothing waiting and nothing in native carry, so no list is read.
     if not anyWaiting and not next(nativeLoaded) then return end
 
+    local transports, namesOnBoard = {}, {}   -- by transport unit name
     for unitName in pairs(CTLDPlayerManager.getInstance()._players) do
         local transport = Unit.getByName(unitName)
         if transport and transport:isExist() and _isNativeVehicleCarrier(transport) then
@@ -682,9 +770,12 @@ function CTLDVehicleSpawner:_checkNativeLoading()
                         "CTLDVehicleSpawner: on-board cargo list of type '%s' cannot be read (%s) — native vehicle loading not watched for this type",
                         typeName, tostring(err))
                 else
+                    transports[unitName]   = transport
+                    namesOnBoard[unitName] = {}
                     for _, cargo in ipairs(list) do
                         local name    = cargo:getName()
                         local vehName = nil
+                        namesOnBoard[unitName][name] = true
                         if string.sub(name, 1, #_COMPANION_PREFIX) == _COMPANION_PREFIX then
                             vehName = string.sub(name, #_COMPANION_PREFIX + 1)
                         end
@@ -692,7 +783,8 @@ function CTLDVehicleSpawner:_checkNativeLoading()
                         if veh then
                             self:loadVehicle(veh, transport, nil, "dcs_native")
                             waitingByUnit[vehName] = nil
-                        elseif not self._ignoredCargoNames[name] then
+                        elseif not (vehName and knownUnits[vehName])
+                            and not self._ignoredCargoNames[name] then
                             self._ignoredCargoNames[name] = true
                             ctld.utils.log("DEBUG",
                                 "CTLDVehicleSpawner: on-board cargo '%s' is not a waiting vehicle — ignored", name)
@@ -700,6 +792,18 @@ function CTLDVehicleSpawner:_checkNativeLoading()
                     end
                 end
             end
+        end
+    end
+
+    -- Release: a native-carry vehicle whose entry is no longer on its transport's list. A
+    -- transport whose list was not read this tick (gone, unreadable) releases nothing.
+    for _, veh in pairs(nativeLoaded) do
+        local names     = namesOnBoard[veh.loadTransportName]
+        local unitName  = veh.spawnData and veh.spawnData.unitName
+        if names and unitName and not names[_COMPANION_PREFIX .. unitName] then
+            local transport = transports[veh.loadTransportName]
+            local method    = ctld.utils.inAir(transport) and "parachute" or "dcs_native"
+            self:unloadVehicle(veh, transport, nil, method)
         end
     end
 end
@@ -840,6 +944,11 @@ function CTLDVehicleSpawner:onDead(event)
         local pos      = vehicle.unit and vehicle.unit:getPoint() or { x = 0, y = 0, z = 0 }
         local spawnedAt = vehicle.spawnTime or 0
 
+        -- A vehicle destroyed while falling is lost like any vehicle: its (suspended) JTAC goes too.
+        if vehicle:getState() == CTLDVehicle.STATE.FALLING then
+            self:_deregisterJTACSilently(vehicle)
+        end
+
         self._vehicles[vehicleId]    = nil
         self._unitToVehicle[unitName] = nil
 
@@ -881,36 +990,12 @@ function CTLDVehicleSpawner:onDead(event)
     local ok2, pos2 = pcall(function() return event.initiator:getPoint() end)
     if ok2 and pos2 then transportPos = pos2 end
 
-    local jtacMgr = CTLDJTACManager.getInstance()
     for _, entry in ipairs(lost) do
-        local id  = entry.id
-        local veh = entry.veh
-
-        -- Deregister JTAC silently (frees laser code + claim, no OnJTACDead).
-        local gname = veh.spawnData and veh.spawnData.groupName
-        if gname and jtacMgr.jtacs and jtacMgr.jtacs[gname] then
-            jtacMgr:deregisterJTAC(gname)
-        end
-
-        -- Clear reverse lookup if still present (dcs_native load keeps unit alive briefly).
-        if veh.unit then
-            self._unitToVehicle[veh.unit:getName()] = nil
-        end
-        self._vehicles[id] = nil
-
-        EventDispatcher.getInstance():publish("OnVehicleDead", {
-            vehicleId     = id,
-            vehicle       = nil,   -- unit was inside transport, no live DCS ref
-            vehicleType   = veh.vehicleType,
-            coalition     = veh.spawnData and veh.spawnData.coalitionId or nil,
-            position      = transportPos,
-            durationAlive = timer.getTime() - (veh.spawnTime or 0),
-            timestamp     = timer.getAbsTime(),
-        })
+        self:_dropLostVehicle(entry.id, entry.veh, transportPos)
 
         ctld.utils.log("INFO", string.format(
             "CTLDVehicleSpawner: vehicle %s (%s) lost — transport %s destroyed",
-            id, veh.vehicleType, unitName))
+            entry.id, entry.veh.vehicleType, unitName))
     end
 end
 
