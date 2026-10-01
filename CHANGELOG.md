@@ -8,6 +8,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — the CH-47F carries whole vehicles by default (FIX-NATIVE-CARRY-DETECTION, ticket 02)
+
+- The default aircraft capabilities mark the `CH-47Fbl1` as `canTransportWholeVehicle: true`; its loadable
+  vehicle types, `maxVehicleWeight` and `maxWholeVehiclesOnboard` were already declared and are unchanged. A
+  CH-47F pilot now gets the *Vehicle Commands* F10 menu (virtual-carry load, unload, parachute). No other
+  aircraft entry changes. Covered by busted only: not yet checked in a live DCS CH-47F.
+
 ### Fixed — native whole-vehicle loading is read from the DCS on-board cargo list (FIX-NATIVE-CARRY-DETECTION, ticket 03)
 
 - A vehicle waiting for a native-cargo aircraft was loaded when it merely stood inside the aircraft's

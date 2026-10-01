@@ -151,7 +151,7 @@ mm_facing:
       canParachuteDrop: true
       maxTroopsOnboard: 40
       useNativeDcsCargoSystem: true
-      canTransportWholeVehicle: false
+      canTransportWholeVehicle: true
     Hercules:
       convertNativeLoadToCTLD: false
       cratesEnabled: true

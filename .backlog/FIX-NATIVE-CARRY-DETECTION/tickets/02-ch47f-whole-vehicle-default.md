@@ -1,6 +1,6 @@
 # 02 — CH-47F is whole-vehicle capable by default
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (busted only; no live CH-47F available) · **Type:** AFK
 
 ## Parent
 

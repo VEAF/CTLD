@@ -107,3 +107,45 @@ describe("capabilitiesByType — the light transports", function()
     end)
 
 end)
+
+-- FIX-NATIVE-CARRY-DETECTION ticket 02 -- the CH-47F carries whole vehicles by default, with the
+-- loadable types, weight and count it already declared.
+describe("capabilitiesByType -- CH-47F whole-vehicle carry", function()
+
+    local function caps(typeName)
+        return (ctld.gs("capabilitiesByType") or {})[typeName]
+    end
+
+    it("marks the CH-47Fbl1 as whole-vehicle capable", function()
+        assert.is_true(caps("CH-47Fbl1").canTransportWholeVehicle)
+    end)
+
+    it("keeps its existing vehicle lists and limits unchanged", function()
+        local c = caps("CH-47Fbl1")
+        assert.equals(1, c.maxWholeVehiclesOnboard)
+        assert.equals(11000, c.maxVehicleWeight)
+        assert.same({ "M1045 HMMWV TOW", "M1043 HMMWV Armament", "Hummer" }, c.loadableVehiclesBLUE)
+        assert.same({ "BRDM-2", "BTR_D" }, c.loadableVehiclesRED)
+    end)
+
+    it("gives a CH-47F player the vehicle commands", function()
+        local pm = setmetatable({}, CTLDPlayerManager)
+        local isTransport, canCarryVehicles =
+            pm:_detectCapabilities({ getTypeName = function() return "CH-47Fbl1" end })
+        assert.is_true(isTransport)
+        assert.is_true(canCarryVehicles)
+    end)
+
+    it("leaves the other aircraft untouched: only the types that carried vehicles before still do", function()
+        local expected = {
+            ["CH-47Fbl1"] = true, ["UH-1H"] = true, ["Mi-8MT"] = true, ["Mi-24P"] = true,
+            ["Hercules"] = true, ["C-130J-30"] = true, ["76MD"] = true,
+        }
+        for typeName, c in pairs(ctld.gs("capabilitiesByType") or {}) do
+            if c.canTransportWholeVehicle then
+                assert.is_true(expected[typeName], typeName .. " unexpectedly carries whole vehicles")
+            end
+        end
+    end)
+
+end)
