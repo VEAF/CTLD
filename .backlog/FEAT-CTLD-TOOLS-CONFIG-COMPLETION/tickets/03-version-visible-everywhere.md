@@ -1,6 +1,6 @@
 # 03 — Make the configuration and catalogue versions visible
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -21,14 +21,14 @@ Mission Maker or a maintainer looks when something is out of date:
 
 ## Acceptance criteria
 
-- [ ] The header shows both versions and flags a difference.
-- [ ] The opening summary shows both versions.
-- [ ] The start-up notice for absent parameters names the configuration's version and the catalogue version, for a
+- [x] The header shows both versions and flags a difference.
+- [x] The opening summary shows both versions.
+- [x] The start-up notice for absent parameters names the configuration's version and the catalogue version, for a
       snapshot that lacks parameters; a complete configuration shows no notice, as today.
-- [ ] A hand-written configuration that never met the tool still starts, defaults the parameter and shows the notice.
-- [ ] `validate` prints both versions when they differ and nothing extra when they are equal.
-- [ ] The new notice text has its dictionary entries (build regenerates them); the i18n guard passes.
-- [ ] `busted tests/ci/`, luacheck, ctld-tools tests, `ruff check`, `ruff format --check`, `npm run check` pass.
+- [x] A hand-written configuration that never met the tool still starts, defaults the parameter and shows the notice.
+- [x] `validate` prints both versions when they differ and nothing extra when they are equal.
+- [x] The new notice text has its dictionary entries (build regenerates them); the i18n guard passes.
+- [x] `busted tests/ci/`, luacheck, ctld-tools tests, `ruff check`, `ruff format --check`, `npm run check` pass.
 
 ## Blocked by
 

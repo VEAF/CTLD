@@ -10,9 +10,14 @@
     labelOf,
     onundo,
     onclose,
+    configVersion,
+    catalogueVersion,
   }: {
     additions: CompletionAddition[]
     labelOf: (key: string) => string
+    /** The version the opened configuration was written against, and the catalogue this tool carries. */
+    configVersion?: string
+    catalogueVersion?: string
     onundo: (addition: CompletionAddition) => void
     onclose: () => void
   } = $props()
@@ -44,6 +49,9 @@
     <button class="dismiss" onclick={onclose}>{t('web.completion.dismiss')}</button>
   </div>
   <p class="body">{t('web.completion.body')}</p>
+  {#if configVersion && catalogueVersion}
+    <p class="versions">{t('web.completion.versions', { config: configVersion, catalogue: catalogueVersion })}</p>
+  {/if}
   {#if scalars.length}
     <ul>
       {#each scalars as a (a.key)}
@@ -112,6 +120,12 @@
     display: flex;
     align-items: baseline;
     gap: 0.6rem;
+  }
+  .versions {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--ink-faint);
   }
   .entry {
     font-family: var(--font-display);

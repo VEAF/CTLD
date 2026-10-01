@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — the configuration and catalogue versions are visible (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 03)
+
+- The engine's start-up notice for settings absent from the mission config now names the version the snapshot
+  was written against and the version of the CTLD catalogue ("… absent from the mission config (version
+  2.0.0, CTLD catalogue 2.1.0) …"), so a screenshot of it is enough to see why settings are absent. The
+  message text changed, so it goes through the dictionaries again (translated in French, Spanish and Korean).
+- ctld-tools shows both versions: the header's former "CTLD version" readout, which actually showed the
+  configuration's version, is now "Config version" and is followed by the tool's catalogue version (flagged when
+  they differ), the opening summary repeats both, and `ctld-tools validate` prints both when they differ.
+
 ### Added — ctld-tools completes the fields of list entries of an older configuration (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 02)
 
 - The catalogue version moves from `2.0.0` to `2.1.0`. Opening a configuration written against an older version

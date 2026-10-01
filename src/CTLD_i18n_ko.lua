@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.19"
+ctld.i18n["ko"].translation_version = "1.20"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -398,7 +398,7 @@ ctld.i18n["ko"]["Infantry"] = "보병"
 ctld.i18n["ko"]["Ships"] = "함선"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
-ctld.i18n["ko"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = "미션 설정에 %1 항목이 없음 — CTLD 기본값 사용: %2"
+-- STALE: ctld.i18n["ko"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = "미션 설정에 %1 항목이 없음 — CTLD 기본값 사용: %2"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 
@@ -453,3 +453,6 @@ ctld.i18n["ko"]["S-300 Repair"] = "S-300 수리킷"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-09-23
 ctld.i18n["ko"]["  EXZ '%1': %2 — entry ignored"] = "  EXZ '%1': %2 — 항목 무시됨"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-01
+ctld.i18n["ko"]["%1 setting(s) absent from the mission config (version %2, CTLD catalogue %3) — CTLD default used: %4"] = "미션 설정에 %1 항목이 없음 (버전 %2, CTLD 카탈로그 %3) — CTLD 기본값 사용: %4"

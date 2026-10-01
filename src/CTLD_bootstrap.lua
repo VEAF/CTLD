@@ -18,11 +18,9 @@ function ctld.initialize()
     -- config authored against an older catalogue. They resolved to the CTLD default; say so on
     -- screen, because nothing obliges a Mission Maker to run ctld-tools, so a hand-written
     -- config never meets `validate` and this is the only signal its author will get.
-    local _defaulted = CTLDConfig.get():getDefaultedParameters()
-    if #_defaulted > 0 then
-        ctld.startupReport.add("NOTICE", "config", ctld.tr(
-            "%1 setting(s) absent from the mission config — CTLD default used: %2",
-            #_defaulted, table.concat(_defaulted, ", ")))
+    local _defaultedNotice = CTLDConfig.get():getDefaultedNotice()
+    if _defaultedNotice then
+        ctld.startupReport.add("NOTICE", "config", _defaultedNotice)
     end
 
     -- A v1 config keeps settings CTLD 2 no longer reads; say so once, on screen, for the same

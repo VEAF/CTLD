@@ -97,6 +97,13 @@ def validate_cmd(
     reference = Path(default_path) if default_path else resources.default_catalog_path()
     default = Catalog.load(reference) if reference.exists() else None
     findings = validate(catalog, schema, default=default)
+    # The version the configuration was written against and the catalogue it is checked against, when they
+    # differ: the first thing to look at when a setting turns out to be absent.
+    if default is not None:
+        config_version = str(catalog.get("configVersion", "?"))
+        catalogue_version = str(default.get("configVersion", "?"))
+        if config_version != catalogue_version:
+            typer.echo(t("validate.version.differ", config=config_version, catalogue=catalogue_version))
     for finding in findings:
         typer.echo(str(finding))
     if not findings:

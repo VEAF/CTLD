@@ -139,6 +139,32 @@ describe("CTLDConfig parameter/list tiers (ADR 0011 addendum 1)", function()
         end)
     end)
 
+    describe("the start-up notice names both versions (FEAT-CTLD-TOOLS-CONFIG-COMPLETION)", function()
+
+        local function withVersion(yaml, version)
+            return (yaml:gsub('configVersion:%s*"[^"]*"', 'configVersion: "' .. version .. '"'))
+        end
+
+        it("gives the config version, the catalogue version and the absent settings", function()
+            local cfg = loadUser(withVersion(without(DEFAULT, "slingCutDestroyHeight"), "1.9.0"))
+            local notice = cfg:getDefaultedNotice()
+            assert.is_truthy(notice:find("1.9.0", 1, true))
+            assert.is_truthy(notice:find("slingCutDestroyHeight", 1, true))
+            local catalogue = DEFAULT:match('configVersion:%s*"([^"]*)"')
+            assert.is_truthy(notice:find(catalogue, 1, true))
+        end)
+
+        it("says the version is unknown when the snapshot carries none", function()
+            local noVersion = without(without(DEFAULT, "slingCutDestroyHeight"), "configVersion")
+            local notice = loadUser(noVersion):getDefaultedNotice()
+            assert.is_truthy(notice:find("?", 1, true))
+        end)
+
+        it("has no notice when the snapshot is complete", function()
+            assert.is_nil(loadUser(DEFAULT):getDefaultedNotice())
+        end)
+    end)
+
     describe("a complete config reports nothing", function()
 
         it("reports nothing when the snapshot is complete", function()

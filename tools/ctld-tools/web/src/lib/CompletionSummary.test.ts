@@ -55,3 +55,15 @@ test('fields of list entries are grouped under the entry they belong to', async 
   await fireEvent.click(screen.getAllByRole('button', { name: 'Undo' })[0])
   expect(onundo).toHaveBeenCalledWith(fields[0])
 })
+
+test('it repeats the configuration version and the catalogue version', () => {
+  render(CompletionSummary, {
+    additions: ADDED,
+    labelOf: (k: string) => k,
+    onundo: vi.fn(),
+    onclose: vi.fn(),
+    configVersion: '2.0.0',
+    catalogueVersion: '2.1.0',
+  })
+  expect(screen.getByText(/2\.0\.0.*2\.1\.0/)).toBeInTheDocument()
+})

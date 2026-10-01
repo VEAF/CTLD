@@ -123,12 +123,17 @@ def health() -> dict[str, str]:
 
 @app.get("/api/version")
 def get_version() -> dict[str, str]:
-    """The CTLD version this build belongs to, and the documentation version to link to.
+    """The CTLD version this build belongs to, the catalogue version it carries, and the documentation version.
 
     `docs` is resolved here rather than in the frontend so the rule — a pre-release points at `dev`,
     a stable at itself — exists once, next to the version it derives from.
     """
-    return {"ctld": resources.ctld_version(), "docs": resources.docs_version()}
+    catalogue = session.default_catalog().get("configVersion")
+    return {
+        "ctld": resources.ctld_version(),
+        "docs": resources.docs_version(),
+        "catalogue": "" if catalogue is None else str(catalogue),
+    }
 
 
 @app.get("/api/i18n")

@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.19"
+ctld.i18n["es"].translation_version = "1.20"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -504,7 +504,7 @@ ctld.i18n["es"]["Infantry"] = "Infantería"
 ctld.i18n["es"]["Ships"] = "Barcos"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
-ctld.i18n["es"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = "%1 ajuste(s) ausente(s) de la configuración de la misión — se usó el valor por defecto de CTLD: %2"
+-- STALE: ctld.i18n["es"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = "%1 ajuste(s) ausente(s) de la configuración de la misión — se usó el valor por defecto de CTLD: %2"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 
@@ -574,3 +574,6 @@ ctld.i18n["es"]["Unload Vehicles"] = "Descargar vehículos"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-09-23
 ctld.i18n["es"]["  EXZ '%1': %2 — entry ignored"] = "  EXZ '%1': %2 — entrada ignorada"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-01
+ctld.i18n["es"]["%1 setting(s) absent from the mission config (version %2, CTLD catalogue %3) — CTLD default used: %4"] = "%1 ajuste(s) ausente(s) de la configuración de la misión (versión %2, catálogo CTLD %3) — se usó el valor por defecto de CTLD: %4"

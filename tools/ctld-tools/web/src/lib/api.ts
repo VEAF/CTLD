@@ -193,7 +193,7 @@ export const resetSound = (setting: string) =>
 export const injectMiz = (miz: string, configOnly = false) =>
   post('/api/inject', { miz, configOnly }).then((r) => json<InstallResult>(r))
 /** The CTLD version this build belongs to, and the docs version to link to (`dev` for an rc). */
-export type ToolVersion = { ctld: string; docs: string }
+export type ToolVersion = { ctld: string; docs: string; catalogue?: string }
 
 export const getVersion = () => fetch('/api/version').then((r) => json<ToolVersion>(r))
 export const getVersionGap = () => fetch('/api/version-gap').then((r) => json<VersionGap>(r))

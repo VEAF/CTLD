@@ -147,6 +147,9 @@
     fromDefaults || !snapshot?.path ? t('web.header.defaults') : snapshot.path.replace(/^.*[\\/]/, ''),
   )
   const configVersion = $derived(String(snapshot?.values?.configVersion ?? '—'))
+  // The tool's own catalogue version, and whether the opened configuration was written against another one.
+  const catalogueVersion = $derived(version?.catalogue ?? '')
+  const versionsDiffer = $derived(!!catalogueVersion && configVersion !== '—' && configVersion !== catalogueVersion)
   const saveLabel = $derived(
     dirty ? t('web.state.dirty') : justSaved ? t('web.state.saved') : t('web.state.clean'),
   )
@@ -445,6 +448,12 @@
       <span class="lbl">{t('web.header.version')}</span>
       <span class="val">{configVersion}</span>
     </div>
+    {#if catalogueVersion}
+      <div class="readout" data-differs={versionsDiffer}>
+        <span class="lbl">{t('web.header.catalogue')}</span>
+        <span class="val" class:differs={versionsDiffer}>{catalogueVersion}</span>
+      </div>
+    {/if}
     <div class="readout">
       <span class="lbl">{saveLabel}</span>
       <span class="val sub">{changedKeys.size ? plural('web.changed', changedKeys.size) : '—'}</span>
@@ -509,7 +518,14 @@
 {/if}
 
 {#if completion.length}
-  <CompletionSummary additions={completion} {labelOf} onundo={undoCompletion} onclose={() => (completion = [])} />
+  <CompletionSummary
+    additions={completion}
+    {labelOf}
+    onundo={undoCompletion}
+    onclose={() => (completion = [])}
+    configVersion={configVersion === '—' ? undefined : configVersion}
+    {catalogueVersion}
+  />
 {/if}
 
 {#if gap}
