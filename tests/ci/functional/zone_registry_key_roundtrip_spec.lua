@@ -106,6 +106,12 @@ describe("Zone registry key -- round trip over every registration path", functio
         assert.equals("scripted_ext", zm:getTroopZone("scripted_ext"):registryKey())
     end)
 
+    it("scripted createTroopZoneAtObject: the key is the TRZ_ name given by the script", function()
+        local zm = CTLDZoneManager.getInstance()
+        assert.is_true(zm:createTroopZoneAtObject("scripted_obj_zone", "TRZ_beta_B_999_nil_0"))
+        assert.equals("TRZ_beta_B_999_nil_0", zm:getTroopZone("TRZ_beta_B_999_nil_0"):registryKey())
+    end)
+
     it("every zone registered by any of the paths above is found again by its own registryKey", function()
         local zm = CTLDZoneManager.getInstance()
         local p = { x = 10, y = 0, z = 10 }

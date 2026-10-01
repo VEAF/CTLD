@@ -79,7 +79,9 @@ breaking change with no compatibility field (ADR 0023).
 
 - **`registryKey()` on the troop zone and logistic zone classes** returns exactly the key the zone manager
   files the zone under: the DCS name when the zone has one, otherwise the zone's own name field (the unit
-  or FOB name). Troop zones fall back to their `zoneName`, logistic zones to their `name`. Every
+  or FOB name). Troop zones fall back to their `zoneName`, logistic zones to their `name`. A troop zone
+  created by `createTroopZoneAtObject` carries an explicit key (the `TRZ_` name), because its DCS name is
+  the anchor object's, not the key (found by the round-trip test in ticket 03). Every
   registration path (auto-discovered TRZ/LGZ/WPZ/EXZ, FOB troop and logistic zones, logistic units, ship
   and unit-anchored troop zones, AIZ zones, scripted creation) must satisfy the round-trip rule; any path
   where it does not hold is fixed in this lot, not worked around.

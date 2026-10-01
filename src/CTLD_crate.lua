@@ -298,7 +298,7 @@ function CTLDCrateManager.getInstance()
         local function _lgzZoneKey(zones)
             if not next(zones) then return "" end
             local names = {}
-            for _, z in ipairs(zones) do names[#names + 1] = z.name end
+            for _, z in ipairs(zones) do names[#names + 1] = z:registryKey() end
             table.sort(names)
             return table.concat(names, ",")
         end

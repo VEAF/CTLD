@@ -1,6 +1,6 @@
 # 03 — Audit of remaining short-name lookups, docs and finalization
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** 🔄 in progress (code and docs done; the index line and the PR-description audit are filled when the PR is opened) · **Type:** AFK
 
 ## Parent
 

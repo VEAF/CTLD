@@ -86,6 +86,9 @@ CTLDTroopZone = class(CTLDAnchoredZone)
 function CTLDTroopZone:init(data)
     self.dcsName          = data.dcsName
     self.zoneName         = data.zoneName
+    -- Only for a zone filed under a key that is neither its dcsName nor its zoneName
+    -- (createTroopZoneAtObject: dcsName is the anchor object, the key is the TRZ_ name).
+    self._registryKey     = data.registryKey
     -- F10 label override: when set, the menu shows this instead of "TRZ_"..zoneName. Needed for
     -- a zone whose zoneName isn't a parsed TRZ_ token (e.g. a FOB's own name).
     self.displayName      = data.displayName
@@ -143,10 +146,11 @@ function CTLDTroopZone:init(data)
     self._vertexOffsets   = data.vertexOffsets   or nil
 end
 
---- The key CTLDZoneManager files this zone under (ADR 0023): the DCS name when the zone has
--- one, otherwise its own name (FOB, ship, scripted zone). `zoneName` alone is a display label.
+--- The key CTLDZoneManager files this zone under (ADR 0023): the key the registration gave it
+-- when it differs from the DCS name (createTroopZoneAtObject), else the DCS name, else its own
+-- name (FOB, ship, scripted zone). `zoneName` alone is a display label.
 function CTLDTroopZone:registryKey()
-    return self.dcsName or self.zoneName
+    return self._registryKey or self.dcsName or self.zoneName
 end
 
 --- True if this zone acts as a pickup zone (troops can board here).
@@ -1830,7 +1834,8 @@ function CTLDZoneManager:createTroopZoneAtObject(objectName, trzName)
     end
 
     self._troopZones[trzName] = CTLDTroopZone:new({
-        dcsName         = dcsName,
+        dcsName         = dcsName,      -- the anchor object / trigger zone, not the registry key
+        registryKey     = trzName,
         zoneName        = parsed.zoneName,
         coalition       = parsed.coalition,
         center          = center,

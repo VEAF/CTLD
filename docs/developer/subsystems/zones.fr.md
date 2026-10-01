@@ -313,10 +313,34 @@ retire de la même façon, en publiant `OnTroopZoneUpdated`. Une troop zone ancr
 simplement gelée à sa dernière position, contrairement à une ancre sans référence unité/statique
 vivante (zone fixe, ou référence de zone de trigger propre à une Moving Zone).
 
+## Clé de registre de zone { #zone-registry-key }
+
+`CTLDZoneManager` range chaque troop zone et chaque logistic zone sous une **clé de registre**, et
+tout accesseur qui prend un nom de zone (`getTroopZone`, `getLogisticZone`, `setTroopZoneActive`,
+`activateLogisticZone`, `removeExtractZone`, …) attend exactement cette clé. Une zone la fournit
+elle-même :
+
+```lua
+zone:registryKey()   -- CTLDTroopZone : clé explicite, sinon dcsName, sinon zoneName · CTLDLogisticZone : dcsName ou name
+```
+
+| Façon dont la zone a été enregistrée | Clé de registre |
+| --- | --- |
+| Zone auto-découverte `TRZ_` / `LGZ_` / `WPZ_` / `EXZ_`, zone de config `AIZ_`, zone de config legacy | le nom DCS complet (`LGZ_depot1_B`) |
+| `createExtractZone` / `createTroopZoneAtObject` | le nom donné par l'appelant (pour `createTroopZoneAtObject`, le nom `TRZ_` — pas celui de l'objet ancre, qui reste le `dcsName` de la zone) |
+| FOB (troop ou logistique), unité logistique, FARP | le nom du FOB / de l'unité |
+
+Le nom court extrait d'un nom `TRZ_` / `LGZ_` (`depot1`) n'est qu'un **libellé d'affichage** : il ne
+désigne jamais une zone, donc aucun accesseur ne l'accepte, aucun callback de menu ne le reçoit et
+aucun payload d'événement ne le porte (ADR 0020 et ADR 0023). Les constructeurs de menu et les
+publicateurs d'événements lisent `zone:registryKey()` ; un nouveau chemin d'enregistrement doit
+seulement rendre cette méthode correcte (`zone_registry_key_roundtrip_spec.lua` vérifie l'aller-retour
+pour chaque chemin).
+
 ## API de requête — troop zones { #query-api-troop-zones }
 
 ```lua
-zm:getTroopZone(zoneName)                     -- → CTLDTroopZone | nil
+zm:getTroopZone(zoneName)                     -- → CTLDTroopZone | nil  (zoneName = clé de registre)
 zm:getTroopZonesForCoalition(coalition)       -- zones actives pour la coalition (0 = les deux)
 zm:getTroopZoneAtPoint(point, coalition)      -- zone contenante ; exclut les pickup zones réservées à l'IA
 zm:getTroopZoneForUnit(unitName)              -- zone sous la position d'une unité live
@@ -336,7 +360,7 @@ monde), ou les deux camps sont égaux. `getNearestWaypointZone` sous-tend la Fea
 ## API de requête — logistic zones { #query-api-logistic-zones }
 
 ```lua
-zm:getLogisticZone(name)                             -- → CTLDLogisticZone | nil
+zm:getLogisticZone(name)                             -- → CTLDLogisticZone | nil  (name = clé de registre)
 zm:getLogisticZonesForCoalition(coalition)           -- zones actives + vivantes pour la coalition
 zm:getLogisticZoneAtPoint(point, coalition)          -- première zone contenante
 zm:getLogisticZoneForUnit(unitName)                  -- zone sous une unité / static
@@ -431,7 +455,8 @@ Le menu de commande des troops est reconstruit sur `S_EVENT_LAND` / `S_EVENT_TAK
 de la position courante du joueur et de l'état de sa cargaison :
 
 - En vol : le sous-menu « Troop Commands » est vide.
-- Au sol dans une pickup TRZ : une option « Load from `<zoneName>` » apparaît.
+- Au sol dans une pickup TRZ : une option « Load from `<zoneName>` » apparaît (le libellé est le
+  nom court ; le callback reçoit la clé de registre de la zone, comme le menu « Request Equipment »).
 - Au sol avec des troops à bord : une option « Unload / Extract » apparaît.
 - Au sol hors de toute TRZ : aucune option de chargement.
 
