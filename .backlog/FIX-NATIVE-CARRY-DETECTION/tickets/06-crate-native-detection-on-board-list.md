@@ -1,6 +1,6 @@
 # 06 — Native crate load and release read from the on-board cargo list
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 

@@ -1948,7 +1948,7 @@ end
 
 -- ====================================================================================================
 -- SECTION: Spawn positions on a random axis (used by CTLDCrateManager and CTLDSceneManager)
--- Local bbox containment helper (mirrors CTLDCrateManager._pointInBBox).
+-- Local bbox containment helper.
 -- Returns true if world point pt lies inside the bbox of a unit described by unitPos + bbox.
 local function _pointInBBoxLocal(unitPos, bbox, pt, margin)
     margin = margin or 0
@@ -1980,7 +1980,7 @@ end
 -- ====================================================================================================
 
 -- @param avoidBBoxes  array|nil  list of { unitPos, bbox } tables (DynamicCargo transports to avoid).
---                                 Each entry must have the same structure as CTLDCrateManager._checkNativeDCSCargo
+--                                 Each entry must have the same structure as CTLDCrateManager:_getDynamicBBoxes
 --                                 transports: { unitPos = unit:getPosition(), bbox = desc.box }.
 --                                 When provided, the chosen axis is rotated by 45° increments (up to 8 tries)
 --                                 until all candidate positions are outside every listed bbox.
@@ -2015,7 +2015,7 @@ function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing, axis
 
     -- Helper: returns true if any candidate point falls inside any avoided bbox.
     -- Uses a 2-D ground-plane check (y=0) so we don't need a full unit:getPosition() here —
-    -- the avoidBBoxes entries already carry unitPos from _checkNativeDCSCargo.
+    -- the avoidBBoxes entries already carry unitPos from CTLDCrateManager:_getDynamicBBoxes.
     local function _anyCollision(pts)
         if not avoidBBoxes or #avoidBBoxes == 0 then return false end
         for _, avoid in ipairs(avoidBBoxes) do

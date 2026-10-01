@@ -8,6 +8,22 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — native crate load and release are read from the DCS on-board cargo list (FIX-NATIVE-CARRY-DETECTION, ticket 06)
+
+- Crates carried through the DCS cargo system were detected by testing their position against the aircraft's
+  bounding box (far larger than a cargo bay), with a ground-speed guard for entry and a local-frame drift of
+  more than 1 m for release. They now follow the same rule as native vehicles: a tracked crate is in native
+  carry exactly while it is on the `unit:getCargosOnBoard()` list of a player aircraft CTLD watches. It enters
+  when it appears there (`OnCrateLoaded`, method `dcs_native`, payload unchanged) and is released when it leaves:
+  `LANDED` on the ground, `FALLING` then ground when the aircraft is airborne (`OnCrateUnloaded`, method
+  `dcs_native`). The bounding-box test, speed guard, drift reference and native link table are removed; the
+  spawn-time check that keeps a fresh crate out of a neighbouring aircraft's volume is unchanged.
+- Types with `convertNativeLoadToCTLD` (UH-1H, CH-47Fbl1 by default) keep the conversion to a CTLD load, triggered
+  by the crate appearing on the list; the crate stays listed until DCS processes the release, so it is marked as
+  being converted and handled once. Entries CTLD does not track (loadmaster-tablet cargo, editor crates of an
+  unknown type) are ignored with one debug line, and a type whose list cannot be read is warned about once and
+  no longer watched (ADR 0022).
+
 ### Fixed — a native-carry vehicle is dropped when its transport vanishes without a death event (FIX-NATIVE-CARRY-DETECTION, ticket 05)
 
 - CTLD already dropped the vehicles loaded on a transport destroyed by a death event. A transport can also
