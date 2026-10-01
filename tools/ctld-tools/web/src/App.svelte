@@ -9,6 +9,7 @@
     getValidate,
     getVersion,
     getVersionGap,
+    deleteSetting,
     injectMiz,
     loadDefault,
     loadPath,
@@ -18,6 +19,7 @@
     putSetting,
     save,
     selectMission,
+    type CompletionAddition,
     type Finding,
     type SchemaInfo,
     type Snapshot,
@@ -38,6 +40,7 @@
   import SettingRow from './lib/SettingRow.svelte'
   import StringListEditor from './lib/StringListEditor.svelte'
   import ValidationPanel from './lib/ValidationPanel.svelte'
+  import CompletionSummary from './lib/CompletionSummary.svelte'
   import VersionGapPopup from './lib/VersionGapPopup.svelte'
   import ZonesEditor from './lib/ZonesEditor.svelte'
   import { DATA_FAMILY, familyDescription, familyIcon, familyLabel, familyOf } from './lib/families'
@@ -85,6 +88,8 @@
   // type → GROUND | AIRPLANE | HELICOPTER; resolves the `AIR` authoring choice on save.
   let spawnAsByType = $state<Record<string, string>>({})
   let gap = $state<VersionGap | null>(null)
+  // What config completion added to the configuration just opened; the summary stays until dismissed.
+  let completion = $state<CompletionAddition[]>([])
 
   let activeFamily = $state<string | null>(null)
   let query = $state('')
@@ -206,7 +211,9 @@
     try {
       snapshot = await load()
       fromDefaults = asDefaults
-      dirty = false
+      completion = snapshot.completion ?? []
+      // Completed in memory only: the file on disk still lacks what was added until it is saved.
+      dirty = completion.length > 0
       justSaved = false
       injected = false
       error = null
@@ -249,6 +256,21 @@
     justSaved = false
     await refreshSounds()
     await doValidate()
+  }
+
+  // Undoing an addition removes that parameter again; `validate` then reports it, as it does for any
+  // configuration that omits a parameter.
+  async function undoCompletion(key: string) {
+    try {
+      await deleteSetting(key)
+      snapshot = await getCatalog()
+      completion = completion.filter((a) => a.key !== key)
+      dirty = true
+      justSaved = false
+      await doValidate()
+    } catch (e) {
+      error = String(e)
+    }
   }
 
   function confirmDiscard(): boolean {
@@ -482,6 +504,10 @@
   <p class="banner error" role="alert">{error}</p>
 {:else if status}
   <p class="banner status">{status}</p>
+{/if}
+
+{#if completion.length}
+  <CompletionSummary additions={completion} {labelOf} onundo={undoCompletion} onclose={() => (completion = [])} />
 {/if}
 
 {#if gap}

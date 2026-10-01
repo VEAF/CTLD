@@ -1,6 +1,6 @@
 # 01 — Complete the missing scalar parameters when a configuration is opened
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -21,16 +21,16 @@ carried a CTLD configuration behaves as before.
 
 ## Acceptance criteria
 
-- [ ] Opening a stored configuration that lacks `crateSpawnGap` and `enableParachuteDrop` returns it with both
+- [x] Opening a stored configuration that lacks `crateSpawnGap` and `enableParachuteDrop` returns it with both
       added at their catalogue defaults, from a mission archive and from a YAML file alike.
-- [ ] A scalar the configuration already carries keeps its value, including when its catalogue default differs.
-- [ ] The opening returns a report listing each added parameter; the web app shows it as a non-blocking summary.
-- [ ] Undoing an addition in the summary removes that parameter again (and `validate` then reports it as it does
+- [x] A scalar the configuration already carries keeps its value, including when its catalogue default differs.
+- [x] The opening returns a report listing each added parameter; the web app shows it as a non-blocking summary.
+- [x] Undoing an addition in the summary removes that parameter again (and `validate` then reports it as it does
       today).
-- [ ] Saving or injecting writes the catalogue's version tag into the configuration.
-- [ ] A mission with no CTLD configuration opens exactly as before.
-- [ ] Lists and list entries are untouched by this ticket.
-- [ ] ctld-tools tests (core, web API, frontend), `ruff check`, `ruff format --check`, `npm run check` pass.
+- [x] Saving or injecting writes the catalogue's version tag into the configuration.
+- [x] A mission with no CTLD configuration opens exactly as before.
+- [x] Lists and list entries are untouched by this ticket.
+- [x] ctld-tools tests (core, web API, frontend), `ruff check`, `ruff format --check`, `npm run check` pass.
 
 ## Blocked by
 

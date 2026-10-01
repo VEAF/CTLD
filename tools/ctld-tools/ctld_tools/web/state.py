@@ -10,6 +10,7 @@ from pathlib import Path
 
 from ctld_tools import resources
 from ctld_tools.catalog import Catalog
+from ctld_tools.completion import Addition, complete
 from ctld_tools.schema import Schema
 
 
@@ -29,6 +30,8 @@ class Session:
         # moves, the drive is unplugged, the configuration is reopened on another machine; and a
         # mission has no path to offer at all.
         self._sounds: dict[str, bytes] = {}
+        # What the last `load_path` added to the configuration it opened (config completion).
+        self._completion: list[Addition] = []
 
     # ── loaded catalogue ───────────────────────────────────────────
     @property
@@ -45,6 +48,11 @@ class Session:
     def mission_path(self) -> Path | None:
         """The `.miz` the open configuration was read from, if any."""
         return self._mission_path
+
+    @property
+    def completion(self) -> list[Addition]:
+        """The scalar parameters the last opened configuration lacked, now added with their defaults."""
+        return list(self._completion)
 
     @property
     def config_shape(self) -> str:
@@ -74,12 +82,14 @@ class Session:
             if found is None:
                 raise ValueError(f"no CTLD configuration in {path.name}")
             self._catalog = Catalog.loads(found.yaml)
+            self._completion = complete(self._catalog, self.default_catalog())
             self._path = None
             self._mission_path = path
             self._config_shape = found.shape
             self._sounds = read_sounds_from_miz(path, self._catalog)
             return
         self._catalog = Catalog.load(path)
+        self._completion = complete(self._catalog, self.default_catalog())
         self._path = path
         self._mission_path = None
         self._config_shape = "file"
@@ -95,12 +105,14 @@ class Session:
 
     def load_text(self, text: str) -> None:
         self._catalog = Catalog.loads(text)
+        self._completion = []
         self._path = None
         self._sounds = {}
 
     def load_default(self) -> None:
         path = resources.default_catalog_path()
         self._catalog = Catalog.load(path)
+        self._completion = []
         self._path = path
         self._sounds = {}
 
@@ -141,6 +153,7 @@ class Session:
         self._mission_path = None
         self._config_shape = "file"
         self._sounds = {}
+        self._completion = []
 
 
 session = Session()

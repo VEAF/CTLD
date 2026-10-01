@@ -320,6 +320,32 @@ test('opening a file warns before discarding unsaved changes', async () => {
   expect(confirm).toHaveBeenCalled()
 })
 
+test('opening a configuration shows what completion added, and an addition can be undone', async () => {
+  const base = global.fetch as typeof fetch
+  const deleted: string[] = []
+  global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input)
+    if (url.endsWith('/api/catalog/load')) {
+      return Promise.resolve(jsonResponse({ ...SNAP, completion: [{ key: 'aaRearmDistance', value: 300, section: 'advanced' }] }))
+    }
+    if (url.includes('/api/catalog/setting/') && init?.method === 'DELETE') {
+      deleted.push(url)
+      return Promise.resolve(jsonResponse({ removed: 'aaRearmDistance' }))
+    }
+    if (url.endsWith('/api/catalog')) return Promise.resolve(jsonResponse(SNAP))
+    return base(input, init)
+  }) as typeof fetch
+
+  render(App)
+  await screen.findByRole('button', { name: /Troops/ })
+  await fireEvent.click(screen.getByRole('button', { name: 'Open config or mission…' }))
+  expect(await screen.findByText('1 setting added from the catalogue')).toBeInTheDocument()
+
+  await fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+  await waitFor(() => expect(screen.queryByText('1 setting added from the catalogue')).not.toBeInTheDocument())
+  expect(deleted[0]).toContain('/api/catalog/setting/aaRearmDistance')
+})
+
 test('choosing a mission for AI-zone scanning tracks it and shows its name', async () => {
   render(App)
   await fireEvent.click(await screen.findByRole('button', { name: /Zones/ }))

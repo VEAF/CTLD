@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ctld_tools import resources
+from ctld_tools.catalog import Catalog
 from ctld_tools.validate import has_errors, validate
 from ctld_tools.versiongap import version_gap
 from ctld_tools.web.state import session
@@ -91,6 +92,13 @@ def _settable_but_uncatalogued() -> dict[str, Any]:
         if default is not None:
             out[key] = default
     return out
+
+
+def _stamp_version(cat: Catalog) -> None:
+    """Write the tool's catalogue version into `cat`, so the next opening knows what it is current with."""
+    version = session.default_catalog().get("configVersion")
+    if version is not None:
+        cat.stamp_version(str(version))
 
 
 def _snapshot() -> dict[str, Any]:
@@ -243,7 +251,9 @@ def load_catalog(req: LoadRequest) -> dict[str, Any]:
             raise HTTPException(status_code=422, detail=f"could not load: {exc}") from exc
     else:
         raise HTTPException(status_code=400, detail="provide 'path' or 'text'")
-    return _snapshot()
+    # What config completion added to the configuration just opened, so the UI can say so (and offer to undo).
+    added = [{"key": a.key, "value": _plain(a.value), "section": a.section} for a in session.completion]
+    return {**_snapshot(), "completion": added}
 
 
 @app.post("/api/catalog/load-default")
@@ -306,6 +316,7 @@ def delete_setting(key: str) -> dict[str, Any]:
 @app.post("/api/catalog/save")
 def save_catalog(req: SaveRequest) -> dict[str, str]:
     try:
+        _stamp_version(session.catalog)
         session.catalog.save(req.path)
     except LookupError as exc:
         raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
@@ -547,6 +558,7 @@ def inject(req: InjectRequest) -> dict[str, Any]:
     )
     if has_errors(findings):
         raise HTTPException(status_code=422, detail="fix validation errors before injecting")
+    _stamp_version(cat)
     try:
         report = install(
             req.miz,

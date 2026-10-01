@@ -4,6 +4,15 @@ export interface Snapshot {
   path: string | null
   keys: string[]
   values: Record<string, unknown>
+  /** What config completion added to the configuration just opened (only present on a load). */
+  completion?: CompletionAddition[]
+}
+
+/** A scalar parameter the tool added when it opened a configuration, with the default it received. */
+export interface CompletionAddition {
+  key: string
+  value: unknown
+  section: string | null
 }
 
 export interface SchemaKey {
@@ -112,6 +121,8 @@ export const getI18n = (lang?: string) => fetch(`/api/i18n${langQuery(lang)}`).t
 export const getDefaults = () => fetch('/api/defaults').then((r) => json<{ values: Record<string, unknown> }>(r))
 export const putSetting = (key: string, value: unknown) =>
   put('/api/catalog/setting', { key, value }).then((r) => json<{ key: string; value: unknown }>(r))
+export const deleteSetting = (key: string) =>
+  fetch(`/api/catalog/setting/${encodeURIComponent(key)}`, { method: 'DELETE' }).then((r) => json<{ removed: string }>(r))
 export const getValidate = () => fetch('/api/validate').then((r) => json<ValidateResult>(r))
 /** `spawnAs` maps every known type to GROUND / AIRPLANE / HELICOPTER — see /api/dcs-types. */
 export const getDcsTypes = () =>

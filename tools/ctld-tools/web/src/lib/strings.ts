@@ -97,6 +97,14 @@ export const EN_STRINGS: Record<string, string> = {
   'web.gap.changed.many': '{n} default values changed',
   'web.gap.close': 'Continue',
 
+  // ── config completion ───────────────────────────────────────────
+  'web.completion.title.one': '{n} setting added from the catalogue',
+  'web.completion.title.many': '{n} settings added from the catalogue',
+  'web.completion.body':
+    'This configuration lacked these settings, so the tool added them with their default values. Nothing you had entered was changed. Undo any you do not want.',
+  'web.completion.undo': 'Undo',
+  'web.completion.dismiss': 'Dismiss',
+
   // ── table field headings ────────────────────────────────────────
   // Each restates the field's own schema description, so no meaning is invented.
   'web.aizone.add_restriction': "+ restriction",

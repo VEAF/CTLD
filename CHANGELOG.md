@@ -8,6 +8,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — ctld-tools completes the scalar parameters a configuration lacks (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 01)
+
+- Opening a configuration (a mission or a YAML file) now adds every scalar parameter it lacks, with the
+  catalogue default, instead of loading it as stored. A mission exported before `crateSpawnGap` or
+  `enableParachuteDrop` existed gets both when it is opened, so the engine no longer shows the
+  "settings absent from the mission config" notice for it. A value already entered is never changed, and
+  lists and list entries are left alone (an absent one can be a deliberate removal).
+- The web app lists what was added in a non-blocking summary, each addition with an Undo, and the opened
+  configuration counts as unsaved until it is saved. Saving or installing writes the catalogue's version tag
+  into the configuration.
+
 ### Changed — crates for a native-cargo aircraft appear just clear of its hull, in a row (FEAT-NATIVE-CRATE-SPAWN-NEAR, ticket 02)
 
 - Crates requested as a set, and the crates produced by packing a vehicle, used to appear at the secure
