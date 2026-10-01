@@ -17,6 +17,37 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   Vehicle* stays disabled, exactly as if nothing were loaded. Weight accounting, the onboard cargo
   report and the AI dropoff are unchanged.
 
+### Fixed — two more zone identity mix-ups found by the registry-key audit (FIX-ZONE-REGISTRY-KEY, ticket 03)
+
+- The crate manager's "did the player's logistic zones change?" check (which decides when to rebuild the
+  Request Equipment menu) compared zones by their short name, so two zones sharing a short name
+  (`LGZ_depot_B` / `LGZ_depot_R`) could be mistaken for each other and leave a stale menu. It now compares
+  registry keys.
+- A troop zone created by `createTroopZoneAtObject(object, "TRZ_...")` reports the `TRZ_` name as its registry
+  key (its DCS name is the anchor object's), so the Load from <zone> menu finds it again.
+
+### Changed — zone event payloads identify a zone by its registry key (FIX-ZONE-REGISTRY-KEY, ticket 02) — BREAKING
+
+- `OnZoneSmokeRefreshed`, `OnTroopZoneUpdated` and `OnLogisticZoneUpdated` now carry the zone's **registry key**
+  as `name` in every zone entry, troop and logistic alike (the full DCS name for an auto-discovered zone,
+  the unit or FOB name otherwise) instead of the short name parsed out of `TRZ_` / `LGZ_`. The `unitsAdded` /
+  `unitsRemoved` entries use `name` too (they used `unitName` or `zoneName` depending on the zone kind). The
+  `fullName` and troop-zone `zoneName` fields of `OnZoneSmokeRefreshed` are removed; no short-name field
+  replaces them. A mission script reading those fields must switch to `name`. Accepted at the release-candidate
+  stage, with no compatibility field (ADR 0023). `docs/developer/events.md` now also documents
+  `OnTroopZoneUpdated`.
+
+### Fixed — crate requests and troop loads from auto-discovered zones work again (FIX-ZONE-REGISTRY-KEY, ticket 01)
+
+- Regression of `FIX-AUTODISCOVERED-ZONE-FULLNAME-KEY` (PR #210, ADR 0020): the **Request Equipment** F10 menu
+  answered "You are not close enough to friendly logistics to get a crate!" for every crate, and the
+  **Load from <zone>** troop menu answered "Zone not found.", because both handed the zone's short name to a
+  registry now keyed by the full DCS name. A troop or logistic zone now reports its own registry key
+  (`registryKey()`: the DCS name when it has one, otherwise its own name — FOB, ship, logistic unit) and both
+  menus pass it to their callbacks. The Request Equipment zone submenu and the troop "Load from" entry are now labelled with the full
+  name too (two zones sharing a short name used to merge into one submenu, with duplicated crates for
+  Request Equipment); the FOB-only `displayName` zone field is gone, a FOB's name being its key. See ADR 0023.
+
 ### Fixed — `onUnitDead` no longer floods the log for deaths CTLD has no business with (FIX-ONUNITDEAD-LOG-LEVEL)
 
 - `CTLDTroopManager:onUnitDead` logged `no group found for unit '…' — skipping` at `INFO`, yet that

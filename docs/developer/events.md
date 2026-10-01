@@ -779,29 +779,51 @@ A full AA system is repaired and re-spawned. Same fields as `OnAASystemRearmed`.
 
 **Published by**: `CTLDCrateAssemblyManager:_repair()`
 
-### Zone events (2)
+### Zone events (3)
+
+Every zone entry in these payloads identifies the zone with `name`, its **zone registry key**: the full
+DCS name for an auto-discovered zone (`LGZ_depot1_B`, not `depot1`), the unit or FOB name otherwise.
+It is the value the `CTLDZoneManager` lookups (`getTroopZone`, `getLogisticZone`, …) expect. The short
+name parsed out of a `TRZ_` / `LGZ_` name is a display label only and is not carried by any payload.
 
 #### `OnZoneSmokeRefreshed`
 Emitted on each smoke-refresh timer cycle.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `troopZones` | table | Array of troop-zone payload tables |
-| `logisticZones` | table | Array of logistic-zone payload tables |
+| `troopZones` | table | Array of troop-zone entries (`name` = registry key, `coalition`, `position`, `radius`, `hasPickup`, `hasExtract`, `pickMaxStock`, `pickCurrentStock`, `objectiveFlag`, `objectiveTarget`, `objectiveCurrent`, `smokeColor`) |
+| `logisticZones` | table | Array of logistic-zone entries (`name` = registry key, `coalition`, `position`, `radius`, `type`, `linkedUnit`, `smokeColor`) |
 | `refreshInterval` | number | Seconds |
 
 **Published by**: `CTLDZoneManager:_scheduleSmoke()` (periodic timer)
 
 #### `OnLogisticZoneUpdated`
-Dynamic zone units are added or removed.
+Logistic zones are registered, removed or (de)activated.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `zones` | table | All zones after update |
-| `unitsAdded` | table | Newly registered units |
-| `unitsRemoved` | table | Units that left the zone |
+| `zones` | table | All logistic zones after the update (`name` = registry key, `type`, `linkedUnit`, `position`, `coalition`, `radius`, `services`) |
+| `unitsAdded` | table | Entries `{ name, coalition }` of the zones just registered or reactivated |
+| `unitsRemoved` | table | Entries `{ name, coalition, reason }` of the zones removed or deactivated (`reason`: `dead`, `removed`, `deactivated`) |
 
 **Published by**: `CTLDZoneManager:_publishLogisticZoneUpdated()`
+
+#### `OnTroopZoneUpdated`
+A troop zone is created or removed at run time (never for a zone discovered at mission-editor init).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `zones` | table | All troop zones after the update (`name` = registry key, `type`, `linkedUnit`, `position`, `coalition`) |
+| `unitsAdded` | table | Entries `{ name, coalition }` of the zones just created |
+| `unitsRemoved` | table | Entries `{ name, coalition, reason }` of the zones removed (`reason`: `dead`, `removed`) |
+
+**Published by**: `CTLDZoneManager:_publishTroopZoneUpdated()`
+
+!!! warning "Breaking change (2.0.0-rc)"
+    Before this change, `name` carried the short name, `OnZoneSmokeRefreshed` troop entries also had
+    `fullName` and `zoneName`, and the `unitsAdded` / `unitsRemoved` entries used `unitName` or
+    `zoneName` depending on the zone kind. `fullName` and `zoneName` are gone and the entries use
+    `name`. Mission scripts reading those fields must switch to `name`.
 
 ### Catalogue summary
 
@@ -815,8 +837,8 @@ Dynamic zone units are added or removed.
 | RECON | 8 |
 | FOB | 2 |
 | AA System | 3 |
-| Zone | 2 |
-| **Total** | **49** |
+| Zone | 3 |
+| **Total** | **50** |
 
 Roughly ten events have internal subscribers (menu refresh and cross-manager coordination);
 the rest are published purely for mission-maker consumption and have no internal listeners

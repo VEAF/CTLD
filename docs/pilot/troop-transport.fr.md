@@ -45,7 +45,7 @@ CTLD
         │       ├── [1] <group name>
         │       └── [2] <group name>
         ├── Embark / Extract Troops             ← on the ground
-        │     ├── Load from TRZ_<zone>          ←   one submenu per pickup zone you are inside
+        │     ├── Load from <zone name>         ←   one submenu per pickup zone you are inside (its full name)
         │     │     ├── Load <team name>        ←     teams that fit your remaining capacity
         │     │     └── ...
         │     ├── Extract: <group name>         ←   a single group is nearby
@@ -67,7 +67,7 @@ d'extraction — l'entrée est grisée.
 ## Charger des troops { #loading-troops }
 
 Atterrissez dans une pickup zone (`TRZ_`), puis **F10 → CTLD → Troop Commands → Embark / Extract
-Troops → Load from TRZ_&lt;zone&gt;**, et choisissez une équipe. Seules les équipes qui tiennent
+Troops → Load from &lt;zone name&gt;**, et choisissez une équipe. Seules les équipes qui tiennent
 dans la capacité de troops restante de votre aéronef (et que la zone a encore en stock) sont
 listées.
 

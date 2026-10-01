@@ -319,10 +319,32 @@ not a reliable signal for a static object (ADR 0021). Either way, the zone's nam
 reuse — it is not merely frozen at its last position the way an anchor without a live unit/static
 reference (a fixed zone, or a Moving Zone's own trigger-zone reference) still is.
 
+## Zone registry key
+
+`CTLDZoneManager` files every troop and logistic zone under one **registry key**, and every accessor
+that takes a zone name (`getTroopZone`, `getLogisticZone`, `setTroopZoneActive`,
+`activateLogisticZone`, `removeExtractZone`, …) expects exactly that key. A zone reports it itself:
+
+```lua
+zone:registryKey()   -- CTLDTroopZone: explicit key, else dcsName, else zoneName · CTLDLogisticZone: dcsName or name
+```
+
+| How the zone was registered | Registry key |
+| --- | --- |
+| Auto-discovered `TRZ_` / `LGZ_` / `WPZ_` / `EXZ_` zone, `AIZ_` config zone, legacy config zone | the full DCS name (`LGZ_depot1_B`) |
+| `createExtractZone` / `createTroopZoneAtObject` | the name the caller gave (for `createTroopZoneAtObject`, the `TRZ_` name — not the anchor object's name, which stays the zone's `dcsName`) |
+| FOB (troop or logistic), logistic unit, FARP | the FOB / unit name |
+
+The short name parsed out of a `TRZ_` / `LGZ_` name (`depot1`) is a **display label only**: it
+never designates a zone, so it is not accepted by any accessor, passed to any menu callback or
+carried by any event payload (ADR 0020 and ADR 0023). Menu builders and event
+publishers read `zone:registryKey()`; a new registration path only has to make that one method
+correct (`zone_registry_key_roundtrip_spec.lua` checks the round trip for every path).
+
 ## Query API — troop zones
 
 ```lua
-zm:getTroopZone(zoneName)                     -- → CTLDTroopZone | nil
+zm:getTroopZone(zoneName)                     -- → CTLDTroopZone | nil  (zoneName = registry key)
 zm:getTroopZonesForCoalition(coalition)       -- active zones for coalition (0 = both)
 zm:getTroopZoneAtPoint(point, coalition)      -- containing zone; excludes AI-only pickup zones
 zm:getTroopZoneForUnit(unitName)              -- zone under a live unit's position
@@ -341,7 +363,7 @@ pickup/dropoff getters back the AI transport loop (`_checkAIStatus`).
 ## Query API — logistic zones
 
 ```lua
-zm:getLogisticZone(name)                             -- → CTLDLogisticZone | nil
+zm:getLogisticZone(name)                             -- → CTLDLogisticZone | nil  (name = registry key)
 zm:getLogisticZonesForCoalition(coalition)           -- active + alive zones for coalition
 zm:getLogisticZoneAtPoint(point, coalition)          -- first containing zone
 zm:getLogisticZoneForUnit(unitName)                  -- zone under a unit / static
@@ -433,7 +455,9 @@ The troop-command menu is rebuilt on `S_EVENT_LAND` / `S_EVENT_TAKEOFF` from the
 current position and cargo state:
 
 - In flight: the "Troop Commands" submenu is empty.
-- On the ground inside a pickup TRZ: a "Load from `<zoneName>`" option appears.
+- On the ground inside a pickup TRZ: a "Load from `<registry key>`" option appears (the label and the
+  callback both use the zone's registry key). The "Request Equipment" menu does the same for its zone
+  submenu.
 - On the ground with troops onboard: an "Unload / Extract" option appears.
 - On the ground outside any TRZ: no load options.
 
