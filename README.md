@@ -95,7 +95,7 @@ page.
 ## Features
 
 - **Troops** — load, transport and deploy infantry groups via F10 menu; configurable group compositions (inf / MG / AT / AA / mortar / JTAC / civilian)
-- **Vehicles** — load whole light vehicles into C-130 / IL-76 class aircraft and deliver them to any LZ
+- **Vehicles** — load whole light vehicles into the C-130J-30 (DCS cargo bay) or into capable helicopters (F10 menu) and deliver them to any LZ
 - **Crates** — spawn, hover-load, drop, and unpack supply crates to build vehicles and AA systems
 - **Vehicle Pack** — pack a ground vehicle into crates for air transport, then reassemble it on the other side
 - **Virtual Parachute** — drop troops, crates or vehicles by parachute with inertia and lateral drift simulation

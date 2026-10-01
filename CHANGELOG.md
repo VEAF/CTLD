@@ -8,6 +8,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Docs — native cargo documented as it actually works (FIX-NATIVE-CARRY-DETECTION, ticket 08)
+
+- The pilot, mission-maker and developer pages (English and French) no longer describe native cargo as a
+  bounding-box detection or its exit as a no-op: they describe the on-board cargo list, the release on the
+  ground and in flight, the `FALLING` state, and the rule that a cargo item is unloaded the way it was loaded.
+  The Il-76 is documented as AI-flown only, with no native cargo, and the C-130J-30 as the only fixed-wing
+  native-carry aircraft. A per-type table (C-130J-30, Mi-8MT, UH-1H, CH-47F, Mi-24P) gives what each does
+  natively, with the result of the live validation; the CH-47F and the Mi-24P are marked unverified in game.
+  Cargo created with the loadmaster tablet is documented as ignored by CTLD. The equipment transport diagram and
+  the code comments that promised the old mechanism are corrected. The roadmap closes the native exit entry and
+  records the follow-ups (adopting untracked cargo, converting vehicles, native crate F10 lists, manual weight
+  limit, the pack spawn distance for the Mi-8MT, a stale waiting vehicle, unverified types).
+
 ### Changed — native crate load and release are read from the DCS on-board cargo list (FIX-NATIVE-CARRY-DETECTION, ticket 06)
 
 - Crates carried through the DCS cargo system were detected by testing their position against the aircraft's

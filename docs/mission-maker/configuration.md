@@ -347,7 +347,7 @@ mm_facing:
 | `canSlingload` | bool | Enables hover-pickup and "Release/Cut Slingload" menus |
 | `canTransportWholeVehicle` | bool | Can load and re-deploy whole vehicles |
 | `useNativeDcsCargoSystem` | bool | When `true`, CTLD spawns crates as DCS cargo objects (native cargo integration). When `false`, crates are spawned directly as static objects |
-| `convertNativeLoadToCTLD` | bool | When `true`, any crate loaded through the DCS cargo UI is immediately converted to a CTLD-managed crate (destroys the DCS slot, prevents ghost crates). Set `true` for helicopters where the DCS cargo UI is exposed but CTLD parachute is needed (`UH-1H`, `CH-47Fbl1`); leave `false` for aircraft that rely on DCS native cargo for ground ops (`C-130J-30`, `76MD`, `Hercules`) |
+| `convertNativeLoadToCTLD` | bool | When `true`, any crate loaded through the DCS cargo UI is immediately converted to a CTLD-managed crate (destroys the DCS slot, prevents ghost crates). Set `true` for helicopters where the DCS cargo UI is exposed but CTLD parachute is needed (`UH-1H`, `CH-47Fbl1`); leave `false` for aircraft that rely on DCS native cargo for ground ops (`C-130J-30`, `Hercules`) |
 | `maxTroopsOnboard` | number | Max soldiers this aircraft can carry (overrides `numberOfTroops`) |
 | `maxCratesOnboard` | number | Max crates loaded at once (fallback: 1 for unlisted types) |
 | `maxWholeVehiclesOnboard` | number | Max whole vehicles carried at once (0 = disabled) |

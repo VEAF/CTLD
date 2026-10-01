@@ -2384,9 +2384,9 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
 end
 
 --- Poll the DCS-simulated altitude of a natively parachuted crate until it lands.
--- Called when a C-130 (or any dynamic-cargo aircraft) releases a crate in flight via the
--- DCS Dynamic Cargo UI. DCS physically animates the descent; CTLD must NOT auto-unpack
--- before the static actually touches the ground.
+-- Called when a crate leaves the on-board cargo list of a native-cargo aircraft (a C-130,
+-- say) in flight, i.e. DCS released it with its own parachute. DCS physically animates the
+-- descent; CTLD must NOT auto-unpack before the static actually touches the ground.
 --
 -- Polls every 1 s. Declares the crate landed when ctld.utils.hasLanded says so (AGL ≤ 3 m), then
 -- calls _checkAutoUnpack.

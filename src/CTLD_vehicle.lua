@@ -4,7 +4,10 @@
 --
 -- Vehicle lifecycle:
 --   WAITING   — spawned on the ground, awaiting pick-up
---   LOADED    — loaded into a transport (DCS unit destroyed / bbox-tracked)
+--   LOADED    — loaded into a transport (virtual: DCS unit destroyed; native: unit kept by DCS and
+--               listed on the aircraft's on-board cargo list)
+--   FALLING   — released in flight by the DCS native cargo system; the unit stays alive and lands,
+--               then the vehicle is WAITING again
 --   DELIVERED — unloaded from transport (DCS unit respawned)
 --
 -- Load methods:
@@ -1301,7 +1304,7 @@ end
 
 --- Pack a vehicle back into crate(s).
 -- Destroys the vehicle DCS unit and spawns cratesRequired static crates near the transport.
--- Front sector (heli) or rear sector (C-130/Il-76, dynamic cargo capable).
+-- Front sector (heli) or rear sector (C-130, native cargo capable).
 -- Publishes OnVehiclePacked and refreshes the player menu.
 -- @param transportUnitName  string
 -- @param packableUnitName   string

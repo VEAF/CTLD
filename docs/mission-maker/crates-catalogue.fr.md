@@ -100,14 +100,15 @@ voulez une apparence de cargo différente.
 
 ## Transport de véhicules complets { #whole-vehicle-transport }
 
-Au-delà des crates, CTLD peut transporter des **véhicules terrestres complets** à l'intérieur des
-aéronefs capables (C-130, Il-76, CH-47, UH-1H…). Ce qu'un appareil donné peut transporter est défini
+Au-delà des crates, CTLD peut transporter des **véhicules terrestres complets** à l'intérieur d'aéronefs
+capables : le C-130J-30 par la soute cargo DCS, des hélicoptères comme le CH-47F ou le Mi-8MT par le menu
+F10. Ce qu'un appareil donné peut transporter est défini
 par aéronef dans [`capabilitiesByType`](configuration.md), et non dans une liste globale séparée :
 
 | Champ de `capabilitiesByType` | Signification |
 |---|---|
 | `canTransportWholeVehicle` | `true` = cet appareil peut charger/décharger des véhicules complets. |
-| `useNativeDcsCargoSystem` | `true` = utilise la soute cargo native DCS (C-130, Il-76, CH-47…) ; sinon le menu F10 gère le chargement. |
+| `useNativeDcsCargoSystem` | `true` = l'appareil a un système de cargo natif DCS (C-130J-30, CH-47F, Mi-8MT, UH-1H, Mi-24P) : CTLD suit ce que DCS déclare à bord ; sinon le menu F10 gère le chargement. |
 | `maxWholeVehiclesOnboard` | Nombre max de véhicules complets embarqués à la fois (`0` = pas de transport de véhicule). |
 | `maxVehicleWeight` | Masse max de véhicule soulevable (kg). |
 | `loadableVehiclesBLUE` / `loadableVehiclesRED` | Les type names DCS que cet appareil peut transporter en entier, par coalition. |
@@ -130,6 +131,25 @@ L'opération inverse — [packer](../pilot/vehicles.md) un véhicule en crates �
 `cratesRequired` crates du type de crate du véhicule autour de l'aéronef. Il n'y a pas de liste
 « véhicules packables » séparée : tout véhicule dont le type DCS correspond au `unit` d'un
 descripteur `spawnableCrates` est packable.
+
+### Cargo natif par type d'appareil { #native-cargo-by-aircraft-type }
+
+Ce que fait chaque appareil par le **système cargo de DCS**, vérifié dans une mission en direct (2026-10-01).
+CTLD lit `unit:getCargosOnBoard()` de l'appareil : un objet est transporté exactement tant que DCS le liste à
+bord.
+
+| Appareil | Liste lisible | Caisses | Véhicule entier via DCS | Libéré en vol (parachute DCS) | Converti en caisse CTLD |
+|---|---|---|---|---|---|
+| C-130J-30 | oui | oui (tablette de loadmaster) | oui (une entrée `CRG:<unité>`) | oui : caisses et véhicules tombent vivants et sont suivis jusqu'au sol | non |
+| Mi-8MT | oui | oui, à environ 5 m | **non** (DCS ne liste que des caisses ; utiliser le menu F10) | non testé | non (par défaut) |
+| UH-1H | oui | oui | sans objet (pas de transport de véhicule entier par défaut) | non testé | oui (par défaut) |
+| CH-47F | non vérifié en jeu | non vérifié | non vérifié | non vérifié | oui (par défaut) |
+| Mi-24P | non vérifié en jeu | non vérifié | non vérifié | non vérifié | non (par défaut) |
+| Il-76 | piloté par l'IA seulement, pas de cargo natif | | | | |
+
+Un objet que CTLD ne suit pas (cargo créé par la tablette de loadmaster, caisses d'éditeur d'un type inconnu)
+est ignoré. Si DCS ne peut pas fournir la liste d'un type, CTLD avertit une fois pour ce type et cesse de le
+surveiller ; il ne se rabat jamais sur une estimation géométrique.
 
 ## Systèmes AA { #aa-systems }
 

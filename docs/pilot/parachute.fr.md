@@ -48,11 +48,14 @@ Deux choses méritent d'être connues avant de larguer :
   complet des crates au-dessus du même point et le vehicle se construit tout seul là où elles se
   posent.
 
-Pour les transports à voilure fixe tels que le C-130, l'Il-76 et le Hercules, les crates utilisent
+Pour les transports à voilure fixe tels que le C-130 et le Hercules, les crates utilisent
 le **parachute natif de DCS** à la place : chargez-les, montez à l'altitude de largage, et
 utilisez la fonction parachute DCS propre à l'aéronef (pas le menu CTLD). DCS anime une vraie
-voilure et CTLD revendique les crates lorsqu'elles touchent le sol. Quels aéronefs se comportent
-de quelle manière est un réglage du mission maker.
+voilure et CTLD suit les crates pendant la chute et les revendique lorsqu'elles touchent le sol. Un
+véhicule entier transporté par le C-130J-30 fonctionne de la même façon : libéré en vol avec le parachute
+DCS, il tombe vivant sous sa voilure et est de nouveau prêt à être chargé une fois posé. Larguez-le d'assez
+haut (un largage d'essai depuis environ 700 m a détruit le véhicule au largage, un depuis environ 1500 m
+s'est posé intact). Quels aéronefs se comportent de quelle manière est un réglage du mission maker.
 
 > **Le cargo natif DCS ne peut pas être parachuté depuis le menu CTLD.** Les crates chargées via
 > l'interface cargo standard de DCS (plutôt que via le menu CTLD **Load Crate**) sont exclues de

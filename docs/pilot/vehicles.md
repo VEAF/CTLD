@@ -32,18 +32,30 @@ load vehicles"**. How many vehicles you can carry at once is capped per airframe
 (requires landing; the submenu is greyed out in the air and shows **"No vehicles nearby"** when none
 are in range).
 
-## Load a vehicle (dynamic cargo)
+## Load a vehicle (DCS native cargo)
 
-**Utility:** Lets a C-130 or Il-76 swallow a vehicle through the cargo ramp the way DCS handles its
-own dynamic cargo — no menu click needed.
+**Utility:** Lets a C-130J-30 take a vehicle through the DCS loadmaster tablet — no CTLD menu click
+needed.
 
-**How it works:** Drive the vehicle into the aircraft's cargo bay. CTLD watches the bay's bounding
-box; when the vehicle is inside it is loaded automatically and DCS manages the weight natively (the
-per-airframe count and weight limits above do **not** apply to this path). Unload happens the same
-way in reverse — the vehicle reappears on the ground when it leaves the bay.
+**How it works:** Load the vehicle with the aircraft's DCS cargo tablet. CTLD reads the list of what DCS
+reports on board the aircraft; when the vehicle appears on it, CTLD tracks it as carried and DCS manages
+the weight natively (the per-airframe count and weight limits above do **not** apply to this path). A
+vehicle that is merely parked beside or under the aircraft is **never** counted: only what DCS itself
+lists on board is.
 
-**Activation:** Automatic when the vehicle enters the cargo bay. Only C-130 / Il-76-class airframes
-(dynamic-cargo capable) use this path; other capable transports load via the menu above.
+**Unload:** a carried vehicle is unloaded **the way it was loaded**. A vehicle loaded through the tablet is
+unloaded with the tablet (it does not appear in the CTLD *Unload Vehicles* list). When DCS releases it,
+CTLD sees it leave the aircraft's list and the vehicle is ready to load again. Released on the ground, the
+same vehicle is back where DCS put it (it is not respawned). Released in flight with the DCS native
+parachute, it falls under its canopy, still the same vehicle; once it has landed it is ready again. CTLD's
+own *Parachute Vehicle* works differently: it respawns the vehicle at its landing position.
+
+**Good to know:** Cargo created with the loadmaster tablet itself, or crates placed in the editor that
+CTLD does not know, are ignored by CTLD. Only the C-130J-30 uses this path among fixed-wing aircraft (the
+Il-76 is flown by the AI only and has no native cargo); helicopters' DCS cargo UI accepts crates, not whole
+vehicles, so helicopters load vehicles through the menu above.
+
+**Activation:** Automatic when DCS lists the vehicle on board.
 
 ## Unload a vehicle
 
@@ -65,7 +77,7 @@ cannot carry whole vehicles — can move it. This is the reverse of unpacking.
 
 **How it works:** Land near a packable vehicle (within `maximumDistancePackableUnitsSearch`, 200 m).
 The vehicle is removed and its `cratesRequired` crates appear around you: in the **front** sector
-(±45°) for a helicopter, in the **rear** sector for a C-130 / Il-76. From there, move the crates by
+(±45°) for a helicopter, in the **rear** sector for a C-130. From there, move the crates by
 sling-load or menu and [unpack](crates.md) them at the destination. Packing is available only when
 the mission enables it (`enablePackingVehicles`).
 

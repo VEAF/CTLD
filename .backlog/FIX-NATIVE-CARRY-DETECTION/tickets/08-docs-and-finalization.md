@@ -1,6 +1,6 @@
 # 08 — Documentation, comments, roadmap and finalization
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (the PRD status and the index line are set when the PR is opened) · **Type:** AFK
 
 ## Parent
 

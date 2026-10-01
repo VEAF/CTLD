@@ -113,6 +113,30 @@ Loading and unloading both call `ctld.utils.updateTransportWeight` so the transp
 its cargo. Because the DCS static is destroyed on load, `unloadCrate` recreates it via
 `_respawnStatic`, which mints a fresh unique name and re-indexes `self.crates` under it.
 
+## DCS-native cargo — `_checkNativeDCSCargo` (1 s tick)
+
+Crates carried through the DCS cargo system are read from the on-board list, like native vehicles
+(ADR 0022). A tracked crate is in native carry exactly while it is on the
+`unit:getCargosOnBoard()` list (read with `ctld.utils.getOnBoardCargo`) of a player aircraft whose type sets
+`useNativeDcsCargoSystem`; there is no bounding-box test, speed guard or drift reference. The tick returns at
+once when no crate is tracked.
+
+- **Entry:** a tracked crate **on the ground** whose `crateName` appears on a list becomes native carry
+  (`OnCrateLoaded`, `method = "dcs_native"`, `loadedByDCSNative = true`). Entries CTLD does not track are ignored
+  with one debug trace; a vehicle's `CRG:` companion entry belongs to the vehicle scan. An unreadable list
+  logs one warning for the type and the type is no longer watched.
+- **Conversion:** for a type with `convertNativeLoadToCTLD` (UH-1H and CH-47Fbl1 by default) the appearance is
+  the trigger of the hand-over: `UnloadCargo` releases the DCS load and, 0.5 s later, `loadCrate` loads it as
+  a CTLD crate. The crate is still listed during that delay, so `_convertingCrates` marks it as being
+  converted and it is handled once.
+- **Release:** a native-carry crate that has left its transport's list is released (`OnCrateUnloaded`,
+  `method = "dcs_native"`): `LANDED` with the transport on the ground, `FALLING` with `fromParachute` when
+  `ctld.utils.inAir(transport)`, then followed to the ground by `_scheduleParachuteLandingPoll`
+  (`ctld.utils.hasLanded`). A native-carry crate whose transport no longer exists is reset to the ground state.
+
+The spawn-time check that keeps a fresh crate out of a neighbouring aircraft's volume
+(`_getDynamicBBoxes`) is unrelated to detection and unchanged.
+
 ## The unpack pipeline: `_spawnUnpacked`
 
 Every unpack outcome — ground vehicle, air JTAC, or static — is deployed through a single
