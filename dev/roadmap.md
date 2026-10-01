@@ -257,4 +257,37 @@ Le CH-47F et le Mi-24P n'ont pas été vérifiés en jeu (modules non possédés
 à bord, chargement et libération. Le défaut `canTransportWholeVehicle: true` du CH-47F n'est couvert que par
 busted. Une libération de caisse native est détectée environ 5 s après la vidange de la liste, car la passe
 de libération attend que le statique DCS de la caisse existe de nouveau : à surveiller sur un type où DCS
-recréerait l'objet avec une nouvelle identité.
+recréerait l'objet avec une nouvelle identité. Le lot `FEAT-NATIVE-CRATE-SPAWN-NEAR` y ajoute les valeurs
+`crateSpawnDistance` du CH-47F (3,7 m) et du Mi-24P (5,1 m), déduites de leur coque de collision seule.
+
+## Cargo natif — portée de chargement et point de mesure de DCS
+
+Constaté en jeu le 2026-10-01 (lot `FEAT-NATIVE-CRATE-SPAWN-NEAR`) : une caisse à environ 8 m du Mi-8MT se charge
+par l'interface cargo native, une à 23 m est refusée pour son éloignement. La limite exacte et le point depuis
+lequel DCS mesure (centre de l'appareil ou coque) n'ont pas été établis ; la valeur déclarée étant la distance de
+dégagement de coque, la plus proche possible, cette borne ne la change pas. Ce qui limite réellement un
+chargement, c'est la capacité de la soute (Mi-8MT trois caisses, UH-1H une), pas le poids (DCS n'applique pas le
+plafond affiché) ni la distance. À mesurer si un besoin d'éloigner les caisses apparaît.
+
+## ctld-tools — la complétion ne couvre que les tables clé → entrée
+
+Le lot `FEAT-CTLD-TOOLS-CONFIG-COMPLETION` (PR #222) complète les champs scalaires manquants des entrées d'une
+table identifiée par clé (`capabilitiesByType`, `spawnableCratesModels`) quand la configuration est plus ancienne
+que le catalogue. Les listes d'enregistrements (`loadableGroups`, `spawnableCrates`, `aiZones`…), dont les entrées
+n'ont pas de clé stable, ne sont pas complétées : un champ ajouté à ces enregistrements ne serait pas propagé aux
+configurations existantes. À cadrer le jour où le catalogue gagne un tel champ : quelle identité d'entrée (nom,
+`unit`…).
+
+## ctld-tools — « Configuration seule » oubliée sur une mission à moteur de dev
+
+Constaté le 2026-10-01 : injecter dans `Test_CTLDNEXT_01.miz` sans cocher « Configuration seule » a embarqué le
+moteur (1,2 Mo), les sons et deux déclencheurs en plus de la configuration, alors que cette mission charge déjà
+le moteur du dépôt par son déclencheur `CTLD_DEV_ROOT`. Idée : détecter ce chargeur dans la mission et avertir
+(ou proposer le mode configuration seule par défaut) avant d'écrire. À cadrer.
+
+## ctld-tools — les tests lisent la copie de travail de la mission partagée
+
+Quatre tests (`test_install`, `test_inject_into_miz`) échouent en local quand `missions/Test_CTLDNEXT_01.miz` a
+été réexportée par ctld-tools (elle porte alors déjà un moteur et des sons, `replacedPrevious` vaut vrai), alors
+qu'ils passent contre la version commitée utilisée par le CI. Idée : les faire partir d'une copie « pristine »
+comme le fait déjà la fixture `pristine_miz`, ou d'une fixture minimale indépendante de la mission de dev.
