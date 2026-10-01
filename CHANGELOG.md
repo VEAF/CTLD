@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — native whole-vehicle loading is read from the DCS on-board cargo list (FIX-NATIVE-CARRY-DETECTION, ticket 03)
+
+- A vehicle waiting for a native-cargo aircraft was loaded when it merely stood inside the aircraft's
+  bounding box, a box DCS reports far larger than any cargo bay (41 m wide for the C-130J-30, the whole rotor
+  disc for the Mi-8MT). CTLD now reads `unit:getCargosOnBoard()` of every player aircraft whose type carries
+  whole vehicles through the DCS cargo system, and loads a waiting vehicle exactly when its `CRG:<unit name>`
+  companion entry appears on that list; no position, ground, speed or coalition test remains. AI-flown aircraft
+  are never scanned, entries that are not a waiting vehicle are ignored (one debug line each), and a type whose
+  list cannot be read is warned about once and no longer watched, with no geometric fallback (ADR 0022).
+
 ### Fixed — F10 *Unload Vehicles* and *Parachute Vehicle* no longer offer native-carry vehicles (FIX-NATIVE-CARRY-DETECTION, ticket 01)
 
 - A whole vehicle loaded through the DCS cargo system (native carry) is still held by DCS as a live

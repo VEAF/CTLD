@@ -2092,6 +2092,19 @@ function ctld.utils.getGroupId(unit)
     return grp and grp:getID() or -1
 end
 
+--- Objects DCS reports as on board a unit (`unit:getCargosOnBoard()`).
+-- A whole vehicle shows up through a companion entry named `CRG:<unit name>`; a crate shows up
+-- under its own name. Shared by the native vehicle and crate detection (ADR 0022).
+-- @param unit  DCS Unit
+-- @return table|nil  array of cargo objects (empty when nothing is aboard);
+--                    nil and a reason string when the list cannot be read
+function ctld.utils.getOnBoardCargo(unit)
+    if not (unit and unit.getCargosOnBoard) then return nil, "getCargosOnBoard is not available" end
+    local ok, list = pcall(unit.getCargosOnBoard, unit)
+    if not ok then return nil, tostring(list) end
+    return list or {}
+end
+
 -- @return boolean
 function ctld.utils.inAir(unit)
     if not unit or not unit.inAir then return false end

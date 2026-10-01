@@ -560,4 +560,112 @@ describe("CTLDVehicleSpawner", function()
 
     end)
 
+    -- ── FIX-NATIVE-CARRY-DETECTION ticket 03 : entry read from the on-board cargo list ──
+    describe("_checkNativeLoading — entry read from the DCS on-board cargo list", function()
+
+        local origGetByName, origGs2
+        local aircraft, cargoList, listFails, listGets
+
+        local function cargoObj(name)
+            return { getName = function() return name end }
+        end
+
+        local function waitingVehicle(id, unitName)
+            local veh = CTLDVehicle:new({
+                id = id, vehicleType = "M1045 HMMWV TOW",
+                unit = makeVehicleUnit(unitName, 500, 500),   -- far from the aircraft: position is irrelevant
+                spawnData = { groupName = id, unitName = unitName,
+                              vehicleType = "M1045 HMMWV TOW", countryId = 2, coalitionId = 2 },
+            })
+            vs._vehicles[id]         = veh
+            vs._unitToVehicle[unitName] = id
+            return veh
+        end
+
+        before_each(function()
+            cargoList, listFails, listGets = {}, false, 0
+            aircraft = makeTransport("nc3_player")
+            aircraft.getTypeName      = function() return "Mi-8MT" end
+            aircraft.getCargosOnBoard = function()
+                listGets = listGets + 1
+                if listFails then error("no such function") end
+                return cargoList
+            end
+            CTLDPlayerManager.getInstance()._players["nc3_player"] = { groupId = 9901 }
+            origGetByName = Unit.getByName
+            Unit.getByName = function(n) if n == "nc3_player" then return aircraft end end
+            origGs2 = ctld.gs
+            ctld.gs = function(k)
+                if k == "capabilitiesByType" then
+                    return { ["Mi-8MT"] = { canTransportWholeVehicle = true,
+                                            useNativeDcsCargoSystem  = true } }
+                end
+                return origGs2(k)
+            end
+        end)
+
+        after_each(function()
+            Unit.getByName = origGetByName
+            ctld.gs = origGs2
+            CTLDPlayerManager.getInstance()._players["nc3_player"] = nil
+        end)
+
+        it("loads a WAITING vehicle whose CRG: entry is on the list, wherever the vehicle is", function()
+            local veh = waitingVehicle("nc3_a", "nc3_unit_a")
+            cargoList = { cargoObj("CRG:nc3_unit_a") }
+            vs:_checkNativeLoading()
+            assert.equals(CTLDVehicle.STATE.LOADED, veh:getState())
+            assert.equals("dcs_native", veh.loadMethod)
+            assert.equals("nc3_player", veh.loadTransportName)
+        end)
+
+        it("does not load a WAITING vehicle that is not on the list", function()
+            local veh = waitingVehicle("nc3_b", "nc3_unit_b")
+            cargoList = { cargoObj("CRG:some_other_unit") }
+            vs:_checkNativeLoading()
+            assert.equals(CTLDVehicle.STATE.WAITING, veh:getState())
+        end)
+
+        it("ignores an untracked entry without changing any state", function()
+            local veh = waitingVehicle("nc3_c", "nc3_unit_c")
+            cargoList = { cargoObj("cr1-1"), cargoObj("tablet-crate") }
+            vs:_checkNativeLoading()
+            assert.equals(CTLDVehicle.STATE.WAITING, veh:getState())
+        end)
+
+        it("scans a player aircraft of any category (helicopter here)", function()
+            waitingVehicle("nc3_d", "nc3_unit_d")
+            vs:_checkNativeLoading()
+            assert.equals(1, listGets)
+        end)
+
+        it("never scans an AI-flown aircraft (not a registered player unit)", function()
+            CTLDPlayerManager.getInstance()._players["nc3_player"] = nil
+            waitingVehicle("nc3_e", "nc3_unit_e")
+            vs:_checkNativeLoading()
+            assert.equals(0, listGets)
+        end)
+
+        it("logs exactly one warning per type for an unreadable list and stops watching the type", function()
+            waitingVehicle("nc3_f", "nc3_unit_f")
+            listFails = true
+            local warns = 0
+            local origLog = ctld.utils.log
+            ctld.utils.log = function(level)
+                if level == "WARN" or level == "WARNING" then warns = warns + 1 end
+            end
+            vs:_checkNativeLoading()
+            vs:_checkNativeLoading()
+            ctld.utils.log = origLog
+            assert.equals(1, warns)
+            assert.equals(1, listGets)
+        end)
+
+        it("returns before any scan when no vehicle is waiting or in native carry", function()
+            vs:_checkNativeLoading()
+            assert.equals(0, listGets)
+        end)
+
+    end)
+
 end)

@@ -1,6 +1,6 @@
 # 03 — Native vehicle entry read from the DCS on-board cargo list
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
