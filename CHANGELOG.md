@@ -8,6 +8,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — zone event payloads identify a zone by its registry key (FIX-ZONE-REGISTRY-KEY, ticket 02) — BREAKING
+
+- `OnZoneSmokeRefreshed`, `OnTroopZoneUpdated` and `OnLogisticZoneUpdated` now carry the zone's **registry key**
+  as `name` in every zone entry, troop and logistic alike (the full DCS name for an auto-discovered zone,
+  the unit or FOB name otherwise) instead of the short name parsed out of `TRZ_` / `LGZ_`. The `unitsAdded` /
+  `unitsRemoved` entries use `name` too (they used `unitName` or `zoneName` depending on the zone kind). The
+  `fullName` and troop-zone `zoneName` fields of `OnZoneSmokeRefreshed` are removed; no short-name field
+  replaces them. A mission script reading those fields must switch to `name`. Accepted at the release-candidate
+  stage, with no compatibility field (ADR 0023). `docs/developer/events.md` now also documents
+  `OnTroopZoneUpdated`.
+
 ### Fixed — crate requests and troop loads from auto-discovered zones work again (FIX-ZONE-REGISTRY-KEY, ticket 01)
 
 - Regression of `FIX-AUTODISCOVERED-ZONE-FULLNAME-KEY` (PR #210, ADR 0020): the **Request Equipment** F10 menu

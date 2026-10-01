@@ -1,6 +1,6 @@
 # 02 — Event payloads identify zones by registry key
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
