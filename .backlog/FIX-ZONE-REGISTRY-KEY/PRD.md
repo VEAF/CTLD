@@ -1,6 +1,6 @@
 # FIX-ZONE-REGISTRY-KEY — designate zones by their registry key in menus and event payloads
 
-**Status:** ⬜ ready
+**Status:** ✅ done (PR #219)
 
 Formalizes the `dev/roadmap.md` entry "Crate request menu — logistic zone looked up by short name
 (regression of PR #210)" and a `grill-with-docs` session held 2026-10-01. See **ADR 0023** (extends
