@@ -1,6 +1,6 @@
 # 07 — Live validation in DCS
 
-**Status:** 🧑 waiting-human · **Type:** HITL
+**Status:** ✅ done · **Type:** HITL
 
 ## Parent
 
@@ -40,6 +40,14 @@ live player aircraft.
 - [ ] Every line of the manual checklist is ticked by the user for every owned native-cargo type
       (C-130J-30, Mi-8MT, UH-1H); the CH-47F and the Mi-24P are recorded as unverified in game.
 - [ ] The PRD records the results and the status of each unverified assumption.
+
+## Outcome
+
+Done on 2026-10-01 with the C-130J-30, Mi-8MT and UH-1H; results recorded in the PRD ("Live validation results").
+The automated `auto-check` scenario was replaced by an observer script
+(`tests/dcs/dev/diag/diag_native_carry_observer.lua`) injected over HTTP: the loadmaster tablet cannot be driven from
+a script, so the tester performed each step and the log was read after it. The CH-47F and the Mi-24P are not owned and
+stay unverified in game.
 
 ## Blocked by
 

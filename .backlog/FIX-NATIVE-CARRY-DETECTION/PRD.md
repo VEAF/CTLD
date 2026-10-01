@@ -286,3 +286,55 @@ itself reports:
   the user, with its outcome recorded in this PRD.
 - Roadmap: the native bbox-exit entry closed; the follow-up entries added.
 - Index line in `.backlog/README.md` set to `merged (PR #NN)` in the delivering PR.
+
+## Live validation results (2026-10-01)
+
+Run against `missions/Test_CTLDNEXT_01.miz` with the build of this branch. The observer
+`tests/dcs/dev/diag/diag_native_carry_observer.lua` recorded the on-board lists and CTLD's events in `dcs.log`
+(tag `[NCOBS]`); the C-130J-30, Mi-8MT and UH-1H were flown by the project owner. The CH-47F and the Mi-24P are not
+owned: they stay **unverified in game** (the CH-47F default is covered by busted only).
+
+**C-130J-30 (loadmaster tablet)**
+
+- The list is readable and lists a whole vehicle as `CRG:<unit name>` (`pallete`, 3990 kg) and each crate under its own
+  name (CTLD crates 1000 kg, editor crates 1500 kg). Verified: **several items aboard at once** (a vehicle and three
+  CTLD crates; then three CTLD crates and three editor crates), each tracked individually.
+- Ground load and unload of a vehicle and of CTLD crates: `OnVehicleLoaded` / `OnVehicleUnloaded` and
+  `OnCrateLoaded` / `OnCrateUnloaded` with method `dcs_native`, within a tick; the vehicle returned to `WAITING` with its
+  live unit (no second unit created).
+- In-flight release with the DCS native parachute: a vehicle released from about 1500 m AGL was published as
+  `parachute`, stayed `FALLING` with its unit alive, landed intact (one unit, full life) and returned to `WAITING`; three
+  crates released in flight were `FALLING` then `landed` (the shared AGL criterion). A first vehicle released from about
+  700 m AGL was destroyed by DCS at the instant of release (a dead event with an invalid initiator 15 ms after the
+  "Dropped" line); CTLD reported it as lost (`OnVehicleDead`), as designed. The altitude is the probable factor.
+- **Parked things are never counted:** CTLD crates and a vehicle spawned inside the aircraft's DCS box (41 m wide) stayed
+  `spawned` / `WAITING` until DCS itself loaded them.
+- Untracked entries (editor crates `cr1-1`, `cr1-1-1`, `cr1-2-1`) were ignored with one debug trace each and produced no
+  event. The open question about `cr1-1-1` is settled: `cr1-1` and `cr1-1-1` are two distinct editor statics, not a
+  rename by DCS.
+- DCS refused a crowded unload spot ("cannot be unloaded here!"), the module then retried every frame (about 26000
+  "Dropped" lines); on a clear spot the crates unloaded and CTLD followed. One crate was detected about 5 s after the
+  list emptied, because the release pass waits for the crate's DCS static to exist again; watch for a type where DCS
+  re-creates the object with a new identity.
+
+**Mi-8MT**
+
+- The list is readable (no warning). Native cargo UI accepts **crates only**: `getNearestCargosForAircraft` returned the
+  nearby crates and no vehicle, so a **whole vehicle is not accepted by helicopters' native cargo** (at least the Mi-8MT).
+  The Mi-8MT's whole-vehicle carry stays virtual (F10 menu).
+- DCS loads a crate only when it is within about 5 m ("FAILED TO LOAD CARGO" at 23 to 28 m). Two crates were loaded and
+  unloaded on the ground and tracked individually (`dcs_native`, no conversion for this type); crates 8 m away, inside the
+  rotor disc, were never counted. `Unit:LoadOnBoard` called from a script did nothing.
+- Request Equipment spawns a whole vehicle (not crates) for the types in the aircraft's loadable vehicle list; the crates
+  come from packing it, and they are placed farther than the native load distance (roadmap).
+
+**UH-1H** (`convertNativeLoadToCTLD`)
+
+- The list is readable. A crate loaded through the DCS cargo UI was converted **once** ("DCS UI LOAD → CTLD-managed"):
+  `loaded` as a CTLD crate, its DCS object destroyed, the on-board list empty, the conversion mark cleared, no
+  `UnloadCargo` failure.
+
+**Not verified live:** a JTAC vehicle resuming lasing after a release (no JTAC was active), a transport vanishing without a
+death event and a native crate released over water or lost while falling (busted only), and the CH-47F and Mi-24P.
+A WAITING vehicle (`veh_15`) whose unit disappeared was seen staying tracked without a unit; it was never loaded and the
+cause is outside this lot.
