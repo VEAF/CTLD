@@ -1148,6 +1148,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#crate-spawn-near" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Où apparaissent les crates d'un appareil à cargo natif
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#aa-systems" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2198,6 +2209,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#crate-spawn-near" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Où apparaissent les crates d'un appareil à cargo natif
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#aa-systems" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2396,7 +2418,9 @@ instantané de configuration écrit à la main, elle vit sous <code>mm_facing</c
 <h3 id="crate-visual-models">Modèles visuels des crates<a class="headerlink" href="#crate-visual-models" title="Permanent link">&para;</a></h3>
 <p><code>spawnableCratesModels</code> définit les formes statiques DCS utilisées par les crates (<code>load</code>, <code>sling</code>,
 <code>dynamic</code>). Vous avez rarement besoin d'y toucher ; laissez les valeurs par défaut, sauf si vous
-voulez une apparence de cargo différente.</p>
+voulez une apparence de cargo différente.
+Chaque entrée peut porter un <code>size</code> (m) : l'arête de la crate, utilisée pour espacer les crates d'une rangée à
+côté d'un appareil à cargo natif (<code>1.5</code> si absent).</p>
 <h3 id="default-catalogue-out-of-the-box">Catalogue par défaut (out of the box)<a class="headerlink" href="#default-catalogue-out-of-the-box" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2495,6 +2519,11 @@ voulez une apparence de cargo différente.</p>
 <td><code>crateSpacing</code></td>
 <td><code>5</code></td>
 <td>Espacement (m) entre les crates spawnés dans un jeu.</td>
+</tr>
+<tr>
+<td><code>crateSpawnGap</code></td>
+<td><code>0.5</code></td>
+<td>Écart (m) entre deux crates d'une rangée à côté d'un appareil à cargo natif (voir <a href="#crate-spawn-near">ci-dessous</a>).</td>
 </tr>
 </tbody>
 </table>
@@ -2636,6 +2665,90 @@ bord.</p>
 <p>Un objet que CTLD ne suit pas (cargo créé par la tablette de loadmaster, caisses d'éditeur d'un type inconnu)
 est ignoré. Si DCS ne peut pas fournir la liste d'un type, CTLD avertit une fois pour ce type et cesse de le
 surveiller ; il ne se rabat jamais sur une estimation géométrique.</p>
+<h2 id="crate-spawn-near">Où apparaissent les crates d'un appareil à cargo natif<a class="headerlink" href="#crate-spawn-near" title="Permanent link">&para;</a></h2>
+<p>Un appareil à cargo natif ne charge une crate par la fenêtre cargo de DCS que si elle est à quelques mètres de
+lui. Les crates qu'il demande (<strong>Request Equipment</strong>, <strong>Pack Equipt</strong>) apparaissent donc <strong>juste à l'écart de la
+coque</strong>, en rangée, au lieu de la distance générique. Chaque type le déclare dans
+<a href="../configuration/"><code>capabilitiesByType</code></a> :</p>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Signification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>crateSpawnSector</code></td>
+<td>Où se place la rangée : <code>side</code> (un hélicoptère : sur le travers, d'un côté tiré au hasard), <code>rear</code> (le C-130J-30) ou <code>front</code>.</td>
+</tr>
+<tr>
+<td><code>crateSpawnDistance</code></td>
+<td>Mètres du centre de l'appareil à la première crate (rayon de coque à hauteur de crate plus 1,5 m). <code>0</code> ou absent = le type n'a pas de valeur.</td>
+</tr>
+</tbody>
+</table>
+<p>Un type qui ne déclare ni secteur ni distance garde l'ancienne règle : les crates se répartissent autour de
+l'appareil à une distance calculée d'après sa taille. Les crates d'une rangée sont espacées de <code>taille de crate
++ crateSpawnGap</code> (écart par défaut <code>0.5</code> m, donc jamais en contact) ; la taille d'une crate est le champ <code>size</code>
+de son entrée dans <code>spawnableCratesModels</code> (<code>1.5</code> m si absent, <code>1.31</code> m pour les modèles <code>load</code> et <code>dynamic</code> par
+défaut). Une rangée contient autant de crates qu'il en tient le long de l'appareil ; la rangée suivante se place
+un pas plus loin. Si un côté est occupé par un autre appareil, la rangée passe de l'autre côté. Les véhicules, le
+dépaquetage, les scènes et les troupes ne sont pas concernés.</p>
+<p>Valeurs par défaut, en mètres du centre de l'appareil :</p>
+<table>
+<thead>
+<tr>
+<th>Appareil</th>
+<th>Secteur</th>
+<th>Distance</th>
+<th>Statut</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UH-1H</td>
+<td><code>side</code></td>
+<td>3.0</td>
+<td>mesuré en jeu</td>
+</tr>
+<tr>
+<td>Mi-8MT</td>
+<td><code>side</code></td>
+<td>4.0</td>
+<td>mesuré en jeu (une crate se charge à 8 m ; une à 23 m est refusée)</td>
+</tr>
+<tr>
+<td>C-130J-30</td>
+<td><code>rear</code></td>
+<td>11.3</td>
+<td>mesuré en jeu</td>
+</tr>
+<tr>
+<td>CH-47F</td>
+<td><code>side</code></td>
+<td>3.7</td>
+<td>issu de la coque de collision seule, <strong>non vérifié en jeu</strong></td>
+</tr>
+<tr>
+<td>Mi-24P</td>
+<td><code>side</code></td>
+<td>5.1</td>
+<td>issu de la coque de collision seule, <strong>non vérifié en jeu</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Les valeurs viennent de la coque de collision de chaque modèle ; <code>tools/dcs-data/derive_crate_spawn.py</code> les
+recalcule depuis une installation DCS (voir <code>tools/dcs-data/README.md</code>).</p>
+<div class="admonition warning">
+<p class="admonition-title">Les missions existantes gardent leur configuration embarquée</p>
+<p>Une mission embarque un instantané complet de <code>CTLD_userConfig.lua</code>, écrit lors de son export. Une mission
+exportée avant cette fonctionnalité n'a ni <code>crateSpawnSector</code> ni <code>crateSpawnDistance</code> : ses crates gardent
+l'ancienne distance d'apparition. La rouvrir et l'enregistrer avec un ctld-tools qui ne complète pas
+automatiquement les clés manquantes ne les ajoute <strong>pas</strong> : tant qu'une version de ctld-tools qui les
+complète n'est pas disponible, saisissez ces champs vous-même dans l'éditeur (capacités de chaque type
+d'appareil).</p>
+</div>
 <h2 id="aa-systems">Systèmes AA<a class="headerlink" href="#aa-systems" title="Permanent link">&para;</a></h2>
 <p>Les systèmes AA sont des <strong>kits multi-crates</strong> : un mission maker déclare le système une fois dans
 <code>CTLDCrateAssemblyManager.TEMPLATES</code>, et CTLD injecte automatiquement les crates de pièces
