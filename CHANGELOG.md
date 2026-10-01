@@ -8,6 +8,19 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — crates for a native-cargo aircraft appear just clear of its hull, in a row (FEAT-NATIVE-CRATE-SPAWN-NEAR, ticket 02)
+
+- Crates requested as a set, and the crates produced by packing a vehicle, used to appear at the secure
+  distance of the aircraft (its model box, rotor disc included) plus 5 m, each further crate another 5 m out:
+  23 m and more for a Mi-8MT, far beyond the range from which DCS loads a crate through its native cargo UI.
+  For an aircraft type that declares a `crateSpawnSector` and a `crateSpawnDistance` (the UH-1H, Mi-8MT,
+  CH-47Fbl1, Mi-24P and C-130J-30 by default) the crates now stand in a row at that distance, perpendicular to
+  the sector axis and centred on the aircraft, neighbours `crate size + crateSpawnGap` apart (1.81 m for the
+  default `ammo_cargo` crate), so every crate of a wave is as close as the first. A row holds as many crates as
+  fit along the aircraft's own box; the next row is one step further out. The side sector picks left or right
+  for the whole wave and uses the other side when the first is inside another aircraft's volume. A type that
+  declares nothing keeps the previous layout exactly.
+
 ### Added — where an aircraft's crates spawn is declared in its capabilities (FEAT-NATIVE-CRATE-SPAWN-NEAR, ticket 01)
 
 - `capabilitiesByType` entries accept two optional fields, `crateSpawnSector` (`side`, `rear` or `front`) and

@@ -1,6 +1,6 @@
 # 02 — Crate rows just clear of the hull for requested sets and packed vehicles
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 

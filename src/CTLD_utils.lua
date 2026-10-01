@@ -2053,6 +2053,72 @@ function ctld.utils.getSpawnObjectPositions(unit, n, safeDistance, spacing, axis
     }
 end
 
+--- Positions of a wave of crates standing in a row just clear of an aircraft (ADR 0024).
+-- The row runs perpendicular to the sector axis and is centred on it; every crate is at `distance` from the
+-- aircraft centre along that axis. Neighbours are `size/2 + gap + size/2` apart (centre to centre), the sizes
+-- being those of the two crates concerned. A row holds as many crates as fit in `rowLength` (the aircraft's own
+-- extent along the row); the next row is one step (largest size + gap) further out. With no `rowLength` the wave
+-- is a single row.
+-- @param refVec2    table   { x, y } aircraft position (y is the world z)
+-- @param hdgRad     number  aircraft heading, radians (as ctld.utils.getHeadingInRadians)
+-- @param axisDeg    number  sector axis relative to the nose: 0 front, 90 right, 180 rear, 270 left
+-- @param distance   number  metres from the aircraft centre to the first row
+-- @param sizes      table   array of crate sizes (largest horizontal extent, metres), one per crate
+-- @param gap        number  free space between neighbouring crates' edges (metres)
+-- @param rowLength  number|nil  metres available along a row
+-- @return table  array of { x, z }, one per crate, in order
+function ctld.utils.getCrateRowPositions(refVec2, hdgRad, axisDeg, distance, sizes, gap, rowLength)
+    local n    = #sizes
+    local sMax = 0
+    for _, v in ipairs(sizes) do sMax = math.max(sMax, v) end
+    local capacity = n
+    if rowLength and rowLength > 0 then
+        capacity = math.max(1, math.floor((rowLength + gap) / (sMax + gap)))
+    end
+
+    local axis = hdgRad + math.rad(axisDeg)
+    local ux, uz = math.cos(axis), math.sin(axis)                                   -- outward from the aircraft
+    local tx, tz = math.cos(axis + math.pi / 2), math.sin(axis + math.pi / 2)       -- along the row
+
+    local positions, first, row = {}, 1, 0
+    while first <= n do
+        local last = math.min(n, first + capacity - 1)
+        local offsets, cur = {}, 0
+        for k = first, last do
+            if k > first then cur = cur + sizes[k - 1] / 2 + gap + sizes[k] / 2 end
+            offsets[#offsets + 1] = cur
+        end
+        local mid = (offsets[1] + offsets[#offsets]) / 2
+        local d   = distance + row * (sMax + gap)
+        for idx, off in ipairs(offsets) do
+            local along = off - mid
+            positions[first + idx - 1] = {
+                x = refVec2.x + ux * d + tx * along,
+                z = refVec2.y + uz * d + tz * along,
+            }
+        end
+        first = last + 1
+        row   = row + 1
+    end
+    return positions
+end
+
+--- True if any of the ground positions lies inside any of the given aircraft volumes.
+-- @param positions   table  array of { x, z }
+-- @param avoidBBoxes table|nil  list of { unitPos, bbox } (see CTLDCrateManager:_getDynamicBBoxes)
+function ctld.utils.positionsInsideAnyBBox(positions, avoidBBoxes)
+    if not avoidBBoxes or #avoidBBoxes == 0 then return false end
+    for _, avoid in ipairs(avoidBBoxes) do
+        for _, pt in ipairs(positions) do
+            local pt3 = { x = pt.x, y = avoid.unitPos.p.y, z = pt.z }
+            if _pointInBBoxLocal(avoid.unitPos, avoid.bbox, pt3, 0.5) then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 -- ====================================================================================================
 -- SECTION: Unit geometry helper
 -- ====================================================================================================
