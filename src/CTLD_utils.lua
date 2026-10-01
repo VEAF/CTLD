@@ -2092,6 +2092,15 @@ function ctld.utils.getGroupId(unit)
     return grp and grp:getID() or -1
 end
 
+--- Name of an on-board cargo object, or nil when the object cannot be read (a stale or invalid
+-- handle). The native scans run in periodic timers that DCS stops for good once they raise, so a
+-- bad entry is skipped instead of stopping the scan.
+function ctld.utils.cargoName(cargo)
+    local ok, name = pcall(cargo.getName, cargo)
+    if ok and type(name) == "string" then return name end
+    return nil
+end
+
 --- Objects DCS reports as on board a unit (`unit:getCargosOnBoard()`).
 -- A whole vehicle shows up through a companion entry named `CRG:<unit name>`; a crate shows up
 -- under its own name. Shared by the native vehicle and crate detection (ADR 0022).

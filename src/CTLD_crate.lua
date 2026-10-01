@@ -1312,7 +1312,8 @@ function CTLDCrateManager:_checkNativeDCSCargo()
                     transports[unitName]   = { transport = transport, playerObj = playerObj }
                     namesOnBoard[unitName] = {}
                     for _, cargo in ipairs(list) do
-                        namesOnBoard[unitName][cargo:getName()] = true
+                        local name = ctld.utils.cargoName(cargo)
+                        if name then namesOnBoard[unitName][name] = true end
                     end
                 end
             end

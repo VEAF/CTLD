@@ -158,6 +158,16 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
             assert.equals(0, #loaded)
         end)
 
+        it("skips an invalid list entry whose name cannot be read, and still loads the valid crate", function()
+            local crate = makeCrate("nc6_crate_x")
+            cargoList = {
+                { getName = function() error("invalid object") end },
+                cargoObj("nc6_crate_x"),
+            }
+            assert.has_no.errors(function() cm:_checkNativeDCSCargo() end)
+            assert.is_true(crate:isLoaded())
+        end)
+
         it("returns before reading any list when no crate is tracked", function()
             cm:_checkNativeDCSCargo()
             assert.equals(0, listGets)

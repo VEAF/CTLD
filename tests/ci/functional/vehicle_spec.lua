@@ -666,6 +666,16 @@ describe("CTLDVehicleSpawner", function()
             assert.equals(0, listGets)
         end)
 
+        it("skips an invalid list entry whose name cannot be read, and still loads the valid one", function()
+            local veh = waitingVehicle("nc3_g", "nc3_unit_g")
+            cargoList = {
+                { getName = function() error("invalid object") end },
+                cargoObj("CRG:nc3_unit_g"),
+            }
+            assert.has_no.errors(function() vs:_checkNativeLoading() end)
+            assert.equals(CTLDVehicle.STATE.LOADED, veh:getState())
+        end)
+
         -- ── ticket 04 : release read from the on-board cargo list ────────────────────
         describe("release when the vehicle leaves the list", function()
 
@@ -878,6 +888,21 @@ describe("CTLDVehicleSpawner", function()
                 assert.equals(CTLDVehicle.STATE.LOADED, veh:getState())
                 assert.equals(0, #dead)
             end)
+            it("released on the ground with no live unit left: dropped as lost, not left WAITING without a unit", function()
+                local veh = loadThroughList("nc4_i", "nc4_unit_i")
+                jtacMgr.jtacs["nc4_i"] = {}
+                Group.getByName = function() return nil end   -- DCS removed the unit
+                cargoList = {}
+                vs:_checkNativeLoading()
+                assert.is_nil(vs._vehicles["nc4_i"])
+                assert.is_nil(vs._unitToVehicle["nc4_unit_i"])
+                assert.same({ "nc4_i" }, deregistered)
+                assert.equals(1, #dead)
+                assert.equals("nc4_i", dead[1].vehicleId)
+                assert.equals(0, #unloaded, "a vehicle that is gone is not reported as unloaded")
+                assert.equals(0, dynAddCalls)
+            end)
+
             it("a virtual-carry unload still respawns the vehicle, whatever method is published", function()
                 local veh = CTLDVehicle:new({
                     id = "nc4_v", vehicleType = "M1045 HMMWV TOW", unit = nil,

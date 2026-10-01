@@ -35,7 +35,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   by the crate appearing on the list; the crate stays listed until DCS processes the release, so it is marked as
   being converted and handled once. Entries CTLD does not track (loadmaster-tablet cargo, editor crates of an
   unknown type) are ignored with one debug line, and a type whose list cannot be read is warned about once and
-  no longer watched (ADR 0022).
+  no longer watched (ADR 0022). An on-board entry whose name cannot be read is skipped by both native scans
+  (vehicles and crates) instead of stopping their periodic timer.
 
 ### Fixed — a native-carry vehicle is dropped when its transport vanishes without a death event (FIX-NATIVE-CARRY-DETECTION, ticket 05)
 
@@ -56,7 +57,9 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   `FALLING` state, is not offered for loading, and becomes `WAITING` once landed (the AGL criterion the
   parachuted crates use, now shared as `ctld.utils.hasLanded`); its JTAC resumes then. A vehicle destroyed or
   lost while falling is dropped like any lost vehicle (JTAC deregistered, `OnVehicleDead`). Virtual-carry
-  unloads (menu, AI dropoff) and CTLD's own virtual parachute still respawn the vehicle as before.
+  unloads (menu, AI dropoff) and CTLD's own virtual parachute still respawn the vehicle as before. A vehicle
+  released on the ground when DCS has already removed its unit is dropped like a lost vehicle, rather than left
+  `WAITING` with no unit.
 
 ### Changed — the CH-47F carries whole vehicles by default (FIX-NATIVE-CARRY-DETECTION, ticket 02)
 

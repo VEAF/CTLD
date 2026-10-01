@@ -586,6 +586,17 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method, re
         unloadedUnit = respawnedGroup and respawnedGroup:getUnit(1) or nil
     end
 
+    -- DCS released a native-carry vehicle on the ground but no live unit is left (DCS removed it while it
+    -- was aboard): there is nothing to wait on or reload, so it is lost like any vehicle. In flight the
+    -- landing poll makes the same call.
+    if nativeCarried and not inFlight and not unloadedUnit then
+        self:_dropLostVehicle(vehicle.id, vehicle, spawnPos)
+        ctld.utils.log("INFO", string.format(
+            "CTLDVehicleSpawner: vehicle %s (%s) lost — released from %s with no live unit",
+            vehicle.id, vehicle.vehicleType, transport:getName()))
+        return
+    end
+
     vehicle.unit = unloadedUnit
     -- Vehicle is physically back on the ground — return to WAITING so it can be re-loaded.
     -- DELIVERED is reserved for parachute delivery (_parachuteVehicle). Released in flight it
@@ -778,21 +789,23 @@ function CTLDVehicleSpawner:_checkNativeLoading()
                     transports[unitName]   = transport
                     namesOnBoard[unitName] = {}
                     for _, cargo in ipairs(list) do
-                        local name    = cargo:getName()
+                        local name    = ctld.utils.cargoName(cargo)
                         local vehName = nil
-                        namesOnBoard[unitName][name] = true
-                        if string.sub(name, 1, #_COMPANION_PREFIX) == _COMPANION_PREFIX then
-                            vehName = string.sub(name, #_COMPANION_PREFIX + 1)
-                        end
-                        local veh = vehName and waitingByUnit[vehName]
-                        if veh then
-                            self:loadVehicle(veh, transport, nil, "dcs_native")
-                            waitingByUnit[vehName] = nil
-                        elseif not (vehName and knownUnits[vehName])
-                            and not self._ignoredCargoNames[name] then
-                            self._ignoredCargoNames[name] = true
-                            ctld.utils.log("DEBUG",
-                                "CTLDVehicleSpawner: on-board cargo '%s' is not a waiting vehicle — ignored", name)
+                        if name then
+                            namesOnBoard[unitName][name] = true
+                            if string.sub(name, 1, #_COMPANION_PREFIX) == _COMPANION_PREFIX then
+                                vehName = string.sub(name, #_COMPANION_PREFIX + 1)
+                            end
+                            local veh = vehName and waitingByUnit[vehName]
+                            if veh then
+                                self:loadVehicle(veh, transport, nil, "dcs_native")
+                                waitingByUnit[vehName] = nil
+                            elseif not (vehName and knownUnits[vehName])
+                                and not self._ignoredCargoNames[name] then
+                                self._ignoredCargoNames[name] = true
+                                ctld.utils.log("DEBUG",
+                                    "CTLDVehicleSpawner: on-board cargo '%s' is not a waiting vehicle — ignored", name)
+                            end
                         end
                     end
                 end
