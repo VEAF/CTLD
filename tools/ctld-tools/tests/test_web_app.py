@@ -227,7 +227,7 @@ def test_defaults_endpoint_mirrors_the_default_catalogue():
 
 def test_defaults_endpoint_coerces_to_plain_json():
     values = client.get("/api/defaults").json()["values"]
-    assert values["configVersion"] == "2.0.0"
+    assert values["configVersion"] == "2.1.0"
     assert isinstance(values["spawnableCrates"], dict)
     assert isinstance(values["numberOfTroops"], int)
 
@@ -255,7 +255,7 @@ def test_load_text_then_get_catalog():
 
 def test_load_default():
     snap = client.post("/api/catalog/load-default").json()
-    assert snap["values"]["configVersion"] == "2.0.0"
+    assert snap["values"]["configVersion"] == "2.1.0"
     assert "spawnableCrates" in snap["values"]
 
 
@@ -500,10 +500,10 @@ def test_inject_blocked_by_validation_errors():
 
 
 def test_version_gap_against_default():
-    _load()  # SAMPLE is configVersion 1.0.0; default is 2.0.0
+    _load()  # SAMPLE is configVersion 1.0.0; default is 2.1.0
     gap = client.get("/api/version-gap").json()
     assert gap["fromVersion"] == "1.0.0"
-    assert gap["toVersion"] == "2.0.0"
+    assert gap["toVersion"] == "2.1.0"
     assert gap["isEmpty"] is False
 
 

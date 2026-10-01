@@ -252,7 +252,10 @@ def load_catalog(req: LoadRequest) -> dict[str, Any]:
     else:
         raise HTTPException(status_code=400, detail="provide 'path' or 'text'")
     # What config completion added to the configuration just opened, so the UI can say so (and offer to undo).
-    added = [{"key": a.key, "value": _plain(a.value), "section": a.section} for a in session.completion]
+    added = [
+        {"key": a.key, "value": _plain(a.value), "section": a.section, "container": a.container, "entry": a.entry}
+        for a in session.completion
+    ]
     return {**_snapshot(), "completion": added}
 
 
@@ -311,6 +314,20 @@ def delete_setting(key: str) -> dict[str, Any]:
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=f"unknown key: {key}") from exc
     return {"removed": key}
+
+
+@app.delete("/api/catalog/entry-field")
+def delete_entry_field(container: str, entry: str, field: str) -> dict[str, Any]:
+    """Remove one field of one list entry (undo of a completed field)."""
+    try:
+        cat = session.catalog
+    except LookupError as exc:
+        raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
+    try:
+        cat.remove_entry_field(container, entry, field)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=f"no such entry field: {container}/{entry}/{field}") from exc
+    return {"removed": {"container": container, "entry": entry, "field": field}}
 
 
 @app.post("/api/catalog/save")
@@ -601,6 +618,14 @@ def get_version_gap() -> dict[str, Any]:
         "added": gap.added,
         "removed": gap.removed,
         "changed": [{"key": c.key, "old": _plain(c.old), "new": _plain(c.new)} for c in gap.changed],
+        "addedFields": [
+            {"container": f.container, "entry": f.entry, "field": f.field, "value": _plain(f.value)}
+            for f in gap.added_fields
+        ],
+        "changedFields": [
+            {"container": c.container, "entry": c.entry, "field": c.field, "old": _plain(c.old), "new": _plain(c.new)}
+            for c in gap.changed_fields
+        ],
     }
 
 

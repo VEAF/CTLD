@@ -33,11 +33,25 @@ test('one added setting uses the singular', () => {
 test('undoing an addition reports its key', async () => {
   const { onundo } = setup()
   await fireEvent.click(screen.getAllByRole('button', { name: 'Undo' })[1])
-  expect(onundo).toHaveBeenCalledWith('enableParachuteDrop')
+  expect(onundo).toHaveBeenCalledWith(ADDED[1])
 })
 
 test('it can be dismissed', async () => {
   const { onclose } = setup()
   await fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
   expect(onclose).toHaveBeenCalled()
+})
+
+test('fields of list entries are grouped under the entry they belong to', async () => {
+  const fields: CompletionAddition[] = [
+    { key: 'crateSpawnSector', value: 'side', section: 'advanced', container: 'capabilitiesByType', entry: 'Mi-8MT' },
+    { key: 'crateSpawnDistance', value: 4, section: 'advanced', container: 'capabilitiesByType', entry: 'Mi-8MT' },
+    { key: 'size', value: 1.31, section: 'advanced', container: 'spawnableCratesModels', entry: 'load' },
+  ]
+  const { onundo } = setup(fields)
+  expect(screen.getByText('3 settings added from the catalogue')).toBeInTheDocument()
+  expect(screen.getByText('Mi-8MT')).toBeInTheDocument()
+  expect(screen.getByText('load')).toBeInTheDocument()
+  await fireEvent.click(screen.getAllByRole('button', { name: 'Undo' })[0])
+  expect(onundo).toHaveBeenCalledWith(fields[0])
 })

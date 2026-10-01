@@ -13,9 +13,23 @@
   }: {
     additions: CompletionAddition[]
     labelOf: (key: string) => string
-    onundo: (key: string) => void
+    onundo: (addition: CompletionAddition) => void
     onclose: () => void
   } = $props()
+
+  // Scalar parameters first, then the fields of list entries grouped by the entry they belong to
+  // (an aircraft type, a crate model), so a Mission Maker can check the values that matter to them.
+  const scalars = $derived(additions.filter((a) => !a.container))
+  const groups = $derived.by(() => {
+    const out = new Map<string, { container: string; entry: string; items: CompletionAddition[] }>()
+    for (const a of additions) {
+      if (!a.container || !a.entry) continue
+      const id = `${a.container}\u0000${a.entry}`
+      if (!out.has(id)) out.set(id, { container: a.container, entry: a.entry, items: [] })
+      out.get(id)!.items.push(a)
+    }
+    return [...out.values()]
+  })
 
   function short(v: unknown): string {
     if (v === null || v === undefined) return '—'
@@ -30,16 +44,30 @@
     <button class="dismiss" onclick={onclose}>{t('web.completion.dismiss')}</button>
   </div>
   <p class="body">{t('web.completion.body')}</p>
-  <ul>
-    {#each additions as a (a.key)}
-      <li>
-        <span class="label">{labelOf(a.key)}</span>
-        <code class="rawkey">{a.key}</code>
-        <span class="value">{short(a.value)}</span>
-        <button class="undo" onclick={() => onundo(a.key)}>{t('web.completion.undo')}</button>
-      </li>
-    {/each}
-  </ul>
+  {#if scalars.length}
+    <ul>
+      {#each scalars as a (a.key)}
+        <li>
+          <span class="label">{labelOf(a.key)}</span>
+          <code class="rawkey">{a.key}</code>
+          <span class="value">{short(a.value)}</span>
+          <button class="undo" onclick={() => onundo(a)}>{t('web.completion.undo')}</button>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+  {#each groups as g (g.container + g.entry)}
+    <h3 class="entry">{g.entry} <code class="rawkey">{g.container}</code></h3>
+    <ul>
+      {#each g.items as a (a.key)}
+        <li>
+          <code class="rawkey">{a.key}</code>
+          <span class="value">{short(a.value)}</span>
+          <button class="undo" onclick={() => onundo(a)}>{t('web.completion.undo')}</button>
+        </li>
+      {/each}
+    </ul>
+  {/each}
 </section>
 
 <style>
@@ -84,6 +112,11 @@
     display: flex;
     align-items: baseline;
     gap: 0.6rem;
+  }
+  .entry {
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    margin: 0.6rem 0 0.2rem;
   }
   .rawkey,
   .value {

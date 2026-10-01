@@ -93,7 +93,7 @@ def test_round_trip_preserves_values():
 def test_loads_the_real_catalogue():
     c = Catalog.load(SRC_YAML)
     assert c.get("numberOfTroops") == 10
-    assert str(c.get("configVersion")) == "2.0.0"
+    assert str(c.get("configVersion")) == "2.1.0"
     assert "SAM mid range" in c.get("spawnableCrates")  # AA baked in (lot 1 t05)
     # full round-trip: dump then reload equals the same settings
     again = Catalog.loads(c.dumps())

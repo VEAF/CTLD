@@ -13,6 +13,9 @@ export interface CompletionAddition {
   key: string
   value: unknown
   section: string | null
+  /** Set for a field of a list entry (`capabilitiesByType` / `Mi-8MT`); absent for a scalar parameter. */
+  container?: string | null
+  entry?: string | null
 }
 
 export interface SchemaKey {
@@ -88,6 +91,10 @@ export interface VersionGap {
   added: string[]
   removed: string[]
   changed: { key: string; old: unknown; new: unknown }[]
+  /** Fields of list entries the catalogue has and the configuration's entry lacks. */
+  addedFields?: { container: string; entry: string; field: string; value: unknown }[]
+  /** Fields present in both whose catalogue default differs from the kept value. */
+  changedFields?: { container: string; entry: string; field: string; old: unknown; new: unknown }[]
 }
 
 async function json<T>(res: Response): Promise<T> {
@@ -123,6 +130,10 @@ export const putSetting = (key: string, value: unknown) =>
   put('/api/catalog/setting', { key, value }).then((r) => json<{ key: string; value: unknown }>(r))
 export const deleteSetting = (key: string) =>
   fetch(`/api/catalog/setting/${encodeURIComponent(key)}`, { method: 'DELETE' }).then((r) => json<{ removed: string }>(r))
+export const deleteEntryField = (container: string, entry: string, field: string) =>
+  fetch(`/api/catalog/entry-field?${new URLSearchParams({ container, entry, field })}`, { method: 'DELETE' }).then((r) =>
+    json<{ removed: unknown }>(r),
+  )
 export const getValidate = () => fetch('/api/validate').then((r) => json<ValidateResult>(r))
 /** `spawnAs` maps every known type to GROUND / AIRPLANE / HELICOPTER — see /api/dcs-types. */
 export const getDcsTypes = () =>

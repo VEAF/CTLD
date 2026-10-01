@@ -9,6 +9,7 @@
     getValidate,
     getVersion,
     getVersionGap,
+    deleteEntryField,
     deleteSetting,
     injectMiz,
     loadDefault,
@@ -260,11 +261,12 @@
 
   // Undoing an addition removes that parameter again; `validate` then reports it, as it does for any
   // configuration that omits a parameter.
-  async function undoCompletion(key: string) {
+  async function undoCompletion(addition: CompletionAddition) {
     try {
-      await deleteSetting(key)
+      if (addition.container && addition.entry) await deleteEntryField(addition.container, addition.entry, addition.key)
+      else await deleteSetting(addition.key)
       snapshot = await getCatalog()
-      completion = completion.filter((a) => a.key !== key)
+      completion = completion.filter((a) => a !== addition)
       dirty = true
       justSaved = false
       await doValidate()

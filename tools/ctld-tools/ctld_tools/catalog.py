@@ -123,6 +123,13 @@ class Catalog:
             raise KeyError(f"unknown key: {key!r}")
         del container[key]
 
+    def remove_entry_field(self, container: str, entry: str, field: str) -> None:
+        """Remove one field of one entry of a list (`capabilitiesByType` / `Mi-8MT` / `crateSpawnSector`)."""
+        try:
+            del self.get(container)[entry][field]
+        except (KeyError, TypeError) as exc:
+            raise KeyError(f"no such entry field: {container}/{entry}/{field}") from exc
+
     # ── data structures (spawnableCrates, loadableGroups, zones, …) ─
     def data(self, key: str) -> Any:
         """The live list/map stored under `key` (mutate it directly to edit)."""

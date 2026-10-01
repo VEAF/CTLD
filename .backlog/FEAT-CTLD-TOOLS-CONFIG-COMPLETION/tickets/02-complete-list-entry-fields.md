@@ -1,6 +1,6 @@
 # 02 — Complete the missing fields of list entries according to the config version
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -24,17 +24,17 @@ The opening summary of ticket 01 also lists these additions, grouped by aircraft
 
 ## Acceptance criteria
 
-- [ ] Opening a `2.0.0` configuration whose Mi-8MT, UH-1H, C-130J-30, CH-47Fbl1 and Mi-24P entries lack the crate
+- [x] Opening a `2.0.0` configuration whose Mi-8MT, UH-1H, C-130J-30, CH-47Fbl1 and Mi-24P entries lack the crate
       spawn fields returns them with the catalogue's sector and distance.
-- [ ] The default crate models gain their `size`.
-- [ ] A custom aircraft type or crate absent from the catalogue is left exactly as it was.
-- [ ] A configuration already at `2.1.0` that lacks a list field is not completed (the removal is respected).
-- [ ] A value already present in an entry keeps its value; a differing catalogue default appears as information
+- [x] The default crate models gain their `size`.
+- [x] A custom aircraft type or crate absent from the catalogue is left exactly as it was.
+- [x] A configuration already at `2.1.0` that lacks a list field is not completed (the removal is respected).
+- [x] A value already present in an entry keeps its value; a differing catalogue default appears as information
       only.
-- [ ] The summary groups the added fields by aircraft type and each addition can be undone.
-- [ ] Saving writes `2.1.0`, so reopening the saved file adds nothing.
-- [ ] A list or an entry missing altogether is not re-created.
-- [ ] ctld-tools tests, `ruff check`, `ruff format --check`, `npm run check` pass.
+- [x] The summary groups the added fields by aircraft type and each addition can be undone.
+- [x] Saving writes `2.1.0`, so reopening the saved file adds nothing.
+- [x] A list or an entry missing altogether is not re-created.
+- [x] ctld-tools tests, `ruff check`, `ruff format --check`, `npm run check` pass.
 
 ## Blocked by
 

@@ -8,6 +8,17 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — ctld-tools completes the fields of list entries of an older configuration (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 02)
+
+- The catalogue version moves from `2.0.0` to `2.1.0`. Opening a configuration written against an older version
+  now also adds, with their catalogue default, the fields the catalogue gave to the entries the configuration
+  already has: the crate spawn sector and distance of an aircraft type, the size of a crate model. An aircraft
+  type or a crate the Mission Maker added is left alone, an entry or a list the configuration removed is not
+  re-created, and a configuration already at the current version keeps a field it lacks (a deliberate removal).
+  A value already present is never changed; where the catalogue's default differs from it, the version-gap
+  dialog lists it for information. The opening summary groups the added fields by entry, each with an Undo,
+  and saving writes `2.1.0` so the next opening adds nothing.
+
 ### Added — ctld-tools completes the scalar parameters a configuration lacks (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 01)
 
 - Opening a configuration (a mission or a YAML file) now adds every scalar parameter it lacks, with the
