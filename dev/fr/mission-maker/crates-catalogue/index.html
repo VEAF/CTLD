@@ -2740,14 +2740,13 @@ dépaquetage, les scènes et les troupes ne sont pas concernés.</p>
 </table>
 <p>Les valeurs viennent de la coque de collision de chaque modèle ; <code>tools/dcs-data/derive_crate_spawn.py</code> les
 recalcule depuis une installation DCS (voir <code>tools/dcs-data/README.md</code>).</p>
-<div class="admonition warning">
-<p class="admonition-title">Les missions existantes gardent leur configuration embarquée</p>
-<p>Une mission embarque un instantané complet de <code>CTLD_userConfig.lua</code>, écrit lors de son export. Une mission
-exportée avant cette fonctionnalité n'a ni <code>crateSpawnSector</code> ni <code>crateSpawnDistance</code> : ses crates gardent
-l'ancienne distance d'apparition. La rouvrir et l'enregistrer avec un ctld-tools qui ne complète pas
-automatiquement les clés manquantes ne les ajoute <strong>pas</strong> : tant qu'une version de ctld-tools qui les
-complète n'est pas disponible, saisissez ces champs vous-même dans l'éditeur (capacités de chaque type
-d'appareil).</p>
+<div class="admonition note">
+<p class="admonition-title">Missions exportées avant cette fonctionnalité</p>
+<p>Une mission embarque un instantané de sa configuration : celle exportée avant cette fonctionnalité n'a ni
+<code>crateSpawnSector</code> ni <code>crateSpawnDistance</code>, et ses crates gardent l'ancienne distance d'apparition. Ouvrez-la
+dans ctld-tools et enregistrez-la : l'outil ajoute ces champs aux types d'aéronef que vous avez déjà, ainsi
+que le <code>size</code> des modèles de crate, avec les valeurs par défaut ci-dessus
+(<a href="../ctld-tools/#when-ctld-is-updated">détails</a>).</p>
 </div>
 <h2 id="aa-systems">Systèmes AA<a class="headerlink" href="#aa-systems" title="Permanent link">&para;</a></h2>
 <p>Les systèmes AA sont des <strong>kits multi-crates</strong> : un mission maker déclare le système une fois dans

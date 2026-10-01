@@ -2151,6 +2151,21 @@ following the VMCT Python conventions. The <code>python-quality</code> CI job en
 guard</strong>: the committed round-trip reference <code>tests/ci/data/config_defaults.json</code> (emitted by
 <code>ctld-tools gen</code>) must equal a fresh emit from the YAML. The busted suite then checks the Lua
 <code>CTLDConfig.parseYAML</code> reproduces that oracle — two independent parsers agreeing.</p>
+<p><strong>Catalogue version rule.</strong> The catalogue carries a version tag (<code>configVersion</code> in <code>src/CTLD_config.yaml</code>,
+independent of the CTLD release number). ctld-tools reads the tag of a configuration it opens to tell a field the
+Mission Maker removed from one the configuration simply predates, and completes only the latter. So <strong>adding or
+removing a key, or a field of a list entry (an aircraft type, a crate model), increments <code>configVersion</code></strong> and adds
+the snapshot of the new version: <code>ctld-tools shape --yaml src/CTLD_config.yaml --out
+tests/ci/data/catalogue_shapes/&lt;version&gt;.json</code>. A value changing is not a change of shape. The <code>python-quality</code>
+job enforces it: <code>test_catalogue_shape.py</code> fails, naming what changed, when the catalogue no longer matches the
+snapshot of its own version.</p>
+<p><strong>Completion on opening.</strong> <code>ctld_tools.completion.complete()</code> is the single place that brings an opened
+configuration up to date; the web app and the command line both call it. It always adds the scalar parameters the
+configuration lacks (ADR 0011 Addendum 1: a parameter is never a removal), and, only when the configuration's tag is
+older than the catalogue's, the scalar fields that <code>versiongap.entry_field_gap()</code> finds missing from the entries of
+a table the catalogue knows (<code>capabilitiesByType</code>, <code>spawnableCratesModels</code>). It never overwrites a value, never
+touches an entry or a list the catalogue does not know or the configuration removed, and returns what it added so
+the UI can show it (ADR 0011 Addendum 2). Saving and installing stamp the current tag.</p>
 <h2 id="running-tests-busted-no-dcs">Running tests (busted, no DCS)<a class="headerlink" href="#running-tests-busted-no-dcs" title="Permanent link">&para;</a></h2>
 <p>The automated suite runs on <a href="https://lunarmodules.github.io/busted/">busted</a>. Every DCS API call
 is stubbed, so no DCS installation is required.</p>

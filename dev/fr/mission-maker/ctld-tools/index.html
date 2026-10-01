@@ -2360,15 +2360,35 @@ structure, mais seul DCS confirme que la mission tourne.</p>
 </div>
 <h2 id="the-complete-snapshot-model">Le modèle de snapshot complet<a class="headerlink" href="#the-complete-snapshot-model" title="Permanent link">&para;</a></h2>
 <p>Votre configuration est un <strong>snapshot complet</strong>, pas une liste de changements : elle <strong>remplace
-entièrement</strong> les valeurs par défaut de CTLD. Ce que vous retirez est absent à l'exécution — pas
-remis silencieusement au défaut. C'est pourquoi vous partez toujours <strong>des défauts</strong> (ou d'une config
+entièrement</strong> les valeurs par défaut de CTLD. Ce que vous retirez d'une liste est absent à l'exécution — pas
+remis silencieusement au défaut. (Un <em>réglage</em> est différent : il ne peut pas être retiré, CTLD retombe donc sur
+son défaut et le signale au démarrage de la mission.) C'est pourquoi vous partez toujours <strong>des défauts</strong> (ou d'une config
 existante) : pour ne rien perdre par accident.</p>
 <h3 id="when-ctld-is-updated">Quand CTLD est mis à jour<a class="headerlink" href="#when-ctld-is-updated" title="Permanent link">&para;</a></h3>
-<p>CTLD estampille une <strong>version</strong> sur sa configuration. Quand vous ouvrez une config écrite pour un
-CTLD plus ancien, l'outil vous le signale et résume en quoi les défauts actuels diffèrent — réglages
-ajoutés, réglages devenus inutiles, valeurs par défaut modifiées — chaque groupe pouvant être déplié
-pour le détail. <strong>Rien n'est fusionné</strong> : vos réglages restent exactement tels quels, et vous décidez
-de ce que vous mettez à jour avant de ré-injecter.</p>
+<p>CTLD estampille une <strong>version de catalogue</strong> sur sa configuration (<code>2.1.0</code> aujourd'hui). Elle ne change que
+lorsque CTLD gagne un réglage ou un champ, pas à chaque release. L'en-tête de l'outil affiche deux versions :
+<strong>Version de la config</strong>, celle pour laquelle votre configuration ouverte a été écrite, et <strong>Catalogue de
+l'outil</strong>, celle que porte cette copie de l'outil, mise en évidence quand elles diffèrent.</p>
+<p>Quand vous ouvrez une configuration ou une mission, <strong>l'outil la met à jour et vous dit ce qu'il a ajouté</strong> :</p>
+<ul>
+<li>chaque <strong>réglage</strong> qui manque à la configuration est ajouté avec sa valeur par défaut ;</li>
+<li>pour une configuration écrite pour une version <em>plus ancienne</em>, les <strong>champs</strong> que le catalogue a donnés aux
+  entrées que vous avez déjà sont ajoutés aussi : secteur et distance d'apparition des crates de chaque type
+  d'aéronef, taille d'un modèle de crate. Un type d'aéronef ou une crate que vous avez ajoutés vous-même
+  sont laissés tels quels, et une liste ou une entrée que vous avez retirées n'est pas recréée.</li>
+</ul>
+<p><strong>Rien de ce que vous avez saisi n'est jamais modifié.</strong> Si un défaut a changé depuis que vous avez écrit votre
+configuration, l'outil le liste à titre d'information et garde votre valeur.</p>
+<p>Un récapitulatif liste tout ce qui a été ajouté, les champs groupés par type d'aéronef ou par modèle de crate,
+avec un bouton <strong>Annuler</strong> sur chaque ligne ; vous pouvez continuer à travailler pendant qu'il est affiché. La
+configuration compte comme non enregistrée tant que vous ne l'enregistrez pas, et l'enregistrement écrit la
+version de catalogue courante : un champ que vous retirez ensuite reste retiré à la prochaine ouverture.</p>
+<div class="admonition note">
+<p class="admonition-title">Configurations écrites à la main</p>
+<p>Une configuration qui ne passe jamais par l'outil fonctionne quand même. Pour un réglage manquant, CTLD
+utilise son défaut et affiche au démarrage de la mission un message qui donne la version de la configuration et
+celle du catalogue. <code>ctld-tools validate</code> affiche les deux versions quand elles diffèrent.</p>
+</div>
 <h2 id="loading-it-by-hand-alternative-to-inject">Charger à la main (alternative à l'injection)<a class="headerlink" href="#loading-it-by-hand-alternative-to-inject" title="Permanent link">&para;</a></h2>
 <p>Si vous préférez ajouter le trigger vous-même, chargez la configuration exactement comme le modèle
 écrit à la main :</p>

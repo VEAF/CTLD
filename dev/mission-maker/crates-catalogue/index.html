@@ -2735,13 +2735,12 @@ other side. Vehicles, unpacking, scenes and troops are not affected.</p>
 </table>
 <p>The values come from each model's collision shell; <code>tools/dcs-data/derive_crate_spawn.py</code> recomputes them from a
 DCS install (see <code>tools/dcs-data/README.md</code>).</p>
-<div class="admonition warning">
-<p class="admonition-title">Existing missions keep their embedded configuration</p>
-<p>A mission embeds a complete snapshot of <code>CTLD_userConfig.lua</code>, written when it was exported. A mission
-exported before this feature has no <code>crateSpawnSector</code> or <code>crateSpawnDistance</code>, so its crates keep the
-older spawn distance. Re-opening and saving it with a ctld-tools that predates the automatic
-completion of missing keys does <strong>not</strong> add them: until a ctld-tools release that completes them is
-available, enter the fields yourself in the editor (capabilities of each aircraft type).</p>
+<div class="admonition note">
+<p class="admonition-title">Missions exported before this feature</p>
+<p>A mission embeds a snapshot of its configuration, so one exported before this feature has no
+<code>crateSpawnSector</code> or <code>crateSpawnDistance</code>, and its crates keep the older spawn distance. Open it in
+ctld-tools and save it: the tool adds these fields to the aircraft types you already have, and the crate
+model <code>size</code>, with the defaults above (<a href="../ctld-tools/#when-ctld-is-updated">details</a>).</p>
 </div>
 <h2 id="aa-systems">AA systems<a class="headerlink" href="#aa-systems" title="Permanent link">&para;</a></h2>
 <p>AA systems are <strong>multi-crate kits</strong>: a mission maker declares the system once in
