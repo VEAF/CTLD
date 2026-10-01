@@ -182,12 +182,11 @@ Default values, in metres from the aircraft centre:
 The values come from each model's collision shell; `tools/dcs-data/derive_crate_spawn.py` recomputes them from a
 DCS install (see `tools/dcs-data/README.md`).
 
-!!! warning "Existing missions keep their embedded configuration"
-    A mission embeds a complete snapshot of `CTLD_userConfig.lua`, written when it was exported. A mission
-    exported before this feature has no `crateSpawnSector` or `crateSpawnDistance`, so its crates keep the
-    older spawn distance. Re-opening and saving it with a ctld-tools that predates the automatic
-    completion of missing keys does **not** add them: until a ctld-tools release that completes them is
-    available, enter the fields yourself in the editor (capabilities of each aircraft type).
+!!! note "Missions exported before this feature"
+    A mission embeds a snapshot of its configuration, so one exported before this feature has no
+    `crateSpawnSector` or `crateSpawnDistance`, and its crates keep the older spawn distance. Open it in
+    ctld-tools and save it: the tool adds these fields to the aircraft types you already have, and the crate
+    model `size`, with the defaults above ([details](ctld-tools.md#when-ctld-is-updated)).
 
 ## AA systems
 

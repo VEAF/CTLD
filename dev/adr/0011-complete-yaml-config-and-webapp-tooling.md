@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (2026-07-24). **Amended 2026-07-30 — see [Addendum 1](#addendum-1--the-two-config-tiers-2026-07-30).**
+Accepted (2026-07-24). **Amended 2026-07-30 — see [Addendum 1](#addendum-1--the-two-config-tiers-2026-07-30); amended 2026-10-01 — see
+[Addendum 2](#addendum-2--completion-on-opening-always-shown-2026-10-01).**
 **Supersedes ADR 0008 entirely and ADR 0009 points 2 & 3.**
 
 Point 1 of ADR 0009 (a standalone, offline `ctld-tools` distributed to MMs) and point 4 (`.miz`
@@ -197,3 +198,46 @@ become duplicate defaults and are deleted. Two had already drifted from the cata
 lists stay — for a list, absent still means empty.
 
 Implemented by lot `FEAT-CONFIG-PARAM-SEMANTICS`.
+
+## Addendum 2 — completion on opening, always shown (2026-10-01)
+
+Point 5 has ctld-tools detect a version gap, warn in a popup and surface the diffs "to review before
+re-injecting", and Addendum 1 adds that an absent parameter is never a removal. Field use showed the gap in
+practice: a mission exported before `crateSpawnGap`, `enableParachuteDrop` and the crate spawn fields was opened
+and saved with the tool and still lacked all of them — the tool wrote back what it read, and with the catalogue
+version at `2.0.0` on both sides the version-gap detection reported nothing. The Mission Maker saw the engine's
+"settings absent" notice and had no way to tell why.
+
+### Decision
+
+- **Opening an existing configuration completes it**, in the tool's core, with the catalogue's defaults:
+  - every absent **scalar parameter**, always (Addendum 1: it is never a removal);
+  - the absent scalar **fields of list entries** the catalogue knows, only when the configuration's version tag is
+    older than the catalogue's. An entry the Mission Maker added, an entry or a list the configuration removed, and
+    non-scalar fields are left alone.
+- **No present value is ever changed.** A catalogue default that differs from a kept value is reported for
+  information, not applied.
+- **Never silent.** This refines point 5 for additions: the tool adds them without asking, but opening shows a
+  non-blocking summary of everything added (fields grouped by entry), each addition undoable, and the configuration
+  counts as unsaved until saved. The runtime is unchanged: still a straight `or`, still no list merged.
+- **The tag is the catalogue's version, independent of the CTLD release number.** It moves only when the catalogue
+  gains or loses a key or a list-entry field, is written at every save and install (so a later removal is
+  respected), and is shown in the tool's header, in the engine's start-up notice and in `validate`.
+- **A guard keeps the tag honest.** The shape of the catalogue is pinned per version under
+  `tests/ci/data/catalogue_shapes/`, and a `python-quality` test fails when the catalogue changes without a version
+  increment.
+
+### Considered options
+
+- **Complete every missing field regardless of the version.** Rejected: it cannot tell a field the Mission Maker
+  removed from one the configuration predates, and would resurrect deliberate removals.
+- **Keep the popup-and-review flow of point 5 for additions.** Rejected: for an addition with a catalogue default
+  there is nothing to decide, and it left missions out of date for want of a click. Visibility, not confirmation, is
+  what point 5 was protecting.
+- **Merge the defaults at runtime.** Still rejected, for the reason given in the original alternatives.
+
+### Consequences
+
+- A completion only helps once an `ctld-tools.exe` that contains it is built and used: an older exe knows neither
+  the new settings nor the completion, and its own validation cannot flag what it does not know.
+- Every change to the catalogue's keys or list-entry fields now costs a version increment and a snapshot file.

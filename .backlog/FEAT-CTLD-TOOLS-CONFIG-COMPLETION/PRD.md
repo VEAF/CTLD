@@ -1,6 +1,6 @@
 # FEAT-CTLD-TOOLS-CONFIG-COMPLETION — ctld-tools completes a mission's configuration with the keys it lacks
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 Follows the discovery, while delivering `FEAT-NATIVE-CRATE-SPAWN-NEAR` (PR #221), that re-saving a mission's
 configuration with ctld-tools does not add the keys the catalogue gained since it was written, and a

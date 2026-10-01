@@ -153,16 +153,37 @@ places the trigger **first**, so it runs before CTLD.
 ## The complete-snapshot model
 
 Your configuration is a **complete snapshot**, not a list of changes: it **fully replaces** CTLD's
-defaults. Anything you remove is absent at runtime — not silently defaulted. That is why you always
+defaults. Anything you remove from a list is absent at runtime — not silently defaulted. (A *setting* is
+different: it cannot be removed, so CTLD falls back to its default and says so at mission start.) That is why you always
 **start from the defaults** (or an existing config): so nothing is lost by accident.
 
 ### When CTLD is updated
 
-CTLD stamps a **version** on its configuration. When you open a config authored for an older CTLD,
-the tool tells you so and summarises how the current defaults differ — settings added, settings no
-longer used, default values that changed — each expandable if you want the detail. **Nothing is
-merged**: your settings are left exactly as they were, and you decide what to update before
-re-injecting.
+CTLD stamps a **catalogue version** on its configuration (`2.1.0` today). It changes only when CTLD gains a
+setting or a field, not at every release. The tool's header shows two versions: **Config version**, the one
+your opened configuration was written against, and **Tool catalogue**, the one this copy of the tool carries,
+highlighted when they differ.
+
+When you open a configuration or a mission, **the tool brings it up to date and tells you what it added**:
+
+- every **setting** the configuration lacks is added with its default value;
+- for a configuration written against an *older* version, the **fields** the catalogue gave to the entries you
+  already have are added too: the crate spawn sector and distance of each aircraft type, the size of a crate
+  model. An aircraft type or a crate you added yourself is left alone, and a list or an entry you removed is not
+  re-created.
+
+**Nothing you entered is ever changed.** If a default changed since you wrote your configuration, the tool lists
+it for information and keeps your value.
+
+A summary lists everything that was added, the fields grouped by aircraft type or crate model, with an **Undo**
+button on each line; you can keep working while it is shown. The configuration counts as unsaved until you save
+it, and saving writes the current catalogue version: a field you remove afterwards stays removed the next time
+you open it.
+
+!!! note "Hand-written configurations"
+    A configuration that never goes through the tool still works. For a missing setting CTLD uses its default
+    and shows a notice at mission start that gives the configuration's version and the catalogue version.
+    `ctld-tools validate` prints both versions when they differ.
 
 ## Loading it by hand (alternative to inject)
 

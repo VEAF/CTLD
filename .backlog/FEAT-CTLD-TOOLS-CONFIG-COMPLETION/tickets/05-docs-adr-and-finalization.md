@@ -1,6 +1,6 @@
 # 05 — Documentation, ADR addendum and finalization
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -24,14 +24,14 @@ The documentation says what the tool does after this lot, nothing else.
 
 ## Acceptance criteria
 
-- [ ] ADR 0011 carries Addendum 2.
-- [ ] The English and French pages carry the same content and no longer tell the Mission Maker to enter the crate
+- [x] ADR 0011 carries Addendum 2.
+- [x] The English and French pages carry the same content and no longer tell the Mission Maker to enter the crate
       spawn fields by hand.
-- [ ] Every statement about opening, completion, versions and the guard matches the behaviour delivered by tickets
+- [x] Every statement about opening, completion, versions and the guard matches the behaviour delivered by tickets
       01 to 04 (checked against the running tool).
-- [ ] `CHANGELOG.md` `[Unreleased]` covers the lot without duplicates.
-- [ ] The PRD status is done and the index line is `merged (PR #NN)`.
-- [ ] `busted tests/ci/`, luacheck, the ctld-tools tests, `ruff check` and `ruff format --check` pass on the whole
+- [x] `CHANGELOG.md` `[Unreleased]` covers the lot without duplicates.
+- [x] The PRD status is done and the index line is `merged (PR #NN)`.
+- [x] `busted tests/ci/`, luacheck, the ctld-tools tests, `ruff check` and `ruff format --check` pass on the whole
       branch.
 
 ## Blocked by

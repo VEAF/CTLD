@@ -8,6 +8,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Docs — what ctld-tools does when it opens a configuration (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 05)
+
+- The ctld-tools Mission Maker page (English and French) describes the completion on opening, the summary and its
+  Undo, the two versions shown in the header, and why a field removed after saving stays removed; the crate
+  catalogue page replaces its "enter the fields by hand" warning with the real behaviour; the developer build
+  page describes the completion in the core. ADR 0011 gains an Addendum 2 (completion on opening, always shown).
+
 ### Added — a guard that a catalogue change increments the version (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 04)
 
 - The shape of the catalogue (its keys and the scalar fields of its list entries) is pinned per version under
@@ -83,9 +90,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   `crateSpawnDistance`, the crate model `size` and `crateSpawnGap`, the fallback for a type that declares
   nothing, and the per-type defaults, marking what was measured in game (UH-1H, Mi-8MT, C-130J-30) and what
   comes from the collision shell only (CH-47F, Mi-24P). A mission embeds a snapshot of its configuration:
-  one exported before this lot keeps the older spawn distance, and re-saving it with a `ctld-tools` that
-  does not yet complete missing keys does not add the new fields (they must be entered by hand until a
-  release that completes them).
+  one exported before this lot keeps the older spawn distance until it is opened and saved in a `ctld-tools`
+  that completes missing keys (see the ctld-tools entries of this section).
 
 ### Docs — native cargo documented as it actually works (FIX-NATIVE-CARRY-DETECTION, ticket 08)
 
