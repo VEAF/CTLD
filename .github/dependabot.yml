@@ -1,8 +1,80 @@
 version: 2
+
+# One policy for every dependency place of the repository (TOOLING-DEPENDABOT-CONFIG):
+#   - monthly, one grouped pull request per ecosystem for minor and patch updates;
+#   - a major version update is never grouped: it gets its own pull request, read and tested alone;
+#   - security updates follow a group too but are not held to the cadence;
+#   - at most three open pull requests per ecosystem.
+# A new dependency manifest must be declared here; tests/test_dependabot_coverage.py fails otherwise.
 updates:
+  # GitHub Actions used by the workflows.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     commit-message:
       prefix: "ci"
+
+  # ctld-tools web app (Svelte + Vite).
+  - package-ecosystem: "npm"
+    directory: "/tools/ctld-tools/web"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      npm-minor-and-patch:
+        update-types: ["minor", "patch"]
+      npm-security:
+        applies-to: "security-updates"
+        patterns: ["*"]
+
+  # ctld-tools Python project (Poetry: pyproject.toml + poetry.lock).
+  - package-ecosystem: "pip"
+    directory: "/tools/ctld-tools"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      ctld-tools-minor-and-patch:
+        update-types: ["minor", "patch"]
+      ctld-tools-security:
+        applies-to: "security-updates"
+        patterns: ["*"]
+
+  # Documentation toolchain (mkdocs).
+  - package-ecosystem: "pip"
+    directory: "/docs"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      docs-minor-and-patch:
+        update-types: ["minor", "patch"]
+      docs-security:
+        applies-to: "security-updates"
+        patterns: ["*"]
+
+  # Build tooling (i18n translation requirements).
+  - package-ecosystem: "pip"
+    directory: "/tools/build"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      build-minor-and-patch:
+        update-types: ["minor", "patch"]
+      build-security:
+        applies-to: "security-updates"
+        patterns: ["*"]

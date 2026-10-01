@@ -1,6 +1,6 @@
 # 01 — Declare the five dependency places to Dependabot, grouped and capped
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -26,12 +26,12 @@ grouping.
 
 ## Acceptance criteria
 
-- [ ] The file declares the Actions, npm for the web app, and pip for ctld-tools, `docs/` and `tools/build/`.
-- [ ] npm and pip entries are monthly, capped at three open pull requests, with `chore` / scope-included commit
+- [x] The file declares the Actions, npm for the web app, and pip for ctld-tools, `docs/` and `tools/build/`.
+- [x] npm and pip entries are monthly, capped at three open pull requests, with `chore` / scope-included commit
       messages; the Actions entry is unchanged.
-- [ ] Each npm and pip entry has a minor-and-patch group, no group covering majors, and a group applying to
+- [x] Each npm and pip entry has a minor-and-patch group, no group covering majors, and a group applying to
       security updates.
-- [ ] The file parses as YAML and every entry has the keys Dependabot requires (ecosystem, directory, schedule).
+- [x] The file parses as YAML and every entry has the keys Dependabot requires (ecosystem, directory, schedule).
 
 ## Blocked by
 
