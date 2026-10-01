@@ -61,7 +61,14 @@ redefined terms are added here in the same move as the decision that introduces 
 - **Config version tag** — a version stamped on the `ctld-config` YAML and its schema. ctld-tools
   compares the version a `user-config` was authored against to the current catalogue; on mismatch it
   warns the MM and surfaces the diffs to review before re-injecting (re-migration is tool-driven; the
-  runtime never merges — it is a straight `or` replacement).
+  runtime never merges — it is a straight `or` replacement). The tag is the **catalogue** version, independent
+  of the CTLD release number: it changes only when the catalogue gains a key or a field, and it is written back
+  at every save.
+- **Config completion** — what ctld-tools does when it opens an existing `user-config`: it adds the entries the
+  catalogue has and the configuration lacks, with the catalogue's default, and reports them. A missing scalar
+  **parameter** is always added; a missing field of a list entry is added only when the config's version tag is
+  older than the catalogue's and the entry's key is one the catalogue knows. A value already present is never
+  changed. Distinct from the runtime, which never merges.
 
 ## Gameplay domain
 

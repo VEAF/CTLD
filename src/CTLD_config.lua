@@ -79,6 +79,8 @@ function CTLDConfig:load()
     -- in that case only — a mission running on the defaults pays nothing.
     self._defaults        = nil
     self._defaultedParams = {}
+    self._userVersion     = nil
+    self._defaultVersion  = nil
     if usingUser and ctld.configDefault then
         self._defaults = CTLDConfig.flatten(CTLDConfig.parseYAML(ctld.configDefault))
         for k, v in pairs(self._defaults) do
@@ -87,6 +89,8 @@ function CTLDConfig:load()
             end
         end
         table.sort(self._defaultedParams)
+        self._userVersion    = flat.configVersion
+        self._defaultVersion = self._defaults.configVersion
     end
 
     return true, "CTLDConfig: loaded (" .. (usingUser and "user" or "default") .. " config)."
@@ -152,6 +156,19 @@ end
 -- @return table  array of setting names
 function CTLDConfig:getDefaultedParameters()
     return self._defaultedParams or {}
+end
+
+--- The start-up notice for the parameters the snapshot omitted, naming the version the snapshot was
+-- written against and the version of the CTLD catalogue, so a screenshot of the notice is enough to see
+-- why settings are absent. Nil when the snapshot is complete.
+-- @return string|nil
+function CTLDConfig:getDefaultedNotice()
+    local defaulted = self:getDefaultedParameters()
+    if #defaulted == 0 then return nil end
+    return ctld.tr(
+        "%1 setting(s) absent from the mission config (version %2, CTLD catalogue %3) — CTLD default used: %4",
+        #defaulted, tostring(self._userVersion or "?"), tostring(self._defaultVersion or "?"),
+        table.concat(defaulted, ", "))
 end
 
 -- Retrieve a specific setting

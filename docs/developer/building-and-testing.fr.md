@@ -66,6 +66,24 @@ la référence de round-trip committée `tests/ci/data/config_defaults.json` (é
 doit égaler une génération fraîche depuis le YAML. La suite busted vérifie ensuite que le
 `CTLDConfig.parseYAML` Lua reproduit cet oracle — deux parsers indépendants qui concordent.
 
+**Règle de version du catalogue.** Le catalogue porte une balise de version (`configVersion` dans
+`src/CTLD_config.yaml`, indépendante du numéro de release de CTLD). ctld-tools lit la balise d'une configuration
+qu'il ouvre pour distinguer un champ que le Mission Maker a retiré d'un champ que la configuration antécède, et ne
+complète que ce dernier. Donc **ajouter ou retirer une clé, ou un champ d'une entrée de liste (un type
+d'aéronef, un modèle de crate), incrémente `configVersion`** et ajoute le snapshot de la nouvelle version :
+`ctld-tools shape --yaml src/CTLD_config.yaml --out tests/ci/data/catalogue_shapes/<version>.json`. Une valeur qui
+change n'est pas un changement de forme. Le job `python-quality` l'impose : `test_catalogue_shape.py` échoue, en
+nommant ce qui a changé, quand le catalogue ne correspond plus au snapshot de sa propre version.
+
+**Complétion à l'ouverture.** `ctld_tools.completion.complete()` est l'unique endroit qui met à jour une
+configuration ouverte ; l'application web et la ligne de commande l'appellent toutes deux. Elle ajoute toujours les
+paramètres scalaires que la configuration n'a pas (ADR 0011 Addendum 1 : un paramètre n'est jamais un retrait) et,
+seulement quand la balise de la configuration est plus ancienne que celle du catalogue, les champs scalaires que
+`versiongap.entry_field_gap()` trouve manquants dans les entrées d'une table connue du catalogue
+(`capabilitiesByType`, `spawnableCratesModels`). Elle n'écrase jamais une valeur, ne touche jamais une entrée ou une
+liste inconnue du catalogue ou retirée par la configuration, et renvoie ce qu'elle a ajouté pour que l'interface
+l'affiche (ADR 0011 Addendum 2). L'enregistrement et l'installation écrivent la balise courante.
+
 ## Exécuter les tests (busted, sans DCS) { #running-tests-busted-no-dcs }
 
 La suite automatisée s'exécute avec [busted](https://lunarmodules.github.io/busted/). Chaque appel

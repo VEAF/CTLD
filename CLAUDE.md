@@ -64,6 +64,10 @@ A PR that changes `src/` must update `CHANGELOG.md` `[Unreleased]` — enforced 
 
 - New OOP classes only in `src/` (Manager + Entity pattern via `src/core/class.lua`).
 - Config access only via `ctld.gs("param")` (never `config:getSetting()`).
+- **Catalogue version**: adding or removing a key, or a field of a list entry (an aircraft type, a crate model),
+  in `src/CTLD_config.yaml` increments `configVersion` there and adds `tests/ci/data/catalogue_shapes/<version>.json`
+  (`ctld-tools shape --yaml src/CTLD_config.yaml --out ...`). ctld-tools completes an older mission configuration
+  from that tag; the CI test `test_catalogue_shape.py` fails otherwise.
 - DCS unit/type/weapon data: use the **datamine dataset** (`github.com/Quaggles/dcs-lua-datamine`),
   more accurate than Hoggit — never assume an API/type without verifying.
 - "repack" is banned — use **"pack"** everywhere.

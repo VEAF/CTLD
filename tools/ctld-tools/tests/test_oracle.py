@@ -40,5 +40,5 @@ def test_committed_oracle_is_in_sync_with_the_yaml(tmp_path):
 
 def test_oracle_is_valid_json_with_config_version():
     data = json.loads(ORACLE.read_text(encoding="utf-8"))
-    assert data["configVersion"] == "2.0.0"
+    assert data["configVersion"] == "2.1.0"
     assert "spawnableCrates" in data

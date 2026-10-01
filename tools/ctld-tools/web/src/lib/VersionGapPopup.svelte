@@ -57,6 +57,31 @@
       </details>
     {/if}
 
+    {#if gap.addedFields?.length}
+      <details>
+        <summary>{plural('web.gap.added', gap.addedFields.length)}</summary>
+        <ul>
+          {#each gap.addedFields as f (f.container + f.entry + f.field)}
+            <li><code class="rawkey">{f.container} › {f.entry} › {f.field}</code> <span class="diff">{short(f.value)}</span></li>
+          {/each}
+        </ul>
+      </details>
+    {/if}
+
+    {#if gap.changedFields?.length}
+      <details>
+        <summary>{plural('web.gap.changed', gap.changedFields.length)}</summary>
+        <ul>
+          {#each gap.changedFields as f (f.container + f.entry + f.field)}
+            <li>
+              <code class="rawkey">{f.container} › {f.entry} › {f.field}</code>
+              <span class="diff">{short(f.old)} → {short(f.new)}</span>
+            </li>
+          {/each}
+        </ul>
+      </details>
+    {/if}
+
     <div class="actions"><button class="primary" onclick={onclose}>{t('web.gap.close')}</button></div>
   </div>
 </div>

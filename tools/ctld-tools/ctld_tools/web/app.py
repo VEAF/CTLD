@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ctld_tools import resources
+from ctld_tools.catalog import Catalog
 from ctld_tools.validate import has_errors, validate
 from ctld_tools.versiongap import version_gap
 from ctld_tools.web.state import session
@@ -93,6 +94,13 @@ def _settable_but_uncatalogued() -> dict[str, Any]:
     return out
 
 
+def _stamp_version(cat: Catalog) -> None:
+    """Write the tool's catalogue version into `cat`, so the next opening knows what it is current with."""
+    version = session.default_catalog().get("configVersion")
+    if version is not None:
+        cat.stamp_version(str(version))
+
+
 def _snapshot() -> dict[str, Any]:
     cat = session.catalog
     # Offer the uncatalogued settings the open document has not set yet; once the Mission Maker sets
@@ -115,12 +123,17 @@ def health() -> dict[str, str]:
 
 @app.get("/api/version")
 def get_version() -> dict[str, str]:
-    """The CTLD version this build belongs to, and the documentation version to link to.
+    """The CTLD version this build belongs to, the catalogue version it carries, and the documentation version.
 
     `docs` is resolved here rather than in the frontend so the rule — a pre-release points at `dev`,
     a stable at itself — exists once, next to the version it derives from.
     """
-    return {"ctld": resources.ctld_version(), "docs": resources.docs_version()}
+    catalogue = session.default_catalog().get("configVersion")
+    return {
+        "ctld": resources.ctld_version(),
+        "docs": resources.docs_version(),
+        "catalogue": "" if catalogue is None else str(catalogue),
+    }
 
 
 @app.get("/api/i18n")
@@ -243,7 +256,12 @@ def load_catalog(req: LoadRequest) -> dict[str, Any]:
             raise HTTPException(status_code=422, detail=f"could not load: {exc}") from exc
     else:
         raise HTTPException(status_code=400, detail="provide 'path' or 'text'")
-    return _snapshot()
+    # What config completion added to the configuration just opened, so the UI can say so (and offer to undo).
+    added = [
+        {"key": a.key, "value": _plain(a.value), "section": a.section, "container": a.container, "entry": a.entry}
+        for a in session.completion
+    ]
+    return {**_snapshot(), "completion": added}
 
 
 @app.post("/api/catalog/load-default")
@@ -303,9 +321,24 @@ def delete_setting(key: str) -> dict[str, Any]:
     return {"removed": key}
 
 
+@app.delete("/api/catalog/entry-field")
+def delete_entry_field(container: str, entry: str, field: str) -> dict[str, Any]:
+    """Remove one field of one list entry (undo of a completed field)."""
+    try:
+        cat = session.catalog
+    except LookupError as exc:
+        raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
+    try:
+        cat.remove_entry_field(container, entry, field)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=f"no such entry field: {container}/{entry}/{field}") from exc
+    return {"removed": {"container": container, "entry": entry, "field": field}}
+
+
 @app.post("/api/catalog/save")
 def save_catalog(req: SaveRequest) -> dict[str, str]:
     try:
+        _stamp_version(session.catalog)
         session.catalog.save(req.path)
     except LookupError as exc:
         raise HTTPException(status_code=409, detail="no catalogue loaded") from exc
@@ -547,6 +580,7 @@ def inject(req: InjectRequest) -> dict[str, Any]:
     )
     if has_errors(findings):
         raise HTTPException(status_code=422, detail="fix validation errors before injecting")
+    _stamp_version(cat)
     try:
         report = install(
             req.miz,
@@ -589,6 +623,14 @@ def get_version_gap() -> dict[str, Any]:
         "added": gap.added,
         "removed": gap.removed,
         "changed": [{"key": c.key, "old": _plain(c.old), "new": _plain(c.new)} for c in gap.changed],
+        "addedFields": [
+            {"container": f.container, "entry": f.entry, "field": f.field, "value": _plain(f.value)}
+            for f in gap.added_fields
+        ],
+        "changedFields": [
+            {"container": c.container, "entry": c.entry, "field": c.field, "old": _plain(c.old), "new": _plain(c.new)}
+            for c in gap.changed_fields
+        ],
     }
 
 

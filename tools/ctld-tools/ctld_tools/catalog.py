@@ -89,14 +89,32 @@ class Catalog:
             raise KeyError(f"unknown setting: {key!r} (use add_setting to create it)")
         container[key] = value
 
-    def add_setting(self, key: str, value: Any, *, section: str = "advanced") -> None:
-        """Create a new setting in a given section (default: advanced)."""
+    def section_of(self, key: str) -> str | None:
+        """The readability section holding `key`, or None when it sits at the top level (or is absent)."""
+        for name in _SECTIONS:
+            sec = self._doc.get(name)
+            if sec is not None and key in sec:
+                return name
+        return None
+
+    def add_setting(self, key: str, value: Any, *, section: str | None = "advanced") -> None:
+        """Create a new setting in a given section (default: advanced); `None` puts it at the top level."""
         if self.has(key):
             raise KeyError(f"setting already exists: {key!r}")
+        if section is None:
+            self._doc[key] = value
+            return
         if section not in _SECTIONS:
             raise ValueError(f"section must be one of {_SECTIONS}, got {section!r}")
         target = self._doc.setdefault(section, {})
         target[key] = value
+
+    def stamp_version(self, version: str) -> None:
+        """Write the catalogue version this configuration is now up to date with (first key of the document)."""
+        if "configVersion" in self._doc:
+            self._doc["configVersion"] = version
+        else:
+            self._doc.insert(0, "configVersion", version)
 
     def remove(self, key: str) -> None:
         """Remove a setting/data key wherever it lives (missing = absent at runtime)."""
@@ -104,6 +122,13 @@ class Catalog:
         if container is None:
             raise KeyError(f"unknown key: {key!r}")
         del container[key]
+
+    def remove_entry_field(self, container: str, entry: str, field: str) -> None:
+        """Remove one field of one entry of a list (`capabilitiesByType` / `Mi-8MT` / `crateSpawnSector`)."""
+        try:
+            del self.get(container)[entry][field]
+        except (KeyError, TypeError) as exc:
+            raise KeyError(f"no such entry field: {container}/{entry}/{field}") from exc
 
     # ── data structures (spawnableCrates, loadableGroups, zones, …) ─
     def data(self, key: str) -> Any:

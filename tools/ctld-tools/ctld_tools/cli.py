@@ -74,6 +74,21 @@ def gen_cmd(
     typer.echo(f"gen: wrote {out}")
 
 
+@app.command("shape")
+def shape_cmd(
+    yaml_path: Path = typer.Option(..., "--yaml", help="path to the catalogue YAML (src/CTLD_config.yaml)"),
+    out: Path = typer.Option(
+        ..., "--out", help="where to write the shape snapshot (tests/ci/data/catalogue_shapes/<version>.json)"
+    ),
+) -> None:
+    """Pin the catalogue's shape (keys and list-entry fields) for its version: the guard's reference snapshot."""
+    from ctld_tools.catalog import Catalog
+    from ctld_tools.shape import write_shape
+
+    write_shape(Catalog.load(yaml_path), out)
+    typer.echo(f"shape: wrote {out}")
+
+
 @app.command("validate")
 def validate_cmd(
     yaml_path: Path = typer.Option(..., "--yaml", help="path to a complete config YAML to validate"),
@@ -97,6 +112,13 @@ def validate_cmd(
     reference = Path(default_path) if default_path else resources.default_catalog_path()
     default = Catalog.load(reference) if reference.exists() else None
     findings = validate(catalog, schema, default=default)
+    # The version the configuration was written against and the catalogue it is checked against, when they
+    # differ: the first thing to look at when a setting turns out to be absent.
+    if default is not None:
+        config_version = str(catalog.get("configVersion", "?"))
+        catalogue_version = str(default.get("configVersion", "?"))
+        if config_version != catalogue_version:
+            typer.echo(t("validate.version.differ", config=config_version, catalogue=catalogue_version))
     for finding in findings:
         typer.echo(str(finding))
     if not findings:

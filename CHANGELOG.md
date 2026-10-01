@@ -8,6 +8,53 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Docs — what ctld-tools does when it opens a configuration (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 05)
+
+- The ctld-tools Mission Maker page (English and French) describes the completion on opening, the summary and its
+  Undo, the two versions shown in the header, and why a field removed after saving stays removed; the crate
+  catalogue page replaces its "enter the fields by hand" warning with the real behaviour; the developer build
+  page describes the completion in the core. ADR 0011 gains an Addendum 2 (completion on opening, always shown).
+
+### Added — a guard that a catalogue change increments the version (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 04)
+
+- The shape of the catalogue (its keys and the scalar fields of its list entries) is pinned per version under
+  `tests/ci/data/catalogue_shapes/`, and a `python-quality` test fails, naming what changed, when
+  `src/CTLD_config.yaml` gained or lost a key or an entry field without `configVersion` moving. The new
+  `ctld-tools shape` command writes the snapshot of a version. The rule is written in `CLAUDE.md` and in the
+  developer build page (English and French).
+
+### Changed — the configuration and catalogue versions are visible (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 03)
+
+- The engine's start-up notice for settings absent from the mission config now names the version the snapshot
+  was written against and the version of the CTLD catalogue ("… absent from the mission config (version
+  2.0.0, CTLD catalogue 2.1.0) …"), so a screenshot of it is enough to see why settings are absent. The
+  message text changed, so it goes through the dictionaries again (translated in French, Spanish and Korean).
+- ctld-tools shows both versions: the header's former "CTLD version" readout, which actually showed the
+  configuration's version, is now "Config version" and is followed by the tool's catalogue version (flagged when
+  they differ), the opening summary repeats both, and `ctld-tools validate` prints both when they differ.
+
+### Added — ctld-tools completes the fields of list entries of an older configuration (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 02)
+
+- The catalogue version moves from `2.0.0` to `2.1.0`. Opening a configuration written against an older version
+  now also adds, with their catalogue default, the fields the catalogue gave to the entries the configuration
+  already has: the crate spawn sector and distance of an aircraft type, the size of a crate model. An aircraft
+  type or a crate the Mission Maker added is left alone, an entry or a list the configuration removed is not
+  re-created, and a configuration already at the current version keeps a field it lacks (a deliberate removal).
+  A value already present is never changed; where the catalogue's default differs from it, the version-gap
+  dialog lists it for information. The opening summary groups the added fields by entry, each with an Undo,
+  and saving writes `2.1.0` so the next opening adds nothing.
+
+### Added — ctld-tools completes the scalar parameters a configuration lacks (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 01)
+
+- Opening a configuration (a mission or a YAML file) now adds every scalar parameter it lacks, with the
+  catalogue default, instead of loading it as stored. A mission exported before `crateSpawnGap` or
+  `enableParachuteDrop` existed gets both when it is opened, so the engine no longer shows the
+  "settings absent from the mission config" notice for it. A value already entered is never changed, and
+  lists and list entries are left alone (an absent one can be a deliberate removal).
+- The web app lists what was added in a non-blocking summary, each addition with an Undo, and the opened
+  configuration counts as unsaved until it is saved. Saving or installing writes the catalogue's version tag
+  into the configuration.
+
 ### Changed — crates for a native-cargo aircraft appear just clear of its hull, in a row (FEAT-NATIVE-CRATE-SPAWN-NEAR, ticket 02)
 
 - Crates requested as a set, and the crates produced by packing a vehicle, used to appear at the secure
@@ -43,9 +90,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   `crateSpawnDistance`, the crate model `size` and `crateSpawnGap`, the fallback for a type that declares
   nothing, and the per-type defaults, marking what was measured in game (UH-1H, Mi-8MT, C-130J-30) and what
   comes from the collision shell only (CH-47F, Mi-24P). A mission embeds a snapshot of its configuration:
-  one exported before this lot keeps the older spawn distance, and re-saving it with a `ctld-tools` that
-  does not yet complete missing keys does not add the new fields (they must be entered by hand until a
-  release that completes them).
+  one exported before this lot keeps the older spawn distance until it is opened and saved in a `ctld-tools`
+  that completes missing keys (see the ctld-tools entries of this section).
 
 ### Docs — native cargo documented as it actually works (FIX-NATIVE-CARRY-DETECTION, ticket 08)
 

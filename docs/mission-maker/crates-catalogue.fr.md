@@ -187,13 +187,12 @@ Valeurs par défaut, en mètres du centre de l'appareil :
 Les valeurs viennent de la coque de collision de chaque modèle ; `tools/dcs-data/derive_crate_spawn.py` les
 recalcule depuis une installation DCS (voir `tools/dcs-data/README.md`).
 
-!!! warning "Les missions existantes gardent leur configuration embarquée"
-    Une mission embarque un instantané complet de `CTLD_userConfig.lua`, écrit lors de son export. Une mission
-    exportée avant cette fonctionnalité n'a ni `crateSpawnSector` ni `crateSpawnDistance` : ses crates gardent
-    l'ancienne distance d'apparition. La rouvrir et l'enregistrer avec un ctld-tools qui ne complète pas
-    automatiquement les clés manquantes ne les ajoute **pas** : tant qu'une version de ctld-tools qui les
-    complète n'est pas disponible, saisissez ces champs vous-même dans l'éditeur (capacités de chaque type
-    d'appareil).
+!!! note "Missions exportées avant cette fonctionnalité"
+    Une mission embarque un instantané de sa configuration : celle exportée avant cette fonctionnalité n'a ni
+    `crateSpawnSector` ni `crateSpawnDistance`, et ses crates gardent l'ancienne distance d'apparition. Ouvrez-la
+    dans ctld-tools et enregistrez-la : l'outil ajoute ces champs aux types d'aéronef que vous avez déjà, ainsi
+    que le `size` des modèles de crate, avec les valeurs par défaut ci-dessus
+    ([détails](ctld-tools.md#when-ctld-is-updated)).
 
 ## Systèmes AA { #aa-systems }
 

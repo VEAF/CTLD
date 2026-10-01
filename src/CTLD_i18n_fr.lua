@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.19"
+ctld.i18n["fr"].translation_version = "1.20"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -524,7 +524,7 @@ ctld.i18n["fr"]["Cannot deploy %1: AA system limit reached (%2/%3)"]            
 ctld.i18n["fr"]["Cannot repair %1. No damaged %1 within %2m"]                                               = "Impossible de réparer %1. Aucun %1 endommagé à moins de %2 m"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
-ctld.i18n["fr"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = "%1 réglage(s) absent(s) de la config de la mission — valeur par défaut CTLD utilisée : %2"
+-- STALE: ctld.i18n["fr"]["%1 setting(s) absent from the mission config — CTLD default used: %2"] = "%1 réglage(s) absent(s) de la config de la mission — valeur par défaut CTLD utilisée : %2"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-07-30
 
@@ -599,3 +599,6 @@ ctld.i18n["fr"]["Unload Vehicles"] = "Décharger Vehicles"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-09-23
 ctld.i18n["fr"]["  EXZ '%1': %2 — entry ignored"] = "  EXZ '%1' : %2 — entrée ignorée"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-01
+ctld.i18n["fr"]["%1 setting(s) absent from the mission config (version %2, CTLD catalogue %3) — CTLD default used: %4"] = "%1 réglage(s) absent(s) de la config de la mission (version %2, catalogue CTLD %3) — valeur par défaut CTLD utilisée : %4"

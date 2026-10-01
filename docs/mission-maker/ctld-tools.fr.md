@@ -166,17 +166,38 @@ place le trigger **en premier**, pour qu'il s'exécute avant CTLD.
 ## Le modèle de snapshot complet { #the-complete-snapshot-model }
 
 Votre configuration est un **snapshot complet**, pas une liste de changements : elle **remplace
-entièrement** les valeurs par défaut de CTLD. Ce que vous retirez est absent à l'exécution — pas
-remis silencieusement au défaut. C'est pourquoi vous partez toujours **des défauts** (ou d'une config
+entièrement** les valeurs par défaut de CTLD. Ce que vous retirez d'une liste est absent à l'exécution — pas
+remis silencieusement au défaut. (Un *réglage* est différent : il ne peut pas être retiré, CTLD retombe donc sur
+son défaut et le signale au démarrage de la mission.) C'est pourquoi vous partez toujours **des défauts** (ou d'une config
 existante) : pour ne rien perdre par accident.
 
 ### Quand CTLD est mis à jour { #when-ctld-is-updated }
 
-CTLD estampille une **version** sur sa configuration. Quand vous ouvrez une config écrite pour un
-CTLD plus ancien, l'outil vous le signale et résume en quoi les défauts actuels diffèrent — réglages
-ajoutés, réglages devenus inutiles, valeurs par défaut modifiées — chaque groupe pouvant être déplié
-pour le détail. **Rien n'est fusionné** : vos réglages restent exactement tels quels, et vous décidez
-de ce que vous mettez à jour avant de ré-injecter.
+CTLD estampille une **version de catalogue** sur sa configuration (`2.1.0` aujourd'hui). Elle ne change que
+lorsque CTLD gagne un réglage ou un champ, pas à chaque release. L'en-tête de l'outil affiche deux versions :
+**Version de la config**, celle pour laquelle votre configuration ouverte a été écrite, et **Catalogue de
+l'outil**, celle que porte cette copie de l'outil, mise en évidence quand elles diffèrent.
+
+Quand vous ouvrez une configuration ou une mission, **l'outil la met à jour et vous dit ce qu'il a ajouté** :
+
+- chaque **réglage** qui manque à la configuration est ajouté avec sa valeur par défaut ;
+- pour une configuration écrite pour une version *plus ancienne*, les **champs** que le catalogue a donnés aux
+  entrées que vous avez déjà sont ajoutés aussi : secteur et distance d'apparition des crates de chaque type
+  d'aéronef, taille d'un modèle de crate. Un type d'aéronef ou une crate que vous avez ajoutés vous-même
+  sont laissés tels quels, et une liste ou une entrée que vous avez retirées n'est pas recréée.
+
+**Rien de ce que vous avez saisi n'est jamais modifié.** Si un défaut a changé depuis que vous avez écrit votre
+configuration, l'outil le liste à titre d'information et garde votre valeur.
+
+Un récapitulatif liste tout ce qui a été ajouté, les champs groupés par type d'aéronef ou par modèle de crate,
+avec un bouton **Annuler** sur chaque ligne ; vous pouvez continuer à travailler pendant qu'il est affiché. La
+configuration compte comme non enregistrée tant que vous ne l'enregistrez pas, et l'enregistrement écrit la
+version de catalogue courante : un champ que vous retirez ensuite reste retiré à la prochaine ouverture.
+
+!!! note "Configurations écrites à la main"
+    Une configuration qui ne passe jamais par l'outil fonctionne quand même. Pour un réglage manquant, CTLD
+    utilise son défaut et affiche au démarrage de la mission un message qui donne la version de la configuration et
+    celle du catalogue. `ctld-tools validate` affiche les deux versions quand elles diffèrent.
 
 ## Charger à la main (alternative à l'injection) { #loading-it-by-hand-alternative-to-inject }
 

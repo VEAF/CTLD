@@ -13,7 +13,8 @@ export const EN_STRINGS: Record<string, string> = {
   // ── chrome ──────────────────────────────────────────────────────
   'web.tagline': 'Configuration editor · helicopter logistics for DCS World',
   'web.header.config': 'Configuration',
-  'web.header.version': 'CTLD version',
+  'web.header.version': 'Config version',
+  'web.header.catalogue': 'Tool catalogue',
   'web.header.defaults': 'CTLD defaults',
   'web.lang.label': 'Language',
 
@@ -96,6 +97,15 @@ export const EN_STRINGS: Record<string, string> = {
   'web.gap.changed.one': '{n} default value changed',
   'web.gap.changed.many': '{n} default values changed',
   'web.gap.close': 'Continue',
+
+  // ── config completion ───────────────────────────────────────────
+  'web.completion.title.one': '{n} setting added from the catalogue',
+  'web.completion.title.many': '{n} settings added from the catalogue',
+  'web.completion.body':
+    'This configuration lacked these settings, so the tool added them with their default values. Nothing you had entered was changed. Undo any you do not want.',
+  'web.completion.versions': 'Configuration version {config} · this tool\'s catalogue {catalogue}',
+  'web.completion.undo': 'Undo',
+  'web.completion.dismiss': 'Dismiss',
 
   // ── table field headings ────────────────────────────────────────
   // Each restates the field's own schema description, so no meaning is invented.

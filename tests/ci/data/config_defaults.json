@@ -296,7 +296,7 @@
       "useNativeDcsCargoSystem": false
     }
   },
-  "configVersion": "2.0.0",
+  "configVersion": "2.1.0",
   "crateSpacing": 5,
   "crateSpawnGap": 0.5,
   "ctldLogPath": "",

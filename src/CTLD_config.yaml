@@ -2,7 +2,7 @@
 # Sections mm_facing / advanced are for readability; the generator merges them.
 # configVersion: the schema/catalogue version this document is authored against. A
 # configUser carries it too, so the tool can detect a version gap on a CTLD upgrade.
-configVersion: "2.0.0"
+configVersion: "2.1.0"
 mm_facing:
   AASystemCrateStacking: false
   AASystemLimitBLUE: 20
