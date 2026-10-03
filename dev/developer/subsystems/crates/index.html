@@ -2182,9 +2182,14 @@ position, coalition, spawn method, and the DCS <code>StaticObject</code> handle.
 <p>Two predicates gate menu actions. <code>isOnGround()</code> returns true only in <code>spawned</code> or <code>landed</code>
 state <strong>and</strong> verifies <code>dcsStatic:isExist()</code> when a static handle is present — this guards
 against crates destroyed by combat before an <code>S_EVENT_DEAD</code> could unregister them.
-<code>canUnpack()</code> combines <code>isOnGround()</code> with the <code>canBeUnpacked</code> flag. <code>isLoadedByCTLD()</code> returns
-true whenever the crate is <code>loaded</code>, covering both CTLD-menu loads and DCS-native loads migrated
-into CTLD; use <code>loadedByDCSNative</code> to distinguish the two.</p>
+<code>canUnpack()</code> combines <code>isOnGround()</code> with the <code>canBeUnpacked</code> flag. <code>isLoaded()</code> is true whenever the
+crate is <code>loaded</code>, whatever the loading mode. <code>isLoadedByCTLD()</code> is true only for a crate in <strong>virtual
+carry</strong> — loaded through the CTLD menu, or a DCS UI load handed over to CTLD (<code>convertNativeLoadToCTLD</code>) —
+never for a crate in <strong>native carry</strong> (<code>loadedByDCSNative</code>, still inside the aircraft through DCS's cargo
+system). CTLD's <em>Drop Crate(s)</em> and <em>Parachute Crates</em> actions and the weight CTLD adds to the aircraft use
+<code>isLoadedByCTLD()</code>: a native-carry crate is unloaded and parachuted through the DCS cargo UI, and DCS accounts
+for its weight itself, as it does for whole vehicles. <code>CTLDCrate:load()</code> clears <code>loadedByDCSNative</code>; the
+native entry path sets it right after.</p>
 <p>Each crate records its origin in <code>crate.spawnMethod</code>, one of <code>CTLDCrate.SPAWN_METHOD</code>:</p>
 <table>
 <thead>

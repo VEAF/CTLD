@@ -2186,9 +2186,14 @@ sous-jacent.</p>
 l'état <code>spawned</code> ou <code>landed</code> <strong>et</strong> vérifie <code>dcsStatic:isExist()</code> lorsqu'un handle de static est
 présent — cela protège contre les crates détruites au combat avant qu'un <code>S_EVENT_DEAD</code> n'ait pu
 les désenregistrer. <code>canUnpack()</code> combine <code>isOnGround()</code> avec le flag <code>canBeUnpacked</code>.
-<code>isLoadedByCTLD()</code> renvoie vrai dès que la crate est <code>loaded</code>, couvrant à la fois les loads via
-le menu CTLD et les loads natifs DCS migrés dans CTLD ; utilisez <code>loadedByDCSNative</code> pour
-distinguer les deux.</p>
+<code>isLoaded()</code> est vrai dès que la crate est <code>loaded</code>, quel que soit le mode de chargement.
+<code>isLoadedByCTLD()</code> n'est vrai que pour une crate en <strong>carry virtuel</strong> — chargée par le menu CTLD, ou un
+chargement par l'UI DCS repris par CTLD (<code>convertNativeLoadToCTLD</code>) — jamais pour une crate en <strong>carry natif</strong>
+(<code>loadedByDCSNative</code>, encore dans l'appareil par le système cargo de DCS). Les actions <em>Drop Crate(s)</em> et
+<em>Parachute Crates</em> de CTLD et le poids que CTLD ajoute à l'appareil utilisent <code>isLoadedByCTLD()</code> : une crate en
+carry natif se décharge et se parachute par l'UI cargo DCS, et DCS compte son poids lui-même, comme pour les
+véhicules entiers. <code>CTLDCrate:load()</code> remet <code>loadedByDCSNative</code> à zéro ; le chemin d'entrée natif le positionne
+juste après.</p>
 <p>Chaque crate enregistre son origine dans <code>crate.spawnMethod</code>, l'une des valeurs de
 <code>CTLDCrate.SPAWN_METHOD</code> :</p>
 <table>
