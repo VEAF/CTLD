@@ -1,6 +1,6 @@
 # 02 — aiZones collision comment rewritten, CHANGELOG and index finalized
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 

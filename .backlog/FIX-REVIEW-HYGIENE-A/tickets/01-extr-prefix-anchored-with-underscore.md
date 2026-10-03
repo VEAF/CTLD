@@ -1,6 +1,6 @@
 # 01 — EXTR_ scan matches the prefix with its underscore
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 

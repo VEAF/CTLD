@@ -973,10 +973,11 @@ function CTLDZoneManager:_loadAIZonesFromConfig()
     for i, entry in ipairs(entries) do
         local dzn = entry.dcsZoneName
         -- The name is already a registered troop zone: the discovered zone wins, as everywhere
-        -- else in this manager, and the AI entry is lost. Report it rather than drop it in
-        -- silence — it is reachable by accident, because `_discoverTRZ` registers a zone under
-        -- its *parsed* name, so `TRZ_dropzone1_B_0_nil_0` occupies the key `dropzone1` and an
-        -- entry pointing at a genuinely different ME zone called `dropzone1` collides with it.
+        -- else in this manager, and the AI entry is lost. Since ADR 0020 every auto-discovered
+        -- zone registers under its full DCS name, so this can no longer fire by accident on a
+        -- parsed sub-name — it now only catches a genuine duplicate of a full ME zone name.
+        -- Kept as a defensive check rather than removed: "DCS never allows two zones to share a
+        -- full name" is an assumption about the Mission Editor, not something this code asserts.
         -- Reported here rather than in `_validateZoneNames`, which runs before any discovery and
         -- would have to predict what discovery will claim: at this point `_troopZones` is fact.
         if dzn and not skip[dzn] and self._troopZones[dzn] then

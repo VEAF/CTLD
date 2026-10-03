@@ -1,6 +1,6 @@
 # FIX-REVIEW-HYGIENE-A — EXTR_ prefix matched without its underscore, and a stale aiZones comment
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 Formalizes two findings of the automated code review of `develop` (GitHub issues #237 and #239),
 grouped as the first, lowest-risk lot of that review. Both findings were re-read against the current
