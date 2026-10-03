@@ -1,6 +1,6 @@
 # FIX-TROOP-ZONE-ISALIVE-FILTER — troop zone queries ignore a zone whose anchor is gone
 
-**Status:** ⬜ ready
+**Status:** ✅ done (PR #NN)
 
 Formalizes the `dev/roadmap.md` entry "Zones de troupes — les requêtes ne filtrent pas `isAlive()`", itself
 raised by the automated code review of `develop` (issue #238) and left out of `FIX-DCS-OBJECT-NAME-COMPARISON`.

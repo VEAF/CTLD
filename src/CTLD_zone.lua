@@ -1484,7 +1484,7 @@ end
 function CTLDZoneManager:getTroopZonesForCoalition(coalition)
     local result = {}
     for _, zone in pairs(self._troopZones) do
-        if zone.active and (zone.coalition == coalition or zone.coalition == 0) then
+        if zone.active and zone:isAlive() and (zone.coalition == coalition or zone.coalition == 0) then
             result[#result + 1] = zone
         end
     end
@@ -1498,7 +1498,7 @@ end
 -- @return CTLDTroopZone or nil
 function CTLDZoneManager:getTroopZoneAtPoint(point, coalition)
     for _, zone in pairs(self._troopZones) do
-        if zone.active and not zone.isAIPickup
+        if zone.active and zone:isAlive() and not zone.isAIPickup
         and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition) then
             if zone:isInZone(point) then return zone end
         end
@@ -1521,7 +1521,7 @@ end
 -- @return CTLDTroopZone or nil
 function CTLDZoneManager:getWaypointZoneAt(point, coalition)
     for _, zone in pairs(self._troopZones) do
-        if zone.active and zone:hasWaypoint()
+        if zone.active and zone:isAlive() and zone:hasWaypoint()
         and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition)
         and zone:isInZone(point) then
             return zone
@@ -1540,7 +1540,7 @@ function CTLDZoneManager:getNearestWaypointZone(point, coalition)
     local best     = nil
     local bestDist = math.huge
     for _, zone in pairs(self._troopZones) do
-        if zone.active and zone:hasWaypoint()
+        if zone.active and zone:isAlive() and zone:hasWaypoint()
         and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition) then
             local dist = ctld.utils.getDistance("getNearestWaypointZone", point, zone:getCenter())
             if dist < bestDist then
@@ -1559,7 +1559,7 @@ end
 -- @return CTLDTroopZone or nil
 function CTLDZoneManager:getDropoffZoneAt(point, coalition)
     for _, zone in pairs(self._troopZones) do
-        if zone.active and zone:hasDropoff()
+        if zone.active and zone:isAlive() and zone:hasDropoff()
         and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition)
         and zone:isInZone(point) then
             return zone
@@ -1576,7 +1576,7 @@ end
 function CTLDZoneManager:getAIPickupZoneAt(point, coalition)
     local best, bestR = nil, math.huge
     for _, zone in pairs(self._troopZones) do
-        if zone.active and zone:hasAIPickup()
+        if zone.active and zone:isAlive() and zone:hasAIPickup()
         and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition)
         and zone:isInZone(point) then
             local r = zone.radius or math.huge
@@ -1594,7 +1594,7 @@ end
 function CTLDZoneManager:getAIDropoffZoneAt(point, coalition)
     local best, bestR = nil, math.huge
     for _, zone in pairs(self._troopZones) do
-        if zone.active and zone:hasAIDropoff()
+        if zone.active and zone:isAlive() and zone:hasAIDropoff()
         and (coalition == 0 or zone.coalition == 0 or zone.coalition == coalition)
         and zone:isInZone(point) then
             local r = zone.radius or math.huge
@@ -1692,7 +1692,7 @@ function CTLDZoneManager:isUnitInZone(unitName, zoneType)
     if not unit or not unit:isExist() then return nil end
     local pt = unit:getPoint()
     for _, zone in pairs(self._troopZones) do
-        if zone.active and zone:isInZone(pt) then
+        if zone.active and zone:isAlive() and zone:isInZone(pt) then
             if zoneType == "extract" then
                 if zone:hasExtract() then return zone end
             elseif zoneType == "pickup" then

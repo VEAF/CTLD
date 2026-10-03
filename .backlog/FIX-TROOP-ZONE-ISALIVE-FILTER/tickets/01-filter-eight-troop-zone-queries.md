@@ -1,6 +1,6 @@
 # 01 — Troop zone queries skip a zone whose anchor is gone
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 
