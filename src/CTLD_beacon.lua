@@ -752,10 +752,10 @@ end
 
 -- Idempotent: init() calls it when the pilot action is enabled, createAtPoint calls it for a
 -- scripted beacon placed in a mission where that action is off. Two loops would double every
--- transmission refresh.
+-- transmission refresh. The guard is the scheduler registry itself, so ctld.scheduler.cancelAll()
+-- lets the loop restart.
 function CTLDBeaconManager:_scheduleRefresh()
-    if self._refreshScheduled then return end
-    self._refreshScheduled = true
+    if ctld.scheduler._ids["beacon_refresh"] then return end
     local interval = ctld.gs("beaconRefreshInterval")
     local self_ref = self
     local function refresh(_, t)

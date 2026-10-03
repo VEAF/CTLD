@@ -22,7 +22,6 @@ describe("CTLDBeaconManager scripted beacon API", function()
         m._freeUHF, m._usedUHF = {}, {}
         m._freeFM,  m._usedFM  = {}, {}
         m:_buildFreqPools()
-        m._refreshScheduled = true   -- do not start a real timer loop in a unit test
         function m:_spawnBeaconUnit(point, countryId, displayName)
             spawnCount = spawnCount + 1
             local gname = "CTLDBeacon-test-" .. spawnCount
@@ -42,8 +41,13 @@ describe("CTLDBeaconManager scripted beacon API", function()
         }
     end
 
+    local origBeaconLoopId
+
     before_each(function()
         spawnCount, published, coalitionTexts = 0, {}, {}
+        -- A refresh loop is already registered: do not start a real timer loop in a unit test.
+        origBeaconLoopId = ctld.scheduler._ids["beacon_refresh"]
+        ctld.scheduler._ids["beacon_refresh"] = origBeaconLoopId or -1
 
         local dispatcher = EventDispatcher.getInstance()
         origPublish = dispatcher.publish
@@ -75,6 +79,7 @@ describe("CTLDBeaconManager scripted beacon API", function()
         trigger.action.outTextForCoalition     = origOutText
         ctld.gs                                = origGs
         ctld.utils.inAir                       = origInAir
+        ctld.scheduler._ids["beacon_refresh"]  = origBeaconLoopId
     end)
 
     it("returns a beacon carrying three usable, non-colliding frequencies", function()
