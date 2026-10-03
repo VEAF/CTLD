@@ -98,6 +98,26 @@ describe("CTLDCoreManager:_initExtractableGroups (INIT-E)", function()
             assert.equals(0, #tm._droppedGroups[coalition.side.BLUE])
         end)
 
+        it("does NOT match a name that starts with EXTR but lacks the underscore", function()
+            ctld.gs = function(k)
+                if k == "extractableGroups" then return {} end
+                return _origGs(k)
+            end
+            coalition.getGroups = function(side)
+                if side == coalition.side.BLUE then
+                    return { fakeGroup("EXTRACTION Alpha", coalition.side.BLUE),
+                             fakeGroup("EXTRACTION_Alpha", coalition.side.BLUE) }
+                elseif side == coalition.side.NEUTRAL then
+                    return { fakeGroup("EXTREME Recon 1", coalition.side.NEUTRAL) }
+                end
+                return {}
+            end
+
+            cm:_initExtractableGroups()
+            assert.equals(0, #tm._droppedGroups[coalition.side.BLUE])
+            assert.equals(0, #(tm._droppedGroups[coalition.side.NEUTRAL] or {}))
+        end)
+
         it("silently skips an EXTR_ group absent at init (isExist()==false)", function()
             ctld.gs = function(k)
                 if k == "extractableGroups" then return {} end
