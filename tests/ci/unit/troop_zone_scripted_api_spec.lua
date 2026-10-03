@@ -302,8 +302,10 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
             zm:createTroopZoneAtObject("Ship-1", "TRZ_dock_R_999_nil_0")
             assert.is_not_nil(zm:getTroopZone("TRZ_dock_R_999_nil_0"))
 
+            -- The event engine hands back a DCS object that is not guaranteed to be the one stored
+            -- at zone creation: use a distinct object carrying the same name.
             local fired = capture("OnTroopZoneUpdated", function()
-                zm:onDead({ initiator = u })
+                zm:onDead({ initiator = fakeNamedUnit("Ship-1", { x = 10, y = 0, z = 20 }) })
             end)
 
             assert.is_nil(zm:getTroopZone("TRZ_dock_R_999_nil_0"))
@@ -317,7 +319,7 @@ describe("CTLDZoneManager:createTroopZoneAtObject", function()
             zm:createTroopZoneAtObject("Convoy-1", "TRZ_convoy_B_999_nil_0")
             assert.is_not_nil(zm:getTroopZone("TRZ_convoy_B_999_nil_0"))
 
-            zm:onDead({ initiator = firstUnit })
+            zm:onDead({ initiator = fakeNamedUnit("Convoy-1-lead", { x = 5, y = 0, z = 5 }) })
 
             assert.is_nil(zm:getTroopZone("TRZ_convoy_B_999_nil_0"))
         end)
