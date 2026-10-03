@@ -1,6 +1,6 @@
 # 01 — Crates take the heading of the aircraft that spawned or dropped them
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 

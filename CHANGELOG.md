@@ -8,6 +8,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — crates stand parallel to the aircraft that spawned or dropped them (FIX-CRATE-ORIENTATION)
+
+- Every crate CTLD created was oriented due north: the heading was written as zero when the static object was created, and
+  again when a crate was dropped, whatever the aircraft's heading. A crate created for an aircraft now takes the aircraft's
+  geographic heading, so it stands parallel to it, for every type: crates requested (single or as a set, with or without a
+  declared spawn plan), crates produced by packing a vehicle or a scene, crates dropped from the menu or released below a
+  slingload. Crates with no aircraft (placed by the mission maker, landing from a parachute descent) keep their heading. No
+  position, distance or size changes.
+
 ### Fixed — Drop Crate(s) places crates by the same rule as Request Equipment (FIX-CRATE-DROP-PLACEMENT)
 
 - Crates requested for a native-cargo aircraft stand in a row just clear of its hull, within DCS's loading range (ADR
