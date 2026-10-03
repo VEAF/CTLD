@@ -1,6 +1,6 @@
 # 03 — Roadmap notes, CHANGELOG, finalization
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #243) · **Type:** AFK
 
 ## Parent
 
@@ -13,14 +13,14 @@
   bodies of the two crate loaded-state predicates), in the roadmap's own language and format.
 - `CHANGELOG.md` `[Unreleased]`: entry for the lot, behaviour fixes separated.
 - Rebuild `CTLD.lua`, confirm the i18n dictionaries are unchanged.
-- Index line `merged (PR #NN)` in the delivering PR; PRD and ticket statuses ✅.
+- Index line `merged (PR #243)` in the delivering PR; PRD and ticket statuses ✅.
 - PR to `develop` referencing `Fixes #236` and `Fixes #238`.
 
 ## Acceptance criteria
 
 - [ ] Roadmap entries present for the three items.
 - [ ] CHANGELOG entry present; dictionaries unchanged.
-- [ ] Index `merged (PR #NN)`; statuses ✅.
+- [ ] Index `merged (PR #243)`; statuses ✅.
 - [ ] luacheck clean; `busted` green; CI green.
 
 ## Blocked by

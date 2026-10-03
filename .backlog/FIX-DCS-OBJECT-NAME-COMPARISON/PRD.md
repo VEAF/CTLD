@@ -1,6 +1,6 @@
 # FIX-DCS-OBJECT-NAME-COMPARISON — compare DCS objects by name, and count crates on board one way
 
-**Status:** ✅ done (PR #NN)
+**Status:** ✅ done (PR #243)
 
 Formalizes GitHub issues #236 and #238 (automated code review of `develop`), re-read against the current code:
 both defects are still present. Lot C of the review follow-up, after `FIX-REVIEW-HYGIENE-A` and

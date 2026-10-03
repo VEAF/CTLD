@@ -1,6 +1,6 @@
 # 01 — Crates on board: one predicate, by name, one total capacity
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #243) · **Type:** AFK
 
 ## Parent
 
