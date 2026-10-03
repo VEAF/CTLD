@@ -1,6 +1,6 @@
 # 02 — Extra clearance for dropped crates, catalogue 2.2.0 and finalization
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #248) · **Type:** AFK
 
 ## Parent
 
@@ -16,7 +16,7 @@ and the default to `tests/ci/data/config_defaults.json`, the schema entry (label
 ctld-tools tests that assert the real catalogue's version.
 
 Finish the lot: ADR 0024 addendum, crate subsystem and catalogue docs (EN + FR), CHANGELOG, remove the roadmap
-entry, index line `merged (PR #NN)` and statuses done, open the PR (record that the default is not yet verified in the
+entry, index line `merged (PR #248)` and statuses done, open the PR (record that the default is not yet verified in the
 cockpit).
 
 ## Acceptance criteria
@@ -24,7 +24,7 @@ cockpit).
 - [ ] Extra-distance cases fail before the change and pass after it (test committed first).
 - [ ] `configVersion` 2.2.0, shape snapshot, defaults and schema entry present; ctld-tools version tests updated; CI
       green (ctld-tools quality gate, oracle drift guard, config specs).
-- [ ] ADR addendum, docs EN + FR, CHANGELOG entry, roadmap entry removed, index line `merged (PR #NN)`.
+- [ ] ADR addendum, docs EN + FR, CHANGELOG entry, roadmap entry removed, index line `merged (PR #248)`.
 - [ ] luacheck clean; `busted` green.
 
 ## Blocked by

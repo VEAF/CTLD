@@ -1,6 +1,6 @@
 # FIX-CRATE-DROP-PLACEMENT — Drop Crate(s) places crates by the same rule as Request Equipment
 
-**Status:** ✅ done (PR #NN)
+**Status:** ✅ done (PR #248)
 
 Formalizes the `dev/roadmap.md` entry "Caisses — « Drop Crate(s) » ne suit pas la règle de position du spawn natif",
 noticed in a live check on 2026-10-03 (UH-1H, crate dropped from the F10 menu landing elsewhere than a requested one).
