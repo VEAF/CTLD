@@ -299,12 +299,14 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
     end)
 
     -- FIX-NATIVE-CONVERSION-DOORS: a load through the DCS cargo UI is handed over to CTLD only once DCS has really released the
-    -- cargo, which it does only with the cargo-bay doors open (and only on the ground). With the doors closed the crate stays in
-    -- DCS-native carry — nothing is destroyed, so DCS is never left with an entry for a cargo that no longer exists — and the
-    -- pilot is told how to get it fitted with a parachute. CTLD retries the release while the aircraft is on the ground.
+    -- cargo, which it does only with the cargo-bay doors open and the aircraft on the ground (otherwise Unit:UnloadCargo is
+    -- ignored without an error). With the doors closed the crate stays in DCS-native carry — nothing is destroyed, so DCS is
+    -- never left with an entry for a cargo that no longer exists — and the pilot is told how to fit it with a parachute: the F10
+    -- "Fit parachute" action asks DCS for the release and completes the hand-over. Opening the doors alone does nothing, so a
+    -- pilot can still unload the crate from the DCS cargo UI.
     describe("hand-over needs the cargo bay doors", function()
 
-        local OPEN_DOORS = "Crate loaded. Open the doors before takeoff to fit it with a parachute."
+        local PLAYER = { unitName = "nc6_player", groupId = 9901, groupName = "G", coalition = coalition.side.BLUE }
 
         local function said(text)
             for _, m in ipairs(messages) do if m == text then return true end end
@@ -319,6 +321,11 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
             return crate
         end
 
+        local function fitParachute()
+            cm:fitParachute(PLAYER)
+            if scheduled[#scheduled] then scheduled[#scheduled].fn() end   -- the delayed check after the release request
+        end
+
         it("doors closed at loading: the crate is not handed over and stays in DCS-native carry", function()
             doorsOpen = false
             local crate = loadUh1hCrate("nd_a")
@@ -329,57 +336,91 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
             assert.is_not_nil(crate.dcsStatic)
         end)
 
-        it("doors closed at loading: tells the pilot to open the doors, not that the crate is parachute-ready", function()
+        it("doors closed at loading: explains how to fit a parachute, and does not say the crate is parachute-ready", function()
             doorsOpen = false
             loadUh1hCrate("nd_b")
             scheduled[1].fn()
-            assert.is_true(said(ctld.tr(OPEN_DOORS)))
+            assert.is_true(said(ctld.tr(
+                "Crate loaded. To fit it with a parachute: open the doors, then use F10 > CTLD > %1 > %2.",
+                ctld.tr("Crate Commands"), ctld.tr("Fit parachute"))))
             assert.is_false(said(ctld.tr("[CTLD] Crate loaded (parachute-ready): %1", "Ammo")))
         end)
 
-        it("the message is in French when the language is French", function()
+        it("the explanation is in French when the language is French", function()
             testLang = "fr"
             doorsOpen = false
             loadUh1hCrate("nd_c")
             scheduled[1].fn()
-            assert.is_true(said("Caisse chargée. Ouvrez les portes avant le décollage pour y ajouter un parachute."))
+            assert.is_true(said("Caisse chargée. Pour y ajouter un parachute : ouvrez les portes, puis F10 > CTLD > "
+                .. ctld.tr("Crate Commands") .. " > " .. ctld.tr("Fit parachute") .. "."))
         end)
 
-        it("doors opened afterwards, on the ground: the release is retried and the crate is handed over", function()
+        it("opening the doors alone does not hand the crate over: the pilot can still unload it from the DCS cargo UI", function()
             doorsOpen = false
             local crate = loadUh1hCrate("nd_d")
             scheduled[1].fn()
             local callsBefore = #unloadCalls
 
             doorsOpen = true
-            cm:_checkNativeDCSCargo()                      -- retry: DCS releases it now
-            assert.is_true(#unloadCalls > callsBefore)
+            cm:_checkNativeDCSCargo()
+            cm:_checkNativeDCSCargo()
+            assert.equals(callsBefore, #unloadCalls, "CTLD does not ask DCS for a release by itself")
             assert.same({}, loadCrateCalls)
-            cm:_checkNativeDCSCargo()                      -- the release is seen: hand-over
-            assert.same({ "nd_d" }, loadCrateCalls)
+
+            cargoList = {}                                 -- the pilot unloads it from the DCS cargo UI
+            cm:_checkNativeDCSCargo()
+            assert.equals(CTLDCrate.STATE.LANDED, crate.state)
+            assert.equals(1, #unloaded)
+            assert.equals("dcs_native", unloaded[1].method)
+            assert.same({}, loadCrateCalls)
+        end)
+
+        it("Fit parachute with the doors open: DCS releases the cargo and the crate is handed over", function()
+            doorsOpen = false
+            local crate = loadUh1hCrate("nd_e")
+            scheduled[1].fn()
+            doorsOpen = true
+
+            fitParachute()
+
+            assert.same({ "nd_e" }, loadCrateCalls)
             assert.is_false(crate.loadedByDCSNative)
             assert.is_true(said(ctld.tr("[CTLD] Crate loaded (parachute-ready): %1", "Ammo")))
         end)
 
-        it("takeoff with the doors closed: CTLD stops retrying and the crate stays native", function()
+        it("Fit parachute with the doors closed: nothing is destroyed and the pilot is asked to open them", function()
             doorsOpen = false
-            local crate = loadUh1hCrate("nd_e")
+            local crate = loadUh1hCrate("nd_f")
             scheduled[1].fn()
 
+            fitParachute()
+
+            assert.same({}, loadCrateCalls)
+            assert.is_true(crate.loadedByDCSNative)
+            assert.is_true(said(ctld.tr("The cargo bay doors are closed: open them, then use Fit parachute again.")))
+            -- and it can be tried again once the doors are open
+            doorsOpen = true
+            fitParachute()
+            assert.same({ "nd_f" }, loadCrateCalls)
+        end)
+
+        it("Fit parachute does nothing in flight: DCS does not release a cargo there", function()
+            doorsOpen = false
+            local crate = loadUh1hCrate("nd_g")
+            scheduled[1].fn()
             airborne = true
-            cm:_checkNativeDCSCargo()
-            local callsInFlight = #unloadCalls
-            doorsOpen = true                                -- opened in flight: DCS would release, but CTLD no longer asks
-            cm:_checkNativeDCSCargo()
-            cm:_checkNativeDCSCargo()
-            assert.equals(callsInFlight, #unloadCalls)
+            local callsBefore = #unloadCalls
+
+            cm:fitParachute(PLAYER)
+
+            assert.equals(callsBefore, #unloadCalls)
             assert.same({}, loadCrateCalls)
             assert.is_true(crate.loadedByDCSNative)
         end)
 
         it("an unreadable on-board list when verifying counts as still on board: nothing is destroyed", function()
             doorsOpen = true                                -- DCS does release it
-            local crate = loadUh1hCrate("nd_f")
+            local crate = loadUh1hCrate("nd_h")
             listFails = true
             scheduled[1].fn()
             assert.same({}, loadCrateCalls)
@@ -388,15 +429,14 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
 
         it("doors open at loading: handed over after the delay, as before", function()
             doorsOpen = true
-            local crate = loadUh1hCrate("nd_g")
+            local crate = loadUh1hCrate("nd_i")
             scheduled[1].fn()
-            assert.same({ "nd_g" }, loadCrateCalls)
+            assert.same({ "nd_i" }, loadCrateCalls)
             assert.is_false(crate.loadedByDCSNative)
             assert.is_true(said(ctld.tr("[CTLD] Crate loaded (parachute-ready): %1", "Ammo")))
         end)
 
     end)
-
     -- FIX-NATIVE-CRATE-MESSAGES-I18N: the four player messages go through ctld.tr, so a French pilot
     -- reads French. makeCrate's descriptor label is "Ammo".
     describe("player messages are translated", function()
