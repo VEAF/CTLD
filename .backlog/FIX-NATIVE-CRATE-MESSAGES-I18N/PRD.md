@@ -1,6 +1,6 @@
 # FIX-NATIVE-CRATE-MESSAGES-I18N — the four native-crate player messages are not translated
 
-**Status:** ✅ done (PR #NN)
+**Status:** ✅ done (PR #246)
 
 Formalizes the `dev/roadmap.md` entry "Caisses — message anglais en dur « Crate loaded (parachute-ready) »",
 raised by the automated code review of `develop` (issue #236) and left out of

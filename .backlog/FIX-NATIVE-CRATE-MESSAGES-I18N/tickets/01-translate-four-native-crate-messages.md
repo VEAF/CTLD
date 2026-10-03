@@ -1,6 +1,6 @@
 # 01 — Translate the four native-crate player messages
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #246) · **Type:** AFK
 
 ## Parent
 
@@ -17,13 +17,13 @@ conversion, a ground release and an in-flight release each show the exact French
 English control keeps the English text. Watch them fail, then fix.
 
 Finish the lot: rebuild `CTLD.lua` (the build adds the keys), fill the translations, remove the roadmap entry,
-add the CHANGELOG entry, set the index line to `merged (PR #NN)` and the statuses to done, open the PR.
+add the CHANGELOG entry, set the index line to `merged (PR #246)` and the statuses to done, open the PR.
 
 ## Acceptance criteria
 
 - [ ] The French cases fail before the change and pass after it (test committed first); English unchanged.
 - [ ] Four keys present and translated in EN, FR, ES and KO; CI dictionary guard green.
-- [ ] Roadmap entry removed, CHANGELOG entry added, index line `merged (PR #NN)`.
+- [ ] Roadmap entry removed, CHANGELOG entry added, index line `merged (PR #246)`.
 - [ ] luacheck clean; `busted` green.
 
 ## Blocked by
