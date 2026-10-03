@@ -12,7 +12,7 @@ packages = [{ include = "ctld_tools" }]
 python = "^3.11"
 typer = ">=0.12,<1"
 "ruamel.yaml" = ">=0.18,<1.0"
-rich = ">=13.0,<15"
+rich = ">=13.0,<16"
 # Local web app (CTLD-TOOLS-WEBAPP): FastAPI backend + uvicorn server, shipped in the exe.
 fastapi = ">=0.110,<1"
 uvicorn = ">=0.29,<1"
