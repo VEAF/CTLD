@@ -1,6 +1,6 @@
 # 01 — Crates take the heading of the aircraft that spawned or dropped them
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #249) · **Type:** AFK
 
 ## Parent
 
@@ -23,7 +23,7 @@ in game).
 
 - [ ] New cases fail before the change and pass after it (test committed first).
 - [ ] No position, distance or size changes; existing spawn, layout, drop and parachute specs pass unchanged.
-- [ ] CHANGELOG entry, index line `merged (PR #NN)`, statuses done; luacheck clean; `busted` green.
+- [ ] CHANGELOG entry, index line `merged (PR #249)`, statuses done; luacheck clean; `busted` green.
 
 ## Blocked by
 

@@ -1,6 +1,6 @@
 # FIX-CRATE-ORIENTATION — crates stand parallel to the aircraft that spawned or dropped them
 
-**Status:** ✅ done (PR #NN)
+**Status:** ✅ done (PR #249)
 
 Raised by the maintainer during the live check of `FIX-CRATE-DROP-PLACEMENT` on 2026-10-03 (UH-1H): a requested crate
 was not parallel to the helicopter. Scope stated by the maintainer: every aircraft, not only helicopters.
