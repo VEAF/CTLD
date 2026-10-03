@@ -302,13 +302,6 @@ function CTLDCrateManager.getInstance()
         -- LGZ ground-position poller (10s tick): refreshes Request Equipment only
         -- when the player's logistic zone set changes (entry/exit). Avoids rebuilding
         -- the DCS menu on a fixed cadence, which would eject players from sub-menus.
-        local function _lgzZoneKey(zones)
-            if not next(zones) then return "" end
-            local names = {}
-            for _, z in ipairs(zones) do names[#names + 1] = z:registryKey() end
-            table.sort(names)
-            return table.concat(names, ",")
-        end
         local function _lgzGroundPoll(_, t)
             local pm_ref = CTLDPlayerManager.getInstance()
             local cm_ref = CTLDCrateManager.getInstance()
@@ -319,7 +312,7 @@ function CTLDCrateManager.getInstance()
                     if unit and unit:isExist() and not ctld.utils.inAir(unit) then
                         local zones  = zm_ref:getLogisticZonesAtPoint(
                             unit:getPoint(), pObj.coalition, "cratesPickup")
-                        local newKey = _lgzZoneKey(zones)
+                        local newKey = ctld._lgzZoneKey(zones)
                         if pObj._lgzKey ~= newKey then
                             pObj._lgzKey = newKey
                             cm_ref:refreshRequestEquipmentSection(pObj)
@@ -2876,6 +2869,15 @@ local function _crateIsJTAC(desc)
     return false
 end
 
+--- Key of a set of logistics zones ("" when none), used to tell whether the zones at a position changed.
+function ctld._lgzZoneKey(zones)
+    if not next(zones) then return "" end
+    local names = {}
+    for _, z in ipairs(zones) do names[#names + 1] = z:registryKey() end
+    table.sort(names)
+    return table.concat(names, ",")
+end
+
 --- Build "Request Equipment" + "Crate Commands" F10 submenus for a player.
 -- Requires enableCrates = true (configKey gate) AND unitActions.crates = true.
 -- Sub-entries:
@@ -2911,6 +2913,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
 
     local zm      = CTLDZoneManager.getInstance()
     local lgZones = zm:getLogisticZonesAtPoint(transport:getPoint(), playerObj.coalition, "cratesPickup")
+    playerObj._lgzKey = ctld._lgzZoneKey(lgZones)  -- what this section shows: the poller rebuilds only on a change from it
 
     if not next(lgZones) then
         menu:addCommand({ root, spawnSub }, ctld.tr("No logistics in range"),

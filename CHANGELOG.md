@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — the logistics poller no longer blanks the F10 menu on its first pass (FIX-LGZ-POLL-FIRST-OBSERVATION)
+
+- The 10 s ground poller rebuilt a player's *Request Equipment* section whenever the logistics zones at the aircraft differed from its last
+  record, and that record was empty when the player entered the aircraft: its first pass saw a change that had not happened. The rebuild is
+  ambient (the CTLD menu is wiped for 4 s, ADR 0015), so a click in the first seconds after entering an aircraft did nothing. The section now
+  records the zones it was built for, and the poller rebuilds only when they really change (a zone entered or left). The 4 s ambient delay and
+  the other ambient refreshes are unchanged.
+
 ### Fixed — a DCS cargo-UI load is handed over to CTLD only once DCS has released it (FIX-NATIVE-CONVERSION-DOORS)
 
 - On a type with `convertNativeLoadToCTLD` (UH-1H, CH-47Fbl1), CTLD asked DCS to release a crate loaded through the cargo UI, waited
