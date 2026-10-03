@@ -1,6 +1,6 @@
 # 03 — Beacon refresh loop: idempotence read from the registry
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #244) · **Type:** AFK
 
 ## Parent
 

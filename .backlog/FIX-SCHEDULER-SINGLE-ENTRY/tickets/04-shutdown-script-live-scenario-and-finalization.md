@@ -1,6 +1,6 @@
 # 04 — Shutdown script, live scenario, docs and finalization
 
-**Status:** ✅ done (PR #NN) · **Type:** HITL (live DCS validation by the developer)
+**Status:** ✅ done (PR #244) · **Type:** HITL (live DCS validation by the developer)
 
 ## Parent
 
@@ -15,7 +15,7 @@
   check the real CTLD loops no longer run; F-139.4 passes.
 - Developer documentation: describe the single entry point and the rule enforced by the guard spec.
 - `CHANGELOG.md` `[Unreleased]` entry; rebuild `CTLD.lua`, confirm the i18n dictionaries are unchanged;
-  index line `merged (PR #NN)`; PRD and tickets ✅; PR referencing `Fixes #234`.
+  index line `merged (PR #244)`; PRD and tickets ✅; PR referencing `Fixes #234`.
 - Run the scenario live (mission reloaded on the built `CTLD.lua`, `run_scenarios.py`, never the MCP) and
   record the result in the PR.
 

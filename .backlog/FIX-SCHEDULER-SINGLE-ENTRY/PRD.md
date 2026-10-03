@@ -1,6 +1,6 @@
 # FIX-SCHEDULER-SINGLE-ENTRY — one entry point for every timer, so `cancelAll()` cancels everything
 
-**Status:** ✅ done (PR #NN)
+**Status:** ✅ done (PR #244)
 
 Formalizes GitHub issue #234 (automated code review of `develop`), re-read against the current code: the
 defect is still present. Last lot of the review follow-up, after `FIX-REVIEW-HYGIENE-A`,

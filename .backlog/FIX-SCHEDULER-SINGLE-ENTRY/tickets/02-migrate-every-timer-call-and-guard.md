@@ -1,6 +1,6 @@
 # 02 — Every timer call goes through the scheduler, enforced by a guard test
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #244) · **Type:** AFK
 
 ## Parent
 
