@@ -8,6 +8,20 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a DCS cargo-UI load is handed over to CTLD only once DCS has released it (FIX-NATIVE-CONVERSION-DOORS)
+
+- On a type with `convertNativeLoadToCTLD` (UH-1H, CH-47Fbl1), CTLD asked DCS to release a crate loaded through the cargo UI, waited
+  0.5 s and destroyed its static object. Measured live on the UH-1H: DCS releases a cargo only with the **cargo-bay doors open and the
+  aircraft on the ground**; with the doors closed (the usual case when loading) or in flight, the request returns success and does
+  nothing. CTLD destroyed the crate anyway, leaving DCS with an entry for a cargo that no longer existed: its cargo window kept listing
+  the crate, the displayed weight stayed above the maximum, and the single cargo slot stayed taken, so the next load was refused with
+  "FAILED TO LOAD CARGO". CTLD now checks that the cargo has left the on-board list before taking the crate over (an unreadable list
+  counts as "still on board"). If DCS did not release it, the crate stays in DCS-native carry and the pilot is told "Crate loaded. To fit
+  it with a parachute: open the doors, then use F10 > CTLD > Crate Commands > Fit parachute." (translated FR, ES, KO).
+- **New F10 action *Fit parachute*** (types with `convertNativeLoadToCTLD`): offered only while such a crate waits and the aircraft is
+  on the ground, it asks DCS for the release and hands the crate over to CTLD once DCS has released it; with the doors closed it asks
+  the pilot to open them and can be used again. Opening the doors alone does nothing, so a crate can still be unloaded from the DCS
+  cargo UI. See ADR 0026 (and ADR 0025 for the rule that CTLD's actions apply to virtual carry only).
 ### Fixed — a failed equipment request tells the pilot and the log (FIX-REQUEST-EQUIPMENT-SILENT-FAILURE)
 
 - A *Request Equipment* click that produced nothing did nothing at all: no message to the pilot and no log line, so a failed

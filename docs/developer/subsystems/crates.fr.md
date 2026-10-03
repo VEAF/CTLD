@@ -163,9 +163,21 @@ Le tick retourne aussitôt quand aucune caisse n'est suivie.
   ignorées avec une trace debug ; l'entrée compagnon `CRG:` d'un véhicule relève du scan des véhicules. Une
   liste illisible journalise un avertissement pour le type et le type n'est plus surveillé.
 - **Conversion :** pour un type avec `convertNativeLoadToCTLD` (UH-1H et CH-47Fbl1 par défaut), l'apparition
-  déclenche la passation : `UnloadCargo` libère le chargement DCS et, 0,5 s plus tard, `loadCrate` la charge
-  comme caisse CTLD. La caisse reste listée pendant ce délai ; `_convertingCrates` la marque donc comme en
-  cours de conversion et elle n'est traitée qu'une fois.
+  déclenche la passation : `UnloadCargo` demande à DCS de libérer le chargement et, 0,5 s plus tard, CTLD vérifie
+  que la cargaison a quitté la liste de bord avant que `loadCrate` la charge comme caisse CTLD (statique
+  détruite). La caisse reste listée pendant ce délai ; `_convertingCrates` la marque donc comme en cours de
+  conversion et elle n'est traitée qu'une fois. **DCS ne libère une cargaison que portes de soute ouvertes et
+  appareil au sol** (mesuré sur l'UH-1H : portes fermées, ou en vol même en stationnaire, `UnloadCargo` renvoie
+  un succès et ne fait rien), donc CTLD ne détruit jamais une caisse que DCS tient encore — ce qui laissait DCS
+  avec une entrée pour une cargaison disparue (un « fantôme » dans sa fenêtre cargo, le poids au-dessus du
+  maximum, l'emplacement pris). Si la cargaison est toujours à bord (ou si la liste est illisible), la caisse
+  reste en carry natif DCS, marquée `_awaitingHandOver`, et le pilote est invité à ajouter le parachute.
+  L'action F10 *Ajouter le parachute* (`fitParachute`, proposée par `refreshCrateFlightSection` tant que
+  `cratesAwaitingHandOver` n'est pas vide et que l'appareil est au sol) demande la libération à DCS, marque la
+  caisse dans `_convertingCrates` pour que la libération ne soit pas traitée comme un déchargement natif, et
+  termine la passation (`_completeHandOver`) quand la cargaison a quitté la liste ; portes fermées, le pilote est
+  invité à les ouvrir et peut réutiliser l'action. Ouvrir les portes seul ne fait rien : une caisse peut donc
+  toujours être déchargée par l'UI cargo DCS (ADR 0026).
 - **Libération :** une caisse en carry natif qui a quitté la liste de son transport est libérée
   (`OnCrateUnloaded`, `method = "dcs_native"`) : `LANDED` transport au sol, `FALLING` avec `fromParachute` si
   `ctld.utils.inAir(transport)`, puis suivie jusqu'au sol par `_scheduleParachuteLandingPoll`

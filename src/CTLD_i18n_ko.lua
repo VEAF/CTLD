@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.23"
+ctld.i18n["ko"].translation_version = "1.25"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -468,3 +468,11 @@ ctld.i18n["ko"]["[CTLD] Crate unloaded (DCS native): %1"] = "[CTLD] 화물 하�
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
 ctld.i18n["ko"]["Request failed: the equipment could not be brought out."] = "요청 실패: 장비를 꺼낼 수 없습니다."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
+-- STALE: ctld.i18n["ko"]["Crate loaded. Open the doors before takeoff to fit it with a parachute."] = "화물 적재됨. 이륙 전에 문을 열어 낙하산을 장착하세요."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
+ctld.i18n["ko"]["Crate loaded. To fit it with a parachute: open the doors, then use F10 > CTLD > %1 > %2."] = "화물 적재됨. 낙하산을 장착하려면 문을 연 다음 F10 > CTLD > %1 > %2 를 사용하세요."
+ctld.i18n["ko"]["Fit parachute"] = "낙하산 장착"
+ctld.i18n["ko"]["The cargo bay doors are closed: open them, then use Fit parachute again."] = "화물칸 문이 닫혀 있습니다. 문을 연 다음 낙하산 장착을 다시 사용하세요."

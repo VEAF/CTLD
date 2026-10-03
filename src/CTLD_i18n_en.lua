@@ -15,7 +15,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.23"
+ctld.i18n["en"].translation_version = "1.25"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -582,3 +582,11 @@ ctld.i18n["en"]["[CTLD] Crate unloaded (DCS native): %1"] = "[CTLD] Crate unload
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
 ctld.i18n["en"]["Request failed: the equipment could not be brought out."] = "Request failed: the equipment could not be brought out."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
+-- STALE: ctld.i18n["en"]["Crate loaded. Open the doors before takeoff to fit it with a parachute."] = "Crate loaded. Open the doors before takeoff to fit it with a parachute."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
+ctld.i18n["en"]["Crate loaded. To fit it with a parachute: open the doors, then use F10 > CTLD > %1 > %2."] = "Crate loaded. To fit it with a parachute: open the doors, then use F10 > CTLD > %1 > %2."
+ctld.i18n["en"]["Fit parachute"] = "Fit parachute"
+ctld.i18n["en"]["The cargo bay doors are closed: open them, then use Fit parachute again."] = "The cargo bay doors are closed: open them, then use Fit parachute again."
