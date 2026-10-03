@@ -1,6 +1,6 @@
 # FIX-NATIVE-CRATE-CTLD-ACTIONS — CTLD's unload, parachute and weight apply to virtual-carry crates only
 
-**Status:** ✅ done (PR #NN)
+**Status:** ✅ done (PR #247)
 
 Formalizes two `dev/roadmap.md` entries raised by the automated code review of `develop` (issue #236): "Cargo natif
 — menus F10 des caisses natives" and "Caisses — `isLoaded()` et `isLoadedByCTLD()` ont des corps identiques".

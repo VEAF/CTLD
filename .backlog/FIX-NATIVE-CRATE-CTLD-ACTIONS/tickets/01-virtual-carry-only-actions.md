@@ -1,6 +1,6 @@
 # 01 — Unload, parachute and weight apply to virtual-carry crates only
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #247) · **Type:** AFK
 
 ## Parent
 
