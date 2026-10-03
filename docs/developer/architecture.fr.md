@@ -175,3 +175,20 @@ Fonctions clés disponibles sous `ctld.utils.*` :
 | `buildWP(caller, pt, type, speed)` | Construit une table de waypoint DCS |
 | `getSecureDistanceFromUnit(unitName)` | Rayon minimal de dégagement de spawn depuis la bbox d'une unit |
 | `dynAddStatic(coalitionId, data)` | Wrapper de `coalition.addStaticObject` avec résolution du pays |
+
+### `ctld.scheduler` — la seule façon de planifier un timer
+
+Tout timer planifié par CTLD passe par `ctld.scheduler.schedule(fn, arg, t)`, un remplacement terme à terme de
+`timer.scheduleFunction` qui mémorise l'id de chaque timer en attente. N'appelez jamais `timer.scheduleFunction`
+directement dans `src/` : un spec de garde busted (`scheduler_guard_spec.lua`) échoue si vous le faites, car un
+timer inconnu du registre survit à un arrêt et, se réveillant par `getInstance()`, tourne par-dessus l'instance
+suivante (un poll de hover au double de son rythme, fumée, recon et illumination JTAC doublés).
+
+| Fonction | Rôle |
+| --- | --- |
+| `schedule(fn, arg, t)` | Planifie `fn` comme DCS ; renvoie l'id de fonction. Une valeur de retour numérique replanifie le même id (il reste en attente), toute autre valeur termine la chaîne |
+| `register(name, id)` | Nomme une boucle ; enregistrer à nouveau le même nom annule l'id précédent (garde contre le double démarrage) |
+| `cancel(name)` | Annule une boucle nommée |
+| `cancelAll()` | Annule tout timer en attente, nommé ou non, et journalise combien (injecter `tests/dcs/util/shutdown_ctld.lua`) |
+
+`cancelAll()` arrête toutes les boucles CTLD de la mission en cours : rechargez la mission (`Shift+R`) ensuite.

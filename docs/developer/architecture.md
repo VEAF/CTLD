@@ -170,3 +170,20 @@ Key functions available as `ctld.utils.*`:
 | `buildWP(caller, pt, type, speed)` | Build a DCS waypoint table |
 | `getSecureDistanceFromUnit(unitName)` | Minimum spawn clearance radius from a unit's bbox |
 | `dynAddStatic(coalitionId, data)` | `coalition.addStaticObject` wrapper with country resolution |
+
+### `ctld.scheduler` — the only way to schedule a timer
+
+Every timer CTLD schedules goes through `ctld.scheduler.schedule(fn, arg, t)`, a one-for-one replacement of
+`timer.scheduleFunction` that records the id of each pending timer. Never call `timer.scheduleFunction`
+directly in `src/`: a busted guard spec (`scheduler_guard_spec.lua`) fails if you do, because a timer the
+registry does not know about survives a shutdown and, waking up through `getInstance()`, runs on top of the
+next instance (a hover poll at twice its rate, doubled smoke, recon and JTAC lasing).
+
+| Function | Purpose |
+| --- | --- |
+| `schedule(fn, arg, t)` | Schedule `fn` like DCS does; returns the function id. A numeric return value reschedules the same id (it stays pending), anything else ends the chain |
+| `register(name, id)` | Name a loop; registering the same name again cancels the previous id (double-start guard) |
+| `cancel(name)` | Cancel one named loop |
+| `cancelAll()` | Cancel every pending timer, named or not, and log how many (inject `tests/dcs/util/shutdown_ctld.lua`) |
+
+`cancelAll()` stops every CTLD loop of the live mission: reload the mission (`Shift+R`) afterwards.

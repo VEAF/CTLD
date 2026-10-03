@@ -156,8 +156,11 @@ steps[1] = function()
         type(ctld.scheduler._ids) == "table")
 
     -- F-135.3 : register stores an ID
-    local _savedIds = ctld.scheduler._ids
-    ctld.scheduler._ids = {}   -- isolated sandbox
+    -- Isolated sandbox: cancelAll() cancels every pending CTLD timer, so the pending set is
+    -- swapped too, or it would sweep up the live mission's own loops.
+    local _savedIds     = ctld.scheduler._ids
+    local _savedPending = ctld.scheduler._pending
+    ctld.scheduler._ids, ctld.scheduler._pending = {}, {}
 
     local removeCalled = {}
     local _origSchedule = timer.scheduleFunction
@@ -203,7 +206,7 @@ steps[1] = function()
     -- Restore
     timer.scheduleFunction = _origSchedule
     timer.removeFunction   = _origRemove
-    ctld.scheduler._ids    = _savedIds
+    ctld.scheduler._ids, ctld.scheduler._pending = _savedIds, _savedPending
 
     waitThen(1, advanceStep)
 end

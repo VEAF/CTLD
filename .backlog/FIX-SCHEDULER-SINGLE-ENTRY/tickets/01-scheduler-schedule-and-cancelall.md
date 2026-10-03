@@ -1,6 +1,6 @@
 # 01 — `ctld.scheduler.schedule` and a `cancelAll()` that cancels everything pending
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 

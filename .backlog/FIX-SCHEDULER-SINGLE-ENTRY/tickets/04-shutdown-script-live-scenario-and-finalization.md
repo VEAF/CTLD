@@ -1,6 +1,6 @@
 # 04 — Shutdown script, live scenario, docs and finalization
 
-**Status:** ⬜ ready · **Type:** HITL (live DCS validation by the developer)
+**Status:** ✅ done (PR #NN) · **Type:** HITL (live DCS validation by the developer)
 
 ## Parent
 
