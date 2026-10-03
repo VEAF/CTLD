@@ -1,6 +1,6 @@
 # 01 — One placement rule shared by Request Equipment and Drop Crate(s)
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 

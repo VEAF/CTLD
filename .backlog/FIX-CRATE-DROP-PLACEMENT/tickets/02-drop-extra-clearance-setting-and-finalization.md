@@ -1,6 +1,6 @@
 # 02 — Extra clearance for dropped crates, catalogue 2.2.0 and finalization
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 

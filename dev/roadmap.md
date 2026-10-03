@@ -285,12 +285,3 @@ Quatre tests (`test_install`, `test_inject_into_miz`) échouent en local quand `
 été réexportée par ctld-tools (elle porte alors déjà un moteur et des sons, `replacedPrevious` vaut vrai), alors
 qu'ils passent contre la version commitée utilisée par le CI. Idée : les faire partir d'une copie « pristine »
 comme le fait déjà la fixture `pristine_miz`, ou d'une fixture minimale indépendante de la mission de dev.
-
-## Caisses — « Drop Crate(s) » ne suit pas la règle de position du spawn natif
-
-Constaté en jeu le 2026-10-03 (UH-1H, caisse chargée par l'UI DCS puis reprise par CTLD). *Request Equipment* place les caisses d'un
-type qui déclare un plan de spawn selon la distance à la coque (ADR 0024, `getCrateSpawnPlan`) ; *Drop Crate(s)* utilise
-toujours l'ancienne règle (distance de sécurité + 5 m, axe tiré au hasard, `CTLD_crate.lua` au point d'appel de
-`getSpawnObjectPositions`) et ne consulte jamais le plan. La caisse déposée n'atterrit donc pas au même endroit que celle
-demandée. À cadrer : faire suivre le plan de spawn au largage, et vérifier ce que cela donne pour un type sans plan.
-

@@ -66,3 +66,18 @@ collision shell it can be read from) and then checked in a live mission.
 - The CH-47F and the Mi-24P values come from their collision shell only (the project owner has neither
   module): unverified in game.
 - Reverting to the UserBox rule is a configuration change (remove the fields), not a code change.
+
+## Addendum 1 — Drop Crate(s) follows the same rule (2026-10-03, lot `FIX-CRATE-DROP-PLACEMENT`)
+
+The decision above only reached crates requested or produced by packing. **Drop Crate(s)** kept the older radial rule
+(the secure distance plus 5 m, no anti-collision), so on a native-cargo helicopter a crate dropped from the F10 menu
+landed 20 m or more away, outside the range from which DCS loads a crate through its cargo UI, and could land inside
+another aircraft's volume. It now uses the same placement: a row at the declared distance for a type that declares
+a plan, the radial rule otherwise, both with the anti-collision, one crate size per crate.
+
+A dropped row is placed `crateDropExtraDistance` (default 2 m, setting added in catalogue 2.2.0) farther than a
+requested one, **for a type with a plan only** (the radial rule already stands crates 20 m or more away). The aircraft
+has just landed and must be able to taxi away, or lift off for a helicopter, without touching the crates it has just
+dropped; the requested row is unchanged. The value is bounded by the loading range (8 m loaded, 23 m refused on the
+Mi-8MT): with the declared distances (UH-1H 3.0 m, Mi-8MT 4.0 m) a dropped row stands at 5.0 and 6.0 m. The default
+is a first estimate: it has not been confirmed in game yet, and `0` restores the requested position.

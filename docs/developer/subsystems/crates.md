@@ -114,6 +114,13 @@ plan picks the side at random; `ctld.utils.positionsInsideAnyBBox` flips it when
 another aircraft's volume, and the first side is kept when both are taken. The single crate of Request
 Equipment goes through the same path. A type without a plan keeps the radial rule above.
 
+The placement is two routines shared with **Drop Crate(s)**: `_planCratePositions` (the row, with the other-side
+anti-collision) and `_radialCratePositions` (the radial rule, with its anti-collision). The Drop callback asks
+`getCrateDropPositions(transport, crates)` for the positions of the crates it drops, one size per crate
+(`crate.modelKey`), so a dropped crate stands where a requested one would and can be loaded again through the DCS
+cargo UI. For a type with a plan the row is `crateDropExtraDistance` (default 2 m) farther than a requested one, so
+the aircraft can taxi away or lift off without touching the crates it has just dropped.
+
 ## Lifecycle transitions on the manager
 
 The manager mirrors the entity transitions and owns event publication:
