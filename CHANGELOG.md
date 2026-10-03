@@ -8,6 +8,21 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — CTLD unload, parachute and weight apply to virtual-carry crates only (FIX-NATIVE-CRATE-CTLD-ACTIONS)
+
+- A crate loaded through the DCS cargo UI (native carry) is unloaded and parachuted through the DCS cargo UI, and DCS
+  accounts for its weight itself — as it already did for whole vehicles. The crate code did not follow that rule:
+  *Drop Crate(s)* dropped native crates (creating a duplicate object on the ground while the original stayed in the
+  hold), *Parachute Crates* was enabled by them and destroyed their DCS object, and CTLD added their weight on top of
+  DCS's own. `CTLDCrate:isLoadedByCTLD()`, which had the same body as `isLoaded()`, now means "loaded in virtual carry"
+  (loaded through the CTLD menu, or handed over to CTLD by `convertNativeLoadToCTLD`); the Drop, Parachute and weight
+  code use it. Measured in a live C-130J-30: with a native crate on board CTLD used to push its 1000 kg to
+  `setUnitInternalCargo`, raising the displayed total by a further 2205 lb; it now pushes 0 and the display no longer
+  moves.
+- Loading a crate now clears `loadedByDCSNative`, so a crate released natively and later loaded through the menu is
+  not hidden from CTLD's actions by a stale flag. The parachute branch that destroyed a native crate's DCS object is
+  removed. Virtual-carry crates, whole vehicles, troops, slingload and native release detection are unchanged.
+
 ### Fixed — the four native-crate player messages are translated (FIX-NATIVE-CRATE-MESSAGES-I18N)
 
 - When a crate is loaded into or released from an aircraft through DCS's own cargo UI, CTLD's on-screen messages

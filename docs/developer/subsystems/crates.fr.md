@@ -37,9 +37,14 @@ Deux prédicats conditionnent les actions de menu. `isOnGround()` renvoie vrai u
 l'état `spawned` ou `landed` **et** vérifie `dcsStatic:isExist()` lorsqu'un handle de static est
 présent — cela protège contre les crates détruites au combat avant qu'un `S_EVENT_DEAD` n'ait pu
 les désenregistrer. `canUnpack()` combine `isOnGround()` avec le flag `canBeUnpacked`.
-`isLoadedByCTLD()` renvoie vrai dès que la crate est `loaded`, couvrant à la fois les loads via
-le menu CTLD et les loads natifs DCS migrés dans CTLD ; utilisez `loadedByDCSNative` pour
-distinguer les deux.
+`isLoaded()` est vrai dès que la crate est `loaded`, quel que soit le mode de chargement.
+`isLoadedByCTLD()` n'est vrai que pour une crate en **carry virtuel** — chargée par le menu CTLD, ou un
+chargement par l'UI DCS repris par CTLD (`convertNativeLoadToCTLD`) — jamais pour une crate en **carry natif**
+(`loadedByDCSNative`, encore dans l'appareil par le système cargo de DCS). Les actions *Drop Crate(s)* et
+*Parachute Crates* de CTLD et le poids que CTLD ajoute à l'appareil utilisent `isLoadedByCTLD()` : une crate en
+carry natif se décharge et se parachute par l'UI cargo DCS, et DCS compte son poids lui-même, comme pour les
+véhicules entiers. `CTLDCrate:load()` remet `loadedByDCSNative` à zéro ; le chemin d'entrée natif le positionne
+juste après.
 
 Chaque crate enregistre son origine dans `crate.spawnMethod`, l'une des valeurs de
 `CTLDCrate.SPAWN_METHOD` :

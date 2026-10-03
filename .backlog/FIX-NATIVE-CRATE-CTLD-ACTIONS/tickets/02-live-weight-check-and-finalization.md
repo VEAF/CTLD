@@ -1,6 +1,6 @@
 # 02 — Live weight check and finalization
 
-**Status:** ⬜ ready · **Type:** HITL (live DCS check with the maintainer in a native-cargo aircraft)
+**Status:** ✅ done (PR #NN) · **Type:** HITL (live DCS check with the maintainer in a native-cargo aircraft)
 
 ## Parent
 
