@@ -420,6 +420,62 @@ describe("parachuteTroops — unique group/unit names (FIX-PARACHUTE-GROUP-NAME-
         end
     end)
 
+    describe("spawn failure (coalition.addGroup raises)", function()
+
+        local _origOutText, _origLog
+        local messages, logs, landed
+
+        before_each(function()
+            _origOutText = trigger.action.outTextForGroup
+            _origLog     = ctld.utils.log
+            messages, logs, landed = {}, {}, {}
+            trigger.action.outTextForGroup = function(_, text) table.insert(messages, text) end
+            ctld.utils.log = function(level, fmt, ...)
+                table.insert(logs, { level = level, text = string.format(fmt, ...) })
+            end
+            coalition.addGroup = function() error("unknown unit type") end
+            EventDispatcher.getInstance():subscribe("OnTroopsParachuteLanded", function(p)
+                table.insert(landed, p)
+            end)
+            tm._inTransit["UH-1H-1"] = { makeGroup("Standard Infantry") }
+            tm._droppedGroups[2] = {}
+            tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+        end)
+
+        after_each(function()
+            trigger.action.outTextForGroup = _origOutText
+            ctld.utils.log                 = _origLog
+        end)
+
+        it("logs an ERROR naming the failed spawn", function()
+            local found = false
+            for _, l in ipairs(logs) do
+                if l.level == "ERROR" and l.text:find("parachuteTroops: spawnAs failed", 1, true) then
+                    found = true
+                end
+            end
+            assert.is_true(found)
+        end)
+
+        it("tells the player the troops were lost", function()
+            local found = false
+            for _, m in ipairs(messages) do
+                if m == ctld.tr("Parachute drop failed: troops lost.") then found = true end
+            end
+            assert.is_true(found)
+        end)
+
+        it("does not publish OnTroopsParachuteLanded", function()
+            assert.equals(0, #landed)
+        end)
+
+        it("registers no extractable group or template", function()
+            assert.equals(0, #tm._droppedGroups[2])
+            assert.is_nil(next(tm._droppedTemplates))
+        end)
+
+    end)
+
 end)
 
 -- ── F-061 / F-062 : parachuteVehicle ─────────────────────────────────────────

@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.20"
+ctld.i18n["ko"].translation_version = "1.21"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -456,3 +456,6 @@ ctld.i18n["ko"]["  EXZ '%1': %2 — entry ignored"] = "  EXZ '%1': %2 — 항목
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-01
 ctld.i18n["ko"]["%1 setting(s) absent from the mission config (version %2, CTLD catalogue %3) — CTLD default used: %4"] = "미션 설정에 %1 항목이 없음 (버전 %2, CTLD 카탈로그 %3) — CTLD 기본값 사용: %4"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
+ctld.i18n["ko"]["Parachute drop failed: troops lost."] = "낙하산 투하 실패: 병력 손실."

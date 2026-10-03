@@ -454,7 +454,8 @@ Des troops sont déployées par parachute.
 **Published by** : `CTLDTroopManager:parachuteTroops()`
 
 #### `OnTroopsParachuteLanded`
-Des troops parachutées atterrissent (asynchrone, après le timer de descente).
+Des troops parachutées atterrissent (asynchrone, après le timer de descente). Non publié si le spawn au sol
+échoue : l'échec est journalisé au niveau `ERROR` et le joueur est prévenu que les troupes sont perdues.
 
 | Champ | Type | Description |
 | --- | --- | --- |
