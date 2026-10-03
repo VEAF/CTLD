@@ -743,7 +743,7 @@ function CTLDReconManager:enableAutoRefresh(playerUnit, player, fromScan)
     local self_ref = self
     local pName    = player
     local uName    = playerUnit:getName()
-    scan.refreshTimer = timer.scheduleFunction(function(_, t)
+    scan.refreshTimer = ctld.scheduler.schedule(function(_, t)
         self_ref:_doRefresh(pName, uName, t)
     end, nil, timer.getTime() + interval)
 
@@ -939,7 +939,7 @@ function CTLDReconManager:_doRefresh(playerName, unitName, _t)
     local self_ref = self
     local pName    = playerName
     local uNameRef = unitName
-    scan.refreshTimer = timer.scheduleFunction(function(_, t)
+    scan.refreshTimer = ctld.scheduler.schedule(function(_, t)
         self_ref:_doRefresh(pName, uNameRef, t)
     end, nil, timer.getTime() + interval)
 

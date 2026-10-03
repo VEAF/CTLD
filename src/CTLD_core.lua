@@ -210,7 +210,7 @@ end
 function CTLDStaticWatcher:_ensureTimer()
     if self._timer then return end
     local self_ref = self
-    self._timer = timer.scheduleFunction(function(_, t)
+    self._timer = ctld.scheduler.schedule(function(_, t)
         return self_ref:_tick(t)
     end, nil, timer.getTime() + 1)
 end
@@ -481,7 +481,7 @@ function CTLDCoreManager:_initAITransports()
     -- Post-init scan: trigger pickup for AI pilots already on the ground inside a pickup zone.
     -- Handles the case where the unit spawns at the AIZ_P location (S_EVENT_LAND never fires).
     local selfRef = self
-    timer.scheduleFunction(function()
+    ctld.scheduler.schedule(function()
         for unitName in pairs(selfRef._aiPilotNames) do
             local u = Unit.getByName(unitName)
             if u and u:isExist() and not ctld.utils.inAir(u) then
@@ -497,7 +497,7 @@ function CTLDCoreManager:_initAITransports()
         selfRef:_checkAIStatus()
         return t + 2
     end
-    local fid = timer.scheduleFunction(loop, nil, timer.getTime() + 1)
+    local fid = ctld.scheduler.schedule(loop, nil, timer.getTime() + 1)
     ctld.scheduler.register("ai_transport", fid)
     ctld.utils.log("INFO", "CTLDCoreManager: INIT-A complete — AI transport loop started (%d pilot name(s))",
         #pilotNames)
@@ -628,7 +628,7 @@ function CTLDCoreManager:onAILand(event)
     local pickZone = zm:getAIPickupZoneAt(pt, coa)
     if not pickZone and not event._aiRetried then
         local selfRef = self
-        timer.scheduleFunction(function()
+        ctld.scheduler.schedule(function()
             if u and u:isExist() and not ctld.utils.inAir(u) then
                 selfRef:onAILand({ id = event.id, initiator = u, _aiRetried = true })
             end

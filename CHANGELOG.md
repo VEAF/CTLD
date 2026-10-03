@@ -8,6 +8,20 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — `ctld.scheduler.cancelAll()` now cancels every timer (FIX-SCHEDULER-SINGLE-ENTRY)
+
+- Only 2 of ~15 perpetual loops registered with `ctld.scheduler`, so the documented shutdown before a CTLD
+  re-injection left the others running; they woke up through `getInstance()` and ran on top of the new instance
+  (hover pickup at twice the rate after one re-injection, doubled smoke, recon and JTAC lasing). Every timer now goes
+  through one entry point, `ctld.scheduler.schedule(fn, arg, t)`, which records each pending id; `cancelAll()` cancels
+  all of them and logs the real count. A busted guard spec fails if `timer.scheduleFunction` is called anywhere else in
+  `src/`, so a future loop cannot opt out (#234). No change to any loop's period or behaviour in a normal mission.
+- The beacon refresh loop could not restart after `cancelAll()`: its double-start guard was a private flag the shutdown
+  never cleared. The guard now reads the scheduler registry (found by the live scenario check `F-139.4`).
+- `tests/dcs/util/shutdown_ctld.lua`, which the scheduler comment already referred to, now exists; a live scenario
+  (`scenario_scheduler_shutdown`, tier `disabled`, run alone, reload the mission afterwards) checks against the real DCS
+  timer that both kinds of chain and two real loops stop.
+
 ### Fixed — DCS objects compared by name, crates on board counted one way (FIX-DCS-OBJECT-NAME-COMPARISON)
 
 - **Crates on board (#236):** "is this crate on board this transport?" was answered by name in four places and by DCS

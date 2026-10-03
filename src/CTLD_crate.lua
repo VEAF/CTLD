@@ -186,7 +186,7 @@ function CTLDSmokeManager.getInstance()
         -- Per-player state: { active=bool, smokes=[{pos,color,launchTime}] }
         _smInstance._players = {}
         -- Start the periodic check (every 15s — lightweight, no re-trigger unless interval reached)
-        timer.scheduleFunction(function(_, t)
+        ctld.scheduler.schedule(function(_, t)
             CTLDSmokeManager.getInstance():_tick()
             return t + 15
         end, nil, timer.getTime() + 15)
@@ -291,7 +291,7 @@ function CTLDCrateManager.getInstance()
             CTLDCrateManager.getInstance():_refreshNearbyPlayers(payload.position)
         end)
         -- Feature B: start hover-slingload polling (1s tick)
-        timer.scheduleFunction(function()
+        ctld.scheduler.schedule(function()
             CTLDCrateManager.getInstance():checkHoverStatus()
         end, {}, timer.getTime() + 1)
         -- LGZ ground-position poller (10s tick): refreshes Request Equipment only
@@ -324,7 +324,7 @@ function CTLDCrateManager.getInstance()
             end
             return t + 10
         end
-        timer.scheduleFunction(_lgzGroundPoll, {}, timer.getTime() + 10)
+        ctld.scheduler.schedule(_lgzGroundPoll, {}, timer.getTime() + 10)
         -- Detect crates destroyed by combat (S_EVENT_DEAD on the static object).
         local ok, bridge = pcall(CTLDDCSEventBridge.getInstance)
         if ok and bridge then
@@ -1119,7 +1119,7 @@ end
 --      then hook it (load + destroy DCS static + publish OnCrateLoaded).
 function CTLDCrateManager:checkHoverStatus()
     -- Reschedule unconditionally
-    timer.scheduleFunction(function()
+    ctld.scheduler.schedule(function()
         CTLDCrateManager.getInstance():checkHoverStatus()
     end, {}, timer.getTime() + 1)
 
@@ -1408,7 +1408,7 @@ function CTLDCrateManager:_onNativeCrateEntered(crate, unitName, entry)
         if not _okUL then
             ctld.utils.log("WARN", "CTLDCrateManager: UnloadCargo failed: %s", tostring(_errUL))
         end
-        timer.scheduleFunction(function()
+        ctld.scheduler.schedule(function()
             self._convertingCrates[_crateName] = nil
             self:loadCrate(_crateName, _transport)
             local _c = self.crates[_crateName]
@@ -1815,7 +1815,7 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
         timestamp   = timer.getAbsTime(),
     })
 
-    timer.scheduleFunction(function()
+    ctld.scheduler.schedule(function()
         self:_refreshNearbyPlayers(position)
     end, {}, timer.getTime() + 0.001)
 
@@ -2461,7 +2461,7 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
         local _landPos       = landPos
         local _dropData      = dropData
         local _transportName = transport:getName()
-        timer.scheduleFunction(function()
+        ctld.scheduler.schedule(function()
             _crate.fromParachute = true
             _crate:land(_landPos)
             ctld.utils.updateTransportWeight(_transportName)
@@ -2561,7 +2561,7 @@ function CTLDCrateManager:_scheduleParachuteLandingPoll(crate)
     ctld.utils.log("INFO",
         "CTLDCrateManager:_scheduleParachuteLandingPoll: tracking %s (DCS native parachute)",
         crate.crateName)
-    timer.scheduleFunction(poll, {}, timer.getTime() + POLL_INTERVAL)
+    ctld.scheduler.schedule(poll, {}, timer.getTime() + POLL_INTERVAL)
 end
 
 --- Auto-unpack a set of parachuted crates when all required crates have landed.
@@ -3262,7 +3262,7 @@ function CTLDCrateManager:startCrateCountWatcher(zoneName, flagNumber)
             end
         end
         trigger.action.setUserFlag(flagNumber, count)
-        timer.scheduleFunction(function()
+        ctld.scheduler.schedule(function()
             self_ref:startCrateCountWatcher(zoneName, flagNumber)
         end, nil, timer.getTime() + 5)
     end

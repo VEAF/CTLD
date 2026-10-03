@@ -231,7 +231,7 @@ function CTLDPlayerManager:init()
     local POLL_INTERVAL   = 0.5   -- seconds between checks
     local DEBOUNCE_TICKS  = 2     -- require 2 consecutive same-state ticks (~1 s) before acting
     local self_ref = self
-    timer.scheduleFunction(function(_, t)
+    ctld.scheduler.schedule(function(_, t)
         local inst = self_ref
         if not inst then return nil end
         for unitName, playerObj in pairs(inst._players) do
@@ -329,7 +329,7 @@ function CTLDPlayerManager:_scanExistingPlayers()
     -- S_EVENT_PLAYER_ENTER_UNIT events (slot switch without briefing screen,
     -- AI takeover, late joiners in long missions) and to forget departed players.
     local self_ref = self
-    timer.scheduleFunction(function()
+    ctld.scheduler.schedule(function()
         self_ref:_scanExistingPlayers()
     end, nil, timer.getTime() + 30)
 end
@@ -539,7 +539,7 @@ function CTLDPlayerManager:onLand(event)
     -- Clear flight flag immediately (not deferred) so any refresh between now and
     -- the 1 s timer sees ground state and does not rebuild flight-only items (Pack Equipt).
     captured._isFlying = false
-    timer.scheduleFunction(function()
+    ctld.scheduler.schedule(function()
         -- runUrgent: landing is a real, player-noticed state transition (not a silent
         -- background one) even though it fires from a timer, not a menu click — see
         -- AMBIENT vs URGENT REFRESH in CTLD_menu.lua.

@@ -869,7 +869,7 @@ function CTLDTroopManager:disembark(unit)
                     params = { route = { points = { wpFrom, wpDest } } },
                 }
                 -- Delay 2 s: DCS group controller may be empty immediately after spawn
-                timer.scheduleFunction(function(arg)
+                ctld.scheduler.schedule(function(arg)
                     local grp = Group.getByName(arg.grpName)
                     if not grp or not grp:isExist() then return end
                     local ctrl = grp:getController()
@@ -1565,7 +1565,7 @@ function CTLDTroopManager:_assignPostSpawnTask(grpName, spawnPt, coalitionId, sp
     local task = specificParams and specificParams.task
     if not task then return end
 
-    timer.scheduleFunction(function(arg)
+    ctld.scheduler.schedule(function(arg)
         local grp = Group.getByName(arg.grpName)
         if not grp or not grp:isExist() then return end
         local ctrl = grp:getController()
@@ -1745,7 +1745,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     local _coalition     = playerObj.coalition or 2
     local _countryId     = troopGroup.countryId  -- captured here; coalition.getCountryCoalition does not exist in DCS API
 
-    timer.scheduleFunction(function()
+    ctld.scheduler.schedule(function()
         local ok, spawnedGroup = ctld.utils.spawnAs("GROUND", _countryId, {
             name  = _groupName,
             task  = "Ground Nothing",
@@ -2368,7 +2368,7 @@ function CTLDTroopManager:startGroupCountWatcher(zoneName, blueFlag, redFlag)
         end
         if blueFlag then trigger.action.setUserFlag(blueFlag, blueCount) end
         if redFlag  then trigger.action.setUserFlag(redFlag,  redCount)  end
-        timer.scheduleFunction(function()
+        ctld.scheduler.schedule(function()
             self_ref:startGroupCountWatcher(zoneName, blueFlag, redFlag)
         end, nil, timer.getTime() + 5)
     end
@@ -2412,7 +2412,7 @@ function CTLDTroopManager:startUnitCountWatcher(zoneName, blueFlag, redFlag)
         end
         if blueFlag then trigger.action.setUserFlag(blueFlag, blueCount) end
         if redFlag  then trigger.action.setUserFlag(redFlag,  redCount)  end
-        timer.scheduleFunction(function()
+        ctld.scheduler.schedule(function()
             self_ref:startUnitCountWatcher(zoneName, blueFlag, redFlag)
         end, nil, timer.getTime() + 5)
     end

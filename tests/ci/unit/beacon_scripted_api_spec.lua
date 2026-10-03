@@ -22,7 +22,6 @@ describe("CTLDBeaconManager scripted beacon API", function()
         m._freeUHF, m._usedUHF = {}, {}
         m._freeFM,  m._usedFM  = {}, {}
         m:_buildFreqPools()
-        m._refreshScheduled = true   -- do not start a real timer loop in a unit test
         function m:_spawnBeaconUnit(point, countryId, displayName)
             spawnCount = spawnCount + 1
             local gname = "CTLDBeacon-test-" .. spawnCount
@@ -42,8 +41,13 @@ describe("CTLDBeaconManager scripted beacon API", function()
         }
     end
 
+    local origBeaconLoopId
+
     before_each(function()
         spawnCount, published, coalitionTexts = 0, {}, {}
+        -- A refresh loop is already registered: do not start a real timer loop in a unit test.
+        origBeaconLoopId = ctld.scheduler._ids["beacon_refresh"]
+        ctld.scheduler._ids["beacon_refresh"] = origBeaconLoopId or -1
 
         local dispatcher = EventDispatcher.getInstance()
         origPublish = dispatcher.publish
@@ -75,6 +79,7 @@ describe("CTLDBeaconManager scripted beacon API", function()
         trigger.action.outTextForCoalition     = origOutText
         ctld.gs                                = origGs
         ctld.utils.inAir                       = origInAir
+        ctld.scheduler._ids["beacon_refresh"]  = origBeaconLoopId
     end)
 
     it("returns a beacon carrying three usable, non-colliding frequencies", function()
@@ -429,6 +434,45 @@ describe("CTLDBeaconManager scripted beacon API", function()
             end
         end)
 
+    end)
+
+end)
+
+-- FIX-SCHEDULER-SINGLE-ENTRY ticket 03 (issue #234): the double-start guard of the refresh loop
+-- is read from the scheduler registry, so ctld.scheduler.cancelAll() lets the loop restart.
+describe("CTLDBeaconManager:_scheduleRefresh idempotence", function()
+
+    local _origSchedule, _origRemove, _origIds, _origPending
+    local scheduledCount
+
+    before_each(function()
+        _origSchedule, _origRemove = timer.scheduleFunction, timer.removeFunction
+        _origIds, _origPending = ctld.scheduler._ids, ctld.scheduler._pending
+        ctld.scheduler._ids, ctld.scheduler._pending = {}, {}
+        scheduledCount = 0
+        timer.scheduleFunction = function() scheduledCount = scheduledCount + 1; return 700 + scheduledCount end
+        timer.removeFunction   = function() end
+    end)
+
+    after_each(function()
+        timer.scheduleFunction, timer.removeFunction = _origSchedule, _origRemove
+        ctld.scheduler._ids, ctld.scheduler._pending = _origIds, _origPending
+    end)
+
+    it("schedules a single loop however many times it is called", function()
+        local m = setmetatable({}, CTLDBeaconManager)
+        m:_scheduleRefresh()
+        m:_scheduleRefresh()
+        assert.equals(1, scheduledCount)
+    end)
+
+    it("schedules again after cancelAll(), so shutdown then re-init restarts the loop", function()
+        local m = setmetatable({}, CTLDBeaconManager)
+        m:_scheduleRefresh()
+        ctld.scheduler.cancelAll()
+        m:_scheduleRefresh()
+        assert.equals(2, scheduledCount)
+        assert.is_not_nil(ctld.scheduler._ids["beacon_refresh"])
     end)
 
 end)

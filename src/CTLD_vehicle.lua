@@ -128,7 +128,7 @@ function CTLDVehicleSpawner:init()
     end
 
     -- Start periodic native-load detection (1 s cadence)
-    timer.scheduleFunction(function(_, t)
+    ctld.scheduler.schedule(function(_, t)
         local inst = CTLDVehicleSpawner._instance
         if inst then inst:_checkNativeLoading() end
         return t + 1
@@ -143,7 +143,7 @@ function CTLDVehicleSpawner:init()
 
     -- Pack menu refresh: detect inAir→landed transition every 3 s
     self._prevInAir = {}
-    timer.scheduleFunction(function(_, t)
+    ctld.scheduler.schedule(function(_, t)
         local inst = CTLDVehicleSpawner._instance
         if inst then inst:_checkPackingLanding() end
         return t + 3
@@ -151,7 +151,7 @@ function CTLDVehicleSpawner:init()
 
     -- Hover hint: notify player to land when hovering in slingload window above a WAITING vehicle
     self._hoverHintSent = {}  -- unitName → last hint time
-    timer.scheduleFunction(function(_, t)
+    ctld.scheduler.schedule(function(_, t)
         local inst = CTLDVehicleSpawner._instance
         if inst then inst:_checkVehicleHoverHint() end
         return t + 5
@@ -718,7 +718,7 @@ function CTLDVehicleSpawner:_scheduleNativeLandingPoll(vehicle)
 
         return t + 1
     end
-    timer.scheduleFunction(poll, nil, timer.getTime() + 1)
+    ctld.scheduler.schedule(poll, nil, timer.getTime() + 1)
 end
 
 -- ============================================================
@@ -923,7 +923,7 @@ function CTLDVehicleSpawner:onBirth(event)
 
     -- Capture ref for the deferred callback (unit object stays valid across frames).
     local capturedUnit = unit
-    timer.scheduleFunction(function()
+    ctld.scheduler.schedule(function()
         local inst = CTLDVehicleSpawner._instance
         if inst then inst:_onBirthDeferred(capturedUnit) end
     end, nil, timer.getTime())
@@ -1128,7 +1128,7 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
     local _dropData      = dropData
     local _spawnData     = spawnData
     local _transportName = transport:getName()
-    timer.scheduleFunction(function()
+    ctld.scheduler.schedule(function()
         -- Spawn vehicle at computed landing position
         local spawnPos = { x = _landPos.x, y = _landPos.y, z = _landPos.z }
         if _spawnData then
@@ -1387,7 +1387,7 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
     -- re-add it to the Pack Vehicle menu, causing a "Vehicle no longer exists" error
     -- when the player clicks it later.
     local _tName = transportUnitName
-    timer.scheduleFunction(function()
+    ctld.scheduler.schedule(function()
         CTLDPlayerManager.getInstance():refreshForUnit(_tName)
     end, nil, timer.getTime())
 end

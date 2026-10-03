@@ -2348,28 +2348,54 @@ end
 -- ============================================================
 -- ctld.scheduler  — central registry for long-running timer loops
 -- ============================================================
--- Stores functionIds returned by timer.scheduleFunction so they can be
--- cancelled individually or all at once (e.g. before CTLD re-injection).
+-- Single entry point for every timer CTLD schedules. It records the id of each pending
+-- timer so they can all be cancelled at once (e.g. before CTLD re-injection), whatever the
+-- loop and whoever wrote it: nothing else in src/ may call timer.scheduleFunction (a busted
+-- guard spec enforces it).
 --
 -- Usage:
---   local fid = timer.scheduleFunction(myLoop, nil, timer.getTime() + 5)
---   ctld.scheduler.register("my_loop_name", fid)
+--   local fid = ctld.scheduler.schedule(myLoop, nil, timer.getTime() + 5)
+--   ctld.scheduler.register("my_loop_name", fid)   -- optional: a named, replaceable loop
 --
 -- Shutdown (inject tests/dcs/util/shutdown_ctld.lua before re-injecting CTLD):
 --   ctld.scheduler.cancelAll()
 -- ============================================================
 
 ctld.scheduler = {
-    _ids = {}
+    _ids     = {},   -- name -> functionId (named loops, see register)
+    _pending = {},   -- functionId -> true (every timer still waiting to fire)
 }
+
+--- Schedule fn like timer.scheduleFunction, remembering its id until the chain ends.
+-- The callback keeps the DCS contract: a numeric return reschedules the same id (it stays
+-- pending), anything else ends the chain (the id is forgotten).
+-- @param fn  function  callback(arg, time)
+-- @param arg any       passed back to fn
+-- @param t   number    first fire time (timer.getTime() based)
+-- @return number|nil   the DCS function id
+function ctld.scheduler.schedule(fn, arg, t)
+    local id
+    local function tracked(a, now)
+        local nextTime = fn(a, now)
+        if id ~= nil and type(nextTime) ~= "number" then
+            ctld.scheduler._pending[id] = nil
+        end
+        return nextTime
+    end
+    id = timer.scheduleFunction(tracked, arg, t)
+    if id ~= nil then ctld.scheduler._pending[id] = true end
+    return id
+end
 
 --- Register a scheduled function by name. Cancels any previous loop with the
 -- same name before storing the new ID (re-injection guard).
 -- @param name       string   unique key (e.g. "beacon_refresh", "ai_transport")
--- @param functionId number   value returned by timer.scheduleFunction
+-- @param functionId number   value returned by ctld.scheduler.schedule
 function ctld.scheduler.register(name, functionId)
-    if ctld.scheduler._ids[name] then
-        pcall(timer.removeFunction, ctld.scheduler._ids[name])
+    local previous = ctld.scheduler._ids[name]
+    if previous then
+        pcall(timer.removeFunction, previous)
+        ctld.scheduler._pending[previous] = nil
     end
     ctld.scheduler._ids[name] = functionId
 end
@@ -2377,21 +2403,26 @@ end
 --- Cancel a single loop by name.
 -- @param name string
 function ctld.scheduler.cancel(name)
-    if ctld.scheduler._ids[name] then
-        pcall(timer.removeFunction, ctld.scheduler._ids[name])
+    local id = ctld.scheduler._ids[name]
+    if id then
+        pcall(timer.removeFunction, id)
+        ctld.scheduler._pending[id] = nil
         ctld.scheduler._ids[name] = nil
     end
 end
 
---- Cancel all registered loops (call before re-injecting CTLD.lua).
+--- Cancel every timer still pending, named or not (call before re-injecting CTLD.lua).
 function ctld.scheduler.cancelAll()
-    local n = 0
-    for name, fid in pairs(ctld.scheduler._ids) do
-        pcall(timer.removeFunction, fid)
-        ctld.scheduler._ids[name] = nil
+    local toCancel, n = {}, 0
+    for _, id in pairs(ctld.scheduler._ids) do toCancel[id] = true end
+    for id in pairs(ctld.scheduler._pending) do toCancel[id] = true end
+    for id in pairs(toCancel) do
+        pcall(timer.removeFunction, id)
         n = n + 1
     end
-    ctld.utils.log("INFO", "ctld.scheduler.cancelAll: %d loop(s) cancelled", n)
+    ctld.scheduler._ids     = {}
+    ctld.scheduler._pending = {}
+    ctld.utils.log("INFO", "ctld.scheduler.cancelAll: %d timer(s) cancelled", n)
 end
 
 -- =====================================================================

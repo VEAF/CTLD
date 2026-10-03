@@ -1191,7 +1191,7 @@ function CTLDZoneManager:_scheduleSmoke()
 
     local function refresh()
         if ctld.gs("disableAllSmoke") == true then
-            timer.scheduleFunction(refresh, nil, timer.getTime() + interval)
+            ctld.scheduler.schedule(refresh, nil, timer.getTime() + interval)
             return
         end
 
@@ -1246,10 +1246,10 @@ function CTLDZoneManager:_scheduleSmoke()
             refreshInterval = interval,
         })
 
-        timer.scheduleFunction(refresh, nil, timer.getTime() + interval)
+        ctld.scheduler.schedule(refresh, nil, timer.getTime() + interval)
     end
 
-    timer.scheduleFunction(refresh, nil, timer.getTime() + interval)
+    ctld.scheduler.schedule(refresh, nil, timer.getTime() + interval)
 end
 
 -- ============================================================
