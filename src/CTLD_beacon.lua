@@ -528,7 +528,7 @@ function CTLDBeaconManager:createAtPoint(point, coalitionId, countryId, opts)
     -- Delay transmissions by 1s: DCS coalition.addGroup leaves units uninitialized for ~1s;
     -- calling radioTransmission immediately yields an invalid position (0,0,0 or stale).
     local bname = beacon.beaconName
-    timer.scheduleFunction(function()
+    ctld.scheduler.schedule(function()
         local b = CTLDBeaconManager.getInstance()._beacons[bname]
         if b then CTLDBeaconManager.getInstance():_startTransmissions(b) end
     end, nil, timer.getTime() + 1)
@@ -764,7 +764,7 @@ function CTLDBeaconManager:_scheduleRefresh()
         self_ref:_refreshAll()
         return t + interval
     end
-    local fid = timer.scheduleFunction(refresh, nil, timer.getTime() + interval)
+    local fid = ctld.scheduler.schedule(refresh, nil, timer.getTime() + interval)
     ctld.scheduler.register("beacon_refresh", fid)
 end
 

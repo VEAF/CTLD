@@ -169,7 +169,7 @@ function ctld.MenuManager:deferredRefreshForGroup(groupId, opts)
         -- misses, which matters because DCS reuses a numeric group id for the next occupant and
         -- the rebuild would land on him 0.15 s into his flight (#152).
         local entry = {}
-        entry.timerId = timer.scheduleFunction(function()
+        entry.timerId = ctld.scheduler.schedule(function()
             if selfRef._pendingRefresh[groupId] ~= entry then return end   -- cancelled
             selfRef._pendingRefresh[groupId] = nil
             if selfRef.menus[groupId] then
@@ -197,7 +197,7 @@ function ctld.MenuManager:deferredRefreshForGroup(groupId, opts)
     end
 
     local selfRef = self
-    local timerId = timer.scheduleFunction(function()
+    local timerId = ctld.scheduler.schedule(function()
         selfRef._pendingAmbient[groupId] = nil
         if selfRef.menus[groupId] then
             selfRef:refreshMenuForGroup(groupId)

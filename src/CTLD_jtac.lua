@@ -532,7 +532,7 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
 
         -- Start orbit loop if not already running
         if j.isFlying and not mgr._orbitScheduleId then
-            mgr._orbitScheduleId = timer.scheduleFunction(
+            mgr._orbitScheduleId = ctld.scheduler.schedule(
                 function(_, t) return CTLDJTACManager.getInstance():_orbitLoop(t) end,
                 nil,
                 timer.getTime() + 3
@@ -542,10 +542,10 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
 
     _tryInitFlying()
     -- Always schedule retry: covers DCS 1s delay even when immediate call succeeds partially
-    timer.scheduleFunction(function() _tryInitFlying() end, nil, timer.getTime() + 2)
+    ctld.scheduler.schedule(function() _tryInitFlying() end, nil, timer.getTime() + 2)
 
     -- DCS spawn bug: delay first auto-lase loop by 1s so group:getUnits()[1] is populated
-    timer.scheduleFunction(
+    ctld.scheduler.schedule(
         function(gn, t) return CTLDJTACManager.getInstance():_autoLaseLoop(gn, t) end,
         groupName,
         timer.getTime() + 1
@@ -761,7 +761,7 @@ end
 -- @param colour     number
 -- @param radio      table
 function CTLDJTACManager:startLase(groupName, laserCode, smoke, lock, colour, radio)
-    timer.scheduleFunction(
+    ctld.scheduler.schedule(
         function(args, t)
             CTLDJTACManager.getInstance():autoLase(
                 args[1], args[2], args[3], args[4], args[5], args[6])
@@ -835,7 +835,7 @@ function CTLDJTACManager:startLaseTroopUnit(unitName, cfg)
 
     self.jtacs[unitName] = jtac
 
-    timer.scheduleFunction(
+    ctld.scheduler.schedule(
         function(un, t) return CTLDJTACManager.getInstance():_autoLaseLoop(un, t) end,
         unitName,
         timer.getTime() + 1

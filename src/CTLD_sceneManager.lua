@@ -85,7 +85,7 @@ function CtldScene:_execute()
     self._timeMarker = timer.getTime() + firstDelay
     if self._timeMarker > timer.getTime() then
         local fn = function() self:_runNextStep() end
-        timer.scheduleFunction(fn, nil, self._timeMarker)
+        ctld.scheduler.schedule(fn, nil, self._timeMarker)
     else
         self:_runNextStep()
     end
@@ -225,7 +225,7 @@ function CtldScene:_runNextStep()
         self._timeMarker = self._timeMarker + (tonumber(step.delayAfterPreviousStep) or 0)
         if self._timeMarker > timer.getTime() then
             local fn = function() self:_runNextStep() end
-            timer.scheduleFunction(fn, nil, self._timeMarker)
+            ctld.scheduler.schedule(fn, nil, self._timeMarker)
         else
             self:_runNextStep()
         end
