@@ -1,6 +1,6 @@
 # 01 — Troop zone queries skip a zone whose anchor is gone
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #245) · **Type:** AFK
 
 ## Parent
 
@@ -19,14 +19,14 @@ un-anchored zone is always returned; the lookup by registry key still returns a 
 the eight "gone" cases fail, then fix.
 
 Finish the lot: remove the roadmap entry, add the CHANGELOG entry, rebuild `CTLD.lua` and confirm the i18n
-dictionaries are unchanged, set the index line to `merged (PR #NN)` and the statuses to done, open the PR.
+dictionaries are unchanged, set the index line to `merged (PR #245)` and the statuses to done, open the PR.
 
 ## Acceptance criteria
 
 - [ ] The eight "anchor gone" cases fail before the change and pass after it (test committed first).
 - [ ] Un-anchored zones and the lookup by registry key behave as before.
 - [ ] Existing zone specs pass unchanged; luacheck clean; `busted` green.
-- [ ] Roadmap entry removed, CHANGELOG entry added, dictionaries unchanged, index line `merged (PR #NN)`.
+- [ ] Roadmap entry removed, CHANGELOG entry added, dictionaries unchanged, index line `merged (PR #245)`.
 
 ## Blocked by
 
