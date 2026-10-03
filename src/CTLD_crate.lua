@@ -1020,12 +1020,13 @@ function CTLDCrateManager:refreshPackEquiptSection(playerObj, overrideInAir, noR
                 local spacing   = ctld.gs("crateSpacing")
                 local spawnInfo = ctld.utils.getSpawnObjectPositions(t, required, safeDist, spacing)
                 local modelKey  = mgr_c:_crateModelKey(t)
+                local heading   = mgr_c:_aircraftHeading(t)
                 for i = 1, required do
                     local spos = spawnInfo.positions[i]
                     if spos then
                         local crate = mgr_c:spawnCrate(
                             desc, spos, t:getCoalition(), t:getName(),
-                            CTLDCrate.SPAWN_METHOD.CRATE_SPAWN, t:getCountry(), modelKey)
+                            CTLDCrate.SPAWN_METHOD.CRATE_SPAWN, t:getCountry(), modelKey, heading)
                         if crate and repackData and repackData.warehouseSnapshot then
                             crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
                         end
@@ -1581,7 +1582,7 @@ function CTLDCrateManager:cutSlingload(transport, playerObj)
         local landPos, _ = ctld.utils.calcDropPosition(transport, 0)
         crate:land(landPos)
         ctld.utils.updateTransportWeight(transport:getName())
-        self:_respawnStatic(crate, landPos)
+        self:_respawnStatic(crate, landPos, self:_aircraftHeading(transport))
         trigger.action.outTextForGroup(playerObj.groupId,
             ctld.tr("%1 crate dropped below you.", crate.descriptor.desc), 10)
         self:_publish("OnCrateUnloaded", {
@@ -1745,7 +1746,7 @@ end
 --                               shown in the DCS cargo interface and F10 list.
 --                               Sanitised: spaces→_, special chars stripped.
 -- @return string name, StaticObject|nil  (nil if dynAddStatic failed)
-function CTLDCrateManager:_spawnStatic(weight, position, coalitionId, countryId, modelKey, label)
+function CTLDCrateManager:_spawnStatic(weight, position, coalitionId, countryId, modelKey, label, heading)
     local models = ctld.gs("spawnableCratesModels") or {}
     local key    = modelKey or (ctld.gs("slingLoad") and "sling" or "load")
     local model  = models[key] or models["load"] or {}
@@ -1768,7 +1769,7 @@ function CTLDCrateManager:_spawnStatic(weight, position, coalitionId, countryId,
         name     = name,
         x        = position.x,
         y        = position.z,   -- dynAddStatic maps y → DCS world-Z axis
-        heading  = 0,
+        heading  = heading or 0,
         type     = model.type     or "ammo_cargo",
         canCargo = model.canCargo or false,
         mass     = weight,
@@ -1785,14 +1786,25 @@ function CTLDCrateManager:_spawnStatic(weight, position, coalitionId, countryId,
     return name, StaticObject.getByName(name)
 end
 
-function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedBy, spawnMethod, countryId, modelKey)
+--- Heading (radians, geographic — what a DCS static expects) of an aircraft, for the crates created
+-- for it so they stand parallel to it. nil when there is no aircraft or its heading cannot be read.
+-- @param unit Unit|nil
+-- @return number|nil
+function CTLDCrateManager:_aircraftHeading(unit)
+    if not unit then return nil end
+    local ok, hdg = pcall(ctld.utils.getHeadingInRadians, "CTLDCrateManager:_aircraftHeading", unit, true)
+    return ok and hdg or nil
+end
+
+--- @param heading number|nil  heading of the crate in radians (0 when absent): that of the aircraft it is created for
+function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading)
     if not (descriptor and position) then
         _log("CTLDCrateManager:spawnCrate - missing descriptor or position", "WARNING")
         return nil
     end
 
     local crateName, dcsStatic = self:_spawnStatic(
-        descriptor.weight, position, coalitionId, countryId, modelKey, descriptor.desc)
+        descriptor.weight, position, coalitionId, countryId, modelKey, descriptor.desc, heading)
     if not dcsStatic then return nil end
 
     local models  = ctld.gs("spawnableCratesModels") or {}
@@ -1802,7 +1814,7 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
         descriptor  = descriptor,
         spawnMethod = spawnMethod or CTLDCrate.SPAWN_METHOD.CRATE_SPAWN,
         position    = position,
-        heading     = 0,
+        heading     = heading or 0,
         coalition   = coalitionId,
         spawnedBy   = spawnedBy,
         dcsStatic   = dcsStatic,
@@ -1832,16 +1844,18 @@ end
 -- Generates a new unique name, re-indexes self.crates, updates crate.crateName/dcsStatic.
 -- @param crate    CTLDCrate
 -- @param position vec3
+-- @param heading  number|nil  radians; that of the aircraft the crate is dropped from (0 when absent)
 -- @return bool
-function CTLDCrateManager:_respawnStatic(crate, position)
+function CTLDCrateManager:_respawnStatic(crate, position, heading)
     local label = crate.descriptor and crate.descriptor.desc or nil
     local newName, dcsStatic = self:_spawnStatic(
-        crate.descriptor.weight, position, crate.coalition, nil, crate.modelKey, label)
+        crate.descriptor.weight, position, crate.coalition, nil, crate.modelKey, label, heading)
     if not dcsStatic then return false end
 
     self.crates[crate.crateName] = nil
     crate.crateName = newName
     crate.dcsStatic = dcsStatic
+    crate.heading   = heading or 0
     self.crates[newName] = crate
     return true
 end
@@ -1870,11 +1884,12 @@ function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId
     end
 
     local spawnInfo = self:_radialCratePositions(transport, #descriptors)
+    local heading   = self:_aircraftHeading(transport)
     local spawned   = 0
     for i, descriptor in ipairs(descriptors) do
         local pos = spawnInfo.positions[i]
         if descriptor and pos then
-            if self:spawnCrate(descriptor, pos, coalitionId, spawnedBy, spawnMethod, nil, modelKey) then
+            if self:spawnCrate(descriptor, pos, coalitionId, spawnedBy, spawnMethod, nil, modelKey, heading) then
                 spawned = spawned + 1
             end
         end
@@ -1968,12 +1983,13 @@ function CTLDCrateManager:_spawnCratesInRow(descriptors, transport, coalitionId,
     for i = 1, #descriptors do sizes[i] = size end
 
     local positions, _, clock = self:_planCratePositions(transport, sizes, plan, 0)
+    local heading = self:_aircraftHeading(transport)
 
     local spawned = 0
     for i, descriptor in ipairs(descriptors) do
         local p = positions[i]
         if descriptor and p then
-            if self:spawnCrate(descriptor, p, coalitionId, spawnedBy, spawnMethod, nil, modelKey) then
+            if self:spawnCrate(descriptor, p, coalitionId, spawnedBy, spawnMethod, nil, modelKey, heading) then
                 spawned = spawned + 1
             end
         end
@@ -2123,10 +2139,11 @@ function CTLDCrateManager:unloadCrate(crateName, position, method)
     if not crate then return end
     -- Capture transport name before unload clears loadedBy
     local transportName = crate.loadedBy and crate.loadedBy:getName()
+    local heading       = self:_aircraftHeading(crate.loadedBy)   -- the crate stands parallel to its carrier
     crate:unload(position)
     if transportName then ctld.utils.updateTransportWeight(transportName) end
     -- Recreate DCS static on the ground (was destroyed when loaded)
-    self:_respawnStatic(crate, position)
+    self:_respawnStatic(crate, position, heading)
     -- Use the updated crateName (may have changed in _respawnStatic)
     local newName = crate.crateName
     self:_publish("OnCrateUnloaded", {
@@ -2856,7 +2873,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                 else
                     spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
                     spawned   = mgr:spawnCrate(descriptor, spawnInfo.positions[1], arg.coalition, arg.unitName,
-                        CTLDCrate.SPAWN_METHOD.MENU_CTLD, nil, mKey)
+                        CTLDCrate.SPAWN_METHOD.MENU_CTLD, nil, mKey, mgr:_aircraftHeading(t))
                 end
                 if spawned then
                     trigger.action.outTextForGroup(gid,
