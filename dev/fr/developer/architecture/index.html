@@ -1402,6 +1402,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ctldscheduler-la-seule-facon-de-planifier-un-timer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ctld.scheduler — la seule façon de planifier un timer
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2127,6 +2138,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ctldscheduler-la-seule-facon-de-planifier-un-timer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ctld.scheduler — la seule façon de planifier un timer
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2361,6 +2383,39 @@ des ressources et émettait des events <code>S_EVENT_BIRTH</code>/destroy parasi
 </tr>
 </tbody>
 </table>
+<h3 id="ctldscheduler-la-seule-facon-de-planifier-un-timer"><code>ctld.scheduler</code> — la seule façon de planifier un timer<a class="headerlink" href="#ctldscheduler-la-seule-facon-de-planifier-un-timer" title="Permanent link">&para;</a></h3>
+<p>Tout timer planifié par CTLD passe par <code>ctld.scheduler.schedule(fn, arg, t)</code>, un remplacement terme à terme de
+<code>timer.scheduleFunction</code> qui mémorise l'id de chaque timer en attente. N'appelez jamais <code>timer.scheduleFunction</code>
+directement dans <code>src/</code> : un spec de garde busted (<code>scheduler_guard_spec.lua</code>) échoue si vous le faites, car un
+timer inconnu du registre survit à un arrêt et, se réveillant par <code>getInstance()</code>, tourne par-dessus l'instance
+suivante (un poll de hover au double de son rythme, fumée, recon et illumination JTAC doublés).</p>
+<table>
+<thead>
+<tr>
+<th>Fonction</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>schedule(fn, arg, t)</code></td>
+<td>Planifie <code>fn</code> comme DCS ; renvoie l'id de fonction. Une valeur de retour numérique replanifie le même id (il reste en attente), toute autre valeur termine la chaîne</td>
+</tr>
+<tr>
+<td><code>register(name, id)</code></td>
+<td>Nomme une boucle ; enregistrer à nouveau le même nom annule l'id précédent (garde contre le double démarrage)</td>
+</tr>
+<tr>
+<td><code>cancel(name)</code></td>
+<td>Annule une boucle nommée</td>
+</tr>
+<tr>
+<td><code>cancelAll()</code></td>
+<td>Annule tout timer en attente, nommé ou non, et journalise combien (injecter <code>tests/dcs/util/shutdown_ctld.lua</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><code>cancelAll()</code> arrête toutes les boucles CTLD de la mission en cours : rechargez la mission (<code>Shift+R</code>) ensuite.</p>
 
 
 

@@ -1402,6 +1402,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ctldscheduler-the-only-way-to-schedule-a-timer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ctld.scheduler — the only way to schedule a timer
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2127,6 +2138,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ctldscheduler-the-only-way-to-schedule-a-timer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ctld.scheduler — the only way to schedule a timer
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2356,6 +2378,39 @@ spurious <code>S_EVENT_BIRTH</code>/destroy events that custom mission handlers 
 </tr>
 </tbody>
 </table>
+<h3 id="ctldscheduler-the-only-way-to-schedule-a-timer"><code>ctld.scheduler</code> — the only way to schedule a timer<a class="headerlink" href="#ctldscheduler-the-only-way-to-schedule-a-timer" title="Permanent link">&para;</a></h3>
+<p>Every timer CTLD schedules goes through <code>ctld.scheduler.schedule(fn, arg, t)</code>, a one-for-one replacement of
+<code>timer.scheduleFunction</code> that records the id of each pending timer. Never call <code>timer.scheduleFunction</code>
+directly in <code>src/</code>: a busted guard spec (<code>scheduler_guard_spec.lua</code>) fails if you do, because a timer the
+registry does not know about survives a shutdown and, waking up through <code>getInstance()</code>, runs on top of the
+next instance (a hover poll at twice its rate, doubled smoke, recon and JTAC lasing).</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>schedule(fn, arg, t)</code></td>
+<td>Schedule <code>fn</code> like DCS does; returns the function id. A numeric return value reschedules the same id (it stays pending), anything else ends the chain</td>
+</tr>
+<tr>
+<td><code>register(name, id)</code></td>
+<td>Name a loop; registering the same name again cancels the previous id (double-start guard)</td>
+</tr>
+<tr>
+<td><code>cancel(name)</code></td>
+<td>Cancel one named loop</td>
+</tr>
+<tr>
+<td><code>cancelAll()</code></td>
+<td>Cancel every pending timer, named or not, and log how many (inject <code>tests/dcs/util/shutdown_ctld.lua</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><code>cancelAll()</code> stops every CTLD loop of the live mission: reload the mission (<code>Shift+R</code>) afterwards.</p>
 
 
 
