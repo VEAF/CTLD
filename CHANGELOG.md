@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — EXTR_ group scan no longer catches names that merely start with `EXTR` (FIX-REVIEW-HYGIENE-A)
+
+- A pre-placed group named `EXTRACTION Alpha`, `EXTRA Fuel Trucks` or `EXTREME Recon 1` (no underscore) was silently
+  registered as extractable by the `EXTR_` naming-convention scan, because the prefix was matched without its
+  underscore. Only `EXTR_<name>` groups are registered now, as documented (#237).
+- The comment justifying the `aiZones` name-collision check described the parsed-name registration key removed by
+  ADR 0020; it now states the full-name key and that the check is a deliberate defensive guard. No code change (#239).
+
 ### Docs — what ctld-tools does when it opens a configuration (FEAT-CTLD-TOOLS-CONFIG-COMPLETION, ticket 05)
 
 - The ctld-tools Mission Maker page (English and French) describes the completion on opening, the summary and its

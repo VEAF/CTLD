@@ -411,7 +411,7 @@ function CTLDCoreManager:_initExtractableGroups()
     for _, side in ipairs(sides) do
         for _, group in ipairs(coalition.getGroups(side) or {}) do
             local groupName = group:getName()
-            if group:isExist() and groupName:match("^EXTR") and not registered[groupName] then
+            if group:isExist() and groupName:match("^EXTR_") and not registered[groupName] then
                 local coa = group:getCoalition()
                 if not tm._droppedGroups[coa] then tm._droppedGroups[coa] = {} end
                 table.insert(tm._droppedGroups[coa], groupName)
