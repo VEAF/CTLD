@@ -13,6 +13,7 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
     local unloadCalls, scheduled, loaded, unloaded, loadCrateCalls, logs
     local origGs, origGetByName, origInAir, origSchedule, origLog, origSetupPm
     local testLang, origOutText, messages   -- player messages: active language and captured texts
+    local doorsOpen                         -- DCS releases a cargo (Unit:UnloadCargo) only with the cargo-bay doors open
 
     local function cargoObj(name) return { getName = function() return name end } end
 
@@ -69,13 +70,21 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
                 if listFails then error("no such function") end
                 return cargoList
             end,
-            UnloadCargo     = function(_, st) unloadCalls[#unloadCalls + 1] = st:getName() end,
+            UnloadCargo     = function(_, st)
+                local name = st:getName()
+                unloadCalls[#unloadCalls + 1] = name
+                if doorsOpen then   -- doors closed: DCS ignores the call without an error (measured in game)
+                    for i = #cargoList, 1, -1 do
+                        if cargoList[i]:getName() == name then table.remove(cargoList, i) end
+                    end
+                end
+            end,
         }
         pm._players["nc6_player"] = { unitName = "nc6_player", groupId = 9901, coalition = coalition.side.BLUE }
 
         origGetByName = Unit.getByName
         Unit.getByName = function(n) if n == "nc6_player" then return aircraft end end
-        testLang, messages = nil, {}
+        testLang, messages, doorsOpen = nil, {}, true
         origOutText = trigger.action.outTextForGroup
         trigger.action.outTextForGroup = function(_, text) messages[#messages + 1] = text end
         origGs = ctld.gs
@@ -263,6 +272,7 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
             local crate = makeCrate("nc6_crate_l")
             cargoList = { cargoObj("nc6_crate_l") }
             cm:_checkNativeDCSCargo()
+            cargoList = { cargoObj("nc6_crate_l") }   -- DCS still lists it during the delay
             cm:_checkNativeDCSCargo()
             cm:_checkNativeDCSCargo()
             assert.same({ "nc6_crate_l" }, unloadCalls, "the DCS load is released once")
@@ -270,6 +280,7 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
             assert.is_false(crate.loadedByDCSNative)
             assert.equals(0, #loaded, "no native load event: CTLD loads it after the delay")
 
+            cargoList = {}                            -- DCS has released it by the end of the delay
             scheduled[1].fn()
             assert.same({ "nc6_crate_l" }, loadCrateCalls)
         end)
@@ -280,8 +291,108 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
             cargoList = { cargoObj("nc6_crate_m") }
             cm:_checkNativeDCSCargo()
             scheduled[1].fn()
+            cargoList = { cargoObj("nc6_crate_m") }   -- it re-enters the list
             cm:_checkNativeDCSCargo()
             assert.equals(2, #unloadCalls)
+        end)
+
+    end)
+
+    -- FIX-NATIVE-CONVERSION-DOORS: a load through the DCS cargo UI is handed over to CTLD only once DCS has really released the
+    -- cargo, which it does only with the cargo-bay doors open (and only on the ground). With the doors closed the crate stays in
+    -- DCS-native carry — nothing is destroyed, so DCS is never left with an entry for a cargo that no longer exists — and the
+    -- pilot is told how to get it fitted with a parachute. CTLD retries the release while the aircraft is on the ground.
+    describe("hand-over needs the cargo bay doors", function()
+
+        local OPEN_DOORS = "Crate loaded. Open the doors before takeoff to fit it with a parachute."
+
+        local function said(text)
+            for _, m in ipairs(messages) do if m == text then return true end end
+            return false
+        end
+
+        local function loadUh1hCrate(name)
+            setType("UH-1H")
+            local crate = makeCrate(name)
+            cargoList = { cargoObj(name) }
+            cm:_checkNativeDCSCargo()
+            return crate
+        end
+
+        it("doors closed at loading: the crate is not handed over and stays in DCS-native carry", function()
+            doorsOpen = false
+            local crate = loadUh1hCrate("nd_a")
+            scheduled[1].fn()
+            assert.same({}, loadCrateCalls, "the static object is not destroyed while DCS still holds the cargo")
+            assert.is_true(crate:isLoaded())
+            assert.is_true(crate.loadedByDCSNative)
+            assert.is_not_nil(crate.dcsStatic)
+        end)
+
+        it("doors closed at loading: tells the pilot to open the doors, not that the crate is parachute-ready", function()
+            doorsOpen = false
+            loadUh1hCrate("nd_b")
+            scheduled[1].fn()
+            assert.is_true(said(ctld.tr(OPEN_DOORS)))
+            assert.is_false(said(ctld.tr("[CTLD] Crate loaded (parachute-ready): %1", "Ammo")))
+        end)
+
+        it("the message is in French when the language is French", function()
+            testLang = "fr"
+            doorsOpen = false
+            loadUh1hCrate("nd_c")
+            scheduled[1].fn()
+            assert.is_true(said("Caisse chargée. Ouvrez les portes avant le décollage pour y ajouter un parachute."))
+        end)
+
+        it("doors opened afterwards, on the ground: the release is retried and the crate is handed over", function()
+            doorsOpen = false
+            local crate = loadUh1hCrate("nd_d")
+            scheduled[1].fn()
+            local callsBefore = #unloadCalls
+
+            doorsOpen = true
+            cm:_checkNativeDCSCargo()                      -- retry: DCS releases it now
+            assert.is_true(#unloadCalls > callsBefore)
+            assert.same({}, loadCrateCalls)
+            cm:_checkNativeDCSCargo()                      -- the release is seen: hand-over
+            assert.same({ "nd_d" }, loadCrateCalls)
+            assert.is_false(crate.loadedByDCSNative)
+            assert.is_true(said(ctld.tr("[CTLD] Crate loaded (parachute-ready): %1", "Ammo")))
+        end)
+
+        it("takeoff with the doors closed: CTLD stops retrying and the crate stays native", function()
+            doorsOpen = false
+            local crate = loadUh1hCrate("nd_e")
+            scheduled[1].fn()
+
+            airborne = true
+            cm:_checkNativeDCSCargo()
+            local callsInFlight = #unloadCalls
+            doorsOpen = true                                -- opened in flight: DCS would release, but CTLD no longer asks
+            cm:_checkNativeDCSCargo()
+            cm:_checkNativeDCSCargo()
+            assert.equals(callsInFlight, #unloadCalls)
+            assert.same({}, loadCrateCalls)
+            assert.is_true(crate.loadedByDCSNative)
+        end)
+
+        it("an unreadable on-board list when verifying counts as still on board: nothing is destroyed", function()
+            doorsOpen = true                                -- DCS does release it
+            local crate = loadUh1hCrate("nd_f")
+            listFails = true
+            scheduled[1].fn()
+            assert.same({}, loadCrateCalls)
+            assert.is_true(crate.loadedByDCSNative)
+        end)
+
+        it("doors open at loading: handed over after the delay, as before", function()
+            doorsOpen = true
+            local crate = loadUh1hCrate("nd_g")
+            scheduled[1].fn()
+            assert.same({ "nd_g" }, loadCrateCalls)
+            assert.is_false(crate.loadedByDCSNative)
+            assert.is_true(said(ctld.tr("[CTLD] Crate loaded (parachute-ready): %1", "Ammo")))
         end)
 
     end)
