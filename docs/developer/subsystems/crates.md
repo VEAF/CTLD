@@ -33,9 +33,14 @@ Transitions are driven by entity methods, each of which sets `state` and the rel
 Two predicates gate menu actions. `isOnGround()` returns true only in `spawned` or `landed`
 state **and** verifies `dcsStatic:isExist()` when a static handle is present — this guards
 against crates destroyed by combat before an `S_EVENT_DEAD` could unregister them.
-`canUnpack()` combines `isOnGround()` with the `canBeUnpacked` flag. `isLoadedByCTLD()` returns
-true whenever the crate is `loaded`, covering both CTLD-menu loads and DCS-native loads migrated
-into CTLD; use `loadedByDCSNative` to distinguish the two.
+`canUnpack()` combines `isOnGround()` with the `canBeUnpacked` flag. `isLoaded()` is true whenever the
+crate is `loaded`, whatever the loading mode. `isLoadedByCTLD()` is true only for a crate in **virtual
+carry** — loaded through the CTLD menu, or a DCS UI load handed over to CTLD (`convertNativeLoadToCTLD`) —
+never for a crate in **native carry** (`loadedByDCSNative`, still inside the aircraft through DCS's cargo
+system). CTLD's *Drop Crate(s)* and *Parachute Crates* actions and the weight CTLD adds to the aircraft use
+`isLoadedByCTLD()`: a native-carry crate is unloaded and parachuted through the DCS cargo UI, and DCS accounts
+for its weight itself, as it does for whole vehicles. `CTLDCrate:load()` clears `loadedByDCSNative`; the
+native entry path sets it right after.
 
 Each crate records its origin in `crate.spawnMethod`, one of `CTLDCrate.SPAWN_METHOD`:
 

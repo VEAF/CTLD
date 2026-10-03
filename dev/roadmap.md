@@ -234,12 +234,6 @@ caisses. Pour les types dont l'interface cargo DCS accepterait un véhicule enti
 donnerait accès au parachute virtuel et aux menus de CTLD. Non applicable au Mi-8MT, dont l'interface cargo
 DCS n'accepte que des caisses (constaté en jeu).
 
-## Cargo natif — menus F10 des caisses natives
-
-Les listes F10 *Drop Crate(s)* et *Parachute Crates* incluent des caisses en carry natif, alors que les
-commentaires du code et la page `docs/pilot/parachute.md` disent que le cargo natif en est exclu. À trancher :
-exclure ces caisses des menus (DCS les libère lui-même) ou corriger les commentaires et la page.
-
 ## Cargo natif — limite de poids des véhicules appliquée pour l'IA seulement
 
 `maxVehicleWeight` n'est appliqué qu'au chargement automatique par l'IA ; un chargement natif par un joueur
@@ -292,9 +286,11 @@ Quatre tests (`test_install`, `test_inject_into_miz`) échouent en local quand `
 qu'ils passent contre la version commitée utilisée par le CI. Idée : les faire partir d'une copie « pristine »
 comme le fait déjà la fixture `pristine_miz`, ou d'une fixture minimale indépendante de la mission de dev.
 
-## Caisses — `isLoaded()` et `isLoadedByCTLD()` ont des corps identiques
+## Caisses — « Drop Crate(s) » ne suit pas la règle de position du spawn natif
 
-Émergé de la revue automatisée (issue #236). Les deux prédicats de `CTLDCrate` valent `self.state == STATE.LOADED`
-alors que leurs docstrings suggèrent une distinction ; la séparation CTLD / natif DCS se fait en réalité par
-`loadedByDCSNative`, testé aux sites d'appel. À clarifier : fusionner, ou donner à `isLoadedByCTLD()` le sens que
-sa docstring annonce (exclure les caisses chargées en natif).
+Constaté en jeu le 2026-10-03 (UH-1H, caisse chargée par l'UI DCS puis reprise par CTLD). *Request Equipment* place les caisses d'un
+type qui déclare un plan de spawn selon la distance à la coque (ADR 0024, `getCrateSpawnPlan`) ; *Drop Crate(s)* utilise
+toujours l'ancienne règle (distance de sécurité + 5 m, axe tiré au hasard, `CTLD_crate.lua` au point d'appel de
+`getSpawnObjectPositions`) et ne consulte jamais le plan. La caisse déposée n'atterrit donc pas au même endroit que celle
+demandée. À cadrer : faire suivre le plan de spawn au largage, et vérifier ce que cela donne pour un type sans plan.
+

@@ -71,7 +71,7 @@ function CTLDCrate:init(data)
     self.canBeUnpacked = true
     -- Feature A: virtual parachute
     self.fromParachute          = false   -- true → eligible for autoUnpack on landing
-    self.loadedByDCSNative      = false   -- true → loaded via DCS standard UI (not CTLD menu); excluded from parachute
+    self.loadedByDCSNative      = false   -- true → native carry (DCS cargo UI): CTLD never unloads, parachutes or weighs it
     -- Feature B: virtual slingload
     self.inTransitOnSlingload   = false
     self.timestamp              = timer.getAbsTime()
@@ -85,6 +85,9 @@ function CTLDCrate:load(transport)
     self.loadedBy      = transport
     self.loadTime      = timer.getAbsTime()
     self.fromParachute = false   -- reset: a new load clears any prior parachute flag
+    -- A load is virtual carry unless the DCS-native entry path says otherwise right after this
+    -- call: a flag left by an earlier native carry must not hide the crate from CTLD's actions.
+    self.loadedByDCSNative = false
 end
 
 --- Unload the crate to the ground (transport is landed).
@@ -153,12 +156,14 @@ function CTLDCrate:isLoaded()
     return self.state == CTLDCrate.STATE.LOADED
 end
 
---- Returns true if the crate is in LOADED state (managed by CTLD).
--- Applies to both CTLD-menu loads and DCS-native loads migrated to CTLD.
--- Use loadedByDCSNative to further distinguish the two sub-cases.
--- Use this to guard Drop/Parachute/Unpack CTLD menu actions.
+--- Returns true if the crate is loaded in VIRTUAL carry: loaded through the CTLD F10 menu, or a DCS
+-- UI load handed over to CTLD (convertNativeLoadToCTLD). A crate in native carry (still inside the
+-- aircraft through DCS's own cargo system, loadedByDCSNative) is not: it is unloaded and parachuted
+-- through the DCS cargo UI, and DCS accounts for its weight itself.
+-- Use this to guard CTLD's Drop / Parachute actions and the weight CTLD adds; isLoaded() answers
+-- "in a transport, whatever the mode".
 function CTLDCrate:isLoadedByCTLD()
-    return self.state == CTLDCrate.STATE.LOADED
+    return self.state == CTLDCrate.STATE.LOADED and not self.loadedByDCSNative
 end
 
 --- Returns true if this crate can be unpacked.
@@ -1082,7 +1087,8 @@ function CTLDCrateManager:cratesOnboard(unitName)
 end
 
 --- Returns the total CTLD-managed crate weight loaded on a transport.
---- DCS-native loaded crates are excluded (isLoadedByCTLD guard: dcsStatic still alive).
+--- Native-carry crates (DCS cargo UI) are excluded: DCS accounts for their weight itself, as CTLD
+--- already leaves it to DCS for whole vehicles (isLoadedByCTLD guard).
 --- @param unitName string  transport unit name
 --- @return number  kg
 function CTLDCrateManager:getLoadedCrateWeight(unitName)
@@ -2420,14 +2426,6 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
             #loaded, math.floor(estDescentTime)), 10)
 
     for _, crate in ipairs(loaded) do
-        -- DCS-native crates (convertNativeLoadToCTLD=false, e.g. C-130) keep
-        -- loadedByDCSNative=true and dcsStatic alive.  We must destroy the original
-        -- static before the virtual parachute descent so _respawnStatic can create a
-        -- fresh one at the landing position without leaving a DCS-side duplicate.
-        if crate.loadedByDCSNative and crate.dcsStatic and crate.dcsStatic:isExist() then
-            crate.dcsStatic:destroy()
-            crate.dcsStatic = nil
-        end
         local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
         crate:startParachute(altAGL)
 
@@ -2926,7 +2924,8 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj, overrideInAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
     self:refreshPackEquiptSection(playerObj, inAir, true)  -- noRefresh: final refresh() below covers it
 
-    -- Parachute Crates: enabled only in air + CTLD crates loaded
+    -- Parachute Crates: enabled only in air + virtual-carry crates loaded (a native-carry crate is
+    -- parachuted through the DCS cargo UI)
     if caps.canParachuteDrop and ctld.gs("enableParachuteDrop") then
         local onboard = 0
         if transport and transport:isExist() then
