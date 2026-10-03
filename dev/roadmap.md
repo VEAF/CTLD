@@ -292,13 +292,6 @@ Quatre tests (`test_install`, `test_inject_into_miz`) échouent en local quand `
 qu'ils passent contre la version commitée utilisée par le CI. Idée : les faire partir d'une copie « pristine »
 comme le fait déjà la fixture `pristine_miz`, ou d'une fixture minimale indépendante de la mission de dev.
 
-## Caisses — message anglais en dur « Crate loaded (parachute-ready) »
-
-Émergé de la revue automatisée (issue #236). `CTLD_crate.lua` émet `string.format("[CTLD] Crate loaded
-(parachute-ready): %s", …)` sans passer par `ctld.tr`, contrairement aux messages voisins : il n'est donc pas
-traduit et échappe au hook `pre-push` qui contrôle les dictionnaires i18n. À corriger avec une clé de traduction
-(EN/FR/ES/KO).
-
 ## Caisses — `isLoaded()` et `isLoadedByCTLD()` ont des corps identiques
 
 Émergé de la revue automatisée (issue #236). Les deux prédicats de `CTLDCrate` valent `self.state == STATE.LOADED`

@@ -1,6 +1,6 @@
 # 01 — Translate the four native-crate player messages
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 

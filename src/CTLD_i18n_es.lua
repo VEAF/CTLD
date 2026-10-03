@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.21"
+ctld.i18n["es"].translation_version = "1.22"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -580,3 +580,9 @@ ctld.i18n["es"]["%1 setting(s) absent from the mission config (version %2, CTLD 
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
 ctld.i18n["es"]["Parachute drop failed: troops lost."] = "Fallo del lanzamiento en paracaídas: tropas perdidas."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
+ctld.i18n["es"]["[CTLD] Crate falling (DCS native parachute): %1"] = "[CTLD] Caja cayendo (paracaídas nativo de DCS): %1"
+ctld.i18n["es"]["[CTLD] Crate loaded (DCS native): %1"] = "[CTLD] Caja cargada (nativo de DCS): %1"
+ctld.i18n["es"]["[CTLD] Crate loaded (parachute-ready): %1"] = "[CTLD] Caja cargada (lista para lanzamiento en paracaídas): %1"
+ctld.i18n["es"]["[CTLD] Crate unloaded (DCS native): %1"] = "[CTLD] Caja descargada (nativo de DCS): %1"

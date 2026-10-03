@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — the four native-crate player messages are translated (FIX-NATIVE-CRATE-MESSAGES-I18N)
+
+- When a crate is loaded into or released from an aircraft through DCS's own cargo UI, CTLD's on-screen messages
+  ("Crate loaded (parachute-ready)", "Crate loaded (DCS native)", "Crate falling (DCS native parachute)", "Crate unloaded
+  (DCS native)") were hard-coded English `string.format` strings, so they were never translated and escaped the i18n
+  dictionary checks. They now go through `ctld.tr` with the crate label as `%1`, with new keys translated in FR, ES and
+  KO. The English text is unchanged.
+
 ### Fixed — troop-zone queries skip a zone whose anchor is gone (FIX-TROOP-ZONE-ISALIVE-FILTER)
 
 - A troop zone anchored to a ship, convoy or unit is removed when its anchor dies, but an anchor can vanish without a
