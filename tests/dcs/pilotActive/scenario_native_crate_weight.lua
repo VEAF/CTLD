@@ -56,7 +56,10 @@ local function measure(unitName, unit)
             else virtualW = virtualW + weightOf(c); nVirtual = nVirtual + 1 end
         end
     end
-    if nNative == 0 then return nil end
+    -- Nothing on board yet. A crate loaded through the DCS UI on a type with convertNativeLoadToCTLD
+    -- (UH-1H) is handed over to CTLD within 0.5 s and counts as VIRTUAL: it is measured too, but the
+    -- native double-count question only applies to a type that keeps it native (e.g. C-130J-30).
+    if nNative == 0 and nVirtual == 0 then return nil end
 
     local ctldCrateWeight = cm:getLoadedCrateWeight(unitName)
 
