@@ -292,15 +292,6 @@ Quatre tests (`test_install`, `test_inject_into_miz`) échouent en local quand `
 qu'ils passent contre la version commitée utilisée par le CI. Idée : les faire partir d'une copie « pristine »
 comme le fait déjà la fixture `pristine_miz`, ou d'une fixture minimale indépendante de la mission de dev.
 
-## Zones de troupes — les requêtes ne filtrent pas `isAlive()`
-
-Émergé de la revue automatisée (issue #238, lot `FIX-DCS-OBJECT-NAME-COMPARISON`). `getLogisticZonesForCoalition`,
-`getLogisticZoneAtPoint` et `getLogisticZonesAtPoint` filtrent sur `zone:isAlive()`, mais aucune requête côté troupes
-(`getTroopZonesForCoalition`, `isUnitInZone`, `getTroopZoneAtPoint`) ne consulte l'`isAlive()` que la classe de base
-`CTLDAnchoredZone` leur donne. Si l'ancre meurt sans que la zone soit retirée, les joueurs peuvent encore embarquer
-des troupes au-dessus de l'épave. Durcissement de défense en profondeur ; à cadrer (comportement visible, test à
-écrire).
-
 ## Caisses — message anglais en dur « Crate loaded (parachute-ready) »
 
 Émergé de la revue automatisée (issue #236). `CTLD_crate.lua` émet `string.format("[CTLD] Crate loaded

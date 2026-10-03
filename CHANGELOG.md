@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — troop-zone queries skip a zone whose anchor is gone (FIX-TROOP-ZONE-ISALIVE-FILTER)
+
+- A troop zone anchored to a ship, convoy or unit is removed when its anchor dies, but an anchor can vanish without a
+  death event (a script removing the group, for instance) and the zone then stayed registered at its last position.
+  The logistic-zone queries already ignored such a zone; the troop-zone ones did not, so players could still board, drop or
+  extract troops there and AI transports could still be sent to it. The eight position/coalition/unit queries (list by
+  coalition, zone at a point and of a unit, waypoint zone at / nearest, drop-off zone, AI pickup and AI drop-off zone,
+  unit-in-zone) now apply the same "anchor still exists" condition. Un-anchored zones and the lookup by registry key are
+  unchanged.
+
 ### Fixed — `ctld.scheduler.cancelAll()` now cancels every timer (FIX-SCHEDULER-SINGLE-ENTRY)
 
 - Only 2 of ~15 perpetual loops registered with `ctld.scheduler`, so the documented shutdown before a CTLD
