@@ -1,6 +1,6 @@
 # 01 — Hand a DCS cargo-UI crate over to CTLD only once DCS has released it
 
-**Status:** ⬜ ready · **Type:** HITL (live check by the maintainer in the UH-1H)
+**Status:** ✅ done (PR #NN) - live check by the maintainer pending · **Type:** HITL (live check by the maintainer in the UH-1H)
 
 ## Parent
 

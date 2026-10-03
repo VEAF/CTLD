@@ -149,9 +149,18 @@ once when no crate is tracked.
   with one debug trace; a vehicle's `CRG:` companion entry belongs to the vehicle scan. An unreadable list
   logs one warning for the type and the type is no longer watched.
 - **Conversion:** for a type with `convertNativeLoadToCTLD` (UH-1H and CH-47Fbl1 by default) the appearance is
-  the trigger of the hand-over: `UnloadCargo` releases the DCS load and, 0.5 s later, `loadCrate` loads it as
-  a CTLD crate. The crate is still listed during that delay, so `_convertingCrates` marks it as being
-  converted and it is handled once.
+  the trigger of the hand-over: `UnloadCargo` asks DCS to release the load and, 0.5 s later, CTLD checks that
+  the cargo has left the on-board list before `loadCrate` loads it as a CTLD crate (destroying the static).
+  The crate is still listed during that delay, so `_convertingCrates` marks it as being converted and it is
+  handled once. **DCS releases a cargo only with the cargo-bay doors open and the aircraft on the ground**
+  (measured on the UH-1H: with the doors closed, or in flight even in a hover, `UnloadCargo` returns success and
+  does nothing), so CTLD never destroys a crate DCS still holds — that left DCS with an entry for a cargo that
+  no longer existed (a "ghost" in its cargo window, the weight above the maximum, the slot taken). If the cargo
+  is still on board (or the list cannot be read) the crate stays in DCS-native carry, flagged
+  `_awaitingHandOver`, and the pilot is told to open the doors before takeoff to fit it with a parachute. While
+  its aircraft is on the ground, `_retryHandOver` asks for the release again at each detection tick; the release
+  seen for a flagged crate completes the hand-over (`_completeHandOver`). At takeoff the flag is cleared and the
+  crate stays native. Opening the doors on the ground with a waiting crate therefore hands it over to CTLD.
 - **Release:** a native-carry crate that has left its transport's list is released (`OnCrateUnloaded`,
   `method = "dcs_native"`): `LANDED` with the transport on the ground, `FALLING` with `fromParachute` when
   `ctld.utils.inAir(transport)`, then followed to the ground by `_scheduleParachuteLandingPoll`
