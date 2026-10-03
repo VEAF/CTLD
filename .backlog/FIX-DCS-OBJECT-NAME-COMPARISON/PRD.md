@@ -1,6 +1,6 @@
 # FIX-DCS-OBJECT-NAME-COMPARISON — compare DCS objects by name, and count crates on board one way
 
-**Status:** ⬜ ready
+**Status:** ✅ done (PR #NN)
 
 Formalizes GitHub issues #236 and #238 (automated code review of `develop`), re-read against the current code:
 both defects are still present. Lot C of the review follow-up, after `FIX-REVIEW-HYGIENE-A` and
@@ -78,7 +78,7 @@ objects carrying the same name so the property they claim is actually exercised.
 ## Implementation Decisions
 
 - **Predicate (crate manager):** a method answering "is this crate carried by the unit named N" compares the
-  stored carrier's name with N (the carrier must still exist; an unreadable name is "not carried"). A
+  stored carrier's name with N (an unreadable name — a released object — is "not carried"). A
   companion lists the crates on board a named unit. Both live in the crate manager, the single owner of the
   crate registry.
 - **Routing:** the four identity comparisons (menu-load capacity, slung-crate lookup, hover-hook capacity,
@@ -108,9 +108,9 @@ objects carrying the same name so the property they claim is actually exercised.
   parachute/slingload functional spec for the crate side; the existing troop-zone scripted API spec for the
   zone side (its anchor-death case is rewritten to use a distinct initiator).
 - New cases, written first and seen failing: parachute selection finds a crate loaded on a distinct same-name
-  transport; the slung-crate lookup finds it (overspeed loses the crate); the menu-load capacity and the hover
-  hook-up capacity both count a crate loaded by the other mode (hover refused after a menu load at capacity 1,
-  menu refused after a hover hook-up); anchor death removes the troop zone when the initiator is a distinct
+  transport; the slung-crate lookup finds it (overspeed loses the crate); the crates-on-board list counts a
+  menu-loaded and a slung crate together (the menu-load check sits in an F10 callback closure and uses that
+  list), and the hover hook-up is refused after a menu load at capacity 1; anchor death removes the troop zone when the initiator is a distinct
   object with the anchor's name, and does not remove it for a different name.
 - Existing tests pass unchanged apart from the anchor-death case's initiator.
 - No live-DCS test.

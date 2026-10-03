@@ -8,6 +8,20 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — DCS objects compared by name, crates on board counted one way (FIX-DCS-OBJECT-NAME-COMPARISON)
+
+- **Crates on board (#236):** "is this crate on board this transport?" was answered by name in four places and by DCS
+  object identity (`==`) in four others, which disagree when the stored carrier and the transport re-resolved by name
+  are not the same object. All eight sites now share one by-name predicate (`CTLDCrateManager:isCarriedBy` /
+  `cratesOnboard`). Effects: the "Parachute Crates" action drops the crates its menu entry counted, the slingload
+  overspeed penalty applies again, and the cargo status, loaded weight and menus agree.
+- **`maxCratesOnboard` is a total:** the hover hook-up counted only slung crates, so an aircraft at capacity after an
+  F10 menu load could hook one more in hover and carry twice its declared capacity. It now counts every crate on board,
+  like the menu load and like the legacy script.
+- **Troop zone of a dead anchor (#238):** the removal compared the stored DCS object with `event.initiator` by identity,
+  the only such comparison in `src/`; it now compares names, so the troop zone of a sunk ship or destroyed convoy is
+  removed even if DCS does not hand back the same object.
+
 ### Fixed — a failed troop parachute spawn is no longer silent (FIX-PARACHUTE-TROOPS-SPAWN-FAILURE)
 
 - When the ground spawn of parachuted troops fails (unknown unit type, country inconsistent with the coalition…),

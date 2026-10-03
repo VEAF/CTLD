@@ -1,6 +1,6 @@
 # 03 — Roadmap notes, CHANGELOG, finalization
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 

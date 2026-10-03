@@ -1,6 +1,6 @@
 # 02 — Troop zone removal on anchor death compares names
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 

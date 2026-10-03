@@ -1,6 +1,6 @@
 # 01 — Crates on board: one predicate, by name, one total capacity
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 
@@ -18,7 +18,8 @@ Make `maxCratesOnboard` a total: the hover hook-up counts every crate on board, 
 
 Tests first, with the load-time transport and the check-time transport as distinct objects sharing a name:
 parachute selection, slung-crate lookup (overspeed loses the crate), hover refused after a menu load at
-capacity 1, menu load refused after a hover hook-up at capacity 1. Watch them fail, then fix.
+capacity 1, and the crates-on-board list counting menu-loaded and slung crates together (the menu-load check
+sits in an F10 callback closure and uses that list). Watch them fail, then fix.
 
 ## Acceptance criteria
 
