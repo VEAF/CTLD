@@ -1319,7 +1319,8 @@ function CTLDZoneManager:onDead(event)
     end
 
     for trzName, tZone in pairs(self._troopZones) do
-        if (tZone._linkedUnit and tZone._linkedUnit == event.initiator)
+        local linkedName = ctld.utils.safeObjectName(tZone._linkedUnit)
+        if (linkedName and linkedName == unitName)
            or (tZone._anchorUnitName and tZone._anchorUnitName == unitName) then
             self._troopZones[trzName] = nil
             ctld.utils.log("INFO", "CTLDZoneManager: troop zone '%s' removed (anchor dead: %s)",
