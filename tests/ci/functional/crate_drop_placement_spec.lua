@@ -66,7 +66,7 @@ describe("Drop Crate(s) placement (shared with Request Equipment)", function()
         CTLDCrateManager.getInstance()
         ctld.gs = function(k)
             if k == "capabilitiesByType" then return { ["UH-1H"] = caps } end
-            if k == "crateDropExtraDistance" then return extraDrop end
+            if k == "crateDropExtraDistance" and extraDrop ~= "default" then return extraDrop end
             if k == "spawnableCratesModels" then return models end
             if k == "loadCrateFromMenu" or k == "enableSmokeDrop" or k == "enabledFOBBuilding"
                or k == "enablePackingVehicles" or k == "enabledRadioBeaconDrop" or k == "reconF10Menu"
@@ -170,6 +170,46 @@ describe("Drop Crate(s) placement (shared with Request Equipment)", function()
             avoid = { { unitPos = {}, bbox = {} } }
             drop(menu)
             assert.is_near(-3.0, lateral(dropped.c1), 0.01)
+        end)
+
+    end)
+
+    -- FIX-CRATE-DROP-PLACEMENT ticket 02: a dropped row stands a little farther than a requested one, so the
+    -- aircraft can taxi away or lift off without touching the crates it has just dropped.
+    describe("extra clearance for dropped crates (crateDropExtraDistance)", function()
+
+        it("adds the setting to the declared distance", function()
+            extraDrop = 2
+            local menu = buildMenu()
+            addCrate("c1", "dynamic")
+            drop(menu)
+            assert.is_near(3.0 + 2, math.abs(lateral(dropped.c1)), 0.01)
+        end)
+
+        it("gives exactly the requested-crate distance when set to zero", function()
+            extraDrop = 0
+            local menu = buildMenu()
+            addCrate("c1", "dynamic")
+            drop(menu)
+            assert.is_near(3.0, math.abs(lateral(dropped.c1)), 0.01)
+        end)
+
+        it("is 2 m in the default configuration", function()
+            extraDrop = "default"
+            local menu = buildMenu()
+            addCrate("c1", "dynamic")
+            drop(menu)
+            assert.is_near(3.0 + 2, math.abs(lateral(dropped.c1)), 0.01)
+        end)
+
+        it("does not move a crate requested through Request Equipment", function()
+            extraDrop = 2
+            buildMenu()
+            local spawned = {}
+            cm.spawnCrate = function(_, _, pos) spawned[#spawned + 1] = pos; return true end
+            cm:spawnCratesAligned({ { desc = "crate", unit = "Hummer" } }, transport, coalition.side.BLUE, "UH-1H-1",
+                CTLDCrate.SPAWN_METHOD.MENU_CTLD)
+            assert.is_near(3.0, math.abs(lateral(spawned[1])), 0.01)
         end)
 
     end)
