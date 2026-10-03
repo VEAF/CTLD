@@ -312,37 +312,50 @@ steps[3] = function()
 end
 
 -- S4 — F-139 : cancelAll clears IDs + re-registration works after
+-- cancelAll() cancels EVERY pending CTLD timer (ctld.scheduler.schedule tracks them all), so this
+-- step runs on isolated registries: the live mission's own loops are left alone. The destructive
+-- end-to-end check on the real loops is scenario_scheduler_shutdown (tier disabled, run alone).
 steps[4] = function()
-    instruct("Step 4/4 — F-139 : cancelAll + re-registration (auto)")
+    instruct("Step 4/4 — F-139 : cancelAll + re-registration (auto, isolated registries)")
 
-    -- Snapshot of the ID count before cancel
-    local countBefore = 0
-    for _ in pairs(ctld.scheduler._ids) do countBefore = countBefore + 1 end
-    check("F-139.1", "scheduler has ≥1 registered loop before cancelAll",
-        countBefore >= 1, "count="..tostring(countBefore))
+    local realIds, realPending = ctld.scheduler._ids, ctld.scheduler._pending
+    ctld.scheduler._ids, ctld.scheduler._pending = {}, {}
+    local ok, err = pcall(function()
+        ctld.scheduler.register("sched_test_loop",
+            ctld.scheduler.schedule(function() end, nil, timer.getTime() + 3600))
 
-    ctld.scheduler.cancelAll()
-    local countAfter = 0
-    for _ in pairs(ctld.scheduler._ids) do countAfter = countAfter + 1 end
-    check("F-139.2", "_ids empty after cancelAll",
-        countAfter == 0, "count="..tostring(countAfter))
+        local countBefore = 0
+        for _ in pairs(ctld.scheduler._ids) do countBefore = countBefore + 1 end
+        check("F-139.1", "scheduler has ≥1 registered loop before cancelAll",
+            countBefore >= 1, "count="..tostring(countBefore))
 
-    -- Re-registration still works (no crash after cancelAll)
-    ctld.scheduler.register("test_post_cancel", 9999)
-    check("F-139.3", "register works after cancelAll",
-        ctld.scheduler._ids["test_post_cancel"] == 9999)
-    ctld.scheduler.cancel("test_post_cancel")
+        ctld.scheduler.cancelAll()
+        local countAfter = 0
+        for _ in pairs(ctld.scheduler._ids) do countAfter = countAfter + 1 end
+        for _ in pairs(ctld.scheduler._pending) do countAfter = countAfter + 1 end
+        check("F-139.2", "registries empty after cancelAll",
+            countAfter == 0, "count="..tostring(countAfter))
 
-    -- Re-init beacon loop to restore normal operation
-    if ctld.gs("enabledRadioBeaconDrop") then
-        CTLDBeaconManager.getInstance():_scheduleRefresh()
-        check("F-139.4", "beacon_refresh re-registered after re-init",
-            ctld.scheduler._ids["beacon_refresh"] ~= nil)
-    end
+        -- Re-registration still works (no crash after cancelAll)
+        ctld.scheduler.register("test_post_cancel", 9999)
+        check("F-139.3", "register works after cancelAll",
+            ctld.scheduler._ids["test_post_cancel"] == 9999)
+        ctld.scheduler.cancel("test_post_cancel")
+
+        -- The beacon loop can restart after a cancelAll (its guard reads the registry)
+        if ctld.gs("enabledRadioBeaconDrop") then
+            CTLDBeaconManager.getInstance():_scheduleRefresh()
+            check("F-139.4", "beacon_refresh re-registered after cancelAll",
+                ctld.scheduler._ids["beacon_refresh"] ~= nil)
+            -- _scheduleRefresh started a second real loop on the isolated registry: stop it
+            ctld.scheduler.cancel("beacon_refresh")
+        end
+    end)
+    ctld.scheduler._ids, ctld.scheduler._pending = realIds, realPending
+    if not ok then error(err) end
 
     advanceStep()
 end
-
 -- ── 14. Start ────────────────────────────────────────────────────────────────
 -- This scenario does not need the player transport (purely internal tests),
 -- but we attempt to look it up for the logs.
