@@ -1860,9 +1860,7 @@ end
 -- @param spawnMethod  string  CTLDCrate.SPAWN_METHOD.*
 -- @return number spawned count, table spawnInfo {positions, clock, distance}
 function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId, spawnedBy, spawnMethod)
-    -- Detect native-cargo-capable transport (UH-1H, CH-47, Mi-8, etc.)
-    local isDynamic = self:_isDynamicCapable(transport)
-    local modelKey  = self:_crateModelKey(transport)
+    local modelKey = self:_crateModelKey(transport)
 
     -- An aircraft type that declares where its crates spawn gets them in a row just clear of its hull,
     -- within native loading range (ADR 0024); any other type keeps the radial layout below.
@@ -1871,24 +1869,7 @@ function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId
         return self:_spawnCratesInRow(descriptors, transport, coalitionId, spawnedBy, spawnMethod, plan, modelKey)
     end
 
-    -- Random axis within the appropriate sector (degrees relative to unit forward)
-    local axisOffsetDeg
-    if isDynamic then
-        axisOffsetDeg = ctld.utils.RandomReal("spawnCratesAligned", 135, 225)  -- rear sector
-    else
-        -- Front sector wraps: pick randomly in [-45, +45], then normalise to [0, 360)
-        local raw = ctld.utils.RandomReal("spawnCratesAligned", -45, 45)
-        axisOffsetDeg = (raw + 360) % 360
-    end
-
-    local safeDist  = (ctld.utils.getSecureDistanceFromUnit(transport:getName()) or 10) + 5
-    local spacing   = (ctld.gs and ctld.gs("crateSpacing")) or 5
-    local n         = #descriptors
-    -- Build avoid list: all DynamicCargo-capable transports near the spawning unit.
-    -- Prevents freshly spawned crates from landing inside another aircraft's bbox,
-    -- which would immediately trigger a false DCS-native load detection.
-    local avoidBBoxes = self:_getDynamicBBoxes(transport)
-    local spawnInfo = ctld.utils.getSpawnObjectPositions(transport, n, safeDist, spacing, axisOffsetDeg, avoidBBoxes)
+    local spawnInfo = self:_radialCratePositions(transport, #descriptors)
     local spawned   = 0
     for i, descriptor in ipairs(descriptors) do
         local pos = spawnInfo.positions[i]
@@ -1901,17 +1882,43 @@ function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId
     return spawned, spawnInfo
 end
 
---- Spawn a wave of crates in a row just clear of an aircraft that declares a crate spawn plan.
+--- Positions of a wave of crates around an aircraft, by the radial rule: the secure distance plus 5 m for the
+-- first crate and `crateSpacing` more for each next one, along a random axis in the rear sector for a
+-- native-cargo-capable type and in the front sector otherwise, rotated until clear of the other aircraft's
+-- volumes (best effort). Used for a type that declares no crate spawn plan.
+-- @param transport Unit
+-- @param n         number  crates in the wave
+-- @return table spawnInfo {positions, clock, distance}
+function CTLDCrateManager:_radialCratePositions(transport, n)
+    -- Random axis within the appropriate sector (degrees relative to unit forward)
+    local axisOffsetDeg
+    if self:_isDynamicCapable(transport) then
+        axisOffsetDeg = ctld.utils.RandomReal("spawnCratesAligned", 135, 225)  -- rear sector
+    else
+        -- Front sector wraps: pick randomly in [-45, +45], then normalise to [0, 360)
+        local raw = ctld.utils.RandomReal("spawnCratesAligned", -45, 45)
+        axisOffsetDeg = (raw + 360) % 360
+    end
+
+    local safeDist  = (ctld.utils.getSecureDistanceFromUnit(transport:getName()) or 10) + 5
+    local spacing   = (ctld.gs and ctld.gs("crateSpacing")) or 5
+    -- Build avoid list: all DynamicCargo-capable transports near the spawning unit.
+    -- Prevents freshly spawned crates from landing inside another aircraft's bbox,
+    -- which would immediately trigger a false DCS-native load detection.
+    local avoidBBoxes = self:_getDynamicBBoxes(transport)
+    return ctld.utils.getSpawnObjectPositions(transport, n, safeDist, spacing, axisOffsetDeg, avoidBBoxes)
+end
+
+--- Positions of a wave of crates in a row just clear of an aircraft that declares a crate spawn plan.
 -- The side sector picks left or right at random for the whole wave and flips to the other side when the
 -- first is inside another aircraft's volume (both taken: the first is kept); rear and front are fixed.
--- @param plan  table  { sector, distance } from getCrateSpawnPlan
--- @return number spawned count, table spawnInfo {positions, clock, distance}
-function CTLDCrateManager:_spawnCratesInRow(descriptors, transport, coalitionId, spawnedBy, spawnMethod, plan, modelKey)
-    local n      = #descriptors
-    local size   = self:getCrateSize(modelKey)
-    local gap    = tonumber(ctld.gs("crateSpawnGap")) or 0.5
-    local sizes  = {}
-    for i = 1, n do sizes[i] = size end
+-- @param transport     Unit
+-- @param sizes         table   crate sizes (largest horizontal extent, metres), one per crate in order
+-- @param plan          table   { sector, distance } from getCrateSpawnPlan
+-- @param extraDistance number  metres added to the plan distance (0 for a requested or packed wave)
+-- @return table positions ({x, z} per crate), number axis (degrees), string clock (1-12)
+function CTLDCrateManager:_planCratePositions(transport, sizes, plan, extraDistance)
+    local gap = tonumber(ctld.gs("crateSpawnGap")) or 0.5
 
     -- Length of the aircraft along a row: its own box along the nose for the side sector, across it otherwise.
     local rowLength
@@ -1939,7 +1946,7 @@ function CTLDCrateManager:_spawnCratesInRow(descriptors, transport, coalitionId,
     local avoidBBoxes = self:_getDynamicBBoxes(transport)
     local chosenAxis, positions = primary, nil
     for _, axis in ipairs(axes) do
-        local candidate = ctld.utils.getCrateRowPositions(ref, hdg, axis, plan.distance, sizes, gap, rowLength)
+        local candidate = ctld.utils.getCrateRowPositions(ref, hdg, axis, plan.distance + extraDistance, sizes, gap, rowLength)
         if positions == nil then chosenAxis, positions = axis, candidate end   -- the first stays the fallback
         if not ctld.utils.positionsInsideAnyBBox(candidate, avoidBBoxes) then
             chosenAxis, positions = axis, candidate
@@ -1949,6 +1956,18 @@ function CTLDCrateManager:_spawnCratesInRow(descriptors, transport, coalitionId,
 
     local clockNum = math.floor(chosenAxis / 30 + 0.5) % 12
     if clockNum == 0 then clockNum = 12 end
+    return positions, chosenAxis, tostring(clockNum)
+end
+
+--- Spawn a wave of crates in a row just clear of an aircraft that declares a crate spawn plan.
+-- @param plan  table  { sector, distance } from getCrateSpawnPlan
+-- @return number spawned count, table spawnInfo {positions, clock, distance}
+function CTLDCrateManager:_spawnCratesInRow(descriptors, transport, coalitionId, spawnedBy, spawnMethod, plan, modelKey)
+    local size  = self:getCrateSize(modelKey)
+    local sizes = {}
+    for i = 1, #descriptors do sizes[i] = size end
+
+    local positions, _, clock = self:_planCratePositions(transport, sizes, plan, 0)
 
     local spawned = 0
     for i, descriptor in ipairs(descriptors) do
@@ -1959,7 +1978,27 @@ function CTLDCrateManager:_spawnCratesInRow(descriptors, transport, coalitionId,
             end
         end
     end
-    return spawned, { positions = positions, clock = tostring(clockNum), distance = plan.distance }
+    return spawned, { positions = positions, clock = clock, distance = plan.distance }
+end
+
+--- Where Drop Crate(s) puts the crates it drops: the same rule as a requested wave (ADR 0024) — in a row at
+-- the declared distance for a type that declares a crate spawn plan, the radial rule otherwise, both with
+-- the anti-collision — so a dropped crate can be loaded again through the DCS cargo UI.
+-- @param transport Unit
+-- @param crates    table   the CTLDCrate objects being dropped
+-- @return table spawnInfo {positions, clock, distance}
+function CTLDCrateManager:getCrateDropPositions(transport, crates)
+    local plan = self:getCrateSpawnPlan(transport:getTypeName())
+    if not plan then
+        return self:_radialCratePositions(transport, #crates)
+    end
+    local sizes = {}
+    for i, crate in ipairs(crates) do sizes[i] = self:getCrateSize(crate.modelKey) end
+    -- A little farther than a requested wave: the aircraft has just landed and must be able to taxi away
+    -- or lift off without touching the crates it has dropped.
+    local extra = tonumber(ctld.gs("crateDropExtraDistance")) or 0
+    local positions, _, clock = self:_planCratePositions(transport, sizes, plan, extra)
+    return { positions = positions, clock = clock, distance = plan.distance + extra }
 end
 
 --- Register a crate pre-placed by the mission maker (called from INIT-B).
@@ -3005,18 +3044,8 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                     ctld.tr("No crates on board to drop."), 10)
                 return
             end
-            -- Compute aligned drop positions (one per crate)
-            local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
-            local spacing   = (ctld.gs and ctld.gs("crateSpacing")) or 5
-            local caps_t    = (ctld.gs("capabilitiesByType") or {})[t:getTypeName()]
-            local isDynamic = caps_t ~= nil and caps_t.canTransportWholeVehicle == true
-            local axis
-            if isDynamic then
-                axis = ctld.utils.RandomReal("dropCrates", 135, 225)
-            else
-                axis = (ctld.utils.RandomReal("dropCrates", -45, 45) + 360) % 360
-            end
-            local spawnInfo = ctld.utils.getSpawnObjectPositions(t, #loaded, safeDist, spacing, axis)
+            -- Same placement rule as Request Equipment (one position per crate)
+            local spawnInfo = mgr:getCrateDropPositions(t, loaded)
             for i, c in ipairs(loaded) do
                 local pos = spawnInfo.positions[i]
                 if pos then

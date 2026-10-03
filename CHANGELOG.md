@@ -8,6 +8,20 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — Drop Crate(s) places crates by the same rule as Request Equipment (FIX-CRATE-DROP-PLACEMENT)
+
+- Crates requested for a native-cargo aircraft stand in a row just clear of its hull, within DCS's loading range (ADR
+  0024), but **Drop Crate(s)** still used the older radial rule (the aircraft's secure distance plus 5 m, no
+  anti-collision): on a UH-1H or Mi-8MT a dropped crate landed 20 m or more away, too far to be loaded again through the
+  DCS cargo UI, and could land inside the volume of a parked aircraft. Request Equipment, packing and Drop Crate(s) now
+  share one placement rule: a row at the declared distance for a type that declares a crate spawn plan, the radial rule
+  otherwise, both with the anti-collision, one crate size per crate. Requested and packed waves are unchanged. For a type
+  with no plan the radial axis now follows the same "native-cargo-capable" test as a requested wave.
+- **New setting `crateDropExtraDistance`** (metres, default `2`, catalogue version 2.2.0): a dropped row stands that much
+  farther than the declared distance, so the aircraft can taxi away or lift off without touching the crates it has just
+  dropped. `0` gives exactly the requested position; the value must stay within DCS's loading range. The default is not
+  yet confirmed in game.
+
 ### Fixed — CTLD unload, parachute and weight apply to virtual-carry crates only (FIX-NATIVE-CRATE-CTLD-ACTIONS)
 
 - A crate loaded through the DCS cargo UI (native carry) is unloaded and parachuted through the DCS cargo UI, and DCS

@@ -95,7 +95,7 @@ aircraft (`1.5` when absent).
 | `minimumHoverHeight` / `maximumHoverHeight` | `7.5` / `12.0` | Hover window (m) for pickup. |
 | `maxDistanceFromCrate` | `5.5` | Max horizontal distance (m) to a crate during hover pickup. |
 | `maxSlingloadSpeed` | `26` | Speed (**m/s**) above which a slingloaded crate is cut loose — ≈ 94 km/h / 50 kt. Raise it if your airframe warrants a higher limit. |
-| `crateSpacing` | `5` | Spacing (m) between crates spawned in a set. |
+| `crateDropExtraDistance` | `2` | Extra distance (m) added to the declared `crateSpawnDistance` when **Drop Crate(s)** puts crates beside a native-cargo aircraft, so the aircraft can taxi away or lift off without touching them; `0` = exactly where a requested crate stands (see [below](#crate-spawn-near)). | Spacing (m) between crates spawned in a set. |
 | `crateSpawnGap` | `0.5` | Gap (m) between two crates in a row beside a native-cargo aircraft (see [below](#crate-spawn-near)). |
 
 ## Whole-vehicle transport
@@ -167,7 +167,7 @@ distance computed from its size. Crates in a row are `crate size + crateSpawnGap
 so they never touch); the crate size is the `size` field of its entry in `spawnableCratesModels` (`1.5` m when
 absent, `1.31` m for the default `load` and `dynamic` models). A row holds as many crates as fit along the
 aircraft; the next row stands one step further out. If a side is taken by another aircraft, the row flips to the
-other side. Vehicles, unpacking, scenes and troops are not affected.
+other side. **Drop Crate(s)** uses the same rule, so a crate you drop can be loaded again through the DCS cargo UI; its row stands `crateDropExtraDistance` (default `2` m) farther than a requested one, so the aircraft can taxi away or lift off without touching the crates it has just dropped. Keep it small: DCS loaded a crate at 8 m and refused one at 23 m. Vehicles, unpacking, scenes and troops are not affected.
 
 Default values, in metres from the aircraft centre:
 

@@ -98,6 +98,7 @@ côté d'un appareil à cargo natif (`1.5` si absent).
 | `minimumHoverHeight` / `maximumHoverHeight` | `7.5` / `12.0` | Fenêtre de hover (m) pour le ramassage. |
 | `maxDistanceFromCrate` | `5.5` | Distance horizontale max (m) à un crate pendant le ramassage en hover. |
 | `maxSlingloadSpeed` | `26` | Vitesse (**m/s**) au-delà de laquelle un crate en slingload est largué — ≈ 94 km/h / 50 kt. À augmenter si votre appareil supporte une limite plus élevée. |
+| `crateDropExtraDistance` | `2` | Distance supplémentaire (m) ajoutée à la `crateSpawnDistance` déclarée quand **Drop Crate(s)** place des crates à côté d'un appareil à cargo natif, pour que l'appareil puisse s'éloigner en roulant ou décoller sans les toucher ; `0` = exactement là où se tient une crate demandée (voir [ci-dessous](#crate-spawn-near)). |
 | `crateSpacing` | `5` | Espacement (m) entre les crates spawnés dans un jeu. |
 | `crateSpawnGap` | `0.5` | Écart (m) entre deux crates d'une rangée à côté d'un appareil à cargo natif (voir [ci-dessous](#crate-spawn-near)). |
 
@@ -171,7 +172,10 @@ l'appareil à une distance calculée d'après sa taille. Les crates d'une rangé
 + crateSpawnGap` (écart par défaut `0.5` m, donc jamais en contact) ; la taille d'une crate est le champ `size`
 de son entrée dans `spawnableCratesModels` (`1.5` m si absent, `1.31` m pour les modèles `load` et `dynamic` par
 défaut). Une rangée contient autant de crates qu'il en tient le long de l'appareil ; la rangée suivante se place
-un pas plus loin. Si un côté est occupé par un autre appareil, la rangée passe de l'autre côté. Les véhicules, le
+un pas plus loin. Si un côté est occupé par un autre appareil, la rangée passe de l'autre côté. **Drop Crate(s)** applique la même règle : une crate
+larguée peut être rechargée par l'UI cargo DCS ; sa rangée se tient `crateDropExtraDistance` (`2` m par défaut) plus
+loin qu'une crate demandée, pour que l'appareil puisse s'éloigner en roulant ou décoller sans toucher les crates qu'il
+vient de déposer. Gardez-la petite : DCS a chargé une crate à 8 m et en a refusé une à 23 m. Les véhicules, le
 dépaquetage, les scènes et les troupes ne sont pas concernés.
 
 Valeurs par défaut, en mètres du centre de l'appareil :

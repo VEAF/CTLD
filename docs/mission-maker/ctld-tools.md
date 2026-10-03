@@ -159,7 +159,7 @@ different: it cannot be removed, so CTLD falls back to its default and says so a
 
 ### When CTLD is updated
 
-CTLD stamps a **catalogue version** on its configuration (`2.1.0` today). It changes only when CTLD gains a
+CTLD stamps a **catalogue version** on its configuration (`2.2.0` today). It changes only when CTLD gains a
 setting or a field, not at every release. The tool's header shows two versions: **Config version**, the one
 your opened configuration was written against, and **Tool catalogue**, the one this copy of the tool carries,
 highlighted when they differ.

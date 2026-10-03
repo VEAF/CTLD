@@ -127,6 +127,14 @@ autant par rangée qu'il en tient le long de l'aéronef (longueur de la UserBox 
 aéronef, et le premier côté est conservé si les deux sont pris. La crate unique de Request Equipment
 passe par le même chemin. Un type sans plan garde la règle radiale ci-dessus.
 
+Le placement est fait de deux routines partagées avec **Drop Crate(s)** : `_planCratePositions` (la rangée, avec
+l'anti-collision de l'autre côté) et `_radialCratePositions` (la règle radiale, avec son anti-collision). Le
+callback de Drop demande à `getCrateDropPositions(transport, crates)` les positions des crates larguées, une taille
+par crate (`crate.modelKey`) : une crate larguée se tient donc là où une crate demandée se tiendrait et peut être
+rechargée par l'UI cargo DCS. Pour un type avec plan, la rangée est `crateDropExtraDistance` (2 m par défaut) plus
+loin qu'une crate demandée, pour que l'appareil puisse s'éloigner en roulant ou décoller sans toucher les crates
+qu'il vient de déposer.
+
 ## Transitions de cycle de vie sur le manager { #lifecycle-transitions-on-the-manager }
 
 Le manager reflète les transitions de l'entité et détient la publication des événements :
