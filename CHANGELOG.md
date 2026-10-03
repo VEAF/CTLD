@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a failed equipment request tells the pilot and the log (FIX-REQUEST-EQUIPMENT-SILENT-FAILURE)
+
+- A *Request Equipment* click that produced nothing did nothing at all: no message to the pilot and no log line, so a failed
+  request could not be told from one never made (a crate with no descriptor, a crate or a set whose creation failed), and a
+  whole vehicle whose creation failed still announced "Vehicle ready for loading". Such a request now tells the pilot "Request
+  failed: the equipment could not be brought out." (translated in FR, ES and KO) and logs an `ERROR` line naming the item, the
+  unit, the zone and the reason; a set of which only some crates were created logs a `WARNING`; a vehicle no longer reports
+  success when it was not created. Successful requests are unchanged. This makes the next failure diagnosable: the cause of the
+  failed request seen on 2026-10-03, which logged nothing, is not determined.
+
 ### Fixed — crates stand parallel to the aircraft that spawned or dropped them (FIX-CRATE-ORIENTATION)
 
 - Every crate CTLD created was oriented due north: the heading was written as zero when the static object was created, and
