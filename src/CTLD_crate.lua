@@ -636,11 +636,8 @@ function CTLDCrateManager:refreshLoadCrateSection(playerObj)
                     end
                     local caps_t   = (ctld.gs("capabilitiesByType") or {})[t:getTypeName()]
                     local capacity = (caps_t and caps_t.maxCratesOnboard) or 1
-                    local onboard  = 0
                     local mgr = CTLDCrateManager.getInstance()
-                    for _, c in pairs(mgr.crates) do
-                        if c:isLoaded() and c.loadedBy == t then onboard = onboard + 1 end
-                    end
+                    local onboard = #mgr:cratesOnboard(t:getName())
                     if onboard >= capacity then
                         trigger.action.outTextForGroup(ctld.utils.getGroupId(t),
                             ctld.tr("Maximum number of crates are on board!", onboard, capacity), 10)
@@ -1058,6 +1055,32 @@ function CTLDCrateManager:setParachuteEffect(effect)
     self._parachuteEffect = effect
 end
 
+--- Is `crate` carried by the unit named `unitName`? Compares unit NAMES, never DCS object
+--- identity (userdata equality is unreliable: the carrier stored at load time and the unit
+--- re-resolved by name later are not guaranteed to be the same object). A carrier whose name
+--- cannot be read (released object) is "not carried".
+--- @param crate    CTLDCrate
+--- @param unitName string|nil
+--- @return boolean
+function CTLDCrateManager:isCarriedBy(crate, unitName)
+    if not unitName or not crate.loadedBy then return false end
+    return ctld.utils.safeObjectName(crate.loadedBy) == unitName
+end
+
+--- Crates currently on board the unit named `unitName`, whatever the loading mode
+--- (F10 menu, hover slingload or DCS-native).
+--- @param unitName string
+--- @return CTLDCrate[]
+function CTLDCrateManager:cratesOnboard(unitName)
+    local out = {}
+    for _, crate in pairs(self.crates) do
+        if crate:isLoaded() and self:isCarriedBy(crate, unitName) then
+            out[#out + 1] = crate
+        end
+    end
+    return out
+end
+
 --- Returns the total CTLD-managed crate weight loaded on a transport.
 --- DCS-native loaded crates are excluded (isLoadedByCTLD guard: dcsStatic still alive).
 --- @param unitName string  transport unit name
@@ -1065,8 +1088,7 @@ end
 function CTLDCrateManager:getLoadedCrateWeight(unitName)
     local total = 0
     for _, crate in pairs(self.crates) do
-        if crate:isLoadedByCTLD()
-           and crate.loadedBy and crate.loadedBy:isExist() and crate.loadedBy:getName() == unitName then
+        if crate:isLoadedByCTLD() and self:isCarriedBy(crate, unitName) then
             total = total + (crate.descriptor and crate.descriptor.weight or 0)
         end
     end
@@ -1081,8 +1103,9 @@ end
 -- @param transport Unit
 -- @return CTLDCrate or nil
 function CTLDCrateManager:_getSlingloadedCrate(transport)
+    local transportName = ctld.utils.safeObjectName(transport)
     for _, crate in pairs(self.crates) do
-        if crate.inTransitOnSlingload and crate.loadedBy == transport then
+        if crate.inTransitOnSlingload and self:isCarriedBy(crate, transportName) then
             return crate
         end
     end
@@ -1166,12 +1189,7 @@ function CTLDCrateManager:checkHoverStatus()
 
                 else
                     -- 2. Hover pickup (only if below capacity)
-                    local count = 0
-                    for _, c in pairs(self.crates) do
-                        if c.inTransitOnSlingload and c.loadedBy == transport then
-                            count = count + 1
-                        end
-                    end
+                    local count = #self:cratesOnboard(unitName)
                     local _caps_sl = ((ctld.gs("capabilitiesByType") or {})[playerObj.typeName]) or {}
                     local capacity = _caps_sl.maxCratesOnboard or 1
 
@@ -2383,8 +2401,9 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
 
     local descentRate = ctld.gs("parachuteDescentRateCrates")
     local loaded      = {}
+    local transportName = ctld.utils.safeObjectName(transport)
     for _, crate in pairs(self.crates) do
-        if crate:isLoadedByCTLD() and crate.loadedBy == transport then
+        if crate:isLoadedByCTLD() and self:isCarriedBy(crate, transportName) then
             table.insert(loaded, crate)
         end
     end
@@ -2914,8 +2933,7 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj, overrideInAir)
             for _, c in pairs(self.crates) do
                 if c:isLoadedByCTLD()
                         and not c.inTransitOnSlingload
-                        and c.loadedBy
-                        and c.loadedBy:isExist() and c.loadedBy:getName() == playerObj.unitName then
+                        and self:isCarriedBy(c, playerObj.unitName) then
                     onboard = onboard + 1
                 end
             end
@@ -2979,7 +2997,7 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
             local mgr     = CTLDCrateManager.getInstance()
             local loaded  = {}
             for _, c in pairs(mgr.crates) do
-                if c:isLoadedByCTLD() and c.loadedBy and c.loadedBy:isExist() and c.loadedBy:getName() == t:getName() then
+                if c:isLoadedByCTLD() and mgr:isCarriedBy(c, t:getName()) then
                     table.insert(loaded, c)
                 end
             end

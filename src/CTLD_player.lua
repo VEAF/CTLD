@@ -679,7 +679,7 @@ function CTLDPlayerManager:_buildMenuBody(playerObj)
                 local crateCount = {}   -- desc → { count, totalWeight }
                 local crateOrder = {}   -- preserve insertion order for deterministic output
                 for _, c in pairs(crateMgr.crates) do
-                    if c:isLoaded() and c.loadedBy and c.loadedBy:getName() == unitName then
+                    if c:isLoaded() and crateMgr:isCarriedBy(c, unitName) then
                         local desc   = (c.descriptor and c.descriptor.desc) or "?"
                         local weight = (c.descriptor and c.descriptor.weight) or 0
                         if not crateCount[desc] then
