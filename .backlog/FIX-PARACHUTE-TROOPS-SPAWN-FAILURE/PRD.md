@@ -1,6 +1,6 @@
 # FIX-PARACHUTE-TROOPS-SPAWN-FAILURE — a failed troop parachute spawn is silent
 
-**Status:** ✅ done (PR #NN)
+**Status:** ✅ done (PR #242)
 
 Formalizes GitHub issue #235 (automated code review of `develop`), re-read against the current code: the
 defect is still present. Lot B of the review follow-up, after `FIX-REVIEW-HYGIENE-A`.
