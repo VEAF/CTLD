@@ -130,7 +130,7 @@ describe("Drop Crate(s) placement (shared with Request Equipment)", function()
 
         it("puts a dropped crate at the declared distance, abeam — not on the radial rule", function()
             local menu = buildMenu()
-            addCrate("c1", "load")
+            addCrate("c1", "dynamic")
             drop(menu)
             assert.is_near(3.0, math.abs(lateral(dropped.c1)), 0.01)
             assert.is_near(0, ahead(dropped.c1), 0.01)
@@ -138,7 +138,7 @@ describe("Drop Crate(s) placement (shared with Request Equipment)", function()
 
         it("stands several dropped crates in a row, all at the same lateral distance, centred", function()
             local menu = buildMenu()
-            for i = 1, 3 do addCrate("c" .. i, "load") end
+            for i = 1, 3 do addCrate("c" .. i, "dynamic") end
             drop(menu)
             local xs = {}
             for i = 1, 3 do
@@ -147,7 +147,7 @@ describe("Drop Crate(s) placement (shared with Request Equipment)", function()
             end
             table.sort(xs)
             assert.is_near(0, (xs[1] + xs[#xs]) / 2, 0.01)
-            assert.is_near(1.81, xs[2] - xs[1], 0.01)   -- default crate size 1.31 + gap 0.5
+            assert.is_near(cm:getCrateSize("dynamic") + 0.5, xs[2] - xs[1], 0.01)   -- crate size + default gap 0.5
         end)
 
         it("spaces each pair of neighbours by the sizes of the two crates concerned", function()
@@ -162,7 +162,7 @@ describe("Drop Crate(s) placement (shared with Request Equipment)", function()
 
         it("moves the row to the other side when the first is inside another aircraft's volume", function()
             local menu = buildMenu()
-            addCrate("c1", "load")
+            addCrate("c1", "dynamic")
             ctld.utils.positionsInsideAnyBBox = function(positions)
                 for _, p in ipairs(positions) do if lateral(p) > 0 then return true end end
                 return false
@@ -179,8 +179,9 @@ describe("Drop Crate(s) placement (shared with Request Equipment)", function()
         it("places the first crate at the secure distance + 5 m and hands the other aircraft's volumes to the radial routine", function()
             caps = { cratesEnabled = true }
             local menu = buildMenu()
-            addCrate("c1", "load")
-            avoid = { { unitPos = { p = { x = 5000, y = 0, z = 5000 } }, bbox = { min = { x = 0, y = 0, z = 0 }, max = { x = 1, y = 1, z = 1 } } } }
+            addCrate("c1", "dynamic")
+            avoid = { { unitPos = { p = { x = 5000, y = 0, z = 5000 }, x = { x = 1, y = 0, z = 0 }, y = { x = 0, y = 1, z = 0 }, z = { x = 0, y = 0, z = 1 } },
+                      bbox = { min = { x = -1, y = -1, z = -1 }, max = { x = 1, y = 1, z = 1 } } } }
             drop(menu)
             assert.equals(avoid, avoidSeen)
             local d = math.sqrt((dropped.c1.x - CX) ^ 2 + (dropped.c1.z - CZ) ^ 2)
