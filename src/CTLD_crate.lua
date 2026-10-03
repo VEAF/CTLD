@@ -1417,7 +1417,7 @@ function CTLDCrateManager:_onNativeCrateEntered(crate, unitName, entry)
                 "CTLDCrateManager: DCS UI LOAD → CTLD-managed — crate=%s carrier=%s",
                 _crateName, _unitName)
             trigger.action.outTextForGroup(_groupId,
-                string.format("[CTLD] Crate loaded (parachute-ready): %s", _lbl), 8)
+                ctld.tr("[CTLD] Crate loaded (parachute-ready): %1", _lbl), 8)
         end, nil, timer.getTime() + 0.5)
     else
         -- DCS-native: mark as DCS-managed (no parachute available in-flight).
@@ -1440,7 +1440,7 @@ function CTLDCrateManager:_onNativeCrateEntered(crate, unitName, entry)
             "CTLDCrateManager: DCS native LOAD (DCS-managed, no parachute) — crate=%s carrier=%s",
             crate.crateName, unitName)
         trigger.action.outTextForGroup(entry.playerObj.groupId,
-            string.format("[CTLD] Crate loaded (DCS native): %s", _descLabel), 8)
+            ctld.tr("[CTLD] Crate loaded (DCS native): %1", _descLabel), 8)
     end
 end
 
@@ -1480,8 +1480,8 @@ function CTLDCrateManager:_onNativeCrateReleased(crate, transport, cratePos)
         crate.crateName, tostring(inFlight), tostring(crate.fromParachute))
     local _descLabel2 = crate.descriptor and crate.descriptor.desc or crate.crateName
     local _unloadMsg  = inFlight
-        and string.format("[CTLD] Crate falling (DCS native parachute): %s", _descLabel2)
-        or  string.format("[CTLD] Crate unloaded (DCS native): %s", _descLabel2)
+        and ctld.tr("[CTLD] Crate falling (DCS native parachute): %1", _descLabel2)
+        or  ctld.tr("[CTLD] Crate unloaded (DCS native): %1", _descLabel2)
     if playerObj then
         trigger.action.outTextForGroup(playerObj.groupId, _unloadMsg, 8)
     end

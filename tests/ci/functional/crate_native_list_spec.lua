@@ -12,6 +12,7 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
     local aircraft, cargoList, listFails, listGets, airborne
     local unloadCalls, scheduled, loaded, unloaded, loadCrateCalls, logs
     local origGs, origGetByName, origInAir, origSchedule, origLog, origSetupPm
+    local testLang, origOutText, messages   -- player messages: active language and captured texts
 
     local function cargoObj(name) return { getName = function() return name end } end
 
@@ -74,8 +75,12 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
 
         origGetByName = Unit.getByName
         Unit.getByName = function(n) if n == "nc6_player" then return aircraft end end
+        testLang, messages = nil, {}
+        origOutText = trigger.action.outTextForGroup
+        trigger.action.outTextForGroup = function(_, text) messages[#messages + 1] = text end
         origGs = ctld.gs
         ctld.gs = function(k)
+            if k == "i18n_lang" and testLang then return testLang end
             if k == "capabilitiesByType" then
                 return {
                     ["Mi-8MT"] = { useNativeDcsCargoSystem = true, convertNativeLoadToCTLD = false },
@@ -101,6 +106,7 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
     after_each(function()
         Unit.getByName          = origGetByName
         ctld.gs                 = origGs
+        trigger.action.outTextForGroup = origOutText
         ctld.utils.inAir        = origInAir
         timer.scheduleFunction  = origSchedule
         ctld.utils.log          = origLog
@@ -276,6 +282,60 @@ describe("CTLDCrateManager native cargo detection (on-board cargo list)", functi
             scheduled[1].fn()
             cm:_checkNativeDCSCargo()
             assert.equals(2, #unloadCalls)
+        end)
+
+    end)
+
+    -- FIX-NATIVE-CRATE-MESSAGES-I18N: the four player messages go through ctld.tr, so a French pilot
+    -- reads French. makeCrate's descriptor label is "Ammo".
+    describe("player messages are translated", function()
+
+        local function lastMessage() return messages[#messages] end
+
+        it("native load, in French", function()
+            testLang = "fr"
+            makeCrate("nc6_msg_a")
+            cargoList = { cargoObj("nc6_msg_a") }
+            cm:_checkNativeDCSCargo()
+            assert.equals("[CTLD] Caisse chargée (natif DCS) : Ammo", lastMessage())
+        end)
+
+        it("native load, in English (unchanged)", function()
+            makeCrate("nc6_msg_b")
+            cargoList = { cargoObj("nc6_msg_b") }
+            cm:_checkNativeDCSCargo()
+            assert.equals("[CTLD] Crate loaded (DCS native): Ammo", lastMessage())
+        end)
+
+        it("conversion to CTLD management, in French", function()
+            testLang = "fr"
+            setType("UH-1H")
+            makeCrate("nc6_msg_c")
+            cargoList = { cargoObj("nc6_msg_c") }
+            cm:_checkNativeDCSCargo()
+            scheduled[1].fn()
+            assert.equals("[CTLD] Caisse chargée (prête pour le parachutage) : Ammo", lastMessage())
+        end)
+
+        it("release on the ground, in French", function()
+            makeCrate("nc6_msg_d")
+            cargoList = { cargoObj("nc6_msg_d") }
+            cm:_checkNativeDCSCargo()
+            testLang = "fr"
+            cargoList = {}
+            cm:_checkNativeDCSCargo()
+            assert.equals("[CTLD] Caisse déchargée (natif DCS) : Ammo", lastMessage())
+        end)
+
+        it("release in flight, in French", function()
+            makeCrate("nc6_msg_e")
+            cargoList = { cargoObj("nc6_msg_e") }
+            cm:_checkNativeDCSCargo()
+            testLang = "fr"
+            airborne = true
+            cargoList = {}
+            cm:_checkNativeDCSCargo()
+            assert.equals("[CTLD] Caisse en chute (parachute natif DCS) : Ammo", lastMessage())
         end)
 
     end)

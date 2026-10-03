@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.21"
+ctld.i18n["ko"].translation_version = "1.22"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -459,3 +459,9 @@ ctld.i18n["ko"]["%1 setting(s) absent from the mission config (version %2, CTLD 
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
 ctld.i18n["ko"]["Parachute drop failed: troops lost."] = "낙하산 투하 실패: 병력 손실."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
+ctld.i18n["ko"]["[CTLD] Crate falling (DCS native parachute): %1"] = "[CTLD] 화물 낙하 중 (DCS 기본 낙하산): %1"
+ctld.i18n["ko"]["[CTLD] Crate loaded (DCS native): %1"] = "[CTLD] 화물 적재됨 (DCS 기본): %1"
+ctld.i18n["ko"]["[CTLD] Crate loaded (parachute-ready): %1"] = "[CTLD] 화물 적재됨 (낙하산 투하 가능): %1"
+ctld.i18n["ko"]["[CTLD] Crate unloaded (DCS native): %1"] = "[CTLD] 화물 하역됨 (DCS 기본): %1"
