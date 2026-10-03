@@ -171,11 +171,13 @@ Le tick retourne aussitôt quand aucune caisse n'est suivie.
   un succès et ne fait rien), donc CTLD ne détruit jamais une caisse que DCS tient encore — ce qui laissait DCS
   avec une entrée pour une cargaison disparue (un « fantôme » dans sa fenêtre cargo, le poids au-dessus du
   maximum, l'emplacement pris). Si la cargaison est toujours à bord (ou si la liste est illisible), la caisse
-  reste en carry natif DCS, marquée `_awaitingHandOver`, et le pilote est invité à ouvrir les portes avant le
-  décollage pour y ajouter un parachute. Tant que son appareil est au sol, `_retryHandOver` redemande la
-  libération à chaque passage de détection ; la libération constatée pour une caisse marquée termine la
-  passation (`_completeHandOver`). Au décollage la marque est retirée et la caisse reste native. Ouvrir les
-  portes au sol avec une caisse en attente la passe donc à CTLD.
+  reste en carry natif DCS, marquée `_awaitingHandOver`, et le pilote est invité à ajouter le parachute.
+  L'action F10 *Ajouter le parachute* (`fitParachute`, proposée par `refreshCrateFlightSection` tant que
+  `cratesAwaitingHandOver` n'est pas vide et que l'appareil est au sol) demande la libération à DCS, marque la
+  caisse dans `_convertingCrates` pour que la libération ne soit pas traitée comme un déchargement natif, et
+  termine la passation (`_completeHandOver`) quand la cargaison a quitté la liste ; portes fermées, le pilote est
+  invité à les ouvrir et peut réutiliser l'action. Ouvrir les portes seul ne fait rien : une caisse peut donc
+  toujours être déchargée par l'UI cargo DCS (ADR 0026).
 - **Libération :** une caisse en carry natif qui a quitté la liste de son transport est libérée
   (`OnCrateUnloaded`, `method = "dcs_native"`) : `LANDED` transport au sol, `FALLING` avec `fromParachute` si
   `ctld.utils.inAir(transport)`, puis suivie jusqu'au sol par `_scheduleParachuteLandingPoll`

@@ -45,8 +45,15 @@ describe("F10 Fit parachute", function()
             return origGs(k)
         end
         transport = {
-            isExist = function() return true end, getName = function() return "UH-1H-1" end,
+            isExist     = function() return true end,
+            getName     = function() return "UH-1H-1" end,
             getTypeName = function() return typeName end,
+            getCoalition = function() return 2 end,
+            getCountry  = function() return country.id.USA end,
+            getPoint    = function() return { x = 0, y = 0, z = 0 } end,
+            getVelocity = function() return { x = 0, y = 0, z = 0 } end,
+            getPlayerName = function() return "tester" end,
+            getGroup    = function() return { getID = function() return 9901 end } end,
         }
         Unit.getByName = function(n) if n == "UH-1H-1" then return transport end end
         playerObj = { unitName = "UH-1H-1", groupId = 9901, groupName = "Grp_test", coalition = 2, typeName = typeName,
@@ -64,7 +71,7 @@ describe("F10 Fit parachute", function()
         crate:load(transport)
         crate.loadedByDCSNative = true
         crate._awaitingHandOver = awaiting
-        crate.dcsStatic = { isExist = function() return true end }
+        crate.dcsStatic = { isExist = function() return true end, getPoint = function() return { x = 0, y = 0, z = 0 } end }
         cm.crates["fp1"] = crate
         return crate
     end

@@ -1375,26 +1375,22 @@ function CTLDCrateManager:_checkNativeDCSCargo()
                 crate.loadedBy      = nil
                 crate.loadTime      = nil
                 crate.fromParachute = false
+                crate._awaitingHandOver = nil
                 ctld.utils.log("INFO",
                     "CTLDCrateManager: DCS native UNLOAD (transport lost) — crate=%s",
                     crate.crateName)
             else
                 -- A transport whose list was not read this tick (unreadable) releases nothing.
                 local names = namesOnBoard[transport:getName()]
-                if names and not names[crate.crateName] then
-                    if crate._awaitingHandOver and not ctld.utils.inAir(transport) then
-                        self:_completeHandOver(crate, transport, cratePos)
-                    else
-                        self:_onNativeCrateReleased(crate, transport, cratePos)
-                    end
+                if names and not names[crate.crateName] and not self._convertingCrates[crate.crateName] then
+                    self:_onNativeCrateReleased(crate, transport, cratePos)
                 end
             end
         end
     end
 
-    -- ── Hand-over retry: a crate DCS did not release (doors closed) is asked again while the aircraft is on the ground ──
-    self:_retryHandOver()
 end
+
 
 --- A tracked crate appeared on a player aircraft's on-board cargo list.
 -- convertNativeLoadToCTLD types: hand the load over to CTLD; otherwise it is DCS-managed.
@@ -1482,39 +1478,67 @@ function CTLDCrateManager:_isStillOnBoard(transport, crateName)
     return false
 end
 
---- DCS did not release a crate loaded through its cargo UI (cargo-bay doors closed): it stays in DCS-native carry,
--- flagged as awaiting the hand-over to CTLD, which is retried while the aircraft is on the ground
--- (_retryHandOver). The pilot is told how to get it fitted with a parachute.
+--- DCS did not release a crate loaded through its cargo UI (cargo-bay doors closed): it stays in DCS-native carry, flagged as
+-- awaiting the hand-over to CTLD, which the pilot asks for with the F10 "Fit parachute" action (fitParachute). Opening the
+-- doors alone does nothing, so the crate can still be unloaded from the DCS cargo UI. The pilot is told how to fit the parachute.
 function CTLDCrateManager:_holdNativeAwaitingHandOver(crate, unitName, entry)
     self:_markNativeLoaded(crate, unitName)
     crate._awaitingHandOver = true
+    self:refreshCrateFlightSectionForUnit(unitName)   -- the Fit parachute entry is now offered
     ctld.utils.log("INFO",
-        "CTLDCrateManager: DCS UI LOAD not released by DCS (doors closed) — crate=%s carrier=%s stays native, hand-over retried on the ground",
+        "CTLDCrateManager: DCS UI LOAD not released by DCS (doors closed) — crate=%s carrier=%s stays native, waiting for Fit parachute",
         crate.crateName, unitName)
     trigger.action.outTextForGroup(entry.playerObj.groupId,
-        ctld.tr("Crate loaded. Open the doors before takeoff to fit it with a parachute."), 12)
+        ctld.tr("Crate loaded. To fit it with a parachute: open the doors, then use F10 > CTLD > %1 > %2.",
+            ctld.tr("Crate Commands"), ctld.tr("Fit parachute")), 12)
 end
 
---- Retry the release of every crate awaiting its hand-over whose aircraft is on the ground; at takeoff stop for good
--- (DCS does not release in flight) and the crate stays native.
-function CTLDCrateManager:_retryHandOver()
+--- Crates of a unit that DCS holds in native carry and that await their hand-over to CTLD.
+-- @param unitName string
+-- @return CTLDCrate[]
+function CTLDCrateManager:cratesAwaitingHandOver(unitName)
+    local out = {}
     for _, crate in pairs(self.crates) do
-        if crate._awaitingHandOver then
-            local transport = crate.loadedBy
-            if not (crate:isLoaded() and crate.loadedByDCSNative and crate.dcsStatic and crate.dcsStatic:isExist()
-                    and transport and transport:isExist()) then
-                crate._awaitingHandOver = nil
-            elseif ctld.utils.inAir(transport) then
-                crate._awaitingHandOver = nil
-                ctld.utils.log("INFO",
-                    "CTLDCrateManager: crate=%s not handed over before takeoff — stays DCS-native", crate.crateName)
-            else
-                pcall(function() transport:UnloadCargo(crate.dcsStatic) end)
-            end
+        if crate._awaitingHandOver and crate:isLoaded() and crate.loadedByDCSNative
+           and self:isCarriedBy(crate, unitName) then
+            out[#out + 1] = crate
         end
     end
+    return out
 end
 
+--- F10 "Fit parachute": ask DCS to release the crates it holds for this aircraft after a cargo-UI load and, once DCS has
+-- really released them (cargo-bay doors open, aircraft on the ground), hand them over to CTLD. A crate DCS still holds is
+-- never destroyed: the pilot is asked to open the doors and the action can be used again.
+-- @param arg table  { unitName }
+function CTLDCrateManager:fitParachute(arg)
+    local transport = Unit.getByName(arg.unitName)
+    if not (transport and transport:isExist()) or ctld.utils.inAir(transport) then return end
+    local waiting = self:cratesAwaitingHandOver(arg.unitName)
+    if #waiting == 0 then return end
+    local player  = CTLDPlayerManager.getInstance():getPlayer(arg.unitName)
+    local groupId = (player and player.groupId) or arg.groupId
+
+    for _, crate in ipairs(waiting) do
+        self._convertingCrates[crate.crateName] = true   -- the release must not be handled as a native unload
+        pcall(function() transport:UnloadCargo(crate.dcsStatic) end)
+    end
+    ctld.scheduler.schedule(function()
+        local stillHeld = false
+        for _, crate in ipairs(waiting) do
+            self._convertingCrates[crate.crateName] = nil
+            if self:_isStillOnBoard(transport, crate.crateName) then
+                stillHeld = true
+            else
+                self:_completeHandOver(crate, transport, crate.dcsStatic:getPoint())
+            end
+        end
+        if stillHeld and groupId then
+            trigger.action.outTextForGroup(groupId,
+                ctld.tr("The cargo bay doors are closed: open them, then use Fit parachute again."), 10)
+        end
+    end, nil, timer.getTime() + 0.5)
+end
 --- DCS released a crate awaiting its hand-over, on the ground: complete the hand-over through the CTLD load.
 function CTLDCrateManager:_completeHandOver(crate, transport, cratePos)
     crate._awaitingHandOver = nil
@@ -1529,7 +1553,7 @@ function CTLDCrateManager:_completeHandOver(crate, transport, cratePos)
     local carrierName = transport:getName()
     self:loadCrate(crateName, transport)
     ctld.utils.log("INFO",
-        "CTLDCrateManager: DCS UI LOAD → CTLD-managed after the doors were opened — crate=%s carrier=%s",
+        "CTLDCrateManager: DCS UI LOAD → CTLD-managed (Fit parachute) — crate=%s carrier=%s",
         crateName, carrierName)
     local playerObj = CTLDPlayerManager.getInstance():getPlayer(carrierName)
     if playerObj then
@@ -1543,6 +1567,7 @@ end
 -- On the ground it is LANDED; released in flight DCS simulates the parachute descent and the
 -- crate stays FALLING until its static touches the ground (_scheduleParachuteLandingPoll).
 function CTLDCrateManager:_onNativeCrateReleased(crate, transport, cratePos)
+    crate._awaitingHandOver = nil   -- unloaded from the DCS cargo UI: no hand-over to CTLD any more
     local pm          = CTLDPlayerManager.getInstance()
     local carrierName = transport:getName()
     local playerObj   = pm:getPlayer(carrierName)
@@ -3086,6 +3111,12 @@ function CTLDCrateManager:refreshCrateFlightSection(playerObj, overrideInAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Drop Crate(s)") },      not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("Unpack Crate") },       not inAir)
     menu:setBranchEnabled({ root, cratesSub, ctld.tr("List Nearby Crates") }, not inAir)
+    -- Fit parachute (types that hand DCS cargo-UI loads over to CTLD): offered while DCS holds a crate of this aircraft
+    -- awaiting that hand-over, on the ground.
+    if caps.convertNativeLoadToCTLD then
+        menu:setBranchEnabled({ root, cratesSub, ctld.tr("Fit parachute") },
+            not inAir and #self:cratesAwaitingHandOver(playerObj.unitName) > 0)
+    end
     self:refreshPackEquiptSection(playerObj, inAir, true)  -- noRefresh: final refresh() below covers it
 
     -- Parachute Crates: enabled only in air + virtual-carry crates loaded (a native-carry crate is
@@ -3182,6 +3213,14 @@ function CTLDCrateManager:buildMenuSection(playerObj, menu)
                 ctld.tr("%1 crate(s) dropped at your %2 o'clock", #loaded, spawnInfo.clock), 10)
         end,
         { unitName = playerObj.unitName }, { order = 15 })
+
+    -- Fit parachute: hands a crate DCS holds after a cargo-UI load over to CTLD (types with convertNativeLoadToCTLD only);
+    -- enabled by refreshCrateFlightSection while such a crate waits.
+    if caps.convertNativeLoadToCTLD then
+        menu:addCommand({ root, cratesSub }, ctld.tr("Fit parachute"),
+            function(arg) CTLDCrateManager.getInstance():fitParachute(arg) end,
+            { unitName = playerObj.unitName }, { order = 17 })
+    end
 
     local unpackSub = ctld.tr("Unpack Crate")
     menu:addSubMenu({ root, cratesSub }, unpackSub, { order = 20 })

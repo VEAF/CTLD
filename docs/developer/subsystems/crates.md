@@ -157,10 +157,12 @@ once when no crate is tracked.
   does nothing), so CTLD never destroys a crate DCS still holds — that left DCS with an entry for a cargo that
   no longer existed (a "ghost" in its cargo window, the weight above the maximum, the slot taken). If the cargo
   is still on board (or the list cannot be read) the crate stays in DCS-native carry, flagged
-  `_awaitingHandOver`, and the pilot is told to open the doors before takeoff to fit it with a parachute. While
-  its aircraft is on the ground, `_retryHandOver` asks for the release again at each detection tick; the release
-  seen for a flagged crate completes the hand-over (`_completeHandOver`). At takeoff the flag is cleared and the
-  crate stays native. Opening the doors on the ground with a waiting crate therefore hands it over to CTLD.
+  `_awaitingHandOver`, and the pilot is told how to fit a parachute. The F10 *Fit parachute* action
+  (`fitParachute`, offered by `refreshCrateFlightSection` while `cratesAwaitingHandOver` is not empty and the
+  aircraft is on the ground) asks DCS for the release, marks the crate in `_convertingCrates` so the release is
+  not handled as a native unload, and completes the hand-over (`_completeHandOver`) once the cargo has left
+  the list; with the doors closed the pilot is asked to open them and may use the action again. Opening the
+  doors alone does nothing, so a crate can still be unloaded from the DCS cargo UI (ADR 0026).
 - **Release:** a native-carry crate that has left its transport's list is released (`OnCrateUnloaded`,
   `method = "dcs_native"`): `LANDED` with the transport on the ground, `FALLING` with `fromParachute` when
   `ctld.utils.inAir(transport)`, then followed to the ground by `_scheduleParachuteLandingPoll`

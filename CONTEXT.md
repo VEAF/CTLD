@@ -102,6 +102,11 @@ redefined terms are added here in the same move as the decision that introduces 
   it appears on this list and leaves it when it disappears. Items on the list that CTLD does not
   track (for example cargo created by the loadmaster tablet) are ignored. _Avoid_: "hold box",
   "bounding box" (geometric tests, no longer used to decide what is on board).
+- **Hand-over** — the step by which a crate loaded through the DCS cargo UI becomes **virtual carry**: DCS has released it and CTLD takes it
+  over, which is what gives an aircraft type with no native parachute CTLD's drop and parachute actions. A crate DCS still holds is not
+  handed over and stays in **native carry**, awaiting the hand-over. _Avoid_: "conversion", "migration".
+- **Fit parachute** — the pilot's F10 action that asks for the hand-over of a crate DCS still holds; it needs the cargo-bay doors open
+  and the aircraft on the ground.
 - **Crate spawn clearance** — where the crates requested for (or produced by packing near) a
   native-cargo aircraft appear: a **sector** of the aircraft (rear, side or front) and a **distance** from
   its centre, equal to the real hull's radius at crate height over that sector plus a margin, so the crate

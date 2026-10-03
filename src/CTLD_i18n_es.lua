@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.24"
+ctld.i18n["es"].translation_version = "1.25"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -591,4 +591,9 @@ ctld.i18n["es"]["[CTLD] Crate unloaded (DCS native): %1"] = "[CTLD] Caja descarg
 ctld.i18n["es"]["Request failed: the equipment could not be brought out."] = "Fallo de la solicitud: no se pudo sacar el equipo."
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
-ctld.i18n["es"]["Crate loaded. Open the doors before takeoff to fit it with a parachute."] = "Caja cargada. Abra las puertas antes del despegue para equiparla con un paracaídas."
+-- STALE: ctld.i18n["es"]["Crate loaded. Open the doors before takeoff to fit it with a parachute."] = "Caja cargada. Abra las puertas antes del despegue para equiparla con un paracaídas."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
+ctld.i18n["es"]["Crate loaded. To fit it with a parachute: open the doors, then use F10 > CTLD > %1 > %2."] = "Caja cargada. Para equiparla con un paracaídas: abra las puertas y use F10 > CTLD > %1 > %2."
+ctld.i18n["es"]["Fit parachute"] = "Añadir paracaídas"
+ctld.i18n["es"]["The cargo bay doors are closed: open them, then use Fit parachute again."] = "Las puertas de carga están cerradas: ábralas y use de nuevo Añadir paracaídas."

@@ -27,3 +27,8 @@ Retroactive ADRs document decisions already made during the v2.0.0 rewrite.
 | [0019](0019-parachute-drop-global-gate-inline.md) | `enableParachuteDrop` gates 5 call sites inline, not via `registerMenuSection` | Accepted |
 | [0020](0020-auto-discovered-zones-full-name-key.md) | Auto-discovered zones register under their full DCS name; short-name lookup is not preserved | Accepted |
 | [0021](0021-anchor-death-detection-event-vs-poll.md) | Anchor-death detection: DCS event for unit/group, poll for static | Accepted |
+| [0022](0022-native-carry-detected-from-dcs-on-board-cargo-list.md) | Native carry is detected from the DCS on-board cargo list, not from geometry | Accepted |
+| [0023](0023-zones-designated-by-registry-key-everywhere.md) | Zones are designated by their registry key everywhere, including in event payloads | Accepted |
+| [0024](0024-native-crates-spawn-at-hull-clearance.md) | Crates requested for a native-cargo aircraft spawn just clear of its hull | Accepted |
+| [0025](0025-ctld-actions-apply-to-virtual-carry-only.md) | CTLD's unload, parachute and weight apply to virtual carry only; DCS owns native carry | Accepted |
+| [0026](0026-dcs-cargo-ui-loads-are-handed-over-by-fit-parachute.md) | A DCS cargo-UI load is handed over to CTLD by an explicit "Fit parachute" action | Accepted |
