@@ -1994,8 +1994,11 @@ function CTLDCrateManager:getCrateDropPositions(transport, crates)
     end
     local sizes = {}
     for i, crate in ipairs(crates) do sizes[i] = self:getCrateSize(crate.modelKey) end
-    local positions, _, clock = self:_planCratePositions(transport, sizes, plan, 0)
-    return { positions = positions, clock = clock, distance = plan.distance }
+    -- A little farther than a requested wave: the aircraft has just landed and must be able to taxi away
+    -- or lift off without touching the crates it has dropped.
+    local extra = tonumber(ctld.gs("crateDropExtraDistance")) or 0
+    local positions, _, clock = self:_planCratePositions(transport, sizes, plan, extra)
+    return { positions = positions, clock = clock, distance = plan.distance + extra }
 end
 
 --- Register a crate pre-placed by the mission maker (called from INIT-B).

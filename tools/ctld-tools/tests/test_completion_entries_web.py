@@ -46,8 +46,8 @@ def _open(path: Path) -> dict:
     return resp.json()
 
 
-def test_the_catalogue_version_is_2_1_0():
-    assert str(_default().get("configVersion")) == "2.1.0"
+def test_the_catalogue_version_is_2_2_0():
+    assert str(_default().get("configVersion")) == "2.2.0"
 
 
 def test_opening_an_older_file_completes_the_aircraft_and_the_crate_models(tmp_path):
@@ -70,7 +70,7 @@ def test_a_scalar_addition_has_no_container(tmp_path):
 
 
 def test_a_current_file_that_lacks_the_fields_is_left_as_it_is(tmp_path):
-    body = _open(_stale_yaml(tmp_path, version="2.1.0"))
+    body = _open(_stale_yaml(tmp_path, version="2.2.0"))
     assert body["completion"] == []
     assert "crateSpawnSector" not in body["values"]["capabilitiesByType"]["Mi-8MT"]
 

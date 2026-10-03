@@ -173,7 +173,7 @@ existante) : pour ne rien perdre par accident.
 
 ### Quand CTLD est mis à jour { #when-ctld-is-updated }
 
-CTLD estampille une **version de catalogue** sur sa configuration (`2.1.0` aujourd'hui). Elle ne change que
+CTLD estampille une **version de catalogue** sur sa configuration (`2.2.0` aujourd'hui). Elle ne change que
 lorsque CTLD gagne un réglage ou un champ, pas à chaque release. L'en-tête de l'outil affiche deux versions :
 **Version de la config**, celle pour laquelle votre configuration ouverte a été écrite, et **Catalogue de
 l'outil**, celle que porte cette copie de l'outil, mise en évidence quand elles diffèrent.

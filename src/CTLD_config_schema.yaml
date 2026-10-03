@@ -1103,6 +1103,12 @@ capabilitiesByType:
   label: {en: Aircraft capabilities, fr: Capacités des appareils}
 transportPilotNames:
   label: {en: Transport pilot slot names, fr: Noms des slots pilote de transport}
+crateDropExtraDistance:
+  label: {en: Extra clearance for dropped crates, fr: Dégagement supplémentaire des caisses larguées}
+  unit: m
+  description:
+    en: Extra distance (m) added to the declared crateSpawnDistance when Drop Crate(s) puts crates beside an aircraft that declares a crateSpawnSector and a crateSpawnDistance, so the aircraft can taxi away or lift off without touching the crates it has just dropped. Requested and packed crates are not affected; 0 puts dropped crates exactly where a requested crate would stand. It must stay small enough for DCS to load the crate again through its cargo UI (8 m loaded, 23 m was refused in game).
+    fr: Distance supplémentaire (m) ajoutée à la crateSpawnDistance déclarée quand Drop Crate(s) place les caisses à côté d'un appareil qui déclare un crateSpawnSector et une crateSpawnDistance, pour que l'appareil puisse s'éloigner en roulant ou décoller sans toucher les caisses qu'il vient de déposer. Les caisses demandées ou produites par pack ne sont pas concernées ; 0 place les caisses larguées exactement là où une caisse demandée se tiendrait. Elle doit rester assez petite pour que DCS puisse recharger la caisse par son UI cargo (8 m chargée, 23 m refusée en jeu).
 crateSpacing:
   label: {en: Spacing between spawned crates, fr: Espacement entre les caisses créées}
   unit: m
