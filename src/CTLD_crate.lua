@@ -2840,6 +2840,13 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
         local safeDist = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
         local mgr      = CTLDCrateManager.getInstance()
         local gid      = ctld.utils.getGroupId(t)
+        -- A request that produces nothing must say so and leave a trace: it used to do nothing at all.
+        local function failed(reason)
+            ctld.utils.log("ERROR", "Request Equipment: nothing brought out for '%s' (unit=%s zone=%s): %s",
+                tostring(arg.unit or "crate set"), tostring(arg.unitName), tostring(arg.zoneName), reason)
+            trigger.action.outTextForGroup(gid,
+                ctld.tr("Request failed: the equipment could not be brought out."), 10)
+        end
         if arg.multiple then
             local descriptors = {}
             for _, weight in ipairs(arg.multiple) do
@@ -2849,20 +2856,31 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
             local spawned, spawnInfo = mgr:spawnCratesAligned(
                 descriptors, t, arg.coalition, arg.unitName, CTLDCrate.SPAWN_METHOD.MENU_CTLD)
             if spawned > 0 then
+                if spawned < #arg.multiple then
+                    ctld.utils.log("WARNING", "Request Equipment: only %d of %d crates brought out (unit=%s zone=%s)",
+                        spawned, #arg.multiple, tostring(arg.unitName), tostring(arg.zoneName))
+                end
                 trigger.action.outTextForGroup(gid,
                     ctld.tr("%1 crates have been brought out at your %2 o'clock",
                         spawned, spawnInfo.clock), 20)
+            else
+                failed("no crate of the set was created")
             end
         elseif arg.spawnAsVehicle then
             -- Feature Q: spawn a whole vehicle WAITING (no crate)
             local vs = CTLDVehicleSpawner.getInstance()
-            vs:spawnVehicleForTransport(arg.unit, t, selZone)
-            trigger.action.outTextForGroup(gid,
-                ctld.tr("Vehicle ready for loading", arg.desc), 20)
+            if vs:spawnVehicleForTransport(arg.unit, t, selZone) then
+                trigger.action.outTextForGroup(gid,
+                    ctld.tr("Vehicle ready for loading", arg.desc), 20)
+            else
+                failed("the vehicle was not created")
+            end
         else
             local mKey      = mgr:_crateModelKey(t)
             local descriptor = mgr:findDescriptorByTypeName(arg.unit)
-            if descriptor then
+            if not descriptor then
+                failed("no crate descriptor for this item")
+            else
                 local spawned, spawnInfo
                 if mgr:getCrateSpawnPlan(t:getTypeName()) then
                     -- A type that declares where its crates spawn: a set of one, so it stands exactly where
@@ -2879,6 +2897,8 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                     trigger.action.outTextForGroup(gid,
                         ctld.tr("A %1 crate weighing %2 kg has been brought out and is at your %3 o'clock ",
                             descriptor.desc, descriptor.weight, spawnInfo.clock), 20)
+                else
+                    failed("the crate was not created")
                 end
             end
         end

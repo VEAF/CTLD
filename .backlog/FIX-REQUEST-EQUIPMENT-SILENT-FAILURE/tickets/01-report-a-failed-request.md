@@ -1,6 +1,6 @@
 # 01 — A failed equipment request tells the pilot and the log
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 

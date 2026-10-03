@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.22"
+ctld.i18n["fr"].translation_version = "1.23"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -611,3 +611,6 @@ ctld.i18n["fr"]["[CTLD] Crate falling (DCS native parachute): %1"] = "[CTLD] Cai
 ctld.i18n["fr"]["[CTLD] Crate loaded (DCS native): %1"] = "[CTLD] Caisse chargée (natif DCS) : %1"
 ctld.i18n["fr"]["[CTLD] Crate loaded (parachute-ready): %1"] = "[CTLD] Caisse chargée (prête pour le parachutage) : %1"
 ctld.i18n["fr"]["[CTLD] Crate unloaded (DCS native): %1"] = "[CTLD] Caisse déchargée (natif DCS) : %1"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
+ctld.i18n["fr"]["Request failed: the equipment could not be brought out."] = "Échec de la demande : l'équipement n'a pas pu être sorti."

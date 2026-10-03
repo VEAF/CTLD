@@ -1,6 +1,6 @@
 # FIX-REQUEST-EQUIPMENT-SILENT-FAILURE — a failed equipment request tells the pilot and the log
 
-**Status:** ⬜ ready
+**Status:** ✅ done (PR #NN)
 
 Raised by the maintainer during the live check of `FIX-CRATE-DROP-PLACEMENT` on 2026-10-03: a first Request Equipment
 produced nothing and the pilot had to ask again, with no message and no trace. Same family as the silent parachute spawn
