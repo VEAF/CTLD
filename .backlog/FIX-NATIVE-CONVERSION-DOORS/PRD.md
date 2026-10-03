@@ -1,6 +1,6 @@
 # FIX-NATIVE-CONVERSION-DOORS — a DCS cargo-UI load is handed to CTLD only once DCS has really released it
 
-**Status:** ✅ done (PR #NN) - live check by the maintainer pending
+**Status:** ✅ done (PR #251) - live check by the maintainer pending
 
 Raised by the maintainer during the live checks of 2026-10-03 (UH-1H): after a crate was loaded through the DCS cargo UI and
 converted by CTLD, the DCS cargo window kept listing the crate and a new load answered "FAILED TO LOAD CARGO". Diagnosed live with a
