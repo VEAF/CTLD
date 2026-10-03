@@ -2329,9 +2329,20 @@ once when no crate is tracked.</p>
   with one debug trace; a vehicle's <code>CRG:</code> companion entry belongs to the vehicle scan. An unreadable list
   logs one warning for the type and the type is no longer watched.</li>
 <li><strong>Conversion:</strong> for a type with <code>convertNativeLoadToCTLD</code> (UH-1H and CH-47Fbl1 by default) the appearance is
-  the trigger of the hand-over: <code>UnloadCargo</code> releases the DCS load and, 0.5 s later, <code>loadCrate</code> loads it as
-  a CTLD crate. The crate is still listed during that delay, so <code>_convertingCrates</code> marks it as being
-  converted and it is handled once.</li>
+  the trigger of the hand-over: <code>UnloadCargo</code> asks DCS to release the load and, 0.5 s later, CTLD checks that
+  the cargo has left the on-board list before <code>loadCrate</code> loads it as a CTLD crate (destroying the static).
+  The crate is still listed during that delay, so <code>_convertingCrates</code> marks it as being converted and it is
+  handled once. <strong>DCS releases a cargo only with the cargo-bay doors open and the aircraft on the ground</strong>
+  (measured on the UH-1H: with the doors closed, or in flight even in a hover, <code>UnloadCargo</code> returns success and
+  does nothing), so CTLD never destroys a crate DCS still holds — that left DCS with an entry for a cargo that
+  no longer existed (a "ghost" in its cargo window, the weight above the maximum, the slot taken). If the cargo
+  is still on board (or the list cannot be read) the crate stays in DCS-native carry, flagged
+  <code>_awaitingHandOver</code>, and the pilot is told how to fit a parachute. The F10 <em>Fit parachute</em> action
+  (<code>fitParachute</code>, offered by <code>refreshCrateFlightSection</code> while <code>cratesAwaitingHandOver</code> is not empty and the
+  aircraft is on the ground) asks DCS for the release, marks the crate in <code>_convertingCrates</code> so the release is
+  not handled as a native unload, and completes the hand-over (<code>_completeHandOver</code>) once the cargo has left
+  the list; with the doors closed the pilot is asked to open them and may use the action again. Opening the
+  doors alone does nothing, so a crate can still be unloaded from the DCS cargo UI (ADR 0026).</li>
 <li><strong>Release:</strong> a native-carry crate that has left its transport's list is released (<code>OnCrateUnloaded</code>,
   <code>method = "dcs_native"</code>): <code>LANDED</code> with the transport on the ground, <code>FALLING</code> with <code>fromParachute</code> when
   <code>ctld.utils.inAir(transport)</code>, then followed to the ground by <code>_scheduleParachuteLandingPoll</code>
