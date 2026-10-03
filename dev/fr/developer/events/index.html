@@ -4627,7 +4627,8 @@ le vehicle spawner et le crate manager publient tous deux <code>OnGroundUnitSpaw
 </table>
 <p><strong>Published by</strong> : <code>CTLDTroopManager:parachuteTroops()</code></p>
 <h4 id="ontroopsparachutelanded"><code>OnTroopsParachuteLanded</code><a class="headerlink" href="#ontroopsparachutelanded" title="Permanent link">&para;</a></h4>
-<p>Des troops parachutées atterrissent (asynchrone, après le timer de descente).</p>
+<p>Des troops parachutées atterrissent (asynchrone, après le timer de descente). Non publié si le spawn au sol
+échoue : l'échec est journalisé au niveau <code>ERROR</code> et le joueur est prévenu que les troupes sont perdues.</p>
 <table>
 <thead>
 <tr>
