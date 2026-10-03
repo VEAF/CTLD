@@ -1746,11 +1746,22 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     local _countryId     = troopGroup.countryId  -- captured here; coalition.getCountryCoalition does not exist in DCS API
 
     timer.scheduleFunction(function()
-        local _, spawnedGroup = ctld.utils.spawnAs("GROUND", _countryId, {
+        local ok, spawnedGroup = ctld.utils.spawnAs("GROUND", _countryId, {
             name  = _groupName,
             task  = "Ground Nothing",
             units = _unitDefs,
         })
+        if not ok then
+            -- The load was already consumed above: report the loss instead of staying silent,
+            -- and never publish the pcall error string as a spawned group.
+            ctld.utils.log("ERROR",
+                "parachuteTroops: spawnAs failed for '%s' (country=%s): %s",
+                _groupName, tostring(_countryId), tostring(spawnedGroup))
+            trigger.action.outTextForGroup(playerObj.groupId,
+                ctld.tr("Parachute drop failed: troops lost."), 10)
+            self._parachuteEffect:onLanded(_dropData)
+            return
+        end
 
         local grp = Group.getByName(_groupName)
         if grp then

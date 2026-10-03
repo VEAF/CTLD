@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a failed troop parachute spawn is no longer silent (FIX-PARACHUTE-TROOPS-SPAWN-FAILURE)
+
+- When the ground spawn of parachuted troops fails (unknown unit type, country inconsistent with the coalition…),
+  the troops were already removed from the transport and the menu but nothing was logged or shown, and
+  `OnTroopsParachuteLanded` was published with the error message in its `spawnedGroup` field. The failure is now
+  logged at `ERROR` level, the player is told "Parachute drop failed: troops lost.", the drop effect is closed, and
+  `OnTroopsParachuteLanded` is not published (#235). New i18n key, translated in FR/ES/KO.
+
 ### Fixed — EXTR_ group scan no longer catches names that merely start with `EXTR` (FIX-REVIEW-HYGIENE-A)
 
 - A pre-placed group named `EXTRACTION Alpha`, `EXTRA Fuel Trucks` or `EXTREME Recon 1` (no underscore) was silently

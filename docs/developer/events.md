@@ -451,7 +451,8 @@ Troops are deployed by parachute.
 **Published by**: `CTLDTroopManager:parachuteTroops()`
 
 #### `OnTroopsParachuteLanded`
-Parachuted troops land (async, after the descent timer).
+Parachuted troops land (async, after the descent timer). Not published when the ground spawn fails: the
+failure is logged at `ERROR` level and the player is told the troops were lost.
 
 | Field | Type | Description |
 | --- | --- | --- |

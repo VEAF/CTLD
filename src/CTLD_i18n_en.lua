@@ -15,7 +15,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.20"
+ctld.i18n["en"].translation_version = "1.21"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -570,3 +570,6 @@ ctld.i18n["en"]["  EXZ '%1': %2 — entry ignored"] = "  EXZ '%1': %2 — entry 
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-01
 ctld.i18n["en"]["%1 setting(s) absent from the mission config (version %2, CTLD catalogue %3) — CTLD default used: %4"] = "%1 setting(s) absent from the mission config (version %2, CTLD catalogue %3) — CTLD default used: %4"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-03
+ctld.i18n["en"]["Parachute drop failed: troops lost."] = "Parachute drop failed: troops lost."
