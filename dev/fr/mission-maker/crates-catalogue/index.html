@@ -2516,6 +2516,11 @@ côté d'un appareil à cargo natif (<code>1.5</code> si absent).</p>
 <td>Vitesse (<strong>m/s</strong>) au-delà de laquelle un crate en slingload est largué — ≈ 94 km/h / 50 kt. À augmenter si votre appareil supporte une limite plus élevée.</td>
 </tr>
 <tr>
+<td><code>crateDropExtraDistance</code></td>
+<td><code>2</code></td>
+<td>Distance supplémentaire (m) ajoutée à la <code>crateSpawnDistance</code> déclarée quand <strong>Drop Crate(s)</strong> place des crates à côté d'un appareil à cargo natif, pour que l'appareil puisse s'éloigner en roulant ou décoller sans les toucher ; <code>0</code> = exactement là où se tient une crate demandée (voir <a href="#crate-spawn-near">ci-dessous</a>).</td>
+</tr>
+<tr>
 <td><code>crateSpacing</code></td>
 <td><code>5</code></td>
 <td>Espacement (m) entre les crates spawnés dans un jeu.</td>
@@ -2693,7 +2698,10 @@ l'appareil à une distance calculée d'après sa taille. Les crates d'une rangé
 + crateSpawnGap</code> (écart par défaut <code>0.5</code> m, donc jamais en contact) ; la taille d'une crate est le champ <code>size</code>
 de son entrée dans <code>spawnableCratesModels</code> (<code>1.5</code> m si absent, <code>1.31</code> m pour les modèles <code>load</code> et <code>dynamic</code> par
 défaut). Une rangée contient autant de crates qu'il en tient le long de l'appareil ; la rangée suivante se place
-un pas plus loin. Si un côté est occupé par un autre appareil, la rangée passe de l'autre côté. Les véhicules, le
+un pas plus loin. Si un côté est occupé par un autre appareil, la rangée passe de l'autre côté. <strong>Drop Crate(s)</strong> applique la même règle : une crate
+larguée peut être rechargée par l'UI cargo DCS ; sa rangée se tient <code>crateDropExtraDistance</code> (<code>2</code> m par défaut) plus
+loin qu'une crate demandée, pour que l'appareil puisse s'éloigner en roulant ou décoller sans toucher les crates qu'il
+vient de déposer. Gardez-la petite : DCS a chargé une crate à 8 m et en a refusé une à 23 m. Les véhicules, le
 dépaquetage, les scènes et les troupes ne sont pas concernés.</p>
 <p>Valeurs par défaut, en mètres du centre de l'appareil :</p>
 <table>

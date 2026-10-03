@@ -2288,6 +2288,13 @@ autant par rangée qu'il en tient le long de l'aéronef (longueur de la UserBox 
 <code>ctld.utils.positionsInsideAnyBBox</code> le bascule quand la rangée tomberait dans le volume d'un autre
 aéronef, et le premier côté est conservé si les deux sont pris. La crate unique de Request Equipment
 passe par le même chemin. Un type sans plan garde la règle radiale ci-dessus.</p>
+<p>Le placement est fait de deux routines partagées avec <strong>Drop Crate(s)</strong> : <code>_planCratePositions</code> (la rangée, avec
+l'anti-collision de l'autre côté) et <code>_radialCratePositions</code> (la règle radiale, avec son anti-collision). Le
+callback de Drop demande à <code>getCrateDropPositions(transport, crates)</code> les positions des crates larguées, une taille
+par crate (<code>crate.modelKey</code>) : une crate larguée se tient donc là où une crate demandée se tiendrait et peut être
+rechargée par l'UI cargo DCS. Pour un type avec plan, la rangée est <code>crateDropExtraDistance</code> (2 m par défaut) plus
+loin qu'une crate demandée, pour que l'appareil puisse s'éloigner en roulant ou décoller sans toucher les crates
+qu'il vient de déposer.</p>
 <h2 id="lifecycle-transitions-on-the-manager">Transitions de cycle de vie sur le manager<a class="headerlink" href="#lifecycle-transitions-on-the-manager" title="Permanent link">&para;</a></h2>
 <p>Le manager reflète les transitions de l'entité et détient la publication des événements :</p>
 <table>
