@@ -81,3 +81,14 @@ has just landed and must be able to taxi away, or lift off for a helicopter, wit
 dropped; the requested row is unchanged. The value is bounded by the loading range (8 m loaded, 23 m refused on the
 Mi-8MT): with the declared distances (UH-1H 3.0 m, Mi-8MT 4.0 m) a dropped row stands at 5.0 and 6.0 m. The default
 is a first estimate: it has not been confirmed in game yet, and `0` restores the requested position.
+
+## Addendum 2 — scene packing joins the rule, a crate without a size does not (2026-10-09, lot `FIX-REVIEW-HYGIENE-B`)
+
+**Packing a scene** (a FARP, from **Pack Equipt**) still placed its crates by the generic rule, at a random bearing over 360° and without the anti-collision, although the docs listed it with the commands that follow this decision.
+It now goes through `spawnCratesAligned` like Request Equipment, Drop Crate(s) and Pack Vehicle (issue #253).
+
+**The row requires a crate model that declares its size.**
+A model without `size` used to count as 1.5 m, an invented value; the `sling` model (`container_cargo`) declares none, so every crate of a `slingLoad: true` mission was laid out for a crate smaller than the container (issue #255).
+A crate model without `size` now keeps the radial rule, for a requested wave as for a dropped one; the "1.5 m for an unknown model" of the decision above no longer holds.
+The row exists to bring a crate within reach of the DCS cargo window; a sling crate is hooked from the hover, and a container 1.5 m from a parked helicopter's hull would stand under its rotor disc.
+Giving sling missions the row would take measuring `bw_container_cargo` first, and is a separate decision.

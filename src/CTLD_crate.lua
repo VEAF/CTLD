@@ -987,7 +987,6 @@ function CTLDCrateManager:refreshPackEquiptSection(playerObj, overrideInAir, noR
             function(arg)
                 ctld.utils.log("INFO", "[PackCallback] ENTER unitName=%s sceneName=%s",
                     tostring(arg.unitName), tostring(arg.sceneName))
-                trigger.action.outText("[PackCallback] ENTER "..tostring(arg.unitName), 8)
                 local t = Unit.getByName(arg.unitName)
                 if not (t and t:isExist()) then
                     ctld.utils.log("INFO", "[PackCallback] unit not found: %s", tostring(arg.unitName))
@@ -1012,21 +1011,15 @@ function CTLDCrateManager:refreshPackEquiptSection(playerObj, overrideInAir, noR
                 local desc  = mgr_c:findDescriptorByUnitType(sc._modelName)
                 if not (cd and desc) then return end
                 local repackData = smgr:packScene(sc)
-                local required  = cd.cratesRequired or 1
-                local safeDist  = (ctld.utils.getSecureDistanceFromUnit(arg.unitName) or 10) + 5
-                local spacing   = ctld.gs("crateSpacing")
-                local spawnInfo = ctld.utils.getSpawnObjectPositions(t, required, safeDist, spacing)
-                local modelKey  = mgr_c:_crateModelKey(t)
-                local heading   = mgr_c:_aircraftHeading(t)
-                for i = 1, required do
-                    local spos = spawnInfo.positions[i]
-                    if spos then
-                        local crate = mgr_c:spawnCrate(
-                            desc, spos, t:getCoalition(), t:getName(),
-                            CTLDCrate.SPAWN_METHOD.CRATE_SPAWN, t:getCountry(), modelKey, heading)
-                        if crate and repackData and repackData.warehouseSnapshot then
-                            crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
-                        end
+                -- Same placement as every other crate wave (ADR 0024), so a native-cargo pilot can load the
+                -- crates of the FARP just packed.
+                local descriptors = {}
+                for i = 1, (cd.cratesRequired or 1) do descriptors[i] = desc end
+                local _, _, crates = mgr_c:spawnCratesAligned(descriptors, t, t:getCoalition(), t:getName(),
+                    CTLDCrate.SPAWN_METHOD.CRATE_SPAWN)
+                if repackData and repackData.warehouseSnapshot then
+                    for _, crate in ipairs(crates) do
+                        crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
                     end
                 end
                 trigger.action.outTextForGroup(gid, ctld.tr("FARP packed successfully!"), 10)
@@ -1788,18 +1781,28 @@ function CTLDCrateManager:getCrateSpawnPlan(typeName)
     return nil
 end
 
-local _DEFAULT_CRATE_SIZE = 1.5   -- m: a crate model that declares no size
+--- The crate spawn plan of an aircraft, for crates of the given model, when they can stand in a row: the type
+-- declares a plan (getCrateSpawnPlan) and the crate model declares its size, from which the row is computed.
+-- nil otherwise: the radial rule applies.
+-- @param transport Unit
+-- @param modelKey  string  `load` | `sling` | `dynamic`
+-- @return table|nil  { sector, distance }
+function CTLDCrateManager:getCrateRowPlan(transport, modelKey)
+    if not self:getCrateSize(modelKey) then return nil end
+    return self:getCrateSpawnPlan(transport:getTypeName())
+end
 
 --- Largest horizontal extent (metres) of a crate of the given model key (`load`, `sling`, `dynamic`),
--- read from its `spawnableCratesModels` entry; 1.5 m when the model declares none.
+-- read from its `spawnableCratesModels` entry; nil when the model declares none — no size is invented, and
+-- the row layout, computed from it, is then refused (the radial rule applies).
 -- DCS gives the UserBox of a static only once it exists, so the size is configuration, not a live read.
 -- @param modelKey string
--- @return number
+-- @return number|nil
 function CTLDCrateManager:getCrateSize(modelKey)
     local model = (ctld.gs("spawnableCratesModels") or {})[modelKey]
     local size  = model and tonumber(model.size)
     if size and size > 0 then return size end
-    return _DEFAULT_CRATE_SIZE
+    return nil
 end
 
 --- Returns bbox descriptors for all DynamicCargo-capable transports except the requester.
@@ -1982,13 +1985,14 @@ end
 -- @param coalitionId  number  coalition.side.*
 -- @param spawnedBy    string  unit name for attribution
 -- @param spawnMethod  string  CTLDCrate.SPAWN_METHOD.*
--- @return number spawned count, table spawnInfo {positions, clock, distance}
+-- @return number spawned count, table spawnInfo {positions, clock, distance}, table the CTLDCrate objects created
 function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId, spawnedBy, spawnMethod)
     local modelKey = self:_crateModelKey(transport)
 
     -- An aircraft type that declares where its crates spawn gets them in a row just clear of its hull,
-    -- within native loading range (ADR 0024); any other type keeps the radial layout below.
-    local plan = self:getCrateSpawnPlan(transport:getTypeName())
+    -- within native loading range (ADR 0024); any other type keeps the radial layout below, and so does a
+    -- crate model that declares no size, since the row is computed from it.
+    local plan = self:getCrateRowPlan(transport, modelKey)
     if plan then
         return self:_spawnCratesInRow(descriptors, transport, coalitionId, spawnedBy, spawnMethod, plan, modelKey)
     end
@@ -1996,16 +2000,15 @@ function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId
     local spawnInfo = self:_radialCratePositions(transport, #descriptors)
     local heading   = self:_aircraftHeading(transport)
     local countryId = ctld.utils.resolveCountryId(coalitionId, transport)
-    local spawned   = 0
+    local crates    = {}
     for i, descriptor in ipairs(descriptors) do
         local pos = spawnInfo.positions[i]
         if descriptor and pos then
-            if self:spawnCrate(descriptor, pos, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading) then
-                spawned = spawned + 1
-            end
+            local crate = self:spawnCrate(descriptor, pos, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading)
+            if crate then crates[#crates + 1] = crate end
         end
     end
-    return spawned, spawnInfo
+    return #crates, spawnInfo, crates
 end
 
 --- Positions of a wave of crates around an aircraft, by the radial rule: the secure distance plus 5 m for the
@@ -2087,7 +2090,7 @@ end
 
 --- Spawn a wave of crates in a row just clear of an aircraft that declares a crate spawn plan.
 -- @param plan  table  { sector, distance } from getCrateSpawnPlan
--- @return number spawned count, table spawnInfo {positions, clock, distance}
+-- @return number spawned count, table spawnInfo {positions, clock, distance}, table the CTLDCrate objects created
 function CTLDCrateManager:_spawnCratesInRow(descriptors, transport, coalitionId, spawnedBy, spawnMethod, plan, modelKey)
     local size  = self:getCrateSize(modelKey)
     local sizes = {}
@@ -2097,16 +2100,15 @@ function CTLDCrateManager:_spawnCratesInRow(descriptors, transport, coalitionId,
     local heading   = self:_aircraftHeading(transport)
     local countryId = ctld.utils.resolveCountryId(coalitionId, transport)
 
-    local spawned = 0
+    local crates = {}
     for i, descriptor in ipairs(descriptors) do
         local p = positions[i]
         if descriptor and p then
-            if self:spawnCrate(descriptor, p, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading) then
-                spawned = spawned + 1
-            end
+            local crate = self:spawnCrate(descriptor, p, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading)
+            if crate then crates[#crates + 1] = crate end
         end
     end
-    return spawned, { positions = positions, clock = clock, distance = plan.distance }
+    return #crates, { positions = positions, clock = clock, distance = plan.distance }, crates
 end
 
 --- Where Drop Crate(s) puts the crates it drops: the same rule as a requested wave (ADR 0024) — in a row at
@@ -2117,11 +2119,14 @@ end
 -- @return table spawnInfo {positions, clock, distance}
 function CTLDCrateManager:getCrateDropPositions(transport, crates)
     local plan = self:getCrateSpawnPlan(transport:getTypeName())
+    local sizes = {}
+    for i, crate in ipairs(crates) do
+        sizes[i] = self:getCrateSize(crate.modelKey)
+        if not sizes[i] then plan = nil end   -- a crate of unknown size: the row cannot be computed
+    end
     if not plan then
         return self:_radialCratePositions(transport, #crates)
     end
-    local sizes = {}
-    for i, crate in ipairs(crates) do sizes[i] = self:getCrateSize(crate.modelKey) end
     -- A little farther than a requested wave: the aircraft has just landed and must be able to taxi away
     -- or lift off without touching the crates it has dropped.
     local extra = tonumber(ctld.gs("crateDropExtraDistance")) or 0
@@ -3015,7 +3020,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                 failed("no crate descriptor for this item")
             else
                 local spawned, spawnInfo
-                if mgr:getCrateSpawnPlan(t:getTypeName()) then
+                if mgr:getCrateRowPlan(t, mKey) then
                     -- A type that declares where its crates spawn: a set of one, so it stands exactly where
                     -- the first crate of a wave would (ADR 0024).
                     local count, info = mgr:spawnCratesAligned({ descriptor }, t, arg.coalition, arg.unitName,

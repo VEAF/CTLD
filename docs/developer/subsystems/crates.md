@@ -108,16 +108,18 @@ When the transport's type declares a crate spawn plan (`getCrateSpawnPlan`: `cra
 [ADR 0024](https://github.com/FullGas1/CTLD/blob/develop/dev/adr/0024-native-crates-spawn-at-hull-clearance.md)),
 `spawnCratesAligned` calls `_spawnCratesInRow` instead of the radial rule. It builds a row perpendicular to
 the sector axis with `ctld.utils.getCrateRowPositions`: crates `size + crateSpawnGap` apart (`getCrateSize`
-reads the model's `size`, `1.5` when absent), centred on the axis, as many per row as fit along the
+reads the model's `size`), centred on the axis, as many per row as fit along the
 aircraft (UserBox length for `side`, width for `rear`/`front`), the next row one step further out. A `side`
 plan picks the side at random; `ctld.utils.positionsInsideAnyBBox` flips it when the row would stand inside
 another aircraft's volume, and the first side is kept when both are taken. The single crate of Request
 Equipment goes through the same path. A type without a plan keeps the radial rule above.
+A crate model without a `size` keeps it too (`getCrateSize` returns nil, so `getCrateRowPlan` gives no plan): no size is invented, and with the default catalogue every crate of a `slingLoad` mission takes the radial rule.
+Packing a scene (the "Pack *&lt;scene&gt;*" command of `refreshPackEquiptSection`, a FARP) goes through `spawnCratesAligned` too; its third return value, the list of `CTLDCrate` it created, lets the callback attach the FARP's warehouse snapshot to each crate.
 
 The placement is two routines shared with **Drop Crate(s)**: `_planCratePositions` (the row, with the other-side
 anti-collision) and `_radialCratePositions` (the radial rule, with its anti-collision). The Drop callback asks
 `getCrateDropPositions(transport, crates)` for the positions of the crates it drops, one size per crate
-(`crate.modelKey`), so a dropped crate stands where a requested one would and can be loaded again through the DCS
+(`crate.modelKey`; one crate without a size sends the whole wave to the radial rule), so a dropped crate stands where a requested one would and can be loaded again through the DCS
 cargo UI. For a type with a plan the row is `crateDropExtraDistance` (default 2 m) farther than a requested one, so
 the aircraft can taxi away or lift off without touching the crates it has just dropped.
 

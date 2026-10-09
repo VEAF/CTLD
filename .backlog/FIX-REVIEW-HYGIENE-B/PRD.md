@@ -1,6 +1,6 @@
 # FIX-REVIEW-HYGIENE-B — scene packing, crate size fallback and scheduler exit
 
-**Status:** ⬜ ready
+**Status:** ✅ done
 
 Formalizes GitHub issues #253, #254 and #255, all three found by the same automated code review of `develop` at `affd2c9`.
 Re-read against `develop` at `6010d52` (2026-10-09): the three defects are still present, the line numbers below are those of `6010d52`.

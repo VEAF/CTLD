@@ -178,10 +178,12 @@ Every timer CTLD schedules goes through `ctld.scheduler.schedule(fn, arg, t)`, a
 directly in `src/`: a busted guard spec (`scheduler_guard_spec.lua`) fails if you do, because a timer the
 registry does not know about survives a shutdown and, waking up through `getInstance()`, runs on top of the
 next instance (a hover poll at twice its rate, doubled smoke, recon and JTAC lasing).
+The exit is guarded the same way: cancel a timer by id with `ctld.scheduler.remove(id)`, never `timer.removeFunction`, or its id stays pending for the rest of the mission and `cancelAll()` keeps cancelling it.
 
 | Function | Purpose |
 | --- | --- |
 | `schedule(fn, arg, t)` | Schedule `fn` like DCS does; returns the function id. A numeric return value reschedules the same id (it stays pending), anything else ends the chain |
+| `remove(id)` | Cancel one timer by id and forget it; a nil id, or one DCS no longer knows, is ignored |
 | `register(name, id)` | Name a loop; registering the same name again cancels the previous id (double-start guard) |
 | `cancel(name)` | Cancel one named loop |
 | `cancelAll()` | Cancel every pending timer, named or not, and log how many (inject `tests/dcs/util/shutdown_ctld.lua`) |

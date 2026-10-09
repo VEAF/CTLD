@@ -68,7 +68,7 @@ mm_facing:
 `spawnableCratesModels` defines the DCS static shapes crates use (`load`, `sling`, `dynamic`).
 You rarely need to touch it; leave the defaults unless you want a different cargo appearance.
 Each entry may carry a `size` (m): the crate's edge, used to space crates in a row beside a native-cargo
-aircraft (`1.5` when absent).
+aircraft. A model without `size` gets no row: its crates keep the older rule, spread around the aircraft.
 
 ### Default catalogue (out of the box)
 
@@ -164,8 +164,7 @@ in a row, instead of at the generic distance. Each type declares this in
 
 A type that declares no sector and distance keeps the older rule: crates spread around the aircraft at a
 distance computed from its size. Crates in a row are `crate size + crateSpawnGap` apart (default gap `0.5` m,
-so they never touch); the crate size is the `size` field of its entry in `spawnableCratesModels` (`1.5` m when
-absent, `1.31` m for the default `load` and `dynamic` models). A row holds as many crates as fit along the
+so they never touch); the crate size is the `size` field of its entry in `spawnableCratesModels` (`1.31` m for the default `load` and `dynamic` models). A crate model that declares no `size` keeps the older rule, since the row is computed from it: with the default catalogue, that is every crate of a `slingLoad: true` mission, whose `sling` container is not measured — and a sling crate is hooked from the hover, not loaded through the cargo window. A row holds as many crates as fit along the
 aircraft; the next row stands one step further out. If a side is taken by another aircraft, the row flips to the
 other side. **Drop Crate(s)** uses the same rule, so a crate you drop can be loaded again through the DCS cargo UI; its row stands `crateDropExtraDistance` (default `2` m) farther than a requested one, so the aircraft can taxi away or lift off without touching the crates it has just dropped. Keep it small: DCS loaded a crate at 8 m and refused one at 23 m. Vehicles, unpacking, scenes and troops are not affected.
 

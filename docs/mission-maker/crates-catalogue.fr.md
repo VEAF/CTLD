@@ -71,7 +71,7 @@ mm_facing:
 `dynamic`). Vous avez rarement besoin d'y toucher ; laissez les valeurs par défaut, sauf si vous
 voulez une apparence de cargo différente.
 Chaque entrée peut porter un `size` (m) : l'arête de la crate, utilisée pour espacer les crates d'une rangée à
-côté d'un appareil à cargo natif (`1.5` si absent).
+côté d'un appareil à cargo natif. Un modèle sans `size` n'a pas de rangée : ses crates gardent l'ancienne règle, réparties autour de l'appareil.
 
 ### Catalogue par défaut (out of the box) { #default-catalogue-out-of-the-box }
 
@@ -170,8 +170,7 @@ coque**, en rangée, au lieu de la distance générique. Chaque type le déclare
 Un type qui ne déclare ni secteur ni distance garde l'ancienne règle : les crates se répartissent autour de
 l'appareil à une distance calculée d'après sa taille. Les crates d'une rangée sont espacées de `taille de crate
 + crateSpawnGap` (écart par défaut `0.5` m, donc jamais en contact) ; la taille d'une crate est le champ `size`
-de son entrée dans `spawnableCratesModels` (`1.5` m si absent, `1.31` m pour les modèles `load` et `dynamic` par
-défaut). Une rangée contient autant de crates qu'il en tient le long de l'appareil ; la rangée suivante se place
+de son entrée dans `spawnableCratesModels` (`1.31` m pour les modèles `load` et `dynamic` par défaut). Un modèle de crate qui ne déclare pas de `size` garde l'ancienne règle, puisque la rangée se calcule d'après elle : avec le catalogue par défaut, c'est le cas de toutes les crates d'une mission `slingLoad: true`, dont le conteneur `sling` n'est pas mesuré — et une crate sling s'accroche en stationnaire, elle ne se charge pas par la fenêtre cargo. Une rangée contient autant de crates qu'il en tient le long de l'appareil ; la rangée suivante se place
 un pas plus loin. Si un côté est occupé par un autre appareil, la rangée passe de l'autre côté. **Drop Crate(s)** applique la même règle : une crate
 larguée peut être rechargée par l'UI cargo DCS ; sa rangée se tient `crateDropExtraDistance` (`2` m par défaut) plus
 loin qu'une crate demandée, pour que l'appareil puisse s'éloigner en roulant ou décoller sans toucher les crates qu'il

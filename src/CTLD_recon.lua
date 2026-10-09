@@ -604,7 +604,7 @@ function CTLDReconManager:scan(playerUnit, player)
     local prevScan  = self._activeScans[player]
     local isRescan  = prevScan ~= nil  -- re-scan from layer toggle vs fresh Start
     if prevScan then
-        if prevScan.refreshTimer then timer.removeFunction(prevScan.refreshTimer) end
+        if prevScan.refreshTimer then ctld.scheduler.remove(prevScan.refreshTimer) end
         self:_removeAllMarks(prevScan)
         self._activeScans[player] = nil
     end
@@ -689,7 +689,7 @@ function CTLDReconManager:stopScan(playerUnit, player)
 
     local refreshStopped = scan.autoRefresh
     if scan.refreshTimer then
-        timer.removeFunction(scan.refreshTimer)
+        ctld.scheduler.remove(scan.refreshTimer)
         scan.refreshTimer = nil
     end
 
@@ -778,7 +778,7 @@ function CTLDReconManager:disableAutoRefresh(playerUnit, player)
     local interval = ctld.gs("reconRefreshInterval")
     scan.autoRefresh = false
     if scan.refreshTimer then
-        timer.removeFunction(scan.refreshTimer)
+        ctld.scheduler.remove(scan.refreshTimer)
         scan.refreshTimer = nil
     end
 

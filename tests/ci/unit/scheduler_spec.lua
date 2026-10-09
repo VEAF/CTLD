@@ -137,6 +137,41 @@ describe("ctld.scheduler.schedule / cancelAll", function()
 
     end)
 
+    describe("remove", function()
+
+        -- FIX-REVIEW-HYGIENE-B ticket 01 (issue #254): a timer created through schedule and
+        -- cancelled by id must leave _pending too, or cancelAll() keeps "cancelling" dead ids.
+        it("cancels the id in DCS and drops it from _pending", function()
+            local id = ctld.scheduler.schedule(function(_, now) return now + 1 end, nil, 0)
+            ctld.scheduler.remove(id)
+
+            assert.same({ id }, removed)
+            assert.is_nil(ctld.scheduler._pending[id])
+        end)
+
+        it("after remove(a), cancelAll() cancels only what is still pending", function()
+            local a = ctld.scheduler.schedule(function(_, now) return now + 1 end, nil, 0)
+            local b = ctld.scheduler.schedule(function(_, now) return now + 1 end, nil, 0)
+            ctld.scheduler.remove(a)
+            removed = {}
+
+            ctld.scheduler.cancelAll()
+
+            assert.same({ b }, removed)
+        end)
+
+        it("tolerates a nil id and an id DCS refuses", function()
+            assert.has_no_error(function() ctld.scheduler.remove(nil) end)
+            assert.equals(0, #removed)
+
+            timer.removeFunction = function() error("unknown function id") end
+            local id = ctld.scheduler.schedule(function(_, now) return now + 1 end, nil, 0)
+            assert.has_no_error(function() ctld.scheduler.remove(id) end)
+            assert.is_nil(ctld.scheduler._pending[id])
+        end)
+
+    end)
+
     describe("register / cancel", function()
 
         it("register replaces and cancels a previous id of the same name", function()

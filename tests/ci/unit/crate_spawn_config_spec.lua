@@ -103,10 +103,12 @@ describe("crate size and gap", function()
         assert.equals(1.31, cm:getCrateSize("load"))
     end)
 
-    it("counts a model with no size, or an unknown model, as 1.5 m", function()
+    -- FIX-REVIEW-HYGIENE-B ticket 03 (issue #255): no size is invented for a model that declares none
+    -- (sling, container_cargo, is not measured); the row layout refuses it and the radial rule applies.
+    it("gives no size for a model that declares none, or an unknown model", function()
         local cm = CTLDCrateManager.getInstance()
-        assert.equals(1.5, cm:getCrateSize("sling"))
-        assert.equals(1.5, cm:getCrateSize("no_such_model"))
+        assert.is_nil(cm:getCrateSize("sling"))
+        assert.is_nil(cm:getCrateSize("no_such_model"))
     end)
 
     it("takes a size declared by the mission maker", function()
