@@ -19,7 +19,8 @@
 --   dead       : unit destroyed
 --
 -- Detection: crate descriptor.jtac == true   (no separate jtacUnitTypes table)
--- Laser pool: sequential 1111–1688 (assigned on spawn, freed on death)
+-- Laser pool: 1111–1688 without a 0 or a 9 (assigned on spawn, freed on death);
+--             an imposed code leaves the pool for good
 -- Timings   : JTAC_laseIntervalSeconds / JTAC_searchIntervalSeconds (config)
 -- DCS bug   : coalition.addGroup leaves group empty for ~1s →
 --             first _autoLaseLoop is delayed +1s (preserved from source)
@@ -49,6 +50,7 @@ CTLDJTAC.STOP_REASON = {
     STANDBY_MODE  = "standby_mode",
     IN_TRANSIT    = "jtac_in_transit",
     DEAD          = "jtac_dead",
+    CODE_CHANGED  = "code_changed",
 }
 
 -- Lock mode values (mirrors JTAC_lock config)
@@ -68,6 +70,8 @@ CTLDJTAC.LOCK_MODE = {
 --   smokeEnabled (boolean)  auto-smoke on target
 --   smokeColor   (number)   trigger.smokeColor.*
 --   lockMode     (string)   "all" | "vehicle" | "troop"
+--   codeImposed  (boolean)  laserCode was imposed by the caller, not drawn from the pool
+--   radio        (table|nil) { freq, mod, name, ... } supplied by the caller (nil = code-derived)
 function CTLDJTAC:init(data)
     self.groupName    = data.groupName
     -- unitName: set for infantry JTACs within a composite troop group (unit-keyed registry).
@@ -81,8 +85,19 @@ function CTLDJTAC:init(data)
     self.smokeColor   = data.smokeColor  or trigger.smokeColor.Red
     self.lockMode     = data.lockMode    or "all"
     self.state        = CTLDJTAC.STATE.IDLE
+    self.codeImposed  = data.codeImposed == true
 
-    self.radio = CTLDJTACDetector.calculateFMRadio(data.groupName, data.laserCode)
+    -- Legacy parity (ctld.JTACAutoLase): a supplied radio is used as given, only its name defaulted;
+    -- the code-derived one only when none is supplied.
+    self.radioSupplied = data.radio ~= nil
+    if self.radioSupplied then
+        self.radio = {}
+        for k, v in pairs(data.radio) do self.radio[k] = v end
+        if self.radio.freq ~= nil then self.radio.freq = tostring(self.radio.freq) end
+        self.radio.name = self.radio.name or data.groupName
+    else
+        self.radio = CTLDJTACDetector.calculateFMRadio(data.groupName, data.laserCode)
+    end
 
     self.currentTarget  = nil   -- { unitName, unitType, unitId, position, laseStartTime }
     self.laserSpot      = nil
@@ -330,6 +345,7 @@ CTLDJTACMessage = {}
 --   "target_destroyed"  target confirmed dead
 --   "kia"               JTAC unit destroyed
 --   "no_targets"        search loop found nothing (optional use)
+--   "code_changed"      JTAC re-coded because its code was imposed on another JTAC
 --
 -- @param ctx table:
 --   event       (string)       one of the events above
@@ -339,6 +355,7 @@ CTLDJTACMessage = {}
 --   positionStr (string|nil)   pre-formatted MGRS/DMS string
 --   wasSelected (boolean)      target was manually selected by player
 --   standby     (boolean)      standby mode active (laser off)
+--   radio       (table|nil)    JTAC radio { freq, mod } (code_changed only)
 --
 -- @return table { short (string), full (string) }
 --   short : concise, suitable for SRS read-out (no coords)
@@ -392,6 +409,15 @@ function CTLDJTACMessage.build(ctx)
         short = ctld.i18n_translate("%1, no targets in range.", name)
         full  = short
 
+    elseif ctx.event == "code_changed" then
+        if ctx.radio and ctx.radio.freq then
+            short = ctld.i18n_translate("%1, laser code changed to %2, now on %3 %4.",
+                name, code, ctx.radio.freq, string.upper(ctx.radio.mod or "FM"))
+        else
+            short = ctld.i18n_translate("%1, laser code changed to %2.", name, code)
+        end
+        full = short
+
     else
         short = name .. " " .. tostring(ctx.event)
         full  = short
@@ -441,7 +467,7 @@ CTLDJTACManager.get = CTLDJTACManager.getInstance
 -- The DCS group must already exist in the world (spawned by CTLDCrateManager).
 -- DCS bug workaround: first _autoLaseLoop is delayed +1s (group units empty on spawn).
 -- @param groupName string   DCS group name
--- @param cfg       table    { laserCode, smokeEnabled, smokeColor, lockMode }  (all optional)
+-- @param cfg       table    { laserCode, smokeEnabled, smokeColor, lockMode, radio }  (all optional)
 -- @param spawner   table    { playerName, unitName, unitId, coalition }
 -- @return CTLDJTAC or nil
 function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
@@ -452,10 +478,7 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
     end
 
     -- Resolve or assign laser code
-    local laserCode = cfg and cfg.laserCode
-    if not laserCode then
-        laserCode = self:_assignLaserCode()
-    end
+    local laserCode, codeImposed = self:_resolveLaserCode(groupName, cfg and cfg.laserCode)
     if not laserCode then
         ctld.logError("CTLDJTACManager:spawnJTAC — laser code pool exhausted")
         return nil
@@ -495,12 +518,14 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
     local jtac = CTLDJTAC:new({
         groupName    = groupName,
         laserCode    = laserCode,
+        codeImposed  = codeImposed,
         isFlying     = isFlying,
         isInfantry   = isInfantry,
         coalitionId  = coalitionId,
         smokeEnabled = smokeEnabled,
         smokeColor   = smokeColor,
         lockMode     = lockMode,
+        radio        = cfg and cfg.radio,
     })
 
     self.jtacs[groupName] = jtac
@@ -617,7 +642,7 @@ function CTLDJTACManager:deregisterJTAC(groupName)
     local jtacKey = jtac.unitName or groupName
     self:_releaseAllTargetsFor(jtacKey)  -- belt-and-suspenders: clear any stale claims
     jtac:stopLase(CTLDJTAC.STOP_REASON.IN_TRANSIT)
-    self:_freeLaserCode(jtac.laserCode)
+    if not jtac.codeImposed then self:_freeLaserCode(jtac.laserCode) end
     self.jtacs[groupName] = nil
     ctld.utils.log("INFO", "CTLDJTACManager:deregisterJTAC — '%s' silently deregistered", groupName)
     -- Rebuild player menus to remove the deregistered JTAC submenu.
@@ -685,7 +710,7 @@ function CTLDJTACManager:killJTAC(groupName, killer)
         timestamp   = timer.getAbsTime(),
     })
 
-    self:_freeLaserCode(jtac.laserCode)
+    if not jtac.codeImposed then self:_freeLaserCode(jtac.laserCode) end
     self.jtacs[groupName] = nil
     -- Rebuild player menus to remove the dead JTAC submenu.
     CTLDPlayerManager.getInstance():refreshAll()
@@ -791,7 +816,7 @@ function CTLDJTACManager:startLaseTroopUnit(unitName, cfg)
         return nil
     end
 
-    local laserCode = (cfg and cfg.laserCode) or self:_assignLaserCode()
+    local laserCode, codeImposed = self:_resolveLaserCode(unitName, cfg and cfg.laserCode)
     if not laserCode then
         ctld.logError("CTLDJTACManager:startLaseTroopUnit — laser code pool exhausted")
         return nil
@@ -825,6 +850,7 @@ function CTLDJTACManager:startLaseTroopUnit(unitName, cfg)
         groupName    = unitName,   -- registry key (= unitName for troop JTACs)
         unitName     = unitName,   -- marks as unit-keyed; drives Unit.getByName() in _autoLaseLoop
         laserCode    = laserCode,
+        codeImposed  = codeImposed,
         isFlying     = false,
         isInfantry   = isInfantry,
         coalitionId  = coalitionId,
@@ -1386,12 +1412,75 @@ function CTLDJTACManager:_consumeJTACSlot(coalitionId)
     return true
 end
 
---- Fill the laser pool with all valid codes (1111–1688). Called at init and cleanup.
+--- Fill the laser pool with the codes of [jtacLaserCodeMin, jtacLaserCodeMax] a DCS laser accepts.
+-- Called at init and cleanup.
+-- A code with a 0 or a 9 is left out: the digits after the first run 1-8 (legacy ctld.generateLaserCode,
+-- which also left out 8 to be safe). To verify in game: is 1199 refused?
 function CTLDJTACManager:_initLaserPool()
     self._laserPool = {}
     for code = ctld.gs("jtacLaserCodeMin"), ctld.gs("jtacLaserCodeMax") do
-        self._laserPool[#self._laserPool + 1] = code
+        if not tostring(code):find("[09]") then
+            self._laserPool[#self._laserPool + 1] = code
+        end
     end
+end
+
+--- Resolve the laser code of a JTAC being registered.
+-- An imposed code leaves the pool for good; a JTAC holding it automatically is re-coded; another
+-- JTAC holding it imposed keeps it (the caller's explicit choice), with a WARN.
+-- @param jtacKey string       registry key of the JTAC being registered
+-- @param imposed number|nil   code imposed by the caller (nil = draw from the pool)
+-- @return number|nil code, boolean imposed  (nil code = pool exhausted)
+function CTLDJTACManager:_resolveLaserCode(jtacKey, imposed)
+    if not imposed then
+        return self:_assignLaserCode(), false
+    end
+    for i = #self._laserPool, 1, -1 do
+        if self._laserPool[i] == imposed then table.remove(self._laserPool, i) end
+    end
+    for key, other in pairs(self.jtacs) do
+        if key ~= jtacKey and other.laserCode == imposed then
+            if other.codeImposed then
+                ctld.utils.log("WARN", "CTLDJTACManager — laser code %d imposed on both '%s' and '%s'",
+                    imposed, key, jtacKey)
+            elseif other.state ~= CTLDJTAC.STATE.DEAD then
+                self:_recodeJTAC(other)
+            end
+        end
+    end
+    return imposed, true
+end
+
+--- Give a JTAC holding an automatic code a new one from the pool, its code having been imposed on
+-- another JTAC. The old code is not returned (it is now imposed). A lasing JTAC stops, and lases
+-- again with the new code on its next loop. The change is announced on the radio the coalition
+-- was listening to.
+-- @param jtac CTLDJTAC
+function CTLDJTACManager:_recodeJTAC(jtac)
+    local newCode = self:_assignLaserCode()
+    if not newCode then
+        ctld.logError("CTLDJTACManager:_recodeJTAC — laser code pool exhausted, '"
+            .. tostring(jtac.groupName) .. "' keeps code " .. tostring(jtac.laserCode))
+        return
+    end
+    -- Stop first, so OnJTACLaseStop carries the code the spot was lased on
+    if jtac.currentTarget then
+        self:_stopLaseAndPublish(jtac, CTLDJTAC.STOP_REASON.CODE_CHANGED)
+    end
+    local oldCode, oldRadio = jtac.laserCode, jtac.radio
+    jtac.laserCode = newCode
+    if not jtac.radioSupplied then
+        jtac.radio = CTLDJTACDetector.calculateFMRadio(jtac.groupName, newCode)
+    end
+    local msg = CTLDJTACMessage.build({
+        event     = "code_changed",
+        jtacName  = jtac.groupName,
+        laserCode = newCode,
+        radio     = jtac.radio,
+    })
+    ctld.utils.notifyCoalition(msg.full, 10, jtac.coalitionId, oldRadio, msg.short)
+    ctld.utils.log("INFO", "CTLDJTACManager:_recodeJTAC — '%s' re-coded %d -> %d",
+        jtac.groupName, oldCode, newCode)
 end
 
 --- Assign next laser code from the pool. O(1) — removes from tail.
