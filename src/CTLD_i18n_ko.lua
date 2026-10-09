@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.25"
+ctld.i18n["ko"].translation_version = "1.26"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -476,3 +476,6 @@ ctld.i18n["ko"]["Request failed: the equipment could not be brought out."] = "�
 ctld.i18n["ko"]["Crate loaded. To fit it with a parachute: open the doors, then use F10 > CTLD > %1 > %2."] = "화물 적재됨. 낙하산을 장착하려면 문을 연 다음 F10 > CTLD > %1 > %2 를 사용하세요."
 ctld.i18n["ko"]["Fit parachute"] = "낙하산 장착"
 ctld.i18n["ko"]["The cargo bay doors are closed: open them, then use Fit parachute again."] = "화물칸 문이 닫혀 있습니다. 문을 연 다음 낙하산 장착을 다시 사용하세요."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-09
+ctld.i18n["ko"]["Unpack failed: the equipment could not be created."] = "풀기 실패: 장비를 생성할 수 없습니다."

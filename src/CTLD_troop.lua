@@ -2208,7 +2208,7 @@ end
 -- @return boolean
 function CTLDTroopManager:spawnGroupAtPoint(side, number, point, radius)
     local coalitionId = (side == "red") and coalition.side.RED or coalition.side.BLUE
-    local countryId   = (coalitionId == coalition.side.RED) and country.id.RUSSIA or country.id.USA
+    local countryId   = ctld.utils.resolveCountryId(coalitionId)
     radius = math.max(0, radius or 0)
 
     local tmpl = self:_resolveTemplateForLegacy(coalitionId, number)

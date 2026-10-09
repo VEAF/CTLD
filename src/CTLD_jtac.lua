@@ -714,7 +714,8 @@ function CTLDJTACManager:deployAirJTAC(transport, position, descriptor, countryI
     local uid   = ctld.utils.getNextUniqId()
     local gname = string.format("CTLD_AIR_%d", gid)
     local unitDef = ctld.utils.buildGroupUnitDef(desc, position, gname, gid, uid)
-    local cId = countryId or country.id.USA
+    local cId = countryId or ctld.utils.resolveCountryId(
+        transport and transport:getCoalition() or coalition.side.BLUE, transport)
     local ok, err = ctld.utils.spawnFromDescriptor(desc, cId, unitDef)
     if not ok then
         local errStr = type(err) == "table" and ctld.utils.p(err) or tostring(err)
