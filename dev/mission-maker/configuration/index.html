@@ -1098,6 +1098,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#laser-codes-and-jtac-radio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Laser codes and JTAC radio
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pre-placed-jtac-groups-auto-detection" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2320,6 +2331,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#laser-codes-and-jtac-radio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Laser codes and JTAC radio
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pre-placed-jtac-groups-auto-detection" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3034,8 +3056,26 @@ the FOB scene model (<code>cratesRequired</code>, default 3), collected within 7
 <td><code>150</code></td>
 <td>Orbit airspeed (km/h) for drone JTACs, used for the spawn speed too</td>
 </tr>
+<tr>
+<td><code>jtacLaserCodeMin</code></td>
+<td><code>1111</code></td>
+<td>Lowest laser code CTLD hands out automatically</td>
+</tr>
+<tr>
+<td><code>jtacLaserCodeMax</code></td>
+<td><code>1688</code></td>
+<td>Highest laser code CTLD hands out automatically (handed out first)</td>
+</tr>
 </tbody>
 </table>
+<h4 id="laser-codes-and-jtac-radio">Laser codes and JTAC radio<a class="headerlink" href="#laser-codes-and-jtac-radio" title="Permanent link">&para;</a></h4>
+<p>CTLD hands out laser codes automatically from <code>jtacLaserCodeMin</code>..<code>jtacLaserCodeMax</code>, leaving out any code with a <code>0</code> or a <code>9</code> (the digits after the first run 1–8 in DCS — to be confirmed in game: is <code>1199</code> refused?).
+With the defaults, that is 384 codes.</p>
+<p>A code <strong>imposed</strong> by a script (<code>CTLDJTACManager:autoLase(group, 1688, ...)</code>, <code>ctld.JTACAutoLase</code>) is reserved for good: CTLD never hands it out automatically, even after the JTAC dies.
+If a JTAC already holds that code automatically — a pre-placed group CTLD coded at startup, say — it gets a new code and announces it to its coalition on the radio it was using.
+Two JTACs imposed on the same code keep it, with a warning in the log.</p>
+<p>A JTAC announces itself on the <strong>radio</strong> passed to <code>autoLase</code> (<code>{ freq, mod, name }</code>, used as given; <code>name</code> defaults to the group name).
+Without one, it uses the FM frequency derived from its laser code.</p>
 <h4 id="pre-placed-jtac-groups-auto-detection">Pre-placed JTAC groups (auto-detection)<a class="headerlink" href="#pre-placed-jtac-groups-auto-detection" title="Permanent link">&para;</a></h4>
 <p>CTLD detects JTAC groups placed in the Mission Editor at startup. A group is recognised as a
 JTAC when its <strong>group name contains <code>jtac</code></strong> (case-insensitive) — for example <code>jtac_blue_1</code>,

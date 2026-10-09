@@ -2338,8 +2338,10 @@ up by <code>killJTAC(groupName)</code>, which destroys the group and publishes <
 infantry JTAC must <strong>never</strong> call <code>killJTAC</code> — doing so would destroy the whole composite group and
 kill its surviving infantry. Instead its <code>_autoLaseLoop</code> simply returns <code>nil</code> (stops) when
 <code>Unit.getByName()</code> fails, and cleanup is done by <code>S_EVENT_DEAD → onUnitDead → deregisterJTAC(unitName)</code>.</p>
-<p>Each JTAC is assigned a laser code from a sequential pool (<code>LASER_CODE_MIN = 1111</code> …
-<code>LASER_CODE_MAX = 1688</code>), freed on death/deregister. <code>CTLDJTACDetector.calculateFMRadio()</code> derives
+<p>Each JTAC is assigned a laser code from a pool (<code>jtacLaserCodeMin = 1111</code> …
+<code>jtacLaserCodeMax = 1688</code>, codes with a 0 or a 9 left out), drawn from the top and freed on death/deregister.
+A code imposed by the caller (<code>cfg.laserCode</code>, <code>autoLase(group, code)</code>) goes through <code>_resolveLaserCode()</code>: it leaves the pool for good (<code>jtac.codeImposed</code>, never freed), a JTAC holding it automatically is re-coded by <code>_recodeJTAC()</code> (lasing stopped with <code>STOP_REASON.CODE_CHANGED</code>, <code>code_changed</code> message on its previous radio), and another imposed holder keeps it with a WARN.
+A radio passed in <code>cfg.radio</code> is kept as given (<code>jtac.radioSupplied</code>, <code>name</code> defaulted, <code>freq</code> stringified); otherwise <code>CTLDJTACDetector.calculateFMRadio()</code> derives
 an FM guidance frequency from the code (<code>30 + floor((code-1000)/100) + ((code-1000) mod 100) * 0.05</code>),
 giving roughly 31.5–40.4 MHz across the pool.</p>
 <h2 id="jtac-spawn-entry-points-per-flavour">JTAC spawn entry points per flavour<a class="headerlink" href="#jtac-spawn-entry-points-per-flavour" title="Permanent link">&para;</a></h2>

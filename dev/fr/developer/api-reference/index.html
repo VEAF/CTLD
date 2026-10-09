@@ -2873,7 +2873,7 @@ mission maker et inaudible pour le pilote qui a affiché la fréquence annoncée
 <tr>
 <td><code>autoLase</code></td>
 <td><code>(groupName, laserCode, smoke, lock, colour, radio, orbitParams)</code></td>
-<td>Active l'auto-lase pour un groupe JTAC ME pré-placé. Tous les paramètres après <code>groupName</code> sont optionnels. <code>laserCode</code> : 1111–1788. <code>smoke</code> : <code>true</code> / <code>false</code>. <code>lock</code> : <code>"vehicle"</code> / <code>"troop"</code> / <code>"all"</code>. <code>colour</code> : 0–4. <code>radio</code> : table SRS <code>{freq, mod, name}</code>.</td>
+<td>Active l'auto-lase pour un groupe JTAC ME pré-placé. Tous les paramètres après <code>groupName</code> sont optionnels. <code>laserCode</code> : 1111–1788 ; un code imposé est réservé (jamais attribué automatiquement ; un JTAC qui le détient automatiquement est recodé). <code>smoke</code> : <code>true</code> / <code>false</code>. <code>lock</code> : <code>"vehicle"</code> / <code>"troop"</code> / <code>"all"</code>. <code>colour</code> : 0–4. <code>radio</code> : table SRS <code>{freq, mod, name}</code>, gardée telle quelle (nil = fréquence FM dérivée du code).</td>
 </tr>
 <tr>
 <td><code>startLase</code></td>

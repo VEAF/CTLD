@@ -2871,7 +2871,7 @@ inaudible to the pilot who tuned the briefed one. Four refusals:</p>
 <tr>
 <td><code>autoLase</code></td>
 <td><code>(groupName, laserCode, smoke, lock, colour, radio, orbitParams)</code></td>
-<td>Activate auto-lase for a pre-placed ME JTAC group. All params after <code>groupName</code> are optional. <code>laserCode</code>: 1111–1788. <code>smoke</code>: <code>true</code> / <code>false</code>. <code>lock</code>: <code>"vehicle"</code> / <code>"troop"</code> / <code>"all"</code>. <code>colour</code>: 0–4. <code>radio</code>: <code>{freq, mod, name}</code> SRS table.</td>
+<td>Activate auto-lase for a pre-placed ME JTAC group. All params after <code>groupName</code> are optional. <code>laserCode</code>: 1111–1788; an imposed code is reserved (never handed out automatically; a JTAC holding it automatically is re-coded). <code>smoke</code>: <code>true</code> / <code>false</code>. <code>lock</code>: <code>"vehicle"</code> / <code>"troop"</code> / <code>"all"</code>. <code>colour</code>: 0–4. <code>radio</code>: <code>{freq, mod, name}</code> SRS table, kept as given (nil = FM frequency derived from the code).</td>
 </tr>
 <tr>
 <td><code>startLase</code></td>
