@@ -248,6 +248,20 @@ aléatoire de 90–120 % de `SOLDIER_WEIGHT`, plus l'équipement et le matériel
 | `JTAC_droneRadiusOnLase` | `1000` | Rayon d'orbite (m) une fois qu'un JTAC drone illumine une cible — plus serré, pour rester près de ce qu'il désigne |
 | `JTAC_droneAltitude` | `3000` | Altitude d'orbite AGL (m) des JTAC drones, utilisée aussi pour l'altitude d'apparition |
 | `JTAC_droneSpeed` | `150` | Vitesse d'orbite (km/h) des JTAC drones, utilisée aussi pour la vitesse d'apparition |
+| `jtacLaserCodeMin` | `1111` | Plus petit code laser que CTLD attribue automatiquement |
+| `jtacLaserCodeMax` | `1688` | Plus grand code laser que CTLD attribue automatiquement (attribué en premier) |
+
+#### Codes laser et radio des JTAC { #laser-codes-and-jtac-radio }
+
+CTLD attribue les codes laser automatiquement dans `jtacLaserCodeMin`..`jtacLaserCodeMax`, en écartant tout code contenant un `0` ou un `9` (dans DCS, les chiffres après le premier vont de 1 à 8 — à confirmer en jeu : `1199` est-il refusé ?).
+Avec les valeurs par défaut, cela fait 384 codes.
+
+Un code **imposé** par un script (`CTLDJTACManager:autoLase(groupe, 1688, ...)`, `ctld.JTACAutoLase`) est réservé définitivement : CTLD ne l'attribue jamais automatiquement, même après la mort du JTAC.
+Si un JTAC détient déjà ce code automatiquement — par exemple un groupe pré-placé que CTLD a codé au démarrage —, il reçoit un nouveau code et l'annonce à sa coalition sur la radio qu'il utilisait.
+Deux JTAC imposés sur le même code le gardent tous les deux, avec un avertissement dans le log.
+
+Un JTAC s'annonce sur la **radio** passée à `autoLase` (`{ freq, mod, name }`, utilisée telle quelle ; `name` vaut par défaut le nom du groupe).
+Sans radio, il utilise la fréquence FM dérivée de son code laser.
 
 #### Groupes JTAC pré-placés (auto-détection) { #pre-placed-jtac-groups-auto-detection }
 

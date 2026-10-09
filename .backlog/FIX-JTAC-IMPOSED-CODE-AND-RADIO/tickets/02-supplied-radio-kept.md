@@ -1,6 +1,6 @@
 # 02 — A supplied radio is kept
 
-**Status:** ⬜ ready — decision b of the PRD first
+**Status:** ✅ done
 
 Files: `src/CTLD_jtac.lua` (`autoLase`, `spawnJTAC`, `CTLDJTAC:new`), busted tests.
 

@@ -1,6 +1,6 @@
 # FIX-JTAC-IMPOSED-CODE-AND-RADIO — an imposed laser code taken twice, a supplied radio ignored
 
-**Status:** ⬜ ready — two design decisions to take at the start (below)
+**Status:** 🟡 in review — decisions taken 2026-10-09 (below)
 
 Reported by VMCT on 2026-10-02 (VMCT lot `FIX-OPEN-TRAINING-SYRIA-FINDINGS`, ticket 18), validated by
 David. Found in game on the Syria Open Training v6 (dcs-serve), checked in the code of 2.0.0-rc11 — the
@@ -51,6 +51,17 @@ limitation `ctld-jtac-imposed-code-and-radio`.
   `mod` `"FM"` upper case, extra fields (`name`, `jtac`, `description`...). CTLD's own is
   `{ name, freq = <string>, mod = "fm" }`. Normalise what is given, or require CTLD's shape and adapt VEAF.
 
+## Decisions taken (2026-10-09, David)
+
+- **a.** Hybrid: an imposed code leaves the pool when imposed and never comes back (`jtac.codeImposed`, not freed on death or deregistration); a JTAC holding it automatically is re-coded from the pool; two JTACs imposed on the same code are tolerated, with a `WARN`.
+- **b.** A supplied radio is kept as given, as in the legacy `ctld.JTACAutoLase`: `name` defaulted to the group name when absent, `freq` turned into a string; nothing else normalised.
+- **c.** A re-coded JTAC announces its new code (and its new radio) to its coalition on the radio it was using; no new API event (its lasing stops with `STOP_REASON.CODE_CHANGED`, so `OnJTACLaseStop` carries the old code).
+- **Ticket 03.** The pool leaves out codes with a 0 or a 9 and keeps 8. Rule from the legacy `ctld.generateLaserCode` comment (digits after the first run 1–8); **to verify in game** (is 1199 refused?), not blocking.
+
+## Finding: the catalogue template was coded by a CTLD bug (ticket 04)
+
+The template `veafSpawn-MQ9 - AFAC - JTAC - DRONE` is `lateActivation = true` in `VEAF_OpenTraining_Syria_ICAO_LTAG_20261002.miz` (checked 2026-10-09). INIT-C should have left it pending. It did not because `_initMMJTACs` called `group:isActive()`, which DCS groups do not have (Hoggit `DCS_Class_Group`; `isActive` is a `Unit` function): the `pcall` failed and fell back to "active", so **every** late-activated group named `*jtac*` was coded at start. Fixed by reading `group:getUnit(1):isActive()`. Not a VMCT issue: nothing to change in the mission. Hoggit is the source; to confirm in game with the next release (the template no longer appears in the JTAC list at start).
+
 ## Done when
 
 - Two JTACs, one imposed on 1688 and one automatic, get distinct codes **in either order of
@@ -69,6 +80,7 @@ limitation `ctld-jtac-imposed-code-and-radio`.
 
 | # | Ticket | Status |
 |---|--------|--------|
-| 01 | [An imposed laser code is reserved, whatever the order](tickets/01-imposed-code-reserved.md) | ⬜ |
-| 02 | [A supplied radio is kept](tickets/02-supplied-radio-kept.md) | ⬜ |
-| 03 | [The laser pool holds valid codes only](tickets/03-valid-laser-codes.md) | ⬜ |
+| 01 | [An imposed laser code is reserved, whatever the order](tickets/01-imposed-code-reserved.md) | ✅ |
+| 02 | [A supplied radio is kept](tickets/02-supplied-radio-kept.md) | ✅ |
+| 03 | [The laser pool holds valid codes only](tickets/03-valid-laser-codes.md) | ✅ (rule to verify in game) |
+| 04 | [A late-activated JTAC group is not coded at start](tickets/04-late-activated-not-coded.md) | ✅ |

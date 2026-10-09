@@ -195,3 +195,60 @@ describe("CTLDCoreManager:_initExtractableGroups (INIT-E)", function()
     end)
 
 end)
+
+describe("CTLDCoreManager:_initMMJTACs (INIT-C)", function()
+
+    local _origGetGroups, _origGetInstance
+    local registered, pending
+
+    -- DCS Group has no isActive() (Hoggit, DCS_Class_Group); activation is read on the Unit.
+    local function fakeJTACGroup(name, unitActive)
+        local unit = { isActive = function() return unitActive end }
+        return {
+            getName = function() return name end,
+            isExist = function() return true end,
+            getUnit = function(_, i) if i == 1 then return unit end end,
+        }
+    end
+
+    before_each(function()
+        resetAll()
+        _origGetGroups   = coalition.getGroups
+        _origGetInstance = CTLDJTACManager.getInstance
+        registered, pending = {}, {}
+        CTLDJTACManager.getInstance = function()
+            return {
+                registerMMJTAC  = function(_, g) registered[#registered + 1] = g:getName() end,
+                markPendingJTAC = function(_, n) pending[#pending + 1] = n end,
+            }
+        end
+    end)
+
+    after_each(function()
+        coalition.getGroups         = _origGetGroups
+        CTLDJTACManager.getInstance = _origGetInstance
+    end)
+
+    it("a late-activated JTAC group is left pending, not coded at start", function()
+        coalition.getGroups = function(side)
+            if side == coalition.side.BLUE then
+                return { fakeJTACGroup("veafSpawn-MQ9 - AFAC - JTAC - DRONE", false) }
+            end
+            return {}
+        end
+        setmetatable({}, CTLDCoreManager):_initMMJTACs()
+        assert.equals(0, #registered)
+        assert.equals("veafSpawn-MQ9 - AFAC - JTAC - DRONE", pending[1])
+    end)
+
+    it("an active JTAC group is registered at start", function()
+        coalition.getGroups = function(side)
+            if side == coalition.side.BLUE then return { fakeJTACGroup("JTAC_Blue_1", true) } end
+            return {}
+        end
+        setmetatable({}, CTLDCoreManager):_initMMJTACs()
+        assert.equals("JTAC_Blue_1", registered[1])
+        assert.equals(0, #pending)
+    end)
+
+end)

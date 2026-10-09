@@ -8,6 +8,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — an imposed laser code is reserved, a supplied JTAC radio is kept (FIX-JTAC-IMPOSED-CODE-AND-RADIO)
+
+Reported by VMCT from the Syria Open Training v6: a drone imposed on 1688 shared the code with another JTAC, and announced itself on the code-derived frequency instead of the one passed to it.
+
+- **An imposed laser code is reserved.** A code imposed through `CTLDJTACManager:autoLase(group, code, ...)` (or `ctld.JTACAutoLase`) leaves the automatic pool for good, even after the JTAC dies. A JTAC already holding it automatically gets a new code, and announces it to its coalition on the radio it was using ("<name>, laser code changed to <code>, now on <freq> FM."); if it was lasing, it stops and lases again with the new code. Two JTACs imposed on the same code keep it, with a `WARN` in the log. Automatic codes still go back to the pool on death.
+- **A supplied radio is kept.** The `radio` passed to `autoLase` (`{ freq, mod, name }`) was dropped and replaced by the frequency derived from the laser code. It is now used as given, as in CTLD 1.x; `name` defaults to the group name, `freq` is turned into a string. Without a radio, the code-derived frequency is used, as before.
+- **The automatic pool leaves out codes with a 0 or a 9** (384 codes in the default 1111–1688 range, instead of 578): the digits after the first run 1–8 in DCS, as CTLD 1.x already assumed. To be confirmed in game (is 1199 refused?).
+- **A late-activated JTAC group is no longer coded at mission start.** The startup detection of pre-placed JTAC groups asked the group whether it was active, a method DCS groups do not have; the error fell back to "active", so every late-activated group whose name contains `jtac` — a spawn template included — took a laser code at start. Activation is now read on the group's first unit, and such a group is registered when it activates, as documented.
+
 ### Fixed — the logistics poller no longer blanks the F10 menu on its first pass (FIX-LGZ-POLL-FIRST-OBSERVATION)
 
 - The 10 s ground poller rebuilt a player's *Request Equipment* section whenever the logistics zones at the aircraft differed from its last
