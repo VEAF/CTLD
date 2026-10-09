@@ -109,6 +109,13 @@ describe("ctld.MenuManager _sortByOrder", function()
         assert.equals(0, #sorted)
     end)
 
+    it("nodes sharing an order keep their insertion order, however many", function()
+        local children = {}
+        for i = 1, 40 do table.insert(children, { name = "N" .. i }) end
+        local sorted = ctld.MenuManager:_sortByOrder(children)
+        for i = 1, 40 do assert.equals("N" .. i, sorted[i].name) end
+    end)
+
     it("does not mutate the original list", function()
         local children = {
             { name = "B", order = 20 },
@@ -360,53 +367,38 @@ describe("ctld.Menu removeMenuBranch", function()
 end)
 
 -- ─────────────────────────────────────────────────────────────
-describe("ctld.MenuManager refreshMenuForGroup _activeHandles", function()
-    -- U-067
+describe("ctld.MenuManager refreshMenuForGroup mirror", function()
+    -- U-067 — the mirror of live entries replaced _activeHandles (FIX-MENU-STABLE-ENTRIES); the
+    -- behaviour across refreshes is pinned in menu_stable_entries_spec.lua.
 
-    local mgr
-    local addCalls    -- { groupId, name } per addSubMenuForGroup call
-    local removeCalls -- { groupId, handle } per removeItemForGroup call
-    local handleSeq   -- incremented handle counter
+    local mgr, mc
 
     before_each(function()
         ctld.MenuManager._instance = nil
-        mgr        = ctld.MenuManager:getInstance()
-        addCalls   = {}
-        removeCalls = {}
-        handleSeq  = 0
-        missionCommands.addSubMenuForGroup = function(gid, name, _path)
-            handleSeq = handleSeq + 1
-            local h = "h" .. handleSeq
-            table.insert(addCalls, { gid = gid, name = name, handle = h })
-            return h
-        end
-        missionCommands.addCommandForGroup = function() end
-        missionCommands.removeItemForGroup = function(gid, h)
-            table.insert(removeCalls, { gid = gid, handle = h })
-        end
+        mgr = ctld.MenuManager:getInstance()
+        mc  = ctldMissionCommandsDouble.install()
     end)
 
     after_each(function()
-        missionCommands.addSubMenuForGroup = function() end
-        missionCommands.addCommandForGroup = function() end
-        missionCommands.removeItemForGroup = function() end
+        mc:uninstall()
     end)
 
-    it("first refresh: no removeItemForGroup call, _activeHandles populated", function()
+    it("first refresh: creates every entry, removes nothing", function()
         local menu = mgr:createMenuForGroup(5001)
         menu:addSubMenu({}, "CTLD", { order = 10 })
+        menu:addCommand({ "CTLD" }, "Check Cargo", function() end)
         mgr:refreshMenuForGroup(5001)
 
-        assert.equals(0, #removeCalls)
-        assert.equals(1, #menu._activeHandles)
-        assert.equals("h1", menu._activeHandles[1])
+        assert.equals(2, mc:callCount("add", 5001))
+        assert.equals(0, mc:callCount("remove"))
+        assert.same({ "CTLD" }, mc:labels(5001, {}))
     end)
 
-    it("second refresh: removeItemForGroup called with first handle before new addSubMenuForGroup", function()
+    it("a buildMenu-style reset of the memory model keeps the mirror: the next refresh only diffs", function()
         local menu = mgr:createMenuForGroup(5002)
         menu:addSubMenu({}, "CTLD", { order = 10 })
         mgr:refreshMenuForGroup(5002)
-        local firstHandle = menu._activeHandles[1]
+        mc:resetCalls()
 
         -- Simulate buildMenu reset + section rebuild
         menu.children  = {}
@@ -415,32 +407,13 @@ describe("ctld.MenuManager refreshMenuForGroup _activeHandles", function()
         menu:addSubMenu({}, "CTLD", { order = 10 })
         mgr:refreshMenuForGroup(5002)
 
-        -- remove must have fired before the second add
-        assert.equals(1, #removeCalls)
-        assert.equals(firstHandle, removeCalls[1].handle)
-        -- second add produced a new handle stored in _activeHandles
-        assert.equals(1, #menu._activeHandles)
-        assert.not_equal(firstHandle, menu._activeHandles[1])
+        assert.equals(0, mc:callCount())
     end)
 
-    it("_activeHandles is empty after menu.children reset until next refresh", function()
-        local menu = mgr:createMenuForGroup(5003)
-        menu:addSubMenu({}, "CTLD", { order = 10 })
-        mgr:refreshMenuForGroup(5003)
-        assert.equals(1, #menu._activeHandles)
-
-        -- Simulate buildMenu reset
-        menu.children  = {}
-        menu._lookup   = {}
-        menu.nextItemId = 1
-        -- _activeHandles must still hold the old handle (not cleared by children reset)
-        assert.equals(1, #menu._activeHandles)
-    end)
-
-    it("new ctld.Menu has empty _activeHandles", function()
+    it("new ctld.Menu has an empty mirror", function()
         local menu = mgr:createMenuForGroup(5004)
-        assert.is_not_nil(menu._activeHandles)
-        assert.equals(0, #menu._activeHandles)
+        assert.is_nil(next(menu._rendered.children))
+        assert.is_nil(next(menu._rendered.byKey))
     end)
 
 end)
@@ -719,67 +692,72 @@ describe("ctld.MenuManager ambient vs urgent refresh", function()
 end)
 
 -- ─────────────────────────────────────────────────────────────
-describe("ctld.MenuManager _rebuildPagedChildren pagination", function()
-    -- U-066
+describe("ctld.MenuManager submenu pagination", function()
+    -- U-066 — rendered through refreshMenuForGroup inside a submenu (the root level is not paginated).
 
-    local addSubCount, addCmdCount
+    local mgr, mc
+    local GID = 5101
 
-    -- Build N command-type nodes (all enabled, carry a stub functionToCall)
-    local function makeCommandNodes(n)
-        local nodes = {}
+    local function render(n, disabled)
+        local menu = mgr:createMenuForGroup(GID)
+        menu:addSubMenu({}, "L")
         for i = 1, n do
-            table.insert(nodes, {
-                name           = "Item_" .. i,
-                type           = "command",
-                enabled        = true,
-                functionToCall = function() end,
-                anyArgument    = {},
-            })
+            menu:addCommand({ "L" }, "Item_" .. i, function() end)
         end
-        return nodes
+        if disabled then menu:setBranchEnabled({ "L", "Item_" .. disabled }, false) end
+        mgr:refreshMenuForGroup(GID)
+        mc:resetCalls()
+        mgr.menus[GID] = nil
+    end
+
+    local function count(kind)
+        local n = 0
+        for _, e in pairs(mc.entries) do
+            if e.gid == GID and e.kind == kind then n = n + 1 end
+        end
+        return n
     end
 
     before_each(function()
-        addSubCount = 0
-        addCmdCount = 0
-        missionCommands.addSubMenuForGroup = function() addSubCount = addSubCount + 1 end
-        missionCommands.addCommandForGroup = function() addCmdCount = addCmdCount + 1 end
+        ctld.MenuManager._instance = nil
+        mgr = ctld.MenuManager:getInstance()
+        mc  = ctldMissionCommandsDouble.install()
     end)
 
     after_each(function()
-        missionCommands.addSubMenuForGroup = function() end
-        missionCommands.addCommandForGroup = function() end
+        mc:uninstall()
     end)
 
     it("10 items → all rendered inline, no NextPage submenu", function()
-        ctld.MenuManager:_rebuildPagedChildren(1, {}, makeCommandNodes(10))
-        assert.equals(10, addCmdCount)
-        assert.equals(0,  addSubCount)
+        render(10)
+        assert.equals(10, count("command"))
+        assert.equals(1,  count("submenu"))   -- L itself
     end)
 
     it("11 items → 11 commands rendered, 1 NextPage submenu created", function()
-        ctld.MenuManager:_rebuildPagedChildren(1, {}, makeCommandNodes(11))
-        assert.equals(11, addCmdCount)
-        assert.equals(1,  addSubCount)
+        render(11)
+        local next = ctld.tr("→ Next Page")
+        assert.equals(11, count("command"))
+        assert.equals(2,  count("submenu"))
+        assert.equals(next, mc:labels(GID, { "L" })[10])
+        assert.same({ "Item_10", "Item_11" }, mc:labels(GID, { "L", next }))
     end)
 
     it("20 items → 20 commands rendered, 2 NextPage submenus created", function()
-        ctld.MenuManager:_rebuildPagedChildren(1, {}, makeCommandNodes(20))
-        assert.equals(20, addCmdCount)
-        assert.equals(2,  addSubCount)
+        render(20)
+        assert.equals(20, count("command"))
+        assert.equals(3,  count("submenu"))
     end)
 
     it("disabled nodes are not rendered", function()
-        local nodes = makeCommandNodes(3)
-        nodes[2].enabled = false
-        ctld.MenuManager:_rebuildPagedChildren(1, {}, nodes)
-        assert.equals(2, addCmdCount)
+        render(3, 2)
+        assert.same({ "Item_1", "Item_3" }, mc:labels(GID, { "L" }))
     end)
 
-    it("empty list → no DCS calls", function()
-        ctld.MenuManager:_rebuildPagedChildren(1, {}, {})
-        assert.equals(0, addCmdCount)
-        assert.equals(0, addSubCount)
+    it("empty list → only the submenu itself", function()
+        render(0)
+        assert.equals(0, count("command"))
+        assert.equals(1, count("submenu"))
     end)
 
 end)

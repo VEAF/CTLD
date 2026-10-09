@@ -501,12 +501,13 @@ describe("CTLDPlayerManager onPlayerLeaveUnit multi-crew group-aware", function(
         })
     end
 
-    -- Inject a ctld.Menu with a fake _activeHandles entry for groupId.
+    -- Inject a ctld.Menu with one live top-level entry, labelled `handle`, for groupId.
     local function injectMenu(groupId, handle)
         ctld.MenuManager._instance = nil
         local mm   = ctld.MenuManager:getInstance()
         local menu = mm:createMenuForGroup(groupId)
-        menu._activeHandles = { handle }
+        menu:addSubMenu({}, handle)
+        mm:refreshMenuForGroup(groupId)
         return mm
     end
 
@@ -516,7 +517,7 @@ describe("CTLDPlayerManager onPlayerLeaveUnit multi-crew group-aware", function(
         mgr = CTLDPlayerManager.getInstance()
         removeCalls = {}
         missionCommands.removeItemForGroup = function(gid, h)
-            table.insert(removeCalls, { gid = gid, handle = h })
+            table.insert(removeCalls, { gid = gid, handle = h[#h] })   -- h is the entry's label path
         end
     end)
 
@@ -632,7 +633,8 @@ describe("CTLDPlayerManager _scanExistingPlayers evicts departed players", funct
         ctld.MenuManager._instance = nil
         local mm   = ctld.MenuManager:getInstance()
         local menu = mm:createMenuForGroup(groupId)
-        menu._activeHandles = { handle }
+        menu:addSubMenu({}, handle)
+        mm:refreshMenuForGroup(groupId)
         return mm
     end
 
@@ -655,7 +657,7 @@ describe("CTLDPlayerManager _scanExistingPlayers evicts departed players", funct
         mgr = CTLDPlayerManager.getInstance()
         removeCalls = {}
         missionCommands.removeItemForGroup = function(gid, h)
-            table.insert(removeCalls, { gid = gid, handle = h })
+            table.insert(removeCalls, { gid = gid, handle = h[#h] })   -- h is the entry's label path
         end
         savedGetByName = Unit.getByName
     end)

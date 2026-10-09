@@ -25,7 +25,7 @@
 --               ctld.MenuManager (CTLD_menu.lua)
 -- DCS API: unit:getName, unit:getGroup, unit:getTypeName, unit:getCoalition,
 --          unit:getPlayerName, unit:isExist,
---          missionCommands.removeItemForGroup, trigger.action.outTextForGroup
+--          trigger.action.outTextForGroup
 -- ============================================================
 
 ctld = ctld or {}
@@ -506,19 +506,10 @@ function CTLDPlayerManager:_forgetPlayer(unitName)
     end
 
     if groupCount <= 1 then
-        -- Last player in the group: full DCS menu teardown.
-        local mmgr     = ctld.MenuManager:getInstance()
-        local menuData = mmgr.menus and mmgr.menus[groupId]
-        if menuData then
-            for _, h in ipairs(menuData._activeHandles or {}) do
-                missionCommands.removeItemForGroup(groupId, h)
-            end
-            mmgr.menus[groupId] = nil
-        end
-        -- DCS can reuse this numeric groupId for an unrelated slot occupant — a pending
-        -- urgent/ambient rebuild left scheduled for the departing group must not silently
-        -- swallow or delay the next occupant's first menu build.
-        mmgr:cancelPending(groupId)
+        -- Last player in the group: full DCS menu teardown. The manager removes and parks every
+        -- live entry, drops the menu with its mirror, and cancels any pending rebuild — DCS can
+        -- reuse this numeric groupId for an unrelated slot occupant, who must inherit none of it.
+        ctld.MenuManager:getInstance():teardownGroup(groupId)
     end
     -- else: other crew members remain — preserve the DCS menu for them.
 

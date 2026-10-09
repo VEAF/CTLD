@@ -189,24 +189,24 @@ describe("ctld.MenuManager stable entries (#257)", function()
     it("an entry crossing a page boundary is recreated on its new page, the others are untouched", function()
         local menu = mgr:createMenuForGroup(GID)
         for i = 1, 10 do
-            menu:addCommand({}, "Item_" .. i, recorder("Item_" .. i), nil, { order = i * 10 })
+            menu:addCommand({ "L" }, "Item_" .. i, recorder("Item_" .. i), nil, { order = i * 10 })
         end
         mgr:refreshMenuForGroup(GID)
-        local id1  = mc:idOf(GID, { "Item_1" })
-        local id9  = mc:idOf(GID, { "Item_9" })
-        local id10 = mc:idOf(GID, { "Item_10" })
+        local id1  = mc:idOf(GID, { "L", "Item_1" })
+        local id9  = mc:idOf(GID, { "L", "Item_9" })
+        local id10 = mc:idOf(GID, { "L", "Item_10" })
         mc:resetCalls()
 
-        menu:addCommand({}, "Item_95", recorder("Item_95"), nil, { order = 95 })
+        menu:addCommand({ "L" }, "Item_95", recorder("Item_95"), nil, { order = 95 })
         mgr:refreshMenuForGroup(GID)
 
         local next = ctld.tr("→ Next Page")
-        local page1 = mc:labels(GID, {})
+        local page1 = mc:labels(GID, { "L" })
         assert.equals(10, #page1)
         assert.equals(next, page1[10])
-        assert.same({ "Item_95", "Item_10" }, mc:labels(GID, { next }))
-        assert.equals(id1, mc:idOf(GID, { "Item_1" }))   -- page 1 entries untouched
-        assert.equals(id9, mc:idOf(GID, { "Item_9" }))
+        assert.same({ "Item_95", "Item_10" }, mc:labels(GID, { "L", next }))
+        assert.equals(id1, mc:idOf(GID, { "L", "Item_1" }))   -- page 1 entries untouched
+        assert.equals(id9, mc:idOf(GID, { "L", "Item_9" }))
         assert.equals(1, mc:callCount("remove", GID))     -- only Item_10 left page 1
         mc:click(id10)                                    -- its old id is parked
         assert.equals(0, #fired)
