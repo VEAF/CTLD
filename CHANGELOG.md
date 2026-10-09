@@ -8,6 +8,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — an F10 click no longer fires another command after a menu refresh (FIX-MENU-STABLE-ENTRIES)
+
+Reported by players after ADR 0015 (#257): a click on a CTLD F10 entry could still fire another command, sometimes another group's.
+
+- DCS identifies each F10 entry by an id it hands to the next entry created once the entry is removed, for any group on the server, and an F10 screen left open keeps the ids it was drawn with.
+  CTLD removed and recreated its whole menu on every refresh, so a screen opened before a refresh pointed at ids now held by other commands.
+- A refresh now only creates and removes the entries that changed; an unchanged entry keeps its id and fires itself.
+- Every removed entry's id is taken at once by an inert command no player can see, so a click on an entry that disappeared does nothing (an INFO line is logged) instead of firing another command.
+- The 4-second blank menu after a background refresh (ADR 0015) is gone: every refresh is applied 0.15 s after it is requested.
+- Entries sharing the same `order` now keep their insertion order on every refresh; Lua's sort could shuffle them.
+- Developer: ADR 0027 supersedes ADR 0015; `ctld.MenuManager:runUrgent` and the `{ urgent = true }` option of `refresh()` are removed, `ctld.utils.protectedCall` keeps their error isolation, and `ctld.MenuManager:teardownGroup` tears a group's menu down.
+
 ### Fixed — scene packing places its crates like every other crate, sling crates keep the radial rule, cancelled timers leave the scheduler (FIX-REVIEW-HYGIENE-B)
 
 - **Packing a FARP places its crates by the common rule** (#253). The crates of a packed scene appeared at a random bearing around the aircraft, at the generic distance and possibly inside a neighbouring aircraft, so a native-cargo pilot could not load them back through the DCS cargo window without repositioning. They now stand where Request Equipment, Drop Crate(s) and Pack Vehicle put theirs: in a row just clear of the hull for a type that declares a crate spawn plan, the radial rule with the anti-collision otherwise (ADR 0024). Packing a FARP no longer shows a `[PackCallback] ENTER` debug line to every player of the mission.

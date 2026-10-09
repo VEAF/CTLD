@@ -1,26 +1,24 @@
 # 01 — Measure how DCS reuses a freed menu id
 
-**Status:** 🧑 waiting-human · **Type:** HITL (live DCS, Zip)
+**Status:** ✅ done (2026-10-09, Zip + Claude, from the VMCT session) · **Type:** HITL (live DCS, Zip)
 
 ## Parent
 
 [PRD — FIX-MENU-STABLE-ENTRIES](../PRD.md). Source: GitHub issue #257. Decisions D3, D5.
 
-## What to measure
+## Answers
 
-With the #257 reproduction kit (fiddle hook, a player holding a submenu open), extended with `*ForGroup` and `*ForCoalition` variants:
+The tables are in the PRD, "What DCS does — measured 2026-10-09".
 
-1. **Scope of reuse.** An entry removed in group A's menu, then an entry created in group B's (or the coalition's) menu: does a stale click in A fire B's entry?
-2. **Order of reuse.** Remove A, B, C, D, create one entry: does it take D's id (last freed first), A's, or another?
-3. **Create before remove.** Create E, then remove A: does a stale click on A fire nothing (E took a fresh id), and does the next creation then inherit A's id?
-4. **Submenus.** Remove a submenu holding two commands, create one command elsewhere: does it inherit the submenu's id or a child's?
-5. **Delay.** Does a freed id stay reusable indefinitely, or only for a while?
+1. **Scope of reuse** — one pool for the whole server: an id freed in the global menu went to a command created for another group (P1); group menus recycle as well (P2c).
+2. **Order of reuse** — consistent with last freed, first reused (test 1: B fired C after an identical rebuild).
+3. **Create before remove** — not measured; superseded by parking, which consumes each freed id right after its removal whatever the order.
+4. **Submenus** — not measured directly; the implementation removes a submenu's children one by one before it and parks each id, which covers it whatever DCS does.
+5. **Delay** — not measured; parking makes it irrelevant.
+
+And the measurement this ticket did not plan, which settles D5: a command created for a group no player holds, right after a removal, takes the freed id, in global and group menus (P1, P2).
 
 ## Acceptance criteria
 
-- [ ] Each question answered with the table of tests (change applied, clicked, fired), in #257 and in the PRD's Further Notes.
-- [ ] The busted `missionCommands` double of ticket 02 reproduces the measured behaviour.
-
-## Blocked by
-
-None - can start immediately (needs DCS).
+- [x] Each question answered with the table of tests, in #257 and in the PRD.
+- [ ] The busted `missionCommands` double of ticket 02 reproduces the measured behaviour (moved to ticket 02).

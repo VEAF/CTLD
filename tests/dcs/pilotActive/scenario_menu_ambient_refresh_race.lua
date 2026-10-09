@@ -8,9 +8,10 @@
 -- a background ("ambient") menu refresh landing while the player is navigated into
 -- Troop Commands > Embark/Extract Troops > Load from <TRZ> must never make their next click
 -- fire an unrelated command (the observed misfire: a Smoke drop instead of Load Standard Group).
--- With the fix, the click either resolves to nothing (during the wipe-then-delay window) or to
--- the correct command (after the delayed rebuild completes) — self-verified via
--- CTLDTroopManager:hasTroops(), not just the player's own report.
+-- Since FIX-MENU-STABLE-ENTRIES (ADR 0027) a refresh that changes nothing touches no DCS entry, so
+-- the click must run the command shown — self-verified via CTLDTroopManager:hasTroops(), not just
+-- the player's own report. "Nothing happened" is now a failure: it was the expected outcome of
+-- ADR 0015's wipe-then-delay window, which is gone.
 --
 -- Prerequisites:
 --   - A BLUE transport occupying a slot, parked on the ground inside a TRZ with pickup stock,
@@ -23,8 +24,8 @@
 --   S2 [F10]  Click the displayed "Load [template]" entry, report + auto-verify the outcome
 --
 -- @scenario  MARR
--- @version   1.0 — 2026-09-16
--- @coverage  FIX-MENU-AMBIENT-REFRESH-RACE
+-- @version   1.1 — 2026-10-09
+-- @coverage  FIX-MENU-AMBIENT-REFRESH-RACE, FIX-MENU-STABLE-ENTRIES
 -- =============================================================================
 
 -- ── 1. CTLD-ready guard ──────────────────────────────────────────────────────
@@ -178,16 +179,13 @@ local function setHumanStep(stepId, title, options)
         local fn = opt.fn
         menu:addCommand(MENU_PATH, opt.label, function() onResponse(fn) end)
     end
-    -- This CTLD Test menu itself is refreshed urgently (a direct consequence of running the
-    -- scenario, not the ambient condition under test) — explicit opt-in since it has no click
-    -- context of its own to auto-detect from.
-    menu:refresh({ urgent = true })
+    menu:refresh()
 
     S.timerHandle = timer.scheduleFunction(function()
         if S.timerGen ~= myGen then return nil end
         S.timerHandle = nil
         log("[TIMEOUT] step "..S.step.." ("..stepId..") — ABORT")
-        pcall(function() menu:clearBranch(MENU_PATH) ; menu:refresh({ urgent = true }) end)
+        pcall(function() menu:clearBranch(MENU_PATH) ; menu:refresh() end)
         fail(stepId, "timeout "..HUMAN_TIMEOUT_S.."s with no response")
         finalizeScenario()
     end, nil, timer.getTime() + HUMAN_TIMEOUT_S)
@@ -231,9 +229,8 @@ steps[1] = function()
     )
     setHumanStep("MARR-1", "On the template list, not yet clicked?", {
         { label = "READY — I'm on the template list", fn = function()
-            -- Force one ambient refresh for this group — the same effect a background poller
-            -- (e.g. _lgzGroundPoll) has today: no opts, no runUrgent context, so it takes the
-            -- ambient path (immediate wipe, delayed rebuild) per ADR 0015.
+            -- Force one background refresh for this group — the same call a background poller
+            -- (e.g. _lgzGroundPoll) makes. Nothing changed, so it must touch no DCS entry.
             local mm   = ctld.MenuManager:getInstance()
             local menu = mm:getMenuByGroupId(S.groupId)
             log("[TEST] forcing ambient refresh for groupId="..tostring(S.groupId))
@@ -259,7 +256,7 @@ steps[2] = function()
             if tm:hasTroops(S.unitName) then
                 fail("MARR-2", "reported nothing happened, but troops ARE aboard — inconsistent")
             else
-                pass("MARR-2", "click resolved to nothing during the ambient gap — expected, safe")
+                fail("MARR-2", "click resolved to nothing: an unchanged entry was recreated (ADR 0027)")
             end
             advanceStep()
         end },
@@ -332,7 +329,7 @@ end
 menu_init:addSubMenu({ ctld.tr("CTLD") }, MENU_NAME, { order = 0, enabled = true })
 local _rNode = menu_init:_getNode(MENU_PATH)
 if _rNode then _rNode.order = 0 ; _rNode.enabled = true end
-menu_init:refresh({ urgent = true })
+menu_init:refresh()
 
 _SCN_MARR_CLEANUP = cleanup
 _SCN_MARR_RESULT  = TAG.." STARTED"

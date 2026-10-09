@@ -2304,6 +2304,20 @@ function ctld.logError(fmt, ...)
     ctld.utils.log("ERROR", fmt, ...)
 end
 
+--- Run fn() under pcall; log a raise at ERROR level, prefixed with `context`, instead of propagating it.
+-- For call sites running inside their own unprotected timer.scheduleFunction callback (the flight-state
+-- poller, onLand, the slingload poller): a raise there would kill that recurring callback for good.
+---@param context string  who is calling, for the log line
+---@param fn function
+---@return boolean ok
+function ctld.utils.protectedCall(context, fn)
+    local ok, err = pcall(fn)
+    if not ok then
+        ctld.utils.log("ERROR", "%s failed: %s", tostring(context), tostring(err))
+    end
+    return ok
+end
+
 --- Send a text message to a coalition and optionally speak it via STTS.
 ---@param message     string   Long message (displayed on screen)
 ---@param displayFor  number   Display duration in seconds

@@ -1,7 +1,7 @@
 # ADR 0015 — Safe-by-default delay on ambient F10 menu refreshes
 
 **Date:** 2026-09-16
-**Status:** Accepted
+**Status:** Superseded by [ADR 0027](0027-stable-f10-entries.md) (2026-10-09): the wipe freed the entry ids and the delayed rebuild handed them out again, which is what reassigned the clicks.
 **Lot:** FIX-MENU-AMBIENT-REFRESH-RACE (to be formalized via `to-prd`)
 
 ## Context

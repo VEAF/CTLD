@@ -113,7 +113,7 @@ touches that perimeter.
 
 ## MT-05 — Multi-crew F10 menu lifecycle (CH-47 pilot + copilot)
 
-**Perimeter / files:** `src/CTLD_menu.lua` — `ctld.Menu._activeHandles`, `refreshMenuForGroup` ;
+**Perimeter / files:** `src/CTLD_menu.lua` — `ctld.Menu._rendered`, `refreshMenuForGroup`, `teardownGroup` ;
 `src/CTLD_player.lua` — `buildMenu`, `onPlayerLeaveUnit`
 
 **Pre-requisites:**

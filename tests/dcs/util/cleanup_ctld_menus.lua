@@ -9,14 +9,9 @@ local removed = 0
 if ctld and ctld.MenuManager then
     local mm = ctld.MenuManager:getInstance()
     if mm and mm.menus then
-        for groupId, menu in pairs(mm.menus) do
-            for _, item in ipairs(menu.children or {}) do
-                if item._dcsHandle ~= nil then
-                    pcall(missionCommands.removeItemForGroup, groupId, item._dcsHandle)
-                    item._dcsHandle = nil
-                    removed = removed + 1
-                end
-            end
+        -- teardownGroup removes every live entry of the group (each freed id parked, ADR 0027).
+        for groupId in pairs(mm.menus) do
+            if pcall(mm.teardownGroup, mm, groupId) then removed = removed + 1 end
         end
         mm.menus = {}
     end
@@ -38,5 +33,5 @@ if CTLDSceneManager   then CTLDSceneManager._instance   = nil end
 if CTLDFOBManager     then CTLDFOBManager._instance     = nil end
 if CTLDBeaconManager  then CTLDBeaconManager._instance  = nil end
 
-trigger.action.outText("[CTLD-CLEAN] Menus wiped (" .. removed .. " handles removed). Inject CTLD.lua now.", 8)
+trigger.action.outText("[CTLD-CLEAN] Menus wiped (" .. removed .. " group menus removed). Inject CTLD.lua now.", 8)
 return true

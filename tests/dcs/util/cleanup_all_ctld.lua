@@ -8,14 +8,9 @@ local removed = 0
 -- Step 1: Remove via CTLDMenuManager memory model (handles known instances)
 local function cleanMenuManager(mm)
     if not mm or not mm.menus then return end
-    for groupId, menu in pairs(mm.menus) do
-        for _, item in ipairs(menu.children or {}) do
-            if item._dcsHandle ~= nil then
-                pcall(missionCommands.removeItemForGroup, groupId, item._dcsHandle)
-                item._dcsHandle = nil
-                removed = removed + 1
-            end
-        end
+    -- teardownGroup removes every live entry of the group (each freed id parked, ADR 0027).
+    for groupId in pairs(mm.menus) do
+        if pcall(mm.teardownGroup, mm, groupId) then removed = removed + 1 end
     end
     mm.menus = {}
 end
@@ -36,5 +31,5 @@ for _, name in ipairs(singletons) do
     if cls then cls._instance = nil end
 end
 
-trigger.action.outText("[CTLD-CLEAN2] Removed " .. removed .. " handles. Restart mission to load fixed CTLD.", 10)
+trigger.action.outText("[CTLD-CLEAN2] Removed " .. removed .. " group menus. Restart mission to load fixed CTLD.", 10)
 return true

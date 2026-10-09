@@ -456,3 +456,41 @@ describe("ctld.utils", function()
     end)
 
 end)
+
+-- FIX-MENU-STABLE-ENTRIES: the pcall + log runUrgent used to give the menu refresh call sites.
+describe("ctld.utils.protectedCall", function()
+
+    local logged, savedLog
+
+    before_each(function()
+        logged   = {}
+        savedLog = ctld.utils.log
+        ctld.utils.log = function(level, fmt, ...)
+            table.insert(logged, { level = level, msg = string.format(fmt, ...) })
+        end
+    end)
+
+    after_each(function()
+        ctld.utils.log = savedLog
+    end)
+
+    it("runs fn and returns true", function()
+        local ran = false
+        assert.is_true(ctld.utils.protectedCall("ctx", function() ran = true end))
+        assert.is_true(ran)
+        assert.equals(0, #logged)
+    end)
+
+    it("logs and swallows a raising fn, and returns false", function()
+        local ok
+        assert.has_no_error(function()
+            ok = ctld.utils.protectedCall("ctx", function() error("boom") end)
+        end)
+        assert.is_false(ok)
+        assert.equals(1, #logged)
+        assert.equals("ERROR", logged[1].level)
+        assert.is_truthy(logged[1].msg:find("ctx", 1, true))
+        assert.is_truthy(logged[1].msg:find("boom", 1, true))
+    end)
+
+end)

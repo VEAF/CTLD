@@ -1174,11 +1174,9 @@ function CTLDCrateManager:checkHoverStatus()
                         })
                         trigger.action.outTextForGroup(playerObj.groupId,
                             ctld.tr("Too fast! Slingloaded crate lost: %1", lost.descriptor.desc), 10)
-                        -- runUrgent: a direct, player-noticed consequence of this player's own
-                        -- flying (own crate lost, own menu only) — see AMBIENT vs URGENT REFRESH
-                        -- in CTLD_menu.lua. No bystander risk: refreshForUnit only touches this
-                        -- unit's own menu.
-                        ctld.MenuManager:getInstance():runUrgent(playerObj.groupId, function()
+                        -- protectedCall: this runs inside the slingload poller's own timer
+                        -- callback, which a raise would stop for good.
+                        ctld.utils.protectedCall("CTLDCrateManager: slingload loss menu refresh", function()
                             CTLDPlayerManager.getInstance():refreshForUnit(unitName)
                         end)
                     end
@@ -1246,12 +1244,11 @@ function CTLDCrateManager:checkHoverStatus()
                                 trigger.action.outTextForGroup(playerObj.groupId,
                                     ctld.tr("Slingloaded %1 crate!", nearestCrate.descriptor.desc), 10, true)
                                 ctld.utils.updateTransportWeight(unitName)
-                                -- runUrgent: a direct, player-noticed consequence of this
-                                -- player's own successful hover-slingload — see AMBIENT vs
-                                -- URGENT REFRESH in CTLD_menu.lua. Wraps the OnCrateLoaded
-                                -- publish too, since its own subscriber (CTLDPlayerManager)
-                                -- refreshes this same unit's menu synchronously.
-                                ctld.MenuManager:getInstance():runUrgent(playerObj.groupId, function()
+                                -- protectedCall: this runs inside the slingload poller's own
+                                -- timer callback, which a raise would stop for good. Wraps the
+                                -- OnCrateLoaded publish too, since its own subscriber
+                                -- (CTLDPlayerManager) refreshes this same unit's menu synchronously.
+                                ctld.utils.protectedCall("CTLDCrateManager: slingload pickup menu refresh", function()
                                     self:_publish("OnCrateLoaded", {
                                         crate           = nearestCrate,
                                         crateName       = nearestCrate.crateName,

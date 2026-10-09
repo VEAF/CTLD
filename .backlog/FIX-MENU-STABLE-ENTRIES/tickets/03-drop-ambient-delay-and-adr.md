@@ -1,6 +1,6 @@
 # 03 — Drop the ambient delay, record the decision
 
-**Status:** ⬜ ready once D4 is settled · **Type:** AFK
+**Status:** ✅ done (2026-10-09) · **Type:** AFK
 
 ## Parent
 
@@ -11,13 +11,13 @@ Files: `src/CTLD_menu.lua` (`deferredRefreshForGroup`, `cancelPending`, `AMBIENT
 ## What to build
 
 - Every refresh applies the difference at once, behind the existing `DEBOUNCE_S` coalescing; the ambient wipe and its delayed rebuild go.
-- ADR 0027: the measurement of #257 (and ticket 01), why the atomic rebuild and the ambient delay both reassign ids, the decisions D1-D4, what stays open (case 2, D5).
+- ADR 0027: the measurement of #257 (and ticket 01), why the atomic rebuild and the ambient delay both reassign ids, the decisions D1-D6, parking as the answer to case 2.
 - ADR 0015 marked superseded by 0027; the developer menu doc rewritten where it describes "atomic, all-or-nothing rebuilds" and the ambient delay.
 
 ## Acceptance criteria
 
-- [ ] busted: the specs that pinned the ambient wipe and its 4 s rebuild are replaced by specs of the immediate, diffed refresh.
-- [ ] Docs EN + FR, ADR index, `CHANGELOG.md` `[Unreleased]`.
+- [x] busted: the specs that pinned the ambient wipe and its 4 s rebuild are replaced by specs of the immediate, diffed refresh.
+- [x] Docs EN + FR, ADR index, `CHANGELOG.md` `[Unreleased]`.
 - [ ] luacheck clean; `busted` green.
 
 ## Blocked by

@@ -25,7 +25,7 @@
 --               ctld.MenuManager (CTLD_menu.lua)
 -- DCS API: unit:getName, unit:getGroup, unit:getTypeName, unit:getCoalition,
 --          unit:getPlayerName, unit:isExist,
---          missionCommands.removeItemForGroup, trigger.action.outTextForGroup
+--          trigger.action.outTextForGroup
 -- ============================================================
 
 ctld = ctld or {}
@@ -261,11 +261,10 @@ function CTLDPlayerManager:init()
                             db.pending   = nil
                             db.ticks     = 0
                             playerObj._isFlying = nowInAir
-                            -- runUrgent: same real transition onTakeoff/onLand handle, detected
-                            -- here redundantly by polling — see AMBIENT vs URGENT REFRESH in
-                            -- CTLD_menu.lua.
+                            -- protectedCall: a raise here would stop the poller's own timer
+                            -- callback for good.
                             if nowInAir then
-                                ctld.MenuManager:getInstance():runUrgent(playerObj.groupId, function()
+                                ctld.utils.protectedCall("CTLDPlayerManager: flight-state poller TAKEOFF refresh", function()
                                     CTLDTroopManager.getInstance():refreshMenuSection(playerObj, true)
                                     CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
                                     CTLDCrateManager.getInstance():refreshCrateFlightSection(playerObj, true)
@@ -276,7 +275,7 @@ function CTLDPlayerManager:init()
                                 end)
                                 ctld.utils.log("INFO", "CTLDPlayerManager: flight-state poller → TAKEOFF unit=%s", unitName)
                             else
-                                ctld.MenuManager:getInstance():runUrgent(playerObj.groupId, function()
+                                ctld.utils.protectedCall("CTLDPlayerManager: flight-state poller LAND refresh", function()
                                     CTLDTroopManager.getInstance():refreshMenuSection(playerObj, false)
                                     CTLDCrateManager.getInstance():refreshRequestEquipmentSection(playerObj)
                                     CTLDCrateManager.getInstance():refreshLoadCrateSection(playerObj)
@@ -506,19 +505,10 @@ function CTLDPlayerManager:_forgetPlayer(unitName)
     end
 
     if groupCount <= 1 then
-        -- Last player in the group: full DCS menu teardown.
-        local mmgr     = ctld.MenuManager:getInstance()
-        local menuData = mmgr.menus and mmgr.menus[groupId]
-        if menuData then
-            for _, h in ipairs(menuData._activeHandles or {}) do
-                missionCommands.removeItemForGroup(groupId, h)
-            end
-            mmgr.menus[groupId] = nil
-        end
-        -- DCS can reuse this numeric groupId for an unrelated slot occupant — a pending
-        -- urgent/ambient rebuild left scheduled for the departing group must not silently
-        -- swallow or delay the next occupant's first menu build.
-        mmgr:cancelPending(groupId)
+        -- Last player in the group: full DCS menu teardown. The manager removes and parks every
+        -- live entry, drops the menu with its mirror, and cancels any pending rebuild — DCS can
+        -- reuse this numeric groupId for an unrelated slot occupant, who must inherit none of it.
+        ctld.MenuManager:getInstance():teardownGroup(groupId)
     end
     -- else: other crew members remain — preserve the DCS menu for them.
 
@@ -540,10 +530,8 @@ function CTLDPlayerManager:onLand(event)
     -- the 1 s timer sees ground state and does not rebuild flight-only items (Pack Equipt).
     captured._isFlying = false
     ctld.scheduler.schedule(function()
-        -- runUrgent: landing is a real, player-noticed state transition (not a silent
-        -- background one) even though it fires from a timer, not a menu click — see
-        -- AMBIENT vs URGENT REFRESH in CTLD_menu.lua.
-        ctld.MenuManager:getInstance():runUrgent(captured.groupId, function()
+        -- protectedCall: this timer callback has nothing above it to catch a raise.
+        ctld.utils.protectedCall("CTLDPlayerManager:onLand menu refresh", function()
             -- Pass overrideInAir=false: S_EVENT_LAND fires before inAir() crosses its threshold;
             -- force ground state immediately rather than relying on the speed/AGL check.
             CTLDTroopManager.getInstance():refreshMenuSection(captured, false)
@@ -582,10 +570,8 @@ function CTLDPlayerManager:onTakeoff(event)
     -- Set flight flag immediately so any refresh between now and inAir() reaching threshold
     -- (e.g. _refreshNearbyPackPlayers triggered by vehicle events) sees flight state.
     playerObj._isFlying = true
-    -- runUrgent: takeoff is a real, player-noticed state transition (not a silent background
-    -- one) even though it has no menu-click context to auto-detect urgency from — see
-    -- AMBIENT vs URGENT REFRESH in CTLD_menu.lua.
-    ctld.MenuManager:getInstance():runUrgent(playerObj.groupId, function()
+    -- protectedCall: one bad section refresh must not abort the event handler.
+    ctld.utils.protectedCall("CTLDPlayerManager:onTakeoff menu refresh", function()
         -- Pass overrideInAir=true: S_EVENT_TAKEOFF fires before ctld.utils.inAir() crosses its
         -- speed/AGL threshold, so we explicitly signal flight mode rather than relying on
         -- inAir() at this point.
@@ -626,22 +612,18 @@ function CTLDPlayerManager:getPlayer(unitName)
 end
 
 --- Build (or rebuild) the full F10 CTLD menu for a player.
--- Wipes and reconstructs atomically via ctld.MenuManager.
+-- The section builders' refreshes reach DCS through ctld.MenuManager, by difference.
 -- Sections are contributed by managers registered via registerMenuSection().
 -- Each section is rendered only when its configKey (if any) resolves to true.
--- runUrgent: nothing is on screen yet for a brand-new menu (or, for a rebuild, the player
--- just triggered this directly — e.g. a language change), so there is no stale-screen race to
--- guard against here — see AMBIENT vs URGENT REFRESH in CTLD_menu.lua. Without this, the
--- section builders' own trailing menu:refresh() calls would take the ambient path by default,
--- delaying a freshly-joined player's first F10 menu appearance by AMBIENT_REBUILD_DELAY_S.
+-- protectedCall: one bad section builder must not abort the player's enter / rebuild path.
 -- @param playerObj CTLDPlayer
 function CTLDPlayerManager:buildMenu(playerObj)
-    ctld.MenuManager:getInstance():runUrgent(playerObj.groupId, function()
+    ctld.utils.protectedCall("CTLDPlayerManager:buildMenu", function()
         self:_buildMenuBody(playerObj)
     end)
 end
 
---- Actual body of buildMenu(), run inside runUrgent() by its caller above.
+--- Actual body of buildMenu(), run inside protectedCall() by its caller above.
 -- @param playerObj CTLDPlayer
 function CTLDPlayerManager:_buildMenuBody(playerObj)
     local mm   = ctld.MenuManager:getInstance()
