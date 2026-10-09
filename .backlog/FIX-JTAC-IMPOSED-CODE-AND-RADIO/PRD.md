@@ -1,6 +1,6 @@
 # FIX-JTAC-IMPOSED-CODE-AND-RADIO — an imposed laser code taken twice, a supplied radio ignored
 
-**Status:** 🟡 in review — decisions taken 2026-10-09 (below)
+**Status:** ✅ merged (PR #258) — decisions taken 2026-10-09 (below)
 
 Reported by VMCT on 2026-10-02 (VMCT lot `FIX-OPEN-TRAINING-SYRIA-FINDINGS`, ticket 18), validated by
 David. Found in game on the Syria Open Training v6 (dcs-serve), checked in the code of 2.0.0-rc11 — the
