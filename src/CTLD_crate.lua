@@ -1887,7 +1887,8 @@ function CTLDCrateManager:_spawnStatic(weight, position, coalitionId, countryId,
 
     local ok, created, err = pcall(ctld.utils.dynAddStatic, "CTLDCrateManager:_spawnStatic", data)
     if not ok then err, created = created, nil end
-    local static = created and StaticObject.getByName(name) or nil
+    -- dynAddStatic returns false when DCS refused the static; the static itself tells whether it exists.
+    local static = (created ~= false) and StaticObject.getByName(name) or nil
     if not static then
         ctld.utils.log("WARNING", "CTLDCrateManager:_spawnStatic - crate '%s' not created (country=%s coalition=%s type=%s): %s",
             name, tostring(cId), tostring(coalitionId), tostring(data.type), tostring(err or "no static after creation"))
