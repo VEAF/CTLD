@@ -1,6 +1,6 @@
 # 01 — An imposed laser code is reserved, whatever the order
 
-**Status:** ⬜ ready — decision a of the PRD first
+**Status:** ✅ done
 
 Files: `src/CTLD_jtac.lua` (`spawnJTAC`, `startLaseTroopUnit`, `_assignLaserCode`, `_freeLaserCode`,
 `_initLaserPool`), possibly `src/CTLD_core.lua` (INIT-C order), busted tests.

@@ -350,9 +350,9 @@ function CTLDCoreManager:_initMMJTACs()
         local groups = coalition.getGroups(side) or {}
         for _, group in ipairs(groups) do
             if group:isExist() and self:_isJTACGroup(group) then
-                -- isActive() only exists on ME-placed groups; dynamically spawned groups (coalition.addGroup)
-                -- do not have this method → guard with pcall, default to true (already active).
-                local ok, isAct = pcall(function() return group:isActive() end)
+                -- DCS Group has no isActive() (Hoggit, DCS_Class_Group): activation is read on its first
+                -- Unit (Unit.isActive). Guarded with pcall, defaulting to true (already active).
+                local ok, isAct = pcall(function() return group:getUnit(1):isActive() end)
                 if not ok then isAct = true end
                 if isAct then
                     CTLDJTACManager.getInstance():registerMMJTAC(group)

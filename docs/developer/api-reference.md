@@ -226,7 +226,7 @@ inaudible to the pilot who tuned the briefed one. Four refusals:
 | Method | Signature | Description |
 | --- | --- | --- |
 | `getInstance` | `() → CTLDJTACManager` | Returns the singleton. |
-| `autoLase` | `(groupName, laserCode, smoke, lock, colour, radio, orbitParams)` | Activate auto-lase for a pre-placed ME JTAC group. All params after `groupName` are optional. `laserCode`: 1111–1788. `smoke`: `true` / `false`. `lock`: `"vehicle"` / `"troop"` / `"all"`. `colour`: 0–4. `radio`: `{freq, mod, name}` SRS table. |
+| `autoLase` | `(groupName, laserCode, smoke, lock, colour, radio, orbitParams)` | Activate auto-lase for a pre-placed ME JTAC group. All params after `groupName` are optional. `laserCode`: 1111–1788; an imposed code is reserved (never handed out automatically; a JTAC holding it automatically is re-coded). `smoke`: `true` / `false`. `lock`: `"vehicle"` / `"troop"` / `"all"`. `colour`: 0–4. `radio`: `{freq, mod, name}` SRS table, kept as given (nil = FM frequency derived from the code). |
 | `startLase` | `(groupName, laserCode, smoke, lock, colour, radio, orbitParams)` | Same as `autoLase` (v2 preferred name). |
 | `stopAutoLase` | `(groupName)` | Stop auto-lase and deregister the JTAC. |
 | `getJTACByName` | `(groupName)` | Return the `CTLDJTAC` instance for a group name, or `nil`. |

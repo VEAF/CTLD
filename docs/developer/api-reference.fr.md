@@ -228,7 +228,7 @@ mission maker et inaudible pour le pilote qui a affiché la fréquence annoncée
 | Method | Signature | Description |
 | --- | --- | --- |
 | `getInstance` | `() → CTLDJTACManager` | Retourne le singleton. |
-| `autoLase` | `(groupName, laserCode, smoke, lock, colour, radio, orbitParams)` | Active l'auto-lase pour un groupe JTAC ME pré-placé. Tous les paramètres après `groupName` sont optionnels. `laserCode` : 1111–1788. `smoke` : `true` / `false`. `lock` : `"vehicle"` / `"troop"` / `"all"`. `colour` : 0–4. `radio` : table SRS `{freq, mod, name}`. |
+| `autoLase` | `(groupName, laserCode, smoke, lock, colour, radio, orbitParams)` | Active l'auto-lase pour un groupe JTAC ME pré-placé. Tous les paramètres après `groupName` sont optionnels. `laserCode` : 1111–1788 ; un code imposé est réservé (jamais attribué automatiquement ; un JTAC qui le détient automatiquement est recodé). `smoke` : `true` / `false`. `lock` : `"vehicle"` / `"troop"` / `"all"`. `colour` : 0–4. `radio` : table SRS `{freq, mod, name}`, gardée telle quelle (nil = fréquence FM dérivée du code). |
 | `startLase` | `(groupName, laserCode, smoke, lock, colour, radio, orbitParams)` | Identique à `autoLase` (nom préféré en v2). |
 | `stopAutoLase` | `(groupName)` | Arrête l'auto-lase et désenregistre le JTAC. |
 | `getJTACByName` | `(groupName)` | Retourne l'instance `CTLDJTAC` pour un nom de groupe, ou `nil`. |

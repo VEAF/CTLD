@@ -80,6 +80,53 @@ describe("CTLDJTAC entity", function()
 
     end)
 
+    -- ── Supplied radio (FIX-JTAC-IMPOSED-CODE-AND-RADIO 02) ───
+    describe("supplied radio", function()
+
+        it("a supplied radio is kept as given (VEAF ASSETS shape)", function()
+            local j = makeJTAC({ radio = { freq = "36.0", mod = "FM", name = "Reaper 1", jtac = 1688 } })
+            assert.equals("36.0", j.radio.freq)
+            assert.equals("FM", j.radio.mod)
+            assert.equals("Reaper 1", j.radio.name)
+            assert.is_true(j.radioSupplied)
+        end)
+
+        it("a supplied radio without name gets the group name", function()
+            local j = makeJTAC({ radio = { freq = "36.0", mod = "FM" } })
+            assert.equals("JTAC_Alpha", j.radio.name)
+        end)
+
+        it("a numeric frequency becomes a string", function()
+            local j = makeJTAC({ radio = { freq = 36.5, mod = "FM" } })
+            assert.equals("36.5", j.radio.freq)
+        end)
+
+        it("the caller's radio table is not modified", function()
+            local given = { freq = 36, mod = "FM" }
+            makeJTAC({ radio = given })
+            assert.equals(36, given.freq)
+            assert.is_nil(given.name)
+        end)
+
+        it("without a radio, the code-derived one is used", function()
+            local j = makeJTAC({ laserCode = 1688 })
+            assert.equals("40.4", j.radio.freq)
+            assert.equals("fm", j.radio.mod)
+            assert.is_false(j.radioSupplied)
+        end)
+
+        it("a code above jtacLaserCodeMax with a supplied radio still has a radio", function()
+            local j = makeJTAC({ laserCode = 1788, radio = { freq = "36.0", mod = "FM" } })
+            assert.equals("36.0", j.radio.freq)
+        end)
+
+        it("codeImposed defaults to false and is stored", function()
+            assert.is_false(makeJTAC().codeImposed)
+            assert.is_true(makeJTAC({ codeImposed = true }).codeImposed)
+        end)
+
+    end)
+
     -- ── State transitions (U-039) ─────────────────────────────
     describe("state transitions (U-039)", function()
 
@@ -333,10 +380,26 @@ describe("CTLDJTACManager", function()
     -- ── Laser pool (U-042) ────────────────────────────────────
     describe("laser pool (U-042)", function()
 
-        local expectedCount = 1688 - 1111 + 1   -- 578
+        -- 1111..1688 without a 0 or a 9: second digit 1-6, third and fourth 1-8 → 6 * 8 * 8
+        local expectedCount = 384
 
-        it("_laserPool initialized with 578 codes", function()
+        it("_laserPool initialized with 384 codes (no 0 or 9)", function()
             assert.equals(expectedCount, #CTLDJTACManager.get()._laserPool)
+        end)
+
+        it("_laserPool holds no code containing a 0 or a 9", function()
+            for _, code in ipairs(CTLDJTACManager.get()._laserPool) do
+                assert.is_nil(tostring(code):find("[09]"))
+            end
+        end)
+
+        it("_laserPool keeps codes with an 8 (1688, 1588)", function()
+            local seen = {}
+            for _, code in ipairs(CTLDJTACManager.get()._laserPool) do seen[code] = true end
+            assert.is_true(seen[1688] == true)
+            assert.is_true(seen[1588] == true)
+            assert.is_nil(seen[1199])
+            assert.is_nil(seen[1200])
         end)
 
         it("_assignLaserCode returns 1688 first (tail removal)", function()

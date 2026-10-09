@@ -325,4 +325,164 @@ describe("CTLDJTACManager", function()
 
     end)
 
+    -- ── FIX-JTAC-IMPOSED-CODE-AND-RADIO ──────────────────────────
+    describe("imposed laser code and supplied radio", function()
+
+        local _origNotify, _origLog
+        local notified, warned
+
+        local function stubGroups(...)
+            local groups = {}
+            for _, n in ipairs({ ... }) do groups[n] = makeMockGroup(n, n .. "_Unit") end
+            Group.getByName = function(n) return groups[n] or _origGetByName(n) end
+        end
+
+        local function inPool(code)
+            for _, c in ipairs(mgr._laserPool) do
+                if c == code then return true end
+            end
+            return false
+        end
+
+        before_each(function()
+            _origNotify = ctld.utils.notifyCoalition
+            _origLog    = ctld.utils.log
+            notified, warned = {}, {}
+            ctld.utils.notifyCoalition = function(full, displayFor, side, radio, short)
+                notified[#notified + 1] = { full = full, side = side, radio = radio, short = short }
+            end
+            ctld.utils.log = function(level, fmt, ...)
+                if level == "WARN" then warned[#warned + 1] = fmt end
+                return _origLog(level, fmt, ...)
+            end
+        end)
+
+        after_each(function()
+            ctld.utils.notifyCoalition = _origNotify
+            ctld.utils.log             = _origLog
+        end)
+
+        it("imposed 1688 then automatic → distinct codes, 1688 out of the pool", function()
+            stubGroups("Reaper 1", "Catalogue JTAC")
+            local a = mgr:autoLase("Reaper 1", 1688, false, "all", 0)
+            local b = mgr:spawnJTAC("Catalogue JTAC", nil, "mission_maker")
+            assert.equals(1688, a.laserCode)
+            assert.not_equal(1688, b.laserCode)
+            assert.is_false(inPool(1688))
+        end)
+
+        it("automatic first (takes 1688) then imposed 1688 → the automatic JTAC is re-coded", function()
+            stubGroups("Catalogue JTAC", "Reaper 1")
+            local b = mgr:spawnJTAC("Catalogue JTAC", nil, "mission_maker")
+            assert.equals(1688, b.laserCode)
+            local a = mgr:autoLase("Reaper 1", 1688, false, "all", 0)
+            assert.equals(1688, a.laserCode)
+            assert.not_equal(1688, b.laserCode)
+            assert.is_false(inPool(1688))
+            assert.is_false(inPool(b.laserCode))
+        end)
+
+        it("a re-coded JTAC gets the radio of its new code and announces it on the old one", function()
+            stubGroups("Catalogue JTAC", "Reaper 1")
+            local b = mgr:spawnJTAC("Catalogue JTAC", nil, "mission_maker")
+            local oldFreq = b.radio.freq                          -- 40.4 (1688)
+            mgr:autoLase("Reaper 1", 1688, false, "all", 0)
+            assert.equals(CTLDJTACDetector.calculateFMRadio("Catalogue JTAC", b.laserCode).freq, b.radio.freq)
+            assert.equals(1, #notified)
+            assert.equals(oldFreq, notified[1].radio.freq)
+            assert.is_not_nil(notified[1].short:find(tostring(b.laserCode), 1, true))
+            assert.is_not_nil(notified[1].short:find(b.radio.freq, 1, true))
+        end)
+
+        it("a re-coded JTAC with a supplied radio keeps that radio", function()
+            stubGroups("Catalogue JTAC", "Reaper 1")
+            local b = mgr:autoLase("Catalogue JTAC", nil, false, "all", 0, { freq = "35.0", mod = "FM" })
+            assert.equals(1688, b.laserCode)
+            mgr:autoLase("Reaper 1", 1688, false, "all", 0)
+            assert.equals("35.0", b.radio.freq)
+        end)
+
+        it("a re-coded JTAC that was lasing stops, to lase again with its new code", function()
+            stubGroups("Catalogue JTAC", "Reaper 1")
+            local b = mgr:spawnJTAC("Catalogue JTAC", nil, "mission_maker")
+            local spot = { setPoint = function() end, destroy = function(s) s.destroyed = true end }
+            b:startLase({ unitName = "BMP-2", unitType = "BMP-2", unitId = 77, position = { x=0, y=0, z=0 } },
+                spot, spot)
+            mgr._claimedTargets["BMP-2"] = "Catalogue JTAC"
+            mgr:autoLase("Reaper 1", 1688, false, "all", 0)
+            assert.is_nil(b.currentTarget)
+            assert.is_true(spot.destroyed)
+            assert.is_nil(mgr._claimedTargets["BMP-2"])
+        end)
+
+        it("a dead JTAC still in the registry is not re-coded and announces nothing", function()
+            stubGroups("Catalogue JTAC", "Reaper 1")
+            local b = mgr:spawnJTAC("Catalogue JTAC", nil, "mission_maker")
+            b:kill()
+            mgr:autoLase("Reaper 1", 1688, false, "all", 0)
+            assert.equals(1688, b.laserCode)
+            assert.equals(0, #notified)
+        end)
+
+        it("an imposed code is never returned to the pool (death or deregistration)", function()
+            stubGroups("Reaper 1", "Reaper 2")
+            mgr:autoLase("Reaper 1", 1688, false, "all", 0)
+            mgr:autoLase("Reaper 2", 1687, false, "all", 0)
+            mgr:killJTAC("Reaper 1", nil)
+            mgr:deregisterJTAC("Reaper 2")
+            assert.is_false(inPool(1688))
+            assert.is_false(inPool(1687))
+        end)
+
+        it("an automatic code still goes back to the pool on death", function()
+            stubGroups("Catalogue JTAC")
+            local b = mgr:spawnJTAC("Catalogue JTAC", nil, "mission_maker")
+            local code = b.laserCode
+            mgr:killJTAC("Catalogue JTAC", nil)
+            assert.is_true(inPool(code))
+        end)
+
+        it("two imposed JTACs on the same code are tolerated, with a WARN", function()
+            stubGroups("Reaper 1", "Reaper 2")
+            local a = mgr:autoLase("Reaper 1", 1688, false, "all", 0)
+            local b = mgr:autoLase("Reaper 2", 1688, false, "all", 0)
+            assert.equals(1688, a.laserCode)
+            assert.equals(1688, b.laserCode)
+            assert.equals(1, #warned)
+            assert.equals(0, #notified)
+        end)
+
+        it("autoLase passes a supplied radio on to the JTAC", function()
+            stubGroups("Reaper 1")
+            local asset = { name = "Reaper 1", jtac = 1688, freq = "36.0", mod = "FM" }
+            local a = mgr:autoLase("Reaper 1", 1688, false, "all", 0, asset)
+            assert.equals("36.0", a.radio.freq)
+            assert.equals("FM", a.radio.mod)
+        end)
+
+        it("OnJTACSpawned carries the supplied radio", function()
+            stubGroups("Reaper 1")
+            local received
+            EventDispatcher.getInstance():subscribe("OnJTACSpawned", function(p) received = p end)
+            mgr:autoLase("Reaper 1", 1688, false, "all", 0, { freq = "36.0", mod = "FM" })
+            assert.equals("36.0", received.radio.freq)
+        end)
+
+        it("startLaseTroopUnit reserves an imposed code too", function()
+            stubGroups("Catalogue JTAC")
+            local b = mgr:spawnJTAC("Catalogue JTAC", nil, "mission_maker")   -- 1688
+            local unit = makeMockGroup("Troop", "Troop_JTAC_1"):getUnits()[1]
+            unit.getCoalition = function() return coalition.side.BLUE end
+            unit.isExist      = function() return true end
+            local _origUnitGet = Unit.getByName
+            Unit.getByName = function(n) if n == "Troop_JTAC_1" then return unit end return _origUnitGet(n) end
+            local t = mgr:startLaseTroopUnit("Troop_JTAC_1", { laserCode = 1688 })
+            Unit.getByName = _origUnitGet
+            assert.equals(1688, t.laserCode)
+            assert.not_equal(1688, b.laserCode)
+            assert.is_false(inPool(1688))
+        end)
+
+    end)
+
 end)
