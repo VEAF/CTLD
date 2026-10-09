@@ -1,6 +1,6 @@
 # FIX-SPAWN-COUNTRY-FALLBACK — objects created under a country that is in no coalition, silently
 
-**Status:** 🔄 in progress
+**Status:** ✅ done (PR #256)
 
 Reported by VMCT on 2026-10-09 (VMCT lot `FIX-CAMPAIGN-MISSION-1-FINDINGS`, ticket 05), measured in DCS on a VEAF campaign mission running CTLD 2.0.0-rc12, and still so on `develop` at `affd2c9c`.
 David chose to fix the cause in CTLD rather than add USA and Russia to the coalitions of every VMCT mission.

@@ -1,6 +1,6 @@
 # 01 — The country of the coalition, not USA or Russia
 
-**Status:** 🔄 in progress
+**Status:** ✅ done (PR #256)
 
 Files: `src/CTLD_utils.lua` (new `ctld.utils.resolveCountryId`), `src/CTLD_crate.lua`, `src/CTLD_jtac.lua`, `src/CTLD_troop.lua`, `src/CTLD_beacon.lua`, `src/CTLD_vehicle.lua`, busted tests.
 

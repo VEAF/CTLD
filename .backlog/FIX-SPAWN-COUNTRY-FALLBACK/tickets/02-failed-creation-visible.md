@@ -1,6 +1,6 @@
 # 02 — A failed creation is visible
 
-**Status:** 🔄 in progress
+**Status:** ✅ done (PR #256)
 
 Files: `src/CTLD_utils.lua` (`dynAddStatic`), `src/CTLD_crate.lua` (`_spawnStatic`, `_spawnUnpacked`, the menu unpack, the `_log` calls), i18n dictionaries, busted tests, `CHANGELOG.md`.
 
