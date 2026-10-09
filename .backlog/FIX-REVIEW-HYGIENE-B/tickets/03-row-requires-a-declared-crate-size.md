@@ -1,6 +1,6 @@
 # 03 — The row layout requires a crate model with a declared size
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -17,9 +17,9 @@ Files: `src/CTLD_crate.lua` (`getCrateSize`, `spawnCratesAligned`, `getCrateDrop
 
 ## Acceptance criteria
 
-- [ ] busted, written first and seen failing: with `slingLoad: true` and a type that declares a plan, a requested wave and a dropped crate take the radial rule; a mission-maker `size` on `sling` brings the row back; the spec that pinned 1.5 m for `sling` now asserts that `sling` has no size.
-- [ ] Existing row specs (`load`, `dynamic` at 1.31 m) pass unchanged.
-- [ ] luacheck clean; `busted` green.
+- [x] busted, written first and seen failing: with `slingLoad: true` and a type that declares a plan, a requested wave and a dropped crate take the radial rule; a mission-maker `size` on `sling` brings the row back; the spec that pinned 1.5 m for `sling` now asserts that `sling` has no size.
+- [x] Existing row specs (`load`, `dynamic` at 1.31 m) pass unchanged.
+- [x] luacheck clean; `busted` green.
 
 ## Blocked by
 

@@ -183,10 +183,12 @@ Tout timer planifié par CTLD passe par `ctld.scheduler.schedule(fn, arg, t)`, u
 directement dans `src/` : un spec de garde busted (`scheduler_guard_spec.lua`) échoue si vous le faites, car un
 timer inconnu du registre survit à un arrêt et, se réveillant par `getInstance()`, tourne par-dessus l'instance
 suivante (un poll de hover au double de son rythme, fumée, recon et illumination JTAC doublés).
+La sortie est gardée de la même façon : annulez un timer par son id avec `ctld.scheduler.remove(id)`, jamais `timer.removeFunction`, sinon son id reste en attente jusqu'à la fin de la mission et `cancelAll()` continue de l'annuler.
 
 | Fonction | Rôle |
 | --- | --- |
 | `schedule(fn, arg, t)` | Planifie `fn` comme DCS ; renvoie l'id de fonction. Une valeur de retour numérique replanifie le même id (il reste en attente), toute autre valeur termine la chaîne |
+| `remove(id)` | Annule un timer par son id et l'oublie ; un id nil, ou que DCS ne connaît plus, est ignoré |
 | `register(name, id)` | Nomme une boucle ; enregistrer à nouveau le même nom annule l'id précédent (garde contre le double démarrage) |
 | `cancel(name)` | Annule une boucle nommée |
 | `cancelAll()` | Annule tout timer en attente, nommé ou non, et journalise combien (injecter `tests/dcs/util/shutdown_ctld.lua`) |

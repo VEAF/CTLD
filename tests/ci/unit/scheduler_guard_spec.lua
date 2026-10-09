@@ -5,7 +5,7 @@
 -- situation that left 13 of ~15 loops running across a re-injection.
 -- ============================================================
 
-describe("timer.scheduleFunction is only called by the scheduler", function()
+describe("timer.scheduleFunction and timer.removeFunction are only called by the scheduler", function()
 
     -- Repo root, resolved the way the other guard specs do it.
     local ROOT = debug.getinfo(1, "S").source
@@ -37,6 +37,36 @@ describe("timer.scheduleFunction is only called by the scheduler", function()
         assert.same({}, offenders)
         -- The scheduler itself is the single place allowed to reach DCS: exactly one call.
         assert.equals(1, schedulerCalls)
+    end)
+
+    -- FIX-REVIEW-HYGIENE-B ticket 01 (issue #254): the exit is guarded like the entry. A timer
+    -- removed by a direct timer.removeFunction stays in ctld.scheduler._pending for the rest of
+    -- the mission; ctld.scheduler.remove(id) is the only way out.
+    it("no src/ file calls timer.removeFunction directly, except ctld.scheduler.remove and cancelAll", function()
+        local list = assert(io.open(ROOT .. "tools/build/listToMerge.txt", "r"))
+        local offenders, schedulerCalls = {}, 0
+        for entry in list:lines() do
+            local rel = entry:match("^%s*([%w_/%.%-]+%.lua)%s*$")
+            local f = rel and io.open(ROOT .. "src/" .. rel, "r")
+            if f then
+                local n = 0
+                for line in f:lines() do
+                    n = n + 1
+                    if line:find("timer.removeFunction", 1, true) and not line:match("^%s*%-%-") then
+                        if rel == "CTLD_utils.lua" then
+                            schedulerCalls = schedulerCalls + 1
+                        else
+                            offenders[#offenders + 1] = string.format("src/%s:%d  %s", rel, n, line:match("^%s*(.-)%s*$"))
+                        end
+                    end
+                end
+                f:close()
+            end
+        end
+        list:close()
+
+        assert.same({}, offenders)
+        assert.equals(2, schedulerCalls)
     end)
 
 end)

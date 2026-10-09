@@ -2379,12 +2379,13 @@ end
 -- ============================================================
 -- Single entry point for every timer CTLD schedules. It records the id of each pending
 -- timer so they can all be cancelled at once (e.g. before CTLD re-injection), whatever the
--- loop and whoever wrote it: nothing else in src/ may call timer.scheduleFunction (a busted
--- guard spec enforces it).
+-- loop and whoever wrote it: nothing else in src/ may call timer.scheduleFunction, nor
+-- timer.removeFunction (a busted guard spec enforces both).
 --
 -- Usage:
 --   local fid = ctld.scheduler.schedule(myLoop, nil, timer.getTime() + 5)
 --   ctld.scheduler.register("my_loop_name", fid)   -- optional: a named, replaceable loop
+--   ctld.scheduler.remove(fid)                     -- cancel one timer by id
 --
 -- Shutdown (inject tests/dcs/util/shutdown_ctld.lua before re-injecting CTLD):
 --   ctld.scheduler.cancelAll()
@@ -2416,16 +2417,22 @@ function ctld.scheduler.schedule(fn, arg, t)
     return id
 end
 
+--- Cancel one timer by id: the exit symmetric to schedule. Tolerates a nil id and an id DCS
+-- no longer knows (already fired, or already removed).
+-- @param id number|nil   value returned by ctld.scheduler.schedule
+function ctld.scheduler.remove(id)
+    if id == nil then return end
+    pcall(timer.removeFunction, id)
+    ctld.scheduler._pending[id] = nil
+end
+
 --- Register a scheduled function by name. Cancels any previous loop with the
 -- same name before storing the new ID (re-injection guard).
 -- @param name       string   unique key (e.g. "beacon_refresh", "ai_transport")
 -- @param functionId number   value returned by ctld.scheduler.schedule
 function ctld.scheduler.register(name, functionId)
     local previous = ctld.scheduler._ids[name]
-    if previous then
-        pcall(timer.removeFunction, previous)
-        ctld.scheduler._pending[previous] = nil
-    end
+    ctld.scheduler.remove(previous)
     ctld.scheduler._ids[name] = functionId
 end
 
@@ -2434,8 +2441,7 @@ end
 function ctld.scheduler.cancel(name)
     local id = ctld.scheduler._ids[name]
     if id then
-        pcall(timer.removeFunction, id)
-        ctld.scheduler._pending[id] = nil
+        ctld.scheduler.remove(id)
         ctld.scheduler._ids[name] = nil
     end
 end
