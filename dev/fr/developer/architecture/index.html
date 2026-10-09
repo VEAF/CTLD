@@ -2388,7 +2388,8 @@ des ressources et émettait des events <code>S_EVENT_BIRTH</code>/destroy parasi
 <code>timer.scheduleFunction</code> qui mémorise l'id de chaque timer en attente. N'appelez jamais <code>timer.scheduleFunction</code>
 directement dans <code>src/</code> : un spec de garde busted (<code>scheduler_guard_spec.lua</code>) échoue si vous le faites, car un
 timer inconnu du registre survit à un arrêt et, se réveillant par <code>getInstance()</code>, tourne par-dessus l'instance
-suivante (un poll de hover au double de son rythme, fumée, recon et illumination JTAC doublés).</p>
+suivante (un poll de hover au double de son rythme, fumée, recon et illumination JTAC doublés).
+La sortie est gardée de la même façon : annulez un timer par son id avec <code>ctld.scheduler.remove(id)</code>, jamais <code>timer.removeFunction</code>, sinon son id reste en attente jusqu'à la fin de la mission et <code>cancelAll()</code> continue de l'annuler.</p>
 <table>
 <thead>
 <tr>
@@ -2400,6 +2401,10 @@ suivante (un poll de hover au double de son rythme, fumée, recon et illuminatio
 <tr>
 <td><code>schedule(fn, arg, t)</code></td>
 <td>Planifie <code>fn</code> comme DCS ; renvoie l'id de fonction. Une valeur de retour numérique replanifie le même id (il reste en attente), toute autre valeur termine la chaîne</td>
+</tr>
+<tr>
+<td><code>remove(id)</code></td>
+<td>Annule un timer par son id et l'oublie ; un id nil, ou que DCS ne connaît plus, est ignoré</td>
 </tr>
 <tr>
 <td><code>register(name, id)</code></td>

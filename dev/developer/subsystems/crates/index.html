@@ -2270,15 +2270,17 @@ non-overlapping positions avoiding other dynamic-cargo aircraft bounding boxes, 
 <a href="https://github.com/FullGas1/CTLD/blob/develop/dev/adr/0024-native-crates-spawn-at-hull-clearance.md">ADR 0024</a>),
 <code>spawnCratesAligned</code> calls <code>_spawnCratesInRow</code> instead of the radial rule. It builds a row perpendicular to
 the sector axis with <code>ctld.utils.getCrateRowPositions</code>: crates <code>size + crateSpawnGap</code> apart (<code>getCrateSize</code>
-reads the model's <code>size</code>, <code>1.5</code> when absent), centred on the axis, as many per row as fit along the
+reads the model's <code>size</code>), centred on the axis, as many per row as fit along the
 aircraft (UserBox length for <code>side</code>, width for <code>rear</code>/<code>front</code>), the next row one step further out. A <code>side</code>
 plan picks the side at random; <code>ctld.utils.positionsInsideAnyBBox</code> flips it when the row would stand inside
 another aircraft's volume, and the first side is kept when both are taken. The single crate of Request
-Equipment goes through the same path. A type without a plan keeps the radial rule above.</p>
+Equipment goes through the same path. A type without a plan keeps the radial rule above.
+A crate model without a <code>size</code> keeps it too (<code>getCrateSize</code> returns nil, so <code>getCrateRowPlan</code> gives no plan): no size is invented, and with the default catalogue every crate of a <code>slingLoad</code> mission takes the radial rule.
+Packing a scene (the "Pack <em>&lt;scene&gt;</em>" command of <code>refreshPackEquiptSection</code>, a FARP) goes through <code>spawnCratesAligned</code> too; its third return value, the list of <code>CTLDCrate</code> it created, lets the callback attach the FARP's warehouse snapshot to each crate.</p>
 <p>The placement is two routines shared with <strong>Drop Crate(s)</strong>: <code>_planCratePositions</code> (the row, with the other-side
 anti-collision) and <code>_radialCratePositions</code> (the radial rule, with its anti-collision). The Drop callback asks
 <code>getCrateDropPositions(transport, crates)</code> for the positions of the crates it drops, one size per crate
-(<code>crate.modelKey</code>), so a dropped crate stands where a requested one would and can be loaded again through the DCS
+(<code>crate.modelKey</code>; one crate without a size sends the whole wave to the radial rule), so a dropped crate stands where a requested one would and can be loaded again through the DCS
 cargo UI. For a type with a plan the row is <code>crateDropExtraDistance</code> (default 2 m) farther than a requested one, so
 the aircraft can taxi away or lift off without touching the crates it has just dropped.</p>
 <h2 id="lifecycle-transitions-on-the-manager">Lifecycle transitions on the manager<a class="headerlink" href="#lifecycle-transitions-on-the-manager" title="Permanent link">&para;</a></h2>

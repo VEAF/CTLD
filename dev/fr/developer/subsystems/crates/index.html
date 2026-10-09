@@ -2282,16 +2282,18 @@ sinon <code>"load"</code>.</p>
 <a href="https://github.com/FullGas1/CTLD/blob/develop/dev/adr/0024-native-crates-spawn-at-hull-clearance.md">ADR 0024</a>),
 <code>spawnCratesAligned</code> appelle <code>_spawnCratesInRow</code> au lieu de la règle radiale. Il construit une rangée
 perpendiculaire à l'axe du secteur avec <code>ctld.utils.getCrateRowPositions</code> : crates espacées de
-<code>size + crateSpawnGap</code> (<code>getCrateSize</code> lit le <code>size</code> du modèle, <code>1.5</code> si absent), centrées sur l'axe,
+<code>size + crateSpawnGap</code> (<code>getCrateSize</code> lit le <code>size</code> du modèle), centrées sur l'axe,
 autant par rangée qu'il en tient le long de l'aéronef (longueur de la UserBox pour <code>side</code>, largeur pour
 <code>rear</code>/<code>front</code>), la rangée suivante un pas plus loin. Un plan <code>side</code> tire le côté au hasard ;
 <code>ctld.utils.positionsInsideAnyBBox</code> le bascule quand la rangée tomberait dans le volume d'un autre
 aéronef, et le premier côté est conservé si les deux sont pris. La crate unique de Request Equipment
-passe par le même chemin. Un type sans plan garde la règle radiale ci-dessus.</p>
+passe par le même chemin. Un type sans plan garde la règle radiale ci-dessus.
+Un modèle de crate sans <code>size</code> la garde aussi (<code>getCrateSize</code> renvoie nil, donc <code>getCrateRowPlan</code> ne donne pas de plan) : aucune taille n'est inventée, et avec le catalogue par défaut toutes les crates d'une mission <code>slingLoad</code> prennent la règle radiale.
+Le pack d'une scène (la commande « Pack <em>&lt;scène&gt;</em> » de <code>refreshPackEquiptSection</code>, une FARP) passe lui aussi par <code>spawnCratesAligned</code> ; sa troisième valeur de retour, la liste des <code>CTLDCrate</code> créées, permet au callback d'attacher à chaque crate le snapshot d'entrepôt de la FARP.</p>
 <p>Le placement est fait de deux routines partagées avec <strong>Drop Crate(s)</strong> : <code>_planCratePositions</code> (la rangée, avec
 l'anti-collision de l'autre côté) et <code>_radialCratePositions</code> (la règle radiale, avec son anti-collision). Le
 callback de Drop demande à <code>getCrateDropPositions(transport, crates)</code> les positions des crates larguées, une taille
-par crate (<code>crate.modelKey</code>) : une crate larguée se tient donc là où une crate demandée se tiendrait et peut être
+par crate (<code>crate.modelKey</code> ; une seule crate sans taille envoie toute la vague sur la règle radiale) : une crate larguée se tient donc là où une crate demandée se tiendrait et peut être
 rechargée par l'UI cargo DCS. Pour un type avec plan, la rangée est <code>crateDropExtraDistance</code> (2 m par défaut) plus
 loin qu'une crate demandée, pour que l'appareil puisse s'éloigner en roulant ou décoller sans toucher les crates
 qu'il vient de déposer.</p>

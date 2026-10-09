@@ -2417,7 +2417,7 @@ configuration snapshot it lives under <code>mm_facing</code>:</p>
 <p><code>spawnableCratesModels</code> defines the DCS static shapes crates use (<code>load</code>, <code>sling</code>, <code>dynamic</code>).
 You rarely need to touch it; leave the defaults unless you want a different cargo appearance.
 Each entry may carry a <code>size</code> (m): the crate's edge, used to space crates in a row beside a native-cargo
-aircraft (<code>1.5</code> when absent).</p>
+aircraft. A model without <code>size</code> gets no row: its crates keep the older rule, spread around the aircraft.</p>
 <h3 id="default-catalogue-out-of-the-box">Default catalogue (out of the box)<a class="headerlink" href="#default-catalogue-out-of-the-box" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2686,8 +2686,7 @@ in a row, instead of at the generic distance. Each type declares this in
 </table>
 <p>A type that declares no sector and distance keeps the older rule: crates spread around the aircraft at a
 distance computed from its size. Crates in a row are <code>crate size + crateSpawnGap</code> apart (default gap <code>0.5</code> m,
-so they never touch); the crate size is the <code>size</code> field of its entry in <code>spawnableCratesModels</code> (<code>1.5</code> m when
-absent, <code>1.31</code> m for the default <code>load</code> and <code>dynamic</code> models). A row holds as many crates as fit along the
+so they never touch); the crate size is the <code>size</code> field of its entry in <code>spawnableCratesModels</code> (<code>1.31</code> m for the default <code>load</code> and <code>dynamic</code> models). A crate model that declares no <code>size</code> keeps the older rule, since the row is computed from it: with the default catalogue, that is every crate of a <code>slingLoad: true</code> mission, whose <code>sling</code> container is not measured — and a sling crate is hooked from the hover, not loaded through the cargo window. A row holds as many crates as fit along the
 aircraft; the next row stands one step further out. If a side is taken by another aircraft, the row flips to the
 other side. <strong>Drop Crate(s)</strong> uses the same rule, so a crate you drop can be loaded again through the DCS cargo UI; its row stands <code>crateDropExtraDistance</code> (default <code>2</code> m) farther than a requested one, so the aircraft can taxi away or lift off without touching the crates it has just dropped. Keep it small: DCS loaded a crate at 8 m and refused one at 23 m. Vehicles, unpacking, scenes and troops are not affected.</p>
 <p>Default values, in metres from the aircraft centre:</p>

@@ -2383,7 +2383,8 @@ spurious <code>S_EVENT_BIRTH</code>/destroy events that custom mission handlers 
 <code>timer.scheduleFunction</code> that records the id of each pending timer. Never call <code>timer.scheduleFunction</code>
 directly in <code>src/</code>: a busted guard spec (<code>scheduler_guard_spec.lua</code>) fails if you do, because a timer the
 registry does not know about survives a shutdown and, waking up through <code>getInstance()</code>, runs on top of the
-next instance (a hover poll at twice its rate, doubled smoke, recon and JTAC lasing).</p>
+next instance (a hover poll at twice its rate, doubled smoke, recon and JTAC lasing).
+The exit is guarded the same way: cancel a timer by id with <code>ctld.scheduler.remove(id)</code>, never <code>timer.removeFunction</code>, or its id stays pending for the rest of the mission and <code>cancelAll()</code> keeps cancelling it.</p>
 <table>
 <thead>
 <tr>
@@ -2395,6 +2396,10 @@ next instance (a hover poll at twice its rate, doubled smoke, recon and JTAC las
 <tr>
 <td><code>schedule(fn, arg, t)</code></td>
 <td>Schedule <code>fn</code> like DCS does; returns the function id. A numeric return value reschedules the same id (it stays pending), anything else ends the chain</td>
+</tr>
+<tr>
+<td><code>remove(id)</code></td>
+<td>Cancel one timer by id and forget it; a nil id, or one DCS no longer knows, is ignored</td>
 </tr>
 <tr>
 <td><code>register(name, id)</code></td>

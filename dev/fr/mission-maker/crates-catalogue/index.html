@@ -2420,7 +2420,7 @@ instantané de configuration écrit à la main, elle vit sous <code>mm_facing</c
 <code>dynamic</code>). Vous avez rarement besoin d'y toucher ; laissez les valeurs par défaut, sauf si vous
 voulez une apparence de cargo différente.
 Chaque entrée peut porter un <code>size</code> (m) : l'arête de la crate, utilisée pour espacer les crates d'une rangée à
-côté d'un appareil à cargo natif (<code>1.5</code> si absent).</p>
+côté d'un appareil à cargo natif. Un modèle sans <code>size</code> n'a pas de rangée : ses crates gardent l'ancienne règle, réparties autour de l'appareil.</p>
 <h3 id="default-catalogue-out-of-the-box">Catalogue par défaut (out of the box)<a class="headerlink" href="#default-catalogue-out-of-the-box" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2696,8 +2696,7 @@ coque</strong>, en rangée, au lieu de la distance générique. Chaque type le d
 <p>Un type qui ne déclare ni secteur ni distance garde l'ancienne règle : les crates se répartissent autour de
 l'appareil à une distance calculée d'après sa taille. Les crates d'une rangée sont espacées de <code>taille de crate
 + crateSpawnGap</code> (écart par défaut <code>0.5</code> m, donc jamais en contact) ; la taille d'une crate est le champ <code>size</code>
-de son entrée dans <code>spawnableCratesModels</code> (<code>1.5</code> m si absent, <code>1.31</code> m pour les modèles <code>load</code> et <code>dynamic</code> par
-défaut). Une rangée contient autant de crates qu'il en tient le long de l'appareil ; la rangée suivante se place
+de son entrée dans <code>spawnableCratesModels</code> (<code>1.31</code> m pour les modèles <code>load</code> et <code>dynamic</code> par défaut). Un modèle de crate qui ne déclare pas de <code>size</code> garde l'ancienne règle, puisque la rangée se calcule d'après elle : avec le catalogue par défaut, c'est le cas de toutes les crates d'une mission <code>slingLoad: true</code>, dont le conteneur <code>sling</code> n'est pas mesuré — et une crate sling s'accroche en stationnaire, elle ne se charge pas par la fenêtre cargo. Une rangée contient autant de crates qu'il en tient le long de l'appareil ; la rangée suivante se place
 un pas plus loin. Si un côté est occupé par un autre appareil, la rangée passe de l'autre côté. <strong>Drop Crate(s)</strong> applique la même règle : une crate
 larguée peut être rechargée par l'UI cargo DCS ; sa rangée se tient <code>crateDropExtraDistance</code> (<code>2</code> m par défaut) plus
 loin qu'une crate demandée, pour que l'appareil puisse s'éloigner en roulant ou décoller sans toucher les crates qu'il
