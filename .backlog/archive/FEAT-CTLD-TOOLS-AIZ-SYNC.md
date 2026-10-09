@@ -2,7 +2,7 @@
 
 **Status:** merged (PR #169). Compacted from `FEAT-CTLD-TOOLS-AIZ-SYNC/` on 2026-10-09; the ticket files live on in git history.
 
-Formalizes the `grill-with-docs` session (2026-09-23) on the `dev/roadmap.md` "`ctld-tools` — lire les zones du `.miz`" entry, opened while a.lingo was about to manually re-enter `AIZ_` zone parameters into `ctld-tools`. `ctld-tools` (Python/Svelte, no `src/` change) reads a mission's real DCS trigger-zone names back — generic autocomplete for `dcsZoneName` (today a bare, unvalidated `<input>`), plus recognition of a partial `AIZ_<name>_<coalition>_<P\
+Formalizes the `grill-with-docs` session (2026-09-23) on the `dev/roadmap.md` "`ctld-tools` — lire les zones du `.miz`" entry, opened while a.lingo was about to manually re-enter `AIZ_` zone parameters into `ctld-tools`. `ctld-tools` (Python/Svelte, no `src/` change) reads a mission's real DCS trigger-zone names back — generic autocomplete for `dcsZoneName` (today a bare, unvalidated `<input>`), plus recognition of a partial `AIZ_<name>_<coalition>_<P|D>_<cargoType-or-aiDropMode>` naming convention (tool-side only, never engine-level — an engine-parsed version would permanently trigger the existing "missing stock" warning and reintroduce two sources of truth for the same zone, exactly what `FEAT-EXZ-AUTODISCOVERY` ticket 01 just fixed) to keep the `aiZones` config in sync with the mission: silent additions for new matching zones (stock left absent, the existing validation warning doubling as the "still needs attention" signal), confirmed-before-applied removals for deleted ones (with a recap, and an automatic re-scan on mtime change alongside the manual picker), and every hand-named entry left untouched either way.
 
 ## Tickets
 
