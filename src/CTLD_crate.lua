@@ -791,13 +791,17 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, noRefresh)
                     local spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
                     local spawnPos  = spawnInfo.positions[1]
                     local desc = arg.descriptor
+                    local spawned
                     if desc and desc.unit and spawnPos then
                         local coa = arg.coalition
-                        local cId = (coa == coalition.side.RED) and country.id.RUSSIA or country.id.USA
-                        mgr:_spawnUnpacked(desc, spawnPos, coa, cId, playerObj.unitName)
+                        local cId = ctld.utils.resolveCountryId(coa, t)
+                        spawned = mgr:_spawnUnpacked(desc, spawnPos, coa, cId, playerObj.unitName)
                     end
-                    trigger.action.outTextForGroup(gid,
-                        ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
+                    -- A refused group has already been reported to the group by _spawnUnpacked.
+                    if spawned ~= false then
+                        trigger.action.outTextForGroup(gid,
+                            ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
+                    end
                 end,
                 {
                     unitName       = playerObj.unitName,
@@ -1857,10 +1861,7 @@ function CTLDCrateManager:_spawnStatic(weight, position, coalitionId, countryId,
     local key    = modelKey or (ctld.gs("slingLoad") and "sling" or "load")
     local model  = models[key] or models["load"] or {}
 
-    local cId = countryId
-    if not cId then
-        cId = (coalitionId == coalition.side.RED) and country.id.RUSSIA or country.id.USA
-    end
+    local cId = countryId or ctld.utils.resolveCountryId(coalitionId)
 
     local uid  = ctld.utils.getNextUniqId()
     local name
@@ -1884,12 +1885,15 @@ function CTLDCrateManager:_spawnStatic(weight, position, coalitionId, countryId,
     }
     if model.shape_name then data.shape_name = model.shape_name end
 
-    local ok, err = pcall(function() ctld.utils.dynAddStatic("CTLDCrateManager:_spawnStatic", data) end)
-    if not ok then
-        _log("CTLDCrateManager:_spawnStatic - dynAddStatic failed: " .. tostring(err), "WARNING")
-        return name, nil
+    local ok, created, err = pcall(ctld.utils.dynAddStatic, "CTLDCrateManager:_spawnStatic", data)
+    if not ok then err, created = created, nil end
+    -- dynAddStatic returns false when DCS refused the static; the static itself tells whether it exists.
+    local static = (created ~= false) and StaticObject.getByName(name) or nil
+    if not static then
+        ctld.utils.log("WARNING", "CTLDCrateManager:_spawnStatic - crate '%s' not created (country=%s coalition=%s type=%s): %s",
+            name, tostring(cId), tostring(coalitionId), tostring(data.type), tostring(err or "no static after creation"))
     end
-    return name, StaticObject.getByName(name)
+    return name, static
 end
 
 --- Heading (radians, geographic — what a DCS static expects) of an aircraft, for the crates created
@@ -1905,7 +1909,7 @@ end
 --- @param heading number|nil  heading of the crate in radians (0 when absent): that of the aircraft it is created for
 function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading)
     if not (descriptor and position) then
-        _log("CTLDCrateManager:spawnCrate - missing descriptor or position", "WARNING")
+        _log("WARNING", "CTLDCrateManager:spawnCrate - missing descriptor or position")
         return nil
     end
 
@@ -1991,11 +1995,12 @@ function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId
 
     local spawnInfo = self:_radialCratePositions(transport, #descriptors)
     local heading   = self:_aircraftHeading(transport)
+    local countryId = ctld.utils.resolveCountryId(coalitionId, transport)
     local spawned   = 0
     for i, descriptor in ipairs(descriptors) do
         local pos = spawnInfo.positions[i]
         if descriptor and pos then
-            if self:spawnCrate(descriptor, pos, coalitionId, spawnedBy, spawnMethod, nil, modelKey, heading) then
+            if self:spawnCrate(descriptor, pos, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading) then
                 spawned = spawned + 1
             end
         end
@@ -2089,13 +2094,14 @@ function CTLDCrateManager:_spawnCratesInRow(descriptors, transport, coalitionId,
     for i = 1, #descriptors do sizes[i] = size end
 
     local positions, _, clock = self:_planCratePositions(transport, sizes, plan, 0)
-    local heading = self:_aircraftHeading(transport)
+    local heading   = self:_aircraftHeading(transport)
+    local countryId = ctld.utils.resolveCountryId(coalitionId, transport)
 
     local spawned = 0
     for i, descriptor in ipairs(descriptors) do
         local p = positions[i]
         if descriptor and p then
-            if self:spawnCrate(descriptor, p, coalitionId, spawnedBy, spawnMethod, nil, modelKey, heading) then
+            if self:spawnCrate(descriptor, p, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading) then
                 spawned = spawned + 1
             end
         end
@@ -2130,7 +2136,7 @@ function CTLDCrateManager:registerMMCrate(obj, desc)
     local crateName = obj:getName()
 
     if self.crates[crateName] then
-        _log("CTLDCrateManager:registerMMCrate - already registered: " .. crateName, "WARNING")
+        _log("WARNING", "%s", "CTLDCrateManager:registerMMCrate - already registered: " .. crateName)
         return
     end
 
@@ -2138,8 +2144,8 @@ function CTLDCrateManager:registerMMCrate(obj, desc)
     local descriptor = self:findDescriptorByTypeName(typeName)
 
     if descriptor == nil then
-        _log("CTLDCrateManager:registerMMCrate - unknown cargo type '"
-            .. tostring(typeName) .. "' (" .. crateName .. ") — skipped", "WARNING")
+        _log("WARNING", "%s", "CTLDCrateManager:registerMMCrate - unknown cargo type '"
+            .. tostring(typeName) .. "' (" .. crateName .. ") — skipped")
         return
     end
 
@@ -2155,8 +2161,8 @@ function CTLDCrateManager:registerMMCrate(obj, desc)
     })
 
     self:_register(crate)
-    _log("CTLDCrateManager:registerMMCrate - registered '" .. crateName
-        .. "' type='" .. tostring(typeName) .. "'", "INFO")
+    _log("INFO", "%s", "CTLDCrateManager:registerMMCrate - registered '" .. crateName
+        .. "' type='" .. tostring(typeName) .. "'")
 
     self:_publish("OnMMCrateDetected", {
         crate       = crate,
@@ -2205,11 +2211,11 @@ end
 function CTLDCrateManager:loadCrate(crateName, transport)
     local crate = self.crates[crateName]
     if not crate then
-        _log("CTLDCrateManager:loadCrate - crate not found: " .. tostring(crateName), "WARNING")
+        _log("WARNING", "%s", "CTLDCrateManager:loadCrate - crate not found: " .. tostring(crateName))
         return
     end
     if not crate:isOnGround() then
-        _log("CTLDCrateManager:loadCrate - crate not on ground: " .. crateName, "WARNING")
+        _log("WARNING", "%s", "CTLDCrateManager:loadCrate - crate not on ground: " .. crateName)
         return
     end
     local pos = crate.position   -- capture before state change
@@ -2283,7 +2289,7 @@ function CTLDCrateManager:unpackCrate(crateName, unpacker)
     local crate = self.crates[crateName]
     if not crate then return end
     if not crate:isOnGround() then
-        _log("CTLDCrateManager:unpackCrate - crate not on ground: " .. crateName, "WARNING")
+        _log("WARNING", "%s", "CTLDCrateManager:unpackCrate - crate not on ground: " .. crateName)
         return
     end
     local pos = crate.position   -- capture before state change
@@ -2461,6 +2467,8 @@ end
 -- @param coa        number   coalition.side.*
 -- @param cId        number   country.id.*
 -- @param playerName string   unit name of the player who unpacked (optional — triggers menu refresh)
+-- @return boolean|nil  true when the group was created, false when DCS refused it (the player's group is told),
+--                      nil when nothing was attempted (missing data, JTAC drop disabled, JTAC slot limit)
 function CTLDCrateManager:_spawnUnpacked(desc, pos, coa, cId, playerName)
     if not (desc and desc.unit and pos) then return end
 
@@ -2495,8 +2503,16 @@ function CTLDCrateManager:_spawnUnpacked(desc, pos, coa, cId, playerName)
     local ok, err = ctld.utils.spawnFromDescriptor(desc, cId, unitDef)
     if not ok then
         local errStr = type(err) == "table" and ctld.utils.p(err) or tostring(err)
-        ctld.utils.log("WARNING", "CTLDCrateManager:_spawnUnpacked — spawn failed: " .. errStr)
-        return
+        ctld.utils.log("WARNING", "CTLDCrateManager:_spawnUnpacked — spawn of %s failed (country=%s coalition=%s): %s",
+            tostring(desc.unit), tostring(cId), tostring(coa), errStr)
+        if playerName then
+            local pObj = CTLDPlayerManager.getInstance()._players[playerName]
+            if pObj then
+                trigger.action.outTextForGroup(pObj.groupId,
+                    ctld.tr("Unpack failed: the equipment could not be created."), 10)
+            end
+        end
+        return false
     end
 
     if not isAir then
@@ -2514,6 +2530,7 @@ function CTLDCrateManager:_spawnUnpacked(desc, pos, coa, cId, playerName)
         CTLDVehicleSpawner.getInstance():refreshLoadSectionForUnit(playerName)
         CTLDVehicleSpawner.getInstance():refreshPackSectionForUnit(playerName)
     end
+    return true
 end
 
 --- Activate post-spawn role behaviors for an unpacked crate.
@@ -2787,9 +2804,9 @@ function CTLDCrateManager:_checkAutoUnpack(landedCrate)
         z = sumZ / required,
     }
 
-    -- Determine country from coalition (mirrors standard unpack logic)
+    -- Determine country from coalition: no unit here, a country the coalition holds
     local coa = landedCrate.coalition
-    local cId = (coa == coalition.side.RED) and country.id.RUSSIA or country.id.USA
+    local cId = ctld.utils.resolveCountryId(coa)
 
     -- Dispatch: scene crates → CTLDSceneManager:playSceneAtPos;
     --           equipment crates (vehicle, static, JTAC) → _spawnUnpacked.
@@ -3007,7 +3024,8 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                 else
                     spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
                     spawned   = mgr:spawnCrate(descriptor, spawnInfo.positions[1], arg.coalition, arg.unitName,
-                        CTLDCrate.SPAWN_METHOD.MENU_CTLD, nil, mKey, mgr:_aircraftHeading(t))
+                        CTLDCrate.SPAWN_METHOD.MENU_CTLD, ctld.utils.resolveCountryId(arg.coalition, t), mKey,
+                        mgr:_aircraftHeading(t))
                 end
                 if spawned then
                     trigger.action.outTextForGroup(gid,

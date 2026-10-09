@@ -1743,7 +1743,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     local _landPositions = landPositions
     local _dropData      = dropData
     local _coalition     = playerObj.coalition or 2
-    local _countryId     = troopGroup.countryId  -- captured here; coalition.getCountryCoalition does not exist in DCS API
+    local _countryId     = troopGroup.countryId  -- captured here: the country the troops were loaded under
 
     ctld.scheduler.schedule(function()
         local ok, spawnedGroup = ctld.utils.spawnAs("GROUND", _countryId, {
@@ -2208,7 +2208,7 @@ end
 -- @return boolean
 function CTLDTroopManager:spawnGroupAtPoint(side, number, point, radius)
     local coalitionId = (side == "red") and coalition.side.RED or coalition.side.BLUE
-    local countryId   = (coalitionId == coalition.side.RED) and country.id.RUSSIA or country.id.USA
+    local countryId   = ctld.utils.resolveCountryId(coalitionId)
     radius = math.max(0, radius or 0)
 
     local tmpl = self:_resolveTemplateForLegacy(coalitionId, number)

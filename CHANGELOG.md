@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — objects are created under a country of their coalition, and a refused creation is reported (FIX-SPAWN-COUNTRY-FALLBACK)
+
+- In a mission whose coalitions hold neither USA nor Russia (a VEAF campaign mission holds only CJTF Blue and CJTF Red), a crate requested through *Request Equipment* never appeared.
+  Every spawn without an explicit country defaulted to USA for blue and Russia for red, countries that are in no coalition there, and DCS refuses an object created under them.
+  CTLD now takes the country of the requesting aircraft, else a country the coalition holds (`coalition.getCountryCoalition`), and USA / Russia only when the coalition holds none.
+  This covers requested and dropped crates, crate sets, mission-maker crates, unpacked vehicles, air JTACs, `spawnGroupAtPoint` troops and zone beacons.
+- A static DCS refused was reported as created: the DCS error was dropped without a trace.
+  It is now logged at `WARNING` with the error and the country, and an unpack whose group DCS refuses tells the unpacking group instead of announcing success.
+- The warnings of the crate manager carried their message in place of their level (`[CTLD][<message>] WARNING`); they now read `[CTLD][WARNING] <message>`.
+
 ### Fixed — an imposed laser code is reserved, a supplied JTAC radio is kept (FIX-JTAC-IMPOSED-CODE-AND-RADIO)
 
 Reported by VMCT from the Syria Open Training v6: a drone imposed on 1688 shared the code with another JTAC, and announced itself on the code-derived frequency instead of the one passed to it.

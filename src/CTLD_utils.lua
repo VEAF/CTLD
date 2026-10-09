@@ -1205,7 +1205,9 @@ function ctld.utils.dynAddStatic(caller, n)
     end
     if newObj.x and newObj.y and newObj.type and type(newObj.x) == 'number' and type(newObj.y) == 'number' and type(newObj.type) == 'string' then
         --ctld.logWarning(newObj)
-        ctld.utils.spawnAs("STATIC", country.id[newCountry], newObj)
+        -- DCS refuses a static (country in no coalition, unknown type...) by raising; spawnAs returns that error.
+        local ok, err = ctld.utils.spawnAs("STATIC", country.id[newCountry], newObj)
+        if not ok then return false, err end
 
         return newObj
     end
@@ -1270,6 +1272,33 @@ function ctld.utils.spawnFromDescriptor(descriptor, countryId, unitDef)
     return ctld.utils.spawnAs(
         (descriptor and descriptor.spawnAs) or "GROUND",
         countryId, unitDef)
+end
+
+--- Country under which CTLD creates an object for a coalition: the country of the unit it is created for when that
+-- unit exists; else the lowest country id that coalition.getCountryCoalition places on the coalition; only then USA
+-- for blue, Russia for red. DCS refuses an object under a country that is in no coalition, and a mission may hold
+-- neither USA nor Russia (a VEAF campaign mission holds only CJTF Blue and CJTF Red). FIX-SPAWN-COUNTRY-FALLBACK.
+-- @param coalitionId number     coalition.side.*
+-- @param unit        Unit|nil   the unit the object is created for (requesting transport, spawner)
+-- @return number  country.id.*
+function ctld.utils.resolveCountryId(coalitionId, unit)
+    if unit then
+        local ok, cId = pcall(function() return unit:isExist() and unit:getCountry() end)
+        if ok and type(cId) == "number" then return cId end
+    end
+    -- getCountryCoalition answers 0 both for a neutral country and for one in no coalition: no lookup for neutral.
+    if coalition.getCountryCoalition
+        and (coalitionId == coalition.side.BLUE or coalitionId == coalition.side.RED) then
+        local first
+        for _, cId in pairs(country.id) do
+            if type(cId) == "number" and (first == nil or cId < first) then
+                local ok, side = pcall(coalition.getCountryCoalition, cId)
+                if ok and side == coalitionId then first = cId end
+            end
+        end
+        if first then return first end
+    end
+    return (coalitionId == coalition.side.RED) and country.id.RUSSIA or country.id.USA
 end
 
 --------------------------------------------------------------------------------------------------------

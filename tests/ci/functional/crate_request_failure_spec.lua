@@ -14,7 +14,7 @@ describe("Request Equipment reports a request that produced nothing", function()
     local FAILURE = "Request failed: the equipment could not be brought out."
 
     local savedMission, savedGetZone, origGetByName, origInAir, origOutText, origGs, origLog
-    local playerType, testLang, messages, logs
+    local playerType, playerCountry, testLang, messages, logs
 
     local function resetSingletons()
         ctld.MenuManager._instance   = nil
@@ -79,7 +79,7 @@ describe("Request Equipment reports a request that produced nothing", function()
     before_each(function()
         ctld.startupReport._entries = {}
         resetSingletons()
-        playerType, testLang, messages, logs = "UH-1H", nil, {}, {}
+        playerType, playerCountry, testLang, messages, logs = "UH-1H", country.id.USA, nil, {}, {}
         savedMission = env.mission
         savedGetZone = trigger.misc.getZone
         origGs, origLog = ctld.gs, ctld.utils.log
@@ -105,7 +105,7 @@ describe("Request Equipment reports a request that produced nothing", function()
                     getName       = function() return PLAYER_UNIT end,
                     getTypeName   = function() return playerType end,
                     getCoalition  = function() return coalition.side.BLUE end,
-                    getCountry    = function() return country.id.USA end,
+                    getCountry    = function() return playerCountry end,
                     getPoint      = function() return { x = CX, y = 0, z = CZ } end,
                     getPosition   = function()
                         return { p = { x = CX, y = 0, z = CZ }, x = { x = 1, y = 0, z = 0 },
@@ -242,6 +242,70 @@ describe("Request Equipment reports a request that produced nothing", function()
             cmd.functionToCall(cmd.anyArgument)
             assert.is_true(said(tr("Vehicle ready for loading", cmd.anyArgument.desc)))
             assert.is_false(said(tr(FAILURE)))
+        end)
+
+    end)
+
+    -- FIX-SPAWN-COUNTRY-FALLBACK: a VEAF campaign mission, whose blue holds only CJTF Blue. USA is in no coalition and
+    -- DCS refuses a static created under it; the crate used to default to USA and never appeared.
+    describe("in a mission whose blue coalition holds only CJTF Blue", function()
+
+        local CJTF_BLUE = 80
+        local origCountryCoalition, origAddStatic, origStaticByName, created
+
+        before_each(function()
+            playerCountry = CJTF_BLUE
+            country.name[CJTF_BLUE], country.id.CJTF_BLUE = "CJTF_BLUE", CJTF_BLUE
+            created = {}
+            origCountryCoalition, origAddStatic = coalition.getCountryCoalition, coalition.addStaticObject
+            origStaticByName = StaticObject.getByName
+            coalition.getCountryCoalition = function(cId)
+                return cId == CJTF_BLUE and coalition.side.BLUE or coalition.side.NEUTRAL
+            end
+            coalition.addStaticObject = function(cId, data)
+                if coalition.getCountryCoalition(cId) == coalition.side.NEUTRAL then
+                    error("country " .. cId .. " not in a coalition")
+                end
+                created[data.name] = cId
+                return { getName = function() return data.name end }
+            end
+            StaticObject.getByName = function(name) return created[name] and { _name = name } or nil end
+        end)
+
+        after_each(function()
+            coalition.getCountryCoalition = origCountryCoalition
+            coalition.addStaticObject     = origAddStatic
+            StaticObject.getByName        = origStaticByName
+            country.name[CJTF_BLUE], country.id.CJTF_BLUE = nil, nil
+        end)
+
+        local function createdUnder()
+            local list = {}
+            for _, cId in pairs(created) do list[#list + 1] = cId end
+            return list
+        end
+
+        it("brings the single crate out under the pilot's country", function()
+            click(isSingle)
+            local under = createdUnder()
+            assert.equals(1, #under)
+            assert.equals(CJTF_BLUE, under[1])
+            assert.is_false(said(tr(FAILURE)))
+        end)
+
+        it("brings every crate of a set out under the pilot's country", function()
+            click(isSet)
+            local under = createdUnder()
+            assert.is_true(#under > 1)
+            for _, cId in ipairs(under) do assert.equals(CJTF_BLUE, cId) end
+            assert.is_false(said(tr(FAILURE)))
+        end)
+
+        it("tells the pilot and logs the DCS error at WARNING when DCS refuses the crate", function()
+            coalition.addStaticObject = function(cId) error("country " .. cId .. " refused") end
+            click(isSingle)
+            assert.is_true(said(tr(FAILURE)))
+            assert.is_true(logged("WARNING", "refused"))
         end)
 
     end)

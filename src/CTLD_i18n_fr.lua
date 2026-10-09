@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.25"
+ctld.i18n["fr"].translation_version = "1.26"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -622,3 +622,6 @@ ctld.i18n["fr"]["Request failed: the equipment could not be brought out."] = "É
 ctld.i18n["fr"]["Crate loaded. To fit it with a parachute: open the doors, then use F10 > CTLD > %1 > %2."] = "Caisse chargée. Pour y ajouter un parachute : ouvrez les portes, puis F10 > CTLD > %1 > %2."
 ctld.i18n["fr"]["Fit parachute"] = "Ajouter le parachute"
 ctld.i18n["fr"]["The cargo bay doors are closed: open them, then use Fit parachute again."] = "Les portes de soute sont fermées : ouvrez-les, puis utilisez de nouveau Ajouter le parachute."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-09
+ctld.i18n["fr"]["Unpack failed: the equipment could not be created."] = "Échec du déballage : l'équipement n'a pas pu être créé."

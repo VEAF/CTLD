@@ -1005,7 +1005,7 @@ function CTLDBeaconManager:createAtZone(zoneName, coalitionStr, batteryLife, nam
     local p2 = { x = trig.point.x, y = trig.point.z }
     local pt = { x = p2.x, y = land.getHeight(p2), z = p2.y }
     local coalitionId = (coalitionStr == "red") and coalition.side.RED or coalition.side.BLUE
-    local countryId   = (coalitionId == coalition.side.RED) and country.id.RUSSIA or country.id.USA
+    local countryId   = ctld.utils.resolveCountryId(coalitionId)
 
     if name == "" then name = nil end
 

@@ -342,7 +342,7 @@ function CTLDVehicleSpawner:registerJTACVehicle(groupName, vehicleType, spawner,
     local g       = Group.getByName(groupName)
     local unit    = g and g:getUnit(1) or nil
     local coa     = unit and unit:getCoalition() or (spawner and spawner:getCoalition() or 2)
-    local country = unit and unit:getCountry()   or (spawner and spawner:getCountry()   or 2)
+    local country = unit and unit:getCountry()   or ctld.utils.resolveCountryId(coa, spawner)
 
     local spawnData = {
         groupName   = groupName,
