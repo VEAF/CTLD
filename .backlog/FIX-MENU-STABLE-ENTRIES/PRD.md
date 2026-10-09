@@ -1,6 +1,6 @@
 # FIX-MENU-STABLE-ENTRIES — an F10 entry that did not change is never recreated
 
-**Status:** 🧑 waiting-human — the measurement is done (2026-10-09) and VMCT shipped the same fix; D1-D4 below carry a recommendation each, to confirm with Zip at the start of the lot
+**Status:** 🔨 in progress — D1-D4 confirmed by Zip as recommended (2026-10-09); tickets 02 and 03 done, 04 (live DCS) waiting for Zip
 
 Formalizes GitHub issue #257 (Zip, 2026-10-09), from wrong F10 commands still reported by players after ADR 0015 (FullGas, 2026-10-09).
 Supersedes part of ADR 0015: a new ADR is part of the lot.
@@ -73,8 +73,19 @@ VMCT's implementation is the reference: `RadioMenuBuilder:_render`, `_removeEntr
 - **D4 — The ambient delay of ADR 0015 goes.**
   Recommendation: every refresh applies the difference at once, behind the existing `DEBOUNCE_S` coalescing; `AMBIENT_REBUILD_DELAY_S`, the ambient wipe and `_pendingAmbient` are removed; `runUrgent` / `_urgentGroupId` go too unless the debounce still needs them.
   A new ADR (0027) records the measurement and supersedes ADR 0015's decision.
+- **D4 bis — `runUrgent`'s error isolation** (found while implementing, decided by Zip 2026-10-09).
+  `runUrgent` also wrapped its body in `pcall` + log, and several call sites run inside a timer callback a raise would stop for good (the flight-state and slingload pollers).
+  Decided: the urgency goes, the isolation stays as `ctld.utils.protectedCall(context, fn)` at the same call sites.
 - **D5 — The reuse of a freed id (case 2).** Settled by the measurement: parking, in this lot (Solution 2).
 - **D6 — Handles of every entry.** Settled: a rendered mirror per group, key → `{ handle, type, depth }`; today `menu._activeHandles` keeps only top-level handles and command handles are discarded (`src/CTLD_menu.lua:340`).
+
+## Implementation deviations (2026-10-09)
+
+- **Removals before creations, within one level** (Solution 3 said after): DCS addresses an entry by its label path, so a recreated entry must not coexist with its old self under one path; parking each freed id at once keeps the goal of Solution 3 (nothing created takes an unparked id).
+- **Removal by the handle DCS returned**: the developer doc records that `removeItemForGroup` ignores a label path rebuilt by the caller; the mirror keeps each returned handle, and the busted double honours only the handles it issued.
+- **`_sortByOrder` made really stable**: `table.sort` is not, so siblings sharing an `order` could change places between two refreshes and be recreated for nothing.
+- **Root level not paginated**, as before; every submenu is.
+- **The dispatcher runs the node of the last refresh**, not the logical tree at click time: between a model change and its debounced refresh, the click runs what the player saw.
 
 ## Implementation notes (from the current code)
 

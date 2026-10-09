@@ -1,6 +1,6 @@
 # 03 — Drop the ambient delay, record the decision
 
-**Status:** ⬜ ready once D4 is settled · **Type:** AFK
+**Status:** ✅ done (2026-10-09) · **Type:** AFK
 
 ## Parent
 
@@ -16,8 +16,8 @@ Files: `src/CTLD_menu.lua` (`deferredRefreshForGroup`, `cancelPending`, `AMBIENT
 
 ## Acceptance criteria
 
-- [ ] busted: the specs that pinned the ambient wipe and its 4 s rebuild are replaced by specs of the immediate, diffed refresh.
-- [ ] Docs EN + FR, ADR index, `CHANGELOG.md` `[Unreleased]`.
+- [x] busted: the specs that pinned the ambient wipe and its 4 s rebuild are replaced by specs of the immediate, diffed refresh.
+- [x] Docs EN + FR, ADR index, `CHANGELOG.md` `[Unreleased]`.
 - [ ] luacheck clean; `busted` green.
 
 ## Blocked by

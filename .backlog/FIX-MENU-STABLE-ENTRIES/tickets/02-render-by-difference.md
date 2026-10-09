@@ -1,6 +1,6 @@
 # 02 — Render the menu by difference, park every freed id
 
-**Status:** ⬜ ready once D1, D2, D3 are confirmed · **Type:** AFK
+**Status:** ✅ done (2026-10-09) · **Type:** AFK
 
 ## Parent
 
@@ -21,9 +21,9 @@ Files: `src/CTLD_menu.lua` (`refreshMenuForGroup`, `_rebuildMenuNode`, `_rebuild
 
 ## Acceptance criteria
 
-- [ ] busted, written first and seen failing on `develop`: after an identical refresh, a click captured before it fires the same command (test 1 of #257); after a removal and a creation, a click on the removed entry fires the parked command (test 9b); a branch cleared and refilled identically makes no DCS call; a changed argument under an unchanged label runs the new argument without recreating the entry; a submenu turned command parks every id it freed.
-- [ ] Each fix mutation-checked (spec fails with the parking line removed, and with the reuse disabled).
-- [ ] Ordering and pagination specs pass unchanged, or are adapted to D3 with the reason in the PR.
+- [x] busted, written first and seen failing on `develop`: after an identical refresh, a click captured before it fires the same command (test 1 of #257); after a removal and a creation, a click on the removed entry fires the parked command (test 9b); a branch cleared and refilled identically makes no DCS call; a changed argument under an unchanged label runs the new argument without recreating the entry; a submenu turned command parks every id it freed.
+- [x] Each fix mutation-checked (spec fails with the parking line removed, and with the reuse disabled).
+- [x] Ordering and pagination specs pass unchanged, or are adapted to D3 with the reason in the PR.
 - [ ] luacheck clean; `busted` green.
 
 ## Blocked by

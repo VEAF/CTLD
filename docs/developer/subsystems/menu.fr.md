@@ -21,7 +21,7 @@ mémoire et traite chaque appel DCS comme un effet de bord de rendu de cet arbre
 | Couche | Classe | Responsabilité |
 | --- | --- | --- |
 | Modèle logique | `ctld.Menu` | Arbre en mémoire pour le menu d'un groupe. Profondeur illimitée ; la pagination est transparente pour les appelants. Un `ctld.Menu` par `groupId`. |
-| Moteur de rendu DCS | `ctld.MenuManager` | Singleton propriétaire de tous les `ctld.Menu`. Efface et reconstruit atomiquement les entrées CTLD d'un groupe sur `refresh()` ; trie les frères et sœurs par `order` ; pagine. |
+| Moteur de rendu DCS | `ctld.MenuManager` | Singleton propriétaire de tous les `ctld.Menu`. Sur `refresh()`, ne recrée que les entrées CTLD qui ont changé et parque chaque id DCS libéré ; trie les frères et sœurs par `order` ; pagine. |
 | Orchestrateur | `CTLDPlayerManager` | Propriétaire du cycle de vie du menu F10 : le construit à l'entrée d'un joueur, l'assemble à partir des sections enregistrées et déclenche les rafraîchissements lors des changements d'état de vol/cargaison. |
 
 `CTLDPlayerManager` suit l'idiome de manager standard (`CTLDPlayerManager = class()` +
@@ -34,7 +34,7 @@ simples tables avec une métatable créée par `ctld.Menu:_new(groupId, manager)
 CTLDPlayerManager                 ctld.MenuManager
   _menuSections[]           →       menus{}  (groupId → ctld.Menu)
   registerMenuSection()             refreshMenuForGroup() / deferredRefreshForGroup()
-  buildMenu(playerObj)              _rebuildMenuNode() / _rebuildPagedChildren()
+  buildMenu(playerObj)              _renderLevel() / _applyLevel() / teardownGroup()
   refreshForUnit(unitName)          _sortByOrder()
                                   ctld.Menu
                                     addSubMenu / addCommand / clearBranch
@@ -120,91 +120,69 @@ Elle est maintenue automatiquement par `addSubMenu` / `addCommand` et élaguée 
 
 ## Rendu — `ctld.MenuManager` { #rendering-ctldmenumanager }
 
-### Rafraîchissement atomique { #atomic-refresh }
+### Rendu par différence { #rendering-by-difference }
 
-DCS n'offre aucune mise à jour par item, donc un rafraîchissement est tout ou rien : le manager
-supprime les entrées de premier niveau courantes de CTLD, puis reconstruit l'arbre entier depuis
-la mémoire. Point crucial, il ne supprime **que les entrées propres à CTLD** — il ne passe *pas*
-`nil` à `missionCommands.removeItemForGroup` (ce qui détruirait aussi les entrées DCS standard
-comme Ground Crew et ATC). Il suit le handle DCS opaque retourné par `addSubMenuForGroup` /
-`addCommandForGroup` dans le champ `_dcsHandle` de chaque nœud de premier niveau et supprime
-exactement ces handles. (Passer un tableau de chemin sous forme de chaîne à `removeItemForGroup`
-est silencieusement ignoré par DCS, c'est pourquoi le handle opaque est requis.)
+Ajouté par `FIX-MENU-STABLE-ENTRIES` — voir l'**ADR 0027**, qui remplace l'ADR 0015.
+
+DCS repère chaque entrée F10 par un id interne tiré d'**un seul pool pour tout le serveur**, et
+donne l'id d'une entrée supprimée à la **prochaine entrée créée**, pour n'importe quel groupe, le
+dernier libéré étant le premier repris (mesuré en jeu, #257). L'écran d'un joueur garde les ids
+avec lesquels il a été dessiné : un clic sur un écran resté ouvert exécute ce qui détient cet id
+maintenant. Un rafraîchissement ne doit donc jamais recréer une entrée qui n'a pas changé, ni
+laisser un id libéré atteindre une vraie commande.
+
+`refreshMenuForGroup` compare donc deux arbres et ne touche qu'à la différence :
 
 ```
 refreshMenuForGroup(groupId)
   1. Validate a menu exists in memory for groupId
-  2. For each top-level child with a stored _dcsHandle:
-        missionCommands.removeItemForGroup(groupId, handle); clear the handle
-  3. Sort root children by order, then for each:
-        _rebuildMenuNode(groupId, {}, child)   -- recursive, depth-first
-  4. Return { success = true, refreshedCount = N }
+  2. Build the rendered tree: enabled filter, `order` sort, pagination (submenus only),
+     each entry keyed on parent key + submenu/command + label (+ "#n" for the n-th twin)
+  3. For each level, against the mirror of what is live (menu._rendered):
+       keep the longest run of live entries already in the wanted order;
+       remove every other live entry (a submenu's children first), parking each freed id;
+       create the missing entries in order, then recurse into each submenu
+  4. Return { success = true, refreshedCount = N }   -- N = top-level entries rendered
 ```
 
-`_rebuildMenuNode` ignore les nœuds désactivés (retourne 0), rend un submenu avec
-`addSubMenuForGroup` (en capturant le nouveau `_dcsHandle`), rend une commande avec
-`addCommandForGroup`, et descend récursivement dans les enfants du submenu via
-`_rebuildPagedChildren`.
+- **Parking.** Juste après chaque `removeItemForGroup`, le manager crée une commande inerte pour
+  le groupe `999999` (aucun slot joueur ne le porte). Elle prend l'id libéré : un clic périmé sur
+  l'entrée supprimée exécute cette commande, qui se contente d'un log INFO.
+- **Ordre.** DCS ajoute une entrée créée après ses sœurs, donc une insertion recrée les sœurs qui
+  la suivent : l'`order` déclaré tient et un nœud réactivé retrouve son créneau.
+- **Un seul dispatcher.** Chaque commande reçoit `ctld.MenuManager._dispatch` avec
+  `{ groupId, key }` ; le clic exécute le nœud rendu sous cette clé au dernier rafraîchissement. Un
+  nouveau callback ou argument sous un label inchangé ne demande aucune recréation.
+- **Handles.** Le miroir garde le handle rendu par chaque ajout : `removeItemForGroup` l'honore et
+  ignore un chemin de labels reconstruit par l'appelant. Il ne supprime **que les entrées propres à
+  CTLD** — il ne passe jamais `nil`, ce qui détruirait aussi les entrées DCS standard comme Ground
+  Crew et ATC.
+- **Teardown.** Quand le dernier membre d'équipage d'un groupe part, `teardownGroup(groupId)`
+  supprime chaque entrée vivante (chaque id parqué), abandonne le menu et son miroir, et annule tout
+  rafraîchissement en attente : DCS réutilise un group id numérique pour le prochain occupant d'un
+  slot (#152).
+
+Un rafraîchissement qui ne change rien ne fait aucun appel DCS.
 
 ### Rafraîchissement débouncé { #debounced-refresh }
 
-`ctld.Menu:refresh()` ne reconstruit pas immédiatement — il appelle
+`ctld.Menu:refresh()` ne rend pas immédiatement — il appelle
 `ctld.MenuManager:deferredRefreshForGroup(groupId)`, qui fusionne toutes les demandes de
-rafraîchissement d'un groupe dans une fenêtre de `DEBOUNCE_S = 0.15 s` en une seule reconstruction
-DCS (planifiée via `timer.scheduleFunction`). Cela empêche les appelants à cadence rapide (le
-poller d'état de vol qui oscille, la détection de cargaison, les événements d'atterrissage qui se
-déclenchent ensemble) d'éjecter le joueur du menu F10 en pleine navigation. Le `buildMenu` initial
-à l'entrée d'un joueur passe aussi par le debounce. `refreshMenuForGroup` reste disponible pour une
-reconstruction directe, non débouncée.
+rafraîchissement d'un groupe dans une fenêtre de `DEBOUNCE_S = 0.15 s` en un seul
+`refreshMenuForGroup` (planifié via `timer.scheduleFunction`). Le `buildMenu` initial à l'entrée
+d'un joueur passe aussi par le debounce. `refreshMenuForGroup` reste disponible pour un
+rafraîchissement direct, non débouncé.
 
-### Rafraîchissement ambiant vs urgent { #ambient-vs-urgent-refresh }
-
-Ajouté par `FIX-MENU-AMBIENT-REFRESH-RACE` — voir l'**ADR 0015** pour l'investigation complète.
-
-Le debounce de 0.15 s ci-dessus ne fusionne que les *rafales* rapprochées — il ne fait rien quand
-un seul rafraîchissement légitime survient pendant qu'un joueur navigue déjà dans le menu qu'on
-s'apprête à démonter. DCS ne donne aux scripts aucun moyen de savoir si le menu F10 d'un joueur est
-ouvert ni à quel niveau, donc une reconstruction à ce moment résout le **prochain** clic du joueur
-contre l'arbre fraîchement reconstruit au lieu de l'écran figé qu'il regarde — confirmé en direct :
-un rafraîchissement en tâche de fond survenant en pleine navigation a fait déclencher au joueur une
-commande différente de celle affichée à l'écran.
-
-Chaque rafraîchissement est de l'un des deux types suivants :
-
-- **Urgent** — conséquence directe et synchrone de l'action du groupe lui-même : le
-  rafraîchissement qu'une commande de menu déclenche juste après avoir terminé (embarquement,
-  débarquement, pack, unpack…), ou une vraie transition d'état remarquée par le joueur sans clic à
-  désigner (`onTakeoff`, `onLand`, le poller d'état de vol). Reconstruit immédiatement, via le même
-  chemin débouncé qu'avant.
-- **Ambiant** — tout le reste (polls en tâche de fond, diffusions d'événements vers d'autres
-  joueurs comme `_refreshNearbyPlayers`). Le **défaut**. Vide le menu du groupe immédiatement — un
-  clic survenant dans cet intervalle ne résout donc plus rien au lieu de la mauvaise commande —
-  puis le reconstruit `AMBIENT_REBUILD_DELAY_S = 4 s` plus tard. Une seconde demande ambiante alors
-  qu'une reconstruction est déjà planifiée fusionne (pas de second vidage, pas de reprogrammation) ;
-  une demande urgente préempte une reconstruction ambiante en attente (annule le minuteur,
-  reconstruit immédiatement).
-
-L'urgence est détectée automatiquement plutôt que marquée à la main sur chacun des ~30 sites
-d'appel de rafraîchissement, la plupart étant des fonctions partagées accessibles à la fois depuis
-le clic d'un joueur et depuis un contexte d'arrière-plan/inter-joueurs.
-`ctld.MenuManager:runUrgent(groupId, fn)` enregistre `groupId` dans un champ partagé
-`_urgentGroupId` pendant la durée de `fn` (les callbacks DCS/Lua ne se préemptent jamais entre eux,
-donc un seul champ partagé est sûr), et le vide inconditionnellement ensuite.
-`deferredRefreshForGroup` traite un rafraîchissement comme urgent quand son `groupId` correspond à
-`_urgentGroupId` — vrai pour tout ce qui est atteint de façon synchrone depuis cet appel, quel que
-soit le nombre de couches de fonctions partagées ou de publications `EventDispatcher` synchrones
-traversées, et correctement faux pour une diffusion atteignant le menu d'un **autre** groupe en
-cours d'appel (un spectateur reste ambiant, comme il se doit). Le `wrapped` de `_rebuildMenuNode`
-fait passer chaque clic de menu par `runUrgent` ; `onTakeoff`, `onLand` et le poller d'état de vol
-l'appellent directement depuis leur propre contexte sans clic. Un `{ urgent = true }` explicite
-passé à `refresh()`/`deferredRefreshForGroup` reste disponible comme échappatoire direct à côté de
-la détection automatique.
+Le chemin ambiant de l'ADR 0015 (vider tout de suite, reconstruire 4 s plus tard) et sa détection
+d'urgence (`runUrgent`, `{ urgent = true }`) ont disparu : le vidage libérait les ids et la
+reconstruction les redistribuait. Le `pcall` + log que `runUrgent` apportait à ses sites d'appel
+reste, sous le nom `ctld.utils.protectedCall`.
 
 ### Pagination
 
 DCS donne à chaque niveau de menu dix créneaux contrôlés par le programmeur (F1–F10 ; F11 est la
-« Previous Page » de DCS, F12 est « Quit »). `_rebuildPagedChildren` applique cette règle à une
-liste d'enfants pré-triée et limitée aux nœuds activés :
+« Previous Page » de DCS, F12 est « Quit »). `_renderPage` applique cette règle aux enfants
+pré-triés et activés de chaque submenu (le niveau racine n'est pas paginé) :
 
 | Enfants visibles | Rendu |
 | --- | --- |
@@ -259,7 +237,7 @@ robustes dans l'environnement mono-thread de DCS).
 | `clearBranch(pathTable)` | Vide les enfants d'un submenu **sans supprimer le conteneur**, de sorte que son créneau `order` ne bouge pas. L'idiome standard pour les listes dynamiques de proximité (crates à proximité, véhicules chargeables). |
 | `setBranchEnabled(pathTable, enabled)` | Bascule la visibilité DCS d'une branche tout en la conservant (ainsi que son créneau `order`) en mémoire. À faire suivre de `refresh()`. |
 | `removeMenuBranch(pathTable)` | Supprime définitivement une branche et ses descendants. Retourne `{ success, message, removedCount }`. Réservé aux suppressions vraiment permanentes — préférer `clearBranch` / `setBranchEnabled`. |
-| `refresh()` | Raccourci pratique vers `manager:deferredRefreshForGroup(self.groupId)` — effacer + reconstruire (ordonné, paginé), débouncé. |
+| `refresh()` | Raccourci pratique vers `manager:deferredRefreshForGroup(self.groupId)` — débouncé ; seules les entrées qui ont changé sont recréées. |
 
 Messages d'échec courants : `"Path not found: …"` (créez d'abord le submenu parent),
 `"Cannot add submenu/command under a command node"`, `"Invalid menu name"`,
@@ -273,7 +251,7 @@ menu:clearBranch({ "CTLD Commands", "Pack Vehicles" })   -- keep the container, 
 for _, v in ipairs(nearbyVehicles) do
     menu:addCommand({ "CTLD Commands", "Pack Vehicles" }, v.name, packFn, { unitName = v.name })
 end
-menu:refresh()   -- single atomic, debounced rebuild
+menu:refresh()   -- debounced; unchanged entries keep their DCS id
 ```
 
 ## API de `ctld.MenuManager` { #ctldmenumanager-api }
@@ -282,7 +260,8 @@ menu:refresh()   -- single atomic, debounced rebuild
 | --- | --- |
 | `getInstance()` | Retourne (crée au premier appel) le singleton. |
 | `createMenuForGroup(groupId)` | Crée un `ctld.Menu` vide pour un `groupId` numérique. **Idempotent** : retourne le menu existant si un est déjà enregistré. Retourne le menu, ou `nil` sur un id invalide. |
-| `refreshMenuForGroup(groupId)` | Effacement + reconstruction immédiat, non débouncé, des entrées CTLD du groupe. Retourne `{ success, message, refreshedCount }`. |
+| `refreshMenuForGroup(groupId)` | Rafraîchissement par différence immédiat, non débouncé, des entrées CTLD du groupe. Retourne `{ success, message, refreshedCount }`. |
+| `teardownGroup(groupId)` | Supprime chaque entrée CTLD vivante du groupe (chaque id parqué), abandonne son menu et son miroir, annule tout rafraîchissement en attente. Appelé quand le dernier membre d'équipage part. |
 | `deferredRefreshForGroup(groupId)` | Planifie un rafraîchissement débouncé (0.15 s) ; fusionne les rafales. |
 | `getMenuByGroupId(groupId)` | Menu pour un group id numérique, ou `nil`. |
 | `getMenuByGroupName(groupName)` | Menu dont le nom de groupe correspond, ou `nil`. |
@@ -332,7 +311,7 @@ Appelé à l'entrée d'un joueur (et réexécutable). Il :
 5. Itère sur les sections enregistrées **triées par `order`** ; pour chacune, si `configKey` est
    nil ou `ctld.gs(configKey) == true`, appelle `manager:method(playerObj, menu)` pour construire le
    sous-arbre de cette section.
-6. Appelle `menu:refresh()` pour un rendu atomique unique.
+6. Appelle `menu:refresh()` pour un rendu débouncé unique.
 
 **Contrôle des capacités.** Les capacités du joueur sont détectées dans `_detectCapabilities` à
 partir de `ctld.gs("capabilitiesByType")[typeName]` : un transport est tout type ayant une entrée ;
@@ -643,9 +622,10 @@ les joueurs de la coalition. Indicateurs de config affectant le menu :
 
 - **Pas d'API de listing du menu** — DCS ne peut pas rapporter les items de menu existants ; l'arbre
   en mémoire est l'unique source de vérité, validé localement avant tout appel DCS.
-- **Rafraîchissement tout ou rien** — pas de mise à jour par item ; accumulez les changements, puis
-  appliquez un seul `refresh()`.
-- **Pagination manuelle** — DCS ne pagine pas automatiquement ; `_rebuildPagedChildren` s'en charge.
+- **Pas d'insertion à une position, ids recyclés** — une entrée créée va après ses sœurs, et l'id
+  d'une entrée supprimée va à la prochaine entrée créée, sur tout le serveur ; voir *Rendu par
+  différence*.
+- **Pagination manuelle** — DCS ne pagine pas automatiquement ; `_renderPage` s'en charge.
 - **Pas d'introspection des callbacks** — les signatures de fonctions Lua ne peuvent pas être
   validées à l'exécution ; la signature attendue est documentée et les échecs sont isolés avec
   `pcall`.
@@ -662,8 +642,8 @@ les joueurs de la coalition. Indicateurs de config affectant le menu :
 
 ## Décisions de conception { #design-decisions }
 
-- **Arbre en mémoire avant application DCS** — permet des reconstructions atomiques, tout ou rien,
-  et garde le modèle comme référence.
+- **Arbre en mémoire avant application DCS** — garde le modèle comme référence ; un miroir des
+  entrées vivantes permet à chaque rafraîchissement de n'appliquer que la différence.
 - **Pagination recalculée à chaque rafraîchissement** — aucun état de page en cache à invalider ;
   les mises à jour dynamiques restent simples.
 - **`order` + `enabled` explicites** — les positions sont déclaratives et stables quel que soit

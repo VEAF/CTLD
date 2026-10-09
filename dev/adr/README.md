@@ -20,7 +20,7 @@ Retroactive ADRs document decisions already made during the v2.0.0 rewrite.
 | [0012](0012-canonical-names-for-custom-beacon-sounds.md) | Canonical file names for custom beacon sounds | Accepted |
 | [0013](0013-ci-i18n-dict-guard.md) | CI-enforced i18n dictionary guard, diff-scoped with a translation-only bypass | Accepted |
 | [0014](0014-i18n-claude-code-cli-fallback.md) | i18n auto-translate: Claude Code CLI as a local fallback, not a replacement | Accepted |
-| [0015](0015-safe-by-default-ambient-menu-refresh.md) | Safe-by-default delay on ambient F10 menu refreshes | Accepted |
+| [0015](0015-safe-by-default-ambient-menu-refresh.md) | Safe-by-default delay on ambient F10 menu refreshes | Superseded by 0027 |
 | [0016](0016-exz-naming-convention.md) | `EXZ_` naming-convention format for auto-discovered extraction zones | Accepted |
 | [0017](0017-aiz-naming-convention-tool-only.md) | `AIZ_` partial naming convention stays `ctld-tools`-only | Accepted |
 | [0018](0018-ctld-tools-integer-field-type.md) | `ctld-tools` gains a declared `integer` field type | Accepted |
@@ -32,3 +32,4 @@ Retroactive ADRs document decisions already made during the v2.0.0 rewrite.
 | [0024](0024-native-crates-spawn-at-hull-clearance.md) | Crates requested for a native-cargo aircraft spawn just clear of its hull | Accepted |
 | [0025](0025-ctld-actions-apply-to-virtual-carry-only.md) | CTLD's unload, parachute and weight apply to virtual carry only; DCS owns native carry | Accepted |
 | [0026](0026-dcs-cargo-ui-loads-are-handed-over-by-fit-parachute.md) | A DCS cargo-UI load is handed over to CTLD by an explicit "Fit parachute" action | Accepted |
+| [0027](0027-stable-f10-entries.md) | An F10 entry that did not change is never recreated; every freed id is parked | Accepted — supersedes 0015 |
