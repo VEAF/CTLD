@@ -359,7 +359,7 @@ end)
 -- ─────────────────────────────────────────────────────────────
 -- FIX-MENU-AMBIENT-REFRESH-RACE follow-up: buildMenu must render immediately (urgent), and
 -- onPlayerLeaveUnit must not leave a stale pending-refresh entry behind for a reused groupId.
-describe("CTLDPlayerManager buildMenu / onPlayerLeaveUnit — ambient/urgent interplay", function()
+describe("CTLDPlayerManager buildMenu / onPlayerLeaveUnit — debounced refresh", function()
 
     local mgr, mmgr
     local addCalls, scheduledCalls, removedIds, nextTimerId
@@ -418,13 +418,11 @@ describe("CTLDPlayerManager buildMenu / onPlayerLeaveUnit — ambient/urgent int
         timer.getTime = function() return 0 end
     end)
 
-    it("a freshly-joined player's menu renders immediately, not after AMBIENT_REBUILD_DELAY_S", function()
+    it("a freshly-joined player's menu renders DEBOUNCE_S later", function()
         mgr:onPlayerEnterUnit({ initiator = mockUnit })
 
-        -- buildMenu's own trailing refresh must have gone through the urgent (debounced) path:
-        -- scheduled at DEBOUNCE_S (0.15), not AMBIENT_REBUILD_DELAY_S (4) — and, since the
-        -- flow is urgent, the same debounce timer that's already captured is the one that
-        -- actually renders once advanced.
+        -- buildMenu's own trailing refresh is scheduled at DEBOUNCE_S (0.15), and that timer is
+        -- the one that renders once advanced.
         assert.is_true(#scheduledCalls >= 1)
         assert.equals(0.15, scheduledCalls[#scheduledCalls].t)
 
@@ -433,33 +431,32 @@ describe("CTLDPlayerManager buildMenu / onPlayerLeaveUnit — ambient/urgent int
         assert.is_true(#addCalls > addBefore)   -- the CTLD root menu actually got rendered
     end)
 
-    it("onTakeoff's refresh chain is urgent, not delayed 4s (regression anchor for the runUrgent wrap)", function()
+    it("onTakeoff's refresh chain is debounced, never delayed", function()
         mgr:onPlayerEnterUnit({ initiator = mockUnit })
-        scheduledCalls[#scheduledCalls].fn()   -- settle the initial urgent build first
+        scheduledCalls[#scheduledCalls].fn()   -- settle the initial build first
         local scheduledBefore = #scheduledCalls
 
         mgr:onTakeoff({ initiator = mockUnit })
 
-        -- At least one new refresh must have been scheduled, and none of the NEW ones may be
-        -- the 4s ambient delay — reverting onTakeoff's runUrgent wrap would make this fail.
-        assert.is_true(#scheduledCalls > scheduledBefore)
+        -- The menu refresh is among the new timers, DEBOUNCE_S away (others may be unrelated).
+        local debounced = false
         for i = scheduledBefore + 1, #scheduledCalls do
-            assert.not_equal(4, scheduledCalls[i].t)
+            if scheduledCalls[i].t == 0.15 then debounced = true end
         end
+        assert.is_true(debounced)
     end)
 
     it("onPlayerLeaveUnit cancels any pending refresh for the departing group", function()
         mgr:onPlayerEnterUnit({ initiator = mockUnit })
-        -- Advance the urgent debounce so the menu is fully built before it's torn down.
+        -- Advance the debounce so the menu is fully built before it's torn down.
         scheduledCalls[#scheduledCalls].fn()
 
-        -- Simulate an ambient refresh left pending for this group at the moment the player leaves.
+        -- Simulate a refresh left pending for this group at the moment the player leaves.
         mmgr:deferredRefreshForGroup(mockGroup._id)
-        assert.is_not_nil(mmgr._pendingAmbient[mockGroup._id])
+        assert.is_not_nil(mmgr._pendingRefresh[mockGroup._id])
 
         mgr:onPlayerLeaveUnit({ initiator = mockUnit })
 
-        assert.is_nil(mmgr._pendingAmbient[mockGroup._id])
         assert.is_nil(mmgr._pendingRefresh[mockGroup._id])
     end)
 
