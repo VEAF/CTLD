@@ -1,6 +1,6 @@
 # FIX-MENU-STABLE-ENTRIES — an F10 entry that did not change is never recreated
 
-**Status:** 🔨 in progress — D1-D4 confirmed by Zip as recommended (2026-10-09); tickets 02 and 03 done, 04 (live DCS) waiting for Zip
+**Status:** 🔨 in progress — D1-D4 confirmed by Zip as recommended (2026-10-09); tickets 02 and 03 merged (PR #261), 04 (live DCS) waiting for Zip
 
 Formalizes GitHub issue #257 (Zip, 2026-10-09), from wrong F10 commands still reported by players after ADR 0015 (FullGas, 2026-10-09).
 Supersedes part of ADR 0015: a new ADR is part of the lot.
