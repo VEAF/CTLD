@@ -6,6 +6,8 @@
 --   - a removed entry's id goes to the next entry created, last freed first reused.
 -- A spec captures an id with idOf() before a refresh, then click()s it after: the click runs whatever
 -- entry holds that id now, which is what a player gets from an F10 screen left open across a change.
+-- removeItemForGroup only honours the handle an add returned (the same table): a label path rebuilt by
+-- the caller is ignored, as DCS ignores it (docs/developer/subsystems/menu.md).
 --
 -- Usage:
 --   local mc = ctldMissionCommandsDouble.install()
@@ -50,9 +52,10 @@ function Double:_add(kind, gid, name, parentPath, fn, arg)
         id = id, kind = kind, gid = gid, name = name,
         path = copyPath(parentPath, name), fn = fn, arg = arg, seq = self.seq,
     }
+    entry.handle = copyPath(entry.path)   -- DCS returns the item's path, which is its handle
     self.entries[id] = entry
     table.insert(self.calls, { op = "add", kind = kind, gid = gid, name = name, id = id })
-    return copyPath(entry.path)   -- DCS returns the item's path, which is its handle
+    return entry.handle
 end
 
 -- The live entry at gid + path; with twins, the oldest one.
@@ -69,10 +72,13 @@ function Double:_free(entry)
     table.insert(self.free, entry.id)
 end
 
-function Double:_remove(gid, path)
-    table.insert(self.calls, { op = "remove", gid = gid, name = path and path[#path] })
-    local entry = path and self:_find(gid, path)
-    if not entry then return end
+function Double:_remove(gid, handle)
+    table.insert(self.calls, { op = "remove", gid = gid, name = handle and handle[#handle] })
+    local entry
+    for _, e in pairs(self.entries) do
+        if e.gid == gid and rawequal(e.handle, handle) then entry = e end
+    end
+    if not entry then return end   -- not a handle this double issued: ignored, as DCS does
     -- A submenu goes with its descendants: free them first, deepest first, then the submenu.
     local descendants = {}
     for _, e in pairs(self.entries) do

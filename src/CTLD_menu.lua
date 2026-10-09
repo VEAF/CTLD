@@ -167,7 +167,8 @@ local parkSeq          = 0
 
 local function newRendered()
     -- children[parentKey] = live entries in DCS order; byKey[key] = entry.
-    -- Entry: { key, type, path (its DCS label path, which is its handle), node }.
+    -- Entry: { key, type, handle (what DCS returned, the only thing removeItemForGroup honours),
+    --         path (its label path, the parent path of its children), node }.
     return { children = {}, byKey = {} }
 end
 
@@ -217,7 +218,7 @@ function ctld.MenuManager:_removeEntry(groupId, menu, entry)
         for i = #kids, 1, -1 do self:_removeEntry(groupId, menu, kids[i]) end
         menu._rendered.children[entry.key] = nil
     end
-    missionCommands.removeItemForGroup(groupId, entry.path)
+    missionCommands.removeItemForGroup(groupId, entry.handle)
     self:_park()
     menu._rendered.byKey[entry.key] = nil
     self._removedCount = (self._removedCount or 0) + 1
@@ -225,13 +226,15 @@ end
 
 function ctld.MenuManager:_createEntry(groupId, menu, parentPath, wanted)
     local dcsPath = #parentPath > 0 and parentPath or nil
+    local handle
     if wanted.type == "submenu" then
-        missionCommands.addSubMenuForGroup(groupId, wanted.label, dcsPath)
+        handle = missionCommands.addSubMenuForGroup(groupId, wanted.label, dcsPath)
     else
-        missionCommands.addCommandForGroup(groupId, wanted.label, dcsPath, ctld.MenuManager._dispatch,
+        handle = missionCommands.addCommandForGroup(groupId, wanted.label, dcsPath, ctld.MenuManager._dispatch,
             { groupId = groupId, key = wanted.key })
     end
-    local entry = { key = wanted.key, type = wanted.type, path = appendPath(parentPath, wanted.label) }
+    local path  = appendPath(parentPath, wanted.label)
+    local entry = { key = wanted.key, type = wanted.type, handle = handle or path, path = path }
     menu._rendered.byKey[wanted.key] = entry
     self._createdCount = (self._createdCount or 0) + 1
     return entry
