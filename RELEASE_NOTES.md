@@ -1,97 +1,91 @@
-# CTLD 2.0.0-rc12 — release candidate
+# CTLD 2.0.0-rc13 — release candidate
 
 ## Installation
 
 1. Download **`ctld-tools.exe`** below — it is the only file you need.
 2. Run it: the tool opens in your browser, locally, with nothing to install.
-3. Open your `.miz`, adjust what you want, then **Install into mission**: the tool writes CTLD, the
-   beacon sounds and your configuration into it.
+3. Open your `.miz`, adjust what you want, then **Install into mission**: the tool writes CTLD, the beacon sounds and your configuration into it.
 
-**Windows blocks it on the first run?** The tool is not code-signed, so SmartScreen stops it: click
-**More info** → **Run anyway**. If the file came through a browser you may also need right-click →
-**Properties** → tick **Unblock** → **OK**.
+**Windows blocks it on the first run?** The tool is not code-signed, so SmartScreen stops it: click **More info** → **Run anyway**.
+If the file came through a browser you may also need right-click → **Properties** → tick **Unblock** → **OK**.
 
-Prefer doing it by hand? The files are attached to this release too — see the
-[documentation](https://veaf.github.io/CTLD/2.0.0-rc12/mission-maker/).
+Prefer doing it by hand? The files are attached to this release too — see the [documentation](https://veaf.github.io/CTLD/2.0.0-rc13/mission-maker/).
 
 ---
 
-A fix-and-polish release: two real gameplay bugs closed, extraction zones gain a naming-convention
-shortcut, `ctld-tools` now reads your mission's zones back instead of asking you to retype them,
-and its numeric fields are hardened against invalid input.
+The biggest release candidate so far.
+F10 clicks fire the command you clicked, crates for native-cargo aircraft appear where the DCS cargo window can load them, native cargo is read from DCS itself, and missions without USA or Russia in their coalitions get their crates again.
+Mission scripts that name zones or read zone events need a look: see **Breaking changes** at the end.
 
-## A reoccupied slot no longer inherits the previous pilot's flight state
+## An F10 click fires the command you clicked
 
-Reported from a live session. DCS reuses unit names across a mission — if a slot's previous
-occupant had taken off before leaving, the next pilot to take that same slot on the ground got an
-unsolicited F10 menu rebuild about a second into his seat, for a state transition that never
-happened to him.
+Players reported clicking one F10 CTLD entry and getting another, sometimes another group's.
+The cause is in DCS: when a menu entry is removed, its internal id goes to the next entry created anywhere on the server, and an F10 screen left open keeps the ids it was drawn with.
+CTLD rebuilt its whole menu on every refresh, so a screen opened before a refresh pointed at ids now held by other commands.
 
-**Cause**: CTLD's flight-state poller (it detects takeoff/landing faster than DCS's own events,
-which lag 3–5 seconds for helicopters) keeps a small per-unit record of the last confirmed state.
-Nothing cleared it when a pilot left, so a new occupant of the same unit name started from the
-previous pilot's history instead of his own.
+A refresh now only touches the entries that changed: an unchanged entry keeps its id and fires itself.
+A click on an entry that has just disappeared does nothing, instead of firing whatever took its place.
+The 4-second blank menu after a background refresh, introduced in rc10 to work around this, is gone.
 
-**Fix**: that record is now cleared in the same place CTLD already forgets a departed pilot. A
-pilot with the F10 menu open in his first second in a reused slot no longer risks clicking an
-entry that gets rebuilt out from under him.
+## Crates appear where a native-cargo aircraft can load them
 
-## Extraction zones can now be created by naming a trigger zone
+Crates requested for a UH-1H, Mi-8MT, CH-47F, Mi-24P or C-130J-30 used to appear 20 m or more away, out of reach of the DCS cargo window.
+They now stand in a row just clear of the hull: abeam for the helicopters, behind the C-130J-30.
+**Request Equipment**, **Pack Vehicle**, packing a FARP and **Drop Crate(s)** all follow this rule; a dropped row stands a little farther (`crateDropExtraDistance`, 2 m) so you can taxi or lift off without touching it.
+Every crate now stands parallel to the aircraft it was created for.
 
-`EXZ_<name>_<flag>_<smoke>` in the Mission Editor now works exactly like `TRZ_`/`LGZ_`/`WPZ_`
-already do — no scripted trigger needed to set one up. `<flag>` (a DCS flag to increment on
-extraction) and `<smoke>` (a smoke colour) each accept `nil` to mean "none".
+Where crates appear is declared per aircraft type in `capabilitiesByType` (`crateSpawnSector`, `crateSpawnDistance`), with defaults for the five types above; any other type keeps the previous layout.
+In a `slingLoad: true` mission, crates keep the previous layout, since the sling container has no measured size.
 
-The existing scripted `ctld.createExtractZone(...)` call still works unchanged — a
-naming-convention zone and a scripted one behave identically once created, so you can mix both in
-the same mission.
+## Native cargo is read from DCS itself
 
-## `ctld-tools` now reads your mission's AI-zone names for you
+Crates and whole vehicles loaded through the DCS cargo window are now detected from the aircraft's own on-board cargo list, instead of a position test against a box far larger than any cargo bay.
 
-Every `dcsZoneName` field in the tool now offers an autocomplete list of your mission's real
-trigger-zone names — a typo there used to surface only when DCS refused to start the mission.
+- A vehicle released by DCS, on the ground or by parachute, is detected and its JTAC resumes lasing.
+- **Unload Vehicles**, **Parachute Vehicle**, **Drop Crate(s)** and **Parachute Crates** apply only to what you loaded through the F10 menu: they no longer duplicate cargo DCS is carrying, and CTLD no longer adds that cargo's weight on top of DCS's own.
+- On the UH-1H and CH-47F, a crate loaded through the cargo window is handed to CTLD only once DCS has actually released it, which needs the doors open on the ground. A new F10 action, **Crate Commands > Fit parachute**, does it when you are ready.
+- The **CH-47F** now carries whole vehicles by default (the *Vehicle Commands* menu). Not yet checked in a live CH-47F.
 
-For AI transport zones specifically: if you already name yours something like
-`AIZ_depot_B_P_V`, `ctld-tools` recognises the pattern
-(`AIZ_<name>_<coalition>_<P|D>_<cargoType-or-aiDropMode>`) when you scan your mission, and
-pre-fills a new entry with those four fields already set — no retyping facts your zone name
-already states. Keep the pattern complete if you want the pre-fill; CTLD itself never reads
-meaning from the name, so an incomplete or non-matching one still works identically in DCS, it
-just falls back to a blank entry from the manual **+ AI zone** button instead. Renaming a zone (or
-removing it from the mission) is picked up the same way — a removal is always flagged for your
-confirmation, never applied silently.
+## Missions without USA or Russia get their crates again
 
-A pickup zone missing its stock table is now flagged directly in the editor instead of only
-surfacing once the mission is running: a real warning (⚠) when troop pickup is disabled for want
-of a `troopStock`, a calmer note (ⓘ) when a vehicle zone has no `vehicleStock` and is quietly
-falling back to whatever is physically parked there.
+In a mission whose coalitions hold neither USA nor Russia (CJTF Blue and CJTF Red, for instance), a requested crate never appeared: CTLD created it under a country DCS refused.
+Crates, vehicles, JTACs, troops and beacons are now created under the country of the requesting aircraft, or a country of its coalition.
+A creation DCS refuses is now logged and reported to the pilot instead of passing in silence.
 
-## UH-1H no longer transports a whole vehicle — Mi-8MT does it properly instead
+## JTAC: imposed laser codes and radios are respected
 
-Requested for realism, not a bug fix: a Huey has no internal cargo bay for a ground vehicle, and
-the documentation already said so — the config just disagreed with it. UH-1H's troop capacity is
-raised from 8 to 10 to match the airframe's real capacity instead.
+- A laser code imposed on a JTAC by a script is reserved: no automatic JTAC takes it, and a JTAC that already had it moves to another code and announces it.
+- A radio passed to a JTAC by a script is used as given, as in CTLD 1.x.
+- Automatic codes leave out the digits 0 and 9.
+- A late-activated JTAC group is coded when it activates, not at mission start.
 
-Mi-8MT's own whole-vehicle transport, on the other hand, was declared but never actually worked —
-it had no weight rating or vehicle list, so it could never load one. It now carries a realistic
-external sling-load rating (3000 kg) and the same loadable-vehicle list as the UH-1H.
+## Mission Editor naming
 
-### What this means for your mission
+- `TRZ_<name>_<coalition>_<stock>_<flag>_<target>` now works on a static, a unit or a group, not only a trigger zone: name a bunker, a ship or a convoy and it becomes a troop pickup zone, which moves with it and disappears when it dies.
+- A pre-placed group named `EXTR_<name>` is extractable without an `extractableGroups` entry.
 
-**If you relied on the UH-1H to sling-load or carry a whole vehicle, that no longer works — use
-the Mi-8MT instead.** Crate-based cargo on the UH-1H (ammo, supplies, anything that isn't a whole
-ground vehicle) is unaffected.
+## Configuration
 
-## `ctld-tools` no longer accepts a decimal where CTLD needs a whole number
+- **`enableParachuteDrop`** (default `true`) removes every parachute action from the F10 menu mission-wide when set to `false`.
+- **`ctld-tools` completes an older configuration** when it opens it: settings and fields added since it was saved get their default, listed in a summary with an Undo for each.
+  A value you set is never changed.
+  The header shows the configuration's version and the tool's catalogue version (now `2.2.0`).
 
-Reported by a Mission Maker: typing `6.01` into a troop template's infantry count was silently
-accepted by the editor. Every whole-number-only field — troop and launcher counts, quotas, laser
-codes, onboard-capacity limits, crate requirements, AI-zone stock — now enforces a whole-number
-step and rounds a typed decimal on the spot. Every genuinely continuous field (weights, distances,
-durations) is untouched and still accepts a decimal exactly as before. A hand-edited config that
-still carries a fractional value on one of these fields now gets a validation warning explaining
-which one.
+## Other fixes
+
+- Crate requests and troop loads from auto-discovered zones (`LGZ_`, `TRZ_`) work again; zones sharing a short name are no longer mistaken for each other.
+- A troop zone whose anchor is gone, with or without a death event, is no longer offered.
+- A failed equipment request or a failed troop parachute drop tells the pilot instead of doing nothing.
+- The first seconds after entering an aircraft no longer lose clicks to a menu rebuild.
+- The native-cargo messages are translated (FR, ES, KO).
+- `onUnitDead` no longer floods the log.
+
+## Breaking changes (mission scripts)
+
+- **Zones are named by their full name.** `TRZ_`, `LGZ_` and `WPZ_` zones, and zones created by `createTroopZoneAtObject`, register under their full DCS name. The zone accessors of `CTLDZoneManager` and their legacy wrappers (`ctld.activatePickupZone`, `ctld.changeRemainingGroupsForPickupZone`…) expect that full name: a script passing the short name (`dropzone1` for `TRZ_dropzone1_B_0_nil_0`) no longer finds the zone.
+- **Zone events** (`OnZoneSmokeRefreshed`, `OnTroopZoneUpdated`, `OnLogisticZoneUpdated`) identify every zone by `name`, its full name; the `fullName`, `zoneName` and `unitName` fields are gone.
+- **A troop zone anchored to a unit, group or static is removed when its anchor dies**, as logistic zones already were, instead of staying usable at its last position.
 
 ---
 
-Thanks to **Tripack** (VEAF) for testing and feedback on this release candidate.
+Thanks to **FullGas** for the F10 report that led to the menu fix, and to the VEAF Syria Open Training for the JTAC findings.
