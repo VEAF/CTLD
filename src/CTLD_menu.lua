@@ -109,7 +109,7 @@ function ctld.MenuManager:deferredRefreshForGroup(groupId)
     local selfRef = self
     -- The entry doubles as this callback's claim on the group: cancelPending removes the
     -- timer, and the callback refuses to act if the entry it finds is not its own. Either
-    -- alone would do in the common case; together they hold even if timer.removeFunction
+    -- alone would do in the common case; together they hold even if ctld.scheduler.remove
     -- misses, which matters because DCS reuses a numeric group id for the next occupant and
     -- the refresh would land on him 0.15 s into his flight (#152).
     local entry = {}
@@ -134,7 +134,7 @@ function ctld.MenuManager:cancelPending(groupId)
         -- Tolerate an entry that is not a table: this runs on the player-teardown path, and a
         -- raise here would abort the caller mid-cleanup and leave the player registered.
         if type(pending) == "table" and pending.timerId then
-            timer.removeFunction(pending.timerId)
+            ctld.scheduler.remove(pending.timerId)
         end
         self._pendingRefresh[groupId] = nil
     end

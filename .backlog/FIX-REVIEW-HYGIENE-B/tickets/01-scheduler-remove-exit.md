@@ -1,6 +1,6 @@
 # 01 — `ctld.scheduler.remove`: the exit symmetric to `schedule`
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -17,11 +17,11 @@ Files: `src/CTLD_utils.lua` (`ctld.scheduler`), `src/CTLD_menu.lua`, `src/CTLD_r
 
 ## Acceptance criteria
 
-- [ ] busted, written first and seen failing: `remove` cancels the id in DCS and drops it from `_pending`; after `remove(a)`, `cancelAll()` cancels only what is still pending; `remove(nil)` and an id DCS refuses raise nothing.
-- [ ] The new guard case fails on `develop` (six offenders) and passes after the migration.
-- [ ] Existing menu and recon specs pass unchanged.
-- [ ] Developer doc of the scheduler names `remove` (EN + FR).
-- [ ] luacheck clean; `busted` green.
+- [x] busted, written first and seen failing: `remove` cancels the id in DCS and drops it from `_pending`; after `remove(a)`, `cancelAll()` cancels only what is still pending; `remove(nil)` and an id DCS refuses raise nothing.
+- [x] The new guard case fails on `develop` (six offenders) and passes after the migration.
+- [x] Existing menu and recon specs pass unchanged.
+- [x] Developer doc of the scheduler names `remove` (EN + FR).
+- [x] luacheck clean; `busted` green.
 
 ## Blocked by
 

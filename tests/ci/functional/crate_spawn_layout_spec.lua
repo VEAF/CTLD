@@ -165,6 +165,43 @@ describe("CTLDCrateManager:spawnCratesAligned -- row beside an aircraft that dec
 
     end)
 
+    -- FIX-REVIEW-HYGIENE-B ticket 03 (issue #255): the row is computed from the crate size, so a crate model
+    -- that declares none (sling, used for every crate of a slingLoad mission) keeps the radial rule.
+    describe("a crate model without a size keeps the radial layout (slingLoad: true)", function()
+
+        local origGs, models
+
+        before_each(function()
+            origGs, models = ctld.gs, nil
+            ctld.gs = function(k)
+                if k == "slingLoad" then return true end
+                if k == "spawnableCratesModels" and models then return models end
+                return origGs(k)
+            end
+        end)
+
+        after_each(function() ctld.gs = origGs end)
+
+        it("puts a wave on the radial rule even for a type that declares a plan", function()
+            local pos = spawn("UH-1H", UH1H_BOX, 2)
+            assert.equals(2, #pos)
+            local secure = math.sqrt(8.86 * 8.86 + 1.59 * 1.59) + 5
+            local d1 = math.sqrt((pos[1].x - CX) ^ 2 + (pos[1].z - CZ) ^ 2)
+            local d2 = math.sqrt((pos[2].x - CX) ^ 2 + (pos[2].z - CZ) ^ 2)
+            assert.is_near(secure, d1, 0.01)
+            assert.is_near(secure + 5, d2, 0.01)
+        end)
+
+        it("gets the row back once the mission maker declares a size for the sling model", function()
+            models = { sling = { type = "container_cargo", size = 2.0 } }
+            local pos = spawn("UH-1H", UH1H_BOX, 2)
+            assert.equals(2, #pos)
+            for _, p in ipairs(pos) do assert.is_near(3.0, lateral(p), 0.01) end
+            assert.is_near(2.0 + 0.5, math.abs(ahead(pos[2]) - ahead(pos[1])), 0.01)
+        end)
+
+    end)
+
     describe("an aircraft that declares no plan keeps today's radial layout", function()
 
         it("puts the first crate at the secure distance + 5 m and the next 5 m further out", function()

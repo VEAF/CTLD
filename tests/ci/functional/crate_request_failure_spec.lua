@@ -193,6 +193,23 @@ describe("Request Equipment reports a request that produced nothing", function()
             assert.is_false(logged("ERROR", "Request Equipment"))
         end)
 
+        -- FIX-REVIEW-HYGIENE-B ticket 03 (issue #255): the sling model declares no size, so the row is refused
+        -- and the single crate takes the path of a type with no spawn plan.
+        it("in a slingLoad mission takes the path of a type with no spawn plan, even on a type that declares one", function()
+            ctld.gs = function(k)
+                if k == "slingLoad" then return true end
+                return origGs(k)
+            end
+            local cm = CTLDCrateManager.getInstance()
+            local aligned, modelKey = false, nil
+            cm.spawnCratesAligned = function() aligned = true; return 1, { clock = "3", positions = {} } end
+            cm.spawnCrate = function(_, _, _, _, _, _, _, key) modelKey = key; return true end
+            click(isSingle)
+            assert.is_false(aligned)
+            assert.equals("sling", modelKey)
+            assert.is_false(said(tr(FAILURE)))
+        end)
+
     end)
 
     describe("a set of crates", function()

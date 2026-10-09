@@ -25,7 +25,7 @@ describe("Drop Crate(s) placement (shared with Request Equipment)", function()
     local cm, transport, dropped, avoid, avoidSeen
     local origGs, origGetByName, origInAir, origRandom, origGetHeight, origGroupId, origOutText
     local origPositions, origInside
-    local caps, extraDrop, models
+    local caps, extraDrop, models, slingLoad
     local CX, CZ = 1000, 2000   -- aircraft position (heading 0: nose to +x, right side to +z)
     local UH1H_BOX = { min = { x = -8.86, y = -1.63, z = -1.59 }, max = { x = 3.95, y = 1.59, z = 1.56 } }
 
@@ -67,7 +67,8 @@ describe("Drop Crate(s) placement (shared with Request Equipment)", function()
         ctld.gs = function(k)
             if k == "capabilitiesByType" then return { ["UH-1H"] = caps } end
             if k == "crateDropExtraDistance" and extraDrop ~= "default" then return extraDrop end
-            if k == "spawnableCratesModels" then return models end
+            if k == "spawnableCratesModels" and models then return models end
+            if k == "slingLoad" and slingLoad then return true end
             if k == "loadCrateFromMenu" or k == "enableSmokeDrop" or k == "enabledFOBBuilding"
                or k == "enablePackingVehicles" or k == "enabledRadioBeaconDrop" or k == "reconF10Menu"
                or k == "JTAC_jtacStatusF10" or k == "JTAC_dropEnabled" then return false end
@@ -98,6 +99,7 @@ describe("Drop Crate(s) placement (shared with Request Equipment)", function()
         caps      = { cratesEnabled = true, crateSpawnSector = "side", crateSpawnDistance = 3.0 }
         extraDrop = 0
         models    = nil
+        slingLoad = false
         dropped, avoid, avoidSeen = {}, {}, nil
 
         transport = makeTransport("UH-1H")
@@ -210,6 +212,40 @@ describe("Drop Crate(s) placement (shared with Request Equipment)", function()
             cm:spawnCratesAligned({ { desc = "crate", unit = "Hummer" } }, transport, coalition.side.BLUE, "UH-1H-1",
                 CTLDCrate.SPAWN_METHOD.MENU_CTLD)
             assert.is_near(3.0, math.abs(lateral(spawned[1])), 0.01)
+        end)
+
+    end)
+
+    -- FIX-REVIEW-HYGIENE-B ticket 03 (issue #255): the row needs every dropped crate's size; a crate whose
+    -- model declares none (sling) sends the whole wave to the radial rule.
+    describe("a crate model without a size keeps the radial rule", function()
+
+        it("drops a sling crate by the radial rule, even from a type that declares a plan", function()
+            slingLoad = true
+            local menu = buildMenu()
+            addCrate("c1", "sling")
+            drop(menu)
+            assert.is_not_nil(avoidSeen)
+            local d = math.sqrt((dropped.c1.x - CX) ^ 2 + (dropped.c1.z - CZ) ^ 2)
+            assert.is_near(math.sqrt(8.86 * 8.86 + 1.59 * 1.59) + 5, d, 0.01)
+        end)
+
+        it("drops the whole wave by the radial rule when one crate of it has no size", function()
+            local menu = buildMenu()
+            addCrate("a", "dynamic")
+            addCrate("b", "sling")
+            drop(menu)
+            assert.is_not_nil(avoidSeen)
+        end)
+
+        it("drops a sling crate in the row once the mission maker declares its size", function()
+            slingLoad = true
+            models = { sling = { type = "container_cargo", size = 2.0 } }
+            local menu = buildMenu()
+            addCrate("c1", "sling")
+            drop(menu)
+            assert.is_nil(avoidSeen)
+            assert.is_near(3.0, math.abs(lateral(dropped.c1)), 0.01)
         end)
 
     end)

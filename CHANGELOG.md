@@ -20,6 +20,12 @@ Reported by players after ADR 0015 (#257): a click on a CTLD F10 entry could sti
 - Entries sharing the same `order` now keep their insertion order on every refresh; Lua's sort could shuffle them.
 - Developer: ADR 0027 supersedes ADR 0015; `ctld.MenuManager:runUrgent` and the `{ urgent = true }` option of `refresh()` are removed, `ctld.utils.protectedCall` keeps their error isolation, and `ctld.MenuManager:teardownGroup` tears a group's menu down.
 
+### Fixed — scene packing places its crates like every other crate, sling crates keep the radial rule, cancelled timers leave the scheduler (FIX-REVIEW-HYGIENE-B)
+
+- **Packing a FARP places its crates by the common rule** (#253). The crates of a packed scene appeared at a random bearing around the aircraft, at the generic distance and possibly inside a neighbouring aircraft, so a native-cargo pilot could not load them back through the DCS cargo window without repositioning. They now stand where Request Equipment, Drop Crate(s) and Pack Vehicle put theirs: in a row just clear of the hull for a type that declares a crate spawn plan, the radial rule with the anti-collision otherwise (ADR 0024). Packing a FARP no longer shows a `[PackCallback] ENTER` debug line to every player of the mission.
+- **A crate model without `size` keeps the radial rule** (#255). The row was computed for a 1.5 m crate when the model declared no size, which is the case of the default `sling` container: every crate of a `slingLoad: true` mission was laid out for a crate smaller than the container. No size is invented any more: such a crate, requested or dropped, takes the radial rule, as sling missions did before ADR 0024. Declaring a `size` on the model brings the row back.
+- **A timer cancelled by id leaves the scheduler registry** (#254). Menu rebuilds and recon refreshes cancelled through `timer.removeFunction` stayed recorded as pending for the rest of the mission, so the registry grew with every menu action and recon pass and `cancelAll()` "cancelled" thousands of dead timers. `ctld.scheduler.remove(id)` is now the only way to cancel a timer by id, and a guard spec forbids a direct `timer.removeFunction` in `src/`.
+
 ### Fixed — objects are created under a country of their coalition, and a refused creation is reported (FIX-SPAWN-COUNTRY-FALLBACK)
 
 - In a mission whose coalitions hold neither USA nor Russia (a VEAF campaign mission holds only CJTF Blue and CJTF Red), a crate requested through *Request Equipment* never appeared.
