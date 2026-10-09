@@ -24,3 +24,6 @@ dofile(_thisFile .. "tests/ci/helpers/loader.lua")
 -- (specs run with different working directories under busted and under tools/lua-test).
 -- See the helper's header for why this exists: FIX-SPEC-ISOLATION.
 ctldTestSettings = dofile(_thisFile .. "tests/ci/helpers/settings.lua")
+
+-- missionCommands double that recycles entry ids the way DCS does (#257). Same global for the same reason.
+ctldMissionCommandsDouble = dofile(_thisFile .. "tests/ci/helpers/mission_commands_double.lua")
