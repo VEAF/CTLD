@@ -8,7 +8,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Fixed — the JTAC radio messages are translated, and the guard sees the \ctld.i18n_translate\ alias (FIX-I18N-TRANSLATE-ALIAS)
+### Fixed — the JTAC radio messages are translated, and the guard sees the `ctld.i18n_translate` alias (FIX-I18N-TRANSLATE-ALIAS)
 
 - The JTAC radio messages were written through `ctld.i18n_translate`, an alias of `ctld.tr` that the dictionary generator, the `i18n-guard`
   job and the `pre-push` hook do not scan for: 16 JTAC keys were in no English dictionary and 13 in none at all, so every JTAC radio call came
