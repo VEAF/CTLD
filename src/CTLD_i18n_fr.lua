@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.27"
+ctld.i18n["fr"].translation_version = "1.28"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -189,8 +189,6 @@ ctld.i18n["fr"]["List Beacons"] = "Lister balises"
 
 --- JTAC messages
 -- STALE: ctld.i18n["fr"]["JTAC Group %1 KIA!"] = "Groupe JTAC %1 KIA !"
--- STALE: ctld.i18n["fr"]["%1, selected target reacquired, %2"] = "%1, cible sélectionnée réacquise, %2"
--- STALE: ctld.i18n["fr"][". CODE: %1. POSITION: %2"] = ". CODE : %1. POSITION : %2"
 -- STALE: ctld.i18n["fr"]["new target, "] = "nouvelle cible, "
 -- STALE: ctld.i18n["fr"]["standing by on %1"] = "en attente sur %1"
 -- STALE: ctld.i18n["fr"]["lasing %1"] = "laser %1"
@@ -202,7 +200,6 @@ ctld.i18n["fr"]["List Beacons"] = "Lister balises"
 -- STALE: ctld.i18n["fr"]["%1 %2 target destroyed."] = "%1 %2 cible détruite."
 -- STALE: ctld.i18n["fr"]["JTAC STATUS: \n\n"] = "ÉTAT JTAC : \n\n"
 -- STALE: ctld.i18n["fr"][", available on %1 %2,"] = ", disponible sur %1 %2,"
--- STALE: ctld.i18n["fr"]["UNKNOWN"] = "INCONNU"
 -- STALE: ctld.i18n["fr"][" targeting "] = " ciblage "
 -- STALE: ctld.i18n["fr"][" targeting selected unit "] = " ciblage de l'unité sélectionnée "
 -- STALE: ctld.i18n["fr"][" attempting to find selected unit, temporarily targeting "] = " tentative de recherche de l'unité sélectionnée, ciblage temporaire "
@@ -629,3 +626,21 @@ ctld.i18n["fr"]["Unpack failed: the equipment could not be created."] = "Échec 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-20
 ctld.i18n["fr"]["FARP packed: %1 of %2 crates created."] = "FARP remballé : %1 caisse(s) sur %2 créée(s)."
 ctld.i18n["fr"]["Pack failed: the crates could not be created."] = "Remballage impossible : les caisses n'ont pas pu être créées."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-20
+ctld.i18n["fr"]["%1, %2 new target, %3"] = "%1, nouvelle cible, %2 %3"
+ctld.i18n["fr"]["%1, laser code changed to %2, now on %3 %4."] = "%1, code laser changé en %2, maintenant sur %3 %4."
+ctld.i18n["fr"]["%1, laser code changed to %2."] = "%1, code laser changé en %2."
+ctld.i18n["fr"]["%1, no targets in range."] = "%1, aucune cible à portée."
+ctld.i18n["fr"]["%1, selected %2 %3"] = "%1, %2 %3, cible sélectionnée"
+ctld.i18n["fr"]["%1, selected target destroyed."] = "%1, cible sélectionnée détruite."
+ctld.i18n["fr"]["%1, selected target lost, temporarily lasing %2"] = "%1, cible sélectionnée perdue, désignation temporaire de %2"
+ctld.i18n["fr"]["%1, selected target reacquired, %2"] = "%1, cible sélectionnée réacquise, %2"
+ctld.i18n["fr"]["%1, target destroyed."] = "%1, cible détruite."
+ctld.i18n["fr"]["%1, target lost."] = "%1, cible perdue."
+ctld.i18n["fr"][". CODE: %1. POSITION: %2"] = ". CODE : %1. POSITION : %2"
+ctld.i18n["fr"]["JTAC %1 KIA!"] = "JTAC %1 KIA !"
+ctld.i18n["fr"]["lasing"] = "désigne"
+ctld.i18n["fr"]["standing by on"] = "en attente sur"
+ctld.i18n["fr"]["unknown"] = "inconnu"
+ctld.i18n["fr"]["UNKNOWN"] = "INCONNU"

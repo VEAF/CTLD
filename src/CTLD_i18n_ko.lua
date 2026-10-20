@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.27"
+ctld.i18n["ko"].translation_version = "1.28"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -483,3 +483,21 @@ ctld.i18n["ko"]["Unpack failed: the equipment could not be created."] = "풀기 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-20
 ctld.i18n["ko"]["FARP packed: %1 of %2 crates created."] = "FARP 포장됨: 상자 %2개 중 %1개 생성됨."
 ctld.i18n["ko"]["Pack failed: the crates could not be created."] = "포장 실패: 상자를 생성할 수 없습니다."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-20
+ctld.i18n["ko"]["%1, %2 new target, %3"] = "%1, 새 표적, %2 %3"
+ctld.i18n["ko"]["%1, laser code changed to %2, now on %3 %4."] = "%1, 레이저 코드가 %2(으)로 변경됨, 현재 %3 %4."
+ctld.i18n["ko"]["%1, laser code changed to %2."] = "%1, 레이저 코드가 %2(으)로 변경됨."
+ctld.i18n["ko"]["%1, no targets in range."] = "%1, 사거리 내 표적 없음."
+ctld.i18n["ko"]["%1, selected %2 %3"] = "%1, %2 %3, 선택된 표적"
+ctld.i18n["ko"]["%1, selected target destroyed."] = "%1, 선택된 표적 파괴."
+ctld.i18n["ko"]["%1, selected target lost, temporarily lasing %2"] = "%1, 선택된 표적 소실, 임시 레이저 지시: %2"
+ctld.i18n["ko"]["%1, selected target reacquired, %2"] = "%1, 선택된 표적 재획득, %2"
+ctld.i18n["ko"]["%1, target destroyed."] = "%1, 표적 파괴."
+ctld.i18n["ko"]["%1, target lost."] = "%1, 표적 소실."
+ctld.i18n["ko"][". CODE: %1. POSITION: %2"] = ". 코드: %1. 위치: %2"
+ctld.i18n["ko"]["JTAC %1 KIA!"] = "JTAC %1 전사!"
+ctld.i18n["ko"]["lasing"] = "레이저 지시:"
+ctld.i18n["ko"]["standing by on"] = "대기:"
+ctld.i18n["ko"]["unknown"] = "알 수 없음"
+ctld.i18n["ko"]["UNKNOWN"] = "알 수 없음"

@@ -105,7 +105,8 @@ function ctld.tr(text, ...)
     return _text
 end
 
---- Backward-compatibility alias.
+--- Backward-compatibility alias, kept for scripts outside the repository. Code in src/ calls ctld.tr; the dictionary
+--- generator also recognises this name.
 ctld.i18n_translate = ctld.tr
 
 -- =====================================================================
