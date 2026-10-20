@@ -1018,14 +1018,26 @@ function CTLDCrateManager:refreshPackEquiptSection(playerObj, overrideInAir, noR
                 -- crates of the FARP just packed.
                 local descriptors = {}
                 for i = 1, (cd.cratesRequired or 1) do descriptors[i] = desc end
-                local _, _, crates = mgr_c:spawnCratesAligned(descriptors, t, t:getCoalition(), t:getName(),
+                local createdCount, _, crates = mgr_c:spawnCratesAligned(descriptors, t, t:getCoalition(), t:getName(),
                     CTLDCrate.SPAWN_METHOD.CRATE_SPAWN)
                 if repackData and repackData.warehouseSnapshot then
                     for _, crate in ipairs(crates) do
                         crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
                     end
                 end
-                trigger.action.outTextForGroup(gid, ctld.tr("FARP packed successfully!"), 10)
+                -- The scene is already destroyed: a pack that produced nothing, or only part of its crates, must say so.
+                if createdCount == 0 then
+                    ctld.utils.log("ERROR", "Pack %s: scene '%s' packed but no crate was created (unit=%s)",
+                        tostring(sc._modelName), tostring(arg.sceneName), tostring(arg.unitName))
+                    trigger.action.outTextForGroup(gid, ctld.tr("Pack failed: the crates could not be created."), 10)
+                elseif createdCount < #descriptors then
+                    ctld.utils.log("WARNING", "Pack %s: only %d of %d crates created for scene '%s' (unit=%s)",
+                        tostring(sc._modelName), createdCount, #descriptors, tostring(arg.sceneName), tostring(arg.unitName))
+                    trigger.action.outTextForGroup(gid,
+                        ctld.tr("FARP packed: %1 of %2 crates created.", createdCount, #descriptors), 10)
+                else
+                    trigger.action.outTextForGroup(gid, ctld.tr("FARP packed successfully!"), 10)
+                end
                 mgr_c:refreshUnpackSectionForUnit(arg.unitName)
             end,
             { unitName = playerObj.unitName, sceneName = scene._name })

@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.26"
+ctld.i18n["ko"].translation_version = "1.27"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -479,3 +479,7 @@ ctld.i18n["ko"]["The cargo bay doors are closed: open them, then use Fit parachu
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-09
 ctld.i18n["ko"]["Unpack failed: the equipment could not be created."] = "풀기 실패: 장비를 생성할 수 없습니다."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-20
+ctld.i18n["ko"]["FARP packed: %1 of %2 crates created."] = "FARP 포장됨: 상자 %2개 중 %1개 생성됨."
+ctld.i18n["ko"]["Pack failed: the crates could not be created."] = "포장 실패: 상자를 생성할 수 없습니다."

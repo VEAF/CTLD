@@ -28,9 +28,9 @@ describe("Pack <scene> places its crates by the common rule", function()
     local CX, CZ = 1000, 2000   -- aircraft position (heading 0: nose to +x, right side to +z)
     local UH1H_BOX = { min = { x = -8.86, y = -1.63, z = -1.59 }, max = { x = 3.95, y = 1.59, z = 1.56 } }
 
-    local cm, sm, transport, created, avoid, avoidSeen, broadcasts, caps
+    local cm, sm, transport, created, avoid, avoidSeen, broadcasts, caps, messages, logs, createLimit
     local origGs, origGetByName, origInAir, origRandom, origGroupId, origOutTextGroup, origOutText
-    local origPositions, origActive, origModels
+    local origPositions, origActive, origModels, origLog
 
     local function lateral(p) return p.z - CZ end    -- + = right of the aircraft
     local function ahead(p)   return p.x - CX end    -- + = in front of the nose
@@ -58,6 +58,11 @@ describe("Pack <scene> places its crates by the common rule", function()
 
         caps = { cratesEnabled = true, crateSpawnSector = "side", crateSpawnDistance = 3.0 }
         created, avoid, avoidSeen, broadcasts = {}, {}, nil, {}
+        messages, logs, createLimit = {}, {}, math.huge
+        origLog = ctld.utils.log
+        ctld.utils.log = function(level, fmt, ...)
+            logs[#logs + 1] = { level = level, text = select("#", ...) > 0 and string.format(fmt, ...) or fmt }
+        end
 
         ctld.gs = function(k)
             if k == "capabilitiesByType" then return { ["UH-1H"] = caps } end
@@ -88,7 +93,7 @@ describe("Pack <scene> places its crates by the common rule", function()
         ctld.utils.inAir = function() return false end
         ctld.utils.getGroupId = function() return 9904 end
         ctld.utils.RandomReal = function() return 0.1 end        -- the right side, whatever the range
-        trigger.action.outTextForGroup = function() end
+        trigger.action.outTextForGroup = function(_, text) messages[#messages + 1] = text end
         trigger.action.outText = function(text) broadcasts[#broadcasts + 1] = text end
         ctld.utils.getSpawnObjectPositions = function(unit, n, dist, spacing, axis, avoidList)
             avoidSeen = avoidList
@@ -108,6 +113,7 @@ describe("Pack <scene> places its crates by the common rule", function()
         cm._getDynamicBBoxes = function() return avoid end
         cm.findDescriptorByUnitType = function() return { desc = "FARP crate", unit = MODEL, weight = 1000 } end
         cm.spawnCrate = function(_, _, pos)
+            if #created >= createLimit then return nil end
             local crate = { position = pos, metadata = {} }
             created[#created + 1] = crate
             return crate
@@ -120,6 +126,7 @@ describe("Pack <scene> places its crates by the common rule", function()
         ctld.utils.RandomReal, ctld.utils.getGroupId = origRandom, origGroupId
         trigger.action.outTextForGroup, trigger.action.outText = origOutTextGroup, origOutText
         ctld.utils.getSpawnObjectPositions = origPositions
+        ctld.utils.log = origLog
         sm._active, sm._models = origActive, origModels
         resetAll()
     end)
@@ -162,6 +169,44 @@ describe("Pack <scene> places its crates by the common rule", function()
             assert.equals(3, #created)
             assert.equals(avoid, avoidSeen)
             for _, c in ipairs(created) do assert.equals(SNAPSHOT, c.metadata.warehouseSnapshot) end
+        end)
+
+    end)
+
+    describe("reports how many crates the pack produced", function()
+
+        local function said(text)
+            for _, m in ipairs(messages) do if m == text then return true end end
+            return false
+        end
+
+        local function logged(level, pattern)
+            for _, l in ipairs(logs) do
+                if l.level == level and l.text:find(pattern, 1, true) then return true end
+            end
+            return false
+        end
+
+        it("announces the success when every crate was created (control)", function()
+            pack()
+            assert.is_true(said("FARP packed successfully!"))
+            assert.is_false(logged("ERROR", "packed but no crate"))
+        end)
+
+        it("tells the pilot and logs an ERROR when no crate was created", function()
+            createLimit = 0
+            pack()
+            assert.is_true(said("Pack failed: the crates could not be created."))
+            assert.is_false(said("FARP packed successfully!"))
+            assert.is_true(logged("ERROR", "packed but no crate"))
+        end)
+
+        it("tells the pilot how many crates were created and logs a WARNING when only some were", function()
+            createLimit = 2
+            pack()
+            assert.is_true(said("FARP packed: 2 of 3 crates created."))
+            assert.is_false(said("FARP packed successfully!"))
+            assert.is_true(logged("WARNING", "only 2 of 3 crates"))
         end)
 
     end)

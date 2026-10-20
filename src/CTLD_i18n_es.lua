@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.26"
+ctld.i18n["es"].translation_version = "1.27"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -600,3 +600,7 @@ ctld.i18n["es"]["The cargo bay doors are closed: open them, then use Fit parachu
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-09
 ctld.i18n["es"]["Unpack failed: the equipment could not be created."] = "Fallo al desempaquetar: no se pudo crear el equipo."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-20
+ctld.i18n["es"]["FARP packed: %1 of %2 crates created."] = "FARP reempacado: %1 de %2 cajas creadas."
+ctld.i18n["es"]["Pack failed: the crates could not be created."] = "Error al reempacar: no se pudieron crear las cajas."

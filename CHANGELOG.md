@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — Packing a FARP reports how many crates were created (FIX-FARP-PACK-FALSE-SUCCESS)
+
+- Packing a FARP destroys the scene first, then creates its crates, and always announced "FARP packed successfully!" whatever the creation
+  produced: a FARP could disappear with no crate (DCS refused the objects) and the warehouse share of the missing crates was lost without a
+  word. The pack now reads how many crates were created: none gives "Pack failed: the crates could not be created." and an ERROR in the log,
+  only some gives "FARP packed: N of M crates created." and a WARNING, all of them keeps the existing message. The order of the operations
+  is unchanged (issue #263). FR/ES/KO texts are a proposal for review.
+
 ### Fixed — Unpack Crate no longer announces a success when nothing was created (FIX-UNPACK-FALSE-SUCCESS)
 
 - The Unpack Crate click announced "<equipment> unpacked successfully!" whenever the creation did not answer "refused", so a JTAC unpack blocked
