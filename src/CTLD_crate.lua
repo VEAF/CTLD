@@ -796,9 +796,12 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, noRefresh)
                         local coa = arg.coalition
                         local cId = ctld.utils.resolveCountryId(coa, t)
                         spawned = mgr:_spawnUnpacked(desc, spawnPos, coa, cId, playerObj.unitName)
+                    else
+                        ctld.utils.log("WARNING", "Unpack Crate — nothing attempted for '%s' (unit=%s): no descriptor, unit type or spawn position",
+                            tostring(arg.unitType), tostring(arg.unitName))
                     end
-                    -- A refused group has already been reported to the group by _spawnUnpacked.
-                    if spawned ~= false then
+                    -- A refused group, or a JTAC limit, has already been reported to the group by _spawnUnpacked.
+                    if spawned == true then
                         trigger.action.outTextForGroup(gid,
                             ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
                     end

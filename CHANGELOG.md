@@ -8,6 +8,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — Unpack Crate no longer announces a success when nothing was created (FIX-UNPACK-FALSE-SUCCESS)
+
+- The Unpack Crate click announced "<equipment> unpacked successfully!" whenever the creation did not answer "refused", so a JTAC unpack blocked
+  by the coalition's JTAC limit (and any unpack that could not even be attempted) read as a success right after its refusal message, with the
+  crates already consumed. The success is now announced only when the group was created; the refusal is still reported once, and an unpack
+  with no descriptor, unit type or spawn position is logged at WARNING (issue #264).
+
 ### Fixed — an F10 click no longer fires another command after a menu refresh (FIX-MENU-STABLE-ENTRIES)
 
 Reported by players after ADR 0015 (#257): a click on a CTLD F10 entry could still fire another command, sometimes another group's.
