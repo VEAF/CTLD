@@ -2281,8 +2281,9 @@ dynamiques sont passées en arguments séparés. Ne jamais construire une clé p
 <p>Cela a son importance parce que <code>generate_i18n_dicts.ps1</code> extrait les clés avec une expression
 régulière. Si chaque clé est un littéral, le scan est fiable à 100 % ; la concaténation crée des
 angles morts.</p>
-<p><code>ctld.i18n_translate</code> est un alias de compatibilité ascendante pour <code>ctld.tr</code> — le nouveau code
-utilise <code>ctld.tr</code>.</p>
+<p><code>ctld.i18n_translate</code> est un alias de compatibilité ascendante pour <code>ctld.tr</code>, conservé pour les scripts
+extérieurs au dépôt — le code de <code>src/</code> utilise <code>ctld.tr</code>. Le générateur reconnaît aussi l'alias : une clé
+écrite par son intermédiaire arrive quand même dans les dictionnaires.</p>
 <h3 id="fallback-chain">Chaîne de repli<a class="headerlink" href="#fallback-chain" title="Permanent link">&para;</a></h3>
 <p><code>ctld.tr()</code> ne retourne jamais <code>nil</code> ni une chaîne vide. Elle résout dans cet ordre :</p>
 <ol>

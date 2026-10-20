@@ -2277,7 +2277,8 @@ separate arguments. Never build a key by concatenation:</p>
 </code></pre></div>
 <p>This matters because <code>generate_i18n_dicts.ps1</code> extracts keys with a regex. If every key is a
 literal the scan is 100% reliable; concatenation creates blind spots.</p>
-<p><code>ctld.i18n_translate</code> is a backward-compatibility alias for <code>ctld.tr</code> — new code uses <code>ctld.tr</code>.</p>
+<p><code>ctld.i18n_translate</code> is a backward-compatibility alias for <code>ctld.tr</code>, kept for scripts outside the repository — code in <code>src/</code>
+uses <code>ctld.tr</code>. The generator also recognises the alias, so a key written through it still reaches the dictionaries.</p>
 <h3 id="fallback-chain">Fallback chain<a class="headerlink" href="#fallback-chain" title="Permanent link">&para;</a></h3>
 <p><code>ctld.tr()</code> never returns <code>nil</code> or an empty string. It resolves in this order:</p>
 <ol>
