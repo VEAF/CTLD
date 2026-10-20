@@ -70,7 +70,8 @@ $usedKeys = [System.Collections.Generic.HashSet[string]]::new()
 foreach ($file in $sourceFiles) {
     $content = Get-Content $file.FullName -Raw -Encoding UTF8
     # Keys are ALWAYS complete string literals — no concatenation allowed (see specs/i18n_rules.md)
-    $found = [regex]::Matches($content, 'ctld\.tr\s*\(\s*"((?:[^"\\]|\\.)*)"')
+    # ctld.i18n_translate is the backward-compatibility alias of ctld.tr: a key written through it is a key too.
+    $found = [regex]::Matches($content, '(?:ctld\.tr|ctld\.i18n_translate)\s*\(\s*"((?:[^"\\]|\\.)*)"')
     foreach ($m in $found) {
         [void]$usedKeys.Add($m.Groups[1].Value)
     }

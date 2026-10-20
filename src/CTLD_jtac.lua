@@ -362,59 +362,59 @@ CTLDJTACMessage = {}
 --   full  : detailed, displayed on screen (includes code + position)
 function CTLDJTACMessage.build(ctx)
     local name  = ctx.jtacName   or "JTAC"
-    local ttype = ctx.targetType or ctld.i18n_translate("unknown")
-    local code  = ctx.laserCode  and tostring(ctx.laserCode) or ctld.i18n_translate("UNKNOWN")
+    local ttype = ctx.targetType or ctld.tr("unknown")
+    local code  = ctx.laserCode  and tostring(ctx.laserCode) or ctld.tr("UNKNOWN")
     local pos   = ctx.positionStr or ""
 
-    local codePosStr = ctld.i18n_translate(". CODE: %1. POSITION: %2", code, pos)
+    local codePosStr = ctld.tr(". CODE: %1. POSITION: %2", code, pos)
 
     local short, full
 
     if ctx.event == "new_target" then
         local verb = ctx.standby
-            and ctld.i18n_translate("standing by on")
-            or  ctld.i18n_translate("lasing")
+            and ctld.tr("standing by on")
+            or  ctld.tr("lasing")
         if ctx.wasSelected then
-            short = ctld.i18n_translate("%1, selected %2 %3", name, verb, ttype)
+            short = ctld.tr("%1, selected %2 %3", name, verb, ttype)
         else
-            short = ctld.i18n_translate("%1, %2 new target, %3", name, verb, ttype)
+            short = ctld.tr("%1, %2 new target, %3", name, verb, ttype)
         end
         full = short .. codePosStr
 
     elseif ctx.event == "target_reacquired" then
-        short = ctld.i18n_translate("%1, selected target reacquired, %2", name, ttype)
+        short = ctld.tr("%1, selected target reacquired, %2", name, ttype)
         full  = short .. codePosStr
 
     elseif ctx.event == "target_lost" then
         if ctx.wasSelected then
-            short = ctld.i18n_translate("%1, selected target lost, temporarily lasing %2", name, ttype)
+            short = ctld.tr("%1, selected target lost, temporarily lasing %2", name, ttype)
         else
-            short = ctld.i18n_translate("%1, target lost.", name)
+            short = ctld.tr("%1, target lost.", name)
         end
         full = short
 
     elseif ctx.event == "target_destroyed" then
         if ctx.wasSelected then
-            short = ctld.i18n_translate("%1, selected target destroyed.", name)
+            short = ctld.tr("%1, selected target destroyed.", name)
         else
-            short = ctld.i18n_translate("%1, target destroyed.", name)
+            short = ctld.tr("%1, target destroyed.", name)
         end
         full = short
 
     elseif ctx.event == "kia" then
-        short = ctld.i18n_translate("JTAC %1 KIA!", name)
+        short = ctld.tr("JTAC %1 KIA!", name)
         full  = short
 
     elseif ctx.event == "no_targets" then
-        short = ctld.i18n_translate("%1, no targets in range.", name)
+        short = ctld.tr("%1, no targets in range.", name)
         full  = short
 
     elseif ctx.event == "code_changed" then
         if ctx.radio and ctx.radio.freq then
-            short = ctld.i18n_translate("%1, laser code changed to %2, now on %3 %4.",
+            short = ctld.tr("%1, laser code changed to %2, now on %3 %4.",
                 name, code, ctx.radio.freq, string.upper(ctx.radio.mod or "FM"))
         else
-            short = ctld.i18n_translate("%1, laser code changed to %2.", name, code)
+            short = ctld.tr("%1, laser code changed to %2.", name, code)
         end
         full = short
 

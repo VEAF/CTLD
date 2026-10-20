@@ -8,6 +8,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — the JTAC radio messages are translated, and the guard sees the `ctld.i18n_translate` alias (FIX-I18N-TRANSLATE-ALIAS)
+
+- The JTAC radio messages were written through `ctld.i18n_translate`, an alias of `ctld.tr` that the dictionary generator, the `i18n-guard`
+  job and the `pre-push` hook do not scan for: 16 JTAC keys were in no English dictionary and 13 in none at all, so every JTAC radio call came
+  out in English on a French, Spanish or Korean server (with `lasing` / `standing by on` in the middle of a translated sentence). The JTAC
+  module now calls `ctld.tr`, the 16 keys are in the four dictionaries (FR/ES/KO texts are a proposal for review), and the generator also
+  recognises the alias, which stays defined for scripts outside the repository. A new spec checks that every literal key used in `src/` is a
+  key of the English dictionary (issue #265).
+
 ### Fixed — Packing a FARP reports how many crates were created (FIX-FARP-PACK-FALSE-SUCCESS)
 
 - Packing a FARP destroys the scene first, then creates its crates, and always announced "FARP packed successfully!" whatever the creation
