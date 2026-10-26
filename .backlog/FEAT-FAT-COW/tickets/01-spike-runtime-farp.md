@@ -1,0 +1,72 @@
+# 01 — In-game spike: a runtime FARP, its finite stock, its vehicles
+
+**Status:** 🧑 waiting-human (Zip runs it in DCS) · **Type:** HITL (live DCS, Zip)
+
+## Parent
+
+[PRD — FEAT-FAT-COW](../PRD.md). Decision 4.
+
+## Questions
+
+- **(a)** Does a FARP spawned mid-mission serve refuel/rearm to a player who was already in game?
+- **(b)** Is a finite warehouse stock respected, and seen identically by the server and by a client?
+- **(c)** Does DCS require a refuel/ammo vehicle in range of an Invisible FARP?
+
+## Kit
+
+- `tests/dcs/pilotActive/scenario_fatcow_spike.lua` — pure DCS API, no CTLD. An F10 menu per player group, "Fat Cow spike": 1 Invisible FARP under me · 2 Finite stock (300 kg, 2 Hellfire) · 3 Read stock + my aircraft · 4 Add fuel + ammo trucks · 5 Single pad FARP ahead (variant) · 6 Remove everything. Every measurement goes to the screen and to `dcs.log`, prefixed `[FCSPIKE]`.
+- `missions/Test_FatCow_Spike.miz` — Caucasus, a flat field 19 km from Senaki and from Kutaisi (no airfield ground crew in reach). Two AH-64D slots (`Apache-1`, `Apache-2`), air start at 150 m and 80 kt, heading north, 2 km south of the field, 30 % fuel (342 kg), empty pylons. The script is embedded and runs at mission start.
+- Built with the VMCT `veaf-mission-editor` actions on a blank Caucasus mission (`veaf_libs.blank_mission`): `add_player_slot` ×2, `add_startup_script_trigger` (`file_static`). To rebuild after a script change, redo these three actions on a fresh blank mission.
+
+The 300 kg of fuel is below the ~800 kg a 30 % Apache takes to fill up, and the 2 Hellfires below the 4 a rail takes: a cap shows as a partial service.
+
+## Procedure — phase 1, single player (answers a, c, and b on one machine)
+
+Press **Print Screen** (DCS screenshot, saved in `Saved Games\DCS\Screenshots`) where marked 📸: the screenshots and `dcs.log` are read afterwards, nothing has to be copied by hand.
+
+1. DCS main menu → **MISSION** → `Test_FatCow_Spike.miz` → **OK**. If a slot is asked, take **Apache-1**.
+2. A message `[FCSPIKE] loaded` shows at start. Fly straight ahead and land on open ground, away from trees. Engines stay running.
+3. `\` → **F10 Other** → **Fat Cow spike** → **F1** "1. Invisible FARP under me". Green smoke under you; lines `SPAWNED` and `INITIAL STOCK`. 📸
+4. `\` → **F8 Ground Crew** → **F1 Rearm & Refuel**. The rearm window opens (or not). 📸 Close it.
+5. `\` → **F10 Other** → **Fat Cow spike** → **F2** "2. Finite stock". Lines `SET STOCK` and `STOCK READ BACK`. 📸
+6. `\` → **F8 Ground Crew** → **F1 Rearm & Refuel**. 📸 In the window: fuel to **100 %**, and **4 × AGM-114K** on one pylon. Confirm the window.
+7. Wait until the ground crew is done (or says it cannot). 📸
+8. `\` → **F10 Other** → **Fat Cow spike** → **F3** "3. Read stock + my aircraft". 📸
+9. **Only if step 6 or 7 refused the service:** `\` → **F10 Other** → **Fat Cow spike** → **F4** "4. Add fuel + ammo trucks", then redo steps 6 to 8.
+10. **Only if step 3 printed `getWarehouse() = nil`:** `\` → **F10 Other** → **Fat Cow spike** → **F6** "6. Remove everything", then **F5** "5. Single pad FARP ahead", hover-taxi onto the green smoke 40 m ahead, land, and redo steps 4 to 8.
+11. Quit the mission. Say "phase 1 done".
+
+## Procedure — phase 2, multiplayer (the client side of b)
+
+Needs the mission on a dedicated server (the VEAF test server) and Zip joining it as a client: in single player the server and the client are the same process.
+
+1. Load `Test_FatCow_Spike.miz` on the server. Join it as a client, slot **Apache-1**.
+2. Steps 2 to 8 of phase 1.
+3. Back to spectators (**Esc** → **Choose slot** → spectators), then take **Apache-1** again: a new birth. The script prints `STOCK AT BIRTH`.
+4. Land if needed (a new air start), then `\` → **F8 Ground Crew** → **F1 Rearm & Refuel**. 📸
+5. Quit. The server's `dcs.log` holds the `[FCSPIKE]` lines.
+
+## Reading the results
+
+| What is seen | Conclusion |
+|---|---|
+| Step 3 `INITIAL STOCK` prints numbers | (b) The Invisible FARP has a warehouse: the countryside scene's step 11 comment is wrong. |
+| Step 3 prints `getWarehouse() = nil` | No finite stock on an Invisible FARP → step 10; if the single pad has one, decision 2 changes its FARP type (to Zip). |
+| Step 4 window opens with nothing to take | (b) The runtime FARP starts empty, as the forum guide says: the cow must stock it, which it does anyway. |
+| Step 6–7 serves, without trucks | (a) yes and (c) no vehicle needed: decision 2 holds. |
+| Step 6–7 refuses, step 9 serves | (c) DCS needs vehicles: fallback, a vehicle hidden under the cow's fuselage. |
+| Step 9 still refuses | (a) a runtime FARP does not serve a player already in game: stop, report to Zip (the RotorOps route, teleporting pre-placed FARPs, becomes the candidate). |
+| Step 8: aircraft got ~300 kg and 2 Hellfires, stock 0 | (b) finite stock respected on the server. |
+| Step 8: aircraft got full fuel and 4 Hellfires | (b) the stock is not enforced: stop, report to Zip (decision 3). |
+| Phase 2: rearm window shows the same quantities as `STOCK NOW` | (b) client and server agree. |
+| Phase 2: the client's window shows something else (empty, or unlimited) | (b) no network sync: the stock has to be re-applied on each birth, as VMCT does, and enforcement checked server-side. |
+
+## Answers
+
+Pending.
+
+## Acceptance criteria
+
+- [ ] (a), (b) on one machine, (c) answered from `dcs.log` and the screenshots, in this ticket and the PRD.
+- [ ] (b) client side answered by phase 2, or marked not measured with the reason.
+- [ ] If an answer kills the design, reported to Zip before ticket 02 is written.
