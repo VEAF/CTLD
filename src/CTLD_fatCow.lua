@@ -388,7 +388,6 @@ function CTLDFatCowManager:requestCrate(unitName, weight)
     trigger.action.outTextForGroup(gid, ctld.tr("%1 is next to you: load it into your hold.", desc.desc), 10)
 end
 
---- Deploys the FARP with the cow crates on board as its stock. The crates stay on board.
 --- In a friendly logistic zone that serves crates, on the ground: true, or false after telling why.
 local function atLogistics(t, gid)
     if ctld.utils.inAir(t) then
@@ -455,6 +454,7 @@ function CTLDFatCowManager:unloadHold(unitName)
     trigger.action.outTextForGroup(gid, ctld.tr("%1 Fat Cow crate(s) unloaded.", #crates), 10)
 end
 
+--- Deploys the FARP with the cow crates on board as its stock. The crates stay on board.
 function CTLDFatCowManager:deployFromHold(unitName)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
