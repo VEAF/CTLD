@@ -1,6 +1,6 @@
 # 01 — In-game spike: a runtime FARP, its finite stock, its vehicles
 
-**Status:** 🧑 waiting-human (Zip runs it in DCS) · **Type:** HITL (live DCS, Zip)
+**Status:** 🧑 waiting-human — phase 1 done (2026-10-26), phase 2 (multiplayer client) not run yet · **Type:** HITL (live DCS, Zip)
 
 ## Parent
 
@@ -63,10 +63,33 @@ Needs the mission on a dedicated server (the VEAF test server) and Zip joining i
 
 ## Answers
 
-Pending.
+### Phase 1 — single player, 2026-10-26 (Zip, DCS 2.9.30.28738, no stick: Apache on the ground, engines running)
+
+From `dcs.log` and Zip's screenshots.
+
+| Step | Measured |
+|---|---|
+| 3 | `INITIAL STOCK`: jet fuel 0, every Hellfire 0, inventory empty. `getWarehouse()` is not nil. DCS logs `NO ATC COMM HELIPAD + FCSPIKE_FARP_1:127500000` (a warning, no effect seen). |
+| 4 | The Mission Resources window opens, loadout list empty. |
+| 5 | `STOCK READ BACK`: jet fuel 300, `AGM_114K` 2, the two other Hellfire names 0. |
+| 6–7 (no trucks) | Fuel 100 % + 4 × AGM-114K, OK: nothing happens, no message. |
+| 9 (trucks) | Same request: the ground crew answers, works ~30 s, then "Unable to comply". |
+| 9 again | Fuel 50 %: "We don't have this in stock". |
+| 8 | `STOCK NOW`: jet fuel 0, `AGM_114K` 0. `AIRCRAFT`: fuel 631 kg / 1 140 kg (342 at spawn), `AGM_114K` ×2, `M230_HEDP M789` ×1 200 (already full). The window shows 56 % and 2 Hellfires on pylon 2. |
+
+- **(a) Yes.** An Invisible FARP spawned by `coalition.addStaticObject` mid-mission serves a player already in game.
+- **(b) Yes, on the server side.** The runtime FARP has a warehouse and starts empty. A finite stock set by script is served until it runs out, then refused: +289 kg for 300 kg in stock (the rest burnt at idle during the test), 2 Hellfires out of 4 asked. A request bigger than the stock is partly served, then answered "Unable to comply". Liquids are in kg. The Hellfire item is `weapons.missiles.AGM_114K`.
+- **(c) Yes, vehicles are required.** Without trucks the window opens but nothing is served and nothing is said. With an M978 HEMTT Tanker and an M 818 30 m away, it is served. Not measured: whether one truck is enough for both fuel and weapons, and the range. The design keeps the fallback: a vehicle hidden under the cow's fuselage.
+- The countryside scene's step 11 comment ("Invisible FARP airbases … return nil for getWarehouse()") is wrong, measured.
+
+No answer kills the design.
+
+### Phase 2 — multiplayer client
+
+Not run yet: needs the mission on a dedicated server with Zip joining it as a client.
 
 ## Acceptance criteria
 
-- [ ] (a), (b) on one machine, (c) answered from `dcs.log` and the screenshots, in this ticket and the PRD.
+- [x] (a), (b) on one machine, (c) answered from `dcs.log` and the screenshots, in this ticket and the PRD.
 - [ ] (b) client side answered by phase 2, or marked not measured with the reason.
-- [ ] If an answer kills the design, reported to Zip before ticket 02 is written.
+- [x] If an answer kills the design, reported to Zip before ticket 02 is written.
