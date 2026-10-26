@@ -12,16 +12,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ED announced a native Fat Cow on 2024-04-19, and again on 2024-08-23; DCS 2.9.30.28738 still has none, so CTLD brings its own while the Chinooks wait.
 
-- A **player-flown CH-47F** requests Fat Cow crates in a logistic zone (an 800 gal ERFS tank of 2 400 kg of jet fuel, 4 Hellfires, 300 rounds of 30 mm), loads them into its hold, lands, and **Deploy the Fat Cow FARP** from F10 → CTLD → Fat Cow.
-  The crates stay in the hold; **Pack the Fat Cow FARP**, or taking off, puts what was not used back into them, lightens the hold and removes the emptied crates.
-- Any other player can **Request a Fat Cow** while on the ground in a friendly logistic zone: an AI CH-47 follows the flight, lands next to its leader, opens its FARP 60 s later (`fatCowDeployDelay`), packs when the leader takes off, and flies home to despawn once empty or on **Release the Fat Cow**.
+- A **player-flown CH-47F** loads Fat Cow crates in a logistic zone, at once (**Load: Full fuel**, **4 Hellfires + max fuel**, **Max weapons + max fuel**, `fatCowLoadouts`, straight into the hold) or one at a time (an 800 gal ERFS tank of 2 400 kg of jet fuel, 4 Hellfires, 300 rounds of 30 mm), lands, and **Deploy the Fat Cow FARP** from F10 → CTLD → Fat Cow.
+  The crates stay in the hold; **Pack the Fat Cow FARP**, or taking off, puts what was not used back into them, lightens the hold and removes the emptied crates. **Unload the Fat Cow crates** empties the hold.
+- Any other player can **Request a Fat Cow** from anywhere: an AI CH-47 comes from the nearest friendly logistic zone on land, with its distance and an estimated joining time, and follows the flight.
+  The flight commands it from F10 and it does nothing on its own: **Land here** (FARP open 60 s after touchdown, `fatCowDeployDelay`), **Take off**, **Hold here**, **Join us**, **Release the Fat Cow** (home, despawn). **Fat Cow status** gives its phase, distance, bearing, joining time and stock.
   By default it carries 7 200 kg of fuel and 6 Hellfires (`fatCowAIFuelKg`, `fatCowAIItems`).
-- A cow placed in the mission (a late-activated helicopter group) escorts a named flight when declared in `fatCowAICows` (`{ group, escort }`): the contract the VEAF Mission Creation Tools rely on.
+- **FARP status** tells what the Fat Cow FARP you are at still holds, whoever it belongs to.
+- A cow placed in the mission (a late-activated helicopter group) escorts a named flight when declared in `fatCowAICows` (`{ group, escort }`): the contract the VEAF Mission Creation Tools rely on. With an AI flight it lands and takes off with the leader on its own; a client flight commands it like a requested one.
 - The FARP is an Invisible FARP, a FARP Fuel Depot, a few crates and three soldiers: no vehicle, no tent, no ammo dump.
   Its warehouse holds the cow's stock and nothing else, and DCS serves it until it runs out ("Unable to comply" once a request outruns it).
   All of this was measured in DCS first (FEAT-FAT-COW ticket 01): a FARP spawned mid-mission serves a player already in game, enforces a finite stock, and needs a supplier in range, which the FARP Fuel Depot alone is.
 - The warehouse is written again whenever a player joins, with what the server holds: whether DCS shares a scripted warehouse with clients was not measured.
-- New settings `fatCowEnabled`, `fatCowTypes`, `fatCowCrates`, `fatCowDeployDelay`, `fatCowAIType`, `fatCowAIFuelKg`, `fatCowAIItems`, `fatCowAICows`; catalogue version 2.3.0.
+- New settings `fatCowEnabled`, `fatCowTypes`, `fatCowCrates`, `fatCowLoadouts`, `fatCowDeployDelay`, `fatCowAIType`, `fatCowAIFuelKg`, `fatCowAIItems`, `fatCowAICows`; catalogue version 2.3.0.
 - A part-used Fat Cow crate weighs what it still holds (`getLoadedCrateWeight` reads `metadata.massKg`), and Fat Cow crates are never offered to Unpack Crate.
 - The countryside FARP scene's comment claiming an Invisible FARP has no warehouse is corrected: it has one, measured.
 - FR/ES/KO texts are a proposal for review. Docs: pilot and mission-maker **Fat Cow** pages, EN + FR.
