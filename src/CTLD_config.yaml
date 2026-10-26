@@ -281,7 +281,7 @@ mm_facing:
   fatCowAIItems:
   - item: weapons.missiles.AGM_114K
     count: 6
-  fatCowAITemplate: ""
+  fatCowAIType: CH-47Fbl1
   fatCowCrates:
   - desc: Fat Cow fuel tank (800 gal)
     weight: 2400
