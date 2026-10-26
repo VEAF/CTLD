@@ -15,8 +15,8 @@
 ## Kit
 
 - `tests/dcs/pilotActive/scenario_fatcow_spike.lua` — pure DCS API, no CTLD. An F10 menu per player group, "Fat Cow spike": 1 Invisible FARP under me · 2 Finite stock (300 kg, 2 Hellfire) · 3 Read stock + my aircraft · 4 Add fuel + ammo trucks · 5 Single pad FARP ahead (variant) · 6 Remove everything. Every measurement goes to the screen and to `dcs.log`, prefixed `[FCSPIKE]`.
-- `missions/Test_FatCow_Spike.miz` — Caucasus, a flat field 19 km from Senaki and from Kutaisi (no airfield ground crew in reach). Two AH-64D slots (`Apache-1`, `Apache-2`), air start at 150 m and 80 kt, heading north, 2 km south of the field, 30 % fuel (342 kg), empty pylons. The script is embedded and runs at mission start.
-- Built with the VMCT `veaf-mission-editor` actions on a blank Caucasus mission (`veaf_libs.blank_mission`): `add_player_slot` ×2, `add_startup_script_trigger` (`file_static`). To rebuild after a script change, redo these three actions on a fresh blank mission.
+- `missions/Test_FatCow_Spike.miz` — Caucasus, a flat field 19 km from Senaki and from Kutaisi (no airfield ground crew in reach). Two AH-64D slots (`Apache-1`, `Apache-2`, 80 m apart), ground start with engines running (`TakeOffGroundHot`) on the field, 30 % fuel (342 kg), empty pylons: the spike needs no flying (Zip, 2026-10-26: no stick at hand). Trees at the exact spot are not checked by any file: a slot that explodes at spawn means a tree. The script is embedded and runs at mission start.
+- Built with the VMCT `veaf-mission-editor` actions on a blank Caucasus mission (`veaf_libs.blank_mission`): `add_player_slot` ×2 (air start), `set_group_properties` `move_to` ×2 and `edit_route` `set` waypoint 1 to `TakeOffGroundHot` ×2 (`add_player_slot` refuses a ground start off an airfield), `add_startup_script_trigger` (`file_static`). To rebuild after a script change, redo these actions on a fresh blank mission.
 
 The 300 kg of fuel is below the ~800 kg a 30 % Apache takes to fill up, and the 2 Hellfires below the 4 a rail takes: a cap shows as a partial service.
 
@@ -25,7 +25,7 @@ The 300 kg of fuel is below the ~800 kg a 30 % Apache takes to fill up, and the 
 Press **Print Screen** (DCS screenshot, saved in `Saved Games\DCS\Screenshots`) where marked 📸: the screenshots and `dcs.log` are read afterwards, nothing has to be copied by hand.
 
 1. DCS main menu → **MISSION** → `Test_FatCow_Spike.miz` → **OK**. If a slot is asked, take **Apache-1**.
-2. A message `[FCSPIKE] loaded` shows at start. Fly straight ahead and land on open ground, away from trees. Engines stay running.
+2. You are on the ground, engines running. A message `[FCSPIKE] loaded` shows at start. Touch nothing.
 3. `\` → **F10 Other** → **Fat Cow spike** → **F1** "1. Invisible FARP under me". Green smoke under you; lines `SPAWNED` and `INITIAL STOCK`. 📸
 4. `\` → **F8 Ground Crew** → **F1 Rearm & Refuel**. The rearm window opens (or not). 📸 Close it.
 5. `\` → **F10 Other** → **Fat Cow spike** → **F2** "2. Finite stock". Lines `SET STOCK` and `STOCK READ BACK`. 📸
@@ -33,7 +33,7 @@ Press **Print Screen** (DCS screenshot, saved in `Saved Games\DCS\Screenshots`) 
 7. Wait until the ground crew is done (or says it cannot). 📸
 8. `\` → **F10 Other** → **Fat Cow spike** → **F3** "3. Read stock + my aircraft". 📸
 9. **Only if step 6 or 7 refused the service:** `\` → **F10 Other** → **Fat Cow spike** → **F4** "4. Add fuel + ammo trucks", then redo steps 6 to 8.
-10. **Only if step 3 printed `getWarehouse() = nil`:** `\` → **F10 Other** → **Fat Cow spike** → **F6** "6. Remove everything", then **F5** "5. Single pad FARP ahead", hover-taxi onto the green smoke 40 m ahead, land, and redo steps 4 to 8.
+10. **Only if step 3 printed `getWarehouse() = nil`:** `\` → **F10 Other** → **Fat Cow spike** → **F6** "6. Remove everything", then **F5** "5. Single pad FARP ahead", hover-taxi onto the green smoke 40 m ahead, land, and redo steps 4 to 8. This step needs flight controls: without them, stop at step 9 and report.
 11. Quit the mission. Say "phase 1 done".
 
 ## Procedure — phase 2, multiplayer (the client side of b)
@@ -43,7 +43,7 @@ Needs the mission on a dedicated server (the VEAF test server) and Zip joining i
 1. Load `Test_FatCow_Spike.miz` on the server. Join it as a client, slot **Apache-1**.
 2. Steps 2 to 8 of phase 1.
 3. Back to spectators (**Esc** → **Choose slot** → spectators), then take **Apache-1** again: a new birth. The script prints `STOCK AT BIRTH`.
-4. Land if needed (a new air start), then `\` → **F8 Ground Crew** → **F1 Rearm & Refuel**. 📸
+4. `\` → **F8 Ground Crew** → **F1 Rearm & Refuel**. 📸
 5. Quit. The server's `dcs.log` holds the `[FCSPIKE]` lines.
 
 ## Reading the results
