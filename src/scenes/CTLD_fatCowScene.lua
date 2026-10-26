@@ -9,7 +9,7 @@
 -- Layout (offsets from the cow, which is the trigger unit):
 --   Invisible FARP   — at the cow (distance 0): the airbase whose warehouse holds the cow's stock
 --   FARP Fuel Depot  — 25 m behind the ramp (180°): the supplier
---   Ammo crates      — 15 m / 160° and 15 m / 200°: dressing
+--   Ammo crates      — 15 m / 160° and 15 m / 200°: dressing (never loadable: "CTLD_" name prefix)
 --   Barrels          — 18 m / 145°: dressing
 --   3 infantry       — 20 m / 215°, standing by
 --   Warehouse        — set to the cow's stock (ctx.scene._params.fatCow) once laid out
@@ -53,21 +53,21 @@ fatCowScene.steps = {
         delayAfterPreviousStep   = 2,
         relativeHeadingInDegrees = 0,
         relativeAltitudeInMeters = 0,
-        registryKey              = "ammo_cargo",
+        registryKey              = "FatCow_Ammo",
     },
     {
         polar                    = { distance = 15, angle = 200 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 30,
         relativeAltitudeInMeters = 0,
-        registryKey              = "ammo_cargo",
+        registryKey              = "FatCow_Ammo",
     },
     {
         polar                    = { distance = 18, angle = 145 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 0,
         relativeAltitudeInMeters = 0,
-        registryKey              = "barrels_cargo",
+        registryKey              = "FatCow_Barrels",
     },
 
     -- Step 6: the crew standing by.
@@ -103,6 +103,26 @@ CTLDObjectRegistry.registerIfAbsent("FatCow_FARP", {
     heliport_callsign_id = 1,
     heliport_modulation  = 0,
     rate                 = 100,
+})
+
+-- Dressing cargo statics. The "CTLD_" prefix keeps CTLDCrateManager:onBirth from registering them as
+-- loadable crates (it registers every other cargo static that appears).
+CTLDObjectRegistry.registerIfAbsent("FatCow_Ammo", {
+    groupType  = "STATIC",
+    namePrefix = "CTLD_FatCow_Ammo",
+    type       = "ammo_cargo",
+    category   = "Cargos",
+    shape_name = "ammo_box_cargo",
+    rate       = 1,
+})
+
+CTLDObjectRegistry.registerIfAbsent("FatCow_Barrels", {
+    groupType  = "STATIC",
+    namePrefix = "CTLD_FatCow_Barrels",
+    type       = "barrels_cargo",
+    category   = "Cargos",
+    shape_name = "barrels_cargo",
+    rate       = 100,
 })
 
 -- Shape from DCS's db.Units.lua ("FARP Fuel Depot", ShapeName "GSM Rus").

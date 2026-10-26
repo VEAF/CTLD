@@ -74,3 +74,117 @@ function CTLDFatCow:resyncWarehouse(w)
     self:readWarehouse(w)
     self:writeWarehouse(w)
 end
+
+-- ====================================================================================================
+-- CTLDFatCowManager
+-- ====================================================================================================
+
+CTLDFatCowManager = class()
+CTLDFatCowManager._instance = nil
+
+CTLDFatCowManager.SCENE_NAME = "Fat Cow FARP"
+
+function CTLDFatCowManager.getInstance()
+    if not CTLDFatCowManager._instance then
+        local o = setmetatable({}, CTLDFatCowManager)
+        o:init()
+        CTLDFatCowManager._instance = o
+    end
+    return CTLDFatCowManager._instance
+end
+
+function CTLDFatCowManager:init()
+    self._cows = {}   -- unit name → CTLDFatCow
+end
+
+--- Declares a unit a cow with the given stock (replaces a previous declaration of the same unit).
+-- @return CTLDFatCow
+function CTLDFatCowManager:addCow(unit, stock)
+    local cow = CTLDFatCow:new(unit:getName(), unit:getCoalition(), stock)
+    self._cows[cow.unitName] = cow
+    return cow
+end
+
+function CTLDFatCowManager:getCow(unitName)
+    return self._cows[unitName]
+end
+
+--- Packs the cow if it is deployed, then forgets it.
+function CTLDFatCowManager:removeCow(unitName)
+    if not self._cows[unitName] then return end
+    self:pack(unitName)
+    self._cows[unitName] = nil
+end
+
+local function warehouseOf(farpName)
+    local ab = farpName and Airbase.getByName(farpName)
+    return ab and ab:getWarehouse() or nil
+end
+
+--- Lays out the Fat Cow scene at the cow. The warehouse is written when the scene is laid out
+-- (onSceneLaidOut), not here: the FARP does not exist yet.
+-- @return true, or false and a reason: "unknown", "airborne", "deployed", "empty", "scene"
+function CTLDFatCowManager:deploy(unit)
+    local cow = self._cows[unit:getName()]
+    if not cow then return false, "unknown" end
+    if unit:inAir() then return false, "airborne" end
+    if cow.state ~= CTLDFatCow.STATE_STOWED then return false, "deployed" end
+    if cow:isEmpty() then return false, "empty" end
+    cow.state = CTLDFatCow.STATE_DEPLOYING
+    local scene = CTLDSceneManager.getInstance():playScene(unit, CTLDFatCowManager.SCENE_NAME, { fatCow = cow })
+    if not scene then
+        cow.state = CTLDFatCow.STATE_STOWED
+        return false, "scene"
+    end
+    cow.scene = scene
+    return true
+end
+
+--- Called by the scene's last step: the FARP exists, its warehouse gets the stock.
+function CTLDFatCowManager:onSceneLaidOut(scene)
+    local cow = scene._params and scene._params.fatCow
+    if not cow then return end
+    cow.scene    = scene
+    cow.farpName = scene._params.farpName
+    local w = warehouseOf(cow.farpName)
+    if not w then
+        ctld.utils.log("ERROR", "CTLDFatCowManager: no warehouse for FARP '%s' of cow '%s'",
+            tostring(cow.farpName), cow.unitName)
+        return
+    end
+    cow:writeWarehouse(w)
+    cow.state = CTLDFatCow.STATE_DEPLOYED
+    ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' deployed, FARP '%s', %d kg of fuel",
+        cow.unitName, cow.farpName, cow.stock.fuelKg)
+end
+
+--- Reads what the players left back into the stock, then removes the scene.
+-- @return true when a deployed cow was packed
+function CTLDFatCowManager:pack(unitName)
+    local cow = self._cows[unitName]
+    if not cow or cow.state == CTLDFatCow.STATE_STOWED then return false end
+    local w = warehouseOf(cow.farpName)
+    if w then cow:readWarehouse(w) end
+    if cow.scene then
+        CTLDSceneManager.getInstance():packScene(cow.scene)
+    end
+    cow.scene, cow.farpName = nil, nil
+    cow.state = CTLDFatCow.STATE_STOWED
+    ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' packed, %d kg of fuel left",
+        cow.unitName, cow.stock.fuelKg)
+    return true
+end
+
+--- S_EVENT_BIRTH: a player arriving gets every open FARP's warehouse re-written (see resyncWarehouse).
+function CTLDFatCowManager:onBirth(event)
+    local obj = event and event.initiator
+    if not (obj and obj.getPlayerName) then return end
+    local ok, playerName = pcall(obj.getPlayerName, obj)
+    if not (ok and playerName) then return end
+    for _, cow in pairs(self._cows) do
+        if cow.state == CTLDFatCow.STATE_DEPLOYED then
+            local w = warehouseOf(cow.farpName)
+            if w then cow:resyncWarehouse(w) end
+        end
+    end
+end

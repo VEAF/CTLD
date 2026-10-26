@@ -29,7 +29,7 @@ local ROOT = debug.getinfo(1, "S").source:match("^@(.+)tests[\\/]ci[\\/]unit[\\/
 
 local SCENE_FILES = {
     "CTLD_farpScene", "CTLD_fobScene", "CTLD_mineFieldScene",
-    "CTLD_countrysideFarpScene", "CTLD_farpAlphaScene",
+    "CTLD_countrysideFarpScene", "CTLD_farpAlphaScene", "CTLD_fatCowScene",
 }
 
 -- DCS type names a registry descriptor spawns — via the shared collector, which handles both
