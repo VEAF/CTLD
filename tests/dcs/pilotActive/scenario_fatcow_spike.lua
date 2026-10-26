@@ -22,8 +22,8 @@
 --   5. Crates only (barrels + ammo)    — barrels_cargo and ammo_cargo, no depot, no vehicle
 --   6. Remove everything               — destroys what the spike spawned
 --   7. Add FARP props, no vehicle      — fuel depot, ammo dump, barrels, ammo crate: do statics supply?
---   8. Barrels only                    — barrels_cargo alone
---   9. Ammo crate only                 — ammo_cargo alone
+--   8. Fuel depot only                 — FARP Fuel Depot alone
+--   9. Ammo dump only                  — FARP Ammo Dump Coating alone
 --
 -- Every result line goes to the screen (60 s) and to dcs.log, prefixed [FCSPIKE].
 -- _SCN_FCSPIKE_RESULT holds the lines measured so far.
@@ -238,8 +238,8 @@ local PROPS = {
 local PROP_SETS = {
     all     = { "depot", "dump", "barrels", "crate" },
     crates  = { "barrels", "crate" },
-    barrels = { "barrels" },
-    crate   = { "crate" },
+    depot   = { "depot" },
+    dump    = { "dump" },
 }
 
 local function addProps(groupName, set)
@@ -295,10 +295,10 @@ local function buildMenu(unit)
         function(n) addProps(n, "crates") end, gName)
     missionCommands.addCommandForGroup(gid, "6. Remove everything", root, removeAll)
     missionCommands.addCommandForGroup(gid, "7. Add FARP props, no vehicle", root, addProps, gName)
-    missionCommands.addCommandForGroup(gid, "8. Barrels only", root,
-        function(n) addProps(n, "barrels") end, gName)
-    missionCommands.addCommandForGroup(gid, "9. Ammo crate only", root,
-        function(n) addProps(n, "crate") end, gName)
+    missionCommands.addCommandForGroup(gid, "8. Fuel depot only", root,
+        function(n) addProps(n, "depot") end, gName)
+    missionCommands.addCommandForGroup(gid, "9. Ammo dump only", root,
+        function(n) addProps(n, "dump") end, gName)
 end
 
 S.handler = {}
