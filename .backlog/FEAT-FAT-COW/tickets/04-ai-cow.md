@@ -1,6 +1,6 @@
 # 04 — AI cow: requested by a flight, escorts it, serves it, goes home
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -17,4 +17,4 @@
 
 ## Acceptance criteria
 
-- [ ] Busted: request refused outside a logistic zone or in the air; one cow per flight; land → deploy after the delay; take-off → pack + follow; empty → home + despawn; release → home + despawn; a configured mission cow is picked up at start.
+- [x] Busted: request refused outside a logistic zone or in the air; one cow per flight; land → deploy after the delay; take-off → pack + follow; empty → home + despawn; release → home + despawn; a configured mission cow is picked up at start.

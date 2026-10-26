@@ -1,6 +1,6 @@
 # FEAT-FAT-COW — a CH-47 that lands in the field and becomes a forward refuel/rearm point
 
-**Status:** 🔄 in-progress — ticket 01 phase 1 done (2026-10-26): a runtime Invisible FARP serves a player already in game, enforces a finite stock, and needs a supplier in range, which the `FARP Fuel Depot` static alone satisfies, for fuel and weapons, without any vehicle. Phase 2 (a remote multiplayer client) not run: Zip hosted, so his view was the server's; the design re-applies the stock on every birth instead. Implementation in progress (Zip, 2026-10-26: "implémente").
+**Status:** 🔄 in-progress — ticket 01 phase 1 done (2026-10-26): a runtime Invisible FARP serves a player already in game, enforces a finite stock, and needs a supplier in range, which the `FARP Fuel Depot` static alone satisfies, for fuel and weapons, without any vehicle. Phase 2 (a remote multiplayer client) not run: Zip hosted, so his view was the server's; the design re-applies the stock on every birth instead. Tickets 02-05 implemented (Zip, 2026-10-26: "implémente"); ticket 06, the live check, waits for Zip.
 
 Designed with Zip on 2026-10-26 (VMCT session). Zip decided that the runtime belongs in CTLD, not in the VMCT Lua; VMCT will vendor this CTLD and add a static mission-editing tool for it afterwards.
 
@@ -38,23 +38,24 @@ ED announced a native Fat Cow on 2024-04-19 and again on 2024-08-23; it is absen
 - **Piloted mode** reuses the crate system: cow crates are crate models whose weight is the fuel mass; the deploy command sums the loaded cow crates into the stock.
 - **Config** under one `fatCow` block in `src/CTLD_config.yaml` (adds keys → `configVersion` bump and a catalogue shape, per `CLAUDE.md`).
 
-## Contract for VMCT (draft, fixed when the AI ticket is written)
+## Contract for VMCT
 
-VMCT will add a CLI + MCP tool that places an AI cow escorting a named flight in a mission. It depends on how this lot declares a cow, so the contract is part of the lot's deliverable and lands in `docs/mission-maker/` (EN + FR):
+Documented for mission makers in `docs/mission-maker/fat-cow.md` (EN + FR).
 
-- **Config keys** (draft): `fatCow.enabled`, `fatCow.aiTemplate` (the CH-47 group CTLD clones for a requested cow), `fatCow.deployDelay` (60 s), `fatCow.aiStock` (`fuelKg` 7 200, `items` with 6 Hellfires), `fatCow.crate` (fuel per crate 2 400 kg), `fatCow.ammoCrates`.
-- **A mission-placed AI cow** is recognised by an explicit config entry (`fatCow.aiCows = { { group = "<CH-47 group>", escort = "<flight group>" } }`), not by parsing its name: the engine does not parse names for config-heavy features (see `CONTEXT.md`, "Config-referenced zone"). A tool-only naming convention for VMCT to pre-fill the entry stays possible.
+- **A mission-placed AI cow** is a **late-activated helicopter group** declared in `fatCowAICows` with the flight it escorts: `fatCowAICows = [{ group: "<CH-47 group>", escort: "<flight group>" }]`. CTLD activates it once the escorted group is in the world (at start for an AI flight, at the first player's birth for a client flight). The engine never parses a cow's name (see `CONTEXT.md`, "Config-referenced zone").
+- **Settings:** `fatCowEnabled`, `fatCowTypes` (`[CH-47Fbl1]`), `fatCowCrates` (`desc`, `weight`, and `fuelKg` or `item` + `count`), `fatCowDeployDelay` (60 s), `fatCowAIType` (`CH-47Fbl1`; empty disables the request), `fatCowAIFuelKg` (7 200), `fatCowAIItems` (6 × `weapons.missiles.AGM_114K`), `fatCowAICows`. Catalogue version 2.3.0.
+- A requested AI cow is created by script (`coalition.addGroup`, type `fatCowAIType`), so no template group is needed in the mission; the draft's `fatCow.aiTemplate` was dropped for that reason.
 
 ## Tickets
 
 | # | Ticket | Status |
 |---|---|---|
 | 01 | [In-game spike: a runtime FARP, its finite stock, its vehicles](tickets/01-spike-runtime-farp.md) | 🧑 phase 1 done (a yes, b yes server side, c the FARP Fuel Depot alone suffices, no vehicle); phase 2 to run |
-| 02 | [Core: a cow's stock, its scene, deploy and pack](tickets/02-core-stock-and-scene.md) | 🔄 in-progress |
-| 03 | [Piloted cow: cow crates in a CH-47F and the F10 commands](tickets/03-piloted-cow.md) | ⬜ ready |
-| 04 | [AI cow: requested by a flight, escorts it, serves it, goes home](tickets/04-ai-cow.md) | ⬜ ready |
-| 05 | [Config, VMCT contract doc, CHANGELOG and release notes](tickets/05-config-docs-release.md) | ⬜ ready |
-| 06 | [Live check in DCS](tickets/06-live-check.md) | ⬜ ready (HITL) |
+| 02 | [Core: a cow's stock, its scene, deploy and pack](tickets/02-core-stock-and-scene.md) | ✅ done |
+| 03 | [Piloted cow: cow crates in a CH-47F and the F10 commands](tickets/03-piloted-cow.md) | ✅ done |
+| 04 | [AI cow: requested by a flight, escorts it, serves it, goes home](tickets/04-ai-cow.md) | ✅ done |
+| 05 | [Config, VMCT contract doc, CHANGELOG and release notes](tickets/05-config-docs-release.md) | ✅ done (release-notes jab in the CHANGELOG entry, for the release to carry) |
+| 06 | [Live check in DCS](tickets/06-live-check.md) | 🧑 waiting-human (Zip) |
 
 ## Release notes
 

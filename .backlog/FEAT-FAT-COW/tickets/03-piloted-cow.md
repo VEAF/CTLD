@@ -1,6 +1,6 @@
 # 03 — Piloted cow: cow crates in a CH-47F and the F10 commands
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -18,4 +18,4 @@
 
 ## Acceptance criteria
 
-- [ ] Busted: stock = sum of the cow crates on board; pack reduces the crates and the hold mass to what is left; the deploy command needs the cow on the ground and at least one cow crate; take-off packs.
+- [x] Busted: stock = sum of the cow crates on board; pack reduces the crates and the hold mass to what is left; the deploy command needs the cow on the ground and at least one cow crate; take-off packs.

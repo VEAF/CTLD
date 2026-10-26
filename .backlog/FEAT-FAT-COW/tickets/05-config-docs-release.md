@@ -1,6 +1,6 @@
 # 05 — Config, VMCT contract doc, CHANGELOG and release notes
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -14,4 +14,4 @@
 
 ## Acceptance criteria
 
-- [ ] `test_catalogue_shape.py` and `config_spec.lua` green; docs build; CHANGELOG guard green.
+- [x] `test_catalogue_shape.py` and `config_spec.lua` green; docs build; CHANGELOG guard green.

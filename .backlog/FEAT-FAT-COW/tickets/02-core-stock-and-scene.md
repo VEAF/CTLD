@@ -1,6 +1,6 @@
 # 02 — Core: a cow's stock, its scene, deploy and pack
 
-**Status:** 🔄 in-progress · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -18,5 +18,5 @@
 
 ## Acceptance criteria
 
-- [ ] Busted: deploy writes the stock into the warehouse; pack reads the remainder back; a stock emptied by players reads back as empty; re-sync writes back what the server holds; the scene spawns no vehicle and includes a `FARP Fuel Depot`.
-- [ ] Scene assets pass the design-time asset gate.
+- [x] Busted: deploy writes the stock into the warehouse; pack reads the remainder back; a stock emptied by players reads back as empty; re-sync writes back what the server holds; the scene spawns no vehicle and includes a `FARP Fuel Depot`.
+- [x] Scene assets pass the design-time asset gate.
