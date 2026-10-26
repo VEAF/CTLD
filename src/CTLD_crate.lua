@@ -2241,6 +2241,34 @@ function CTLDCrateManager:getCratesInRange(position, radius)
     return result
 end
 
+--- Put a crate straight into a transport's hold, with no static on the ground (a Fat Cow loadout).
+-- @param descriptor table   crate descriptor
+-- @param transport  Unit
+-- @param spawnedBy  string   unit name of the requester
+-- @return CTLDCrate
+function CTLDCrateManager:loadIntoHold(descriptor, transport, spawnedBy)
+    local crate = CTLDCrate:new({
+        crateName   = string.format("CTLD_Hold_%d", ctld.utils.getNextUniqId()),
+        descriptor  = descriptor,
+        spawnMethod = CTLDCrate.SPAWN_METHOD.MENU_CTLD,
+        position    = transport:getPoint(),
+        coalition   = transport:getCoalition(),
+        spawnedBy   = spawnedBy,
+    })
+    self:_register(crate)
+    crate:load(transport)
+    ctld.utils.updateTransportWeight(transport:getName())
+    self:_publish("OnCrateLoaded", {
+        crate           = crate,
+        crateName       = crate.crateName,
+        carrierUnitName = transport:getName(),
+        coalition       = crate.coalition,
+        descriptor      = descriptor,
+        timestamp       = timer.getAbsTime(),
+    })
+    return crate
+end
+
 --- Load a crate into a transport unit.
 -- Transitions crate: spawned|landed → loaded.
 -- Publishes OnCrateLoaded.

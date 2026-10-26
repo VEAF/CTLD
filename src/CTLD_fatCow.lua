@@ -533,6 +533,7 @@ CTLDFatCowManager.PHASE_FOLLOWING = "following"
 CTLDFatCowManager.PHASE_LANDING   = "landing"     -- sent to land next to the leader
 CTLDFatCowManager.PHASE_LANDED    = "landed"      -- on the ground, deployment pending or done
 CTLDFatCowManager.PHASE_RETURNING = "returning"   -- going home to despawn
+CTLDFatCowManager.PHASE_HOLDING   = "holding"     -- orbiting, on "Take off" or "Hold here"
 
 -- Internal fuel given to a scripted cow: the CH-47Fbl1's M_fuel_max in DCS's db.Units.lua.
 -- A scripted aircraft created without fuel falls out of the sky.
@@ -541,6 +542,9 @@ local FOLLOW_OFFSET    = { x = -200, y = 60, z = 150 }   -- behind, above and to
 local LAND_OFFSET_M    = 120                              -- landing point, to the leader's left
 local CRUISE_SPEED_MPS = 60
 local CRUISE_ALT_M     = 150
+local ORBIT_SPEED_MPS  = 40
+-- Cruise speed used for the joining estimate: an assumption (about 235 km/h), to check in game.
+local AI_COW_CRUISE_MPS = 65
 -- How long a Land task keeps the cow down: a day, so it never lifts off on its own while serving.
 -- The flight's take-off or a release re-tasks it long before.
 local LAND_DURATION_S  = 86400
@@ -653,14 +657,27 @@ local function flightLedBy(unit)
     return group:getName()
 end
 
+--- True when a player flies in the group: its cow then moves only on the F10 commands (Zip, 2026-10-26:
+-- a cow that took off whenever the leader hopped onto its FARP). An AI flight cannot use the menu, so
+-- its cow (a mission-placed one, fatCowAICows) keeps landing and taking off with the leader.
+local function flightHasPlayer(groupName)
+    local g = Group.getByName(groupName)
+    if not (g and g:isExist()) then return false end
+    for _, u in ipairs(g:getUnits() or {}) do
+        local ok, pn = pcall(function() return u:getPlayerName() end)
+        if ok and pn then return true end
+    end
+    return false
+end
+
 --- The flight's group id, for messages: the cow talks to the flight it serves.
 local function flightGroupId(cow)
     local g = Group.getByName(cow.ai.flightGroup)
     return g and g:isExist() and g:getID() or nil
 end
 
---- S_EVENT_LAND: the escorted flight's leader lands → the cow lands next to it; the cow lands → it deploys
--- after fatCowDeployDelay, or despawns when it was going home.
+--- S_EVENT_LAND: the cow lands → it deploys after fatCowDeployDelay, or despawns when it was going home;
+-- an AI flight's leader lands → its cow lands next to it (a player flight uses "Land here").
 function CTLDFatCowManager:onLand(event)
     local unit = event and event.initiator
     local name = ctld.utils.safeObjectName(unit)
@@ -689,18 +706,19 @@ function CTLDFatCowManager:onLand(event)
 
     local flight = flightLedBy(unit)
     local escort = flight and self:aiCowOfFlight(flight)
-    if escort and escort.ai.phase == CTLDFatCowManager.PHASE_FOLLOWING then
+    if escort and escort.ai.phase == CTLDFatCowManager.PHASE_FOLLOWING and not flightHasPlayer(flight) then
         self:_landNextTo(escort, unit)
     end
 end
 
---- The escorted flight's leader takes off → the cow packs and follows again, or goes home if empty.
+--- An AI flight's leader takes off → its cow packs and follows again, or goes home if empty (a player
+-- flight uses "Take off" / "Join us").
 function CTLDFatCowManager:_onAITakeoff(name)
     local unit = Unit.getByName(name)
     if not unit then return end
     local flight = flightLedBy(unit)
     local cow = flight and self:aiCowOfFlight(flight)
-    if not cow or cow.ai.phase == CTLDFatCowManager.PHASE_FOLLOWING then return end
+    if not cow or cow.ai.phase == CTLDFatCowManager.PHASE_FOLLOWING or flightHasPlayer(flight) then return end
     self:_cancelDeploy(cow)
     if cow.state ~= CTLDFatCow.STATE_STOWED then self:pack(cow.unitName) end
     setCargoMass(cow)
@@ -711,13 +729,113 @@ function CTLDFatCowManager:_onAITakeoff(name)
     end
 end
 
+-- ── F10 orders to the flight's cow ─────────────────────────────────────────────────────────────
+
+--- Packs the FARP (if open) and stops a pending deployment: the cow is about to move.
+function CTLDFatCowManager:_readyToMove(cow)
+    self:_cancelDeploy(cow)
+    if cow.state ~= CTLDFatCow.STATE_STOWED then self:pack(cow.unitName) end
+    setCargoMass(cow)
+end
+
+function CTLDFatCowManager:_orbit(cow, point)
+    local ctrl = controllerOf(cow.ai.groupName)
+    if not ctrl then return end
+    ctrl:setTask({ id = "Orbit", params = { pattern = "Circle", point = { x = point.x, y = point.z },
+        altitude = land.getHeight({ x = point.x, y = point.z }) + CRUISE_ALT_M, speed = ORBIT_SPEED_MPS } })
+    cow.ai.phase = CTLDFatCowManager.PHASE_HOLDING
+end
+
+--- The cow of the requester's flight, or nil after telling the requester there is none.
+function CTLDFatCowManager:_flightCowFor(t)
+    local cow = self:aiCowOfFlight(t:getGroup():getName())
+    local u   = cow and Unit.getByName(cow.unitName)
+    if u and u:isExist() then return cow, u end
+    trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Your flight has no Fat Cow."), 10)
+    return nil
+end
+
+--- "Land here": the cow lands next to the requester and opens its FARP fatCowDeployDelay later.
+function CTLDFatCowManager:orderLandHere(unitName)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local cow, u = self:_flightCowFor(t)
+    if not cow then return end
+    if not u:inAir() then
+        trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("The Fat Cow is already on the ground."), 10)
+        return
+    end
+    self:_landNextTo(cow, t)
+    trigger.action.outTextForGroup(ctld.utils.getGroupId(t),
+        ctld.tr("Fat Cow landing next to you: FARP open %1 s after touchdown.", ctld.gs("fatCowDeployDelay")), 10)
+end
+
+--- "Take off": the cow packs its FARP, lifts off and orbits where it stands.
+function CTLDFatCowManager:orderTakeOff(unitName)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local cow, u = self:_flightCowFor(t)
+    if not cow then return end
+    self:_readyToMove(cow)
+    self:_orbit(cow, u:getPoint())
+    trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Fat Cow taking off: it orbits where it stands."), 10)
+end
+
+--- "Hold here": the cow packs its FARP if needed and orbits over the requester's position.
+function CTLDFatCowManager:orderHoldHere(unitName)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local cow = self:_flightCowFor(t)
+    if not cow then return end
+    self:_readyToMove(cow)
+    self:_orbit(cow, t:getPoint())
+    trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Fat Cow holding over your position."), 10)
+end
+
+--- "Join us": the cow packs its FARP if needed and follows the flight.
+function CTLDFatCowManager:orderJoin(unitName)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local cow = self:_flightCowFor(t)
+    if not cow then return end
+    self:_readyToMove(cow)
+    self:_follow(cow)
+    trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Fat Cow joining your flight."), 10)
+end
+
 function CTLDFatCowManager:_forgetAICow(name)
     for flight, cow in pairs(self._aiByFlight or {}) do
         if cow.unitName == name then self._aiByFlight[flight] = nil end
     end
 end
 
---- F10 "Request a Fat Cow": only on the ground inside a friendly logistic zone, one cow per flight.
+--- True when a point is on land: a cow neither appears nor goes home over water (a carrier is a
+-- logistic zone too).
+local function onLand(p)
+    if not (land.getSurfaceType and land.SurfaceType) then return true end
+    local ok, s = pcall(land.getSurfaceType, { x = p.x, y = p.z })
+    return not ok or (s ~= land.SurfaceType.WATER and s ~= land.SurfaceType.SHALLOW_WATER)
+end
+
+--- The friendly logistic zone on land nearest to a point, and its distance, or nil.
+function CTLDFatCowManager:nearestHomeZone(point, coalitionId)
+    local best, bestD
+    for _, zone in ipairs(CTLDZoneManager.getInstance():getLogisticZonesForCoalition(coalitionId)) do
+        local c = zone:getCenter()
+        if c and onLand(c) then
+            local d = ctld.utils.getDistance("CTLDFatCowManager", point, c)
+            if not bestD or d < bestD then best, bestD = zone, d end
+        end
+    end
+    return best, bestD
+end
+
+local function etaMinutes(distanceM)
+    return math.max(1, math.floor(distanceM / AI_COW_CRUISE_MPS / 60 + 0.5))
+end
+
+--- F10 "Request a Fat Cow", from anywhere: it takes off from the friendly logistic zone nearest to
+-- the requester and joins the flight. One cow per flight.
 function CTLDFatCowManager:requestAICow(unitName)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
@@ -727,31 +845,29 @@ function CTLDFatCowManager:requestAICow(unitName)
         trigger.action.outTextForGroup(gid, ctld.tr("Your flight already has a Fat Cow."), 10)
         return
     end
-    if ctld.utils.inAir(t) then
-        trigger.action.outTextForGroup(gid, ctld.tr("Land in a logistic zone to request a Fat Cow."), 10)
-        return
-    end
-    local zone = CTLDZoneManager.getInstance():getLogisticZoneAtPoint(t:getPoint(), t:getCoalition())
+    local p = t:getPoint()
+    local zone, distance = self:nearestHomeZone(p, t:getCoalition())
     if not zone then
-        trigger.action.outTextForGroup(gid, ctld.tr("Land in a logistic zone to request a Fat Cow."), 10)
+        trigger.action.outTextForGroup(gid, ctld.tr("No friendly logistic zone to send a Fat Cow from."), 10)
         return
     end
     self._aiCounter = (self._aiCounter or 0) + 1
-    local p   = t:getPoint()
-    local hdg = ctld.utils.getHeadingInRadians("CTLDFatCowManager", t, true)
-    local sx, sz = p.x - math.cos(hdg) * 80, p.z - math.sin(hdg) * 80   -- 80 m behind the requester
+    local home = zone:getCenter()
+    local hdg  = math.atan2(p.z - home.z, p.x - home.x)                 -- towards the requester
+    local alt  = land.getHeight({ x = home.x, y = home.z }) + CRUISE_ALT_M
     local groupName = string.format("Fat Cow %s #%d", flight, self._aiCounter)
+    -- An air start over the zone: no parking, no trees, and a carrier zone is never chosen (onLand).
     local data = {
         name  = groupName,
         task  = "Transport",
         route = { points = { {
-            type = "TakeOffGroundHot", action = "From Ground Area Hot",
-            x = sx, y = sz, alt = land.getHeight({ x = sx, y = sz }), alt_type = "BARO", speed = 0,
+            type = "Turning Point", action = "Turning Point",
+            x = home.x, y = home.z, alt = alt, alt_type = "BARO", speed = CRUISE_SPEED_MPS, speed_locked = true,
             task = { id = "ComboTask", params = { tasks = {} } },
         } } },
         units = { {
             name = groupName .. "-1", type = ctld.gs("fatCowAIType"), skill = "High",
-            x = sx, y = sz, heading = hdg,
+            x = home.x, y = home.z, alt = alt, alt_type = "BARO", speed = CRUISE_SPEED_MPS, heading = hdg,
             payload = { fuel = AI_COW_FUEL_KG, flare = 0, chaff = 0, gun = 100, pylons = {} },
         } },
     }
@@ -761,13 +877,16 @@ function CTLDFatCowManager:requestAICow(unitName)
         trigger.action.outTextForGroup(gid, ctld.tr("The Fat Cow could not be brought in."), 10)
         return
     end
-    local home = { x = sx, y = p.y, z = sz }
-    local mgr  = self
+    local mgr      = self
+    local zoneName = zone.name
     -- The group exists at once, its controller takes a task better on the next frame.
-    ctld.scheduler.schedule(function() mgr:addAICow(groupName, flight, home) end, nil, timer.getTime() + 1)
+    ctld.scheduler.schedule(function()
+        local cow = mgr:addAICow(groupName, flight, home)
+        if cow then cow.ai.homeName = zoneName end
+    end, nil, timer.getTime() + 1)
     trigger.action.outTextForGroup(gid,
-        ctld.tr("Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later.",
-            ctld.gs("fatCowDeployDelay")), 15)
+        ctld.tr("Fat Cow on its way from %1: %2 km, joining in about %3 min. Land here, Take off, Hold here and Join us command it.",
+            zoneName, math.floor(distance / 1000 + 0.5), etaMinutes(distance)), 15)
 end
 
 --- F10 "Release the Fat Cow": it packs and goes home.
@@ -787,23 +906,79 @@ function CTLDFatCowManager:_buildAIMenu(playerObj, menu, path)
     if ctld.gs("fatCowAIType") == "" then return end
     menu:addSubMenu({ path[1] }, path[2], { order = 50 })
     local mgr = CTLDFatCowManager.getInstance
-    menu:addCommand(path, ctld.tr("Request a Fat Cow"),
-        function(arg) mgr():requestAICow(arg.unitName) end, { unitName = playerObj.unitName }, { order = 1 })
-    menu:addCommand(path, ctld.tr("Release the Fat Cow"),
-        function(arg) mgr():releaseAICow(arg.unitName) end, { unitName = playerObj.unitName }, { order = 2 })
-    menu:addCommand(path, ctld.tr("Fat Cow stock"),
-        function(arg) mgr():reportFlightCowStock(arg.unitName) end, { unitName = playerObj.unitName }, { order = 3 })
+    local u = { unitName = playerObj.unitName }
+    menu:addCommand(path, ctld.tr("Request a Fat Cow"), function(arg) mgr():requestAICow(arg.unitName) end, u, { order = 1 })
+    menu:addCommand(path, ctld.tr("Land here"), function(arg) mgr():orderLandHere(arg.unitName) end, u, { order = 2 })
+    menu:addCommand(path, ctld.tr("Take off"), function(arg) mgr():orderTakeOff(arg.unitName) end, u, { order = 3 })
+    menu:addCommand(path, ctld.tr("Hold here"), function(arg) mgr():orderHoldHere(arg.unitName) end, u, { order = 4 })
+    menu:addCommand(path, ctld.tr("Join us"), function(arg) mgr():orderJoin(arg.unitName) end, u, { order = 5 })
+    menu:addCommand(path, ctld.tr("Fat Cow status"), function(arg) mgr():reportFlightCowStatus(arg.unitName) end, u, { order = 6 })
+    menu:addCommand(path, ctld.tr("FARP status"), function(arg) mgr():reportFarpStatus(arg.unitName) end, u, { order = 7 })
+    menu:addCommand(path, ctld.tr("Release the Fat Cow"), function(arg) mgr():releaseAICow(arg.unitName) end, u, { order = 8 })
 end
 
-function CTLDFatCowManager:reportFlightCowStock(unitName)
+local PHASE_TEXT = {
+    holding   = "holding",
+    following = "following your flight",
+    landing   = "landing next to your leader",
+    landed    = "on the ground",
+    returning = "going home",
+}
+
+--- F10 "Fat Cow status": where the flight's cow is, when it joins, and what it holds.
+function CTLDFatCowManager:reportFlightCowStatus(unitName)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
+    local gid = ctld.utils.getGroupId(t)
     local cow = self:aiCowOfFlight(t:getGroup():getName())
-    if not cow then
-        trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Your flight has no Fat Cow."), 10)
+    local u   = cow and Unit.getByName(cow.unitName)
+    if not (u and u:isExist()) then
+        trigger.action.outTextForGroup(gid, ctld.tr("Your flight has no Fat Cow."), 10)
         return
     end
-    self:reportStock(cow.unitName, ctld.utils.getGroupId(t))
+    local me, it = t:getPoint(), u:getPoint()
+    local d       = ctld.utils.getDistance("CTLDFatCowManager", me, it)
+    local bearing = math.floor((math.deg(math.atan2(it.z - me.z, it.x - me.x)) + 360) % 360 + 0.5)
+    local phase   = (cow.state == CTLDFatCow.STATE_DEPLOYED) and "FARP open" or PHASE_TEXT[cow.ai.phase] or cow.ai.phase
+    local lines   = { ctld.tr("Fat Cow: %1, %2 km at %3°.", ctld.tr(phase), string.format("%.1f", d / 1000), bearing) }
+    if cow.ai.phase == CTLDFatCowManager.PHASE_FOLLOWING and d > 1500 then
+        lines[#lines + 1] = ctld.tr("Joining in about %1 min.", etaMinutes(d))
+    end
+    lines[#lines + 1] = ctld.tr("Stock: %1", CTLDFatCow.describeStock(self:liveStock(cow)))
+    trigger.action.outTextForGroup(gid, table.concat(lines, "\n"), 15)
+end
+
+--- The cow's stock as it stands: read from its FARP when the FARP is open.
+function CTLDFatCowManager:liveStock(cow)
+    if cow.state == CTLDFatCow.STATE_DEPLOYED then
+        local w = warehouseOf(cow.farpName)
+        if w then cow:readWarehouse(w) end
+    end
+    return cow.stock
+end
+
+local FARP_STATUS_RANGE_M = 2000
+
+--- F10 "FARP status": what the Fat Cow FARP the player is at still holds, whoever it belongs to.
+function CTLDFatCowManager:reportFarpStatus(unitName)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local me = t:getPoint()
+    local best, bestD
+    for _, cow in pairs(self._cows) do
+        local farp = cow.state == CTLDFatCow.STATE_DEPLOYED and cow.farpName and StaticObject.getByName(cow.farpName)
+        if farp and farp:isExist() then
+            local d = ctld.utils.getDistance("CTLDFatCowManager", me, farp:getPoint())
+            if d <= FARP_STATUS_RANGE_M and (not bestD or d < bestD) then best, bestD = cow, d end
+        end
+    end
+    local gid = ctld.utils.getGroupId(t)
+    if not best then
+        trigger.action.outTextForGroup(gid, ctld.tr("No Fat Cow FARP within %1 km.", FARP_STATUS_RANGE_M / 1000), 10)
+        return
+    end
+    trigger.action.outTextForGroup(gid,
+        ctld.tr("Fat Cow FARP %1 m away: %2", math.floor(bestD + 0.5), CTLDFatCow.describeStock(self:liveStock(best))), 15)
 end
 
 -- ── Mission-placed cows (fatCowAICows): the VMCT contract ──────────────────────────────────────

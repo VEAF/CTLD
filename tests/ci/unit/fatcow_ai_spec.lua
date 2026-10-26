@@ -1,7 +1,8 @@
 ---@diagnostic disable
 -- tests/ci/unit/fatcow_ai_spec.lua
--- FEAT-FAT-COW ticket 04: an AI cow follows a flight, lands next to its leader, deploys after the
--- delay, packs when the leader takes off, goes home when empty or released.
+-- FEAT-FAT-COW ticket 04: an AI cow comes from the nearest friendly logistic zone and follows a flight.
+-- A player flight commands it from F10 (Land here, Take off, Hold here, Join us); an AI flight's cow
+-- lands and takes off with the leader. It deploys after the delay, goes home when released.
 -- ============================================================
 
 local HELLFIRE = "weapons.missiles.AGM_114K"
@@ -31,6 +32,11 @@ describe("AI Fat Cow", function()
         function g:getID() return self._id end
         function g:isExist() return not self.destroyed end
         function g:getUnit() return units[unitName] end
+        function g:getUnits()
+            local out = {}
+            for _, u in pairs(units) do if u._group == name then out[#out + 1] = u end end
+            return out
+        end
         function g:getController()
             local grp = self
             return { setTask = function(_, t) grp.tasks[#grp.tasks + 1] = t end }
@@ -69,7 +75,7 @@ describe("AI Fat Cow", function()
             schedule = ctld.scheduler.schedule, remove = ctld.scheduler.remove,
             inAir = ctld.utils.inAir, gid = ctld.utils.getGroupId, outGroup = trigger.action.outTextForGroup,
             play = sm.playScene, pack = sm.packScene, airbase = Airbase.getByName,
-            zone = zm.getLogisticZoneAtPoint, gs = ctld.gs, cargo = trigger.action.setUnitInternalCargo,
+            zone = zm.getLogisticZonesForCoalition, gs = ctld.gs, cargo = trigger.action.setUnitInternalCargo,
         }
         Unit.getByName  = function(n) return units[n] end
         Group.getByName = function(n) return groups[n] end
@@ -84,7 +90,10 @@ describe("AI Fat Cow", function()
         ctld.utils.getGroupId = function(u) return u:getGroup():getID() end
         trigger.action.outTextForGroup = function(gid, text) messages[#messages + 1] = { gid = gid, text = text } end
         trigger.action.setUnitInternalCargo = function() end
-        zm.getLogisticZoneAtPoint = function() return inZone and {} or nil end
+        zm.getLogisticZonesForCoalition = function()
+            if not inZone then return {} end
+            return { { name = "Akrotiri", getCenter = function() return { x = 5000, y = 10, z = 2000 } end } }
+        end
         sm.playScene = function(_, u, model, params)
             local scene = { _name = "Fat Cow FARP#1", _params = params }
             params.farpName = "FatCow_FARP-1"
@@ -106,25 +115,28 @@ describe("AI Fat Cow", function()
         ctld.utils.inAir, ctld.utils.getGroupId = saved.inAir, saved.gid
         trigger.action.outTextForGroup, trigger.action.setUnitInternalCargo = saved.outGroup, saved.cargo
         sm.playScene, sm.packScene, Airbase.getByName = saved.play, saved.pack, saved.airbase
-        zm.getLogisticZoneAtPoint, ctld.gs = saved.zone, saved.gs
+        zm.getLogisticZonesForCoalition, ctld.gs = saved.zone, saved.gs
         CTLDFatCowManager._instance = nil
     end)
 
     -- An Apache flight "Gunfighter" (group id 7) whose leader requests a cow, and the cow ready.
-    local function flightWithCow()
+    local function flightWithCow(player)
         newGroup("Gunfighter", 7, "Gunfighter-1")
         local leader = newUnit("Gunfighter-1", "Gunfighter", 1000, 2000)
+        if player then function leader:getPlayerName() return "Zip" end end
         mgr:requestAICow("Gunfighter-1")
         runScheduled()
         local cow = mgr:aiCowOfFlight("Gunfighter")
         return leader, cow
     end
 
-    it("is requested on the ground in a logistic zone, spawned hot with fuel, and follows the flight", function()
-        local _, cow = flightWithCow()
+    it("comes airborne from the nearest friendly logistic zone, with fuel, and follows the flight", function()
+        local leader, cow = flightWithCow()
+        leader.airborne = true
         assert.equals(1, #added)
         assert.equals("CH-47Fbl1", added[1].units[1].type)
-        assert.equals("TakeOffGroundHot", added[1].route.points[1].type)
+        assert.equals("Turning Point", added[1].route.points[1].type)
+        assert.equals(5000, added[1].units[1].x)
         assert.is_true(added[1].units[1].payload.fuel > 0)
         assert.is_not_nil(cow)
         assert.equals(7200, cow.stock.fuelKg)
@@ -134,12 +146,10 @@ describe("AI Fat Cow", function()
         assert.equals(7, t.params.groupId)
     end)
 
-    it("is refused in the air, outside a logistic zone, and a second time for the same flight", function()
+    it("can be requested in the air, but not without a friendly logistic zone, nor twice", function()
         newGroup("Gunfighter", 7, "Gunfighter-1")
         local leader = newUnit("Gunfighter-1", "Gunfighter")
         leader.airborne = true
-        mgr:requestAICow("Gunfighter-1")
-        leader.airborne = false
         inZone = false
         mgr:requestAICow("Gunfighter-1")
         assert.equals(0, #added)
@@ -148,6 +158,52 @@ describe("AI Fat Cow", function()
         runScheduled()
         mgr:requestAICow("Gunfighter-1")
         assert.equals(1, #added)
+        assert.is_not_nil(messages[2].text:find("Akrotiri", 1, true))
+    end)
+
+    it("does nothing on its own for a player flight: the leader landing or taking off moves it not", function()
+        local leader, cow = flightWithCow(true)
+        units[cow.unitName].airborne = true
+        mgr:onLand({ initiator = leader })
+        assert.equals("Follow", lastTask(cow.ai.groupName).id)
+        mgr:orderLandHere("Gunfighter-1")
+        assert.equals("Mission", lastTask(cow.ai.groupName).id)
+        units[cow.unitName].airborne = false
+        mgr:onLand({ initiator = units[cow.unitName] })
+        runScheduled()
+        assert.equals(CTLDFatCow.STATE_DEPLOYED, cow.state)
+        leader.airborne = true
+        mgr:onTakeoff({ initiator = leader })              -- hopping onto the FARP
+        assert.equals(CTLDFatCow.STATE_DEPLOYED, cow.state)
+    end)
+
+    it("obeys Take off, Hold here and Join us, packing its FARP first", function()
+        local leader, cow = flightWithCow(true)
+        units[cow.unitName].airborne = true
+        mgr:orderLandHere("Gunfighter-1")
+        units[cow.unitName].airborne = false
+        mgr:onLand({ initiator = units[cow.unitName] })
+        runScheduled()
+        w.liquids[0] = 5000
+        mgr:orderTakeOff("Gunfighter-1")
+        assert.equals(CTLDFatCow.STATE_STOWED, cow.state)
+        assert.equals(5000, cow.stock.fuelKg)
+        assert.equals("Orbit", lastTask(cow.ai.groupName).id)
+        mgr:orderHoldHere("Gunfighter-1")
+        local orbit = lastTask(cow.ai.groupName)
+        assert.equals("Orbit", orbit.id)
+        assert.equals(leader._p.x, orbit.params.point.x)
+        mgr:orderJoin("Gunfighter-1")
+        assert.equals("Follow", lastTask(cow.ai.groupName).id)
+    end)
+
+    it("reports its stock before it has landed", function()
+        local _, cow = flightWithCow(true)
+        mgr:reportFlightCowStatus("Gunfighter-1")
+        local text = messages[#messages].text
+        assert.is_not_nil(text:find("7200 kg", 1, true))
+        assert.is_not_nil(text:find("AGM_114K x6", 1, true))
+        assert.equals(CTLDFatCow.STATE_STOWED, cow.state)
     end)
 
     it("lands next to the leader with a Land task, and deploys only after the delay", function()
