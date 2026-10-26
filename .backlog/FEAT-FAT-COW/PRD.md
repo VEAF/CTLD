@@ -1,6 +1,6 @@
 # FEAT-FAT-COW — a CH-47 that lands in the field and becomes a forward refuel/rearm point
 
-**Status:** 🔄 in-progress — ticket 01 phase 1 done (2026-10-26): a runtime Invisible FARP serves a player already in game, enforces a finite stock, and needs a supplier in range, which the `FARP Fuel Depot` static alone satisfies, for fuel and weapons, without any vehicle. Phase 2 (a remote multiplayer client) not run: Zip hosted, so his view was the server's; the design re-applies the stock on every birth instead. Tickets 02-05 implemented (Zip, 2026-10-26: "implémente"); ticket 06, the live check, waits for Zip.
+**Status:** 🔄 in-progress — ticket 01 phase 1 done (2026-10-26): a runtime Invisible FARP serves a player already in game, enforces a finite stock, and needs a supplier in range, which the `FARP Fuel Depot` static alone satisfies, for fuel and weapons, without any vehicle. Phase 2 (a remote multiplayer client) not run: Zip hosted, so his view was the server's; the design re-applies the stock on every birth instead. Tickets 02-05 implemented (Zip, 2026-10-26: "implémente"), then reworked after the first server run (loadouts, F10-commanded AI cow, statuses, RTB); PR #273. Ticket 06, the live check with the squadron, waits for Zip.
 
 Designed with Zip on 2026-10-26 (VMCT session). Zip decided that the runtime belongs in CTLD, not in the VMCT Lua; VMCT will vendor this CTLD and add a static mission-editing tool for it afterwards.
 
