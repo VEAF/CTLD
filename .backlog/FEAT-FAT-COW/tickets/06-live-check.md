@@ -38,6 +38,16 @@ The `Hawk` run needs nobody: CTLD logs it (`CTLDFatCowManager:` lines in `dcs.lo
 - Findings, all addressed in the second build (`-v2`, `ctld.VERSION` `2.0.0-rc13-fatcow-5cd3286a`): loading one crate at a time is tedious (loadouts); the AI cow reported an empty stock until it landed (bug: it read crates it does not have); its request was refused outside a logistic zone (now from anywhere, from the nearest zone, with an ETA); it packed and left whenever the leader hopped onto its FARP (a player flight now commands it: Land here, Take off, Hold here, Join us); no way to know what the FARP you are at still holds (FARP status).
 - Measurement for "FARP status on every FARP": the Open Training's mission FARPs (filled by VMCT) read jet fuel 1000000 and AGM_114K 1000000 through `getLiquidAmount` / `getItemCount`, while `getInventory` lists 0 weapon types. A follow-up can show such a warehouse as "full".
 
+### Evening run — 2026-10-26 (Privé 1, Zip, Griffin, Paluche): findings, fixes pending Zip's go
+
+1. **The AI cow exploded on take-off** (21:06:29.9), under a second after its FARP was packed: the Invisible FARP under it was destroyed. Hypothesis, not measured: an AI aircraft sitting on an airbase dies when the airbase is destroyed (Zip's piloted CH-47 survived the same pack at 21:06:16).
+2. **A packed FARP stays on the F10 map**: destroying a heliport static leaves its airbase. One ghost per deployment (`CS_FARP-55`, `-61`, `-67`, `-73`).
+   Proposed for 1 and 2: one FARP per cow, never destroyed: packing removes the depot, dressing and crew and empties the warehouse; the next deployment re-adds the heliport under the same name at the new spot (RotorOps PERKS moves its Fat Cow FARPs this way).
+3. **The cow's FARP became unlimited**: VMCT's `veafGrass.onBirth` refills every FARP warehouse (50 000 kg of each liquid, ~5 000 of every weapon) on every player birth; packs read 50 035 and 50 055 kg. Proposed: the cow's FARP named `CTLD_…`, VMCT's refill skips `CTLD_` FARPs (VMCT PR), and CTLD restores its own count if fuel or Hellfires go up.
+4. **"Load: Max weapons + max fuel" refused on the French server**: CTLDConfig translates every config `desc`, so the crate is named "Réservoir Fat Cow (800 gal)" while the loadout names it in English. Proposed: look the crate up by its translated name, with a test in French.
+5. **No CSAR menu in the CH-47F**: VMCT's `CSAR.lua` lists no `CH-47Fbl1` in `csar.aircraftType`, in every VMCT mission. Proposed: one line in the same VMCT PR.
+6. **Radar missiles** (Zip): the cow should also carry AGM-114L (Longbow, radar). Proposed: a Hellfire L crate, in the loadouts and the AI default; the warehouse item name `weapons.missiles.AGM_114L` is to be checked in game.
+
 ## Procedure
 
 **Print Screen** where marked 📸. Nothing to copy: `dcs.log` and the screenshots are read afterwards.
