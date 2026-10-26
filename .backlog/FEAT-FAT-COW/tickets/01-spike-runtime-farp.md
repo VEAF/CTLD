@@ -80,7 +80,16 @@ From `dcs.log` and Zip's screenshots.
 
 - **(a) Yes.** An Invisible FARP spawned by `coalition.addStaticObject` mid-mission serves a player already in game.
 - **(b) Yes, on the server side.** The runtime FARP has a warehouse and starts empty. A finite stock set by script is served until it runs out, then refused: +289 kg for 300 kg in stock (the rest burnt at idle during the test), 2 Hellfires out of 4 asked. A request bigger than the stock is partly served, then answered "Unable to comply". Liquids are in kg. The Hellfire item is `weapons.missiles.AGM_114K`.
-- **(c) A supplier is required, but statics are enough: no vehicle.** With the FARP alone the window opens but nothing is served and nothing is said. With an M978 HEMTT Tanker and an M 818 30 m away, it is served. With **statics only** (command 7: `FARP Fuel Depot`, `FARP Ammo Dump Coating`, `barrels_cargo`, `ammo_cargo`, 25–30 m away, no vehicle) the ground crew answers "Copy" and serves: fuel 342 → 634 kg, `AGM_114K` ×2, stock down to 0. Decision 2 holds as is, no hidden vehicle. Not separated: which of the four statics does it (fuel depot or barrels, ammo dump or ammo crate), and the range. The fuel-truck-only test (command 8) is moot.
+- **(c) A supplier is required, but statics are enough: no vehicle.** With the FARP alone the window opens but nothing is served and nothing is said. With an M978 HEMTT Tanker and an M 818 30 m away, it is served. With **statics only** (command 7: `FARP Fuel Depot`, `FARP Ammo Dump Coating`, `barrels_cargo`, `ammo_cargo`, 25–30 m away, no vehicle) the ground crew answers "Copy" and serves: fuel 342 → 634 kg, `AGM_114K` ×2, stock down to 0. Decision 2 holds as is, no hidden vehicle. Then each static alone, on a new FARP with a new 300 kg / 2 Hellfire stock each time:
+
+  | Statics around the FARP | Fuel | Hellfire |
+  |---|---|---|
+  | none | no (no answer) | no |
+  | `barrels_cargo` + `ammo_cargo` (command 5), or each alone | no (no answer) | no |
+  | **`FARP Fuel Depot` alone** (command 8) | **yes** (+292 kg, stock 0) | **yes** (2, stock 0) |
+  | `FARP Ammo Dump Coating` alone (command 9) | no ("No can do", stock stays 300) | yes (2 → 4) |
+
+  **The `FARP Fuel Depot` alone supplies both fuel and weapons**; the ammo dump supplies weapons only; cargo statics supply nothing. The cow scene therefore needs the fuel depot and nothing else as a supplier: no ammo dump, no tent, no vehicle (Zip dislikes the bunker and the tent). Not measured: the range (25–30 m was used).
 - Where the rule lives: not in DCS's Lua files (`db.Units.lua` gives the M978 and M 818 only generic attributes, and the FARP statics none), nor as text in the clear DLLs of `bin/`; it is in the compiled engine, probably `Inter.dll` or `WorldGeneral.dll`. Measuring in game was preferred over decompiling.
 - The countryside scene's step 11 comment ("Invisible FARP airbases … return nil for getWarehouse()") is wrong, measured.
 
