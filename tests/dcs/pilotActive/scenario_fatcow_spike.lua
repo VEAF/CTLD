@@ -19,10 +19,11 @@
 --   2. Finite stock (300 kg, 2 HF)    — sets the FARP warehouse to a small known stock
 --   3. Read stock + my aircraft       — prints the warehouse and the caller's fuel/ammo
 --   4. Add fuel + ammo trucks          — spawns an M978 and an M 818 30 m from the FARP
---   5. Single pad FARP ahead (variant) — SINGLE_HELIPAD 40 m ahead, if 1 has no warehouse
+--   5. Crates only (barrels + ammo)    — barrels_cargo and ammo_cargo, no depot, no vehicle
 --   6. Remove everything               — destroys what the spike spawned
 --   7. Add FARP props, no vehicle      — fuel depot, ammo dump, barrels, ammo crate: do statics supply?
---   8. Add fuel truck only             — the M978 alone: does one vehicle serve weapons too?
+--   8. Barrels only                    — barrels_cargo alone
+--   9. Ammo crate only                 — ammo_cargo alone
 --
 -- Every result line goes to the screen (60 s) and to dcs.log, prefixed [FCSPIKE].
 -- _SCN_FCSPIKE_RESULT holds the lines measured so far.
@@ -227,20 +228,27 @@ local function addTrucks(groupName, fuelOnly)
     say("TRUCKS spawned 30 m north of the FARP: M978 HEMTT Tanker" .. (fuelOnly and " only" or " + M 818"))
 end
 
--- Statics only, no vehicle: do FARP props count as suppliers? Shapes from DCS's db.Units.lua.
+-- Statics only, no vehicle: which FARP props count as suppliers? Shapes from DCS's db.Units.lua.
 local PROPS = {
-    { type = "FARP Fuel Depot",        shape_name = "GSM Rus",        category = "Fortifications", dx = 30, dz = 0 },
-    { type = "FARP Ammo Dump Coating", shape_name = "SetkaKP",        category = "Fortifications", dx = 30, dz = 15 },
-    { type = "barrels_cargo",          shape_name = "barrels_cargo",  category = "Cargos",         dx = 25, dz = -10 },
-    { type = "ammo_cargo",             shape_name = "ammo_box_cargo", category = "Cargos",         dx = 25, dz = 25 },
+    depot   = { type = "FARP Fuel Depot",        shape_name = "GSM Rus",        category = "Fortifications", dx = 30, dz = 0 },
+    dump    = { type = "FARP Ammo Dump Coating", shape_name = "SetkaKP",        category = "Fortifications", dx = 30, dz = 15 },
+    barrels = { type = "barrels_cargo",          shape_name = "barrels_cargo",  category = "Cargos",         dx = 25, dz = -10 },
+    crate   = { type = "ammo_cargo",             shape_name = "ammo_box_cargo", category = "Cargos",         dx = 25, dz = 25 },
+}
+local PROP_SETS = {
+    all     = { "depot", "dump", "barrels", "crate" },
+    crates  = { "barrels", "crate" },
+    barrels = { "barrels" },
+    crate   = { "crate" },
 }
 
-local function addProps(groupName)
+local function addProps(groupName, set)
     local unit = callerUnit(groupName)
     if not unit then say("no unit for group " .. groupName) return end
     local p = farpPoint(unit)
     local made = {}
-    for _, d in ipairs(PROPS) do
+    for _, key in ipairs(PROP_SETS[set or "all"]) do
+        local d = PROPS[key]
         local sd = {
             name = nextName("PROP"), type = d.type, shape_name = d.shape_name, category = d.category,
             x = p.x + d.dx, y = p.z + d.dz, heading = 0, dead = false,
@@ -283,12 +291,14 @@ local function buildMenu(unit)
     missionCommands.addCommandForGroup(gid, "2. Finite stock (300 kg, 2 Hellfire)", root, setFiniteStock)
     missionCommands.addCommandForGroup(gid, "3. Read stock + my aircraft", root, readAll, gName)
     missionCommands.addCommandForGroup(gid, "4. Add fuel + ammo trucks", root, addTrucks, gName)
-    missionCommands.addCommandForGroup(gid, "5. Single pad FARP ahead (variant)", root,
-        function(n) spawnFarp(n, "single") end, gName)
+    missionCommands.addCommandForGroup(gid, "5. Crates only (barrels + ammo)", root,
+        function(n) addProps(n, "crates") end, gName)
     missionCommands.addCommandForGroup(gid, "6. Remove everything", root, removeAll)
     missionCommands.addCommandForGroup(gid, "7. Add FARP props, no vehicle", root, addProps, gName)
-    missionCommands.addCommandForGroup(gid, "8. Add fuel truck only", root,
-        function(n) addTrucks(n, true) end, gName)
+    missionCommands.addCommandForGroup(gid, "8. Barrels only", root,
+        function(n) addProps(n, "barrels") end, gName)
+    missionCommands.addCommandForGroup(gid, "9. Ammo crate only", root,
+        function(n) addProps(n, "crate") end, gName)
 end
 
 S.handler = {}
