@@ -88,6 +88,18 @@ local function isCowCrate(crate)
     return crate and crate.descriptor and crate.descriptor.fatCow ~= nil
 end
 
+--- "2400 kg of fuel, AGM_114K x4" — for the players.
+function CTLDFatCow.describeStock(stock)
+    local parts = { ctld.tr("%1 kg of fuel", math.floor((stock.fuelKg or 0) + 0.5)) }
+    local names = {}
+    for name in pairs(stock.items or {}) do names[#names + 1] = name end
+    table.sort(names)
+    for _, name in ipairs(names) do
+        parts[#parts + 1] = string.format("%s x%d", (name:gsub("^weapons%.[%a_]+%.", "")), stock.items[name])
+    end
+    return table.concat(parts, ", ")
+end
+
 --- Sums the cow crates of a list (other crates are ignored) into one stock.
 function CTLDFatCow.stockOfCrates(crates)
     local stock = { fuelKg = 0, items = {} }
@@ -217,6 +229,14 @@ function CTLDFatCowManager:onSceneLaidOut(scene)
     cow.state = CTLDFatCow.STATE_DEPLOYED
     ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' deployed, FARP '%s', %d kg of fuel",
         cow.unitName, cow.farpName, cow.stock.fuelKg)
+    self:_notify(cow, ctld.tr("Fat Cow FARP open — %1", CTLDFatCow.describeStock(cow.stock)))
+end
+
+--- Tells the cow's audience (its own group when piloted, the escorted flight when AI).
+function CTLDFatCowManager:_notify(cow, text)
+    if cow.notifyGroupId then
+        trigger.action.outTextForGroup(cow.notifyGroupId, text, 15)
+    end
 end
 
 --- Reads what the players left back into the stock, then removes the scene.
@@ -249,3 +269,242 @@ function CTLDFatCowManager:onBirth(event)
         end
     end
 end
+
+-- ====================================================================================================
+-- Start-up: crate descriptors and DCS events (called by CTLDCoreManager:init when fatCowEnabled)
+-- ====================================================================================================
+
+function CTLDFatCowManager:start()
+    if self._started then return end
+    self._started = true
+    self:_injectCrateDescriptors()
+    local bridge = CTLDDCSEventBridge.getInstance()
+    bridge:register(self, world.event.S_EVENT_BIRTH,   "onBirth")
+    bridge:register(self, world.event.S_EVENT_TAKEOFF, "onTakeoff")
+    bridge:register(self, world.event.S_EVENT_LAND,    "onLand")
+    bridge:register(self, world.event.S_EVENT_DEAD,    "onDead")
+    bridge:register(self, world.event.S_EVENT_CRASH,   "onDead")
+    ctld.utils.log("INFO", "CTLDFatCowManager: started, %d cow crate type(s)", #self._crateDescs)
+end
+
+--- Turns fatCowCrates into crate descriptors the crate system knows (indexed by weight, as every
+-- crate is), but keeps them out of the shared Request Equipment menu: the cow requests its own.
+function CTLDFatCowManager:_injectCrateDescriptors()
+    local cm = CTLDCrateManager.getInstance()
+    self._crateDescs = {}
+    for _, def in ipairs(ctld.gs("fatCowCrates") or {}) do
+        local content = (def.fuelKg and { fuelKg = def.fuelKg })
+                     or (def.item and def.count and { item = def.item, count = def.count })
+        if not (content and def.desc and (def.weight or 0) > 0) then
+            ctld.utils.log("WARN", "CTLDFatCowManager: fatCowCrates entry '%s' ignored: it needs desc, weight, and fuelKg or item + count",
+                tostring(def.desc))
+        else
+            local w = def.weight
+            while cm._weightIndex[w] do
+                w = math.floor(w * 100 + 1.5) / 100
+            end
+            if w ~= def.weight then
+                ctld.utils.log("WARN", "CTLDFatCowManager: crate '%s' weight %.2f taken — reassigned to %.2f",
+                    def.desc, def.weight, w)
+            end
+            local d = {
+                weight         = w,
+                desc           = ctld.tr(def.desc),
+                unit           = "FatCow:" .. def.desc,
+                cratesRequired = 1,
+                showSets       = false,
+                fatCow         = content,
+            }
+            cm._weightIndex[w] = d
+            self._crateDescs[#self._crateDescs + 1] = d
+        end
+    end
+end
+
+function CTLDFatCowManager:isCowType(typeName)
+    for _, t in ipairs(ctld.gs("fatCowTypes") or {}) do
+        if t == typeName then return true end
+    end
+    return false
+end
+
+-- ====================================================================================================
+-- Piloted cow (ticket 03): F10 > CTLD > Fat Cow, for the types listed in fatCowTypes
+-- ====================================================================================================
+
+local function groupIdOf(unit)
+    return ctld.utils.getGroupId(unit)
+end
+
+--- The cow crates in a unit's hold.
+local function cowCratesOnboard(unitName)
+    local out = {}
+    for _, crate in ipairs(CTLDCrateManager.getInstance():cratesOnboard(unitName)) do
+        if crate.descriptor and crate.descriptor.fatCow then out[#out + 1] = crate end
+    end
+    return out
+end
+
+function CTLDFatCowManager:requestCrate(unitName, weight)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local gid = groupIdOf(t)
+    if ctld.utils.inAir(t) then
+        trigger.action.outTextForGroup(gid, ctld.tr("You must be landed to request a crate."), 10)
+        return
+    end
+    local zones = CTLDZoneManager.getInstance():getLogisticZonesAtPoint(t:getPoint(), t:getCoalition(), "cratesPickup")
+    if not next(zones) then
+        trigger.action.outTextForGroup(gid, ctld.tr("You are not close enough to friendly logistics to get a crate!"), 10)
+        return
+    end
+    local desc
+    for _, d in ipairs(self._crateDescs or {}) do
+        if d.weight == weight then desc = d end
+    end
+    if not desc then return end
+    local count = CTLDCrateManager.getInstance():spawnCratesAligned({ desc }, t, t:getCoalition(), unitName,
+        CTLDCrate.SPAWN_METHOD.MENU_CTLD)
+    if (count or 0) < 1 then
+        trigger.action.outTextForGroup(gid, ctld.tr("Request failed: the equipment could not be brought out."), 10)
+        return
+    end
+    trigger.action.outTextForGroup(gid, ctld.tr("%1 is next to you: load it into your hold.", desc.desc), 10)
+end
+
+--- Deploys the FARP with the cow crates on board as its stock. The crates stay on board.
+function CTLDFatCowManager:deployFromHold(unitName)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local gid = groupIdOf(t)
+    local existing = self._cows[unitName]
+    if existing and existing.state ~= CTLDFatCow.STATE_STOWED then
+        trigger.action.outTextForGroup(gid, ctld.tr("The Fat Cow FARP is already deployed."), 10)
+        return
+    end
+    if ctld.utils.inAir(t) then
+        trigger.action.outTextForGroup(gid, ctld.tr("Land to deploy the Fat Cow FARP."), 10)
+        return
+    end
+    local crates = cowCratesOnboard(unitName)
+    if #crates == 0 then
+        trigger.action.outTextForGroup(gid, ctld.tr("No Fat Cow crate on board: load a fuel tank or an ammo crate first."), 10)
+        return
+    end
+    local cow = self:addCow(t, CTLDFatCow.stockOfCrates(crates))
+    cow.crates        = crates
+    cow.notifyGroupId = gid
+    local ok, why = self:deploy(t)
+    if not ok then
+        self._cows[unitName] = nil
+        local text = (why == "empty") and ctld.tr("The Fat Cow crates on board are empty.")
+                  or ctld.tr("The Fat Cow FARP could not be deployed.")
+        trigger.action.outTextForGroup(gid, text, 10)
+        return
+    end
+    trigger.action.outTextForGroup(gid, ctld.tr("Deploying the Fat Cow FARP…"), 10)
+end
+
+--- Packs a piloted cow: what is left goes back into its crates, emptied crates are removed.
+-- @param quiet boolean  no "nothing to pack" message (take-off)
+function CTLDFatCowManager:packIntoHold(unitName, quiet)
+    local cow = self._cows[unitName]
+    local t   = Unit.getByName(unitName)
+    local gid = t and t:isExist() and groupIdOf(t)
+    if not (cow and cow.crates and self:pack(unitName)) then
+        if gid and not quiet then
+            trigger.action.outTextForGroup(gid, ctld.tr("No Fat Cow FARP deployed."), 10)
+        end
+        return
+    end
+    local cm = CTLDCrateManager.getInstance()
+    local stillOnboard = {}
+    for _, crate in ipairs(cow.crates) do
+        if crate:isLoaded() and cm:isCarriedBy(crate, unitName) then stillOnboard[#stillOnboard + 1] = crate end
+    end
+    for _, crate in ipairs(CTLDFatCow.refillCrates(cow.stock, stillOnboard)) do
+        cm:destroyCrate(crate.crateName)
+    end
+    ctld.utils.updateTransportWeight(unitName)
+    self._cows[unitName] = nil
+    if gid then
+        trigger.action.outTextForGroup(gid, ctld.tr("Fat Cow FARP packed — %1 left.", CTLDFatCow.describeStock(cow.stock)), 10)
+    end
+end
+
+function CTLDFatCowManager:reportStock(unitName)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local cow = self._cows[unitName]
+    local stock
+    if cow and cow.state == CTLDFatCow.STATE_DEPLOYED then
+        local w = warehouseOf(cow.farpName)
+        if w then cow:readWarehouse(w) end
+        stock = cow.stock
+    else
+        stock = CTLDFatCow.stockOfCrates(cowCratesOnboard(unitName))
+    end
+    trigger.action.outTextForGroup(groupIdOf(t), ctld.tr("Fat Cow stock: %1", CTLDFatCow.describeStock(stock)), 15)
+end
+
+--- S_EVENT_TAKEOFF: a piloted cow taking off packs its FARP (AI cows: see onTakeoff below).
+function CTLDFatCowManager:onTakeoff(event)
+    local unit = event and event.initiator
+    local name = ctld.utils.safeObjectName(unit)
+    if not name then return end
+    local cow = self._cows[name]
+    if cow and cow.crates and cow.state ~= CTLDFatCow.STATE_STOWED then
+        self:packIntoHold(name, true)
+    end
+    self:_onAITakeoff(name)
+end
+
+--- S_EVENT_DEAD / S_EVENT_CRASH: a dead cow's FARP goes with it.
+function CTLDFatCowManager:onDead(event)
+    local name = ctld.utils.safeObjectName(event and event.initiator)
+    if name and self._cows[name] then
+        self:removeCow(name)
+        self:_forgetAICow(name)
+    end
+end
+
+-- ── Menu section ────────────────────────────────────────────────────────────────────────────────
+
+function CTLDFatCowManager:buildMenuSection(playerObj, menu)
+    local root, sub = ctld.tr("CTLD"), ctld.tr("Fat Cow")
+    local path = { root, sub }
+    if playerObj.isTransport and self:isCowType(playerObj.typeName) then
+        menu:addSubMenu({ root }, sub, { order = 50 })
+        local mgr = CTLDFatCowManager.getInstance
+        for i, d in ipairs(self._crateDescs or {}) do
+            menu:addCommand(path, ctld.tr("Request %1", d.desc),
+                function(arg) mgr():requestCrate(arg.unitName, arg.weight) end,
+                { unitName = playerObj.unitName, weight = d.weight }, { order = i })
+        end
+        menu:addCommand(path, ctld.tr("Deploy the Fat Cow FARP"),
+            function(arg) mgr():deployFromHold(arg.unitName) end, { unitName = playerObj.unitName }, { order = 20 })
+        menu:addCommand(path, ctld.tr("Pack the Fat Cow FARP"),
+            function(arg) mgr():packIntoHold(arg.unitName) end, { unitName = playerObj.unitName }, { order = 21 })
+        menu:addCommand(path, ctld.tr("Fat Cow stock"),
+            function(arg) mgr():reportStock(arg.unitName) end, { unitName = playerObj.unitName }, { order = 22 })
+    else
+        self:_buildAIMenu(playerObj, menu, path)
+    end
+end
+
+-- The section's manager resolves the singleton at build time, so a reset instance is never reached.
+CTLDPlayerManager.deferMenuSection({
+    key       = "fatCow",
+    manager   = { buildMenuSection = function(_, playerObj, menu)
+        CTLDFatCowManager.getInstance():buildMenuSection(playerObj, menu)
+    end },
+    method    = "buildMenuSection",
+    configKey = "fatCowEnabled",
+    order     = 50,
+})
+
+-- AI cow hooks — defined with the AI cow (ticket 04).
+function CTLDFatCowManager:onLand(_) end
+function CTLDFatCowManager:_onAITakeoff(_) end
+function CTLDFatCowManager:_forgetAICow(_) end
+function CTLDFatCowManager:_buildAIMenu(_, _, _) end

@@ -310,6 +310,11 @@ function CTLDCoreManager:init()
     -- INIT-A: AI transport auto-pickup/dropoff loop
     self:_initAITransports()
 
+    -- Fat Cow: cow crate descriptors and the cow's DCS events (FEAT-FAT-COW)
+    if ctld.gs("fatCowEnabled") == true then
+        CTLDFatCowManager.getInstance():start()
+    end
+
     ctld.utils.log("INFO", "CTLDCoreManager: init complete (INIT-A + INIT-B + INIT-C + INIT-D + INIT-E)")
 end
 
