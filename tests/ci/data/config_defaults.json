@@ -296,7 +296,7 @@
       "useNativeDcsCargoSystem": false
     }
   },
-  "configVersion": "2.2.0",
+  "configVersion": "2.3.0",
   "crateDropExtraDistance": 2,
   "crateSpacing": 5,
   "crateSpawnGap": 0.5,
@@ -350,6 +350,39 @@
   ],
   "farpTroopPickupRadius": 150,
   "fastRopeMaximumHeight": 18.28,
+  "fatCowAICows": [],
+  "fatCowAIFuelKg": 7200,
+  "fatCowAIItems": [
+    {
+      "count": 6,
+      "item": "weapons.missiles.AGM_114K"
+    }
+  ],
+  "fatCowAIType": "CH-47Fbl1",
+  "fatCowCrates": [
+    {
+      "desc": "Fat Cow fuel tank (800 gal)",
+      "fuelKg": 2400,
+      "weight": 2400
+    },
+    {
+      "count": 4,
+      "desc": "Fat Cow Hellfires (x4)",
+      "item": "weapons.missiles.AGM_114K",
+      "weight": 250
+    },
+    {
+      "count": 300,
+      "desc": "Fat Cow 30 mm (x300)",
+      "item": "weapons.shells.M230_HEDP M789",
+      "weight": 150
+    }
+  ],
+  "fatCowDeployDelay": 60,
+  "fatCowEnabled": true,
+  "fatCowTypes": [
+    "CH-47Fbl1"
+  ],
   "fieldExtractTroopWeight": 130,
   "fobCrateCollectionRadius": 750,
   "fobDestructionThreshold": 0.5,

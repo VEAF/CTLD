@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.28"
+ctld.i18n["ko"].translation_version = "1.29"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -501,3 +501,33 @@ ctld.i18n["ko"]["lasing"] = "레이저 지시:"
 ctld.i18n["ko"]["standing by on"] = "대기:"
 ctld.i18n["ko"]["unknown"] = "알 수 없음"
 ctld.i18n["ko"]["UNKNOWN"] = "알 수 없음"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
+ctld.i18n["ko"]["%1 is next to you: load it into your hold."] = "%1이(가) 옆에 있습니다: 화물칸에 적재하세요."
+ctld.i18n["ko"]["%1 kg of fuel"] = "연료 %1 kg"
+ctld.i18n["ko"]["Deploy the Fat Cow FARP"] = "Fat Cow FARP 전개"
+ctld.i18n["ko"]["Deploying the Fat Cow FARP..."] = "Fat Cow FARP 전개 중..."
+ctld.i18n["ko"]["Fat Cow"] = "Fat Cow"
+ctld.i18n["ko"]["Fat Cow 30 mm (x300)"] = "Fat Cow 30mm (x300)"
+ctld.i18n["ko"]["Fat Cow FARP open: %1"] = "Fat Cow FARP 개방: %1"
+ctld.i18n["ko"]["Fat Cow FARP packed: %1 left."] = "Fat Cow FARP 철수: %1 남음."
+ctld.i18n["ko"]["Fat Cow fuel tank (800 gal)"] = "Fat Cow 연료 탱크 (800 gal)"
+ctld.i18n["ko"]["Fat Cow Hellfires (x4)"] = "Fat Cow 헬파이어 (x4)"
+ctld.i18n["ko"]["Fat Cow released: it goes home."] = "Fat Cow 해제: 귀환합니다."
+ctld.i18n["ko"]["Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later."] = "Fat Cow 요청됨: 편대를 따라가 편대장 옆에 착륙하고 %1초 후 FARP를 엽니다."
+ctld.i18n["ko"]["Fat Cow stock"] = "Fat Cow 재고"
+ctld.i18n["ko"]["Fat Cow stock: %1"] = "Fat Cow 재고: %1"
+ctld.i18n["ko"]["Land in a logistic zone to request a Fat Cow."] = "Fat Cow를 요청하려면 보급 구역에 착륙하세요."
+ctld.i18n["ko"]["Land to deploy the Fat Cow FARP."] = "Fat Cow FARP를 전개하려면 착륙하세요."
+ctld.i18n["ko"]["No Fat Cow crate on board: load a fuel tank or an ammo crate first."] = "탑재된 Fat Cow 화물 없음: 먼저 연료 탱크나 탄약 상자를 적재하세요."
+ctld.i18n["ko"]["No Fat Cow FARP deployed."] = "전개된 Fat Cow FARP 없음."
+ctld.i18n["ko"]["Pack the Fat Cow FARP"] = "Fat Cow FARP 철수"
+ctld.i18n["ko"]["Release the Fat Cow"] = "Fat Cow 해제"
+ctld.i18n["ko"]["Request %1"] = "%1 요청"
+ctld.i18n["ko"]["Request a Fat Cow"] = "Fat Cow 요청"
+ctld.i18n["ko"]["The Fat Cow could not be brought in."] = "Fat Cow를 불러올 수 없습니다."
+ctld.i18n["ko"]["The Fat Cow crates on board are empty."] = "탑재된 Fat Cow 화물이 비어 있습니다."
+ctld.i18n["ko"]["The Fat Cow FARP could not be deployed."] = "Fat Cow FARP를 전개할 수 없습니다."
+ctld.i18n["ko"]["The Fat Cow FARP is already deployed."] = "Fat Cow FARP가 이미 전개되어 있습니다."
+ctld.i18n["ko"]["Your flight already has a Fat Cow."] = "편대에 이미 Fat Cow가 있습니다."
+ctld.i18n["ko"]["Your flight has no Fat Cow."] = "편대에 Fat Cow가 없습니다."

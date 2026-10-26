@@ -229,7 +229,7 @@ function CTLDFatCowManager:onSceneLaidOut(scene)
     cow.state = CTLDFatCow.STATE_DEPLOYED
     ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' deployed, FARP '%s', %d kg of fuel",
         cow.unitName, cow.farpName, cow.stock.fuelKg)
-    self:_notify(cow, ctld.tr("Fat Cow FARP open — %1", CTLDFatCow.describeStock(cow.stock)))
+    self:_notify(cow, ctld.tr("Fat Cow FARP open: %1", CTLDFatCow.describeStock(cow.stock)))
 end
 
 --- Tells the cow's audience (its own group when piloted, the escorted flight when AI).
@@ -404,7 +404,7 @@ function CTLDFatCowManager:deployFromHold(unitName)
         trigger.action.outTextForGroup(gid, text, 10)
         return
     end
-    trigger.action.outTextForGroup(gid, ctld.tr("Deploying the Fat Cow FARP…"), 10)
+    trigger.action.outTextForGroup(gid, ctld.tr("Deploying the Fat Cow FARP..."), 10)
 end
 
 --- Packs a piloted cow: what is left goes back into its crates, emptied crates are removed.
@@ -430,7 +430,7 @@ function CTLDFatCowManager:packIntoHold(unitName, quiet)
     ctld.utils.updateTransportWeight(unitName)
     self._cows[unitName] = nil
     if gid then
-        trigger.action.outTextForGroup(gid, ctld.tr("Fat Cow FARP packed — %1 left.", CTLDFatCow.describeStock(cow.stock)), 10)
+        trigger.action.outTextForGroup(gid, ctld.tr("Fat Cow FARP packed: %1 left.", CTLDFatCow.describeStock(cow.stock)), 10)
     end
 end
 
@@ -526,7 +526,7 @@ local CRUISE_SPEED_MPS = 60
 local CRUISE_ALT_M     = 150
 
 local function aiStockFromConfig()
-    local stock = { fuelKg = ctld.gs("fatCowAIFuelKg") or 0, items = {} }
+    local stock = { fuelKg = ctld.gs("fatCowAIFuelKg"), items = {} }
     for _, it in ipairs(ctld.gs("fatCowAIItems") or {}) do
         if it.item and it.count then stock.items[it.item] = it.count end
     end
@@ -652,7 +652,7 @@ function CTLDFatCowManager:onLand(event)
                     cow.notifyGroupId = flightGroupId(cow)
                     mgr:deploy(u)
                 end
-            end, nil, timer.getTime() + (ctld.gs("fatCowDeployDelay") or 60))
+            end, nil, timer.getTime() + ctld.gs("fatCowDeployDelay"))
         end
         return
     end
@@ -739,7 +739,7 @@ function CTLDFatCowManager:requestAICow(unitName)
     ctld.scheduler.schedule(function() mgr:addAICow(groupName, flight, home) end, nil, timer.getTime() + 1)
     trigger.action.outTextForGroup(gid,
         ctld.tr("Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later.",
-            ctld.gs("fatCowDeployDelay") or 60), 15)
+            ctld.gs("fatCowDeployDelay")), 15)
 end
 
 --- F10 "Release the Fat Cow": it packs and goes home.
@@ -756,7 +756,7 @@ function CTLDFatCowManager:releaseAICow(unitName)
 end
 
 function CTLDFatCowManager:_buildAIMenu(playerObj, menu, path)
-    if (ctld.gs("fatCowAIType") or "") == "" then return end
+    if ctld.gs("fatCowAIType") == "" then return end
     menu:addSubMenu({ path[1] }, path[2], { order = 50 })
     local mgr = CTLDFatCowManager.getInstance
     menu:addCommand(path, ctld.tr("Request a Fat Cow"),
