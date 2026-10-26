@@ -8,6 +8,24 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Fat Cow: a CH-47 that lands in the field and becomes a forward refuel and rearm point (FEAT-FAT-COW)
+
+ED announced a native Fat Cow on 2024-04-19, and again on 2024-08-23; DCS 2.9.30.28738 still has none, so CTLD brings its own while the Chinooks wait.
+
+- A **player-flown CH-47F** requests Fat Cow crates in a logistic zone (an 800 gal ERFS tank of 2 400 kg of jet fuel, 4 Hellfires, 300 rounds of 30 mm), loads them into its hold, lands, and **Deploy the Fat Cow FARP** from F10 → CTLD → Fat Cow.
+  The crates stay in the hold; **Pack the Fat Cow FARP**, or taking off, puts what was not used back into them, lightens the hold and removes the emptied crates.
+- Any other player can **Request a Fat Cow** while on the ground in a friendly logistic zone: an AI CH-47 follows the flight, lands next to its leader, opens its FARP 60 s later (`fatCowDeployDelay`), packs when the leader takes off, and flies home to despawn once empty or on **Release the Fat Cow**.
+  By default it carries 7 200 kg of fuel and 6 Hellfires (`fatCowAIFuelKg`, `fatCowAIItems`).
+- A cow placed in the mission (a late-activated helicopter group) escorts a named flight when declared in `fatCowAICows` (`{ group, escort }`): the contract the VEAF Mission Creation Tools rely on.
+- The FARP is an Invisible FARP, a FARP Fuel Depot, a few crates and three soldiers: no vehicle, no tent, no ammo dump.
+  Its warehouse holds the cow's stock and nothing else, and DCS serves it until it runs out ("Unable to comply" once a request outruns it).
+  All of this was measured in DCS first (FEAT-FAT-COW ticket 01): a FARP spawned mid-mission serves a player already in game, enforces a finite stock, and needs a supplier in range, which the FARP Fuel Depot alone is.
+- The warehouse is written again whenever a player joins, with what the server holds: whether DCS shares a scripted warehouse with clients was not measured.
+- New settings `fatCowEnabled`, `fatCowTypes`, `fatCowCrates`, `fatCowDeployDelay`, `fatCowAIType`, `fatCowAIFuelKg`, `fatCowAIItems`, `fatCowAICows`; catalogue version 2.3.0.
+- A part-used Fat Cow crate weighs what it still holds (`getLoadedCrateWeight` reads `metadata.massKg`), and Fat Cow crates are never offered to Unpack Crate.
+- The countryside FARP scene's comment claiming an Invisible FARP has no warehouse is corrected: it has one, measured.
+- FR/ES/KO texts are a proposal for review. Docs: pilot and mission-maker **Fat Cow** pages, EN + FR.
+
 ### Fixed — the JTAC radio messages are translated, and the guard sees the `ctld.i18n_translate` alias (FIX-I18N-TRANSLATE-ALIAS)
 
 - The JTAC radio messages were written through `ctld.i18n_translate`, an alias of `ctld.tr` that the dictionary generator, the `i18n-guard`
