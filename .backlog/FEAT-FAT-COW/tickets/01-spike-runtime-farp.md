@@ -75,11 +75,13 @@ From `dcs.log` and Zip's screenshots.
 | 6–7 (no trucks) | Fuel 100 % + 4 × AGM-114K, OK: nothing happens, no message. |
 | 9 (trucks) | Same request: the ground crew answers, works ~30 s, then "Unable to comply". |
 | 9 again | Fuel 50 %: "We don't have this in stock". |
+| 7 (props, new mission) | Fuel 100 % + 4 × AGM-114K: "Copy", then served; `STOCK NOW` 0, `AIRCRAFT` 634 kg and `AGM_114K` ×2. |
 | 8 | `STOCK NOW`: jet fuel 0, `AGM_114K` 0. `AIRCRAFT`: fuel 631 kg / 1 140 kg (342 at spawn), `AGM_114K` ×2, `M230_HEDP M789` ×1 200 (already full). The window shows 56 % and 2 Hellfires on pylon 2. |
 
 - **(a) Yes.** An Invisible FARP spawned by `coalition.addStaticObject` mid-mission serves a player already in game.
 - **(b) Yes, on the server side.** The runtime FARP has a warehouse and starts empty. A finite stock set by script is served until it runs out, then refused: +289 kg for 300 kg in stock (the rest burnt at idle during the test), 2 Hellfires out of 4 asked. A request bigger than the stock is partly served, then answered "Unable to comply". Liquids are in kg. The Hellfire item is `weapons.missiles.AGM_114K`.
-- **(c) Yes, vehicles are required.** Without trucks the window opens but nothing is served and nothing is said. With an M978 HEMTT Tanker and an M 818 30 m away, it is served. Not measured: whether one truck is enough for both fuel and weapons, and the range. The design keeps the fallback: a vehicle hidden under the cow's fuselage.
+- **(c) A supplier is required, but statics are enough: no vehicle.** With the FARP alone the window opens but nothing is served and nothing is said. With an M978 HEMTT Tanker and an M 818 30 m away, it is served. With **statics only** (command 7: `FARP Fuel Depot`, `FARP Ammo Dump Coating`, `barrels_cargo`, `ammo_cargo`, 25–30 m away, no vehicle) the ground crew answers "Copy" and serves: fuel 342 → 634 kg, `AGM_114K` ×2, stock down to 0. Decision 2 holds as is, no hidden vehicle. Not separated: which of the four statics does it (fuel depot or barrels, ammo dump or ammo crate), and the range. The fuel-truck-only test (command 8) is moot.
+- Where the rule lives: not in DCS's Lua files (`db.Units.lua` gives the M978 and M 818 only generic attributes, and the FARP statics none), nor as text in the clear DLLs of `bin/`; it is in the compiled engine, probably `Inter.dll` or `WorldGeneral.dll`. Measuring in game was preferred over decompiling.
 - The countryside scene's step 11 comment ("Invisible FARP airbases … return nil for getWarehouse()") is wrong, measured.
 
 No answer kills the design.
