@@ -75,6 +75,67 @@ function CTLDFatCow:resyncWarehouse(w)
     self:writeWarehouse(w)
 end
 
+-- ── Cow crates (piloted cow) ────────────────────────────────────────────────────────────────────
+-- A cow crate's descriptor carries `fatCow = { fuelKg }` or `fatCow = { item, count }`: what it holds
+-- when full. Once it has served, crate.metadata.fatCow holds what is left and crate.metadata.massKg
+-- what it weighs.
+
+local function contentOf(crate)
+    return crate.metadata and crate.metadata.fatCow or crate.descriptor.fatCow
+end
+
+local function isCowCrate(crate)
+    return crate and crate.descriptor and crate.descriptor.fatCow ~= nil
+end
+
+--- Sums the cow crates of a list (other crates are ignored) into one stock.
+function CTLDFatCow.stockOfCrates(crates)
+    local stock = { fuelKg = 0, items = {} }
+    for _, crate in ipairs(crates) do
+        if isCowCrate(crate) then
+            local c = contentOf(crate)
+            if c.fuelKg then
+                stock.fuelKg = stock.fuelKg + c.fuelKg
+            elseif c.item then
+                stock.items[c.item] = (stock.items[c.item] or 0) + (c.count or 0)
+            end
+        end
+    end
+    return stock
+end
+
+--- Puts what is left of a stock back into the cow crates it came from, in order, each up to what it
+-- held when the FARP opened. Sets each crate's metadata (content and mass).
+-- @return the crates left empty, for the caller to remove
+function CTLDFatCow.refillCrates(stock, crates)
+    local fuelLeft  = stock.fuelKg or 0
+    local itemsLeft = {}
+    for name, count in pairs(stock.items or {}) do itemsLeft[name] = count end
+    local emptied = {}
+    for _, crate in ipairs(crates) do
+        if isCowCrate(crate) then
+            local full   = crate.descriptor.fatCow
+            local before = contentOf(crate)
+            local now, fraction
+            if before.fuelKg then
+                local kg = math.min(before.fuelKg, fuelLeft)
+                fuelLeft = fuelLeft - kg
+                now      = { fuelKg = kg }
+                fraction = full.fuelKg > 0 and kg / full.fuelKg or 0
+            else
+                local n = math.min(before.count or 0, itemsLeft[before.item] or 0)
+                itemsLeft[before.item] = (itemsLeft[before.item] or 0) - n
+                now      = { item = before.item, count = n }
+                fraction = (full.count or 0) > 0 and n / full.count or 0
+            end
+            crate.metadata.fatCow = now
+            crate.metadata.massKg = crate.descriptor.weight * fraction
+            if fraction <= 0 then emptied[#emptied + 1] = crate end
+        end
+    end
+    return emptied
+end
+
 -- ====================================================================================================
 -- CTLDFatCowManager
 -- ====================================================================================================

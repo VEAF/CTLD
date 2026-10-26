@@ -68,7 +68,8 @@ function CTLDCrate:init(data)
     self.loadTime     = nil
     self.dcsStatic    = data.dcsStatic or nil
     self.modelKey     = data.modelKey  or "load"
-    self.canBeUnpacked = true
+    -- A Fat Cow crate (fuel, ammo) is deployed from the hold by its cow, never unpacked on the ground.
+    self.canBeUnpacked = not (data.descriptor and data.descriptor.fatCow)
     -- Feature A: virtual parachute
     self.fromParachute          = false   -- true → eligible for autoUnpack on landing
     self.loadedByDCSNative      = false   -- true → native carry (DCS cargo UI): CTLD never unloads, parachutes or weighs it
@@ -1101,7 +1102,8 @@ function CTLDCrateManager:getLoadedCrateWeight(unitName)
     local total = 0
     for _, crate in pairs(self.crates) do
         if crate:isLoadedByCTLD() and self:isCarriedBy(crate, unitName) then
-            total = total + (crate.descriptor and crate.descriptor.weight or 0)
+            -- metadata.massKg: a part-used Fat Cow crate weighs what it still holds.
+            total = total + (crate.metadata.massKg or (crate.descriptor and crate.descriptor.weight) or 0)
         end
     end
     return total

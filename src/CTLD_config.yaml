@@ -276,6 +276,28 @@ mm_facing:
   - extract25
   farpTroopPickupRadius: 150
   fastRopeMaximumHeight: 18.28
+  fatCowAICows: []
+  fatCowAIFuelKg: 7200
+  fatCowAIItems:
+  - item: weapons.missiles.AGM_114K
+    count: 6
+  fatCowAITemplate: ""
+  fatCowCrates:
+  - desc: Fat Cow fuel tank (800 gal)
+    weight: 2400
+    fuelKg: 2400
+  - desc: Fat Cow Hellfires (x4)
+    weight: 250
+    item: weapons.missiles.AGM_114K
+    count: 4
+  - desc: Fat Cow 30 mm (x300)
+    weight: 150
+    item: weapons.shells.M230_HEDP M789
+    count: 300
+  fatCowDeployDelay: 60
+  fatCowEnabled: true
+  fatCowTypes:
+  - CH-47Fbl1
   fobCrateCollectionRadius: 750
   fobDestructionThreshold: 0.5
   fobLogisticZoneRadius: 150
