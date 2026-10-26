@@ -31,6 +31,13 @@ The `Hawk` run needs nobody: CTLD logs it (`CTLDFatCowManager:` lines in `dcs.lo
 
 `VEAF_OpenTraining_Syria_FatCowTest_ICAO_LTAG_20261026.miz` (Saved Games\DCS\Missions, not in any repository): the Syria Open Training v6 at its committed state, rebuilt in a copy (`D:\tmp\OT-Syria-FatCow`) with `published/src/scripts/community/CTLD.lua` replaced by this branch's build (`ctld.VERSION` `2.0.0-rc13-fatcow-d8da3839`, so develop's fixes since rc13 are in too) and the `fatCow*` block added to `ctld-config.yaml` (catalogue 2.3.0). Mission name `VEAF_OpenTraining_Syria_FatCowTest_ICAO_LTAG`, so it never replaces the production file. CH-47F and AH-64D dynamic slots at Hatay and FARP Reyhanli; every airfield and FARP ammo dump is a CTLD logistic zone. On a server, Zip is a client: the client side of ticket 01 (b) is measured by the same checks (the rearm window shows the cow's stock, served up to it).
 
+### First server run — 2026-10-26 afternoon (Zip, Privé 1, client)
+
+- Piloted CH-47F near Akrotiri (4.5 km from the airfield): deployed with 2 400 kg; an Apache landed at the FARP was refuelled and rearmed. A client on a dedicated server is served by a cow FARP: ticket 01 (b) client side answered in practice.
+- The pilot changing slot leaves the FARP in place: kept on purpose (decision 4a).
+- Findings, all addressed in the second build (`-v2`, `ctld.VERSION` `2.0.0-rc13-fatcow-5cd3286a`): loading one crate at a time is tedious (loadouts); the AI cow reported an empty stock until it landed (bug: it read crates it does not have); its request was refused outside a logistic zone (now from anywhere, from the nearest zone, with an ETA); it packed and left whenever the leader hopped onto its FARP (a player flight now commands it: Land here, Take off, Hold here, Join us); no way to know what the FARP you are at still holds (FARP status).
+- Measurement for "FARP status on every FARP": the Open Training's mission FARPs (filled by VMCT) read jet fuel 1000000 and AGM_114K 1000000 through `getLiquidAmount` / `getItemCount`, while `getInventory` lists 0 weapon types. A follow-up can show such a warehouse as "full".
+
 ## Procedure
 
 **Print Screen** where marked 📸. Nothing to copy: `dcs.log` and the screenshots are read afterwards.
