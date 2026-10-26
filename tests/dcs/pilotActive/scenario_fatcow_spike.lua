@@ -21,6 +21,8 @@
 --   4. Add fuel + ammo trucks          — spawns an M978 and an M 818 30 m from the FARP
 --   5. Single pad FARP ahead (variant) — SINGLE_HELIPAD 40 m ahead, if 1 has no warehouse
 --   6. Remove everything               — destroys what the spike spawned
+--   7. Add FARP props, no vehicle      — fuel depot, ammo dump, barrels, ammo crate: do statics supply?
+--   8. Add fuel truck only             — the M978 alone: does one vehicle serve weapons too?
 --
 -- Every result line goes to the screen (60 s) and to dcs.log, prefixed [FCSPIKE].
 -- _SCN_FCSPIKE_RESULT holds the lines measured so far.
@@ -201,24 +203,57 @@ local function readAll(groupName)
     if unit then readUnit(unit) end
 end
 
-local function addTrucks(groupName)
+local function farpPoint(unit)
+    local farp = S.farpName and StaticObject.getByName(S.farpName)
+    return (farp and farp:isExist()) and farp:getPoint() or unit:getPoint()
+end
+
+-- fuelOnly: the tanker alone, to see whether one vehicle serves weapons as well.
+local function addTrucks(groupName, fuelOnly)
     local unit = callerUnit(groupName)
     if not unit then say("no unit for group " .. groupName) return end
-    local farp = S.farpName and StaticObject.getByName(S.farpName)
-    local p = (farp and farp:isExist()) and farp:getPoint() or unit:getPoint()
+    local p = farpPoint(unit)
     local gName = nextName("TRUCKS")
-    local data = {
-        name  = gName,
-        task  = "Ground Nothing",
-        units = {
-            { name = gName .. "_fuel", type = "M978 HEMTT Tanker", x = p.x + 30, y = p.z,      heading = 0, skill = "Average" },
-            { name = gName .. "_ammo", type = "M 818",             x = p.x + 30, y = p.z + 10, heading = 0, skill = "Average" },
-        },
+    local units = {
+        { name = gName .. "_fuel", type = "M978 HEMTT Tanker", x = p.x + 30, y = p.z, heading = 0, skill = "Average" },
     }
+    if not fuelOnly then
+        units[2] = { name = gName .. "_ammo", type = "M 818", x = p.x + 30, y = p.z + 10, heading = 0, skill = "Average" }
+    end
+    local data = { name = gName, task = "Ground Nothing", units = units }
     local ok, g = pcall(coalition.addGroup, unit:getCountry(), Group.Category.GROUND, data)
     if not ok or not g then say("TRUCKS FAILED: " .. tostring(g)) return end
     S.groups[#S.groups + 1] = gName
-    say("TRUCKS spawned 30 m north of the FARP: M978 HEMTT Tanker + M 818")
+    say("TRUCKS spawned 30 m north of the FARP: M978 HEMTT Tanker" .. (fuelOnly and " only" or " + M 818"))
+end
+
+-- Statics only, no vehicle: do FARP props count as suppliers? Shapes from DCS's db.Units.lua.
+local PROPS = {
+    { type = "FARP Fuel Depot",        shape_name = "GSM Rus",        category = "Fortifications", dx = 30, dz = 0 },
+    { type = "FARP Ammo Dump Coating", shape_name = "SetkaKP",        category = "Fortifications", dx = 30, dz = 15 },
+    { type = "barrels_cargo",          shape_name = "barrels_cargo",  category = "Cargos",         dx = 25, dz = -10 },
+    { type = "ammo_cargo",             shape_name = "ammo_box_cargo", category = "Cargos",         dx = 25, dz = 25 },
+}
+
+local function addProps(groupName)
+    local unit = callerUnit(groupName)
+    if not unit then say("no unit for group " .. groupName) return end
+    local p = farpPoint(unit)
+    local made = {}
+    for _, d in ipairs(PROPS) do
+        local sd = {
+            name = nextName("PROP"), type = d.type, shape_name = d.shape_name, category = d.category,
+            x = p.x + d.dx, y = p.z + d.dz, heading = 0, dead = false,
+        }
+        local ok, obj = pcall(coalition.addStaticObject, unit:getCountry(), sd)
+        if ok and obj then
+            S.objects[#S.objects + 1] = sd.name
+            made[#made + 1] = d.type
+        else
+            made[#made + 1] = d.type .. " FAILED"
+        end
+    end
+    say("PROPS spawned around the FARP, no vehicle: " .. table.concat(made, ", "))
 end
 
 local function removeAll()
@@ -251,6 +286,9 @@ local function buildMenu(unit)
     missionCommands.addCommandForGroup(gid, "5. Single pad FARP ahead (variant)", root,
         function(n) spawnFarp(n, "single") end, gName)
     missionCommands.addCommandForGroup(gid, "6. Remove everything", root, removeAll)
+    missionCommands.addCommandForGroup(gid, "7. Add FARP props, no vehicle", root, addProps, gName)
+    missionCommands.addCommandForGroup(gid, "8. Add fuel truck only", root,
+        function(n) addTrucks(n, true) end, gName)
 end
 
 S.handler = {}
