@@ -21,6 +21,13 @@
 local fatCowScene = {}
 fatCowScene.name  = "Fat Cow FARP"
 
+-- Dressing, behind the cow to its right, clear of the rear rotor (angles clockwise from its nose).
+fatCowScene.DRESSING = {
+    { tag = "Ammo",    type = "ammo_cargo",    shape_name = "ammo_box_cargo", distance = 20, angle = 135, heading = 0 },
+    { tag = "Ammo",    type = "ammo_cargo",    shape_name = "ammo_box_cargo", distance = 20, angle = 130, heading = 30 },
+    { tag = "Barrels", type = "barrels_cargo", shape_name = "barrels_cargo",  distance = 21, angle = 124, heading = 0 },
+}
+
 fatCowScene.steps = {
 
     -- Step 1: the Invisible FARP at the cow. Its name is what the warehouse is looked up by.
@@ -29,7 +36,7 @@ fatCowScene.steps = {
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 0,
         relativeAltitudeInMeters = 0,
-        registryKey              = "FatCow_FARP",
+        registryKey              = "Invisible_FARP",
         critical                 = true,
         func = function(ctx)
             ctx.scene._params.farpName = ctx.spawnedObj:getName()
@@ -47,30 +54,28 @@ fatCowScene.steps = {
         critical                 = true,
     },
 
-    -- Steps 3-5: dressing.
+    -- Step 3: dressing — two ammo crates and a set of barrels. Spawned here rather than through the
+    -- registry: their DCS types are already registry entries of their own, and the "CTLD_" name prefix
+    -- keeps CTLDCrateManager:onBirth from registering them as loadable crates.
     {
-        polar                    = { distance = 20, angle = 135 },
-        delayAfterPreviousStep   = 2,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-        registryKey              = "FatCow_Ammo",
-    },
-    {
-        polar                    = { distance = 20, angle = 130 },
-        delayAfterPreviousStep   = 0,
-        relativeHeadingInDegrees = 30,
-        relativeAltitudeInMeters = 0,
-        registryKey              = "FatCow_Ammo",
-    },
-    {
-        polar                    = { distance = 21, angle = 124 },
-        delayAfterPreviousStep   = 0,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-        registryKey              = "FatCow_Barrels",
+        delayAfterPreviousStep = 2,
+        func = function(ctx)
+            local sc = ctx.scene
+            for i, d in ipairs(fatCowScene.DRESSING) do
+                local x, z, hdgDeg = ctld.utils.getRelativeCoords(sc._refX, sc._refZ, sc._refHdgRad, sc._refAlt,
+                    d.angle, d.distance, d.heading, 0, sc._magDecDeg)
+                local ok, obj = pcall(coalition.addStaticObject, sc._countryId, {
+                    name = string.format("CTLD_FatCow_%s_%s_%d", d.tag, sc._name, i),
+                    type = d.type, shape_name = d.shape_name, category = "Cargos",
+                    x = x, y = z, heading = math.rad(hdgDeg), canCargo = false, dead = false,
+                })
+                if ok and obj then sc._spawnedObjs[#sc._spawnedObjs + 1] = obj end
+            end
+            return true
+        end,
     },
 
-    -- Step 6: the crew standing by.
+    -- Step 4: the crew standing by.
     {
         polar                    = { distance = 25, angle = 225 },
         delayAfterPreviousStep   = 0,
@@ -79,7 +84,7 @@ fatCowScene.steps = {
         registryKey              = "FatCow_Crew",
     },
 
-    -- Step 7: stock the warehouse and tell the manager the FARP is open.
+    -- Step 5: stock the warehouse and tell the manager the FARP is open.
     {
         delayAfterPreviousStep = 0,
         func = function(ctx)
@@ -92,38 +97,6 @@ fatCowScene.steps = {
 -- ====================================================================================================
 -- Registry entries required by this scene (registerIfAbsent: shared keys are left as declared).
 -- ====================================================================================================
-
-CTLDObjectRegistry.registerIfAbsent("FatCow_FARP", {
-    groupType            = "STATIC",
-    namePrefix           = "FatCow_FARP",
-    type                 = "Invisible FARP",
-    shape_name           = "invisiblefarp",
-    category             = "Heliports",
-    heliport_frequency   = "127.5",
-    heliport_callsign_id = 1,
-    heliport_modulation  = 0,
-    rate                 = 100,
-})
-
--- Dressing cargo statics. The "CTLD_" prefix keeps CTLDCrateManager:onBirth from registering them as
--- loadable crates (it registers every other cargo static that appears).
-CTLDObjectRegistry.registerIfAbsent("FatCow_Ammo", {
-    groupType  = "STATIC",
-    namePrefix = "CTLD_FatCow_Ammo",
-    type       = "ammo_cargo",
-    category   = "Cargos",
-    shape_name = "ammo_box_cargo",
-    rate       = 1,
-})
-
-CTLDObjectRegistry.registerIfAbsent("FatCow_Barrels", {
-    groupType  = "STATIC",
-    namePrefix = "CTLD_FatCow_Barrels",
-    type       = "barrels_cargo",
-    category   = "Cargos",
-    shape_name = "barrels_cargo",
-    rate       = 100,
-})
 
 -- Shape from DCS's db.Units.lua ("FARP Fuel Depot", ShapeName "GSM Rus").
 CTLDObjectRegistry.registerIfAbsent("FatCow_Fuel_Depot", {

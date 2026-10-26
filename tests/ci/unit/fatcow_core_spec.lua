@@ -82,6 +82,63 @@ describe("CTLDFatCow stock", function()
     end)
 end)
 
+-- ── The scene itself ───────────────────────────────────────────────────────────────────────────
+
+describe("Fat Cow FARP scene", function()
+    local ROOT = debug.getinfo(1, "S").source:match("^@(.+)tests[\\/]ci[\\/]unit[\\/]") or ""
+    local saved
+
+    before_each(function()
+        if not CTLDSceneManager.getInstance():getModel("Fat Cow FARP") then
+            dofile(ROOT .. "src/scenes/CTLD_fatCowScene.lua")
+        end
+        saved = { spawn = CTLDObjectRegistry.spawnObject, addStatic = coalition.addStaticObject,
+                  laidOut = CTLDFatCowManager.onSceneLaidOut, schedule = ctld.scheduler.schedule }
+        -- The scene waits between steps: run each delayed step at once.
+        ctld.scheduler.schedule = function(fn, arg) fn(arg) end
+    end)
+
+    after_each(function()
+        CTLDObjectRegistry.spawnObject, coalition.addStaticObject = saved.spawn, saved.addStatic
+        CTLDFatCowManager.onSceneLaidOut = saved.laidOut
+        ctld.scheduler.schedule = saved.schedule
+    end)
+
+    it("lays out a FARP, a fuel depot, dressing and a crew — no vehicle, no tent, no ammo dump", function()
+        local spawned, statics, laidOut = {}, {}, nil
+        local function obj(name) return { getName = function() return name end, isExist = function() return true end } end
+        CTLDObjectRegistry.spawnObject = function(key, coa, cid)
+            local types = CTLDTypeCollector.typesOfDescriptor(CTLDObjectRegistry.get(key))
+            for _, t in ipairs(types) do spawned[#spawned + 1] = t end
+            return obj(key .. "-1")
+        end
+        coalition.addStaticObject = function(_, sd) statics[#statics + 1] = sd; return obj(sd.name) end
+        CTLDFatCowManager.onSceneLaidOut = function(_, scene) laidOut = scene end
+        local unit = {
+            getName = function() return "Cow-1" end, isExist = function() return true end,
+            getCoalition = function() return coalition.side.BLUE end, getCountry = function() return 2 end,
+            getPoint = function() return { x = 0, y = 0, z = 0 } end,
+            getPosition = function() return { x = { x = 1, y = 0, z = 0 }, p = { x = 0, y = 0, z = 0 } } end,
+        }
+        CTLDSceneManager.getInstance():playScene(unit, "Fat Cow FARP", {})
+        local all = {}
+        for _, t in ipairs(spawned) do all[t] = true end
+        for _, sd in ipairs(statics) do all[sd.type] = true end
+        assert.is_true(all["Invisible FARP"])
+        assert.is_true(all["FARP Fuel Depot"])
+        assert.is_true(all["Soldier M4"])
+        for _, banned in ipairs({ "M978 HEMTT Tanker", "M 818", "FARP Tent", "FARP Ammo Dump Coating" }) do
+            assert.is_nil(all[banned])
+        end
+        assert.equals(3, #statics)
+        for _, sd in ipairs(statics) do
+            assert.equals("CTLD_", sd.name:sub(1, 5))   -- never registered as a loadable crate
+        end
+        assert.is_not_nil(laidOut)
+        assert.equals("Invisible_FARP-1", laidOut._params.farpName)
+    end)
+end)
+
 -- ── Manager: deploy, pack, re-sync ─────────────────────────────────────────────────────────────
 
 describe("CTLDFatCowManager deploy / pack", function()
