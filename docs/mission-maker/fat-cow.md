@@ -11,8 +11,8 @@ When a cow deploys, CTLD plays the **Fat Cow FARP** scene at the cow:
 |---|---|---|
 | Invisible FARP | at the cow | the airbase whose warehouse holds the cow's stock |
 | FARP Fuel Depot | 25 m behind the ramp | the supplier the ground crews need |
-| 2 ammo crates, 1 set of barrels | 15–18 m behind | dressing, never loadable |
-| 3 soldiers | 20 m behind, to the left | standing by |
+| 2 ammo crates, 1 set of barrels | 20 m behind, to the right | dressing, never loadable |
+| 3 soldiers | 25 m behind, to the left | standing by |
 
 No vehicle, no tent, no ammo dump.
 This was measured in DCS 2.9.30.28738: a FARP spawned during a mission serves a player already in game, but only with a supplier in range, and the FARP Fuel Depot alone supplies both fuel and weapons (fuel trucks, ammo trucks and the ammo dump are not needed; cargo crates and barrels supply nothing).

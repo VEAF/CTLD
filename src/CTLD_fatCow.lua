@@ -623,13 +623,23 @@ function CTLDFatCowManager:_cancelDeploy(cow)
     end
 end
 
+--- The flight's group name when `unit` leads it (its first unit), else nil: a wingman landing or
+-- taking off first must not move the cow or close the FARP under the others.
+local function flightLedBy(unit)
+    local okG, group = pcall(unit.getGroup, unit)
+    if not (okG and group) then return nil end
+    local leader = group:getUnit(1)
+    if not (leader and leader:getName() == unit:getName()) then return nil end
+    return group:getName()
+end
+
 --- The flight's group id, for messages: the cow talks to the flight it serves.
 local function flightGroupId(cow)
     local g = Group.getByName(cow.ai.flightGroup)
     return g and g:isExist() and g:getID() or nil
 end
 
---- S_EVENT_LAND: the escorted flight lands → the cow lands next to it; the cow lands → it deploys
+--- S_EVENT_LAND: the escorted flight's leader lands → the cow lands next to it; the cow lands → it deploys
 -- after fatCowDeployDelay, or despawns when it was going home.
 function CTLDFatCowManager:onLand(event)
     local unit = event and event.initiator
@@ -657,20 +667,18 @@ function CTLDFatCowManager:onLand(event)
         return
     end
 
-    local okG, group = pcall(unit.getGroup, unit)
-    local flight = okG and group and group:getName()
+    local flight = flightLedBy(unit)
     local escort = flight and self:aiCowOfFlight(flight)
     if escort and escort.ai.phase == CTLDFatCowManager.PHASE_FOLLOWING then
         self:_landNextTo(escort, unit)
     end
 end
 
---- The escorted flight takes off → the cow packs and follows again, or goes home if empty.
+--- The escorted flight's leader takes off → the cow packs and follows again, or goes home if empty.
 function CTLDFatCowManager:_onAITakeoff(name)
     local unit = Unit.getByName(name)
     if not unit then return end
-    local okG, group = pcall(unit.getGroup, unit)
-    local flight = okG and group and group:getName()
+    local flight = flightLedBy(unit)
     local cow = flight and self:aiCowOfFlight(flight)
     if not cow or cow.ai.phase == CTLDFatCowManager.PHASE_FOLLOWING then return end
     self:_cancelDeploy(cow)

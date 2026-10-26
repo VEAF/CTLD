@@ -9,9 +9,9 @@
 -- Layout (offsets from the cow, which is the trigger unit):
 --   Invisible FARP   — at the cow (distance 0): the airbase whose warehouse holds the cow's stock
 --   FARP Fuel Depot  — 25 m behind the ramp (180°): the supplier
---   Ammo crates      — 15 m / 160° and 15 m / 200°: dressing (never loadable: "CTLD_" name prefix)
---   Barrels          — 18 m / 145°: dressing
---   3 infantry       — 20 m / 215°, standing by
+--   Ammo crates      — 20 m / 135° and 20 m / 130°: dressing (never loadable: "CTLD_" name prefix)
+--   Barrels          — 21 m / 124°: dressing
+--   3 infantry       — 25 m / 225°, standing by (everything clear of the rear rotor)
 --   Warehouse        — set to the cow's stock (ctx.scene._params.fatCow) once laid out
 --
 -- The scene is played by CTLDFatCowManager, never requested as a crate: it has no `crate` field.
@@ -49,21 +49,21 @@ fatCowScene.steps = {
 
     -- Steps 3-5: dressing.
     {
-        polar                    = { distance = 15, angle = 160 },
+        polar                    = { distance = 20, angle = 135 },
         delayAfterPreviousStep   = 2,
         relativeHeadingInDegrees = 0,
         relativeAltitudeInMeters = 0,
         registryKey              = "FatCow_Ammo",
     },
     {
-        polar                    = { distance = 15, angle = 200 },
+        polar                    = { distance = 20, angle = 130 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 30,
         relativeAltitudeInMeters = 0,
         registryKey              = "FatCow_Ammo",
     },
     {
-        polar                    = { distance = 18, angle = 145 },
+        polar                    = { distance = 21, angle = 124 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 0,
         relativeAltitudeInMeters = 0,
@@ -72,7 +72,7 @@ fatCowScene.steps = {
 
     -- Step 6: the crew standing by.
     {
-        polar                    = { distance = 20, angle = 215 },
+        polar                    = { distance = 25, angle = 225 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 0,
         relativeAltitudeInMeters = 0,
