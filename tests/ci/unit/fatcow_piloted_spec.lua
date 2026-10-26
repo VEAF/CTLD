@@ -194,6 +194,74 @@ describe("Piloted cow commands", function()
     end)
 end)
 
+describe("Fat Cow loadouts", function()
+    local mgr, cm, unit, messages, saved
+
+    before_each(function()
+        CTLDFatCowManager._instance = nil
+        mgr, cm, messages = CTLDFatCowManager.getInstance(), CTLDCrateManager.getInstance(), {}
+        local zm = CTLDZoneManager.getInstance()
+        saved = { unitGet = Unit.getByName, inAir = ctld.utils.inAir, gid = ctld.utils.getGroupId,
+                  outGroup = trigger.action.outTextForGroup, crates = cm.crates, index = cm._weightIndex,
+                  weight = ctld.utils.updateTransportWeight, zones = zm.getLogisticZonesAtPoint }
+        cm.crates = {}
+        cm._weightIndex = {}
+        unit = {
+            airborne = false,
+            getName = function() return "Cow-1" end, isExist = function() return true end,
+            getTypeName = function() return "CH-47Fbl1" end,
+            getCoalition = function() return coalition.side.BLUE end, getCountry = function() return 2 end,
+            getPoint = function() return { x = 0, y = 0, z = 0 } end,
+            inAir = function(self) return self.airborne end,
+        }
+        Unit.getByName = function(n) if n == "Cow-1" then return unit end end
+        ctld.utils.inAir = function(u) return u.airborne end
+        ctld.utils.getGroupId = function() return 7 end
+        ctld.utils.updateTransportWeight = function() end
+        trigger.action.outTextForGroup = function(_, text) messages[#messages + 1] = text end
+        zm.getLogisticZonesAtPoint = function() return { {} } end
+        mgr:_injectCrateDescriptors()
+    end)
+
+    after_each(function()
+        local zm = CTLDZoneManager.getInstance()
+        Unit.getByName, ctld.utils.inAir, ctld.utils.getGroupId = saved.unitGet, saved.inAir, saved.gid
+        trigger.action.outTextForGroup, cm.crates, cm._weightIndex = saved.outGroup, saved.crates, saved.index
+        ctld.utils.updateTransportWeight, zm.getLogisticZonesAtPoint = saved.weight, saved.zones
+        CTLDFatCowManager._instance = nil
+    end)
+
+    local function indexOf(desc)
+        for i, l in ipairs(ctld.gs("fatCowLoadouts")) do if l.desc == desc then return i end end
+    end
+
+    it("puts a whole loadout straight into the hold", function()
+        mgr:loadLoadout("Cow-1", indexOf("Max weapons + max fuel"))
+        local onboard = cm:cratesOnboard("Cow-1")
+        assert.equals(7, #onboard)
+        local stock = CTLDFatCow.stockOfCrates(onboard)
+        assert.equals(7200, stock.fuelKg)
+        assert.equals(12, stock.items[HELLFIRE])
+        assert.equals(300, stock.items["weapons.shells.M230_HEDP M789"])
+        for _, c in ipairs(onboard) do assert.is_nil(c.dcsStatic) end   -- nothing left on the ground
+    end)
+
+    it("refuses a loadout the hold has no room for, and outside a logistic zone", function()
+        mgr:loadLoadout("Cow-1", indexOf("Max weapons + max fuel"))
+        mgr:loadLoadout("Cow-1", indexOf("Full fuel"))                    -- 7 + 3 > 8
+        assert.equals(7, #cm:cratesOnboard("Cow-1"))
+        CTLDZoneManager.getInstance().getLogisticZonesAtPoint = function() return {} end
+        mgr:unloadHold("Cow-1")
+        assert.equals(7, #cm:cratesOnboard("Cow-1"))
+    end)
+
+    it("unloads the cow crates in a logistic zone", function()
+        mgr:loadLoadout("Cow-1", indexOf("Full fuel"))
+        mgr:unloadHold("Cow-1")
+        assert.equals(0, #cm:cratesOnboard("Cow-1"))
+    end)
+end)
+
 describe("CTLDCrateManager:getLoadedCrateWeight with a part-used crate", function()
     local cm, saved
 

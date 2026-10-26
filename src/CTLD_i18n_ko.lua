@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.29"
+ctld.i18n["ko"].translation_version = "1.31"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -514,10 +514,10 @@ ctld.i18n["ko"]["Fat Cow FARP packed: %1 left."] = "Fat Cow FARP 철수: %1 남�
 ctld.i18n["ko"]["Fat Cow fuel tank (800 gal)"] = "Fat Cow 연료 탱크 (800 gal)"
 ctld.i18n["ko"]["Fat Cow Hellfires (x4)"] = "Fat Cow 헬파이어 (x4)"
 ctld.i18n["ko"]["Fat Cow released: it goes home."] = "Fat Cow 해제: 귀환합니다."
-ctld.i18n["ko"]["Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later."] = "Fat Cow 요청됨: 편대를 따라가 편대장 옆에 착륙하고 %1초 후 FARP를 엽니다."
+-- STALE: ctld.i18n["ko"]["Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later."] = "Fat Cow 요청됨: 편대를 따라가 편대장 옆에 착륙하고 %1초 후 FARP를 엽니다."
 ctld.i18n["ko"]["Fat Cow stock"] = "Fat Cow 재고"
 ctld.i18n["ko"]["Fat Cow stock: %1"] = "Fat Cow 재고: %1"
-ctld.i18n["ko"]["Land in a logistic zone to request a Fat Cow."] = "Fat Cow를 요청하려면 보급 구역에 착륙하세요."
+-- STALE: ctld.i18n["ko"]["Land in a logistic zone to request a Fat Cow."] = "Fat Cow를 요청하려면 보급 구역에 착륙하세요."
 ctld.i18n["ko"]["Land to deploy the Fat Cow FARP."] = "Fat Cow FARP를 전개하려면 착륙하세요."
 ctld.i18n["ko"]["No Fat Cow crate on board: load a fuel tank or an ammo crate first."] = "탑재된 Fat Cow 화물 없음: 먼저 연료 탱크나 탄약 상자를 적재하세요."
 ctld.i18n["ko"]["No Fat Cow FARP deployed."] = "전개된 Fat Cow FARP 없음."
@@ -531,3 +531,40 @@ ctld.i18n["ko"]["The Fat Cow FARP could not be deployed."] = "Fat Cow FARP를 �
 ctld.i18n["ko"]["The Fat Cow FARP is already deployed."] = "Fat Cow FARP가 이미 전개되어 있습니다."
 ctld.i18n["ko"]["Your flight already has a Fat Cow."] = "편대에 이미 Fat Cow가 있습니다."
 ctld.i18n["ko"]["Your flight has no Fat Cow."] = "편대에 Fat Cow가 없습니다."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
+ctld.i18n["ko"]["%1 Fat Cow crate(s) unloaded."] = "Fat Cow 화물 %1개 하역."
+ctld.i18n["ko"]["4 Hellfires + max fuel"] = "헬파이어 4발 + 최대 연료"
+ctld.i18n["ko"]["FARP status"] = "FARP 상태"
+ctld.i18n["ko"]["Fat Cow FARP %1 m away: %2"] = "%1 m 거리의 Fat Cow FARP: %2"
+ctld.i18n["ko"]["Fat Cow holding over your position."] = "Fat Cow가 당신 위치 상공에서 대기합니다."
+ctld.i18n["ko"]["Fat Cow joining your flight."] = "Fat Cow가 편대에 합류합니다."
+ctld.i18n["ko"]["Fat Cow landing next to you: FARP open %1 s after touchdown."] = "Fat Cow가 옆에 착륙합니다: 착륙 %1초 후 FARP 개방."
+ctld.i18n["ko"]["Fat Cow on its way from %1: %2 km, joining in about %3 min. Land here, Take off, Hold here and Join us command it."] = "Fat Cow가 %1에서 출발: %2 km, 약 %3분 후 합류. 여기 착륙, 이륙, 여기서 대기, 합류 명령으로 지휘합니다."
+ctld.i18n["ko"]["Fat Cow status"] = "Fat Cow 상태"
+ctld.i18n["ko"]["Fat Cow taking off: it orbits where it stands."] = "Fat Cow 이륙: 현재 위치에서 선회합니다."
+ctld.i18n["ko"]["Fat Cow: %1, %2 km at %3°."] = "Fat Cow: %1, %3° 방향 %2 km."
+ctld.i18n["ko"]["Full fuel"] = "연료 만재"
+ctld.i18n["ko"]["Hold here"] = "여기서 선회 대기"
+ctld.i18n["ko"]["Join us"] = "합류하라"
+ctld.i18n["ko"]["Joining in about %1 min."] = "약 %1분 후 합류."
+ctld.i18n["ko"]["Land here"] = "여기 착륙"
+ctld.i18n["ko"]["Load: %1"] = "적재: %1"
+ctld.i18n["ko"]["Loaded into your hold: %1"] = "화물칸 적재 완료: %1"
+ctld.i18n["ko"]["Max weapons + max fuel"] = "최대 무장 + 최대 연료"
+ctld.i18n["ko"]["No Fat Cow FARP within %1 km."] = "%1 km 이내에 Fat Cow FARP 없음."
+ctld.i18n["ko"]["No friendly logistic zone to send a Fat Cow from."] = "Fat Cow를 보낼 아군 보급 구역이 없습니다."
+ctld.i18n["ko"]["Not enough room: %1 crate(s) on board, %2 more needed, %3 at most."] = "공간 부족: 탑재 %1개, 추가 %2개 필요, 최대 %3개."
+ctld.i18n["ko"]["Stock: %1"] = "재고: %1"
+ctld.i18n["ko"]["Take off"] = "이륙"
+ctld.i18n["ko"]["The Fat Cow is already on the ground."] = "Fat Cow가 이미 지상에 있습니다."
+ctld.i18n["ko"]["This loadout cannot be loaded."] = "이 적재 구성은 적재할 수 없습니다."
+ctld.i18n["ko"]["Unload the Fat Cow crates"] = "Fat Cow 화물 하역"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
+ctld.i18n["ko"]["FARP open"] = "FARP 개방"
+ctld.i18n["ko"]["following your flight"] = "편대를 따라가는 중"
+ctld.i18n["ko"]["going home"] = "귀환 중"
+ctld.i18n["ko"]["holding"] = "선회 대기 중"
+ctld.i18n["ko"]["landing"] = "착륙 중"
+ctld.i18n["ko"]["on the ground"] = "지상"

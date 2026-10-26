@@ -15,7 +15,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.29"
+ctld.i18n["en"].translation_version = "1.31"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -625,10 +625,10 @@ ctld.i18n["en"]["Fat Cow FARP packed: %1 left."] = "Fat Cow FARP packed: %1 left
 ctld.i18n["en"]["Fat Cow fuel tank (800 gal)"] = "Fat Cow fuel tank (800 gal)"
 ctld.i18n["en"]["Fat Cow Hellfires (x4)"] = "Fat Cow Hellfires (x4)"
 ctld.i18n["en"]["Fat Cow released: it goes home."] = "Fat Cow released: it goes home."
-ctld.i18n["en"]["Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later."] = "Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later."
+-- STALE: ctld.i18n["en"]["Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later."] = "Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later."
 ctld.i18n["en"]["Fat Cow stock"] = "Fat Cow stock"
 ctld.i18n["en"]["Fat Cow stock: %1"] = "Fat Cow stock: %1"
-ctld.i18n["en"]["Land in a logistic zone to request a Fat Cow."] = "Land in a logistic zone to request a Fat Cow."
+-- STALE: ctld.i18n["en"]["Land in a logistic zone to request a Fat Cow."] = "Land in a logistic zone to request a Fat Cow."
 ctld.i18n["en"]["Land to deploy the Fat Cow FARP."] = "Land to deploy the Fat Cow FARP."
 ctld.i18n["en"]["No Fat Cow crate on board: load a fuel tank or an ammo crate first."] = "No Fat Cow crate on board: load a fuel tank or an ammo crate first."
 ctld.i18n["en"]["No Fat Cow FARP deployed."] = "No Fat Cow FARP deployed."
@@ -642,3 +642,40 @@ ctld.i18n["en"]["The Fat Cow FARP could not be deployed."] = "The Fat Cow FARP c
 ctld.i18n["en"]["The Fat Cow FARP is already deployed."] = "The Fat Cow FARP is already deployed."
 ctld.i18n["en"]["Your flight already has a Fat Cow."] = "Your flight already has a Fat Cow."
 ctld.i18n["en"]["Your flight has no Fat Cow."] = "Your flight has no Fat Cow."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
+ctld.i18n["en"]["%1 Fat Cow crate(s) unloaded."] = "%1 Fat Cow crate(s) unloaded."
+ctld.i18n["en"]["4 Hellfires + max fuel"] = "4 Hellfires + max fuel"
+ctld.i18n["en"]["FARP status"] = "FARP status"
+ctld.i18n["en"]["Fat Cow FARP %1 m away: %2"] = "Fat Cow FARP %1 m away: %2"
+ctld.i18n["en"]["Fat Cow holding over your position."] = "Fat Cow holding over your position."
+ctld.i18n["en"]["Fat Cow joining your flight."] = "Fat Cow joining your flight."
+ctld.i18n["en"]["Fat Cow landing next to you: FARP open %1 s after touchdown."] = "Fat Cow landing next to you: FARP open %1 s after touchdown."
+ctld.i18n["en"]["Fat Cow on its way from %1: %2 km, joining in about %3 min. Land here, Take off, Hold here and Join us command it."] = "Fat Cow on its way from %1: %2 km, joining in about %3 min. Land here, Take off, Hold here and Join us command it."
+ctld.i18n["en"]["Fat Cow status"] = "Fat Cow status"
+ctld.i18n["en"]["Fat Cow taking off: it orbits where it stands."] = "Fat Cow taking off: it orbits where it stands."
+ctld.i18n["en"]["Fat Cow: %1, %2 km at %3°."] = "Fat Cow: %1, %2 km at %3°."
+ctld.i18n["en"]["Full fuel"] = "Full fuel"
+ctld.i18n["en"]["Hold here"] = "Hold here"
+ctld.i18n["en"]["Join us"] = "Join us"
+ctld.i18n["en"]["Joining in about %1 min."] = "Joining in about %1 min."
+ctld.i18n["en"]["Land here"] = "Land here"
+ctld.i18n["en"]["Load: %1"] = "Load: %1"
+ctld.i18n["en"]["Loaded into your hold: %1"] = "Loaded into your hold: %1"
+ctld.i18n["en"]["Max weapons + max fuel"] = "Max weapons + max fuel"
+ctld.i18n["en"]["No Fat Cow FARP within %1 km."] = "No Fat Cow FARP within %1 km."
+ctld.i18n["en"]["No friendly logistic zone to send a Fat Cow from."] = "No friendly logistic zone to send a Fat Cow from."
+ctld.i18n["en"]["Not enough room: %1 crate(s) on board, %2 more needed, %3 at most."] = "Not enough room: %1 crate(s) on board, %2 more needed, %3 at most."
+ctld.i18n["en"]["Stock: %1"] = "Stock: %1"
+ctld.i18n["en"]["Take off"] = "Take off"
+ctld.i18n["en"]["The Fat Cow is already on the ground."] = "The Fat Cow is already on the ground."
+ctld.i18n["en"]["This loadout cannot be loaded."] = "This loadout cannot be loaded."
+ctld.i18n["en"]["Unload the Fat Cow crates"] = "Unload the Fat Cow crates"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
+ctld.i18n["en"]["FARP open"] = "FARP open"
+ctld.i18n["en"]["following your flight"] = "following your flight"
+ctld.i18n["en"]["going home"] = "going home"
+ctld.i18n["en"]["holding"] = "holding"
+ctld.i18n["en"]["landing"] = "landing"
+ctld.i18n["en"]["on the ground"] = "on the ground"

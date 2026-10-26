@@ -291,7 +291,28 @@ function CTLDFatCowManager:start()
     bridge:register(self, world.event.S_EVENT_CRASH,   "onDead")
     bridge:register(self, world.event.S_EVENT_PLAYER_LEAVE_UNIT, "onPlayerLeave")
     self:_activateMissionCows()
+    pcall(self._logFarpWarehouses, self)
     ctld.utils.log("INFO", "CTLDFatCowManager: started, %d cow crate type(s)", #self._crateDescs)
+end
+
+--- One log line per mission FARP (10 at most): what DCS reports for its warehouse. A measurement, before
+-- "FARP status" covers every FARP and not only Fat Cow ones: what an unlimited warehouse reads as is unknown.
+function CTLDFatCowManager:_logFarpWarehouses()
+    local n = 0
+    for _, ab in ipairs(world.getAirbases() or {}) do
+        local okD, desc = pcall(ab.getDesc, ab)
+        if okD and desc and desc.category == Airbase.Category.HELIPAD and n < 10 then
+            n = n + 1
+            local okW, w = pcall(ab.getWarehouse, ab)
+            if okW and w then
+                local okI, inv = pcall(w.getInventory, w)
+                local nW = 0
+                for _ in pairs(okI and inv and inv.weapon or {}) do nW = nW + 1 end
+                ctld.utils.log("INFO", "CTLDFatCowManager: FARP warehouse '%s': jet fuel %s, AGM_114K %s, %d weapon type(s)",
+                    ab:getName(), tostring(w:getLiquidAmount(0)), tostring(w:getItemCount("weapons.missiles.AGM_114K")), nW)
+            end
+        end
+    end
 end
 
 --- Turns fatCowCrates into crate descriptors the crate system knows (indexed by weight, as every
@@ -313,6 +334,7 @@ function CTLDFatCowManager:_injectCrateDescriptors()
                 cratesRequired = 1,
                 showSets       = false,
                 fatCow         = content,
+                fatCowKey      = def.desc,   -- the untranslated name loadouts refer to
             })
             self._crateDescs[#self._crateDescs + 1] = d
         end
@@ -367,6 +389,72 @@ function CTLDFatCowManager:requestCrate(unitName, weight)
 end
 
 --- Deploys the FARP with the cow crates on board as its stock. The crates stay on board.
+--- In a friendly logistic zone that serves crates, on the ground: true, or false after telling why.
+local function atLogistics(t, gid)
+    if ctld.utils.inAir(t) then
+        trigger.action.outTextForGroup(gid, ctld.tr("You must be landed to request a crate."), 10)
+        return false
+    end
+    local zones = CTLDZoneManager.getInstance():getLogisticZonesAtPoint(t:getPoint(), t:getCoalition(), "cratesPickup")
+    if not next(zones) then
+        trigger.action.outTextForGroup(gid, ctld.tr("You are not close enough to friendly logistics to get a crate!"), 10)
+        return false
+    end
+    return true
+end
+
+--- F10 "Load: <loadout>": every crate of a fatCowLoadouts entry, straight into the hold.
+function CTLDFatCowManager:loadLoadout(unitName, index)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local gid = ctld.utils.getGroupId(t)
+    local loadout = (ctld.gs("fatCowLoadouts") or {})[index]
+    if not (loadout and atLogistics(t, gid)) then return end
+    local byKey = {}
+    for _, d in ipairs(self._crateDescs or {}) do byKey[d.fatCowKey] = d end
+    local wanted = {}
+    for _, line in ipairs(loadout.crates or {}) do
+        local d = byKey[line.crate]
+        if not d then
+            ctld.utils.log("WARN", "CTLDFatCowManager: loadout '%s' names an unknown crate '%s'", tostring(loadout.desc), tostring(line.crate))
+            trigger.action.outTextForGroup(gid, ctld.tr("This loadout cannot be loaded."), 10)
+            return
+        end
+        for _ = 1, (line.count or 1) do wanted[#wanted + 1] = d end
+    end
+    local cm       = CTLDCrateManager.getInstance()
+    local caps     = (ctld.gs("capabilitiesByType") or {})[t:getTypeName()] or {}
+    local capacity = caps.maxCratesOnboard or 1
+    local onboard  = #cm:cratesOnboard(unitName)
+    if onboard + #wanted > capacity then
+        trigger.action.outTextForGroup(gid,
+            ctld.tr("Not enough room: %1 crate(s) on board, %2 more needed, %3 at most.", onboard, #wanted, capacity), 10)
+        return
+    end
+    local loaded = {}
+    for _, d in ipairs(wanted) do loaded[#loaded + 1] = cm:loadIntoHold(d, t, unitName) end
+    trigger.action.outTextForGroup(gid,
+        ctld.tr("Loaded into your hold: %1", CTLDFatCow.describeStock(CTLDFatCow.stockOfCrates(loaded))), 10)
+end
+
+--- F10 "Unload the Fat Cow crates": back to the logistic zone, to make up another loadout.
+function CTLDFatCowManager:unloadHold(unitName)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local gid = ctld.utils.getGroupId(t)
+    local cow = self._cows[unitName]
+    if cow and cow.state ~= CTLDFatCow.STATE_STOWED then
+        trigger.action.outTextForGroup(gid, ctld.tr("The Fat Cow FARP is already deployed."), 10)
+        return
+    end
+    if not atLogistics(t, gid) then return end
+    local cm = CTLDCrateManager.getInstance()
+    local crates = cowCratesOnboard(unitName)
+    for _, crate in ipairs(crates) do cm:destroyCrate(crate.crateName) end
+    ctld.utils.updateTransportWeight(unitName)
+    trigger.action.outTextForGroup(gid, ctld.tr("%1 Fat Cow crate(s) unloaded.", #crates), 10)
+end
+
 function CTLDFatCowManager:deployFromHold(unitName)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
@@ -501,12 +589,21 @@ function CTLDFatCowManager:buildMenuSection(playerObj, menu)
                 function(arg) mgr():requestCrate(arg.unitName, arg.weight) end,
                 { unitName = playerObj.unitName, weight = d.weight }, { order = i })
         end
+        for i, l in ipairs(ctld.gs("fatCowLoadouts") or {}) do
+            menu:addCommand(path, ctld.tr("Load: %1", ctld.tr(l.desc or "?")),
+                function(arg) mgr():loadLoadout(arg.unitName, arg.index) end,
+                { unitName = playerObj.unitName, index = i }, { order = 10 + i })
+        end
+        menu:addCommand(path, ctld.tr("Unload the Fat Cow crates"),
+            function(arg) mgr():unloadHold(arg.unitName) end, { unitName = playerObj.unitName }, { order = 19 })
         menu:addCommand(path, ctld.tr("Deploy the Fat Cow FARP"),
             function(arg) mgr():deployFromHold(arg.unitName) end, { unitName = playerObj.unitName }, { order = 20 })
         menu:addCommand(path, ctld.tr("Pack the Fat Cow FARP"),
             function(arg) mgr():packIntoHold(arg.unitName) end, { unitName = playerObj.unitName }, { order = 21 })
         menu:addCommand(path, ctld.tr("Fat Cow stock"),
             function(arg) mgr():reportStock(arg.unitName) end, { unitName = playerObj.unitName }, { order = 22 })
+        menu:addCommand(path, ctld.tr("FARP status"),
+            function(arg) mgr():reportFarpStatus(arg.unitName) end, { unitName = playerObj.unitName }, { order = 23 })
     else
         self:_buildAIMenu(playerObj, menu, path)
     end
@@ -917,13 +1014,17 @@ function CTLDFatCowManager:_buildAIMenu(playerObj, menu, path)
     menu:addCommand(path, ctld.tr("Release the Fat Cow"), function(arg) mgr():releaseAICow(arg.unitName) end, u, { order = 8 })
 end
 
-local PHASE_TEXT = {
-    holding   = "holding",
-    following = "following your flight",
-    landing   = "landing next to your leader",
-    landed    = "on the ground",
-    returning = "going home",
-}
+-- Literal ctld.tr calls, so the dictionary generator sees each phase.
+local function phaseText(cow)
+    if cow.state == CTLDFatCow.STATE_DEPLOYED then return ctld.tr("FARP open") end
+    local p = cow.ai.phase
+    if p == CTLDFatCowManager.PHASE_HOLDING   then return ctld.tr("holding") end
+    if p == CTLDFatCowManager.PHASE_FOLLOWING then return ctld.tr("following your flight") end
+    if p == CTLDFatCowManager.PHASE_LANDING   then return ctld.tr("landing") end
+    if p == CTLDFatCowManager.PHASE_LANDED    then return ctld.tr("on the ground") end
+    if p == CTLDFatCowManager.PHASE_RETURNING then return ctld.tr("going home") end
+    return tostring(p)
+end
 
 --- F10 "Fat Cow status": where the flight's cow is, when it joins, and what it holds.
 function CTLDFatCowManager:reportFlightCowStatus(unitName)
@@ -939,8 +1040,7 @@ function CTLDFatCowManager:reportFlightCowStatus(unitName)
     local me, it = t:getPoint(), u:getPoint()
     local d       = ctld.utils.getDistance("CTLDFatCowManager", me, it)
     local bearing = math.floor((math.deg(math.atan2(it.z - me.z, it.x - me.x)) + 360) % 360 + 0.5)
-    local phase   = (cow.state == CTLDFatCow.STATE_DEPLOYED) and "FARP open" or PHASE_TEXT[cow.ai.phase] or cow.ai.phase
-    local lines   = { ctld.tr("Fat Cow: %1, %2 km at %3°.", ctld.tr(phase), string.format("%.1f", d / 1000), bearing) }
+    local lines   = { ctld.tr("Fat Cow: %1, %2 km at %3°.", phaseText(cow), string.format("%.1f", d / 1000), bearing) }
     if cow.ai.phase == CTLDFatCowManager.PHASE_FOLLOWING and d > 1500 then
         lines[#lines + 1] = ctld.tr("Joining in about %1 min.", etaMinutes(d))
     end

@@ -473,6 +473,12 @@ fatCowCrates:
   description:
     en: 'What a player cow can load: each crate has a desc, a weight (kg in the hold, and its catalogue key) and either fuelKg (jet fuel) or an item (a DCS warehouse item name) with its count. Default: an 800 gal ERFS tank of 2400 kg, 4 Hellfires, 300 rounds of 30 mm.'
     fr: "Ce qu'une cow pilotée peut charger : chaque caisse a un desc, un poids (kg en soute, et sa clé dans le catalogue) et soit fuelKg (carburant jet), soit un item (nom d'article d'entrepôt DCS) avec son nombre. Par défaut : un réservoir ERFS de 800 gal de 2400 kg, 4 Hellfire, 300 obus de 30 mm."
+fatCowLoadouts:
+  group: fob
+  label: {en: Fat Cow loadouts, fr: Lots de chargement Fat Cow}
+  description:
+    en: 'What a player cow can load at once, straight into the hold, in a logistic zone: each loadout has a desc and a list of crates, each a fatCowCrates desc with its count. Default: full fuel; 4 Hellfires + max fuel; max weapons + max fuel (about 8 100 kg, what a CH-47F full of internal fuel can lift, in 7 of its 8 crate slots).'
+    fr: "Ce qu'une cow pilotée peut charger d'un coup, directement en soute, dans une zone logistique : chaque lot a un desc et une liste de caisses, chacune un desc de fatCowCrates avec son nombre. Par défaut : plein carburant ; 4 Hellfire + carburant max ; armement max + carburant max (environ 8 100 kg, ce qu'un CH-47F plein de carburant interne peut emporter, sur 7 de ses 8 places de caisse)."
 fatCowDeployDelay:
   group: fob
   label: {en: AI Fat Cow deployment delay, fr: Délai de déploiement de la cow IA}

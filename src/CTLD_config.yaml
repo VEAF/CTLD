@@ -296,6 +296,25 @@ mm_facing:
     count: 300
   fatCowDeployDelay: 60
   fatCowEnabled: true
+  fatCowLoadouts:
+  - desc: Full fuel
+    crates:
+    - crate: Fat Cow fuel tank (800 gal)
+      count: 3
+  - desc: 4 Hellfires + max fuel
+    crates:
+    - crate: Fat Cow fuel tank (800 gal)
+      count: 3
+    - crate: Fat Cow Hellfires (x4)
+      count: 1
+  - desc: Max weapons + max fuel
+    crates:
+    - crate: Fat Cow fuel tank (800 gal)
+      count: 3
+    - crate: Fat Cow Hellfires (x4)
+      count: 3
+    - crate: Fat Cow 30 mm (x300)
+      count: 1
   fatCowTypes:
   - CH-47Fbl1
   fobCrateCollectionRadius: 750

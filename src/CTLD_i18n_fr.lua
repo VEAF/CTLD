@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.29"
+ctld.i18n["fr"].translation_version = "1.31"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -657,10 +657,10 @@ ctld.i18n["fr"]["Fat Cow FARP packed: %1 left."] = "FARP Fat Cow repliée : il r
 ctld.i18n["fr"]["Fat Cow fuel tank (800 gal)"] = "Réservoir Fat Cow (800 gal)"
 ctld.i18n["fr"]["Fat Cow Hellfires (x4)"] = "Hellfire Fat Cow (x4)"
 ctld.i18n["fr"]["Fat Cow released: it goes home."] = "Fat Cow libérée : elle rentre."
-ctld.i18n["fr"]["Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later."] = "Fat Cow demandée : elle suit votre patrouille, se pose à côté de votre leader et ouvre sa FARP %1 s plus tard."
+-- STALE: ctld.i18n["fr"]["Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later."] = "Fat Cow demandée : elle suit votre patrouille, se pose à côté de votre leader et ouvre sa FARP %1 s plus tard."
 ctld.i18n["fr"]["Fat Cow stock"] = "Stock de la Fat Cow"
 ctld.i18n["fr"]["Fat Cow stock: %1"] = "Stock de la Fat Cow : %1"
-ctld.i18n["fr"]["Land in a logistic zone to request a Fat Cow."] = "Posez-vous dans une zone logistique pour demander une Fat Cow."
+-- STALE: ctld.i18n["fr"]["Land in a logistic zone to request a Fat Cow."] = "Posez-vous dans une zone logistique pour demander une Fat Cow."
 ctld.i18n["fr"]["Land to deploy the Fat Cow FARP."] = "Posez-vous pour déployer la FARP Fat Cow."
 ctld.i18n["fr"]["No Fat Cow crate on board: load a fuel tank or an ammo crate first."] = "Aucune caisse Fat Cow à bord : chargez d'abord un réservoir ou une caisse de munitions."
 ctld.i18n["fr"]["No Fat Cow FARP deployed."] = "Aucune FARP Fat Cow déployée."
@@ -674,3 +674,40 @@ ctld.i18n["fr"]["The Fat Cow FARP could not be deployed."] = "La FARP Fat Cow n'
 ctld.i18n["fr"]["The Fat Cow FARP is already deployed."] = "La FARP Fat Cow est déjà déployée."
 ctld.i18n["fr"]["Your flight already has a Fat Cow."] = "Votre patrouille a déjà une Fat Cow."
 ctld.i18n["fr"]["Your flight has no Fat Cow."] = "Votre patrouille n'a pas de Fat Cow."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
+ctld.i18n["fr"]["%1 Fat Cow crate(s) unloaded."] = "%1 caisse(s) Fat Cow déchargée(s)."
+ctld.i18n["fr"]["4 Hellfires + max fuel"] = "4 Hellfire + carburant max"
+ctld.i18n["fr"]["FARP status"] = "Statut FARP"
+ctld.i18n["fr"]["Fat Cow FARP %1 m away: %2"] = "FARP Fat Cow à %1 m : %2"
+ctld.i18n["fr"]["Fat Cow holding over your position."] = "Fat Cow en orbite au-dessus de ta position."
+ctld.i18n["fr"]["Fat Cow joining your flight."] = "Fat Cow rejoint ta patrouille."
+ctld.i18n["fr"]["Fat Cow landing next to you: FARP open %1 s after touchdown."] = "Fat Cow se pose à côté de toi : FARP ouverte %1 s après le poser."
+ctld.i18n["fr"]["Fat Cow on its way from %1: %2 km, joining in about %3 min. Land here, Take off, Hold here and Join us command it."] = "Fat Cow en route depuis %1 : %2 km, rejointe dans environ %3 min. Atterris ici, Redécolle, Reste ici et Rejoins-nous la commandent."
+ctld.i18n["fr"]["Fat Cow status"] = "Statut Fat Cow"
+ctld.i18n["fr"]["Fat Cow taking off: it orbits where it stands."] = "Fat Cow décolle : elle tourne sur place."
+ctld.i18n["fr"]["Fat Cow: %1, %2 km at %3°."] = "Fat Cow : %1, %2 km au %3°."
+ctld.i18n["fr"]["Full fuel"] = "Plein carburant"
+ctld.i18n["fr"]["Hold here"] = "Reste ici en orbite"
+ctld.i18n["fr"]["Join us"] = "Rejoins-nous"
+ctld.i18n["fr"]["Joining in about %1 min."] = "Rejointe dans environ %1 min."
+ctld.i18n["fr"]["Land here"] = "Atterris ici"
+ctld.i18n["fr"]["Load: %1"] = "Charger : %1"
+ctld.i18n["fr"]["Loaded into your hold: %1"] = "Chargé en soute : %1"
+ctld.i18n["fr"]["Max weapons + max fuel"] = "Armement max + carburant max"
+ctld.i18n["fr"]["No Fat Cow FARP within %1 km."] = "Aucune FARP Fat Cow à moins de %1 km."
+ctld.i18n["fr"]["No friendly logistic zone to send a Fat Cow from."] = "Aucune zone logistique amie d'où envoyer une Fat Cow."
+ctld.i18n["fr"]["Not enough room: %1 crate(s) on board, %2 more needed, %3 at most."] = "Pas assez de place : %1 caisse(s) à bord, %2 de plus demandées, %3 au maximum."
+ctld.i18n["fr"]["Stock: %1"] = "Stock : %1"
+ctld.i18n["fr"]["Take off"] = "Redécolle"
+ctld.i18n["fr"]["The Fat Cow is already on the ground."] = "La Fat Cow est déjà au sol."
+ctld.i18n["fr"]["This loadout cannot be loaded."] = "Ce lot ne peut pas être chargé."
+ctld.i18n["fr"]["Unload the Fat Cow crates"] = "Décharger les caisses Fat Cow"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
+ctld.i18n["fr"]["FARP open"] = "FARP ouverte"
+ctld.i18n["fr"]["following your flight"] = "suit ta patrouille"
+ctld.i18n["fr"]["going home"] = "rentre"
+ctld.i18n["fr"]["holding"] = "en orbite"
+ctld.i18n["fr"]["landing"] = "se pose"
+ctld.i18n["fr"]["on the ground"] = "au sol"

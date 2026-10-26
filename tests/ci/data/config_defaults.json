@@ -380,6 +380,47 @@
   ],
   "fatCowDeployDelay": 60,
   "fatCowEnabled": true,
+  "fatCowLoadouts": [
+    {
+      "crates": [
+        {
+          "count": 3,
+          "crate": "Fat Cow fuel tank (800 gal)"
+        }
+      ],
+      "desc": "Full fuel"
+    },
+    {
+      "crates": [
+        {
+          "count": 3,
+          "crate": "Fat Cow fuel tank (800 gal)"
+        },
+        {
+          "count": 1,
+          "crate": "Fat Cow Hellfires (x4)"
+        }
+      ],
+      "desc": "4 Hellfires + max fuel"
+    },
+    {
+      "crates": [
+        {
+          "count": 3,
+          "crate": "Fat Cow fuel tank (800 gal)"
+        },
+        {
+          "count": 3,
+          "crate": "Fat Cow Hellfires (x4)"
+        },
+        {
+          "count": 1,
+          "crate": "Fat Cow 30 mm (x300)"
+        }
+      ],
+      "desc": "Max weapons + max fuel"
+    }
+  ],
   "fatCowTypes": [
     "CH-47Fbl1"
   ],
