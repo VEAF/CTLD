@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.31"
+ctld.i18n["es"].translation_version = "1.32"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -631,7 +631,7 @@ ctld.i18n["es"]["Fat Cow FARP open: %1"] = "FARP Fat Cow abierto: %1"
 ctld.i18n["es"]["Fat Cow FARP packed: %1 left."] = "FARP Fat Cow recogido: quedan %1."
 ctld.i18n["es"]["Fat Cow fuel tank (800 gal)"] = "Tanque Fat Cow (800 gal)"
 ctld.i18n["es"]["Fat Cow Hellfires (x4)"] = "Hellfire Fat Cow (x4)"
-ctld.i18n["es"]["Fat Cow released: it goes home."] = "Fat Cow liberado: regresa a la base."
+-- STALE: ctld.i18n["es"]["Fat Cow released: it goes home."] = "Fat Cow liberado: regresa a la base."
 -- STALE: ctld.i18n["es"]["Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later."] = "Fat Cow solicitado: sigue a tu escuadrilla, aterriza junto a tu líder y abre su FARP %1 s después."
 ctld.i18n["es"]["Fat Cow stock"] = "Existencias del Fat Cow"
 ctld.i18n["es"]["Fat Cow stock: %1"] = "Existencias del Fat Cow: %1"
@@ -640,7 +640,7 @@ ctld.i18n["es"]["Land to deploy the Fat Cow FARP."] = "Aterriza para desplegar e
 ctld.i18n["es"]["No Fat Cow crate on board: load a fuel tank or an ammo crate first."] = "Ninguna caja Fat Cow a bordo: carga primero un tanque o una caja de munición."
 ctld.i18n["es"]["No Fat Cow FARP deployed."] = "Ningún FARP Fat Cow desplegado."
 ctld.i18n["es"]["Pack the Fat Cow FARP"] = "Recoger el FARP Fat Cow"
-ctld.i18n["es"]["Release the Fat Cow"] = "Liberar el Fat Cow"
+-- STALE: ctld.i18n["es"]["Release the Fat Cow"] = "Liberar el Fat Cow"
 ctld.i18n["es"]["Request %1"] = "Solicitar %1"
 ctld.i18n["es"]["Request a Fat Cow"] = "Solicitar un Fat Cow"
 ctld.i18n["es"]["The Fat Cow could not be brought in."] = "No se pudo traer el Fat Cow."
@@ -686,3 +686,7 @@ ctld.i18n["es"]["going home"] = "regresa"
 ctld.i18n["es"]["holding"] = "en espera"
 ctld.i18n["es"]["landing"] = "aterrizando"
 ctld.i18n["es"]["on the ground"] = "en tierra"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
+ctld.i18n["es"]["Fat Cow RTB."] = "Fat Cow regresa a la base."
+ctld.i18n["es"]["RTB"] = "Regresa a la base"

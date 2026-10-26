@@ -78,7 +78,7 @@ The default "Max weapons + max fuel" is about 8 100 kg: what a CH-47F full of in
 ## Placing an AI cow in a mission
 
 A player can request an AI cow from anywhere, on the ground or in the air: it comes airborne from the friendly logistic zone on land nearest to the requester, and goes back there to despawn.
-The flight then commands it from F10 (Land here, Take off, Hold here, Join us, Release): a player flight's cow never moves on its own.
+The flight then commands it from F10 (Land here, Take off, Hold here, Join us, RTB): a player flight's cow never moves on its own.
 To give a flight its cow from the start instead, place the cow in the Mission Editor and declare it:
 
 1. Place a **CH-47F** group, **late activation** ticked, where the cow should start (usually the flight's base).

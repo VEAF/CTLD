@@ -46,7 +46,7 @@ The cow then does what your flight tells it, and nothing on its own:
 | **Take off** | packs its FARP, lifts off and orbits where it stands |
 | **Hold here** | packs its FARP if needed and orbits over your position |
 | **Join us** | packs its FARP if needed and follows your flight |
-| **Release the Fat Cow** | packs its FARP and flies home, where it disappears |
+| **RTB** | packs its FARP and flies back to base, where it disappears |
 
 So you can lift off to hover-taxi onto its FARP, or reposition, without the cow leaving.
 

@@ -46,7 +46,7 @@ La cow fait ensuite ce que votre patrouille lui dit, et rien d'elle-même :
 | **Redécolle** | replie sa FARP, décolle et tourne sur place |
 | **Reste ici en orbite** | replie sa FARP si besoin et tourne au-dessus de votre position |
 | **Rejoins-nous** | replie sa FARP si besoin et suit votre patrouille |
-| **Libérer la Fat Cow** | replie sa FARP et rentre, où elle disparaît |
+| **Rentre à la base** | replie sa FARP et rentre à la base, où elle disparaît |
 
 Vous pouvez donc redécoller pour vous déplacer en stationnaire jusqu'à sa FARP, ou vous repositionner, sans que la cow parte.
 

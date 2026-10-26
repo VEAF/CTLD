@@ -68,7 +68,7 @@ The `Hawk` run needs nobody: CTLD logs it (`CTLDFatCowManager:` lines in `dcs.lo
 3. Take off, fly 2 km over open fields, land in the open. The cow should land about 120 m to your left and announce `Fat Cow FARP open` one minute after touching down. 📸
 4. Rearm and refuel as in A6. 📸
 5. Take off: the cow should pack and follow. Land again somewhere else: it lands next to you again.
-6. `\` → **F10 Other** → **CTLD** → **Fat Cow** → **Release the Fat Cow**: it flies back to where it appeared and disappears.
+6. `\` → **F10 Other** → **CTLD** → **Fat Cow** → **RTB**: it flies back to where it appeared and disappears.
 7. Quit.
 
 ## Reading the results

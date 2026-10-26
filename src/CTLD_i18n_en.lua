@@ -15,7 +15,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.31"
+ctld.i18n["en"].translation_version = "1.32"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -624,7 +624,7 @@ ctld.i18n["en"]["Fat Cow FARP open: %1"] = "Fat Cow FARP open: %1"
 ctld.i18n["en"]["Fat Cow FARP packed: %1 left."] = "Fat Cow FARP packed: %1 left."
 ctld.i18n["en"]["Fat Cow fuel tank (800 gal)"] = "Fat Cow fuel tank (800 gal)"
 ctld.i18n["en"]["Fat Cow Hellfires (x4)"] = "Fat Cow Hellfires (x4)"
-ctld.i18n["en"]["Fat Cow released: it goes home."] = "Fat Cow released: it goes home."
+-- STALE: ctld.i18n["en"]["Fat Cow released: it goes home."] = "Fat Cow released: it goes home."
 -- STALE: ctld.i18n["en"]["Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later."] = "Fat Cow requested: it follows your flight, lands next to your leader and opens its FARP %1 s later."
 ctld.i18n["en"]["Fat Cow stock"] = "Fat Cow stock"
 ctld.i18n["en"]["Fat Cow stock: %1"] = "Fat Cow stock: %1"
@@ -633,7 +633,7 @@ ctld.i18n["en"]["Land to deploy the Fat Cow FARP."] = "Land to deploy the Fat Co
 ctld.i18n["en"]["No Fat Cow crate on board: load a fuel tank or an ammo crate first."] = "No Fat Cow crate on board: load a fuel tank or an ammo crate first."
 ctld.i18n["en"]["No Fat Cow FARP deployed."] = "No Fat Cow FARP deployed."
 ctld.i18n["en"]["Pack the Fat Cow FARP"] = "Pack the Fat Cow FARP"
-ctld.i18n["en"]["Release the Fat Cow"] = "Release the Fat Cow"
+-- STALE: ctld.i18n["en"]["Release the Fat Cow"] = "Release the Fat Cow"
 ctld.i18n["en"]["Request %1"] = "Request %1"
 ctld.i18n["en"]["Request a Fat Cow"] = "Request a Fat Cow"
 ctld.i18n["en"]["The Fat Cow could not be brought in."] = "The Fat Cow could not be brought in."
@@ -679,3 +679,7 @@ ctld.i18n["en"]["going home"] = "going home"
 ctld.i18n["en"]["holding"] = "holding"
 ctld.i18n["en"]["landing"] = "landing"
 ctld.i18n["en"]["on the ground"] = "on the ground"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
+ctld.i18n["en"]["Fat Cow RTB."] = "Fat Cow RTB."
+ctld.i18n["en"]["RTB"] = "RTB"

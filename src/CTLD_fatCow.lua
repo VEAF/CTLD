@@ -986,7 +986,7 @@ function CTLDFatCowManager:requestAICow(unitName)
             zoneName, math.floor(distance / 1000 + 0.5), etaMinutes(distance)), 15)
 end
 
---- F10 "Release the Fat Cow": it packs and goes home.
+--- F10 "RTB": it packs and goes home.
 function CTLDFatCowManager:releaseAICow(unitName)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
@@ -996,7 +996,7 @@ function CTLDFatCowManager:releaseAICow(unitName)
         return
     end
     self:_returnHome(cow)
-    trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Fat Cow released: it goes home."), 10)
+    trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Fat Cow RTB."), 10)
 end
 
 function CTLDFatCowManager:_buildAIMenu(playerObj, menu, path)
@@ -1011,7 +1011,7 @@ function CTLDFatCowManager:_buildAIMenu(playerObj, menu, path)
     menu:addCommand(path, ctld.tr("Join us"), function(arg) mgr():orderJoin(arg.unitName) end, u, { order = 5 })
     menu:addCommand(path, ctld.tr("Fat Cow status"), function(arg) mgr():reportFlightCowStatus(arg.unitName) end, u, { order = 6 })
     menu:addCommand(path, ctld.tr("FARP status"), function(arg) mgr():reportFarpStatus(arg.unitName) end, u, { order = 7 })
-    menu:addCommand(path, ctld.tr("Release the Fat Cow"), function(arg) mgr():releaseAICow(arg.unitName) end, u, { order = 8 })
+    menu:addCommand(path, ctld.tr("RTB"), function(arg) mgr():releaseAICow(arg.unitName) end, u, { order = 8 })
 end
 
 -- Literal ctld.tr calls, so the dictionary generator sees each phase.

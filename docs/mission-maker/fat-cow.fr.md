@@ -78,7 +78,7 @@ Le lot par défaut « Armement max + carburant max » pèse environ 8 100 kg : c
 ## Placer une cow IA dans une mission
 
 Un joueur peut demander une cow IA de n'importe où, au sol comme en vol : elle arrive en vol depuis la zone logistique amie à terre la plus proche du demandeur, et y retourne pour disparaître.
-La patrouille la commande ensuite depuis le F10 (Atterris ici, Redécolle, Reste ici en orbite, Rejoins-nous, Libérer) : la cow d'une patrouille de joueurs ne bouge jamais d'elle-même.
+La patrouille la commande ensuite depuis le F10 (Atterris ici, Redécolle, Reste ici en orbite, Rejoins-nous, Rentre à la base) : la cow d'une patrouille de joueurs ne bouge jamais d'elle-même.
 Pour donner sa cow à une patrouille dès le départ, placez la cow dans l'éditeur de mission et déclarez-la :
 
 1. Placez un groupe **CH-47F**, avec **activation différée** cochée, là où la cow doit démarrer (en général la base de la patrouille).
