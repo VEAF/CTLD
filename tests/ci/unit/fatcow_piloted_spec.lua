@@ -155,6 +155,16 @@ describe("Piloted cow commands", function()
         assert.equals(1000, w.liquids[0])
     end)
 
+    it("gives a crate unloaded while the FARP was open its share back", function()
+        local a, b = loadFuelCrate("a"), loadFuelCrate("b")
+        mgr:deployFromHold("Cow-1")
+        b.state, b.loadedBy = CTLDCrate.STATE.LANDED, nil   -- unloaded meanwhile
+        w.liquids[0] = 4800                                 -- nobody refuelled
+        mgr:packIntoHold("Cow-1")
+        assert.equals(2400, a.metadata.fatCow.fuelKg)
+        assert.equals(2400, b.metadata.fatCow.fuelKg)
+    end)
+
     it("packs on take-off", function()
         loadFuelCrate("a")
         mgr:deployFromHold("Cow-1")
@@ -208,6 +218,15 @@ describe("CTLDCrateManager:getLoadedCrateWeight with a part-used crate", functio
         loaded("a", 2400, 600)
         loaded("b", 250, nil)
         assert.equals(850, cm:getLoadedCrateWeight("Cow-1"))
+    end)
+
+    it("indexes an outside descriptor on the first free weight", function()
+        local savedIndex = cm._weightIndex
+        cm._weightIndex = { [2400] = { unit = "other" } }
+        local d = cm:registerDescriptor({ weight = 2400, desc = "Fat Cow fuel tank" })
+        assert.equals(2400.01, d.weight)
+        assert.equals(d, cm._weightIndex[2400.01])
+        cm._weightIndex = savedIndex
     end)
 
     it("never offers a cow crate to Unpack", function()

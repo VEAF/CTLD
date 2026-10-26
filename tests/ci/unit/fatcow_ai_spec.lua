@@ -225,6 +225,34 @@ describe("AI Fat Cow", function()
         assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
     end)
 
+    it("goes home, packed, when its flight is gone", function()
+        local leader, cow = flightWithCow()
+        mgr:onLand({ initiator = leader })
+        mgr:onLand({ initiator = units[cow.unitName] })
+        runScheduled()
+        groups["Gunfighter"].destroyed = true
+        mgr:onDead({ initiator = leader })
+        runScheduled()
+        assert.equals(CTLDFatCow.STATE_STOWED, cow.state)
+        assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
+        assert.is_nil(mgr:aiCowOfFlight("Gunfighter"))
+    end)
+
+    it("waits for a late-activated escort to be activated", function()
+        mgr._settings.fatCowAICows = { { group = "Cow Group", escort = "Gunfighter" } }
+        newGroup("Cow Group", 50, "Cow-1")
+        newUnit("Cow-1", "Cow Group")
+        newGroup("Gunfighter", 7, "Gunfighter-1")
+        local leader = newUnit("Gunfighter-1", "Gunfighter")
+        leader.active = false
+        function leader:isActive() return self.active end
+        mgr:_activateMissionCows()
+        assert.is_false(groups["Cow Group"].activated)
+        leader.active = true
+        mgr:onBirth({ initiator = leader })
+        assert.is_true(groups["Cow Group"].activated)
+    end)
+
     it("activates a mission-placed cow once its escorted flight is in the world", function()
         mgr._settings.fatCowAICows = { { group = "Cow Group", escort = "Gunfighter" } }
         newGroup("Cow Group", 50, "Cow-1")

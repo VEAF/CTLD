@@ -233,6 +233,19 @@ describe("CTLDFatCowManager deploy / pack", function()
         assert.is_nil(cow.scene)
     end)
 
+    it("packing while the scene is still laying out stops it", function()
+        local scene = { _name = "Fat Cow FARP#1", aborted = false }
+        function scene:abort() self.aborted = true end
+        sm.playScene = function(_, _, _, params) scene._params = params; return scene end   -- not laid out yet
+        local unit = cowUnit("Cow-1")
+        mgr:addCow(unit, { fuelKg = 100, items = {} })
+        mgr:deploy(unit)
+        assert.equals(CTLDFatCow.STATE_DEPLOYING, mgr:getCow("Cow-1").state)
+        assert.is_true(mgr:pack("Cow-1"))
+        assert.is_true(scene.aborted)
+        assert.equals(scene, packed)
+    end)
+
     it("packing a stowed cow does nothing", function()
         mgr:addCow(cowUnit("Cow-1"), { fuelKg = 100, items = {} })
         assert.is_false(mgr:pack("Cow-1"))

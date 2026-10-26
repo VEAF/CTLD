@@ -426,6 +426,24 @@ function CTLDCrateManager:_injectSceneCrate(sceneName, model)
     end
 end
 
+--- Indexes a crate descriptor that lives outside the crate catalogue and its menus (Fat Cow
+-- crates), on the first free weight from its own: weight is every crate's key.
+-- @param descriptor table  { weight, desc, unit, ... } -- weight may be moved to a free slot
+-- @return the descriptor, indexed
+function CTLDCrateManager:registerDescriptor(descriptor)
+    local w = descriptor.weight
+    while self._weightIndex[w] do
+        w = math.floor(w * 100 + 1.5) / 100
+    end
+    if w ~= descriptor.weight then
+        ctld.utils.log("WARN", "registerDescriptor: '%s' weight %.2f taken, reassigned to %.2f",
+            tostring(descriptor.desc), descriptor.weight, w)
+        descriptor.weight = w
+    end
+    self._weightIndex[w] = descriptor
+    return descriptor
+end
+
 --- Pre-process spawnableCrates config into an internal structure used by the menu builder.
 -- Two-pass:
 --   Pass 1 — separate singleCrates (weight field) from mixedSets (mixedSet field).
@@ -1975,8 +1993,9 @@ end
 -- @return bool
 function CTLDCrateManager:_respawnStatic(crate, position, heading)
     local label = crate.descriptor and crate.descriptor.desc or nil
+    -- metadata.massKg: a part-used Fat Cow crate comes back to the ground at what it still weighs.
     local newName, dcsStatic = self:_spawnStatic(
-        crate.descriptor.weight, position, crate.coalition, nil, crate.modelKey, label, heading)
+        crate.metadata.massKg or crate.descriptor.weight, position, crate.coalition, nil, crate.modelKey, label, heading)
     if not dcsStatic then return false end
 
     self.crates[crate.crateName] = nil

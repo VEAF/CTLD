@@ -247,6 +247,10 @@ function CTLDFatCowManager:pack(unitName)
     local w = warehouseOf(cow.farpName)
     if w then cow:readWarehouse(w) end
     if cow.scene then
+        -- A scene still laying out would go on spawning after the pack: stop it first.
+        if cow.state == CTLDFatCow.STATE_DEPLOYING and cow.scene.abort then
+            cow.scene:abort("Fat Cow packed while deploying")
+        end
         CTLDSceneManager.getInstance():packScene(cow.scene)
     end
     cow.scene, cow.farpName = nil, nil
@@ -285,6 +289,7 @@ function CTLDFatCowManager:start()
     bridge:register(self, world.event.S_EVENT_LAND,    "onLand")
     bridge:register(self, world.event.S_EVENT_DEAD,    "onDead")
     bridge:register(self, world.event.S_EVENT_CRASH,   "onDead")
+    bridge:register(self, world.event.S_EVENT_PLAYER_LEAVE_UNIT, "onPlayerLeave")
     self:_activateMissionCows()
     ctld.utils.log("INFO", "CTLDFatCowManager: started, %d cow crate type(s)", #self._crateDescs)
 end
@@ -301,23 +306,14 @@ function CTLDFatCowManager:_injectCrateDescriptors()
             ctld.utils.log("WARN", "CTLDFatCowManager: fatCowCrates entry '%s' ignored: it needs desc, weight, and fuelKg or item + count",
                 tostring(def.desc))
         else
-            local w = def.weight
-            while cm._weightIndex[w] do
-                w = math.floor(w * 100 + 1.5) / 100
-            end
-            if w ~= def.weight then
-                ctld.utils.log("WARN", "CTLDFatCowManager: crate '%s' weight %.2f taken — reassigned to %.2f",
-                    def.desc, def.weight, w)
-            end
-            local d = {
-                weight         = w,
+            local d = cm:registerDescriptor({
+                weight         = def.weight,
                 desc           = ctld.tr(def.desc),
                 unit           = "FatCow:" .. def.desc,
                 cratesRequired = 1,
                 showSets       = false,
                 fatCow         = content,
-            }
-            cm._weightIndex[w] = d
+            })
             self._crateDescs[#self._crateDescs + 1] = d
         end
     end
@@ -334,10 +330,6 @@ end
 -- Piloted cow (ticket 03): F10 > CTLD > Fat Cow, for the types listed in fatCowTypes
 -- ====================================================================================================
 
-local function groupIdOf(unit)
-    return ctld.utils.getGroupId(unit)
-end
-
 --- The cow crates in a unit's hold.
 local function cowCratesOnboard(unitName)
     local out = {}
@@ -350,7 +342,7 @@ end
 function CTLDFatCowManager:requestCrate(unitName, weight)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
-    local gid = groupIdOf(t)
+    local gid = ctld.utils.getGroupId(t)
     if ctld.utils.inAir(t) then
         trigger.action.outTextForGroup(gid, ctld.tr("You must be landed to request a crate."), 10)
         return
@@ -378,7 +370,7 @@ end
 function CTLDFatCowManager:deployFromHold(unitName)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
-    local gid = groupIdOf(t)
+    local gid = ctld.utils.getGroupId(t)
     local existing = self._cows[unitName]
     if existing and existing.state ~= CTLDFatCow.STATE_STOWED then
         trigger.action.outTextForGroup(gid, ctld.tr("The Fat Cow FARP is already deployed."), 10)
@@ -412,19 +404,21 @@ end
 function CTLDFatCowManager:packIntoHold(unitName, quiet)
     local cow = self._cows[unitName]
     local t   = Unit.getByName(unitName)
-    local gid = t and t:isExist() and groupIdOf(t)
+    local gid = t and t:isExist() and ctld.utils.getGroupId(t)
     if not (cow and cow.crates and self:pack(unitName)) then
         if gid and not quiet then
             trigger.action.outTextForGroup(gid, ctld.tr("No Fat Cow FARP deployed."), 10)
         end
         return
     end
+    -- Every crate the FARP was opened with gets its share back, wherever it is now (one unloaded
+    -- while the FARP was open included); a crate destroyed meanwhile is gone with its share.
     local cm = CTLDCrateManager.getInstance()
-    local stillOnboard = {}
+    local stillThere = {}
     for _, crate in ipairs(cow.crates) do
-        if crate:isLoaded() and cm:isCarriedBy(crate, unitName) then stillOnboard[#stillOnboard + 1] = crate end
+        if cm.crates[crate.crateName] == crate then stillThere[#stillThere + 1] = crate end
     end
-    for _, crate in ipairs(CTLDFatCow.refillCrates(cow.stock, stillOnboard)) do
+    for _, crate in ipairs(CTLDFatCow.refillCrates(cow.stock, stillThere)) do
         cm:destroyCrate(crate.crateName)
     end
     ctld.utils.updateTransportWeight(unitName)
@@ -447,7 +441,7 @@ function CTLDFatCowManager:reportStock(unitName, toGroupId)
     else
         stock = CTLDFatCow.stockOfCrates(cowCratesOnboard(unitName))
     end
-    trigger.action.outTextForGroup(toGroupId or groupIdOf(t), ctld.tr("Fat Cow stock: %1", CTLDFatCow.describeStock(stock)), 15)
+    trigger.action.outTextForGroup(toGroupId or ctld.utils.getGroupId(t), ctld.tr("Fat Cow stock: %1", CTLDFatCow.describeStock(stock)), 15)
 end
 
 --- S_EVENT_TAKEOFF: a piloted cow taking off packs its FARP (AI cows: see onTakeoff below).
@@ -462,12 +456,35 @@ function CTLDFatCowManager:onTakeoff(event)
     self:_onAITakeoff(name)
 end
 
---- S_EVENT_DEAD / S_EVENT_CRASH: a dead cow's FARP goes with it.
+--- S_EVENT_DEAD / S_EVENT_CRASH: a dead cow's FARP goes with it. Any loss (and a player leaving,
+-- below) may also leave an AI cow with no flight to escort: checked a moment later, once DCS has
+-- removed the unit.
 function CTLDFatCowManager:onDead(event)
     local name = ctld.utils.safeObjectName(event and event.initiator)
     if name and self._cows[name] then
         self:removeCow(name)
         self:_forgetAICow(name)
+    end
+    self:_checkFlightsLater()
+end
+
+function CTLDFatCowManager:onPlayerLeave(_)
+    self:_checkFlightsLater()
+end
+
+function CTLDFatCowManager:_checkFlightsLater()
+    if not next(self._aiByFlight or {}) then return end
+    local mgr = self
+    ctld.scheduler.schedule(function() mgr:_sendHomeOrphans() end, nil, timer.getTime() + 2)
+end
+
+--- An AI cow whose flight is no longer in the world packs and goes home.
+function CTLDFatCowManager:_sendHomeOrphans()
+    for flight, cow in pairs(self._aiByFlight or {}) do
+        local g = Group.getByName(flight)
+        if not (g and g:isExist() and g:getUnit(1)) then
+            self:_returnHome(cow)
+        end
     end
 end
 
@@ -524,6 +541,9 @@ local FOLLOW_OFFSET    = { x = -200, y = 60, z = 150 }   -- behind, above and to
 local LAND_OFFSET_M    = 120                              -- landing point, to the leader's left
 local CRUISE_SPEED_MPS = 60
 local CRUISE_ALT_M     = 150
+-- How long a Land task keeps the cow down: a day, so it never lifts off on its own while serving.
+-- The flight's take-off or a release re-tasks it long before.
+local LAND_DURATION_S  = 86400
 
 local function aiStockFromConfig()
     local stock = { fuelKg = ctld.gs("fatCowAIFuelKg"), items = {} }
@@ -555,7 +575,7 @@ local function landMission(point)
             speed = CRUISE_SPEED_MPS, speed_locked = true,
             task = { id = "ComboTask", params = { tasks = { {
                 number = 1, auto = false, enabled = true, id = "Land",
-                params = { point = { x = point.x, y = point.z }, durationFlag = true, duration = 3600 },
+                params = { point = { x = point.x, y = point.z }, durationFlag = true, duration = LAND_DURATION_S },
             } } } },
         } } } },
     }
@@ -701,7 +721,7 @@ end
 function CTLDFatCowManager:requestAICow(unitName)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
-    local gid    = groupIdOf(t)
+    local gid    = ctld.utils.getGroupId(t)
     local flight = t:getGroup():getName()
     if self:aiCowOfFlight(flight) then
         trigger.action.outTextForGroup(gid, ctld.tr("Your flight already has a Fat Cow."), 10)
@@ -756,11 +776,11 @@ function CTLDFatCowManager:releaseAICow(unitName)
     if not (t and t:isExist()) then return end
     local cow = self:aiCowOfFlight(t:getGroup():getName())
     if not cow then
-        trigger.action.outTextForGroup(groupIdOf(t), ctld.tr("Your flight has no Fat Cow."), 10)
+        trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Your flight has no Fat Cow."), 10)
         return
     end
     self:_returnHome(cow)
-    trigger.action.outTextForGroup(groupIdOf(t), ctld.tr("Fat Cow released: it goes home."), 10)
+    trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Fat Cow released: it goes home."), 10)
 end
 
 function CTLDFatCowManager:_buildAIMenu(playerObj, menu, path)
@@ -780,20 +800,30 @@ function CTLDFatCowManager:reportFlightCowStock(unitName)
     if not (t and t:isExist()) then return end
     local cow = self:aiCowOfFlight(t:getGroup():getName())
     if not cow then
-        trigger.action.outTextForGroup(groupIdOf(t), ctld.tr("Your flight has no Fat Cow."), 10)
+        trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Your flight has no Fat Cow."), 10)
         return
     end
-    self:reportStock(cow.unitName, groupIdOf(t))
+    self:reportStock(cow.unitName, ctld.utils.getGroupId(t))
 end
 
 -- ── Mission-placed cows (fatCowAICows): the VMCT contract ──────────────────────────────────────
 -- Each entry { group = "<late-activated CH-47 group>", escort = "<flight group>" }. CTLD activates
 -- the cow when the escorted flight is in the world (at start, or when its first unit is born).
 
+--- True when the group has a unit actually in the world: a late-activated group exists to scripts
+-- before it is activated (known limitation late-activated-group-is-visible).
+local function inWorld(group)
+    if not (group and group:isExist()) then return false end
+    local u = group:getUnit(1)
+    if not u then return false end
+    local ok, active = pcall(function() return u:isActive() end)
+    return not ok or active ~= false
+end
+
 function CTLDFatCowManager:_activateMissionCow(entry)
     local g = Group.getByName(entry.group)
     local flight = Group.getByName(entry.escort)
-    if not (g and flight and flight:isExist()) then return false end
+    if not (g and inWorld(flight)) then return false end
     if self:aiCowOfFlight(entry.escort) then return true end
     pcall(g.activate, g)
     local u = g:getUnit(1)
