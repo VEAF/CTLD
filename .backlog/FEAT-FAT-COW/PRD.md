@@ -1,6 +1,6 @@
 # FEAT-FAT-COW — a CH-47 that lands in the field and becomes a forward refuel/rearm point
 
-**Status:** 🧑 waiting-human — ticket 01 phase 1 done (2026-10-26): a runtime Invisible FARP serves a player already in game, enforces a finite stock, and needs a supplier in range, which the `FARP Fuel Depot` static alone satisfies, for fuel and weapons, without any vehicle. Phase 2 (multiplayer client) still to run; tickets 02+ are written next.
+**Status:** 🔄 in-progress — ticket 01 phase 1 done (2026-10-26): a runtime Invisible FARP serves a player already in game, enforces a finite stock, and needs a supplier in range, which the `FARP Fuel Depot` static alone satisfies, for fuel and weapons, without any vehicle. Phase 2 (a remote multiplayer client) not run: Zip hosted, so his view was the server's; the design re-applies the stock on every birth instead. Implementation in progress (Zip, 2026-10-26: "implémente").
 
 Designed with Zip on 2026-10-26 (VMCT session). Zip decided that the runtime belongs in CTLD, not in the VMCT Lua; VMCT will vendor this CTLD and add a static mission-editing tool for it afterwards.
 
@@ -50,7 +50,11 @@ VMCT will add a CLI + MCP tool that places an AI cow escorting a named flight in
 | # | Ticket | Status |
 |---|---|---|
 | 01 | [In-game spike: a runtime FARP, its finite stock, its vehicles](tickets/01-spike-runtime-farp.md) | 🧑 phase 1 done (a yes, b yes server side, c the FARP Fuel Depot alone suffices, no vehicle); phase 2 to run |
-| 02+ | Core stock + deploy/pack scene, piloted cow crates, AI cow escort, config + VMCT contract doc, release notes | written after 01 |
+| 02 | [Core: a cow's stock, its scene, deploy and pack](tickets/02-core-stock-and-scene.md) | 🔄 in-progress |
+| 03 | [Piloted cow: cow crates in a CH-47F and the F10 commands](tickets/03-piloted-cow.md) | ⬜ ready |
+| 04 | [AI cow: requested by a flight, escorts it, serves it, goes home](tickets/04-ai-cow.md) | ⬜ ready |
+| 05 | [Config, VMCT contract doc, CHANGELOG and release notes](tickets/05-config-docs-release.md) | ⬜ ready |
+| 06 | [Live check in DCS](tickets/06-live-check.md) | ⬜ ready (HITL) |
 
 ## Release notes
 
