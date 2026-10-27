@@ -90,6 +90,10 @@ used, defaults that moved — without ever merging anything behind your back.
       still runs and still tells you.
     - a **list** (a crate section, a troop group, a zone entry, a pilot name) you leave out is
       genuinely absent. That is how you remove one — and it is why nothing is merged.
+      The one exception is a list CTLD added after your `configVersion` (the Fat Cow crates and
+      loadouts arrived in `2.3.0`): you cannot have removed what did not exist yet, so CTLD uses its
+      default list and names it in the same startup report. Opening the snapshot in `ctld-tools` adds it
+      for good.
 
     `ctld-tools`' validation reports a missing setting as an error and refuses to inject, so a
     snapshot produced by the tool is always complete.

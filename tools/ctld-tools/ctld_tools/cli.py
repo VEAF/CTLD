@@ -89,6 +89,20 @@ def shape_cmd(
     typer.echo(f"shape: wrote {out}")
 
 
+@app.command("since")
+def since_cmd(
+    yaml_path: Path = typer.Option(..., "--yaml", help="path to the catalogue YAML (src/CTLD_config.yaml)"),
+    shapes_dir: Path = typer.Option(..., "--shapes", help="the pinned shapes (tests/ci/data/catalogue_shapes)"),
+    out: Path = typer.Option(..., "--out", help="path to the Lua module to write (ctld.configListSince)"),
+) -> None:
+    """Write the catalogue version each list appeared in, as a Lua module (build step)."""
+    from ctld_tools.catalog import Catalog
+    from ctld_tools.since import write_since
+
+    write_since(Catalog.load(yaml_path), shapes_dir, out)
+    typer.echo(f"since: wrote {out} (ctld.configListSince)")
+
+
 @app.command("validate")
 def validate_cmd(
     yaml_path: Path = typer.Option(..., "--yaml", help="path to a complete config YAML to validate"),
