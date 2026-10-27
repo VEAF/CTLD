@@ -185,6 +185,7 @@ aléatoire de 90–120 % de `SOLDIER_WEIGHT`, plus l'équipement et le matériel
 | `farpTroopPickupRadius` | `150` | Rayon (m) dans lequel les troops peuvent embarquer à une FARP |
 | `fobDestructionThreshold` | `0.5` | Fraction d'objets de scène détruits avant qu'un FOB soit considéré perdu (0.0–1.0) |
 | `enableFARPRepack` | `true` | Autorise les joueurs à pack une scène FARP déployée de nouveau en crate pour redéploiement |
+| `fatCowEnabled` | `true` | Fat Cow : un CH-47 qui ouvre une FARP approvisionnée avec ce qu'il transporte — voir [Fat Cow](fat-cow.md) pour ce réglage et les autres `fatCow*` |
 
 !!! note
     Le nombre de crate nécessaires pour construire un FOB n'est **pas** un réglage global — il

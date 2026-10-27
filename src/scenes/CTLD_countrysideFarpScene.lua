@@ -207,8 +207,8 @@ countrysideFarpScene.steps = {
                 local ab = Airbase.getByName(farpName)
                 if ab then
                     local w = ab:getWarehouse()
-                    -- Invisible FARP airbases (DCS built-in) return nil for getWarehouse().
-                    -- Only mod-based helipad FARPs have an accessible warehouse.
+                    -- An Invisible FARP spawned at runtime does have a warehouse, and it starts
+                    -- empty (measured in DCS 2.9.30.28738, FEAT-FAT-COW ticket 01).
                     if w then
                         -- If this is a redeployed FARP, restore the full snapshot; otherwise zero the warehouse.
                         local snap = ctx.scene._params.repackData
@@ -413,7 +413,7 @@ countrysideFarpScene.onRepack = function(scene, repackData)
     local ab = Airbase.getByName(farpName)
     if not ab then return end
     local w = ab:getWarehouse()
-    if not w then return end   -- Invisible FARP has no warehouse
+    if not w then return end
     local inv = w:getInventory()
     repackData.warehouseSnapshot = {
         liquid = {

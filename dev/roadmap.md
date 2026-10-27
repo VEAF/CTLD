@@ -285,3 +285,13 @@ Quatre tests (`test_install`, `test_inject_into_miz`) échouent en local quand `
 été réexportée par ctld-tools (elle porte alors déjà un moteur et des sons, `replacedPrevious` vaut vrai), alors
 qu'ils passent contre la version commitée utilisée par le CI. Idée : les faire partir d'une copie « pristine »
 comme le fait déjà la fixture `pristine_miz`, ou d'une fixture minimale indépendante de la mission de dev.
+
+<!-- Fat Cow — profils pour les hélicos russes (lot 2) : fait dans FEAT-FAT-COW (PR #273), avec un CH-47 pour
+     tout le monde (Zip, 2026-10-27 : c'est le module pilotable) et des sous-menus Russes et Mixtes ; la cow Mi-26
+     a été écartée. -->
+
+## Fat Cow — Mi-8 piloté en « petite cow » (lot 3, optionnel)
+
+Le Mi-8MTV2 pilotable comme cow : 13 000 kg max, 8 866 kg à vide, 1 929 kg de carburant, soit 2 591 kg de charge utile à 80 % de carburant.
+Assez pour un ou deux hélicos (par exemple 1 400 kg de carburant et 20 Vikhr) : fidèle au réel, où le Mi-8 ravitailleur emporte des réservoirs de convoyage d'environ 900 L.
+Demande un réservoir plus petit que celui de 800 gal du CH-47 et son entrée dans `fatCowTypes` / `capabilitiesByType`.

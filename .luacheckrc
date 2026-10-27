@@ -85,6 +85,8 @@ globals = {
     "CTLDStaticWatcher",
     "CTLDDCSEventBridge",
     "CTLDCoreManager",
+    "CTLDFatCow",
+    "CTLDFatCowManager",
 }
 
 -- Per-file overrides

@@ -296,7 +296,7 @@
       "useNativeDcsCargoSystem": false
     }
   },
-  "configVersion": "2.2.0",
+  "configVersion": "2.3.0",
   "crateDropExtraDistance": 2,
   "crateSpacing": 5,
   "crateSpawnGap": 0.5,
@@ -350,6 +350,262 @@
   ],
   "farpTroopPickupRadius": 150,
   "fastRopeMaximumHeight": 18.28,
+  "fatCowAICows": [],
+  "fatCowAIType": "CH-47Fbl1",
+  "fatCowCrates": [
+    {
+      "desc": "Fat Cow fuel tank (800 gal)",
+      "fuelKg": 2400,
+      "weight": 2400
+    },
+    {
+      "count": 20,
+      "desc": "Fat Cow laser Hellfires (x20)",
+      "item": "weapons.missiles.AGM_114K",
+      "weight": 906
+    },
+    {
+      "count": 20,
+      "desc": "Fat Cow radar Hellfires (x20)",
+      "item": "weapons.missiles.AGM_114",
+      "weight": 980
+    },
+    {
+      "count": 1200,
+      "desc": "Fat Cow 30 mm (x1200)",
+      "item": "weapons.shells.M230_HEDP M789",
+      "weight": 600
+    },
+    {
+      "count": 20,
+      "desc": "Fat Cow Vikhr (x20)",
+      "item": "weapons.missiles.Vikhr_M",
+      "weight": 900
+    },
+    {
+      "count": 16,
+      "desc": "Fat Cow Ataka (x16)",
+      "item": "weapons.missiles.Ataka_9M120",
+      "weight": 792
+    },
+    {
+      "count": 16,
+      "desc": "Fat Cow Shturm (x16)",
+      "item": "weapons.missiles.AT_6",
+      "weight": 566
+    },
+    {
+      "count": 460,
+      "desc": "Fat Cow 2A42 HE (x460)",
+      "item": "weapons.shells.2A42_30_HE",
+      "weight": 391
+    },
+    {
+      "count": 460,
+      "desc": "Fat Cow 2A42 AP (x460)",
+      "item": "weapons.shells.2A42_30_AP",
+      "weight": 391
+    },
+    {
+      "count": 500,
+      "desc": "Fat Cow GSh-30 (x500)",
+      "item": "weapons.shells.GSh_30_2K_HE",
+      "weight": 425
+    }
+  ],
+  "fatCowDeployDelay": 60,
+  "fatCowEnabled": true,
+  "fatCowLoadouts": [
+    {
+      "desc": "40 Hellfires (25 laser, 15 radar), 2400 rounds",
+      "fuelKg": 4800,
+      "items": [
+        {
+          "count": 25,
+          "item": "weapons.missiles.AGM_114K"
+        },
+        {
+          "count": 15,
+          "item": "weapons.missiles.AGM_114"
+        },
+        {
+          "count": 2400,
+          "item": "weapons.shells.M230_HEDP M789"
+        }
+      ]
+    },
+    {
+      "desc": "60 Hellfires (38 laser, 22 radar), 1200 rounds",
+      "fuelKg": 4800,
+      "items": [
+        {
+          "count": 38,
+          "item": "weapons.missiles.AGM_114K"
+        },
+        {
+          "count": 22,
+          "item": "weapons.missiles.AGM_114"
+        },
+        {
+          "count": 1200,
+          "item": "weapons.shells.M230_HEDP M789"
+        }
+      ]
+    },
+    {
+      "desc": "40 laser Hellfires, 2400 rounds",
+      "fuelKg": 4800,
+      "items": [
+        {
+          "count": 40,
+          "item": "weapons.missiles.AGM_114K"
+        },
+        {
+          "count": 2400,
+          "item": "weapons.shells.M230_HEDP M789"
+        }
+      ]
+    },
+    {
+      "desc": "60 laser Hellfires, 1200 rounds",
+      "fuelKg": 4800,
+      "items": [
+        {
+          "count": 60,
+          "item": "weapons.missiles.AGM_114K"
+        },
+        {
+          "count": 1200,
+          "item": "weapons.shells.M230_HEDP M789"
+        }
+      ]
+    },
+    {
+      "desc": "40 Vikhr, 920 rounds (Ka-50)",
+      "fuelKg": 4800,
+      "items": [
+        {
+          "count": 40,
+          "item": "weapons.missiles.Vikhr_M"
+        },
+        {
+          "count": 460,
+          "item": "weapons.shells.2A42_30_HE"
+        },
+        {
+          "count": 460,
+          "item": "weapons.shells.2A42_30_AP"
+        }
+      ],
+      "menu": "russian"
+    },
+    {
+      "desc": "60 Vikhr, 460 rounds (Ka-50)",
+      "fuelKg": 4800,
+      "items": [
+        {
+          "count": 60,
+          "item": "weapons.missiles.Vikhr_M"
+        },
+        {
+          "count": 230,
+          "item": "weapons.shells.2A42_30_HE"
+        },
+        {
+          "count": 230,
+          "item": "weapons.shells.2A42_30_AP"
+        }
+      ],
+      "menu": "russian"
+    },
+    {
+      "desc": "32 Ataka, 500 rounds (Mi-24P)",
+      "fuelKg": 4800,
+      "items": [
+        {
+          "count": 32,
+          "item": "weapons.missiles.Ataka_9M120"
+        },
+        {
+          "count": 500,
+          "item": "weapons.shells.GSh_30_2K_HE"
+        }
+      ],
+      "menu": "russian"
+    },
+    {
+      "desc": "32 Shturm, 500 rounds (Mi-24P)",
+      "fuelKg": 4800,
+      "items": [
+        {
+          "count": 32,
+          "item": "weapons.missiles.AT_6"
+        },
+        {
+          "count": 500,
+          "item": "weapons.shells.GSh_30_2K_HE"
+        }
+      ],
+      "menu": "russian"
+    },
+    {
+      "desc": "20 Hellfires (12 laser, 8 radar), 20 Vikhr, 1200 + 460 rounds",
+      "fuelKg": 4800,
+      "items": [
+        {
+          "count": 12,
+          "item": "weapons.missiles.AGM_114K"
+        },
+        {
+          "count": 8,
+          "item": "weapons.missiles.AGM_114"
+        },
+        {
+          "count": 20,
+          "item": "weapons.missiles.Vikhr_M"
+        },
+        {
+          "count": 1200,
+          "item": "weapons.shells.M230_HEDP M789"
+        },
+        {
+          "count": 230,
+          "item": "weapons.shells.2A42_30_HE"
+        },
+        {
+          "count": 230,
+          "item": "weapons.shells.2A42_30_AP"
+        }
+      ],
+      "menu": "mixed"
+    },
+    {
+      "desc": "20 laser Hellfires, 16 Ataka, 1200 + 500 rounds",
+      "fuelKg": 4800,
+      "items": [
+        {
+          "count": 20,
+          "item": "weapons.missiles.AGM_114K"
+        },
+        {
+          "count": 16,
+          "item": "weapons.missiles.Ataka_9M120"
+        },
+        {
+          "count": 1200,
+          "item": "weapons.shells.M230_HEDP M789"
+        },
+        {
+          "count": 500,
+          "item": "weapons.shells.GSh_30_2K_HE"
+        }
+      ],
+      "menu": "mixed"
+    }
+  ],
+  "fatCowTypes": [
+    "CH-47Fbl1"
+  ],
   "fieldExtractTroopWeight": 130,
   "fobCrateCollectionRadius": 750,
   "fobDestructionThreshold": 0.5,

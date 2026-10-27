@@ -121,6 +121,7 @@ nav:
     - Beacons: pilot/beacons.md
     - Smoke: pilot/smoke.md
     - Pack: pilot/pack.md
+    - Fat Cow: pilot/fat-cow.md
   - Mission Maker:
     - Overview: mission-maker/index.md
     - Configuration: mission-maker/configuration.md
@@ -129,6 +130,7 @@ nav:
     - Scenes & FOB: mission-maker/scenes-fob.md
     - Crate catalogue: mission-maker/crates-catalogue.md
     - Minefield: mission-maker/minefield.md
+    - Fat Cow: mission-maker/fat-cow.md
     - Validating your config: mission-maker/asset-validation.md
     - Translations: mission-maker/translations.md
     - Legacy API: mission-maker/legacy-api.md

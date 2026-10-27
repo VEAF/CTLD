@@ -62,6 +62,7 @@ dofile(SRC .. "CTLD_beacon.lua")
 dofile(SRC .. "CTLD_recon.lua")
 dofile(SRC .. "CTLD_jtac.lua")
 dofile(SRC .. "CTLD_player.lua")
+dofile(SRC .. "CTLD_fatCow.lua")
 
 -- ── Orchestrator ──────────────────────────────────────────────
 dofile(SRC .. "CTLD_core.lua")

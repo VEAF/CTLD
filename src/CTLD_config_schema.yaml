@@ -454,6 +454,50 @@ farpTroopPickupRadius:
   description:
     en: Radius (m) within which troops may board at a FARP
     fr: Rayon (m) dans lequel les troops peuvent embarquer à une FARP
+fatCowEnabled:
+  group: fob
+  standard: true
+  label: {en: Fat Cow, fr: Fat Cow (FARP héliportée)}
+  description:
+    en: A CH-47 lands in the field and opens a FARP stocked with what it carries — flown by a player with Fat Cow crates in its hold, or an AI cow requested by a flight. Off removes the F10 Fat Cow menu and the cow crates.
+    fr: Un CH-47 se pose sur le terrain et ouvre une FARP approvisionnée avec ce qu'il transporte — piloté par un joueur avec des caisses Fat Cow en soute, ou une cow IA demandée par une patrouille. Désactivé, le menu F10 Fat Cow et les caisses cow disparaissent.
+fatCowTypes:
+  group: fob
+  label: {en: Fat Cow aircraft types, fr: Types d'appareils Fat Cow}
+  description:
+    en: DCS types a player can fly as a Fat Cow (request cow crates, deploy and pack the FARP). Each must also be a CTLD transport in capabilitiesByType.
+    fr: Types DCS qu'un joueur peut piloter en Fat Cow (demander les caisses cow, déployer et replier la FARP). Chacun doit aussi être un transport CTLD dans capabilitiesByType.
+fatCowCrates:
+  group: fob
+  label: {en: Fat Cow crates, fr: Caisses Fat Cow}
+  description:
+    en: 'The crates a player cow carries its stock in: each has a desc, a weight (kg in the hold when full, and its catalogue key) and either fuelKg (jet fuel) or an item (a DCS warehouse item name) with the count a full crate holds. A loadout is split into these crates. Default: an 800 gal ERFS tank of 2400 kg; 20 laser and 20 radar Hellfires, 1200 rounds of 30 mm (Apache); 20 Vikhr, 460 rounds of 2A42 HE and of AP (Ka-50); 16 Ataka, 16 Shturm, 500 rounds of GSh-30 (Mi-24P).'
+    fr: "Les caisses dans lesquelles une cow pilotée emporte son stock : chacune a un desc, un poids (kg en soute quand elle est pleine, et sa clé dans le catalogue) et soit fuelKg (carburant jet), soit un item (nom d'article d'entrepôt DCS) avec le nombre qu'en contient une caisse pleine. Un lot de chargement est réparti dans ces caisses. Par défaut : un réservoir ERFS de 800 gal de 2400 kg ; 20 Hellfire laser et 20 radar, 1200 obus de 30 mm (Apache) ; 20 Vikhr, 460 obus de 2A42 explosifs et autant de perforants (Ka-50) ; 16 Ataka, 16 Shturm, 500 obus de GSh-30 (Mi-24P)."
+fatCowLoadouts:
+  group: fob
+  label: {en: Fat Cow loadouts, fr: Lots de chargement Fat Cow}
+  description:
+    en: 'What a cow carries: a player cow loads one into its hold in a logistic zone, a flight requesting an AI cow picks one. Each loadout has a desc, fuelKg (jet fuel), a list of items (DCS warehouse item name and count) and optionally menu (russian or mixed: the submenu it shows in; none shows it at the top). Default: two 800 gal tanks (4800 kg) and, at the top, 40 or 60 Hellfires with 30 mm rounds for the Apache; under Russian, Vikhr and 2A42 rounds for the Ka-50, Ataka or Shturm and GSh-30 rounds for the Mi-24P; under Mixed, two Apache and Russian mixes. 6400 to 8200 kg, under what a CH-47F with 80 % of its internal fuel lifts.'
+    fr: "Ce qu'emporte une cow : une cow pilotée en charge un en soute dans une zone logistique, une patrouille qui demande une cow IA en choisit un. Chaque lot a un desc, fuelKg (carburant jet), une liste d'items (nom d'article d'entrepôt DCS et nombre) et au besoin menu (russian ou mixed : le sous-menu où il apparaît ; sans menu, il est en tête). Par défaut : deux réservoirs de 800 gal (4800 kg) et, en tête, 40 ou 60 Hellfire avec des obus de 30 mm pour l'Apache ; sous Russes, des Vikhr et des obus de 2A42 pour le Ka-50, des Ataka ou des Shturm et des obus de GSh-30 pour le Mi-24P ; sous Mixtes, deux mélanges Apache et russes. De 6400 à 8200 kg, sous ce qu'emporte un CH-47F avec 80 % de son carburant interne."
+fatCowDeployDelay:
+  group: fob
+  label: {en: AI Fat Cow deployment delay, fr: Délai de déploiement de la cow IA}
+  unit: s
+  description:
+    en: Seconds an AI cow stays on the ground before its FARP opens.
+    fr: Secondes qu'une cow IA passe au sol avant que sa FARP ouvre.
+fatCowAIType:
+  group: fob
+  label: {en: AI Fat Cow type, fr: Type de la cow IA}
+  description:
+    en: DCS type of the helicopter brought in when a flight requests a Fat Cow. Empty removes the Request a Fat Cow command.
+    fr: Type DCS de l'hélicoptère amené quand une patrouille demande une Fat Cow. Vide, la commande Demander une Fat Cow disparaît.
+fatCowAICows:
+  group: fob
+  label: {en: Mission-placed Fat Cows, fr: Fat Cows placées dans la mission}
+  description:
+    en: 'AI cows placed in the mission: each entry names a late-activated helicopter group (group), the flight it escorts (escort) and optionally the number of the fatCowLoadouts entry it carries (loadout, default 1). CTLD activates the cow once the flight is in the world.'
+    fr: "Cows IA placées dans la mission : chaque entrée nomme un groupe d'hélicoptère en activation différée (group), la patrouille qu'il escorte (escort) et, au besoin, le numéro du lot de fatCowLoadouts qu'il emporte (loadout, 1 par défaut). CTLD active la cow dès que la patrouille est en jeu."
 fobDestructionThreshold:
   group: fob
   label: {en: FOB destruction threshold, fr: Seuil de destruction d'une FOB}

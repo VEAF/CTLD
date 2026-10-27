@@ -68,7 +68,8 @@ function CTLDCrate:init(data)
     self.loadTime     = nil
     self.dcsStatic    = data.dcsStatic or nil
     self.modelKey     = data.modelKey  or "load"
-    self.canBeUnpacked = true
+    -- A Fat Cow crate (fuel, ammo) is deployed from the hold by its cow, never unpacked on the ground.
+    self.canBeUnpacked = not (data.descriptor and data.descriptor.fatCow)
     -- Feature A: virtual parachute
     self.fromParachute          = false   -- true → eligible for autoUnpack on landing
     self.loadedByDCSNative      = false   -- true → native carry (DCS cargo UI): CTLD never unloads, parachutes or weighs it
@@ -423,6 +424,24 @@ function CTLDCrateManager:_injectSceneCrate(sceneName, model)
             end
         end
     end
+end
+
+--- Indexes a crate descriptor that lives outside the crate catalogue and its menus (Fat Cow
+-- crates), on the first free weight from its own: weight is every crate's key.
+-- @param descriptor table  { weight, desc, unit, ... } -- weight may be moved to a free slot
+-- @return the descriptor, indexed
+function CTLDCrateManager:registerDescriptor(descriptor)
+    local w = descriptor.weight
+    while self._weightIndex[w] do
+        w = math.floor(w * 100 + 1.5) / 100
+    end
+    if w ~= descriptor.weight then
+        ctld.utils.log("WARN", "registerDescriptor: '%s' weight %.2f taken, reassigned to %.2f",
+            tostring(descriptor.desc), descriptor.weight, w)
+        descriptor.weight = w
+    end
+    self._weightIndex[w] = descriptor
+    return descriptor
 end
 
 --- Pre-process spawnableCrates config into an internal structure used by the menu builder.
@@ -1101,7 +1120,8 @@ function CTLDCrateManager:getLoadedCrateWeight(unitName)
     local total = 0
     for _, crate in pairs(self.crates) do
         if crate:isLoadedByCTLD() and self:isCarriedBy(crate, unitName) then
-            total = total + (crate.descriptor and crate.descriptor.weight or 0)
+            -- metadata.massKg: a part-used Fat Cow crate weighs what it still holds.
+            total = total + (crate.metadata.massKg or (crate.descriptor and crate.descriptor.weight) or 0)
         end
     end
     return total
@@ -1973,8 +1993,9 @@ end
 -- @return bool
 function CTLDCrateManager:_respawnStatic(crate, position, heading)
     local label = crate.descriptor and crate.descriptor.desc or nil
+    -- metadata.massKg: a part-used Fat Cow crate comes back to the ground at what it still weighs.
     local newName, dcsStatic = self:_spawnStatic(
-        crate.descriptor.weight, position, crate.coalition, nil, crate.modelKey, label, heading)
+        crate.metadata.massKg or crate.descriptor.weight, position, crate.coalition, nil, crate.modelKey, label, heading)
     if not dcsStatic then return false end
 
     self.crates[crate.crateName] = nil
@@ -2218,6 +2239,34 @@ function CTLDCrateManager:getCratesInRange(position, radius)
         end
     end
     return result
+end
+
+--- Put a crate straight into a transport's hold, with no static on the ground (a Fat Cow loadout).
+-- @param descriptor table   crate descriptor
+-- @param transport  Unit
+-- @param spawnedBy  string   unit name of the requester
+-- @return CTLDCrate
+function CTLDCrateManager:loadIntoHold(descriptor, transport, spawnedBy)
+    local crate = CTLDCrate:new({
+        crateName   = string.format("CTLD_Hold_%d", ctld.utils.getNextUniqId()),
+        descriptor  = descriptor,
+        spawnMethod = CTLDCrate.SPAWN_METHOD.MENU_CTLD,
+        position    = transport:getPoint(),
+        coalition   = transport:getCoalition(),
+        spawnedBy   = spawnedBy,
+    })
+    self:_register(crate)
+    crate:load(transport)
+    ctld.utils.updateTransportWeight(transport:getName())
+    self:_publish("OnCrateLoaded", {
+        crate           = crate,
+        crateName       = crate.crateName,
+        carrierUnitName = transport:getName(),
+        coalition       = crate.coalition,
+        descriptor      = descriptor,
+        timestamp       = timer.getAbsTime(),
+    })
+    return crate
 end
 
 --- Load a crate into a transport unit.
