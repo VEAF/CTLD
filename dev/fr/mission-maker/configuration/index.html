@@ -2594,7 +2594,11 @@ réglages devenus inutiles, valeurs par défaut déplacées — sans jamais rien
   écrit à la main qui a dérivé fonctionne quand même, et vous le dit.</li>
 <li>une <strong>liste</strong> (une section de caisses, un groupe de troupes, une entrée de zone, un nom de
   pilote) que vous omettez est réellement absente. C'est ainsi qu'on en retire une — et c'est
-  pourquoi rien n'est fusionné.</li>
+  pourquoi rien n'est fusionné.
+  Seule exception : une liste que CTLD a ajoutée après votre <code>configVersion</code> (les caisses et
+  chargements de la Fat Cow sont arrivés en <code>2.3.0</code>). Vous ne pouvez pas avoir retiré ce qui
+  n'existait pas encore : CTLD utilise sa liste par défaut et la nomme dans le même rapport de
+  démarrage. Ouvrir l'instantané dans <code>ctld-tools</code> l'ajoute pour de bon.</li>
 </ul>
 <p>La validation de <code>ctld-tools</code> signale un réglage manquant comme une erreur et refuse d'injecter :
 un instantané produit par l'outil est donc toujours complet.</p>

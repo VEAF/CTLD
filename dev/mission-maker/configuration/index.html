@@ -2588,7 +2588,11 @@ used, defaults that moved — without ever merging anything behind your back.</p
   way is named once in the startup report on screen, so a hand-written snapshot that drifted
   still runs and still tells you.</li>
 <li>a <strong>list</strong> (a crate section, a troop group, a zone entry, a pilot name) you leave out is
-  genuinely absent. That is how you remove one — and it is why nothing is merged.</li>
+  genuinely absent. That is how you remove one — and it is why nothing is merged.
+  The one exception is a list CTLD added after your <code>configVersion</code> (the Fat Cow crates and
+  loadouts arrived in <code>2.3.0</code>): you cannot have removed what did not exist yet, so CTLD uses its
+  default list and names it in the same startup report. Opening the snapshot in <code>ctld-tools</code> adds it
+  for good.</li>
 </ul>
 <p><code>ctld-tools</code>' validation reports a missing setting as an error and refuses to inject, so a
 snapshot produced by the tool is always complete.</p>
