@@ -36,7 +36,7 @@ Tout se trouve dans **F10 → CTLD → Fat Cow**.
    Ce qui n'a pas servi retourne dans vos caisses, la soute s'allège, et une caisse vidée disparaît.
 
 **Stock de la Fat Cow** vous dit ce qu'il vous reste, au sol comme en vol.
-Si vous quittez votre slot pendant que la FARP est ouverte, la FARP reste, avec ce qu'elle contient encore.
+Si vous quittez votre slot pendant que la FARP est ouverte, la FARP reste, avec ce qu'elle contient encore, jusqu'à ce qu'un pilote reprenne ce slot : elle se ferme alors, vidée, et le nouveau pilote repart soute vide.
 
 !!! note "Quand le stock s'épuise"
     Un hélicoptère qui demande plus que ce qui reste reçoit ce qui reste, et son équipe au sol répond « Unable to comply ».

@@ -9,7 +9,8 @@
 -- CTLDFatCow        — one cow: its stock (fuel kg + weapon items by warehouse name) and its state.
 -- CTLDFatCowManager — singleton, cows by unit name; deploy, pack, re-sync on player birth.
 --
--- Dependencies: class, CTLDSceneManager, CTLDUtils
+-- Dependencies: class, CTLDSceneManager, CTLDCrateManager, CTLDZoneManager, CTLDPlayerManager,
+-- CTLDDCSEventBridge, CTLDUtils (the scene: CTLDObjectRegistry)
 -- ====================================================================================================
 
 -- Warehouse liquid types: 0 jet fuel, 1 aviation gasoline, 2 MW50, 3 diesel. A cow carries jet fuel.
@@ -58,7 +59,8 @@ local function clearWeapons(w)
 end
 
 --- Writes the stock into a FARP warehouse: jet fuel, every other liquid at 0, each stocked item, and
--- nothing else (a weapon someone else put there is removed).
+-- every other weapon the warehouse lists at 0. A weapon getInventory does not list is not reached:
+-- a mission FARP measured with an unlimited stock listed none (ticket 06); a refilled cow FARP is to measure.
 function CTLDFatCow:writeWarehouse(w)
     clearWeapons(w)
     w:setLiquidAmount(JET_FUEL, self.stock.fuelKg)
@@ -265,7 +267,8 @@ end
 
 --- Lays out the Fat Cow scene at the cow. The warehouse is written when the scene is laid out
 -- (onSceneLaidOut), not here: the FARP does not exist yet.
--- @return true, or false and a reason: "unknown", "airborne", "deployed", "empty", "scene"
+-- @return true, or false and a reason: "unknown", "airborne", "deployed", "empty", "scene" (not started),
+-- "failed" (its FARP or fuel depot could not be added: the cow is stowed and its audience told)
 function CTLDFatCowManager:deploy(unit)
     local cow = self._cows[unit:getName()]
     if not cow then return false, "unknown" end
@@ -305,11 +308,14 @@ function CTLDFatCowManager:onSceneLaidOut(scene)
     self:_notify(cow, ctld.tr("Fat Cow FARP open: %1", CTLDFatCow.describeStock(cow.stock)))
 end
 
---- Called by the scene when its FARP could not be added: the cow is stowed again.
+--- Called by the scene when its FARP or its fuel depot could not be added: the cow is stowed again
+-- (its FARP, if added, stays empty).
 function CTLDFatCowManager:onSceneFailed(scene)
     local cow = scene._params and scene._params.fatCow
     if not cow then return end
     CTLDSceneManager.getInstance():packScene(scene)
+    local w = warehouseOf(scene._params.farpName)
+    if w then CTLDFatCow.emptyAnyWarehouse(w) end
     cow.scene, cow.farpName = nil, nil
     cow.state = CTLDFatCow.STATE_STOWED
     ctld.utils.log("ERROR", "CTLDFatCowManager: FARP of cow '%s' not added", cow.unitName)
@@ -362,6 +368,12 @@ function CTLDFatCowManager:onBirth(event)
     if not (obj and obj.getPlayerName) then return end
     local ok, playerName = pcall(obj.getPlayerName, obj)
     if not (ok and playerName) then return end
+    -- A pilot taking the slot of a piloted cow whose FARP was left open (its pilot left the slot): the
+    -- FARP closes, emptied, so the new pilot starts from a clean hold instead of "already deployed"
+    -- and a pack that no longer finds the previous pilot's crates.
+    local name = ctld.utils.safeObjectName(obj)
+    local left = name and self._cows[name]
+    if left and left.crates then self:removeCow(name) end
     self:_resyncFarps()
     local mgr = self
     ctld.scheduler.schedule(function() mgr:_resyncFarps() end, nil, timer.getTime() + 2)

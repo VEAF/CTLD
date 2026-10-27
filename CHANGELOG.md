@@ -22,6 +22,7 @@ ED announced a native Fat Cow on 2024-04-19, and again on 2024-08-23; DCS 2.9.30
 - **FARP status** tells what the Fat Cow FARP you are at still holds, whoever it belongs to.
 - A cow placed in the mission (a late-activated helicopter group) escorts a named flight when declared in `fatCowAICows` (`{ group, escort, loadout }`): the contract the VEAF Mission Creation Tools rely on. With an AI flight it lands and takes off with the leader on its own; a client flight commands it like a requested one.
 - The FARP is an Invisible FARP, a FARP Fuel Depot, a few crates and three soldiers: no vehicle, no tent, no ammo dump.
+  A FARP left open by a pilot who left the slot stays until a pilot takes that slot again, then closes, emptied; a deployment whose FARP or fuel depot cannot be added stows the cow and says so.
   Its warehouse holds the cow's stock and nothing else, and DCS serves it until it runs out ("Unable to comply" once a request outruns it).
   Each cow has one FARP (`CTLD_FatCow_FARP_<n>`), emptied when packed and added again at the next deployment, never destroyed: a destroyed heliport stayed on the F10 map, and an AI cow blew up when its FARP was destroyed under it (server run, 2026-10-26).
   All of this was measured in DCS first (FEAT-FAT-COW ticket 01): a FARP spawned mid-mission serves a player already in game, enforces a finite stock, and needs a supplier in range, which the FARP Fuel Depot alone is.

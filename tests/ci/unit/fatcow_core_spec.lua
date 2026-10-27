@@ -174,6 +174,26 @@ describe("Fat Cow FARP scene", function()
         CTLDSceneManager.getInstance():packScene(scene)
     end)
 
+    it("stows the cow again when its fuel depot cannot be added", function()
+        CTLDObjectRegistry.spawnObject = function(key, coa, cid, x, z, hdg, overrides)
+            if key == "FatCow_Fuel_Depot" then return nil end
+            return { getName = function() return (overrides and overrides.name) or key end, isExist = function() return true end }
+        end
+        local failed
+        local savedFailed = CTLDFatCowManager.onSceneFailed
+        CTLDFatCowManager.onSceneFailed = function(_, scene) failed = scene end
+        local unit = {
+            getName = function() return "Cow-1" end, isExist = function() return true end,
+            getCoalition = function() return coalition.side.BLUE end, getCountry = function() return 2 end,
+            getPoint = function() return { x = 0, y = 0, z = 0 } end,
+            getPosition = function() return { x = { x = 1, y = 0, z = 0 }, p = { x = 0, y = 0, z = 0 } } end,
+        }
+        local scene = CTLDSceneManager.getInstance():playScene(unit, "Fat Cow FARP", { farpName = "CTLD_FatCow_FARP_1" })
+        CTLDFatCowManager.onSceneFailed = savedFailed
+        assert.equals(scene, failed)
+        assert.is_true(scene._aborted)
+    end)
+
     it("stows the cow again when its FARP cannot be added", function()
         CTLDObjectRegistry.spawnObject = function() return nil end
         local failed
@@ -382,6 +402,23 @@ describe("CTLDFatCowManager deploy / pack", function()
         mgr:_resyncFarps()
         assert.equals(0, farps.CTLD_FatCow_FARP_1.liquids[0])
         assert.equals(200, farps.CTLD_FatCow_FARP_2.liquids[0])
+    end)
+
+    it("closes, emptied, the FARP a piloted cow's pilot left open when a new pilot takes the slot", function()
+        local unit = cowUnit("Cow-1")
+        local cow = mgr:addCow(unit, { fuelKg = 2400, items = {} })
+        cow.crates = {}                                       -- a piloted cow
+        mgr:deploy(unit)
+        local newPilot = cowUnit("Cow-1")
+        newPilot.getPlayerName = function() return "Griffin" end
+        local savedName, savedSchedule = ctld.utils.safeObjectName, ctld.scheduler.schedule
+        ctld.utils.safeObjectName = function(o) return o:getName() end
+        ctld.scheduler.schedule = function() end
+        mgr:onBirth({ initiator = newPilot })
+        ctld.utils.safeObjectName, ctld.scheduler.schedule = savedName, savedSchedule
+        assert.is_nil(mgr:getCow("Cow-1"))
+        assert.is_not_nil(packed)
+        assert.equals(0, w.liquids[0])
     end)
 
     it("removing a deployed cow packs it first", function()

@@ -49,14 +49,21 @@ fatCowScene.steps = {
         end,
     },
 
-    -- Step 2: the fuel depot behind the ramp — the only supplier the FARP needs.
+    -- Step 2: the fuel depot behind the ramp — the only supplier the FARP needs. Not `critical`: the
+    -- scene manager would abort without telling the cow, left deploying and its pilot told nothing.
     {
         polar                    = { distance = 25, angle = 180 },
         delayAfterPreviousStep   = 0,
         relativeHeadingInDegrees = 0,
         relativeAltitudeInMeters = 0,
         registryKey              = "FatCow_Fuel_Depot",
-        critical                 = true,
+        func = function(ctx)
+            if not ctx.spawnedObj then
+                ctx.scene:abort("Fat Cow fuel depot not spawned")
+                CTLDFatCowManager.getInstance():onSceneFailed(ctx.scene)
+            end
+            return true
+        end,
     },
 
     -- Step 3: dressing — two ammo crates and a set of barrels. Spawned here rather than through the

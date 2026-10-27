@@ -36,7 +36,7 @@ Everything is in **F10 → CTLD → Fat Cow**.
    What was not used goes back into your crates, the hold gets lighter, and a crate left empty disappears.
 
 **Fat Cow stock** tells you what you still have, on the ground or in the air.
-If you leave your slot while the FARP is open, the FARP stays, with what it still holds.
+If you leave your slot while the FARP is open, the FARP stays, with what it still holds, until a pilot takes that slot again: it then closes, emptied, and the new pilot starts with an empty hold.
 
 !!! note "When the stock runs out"
     A helicopter asking for more than what is left gets what is left, and its ground crew answers "Unable to comply".
