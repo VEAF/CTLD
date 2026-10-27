@@ -17,9 +17,19 @@ When a cow deploys, CTLD plays the **Fat Cow FARP** scene at the cow:
 No vehicle, no tent, no ammo dump.
 This was measured in DCS 2.9.30.28738: a FARP spawned during a mission serves a player already in game, but only with a supplier in range, and the FARP Fuel Depot alone supplies both fuel and weapons (fuel trucks, ammo trucks and the ammo dump are not needed; cargo crates and barrels supply nothing).
 
+Each cow has one FARP of its own, named `CTLD_FatCow_FARP_<n>`.
+Packing removes the depot, the dressing and the crew and empties the FARP's warehouse, but leaves the FARP itself: a heliport destroyed during a mission stays on the F10 map, and an AI cow sitting on its FARP blew up when the FARP was destroyed under it.
+The next deployment adds the FARP again under the same name, where the cow now is.
+So an emptied FARP stays on the map where each cow last deployed; with no supplier next to it, it serves nothing.
+
 The FARP's warehouse is set to the cow's stock and nothing else: jet fuel, and each ammunition item the cow carries.
 DCS serves it until it runs out.
-When a player joins the server, CTLD writes every open cow's warehouse again, with the quantities the server holds: whether DCS shares a scripted warehouse with clients was not measured.
+When a player joins the server, CTLD writes every open cow's warehouse again, at once and two seconds later, with the quantities the server holds: whether DCS shares a scripted warehouse with clients was not measured.
+CTLD also reads and writes them every 10 seconds.
+A quantity that went up was refilled by another script (the VEAF Mission Creation Tools refill every FARP when a player joins): CTLD keeps the cow's own count and puts it back, and removes any weapon the cow does not carry.
+What was taken in the few seconds before such a refill can come back, and ammunition a helicopter hands back while rearming is not added to the cow's stock.
+A cow FARP that is not open is emptied at the same moments.
+The FARP of an AI cow gone home is reused by the next one, so the map does not gain an empty FARP with each cow requested.
 
 ## Settings
 
@@ -29,51 +39,57 @@ All in the `fob` family of the configuration.
 |---|---|---|
 | `fatCowEnabled` | `true` | The F10 **Fat Cow** menu and the cow crates. |
 | `fatCowTypes` | `[CH-47Fbl1]` | Types a player can fly as a cow. Each must also be a transport in `capabilitiesByType`. |
-| `fatCowCrates` | fuel tank, Hellfires, 30 mm | What a player cow can load (see below). |
-| `fatCowLoadouts` | full fuel; 4 Hellfires + max fuel; max weapons + max fuel | What a player cow can load at once, straight into the hold (see below). |
+| `fatCowCrates` | fuel tank, 20 laser Hellfires, 20 radar Hellfires, 1 200 rounds of 30 mm | The crates a player cow carries its stock in (see below). |
+| `fatCowLoadouts` | four Hellfire and 30 mm loadouts, each with 4 800 kg of fuel | What a cow carries: loaded by a player cow, picked by a flight requesting an AI cow (see below). |
 | `fatCowDeployDelay` | `60` | Seconds an AI cow stays on the ground before its FARP opens. |
 | `fatCowAIType` | `CH-47Fbl1` | Type of the helicopter brought in when a flight requests a cow. Empty removes **Request a Fat Cow**. |
-| `fatCowAIFuelKg` | `7200` | Jet fuel an AI cow carries (three 800 gal ERFS tanks). |
-| `fatCowAIItems` | 6 × `weapons.missiles.AGM_114K` | Ammunition an AI cow carries. |
 | `fatCowAICows` | `[]` | Cows placed in the mission (see below). |
+
+### Loadouts
+
+Each `fatCowLoadouts` entry is what a cow carries: jet fuel in kg, and DCS warehouse items with their counts.
+
+```yaml
+fatCowLoadouts:
+- desc: 40 Hellfires (25 laser, 15 radar), 2400 rounds
+  fuelKg: 4800                          # two 800 gal tanks
+  items:
+  - item: weapons.missiles.AGM_114K     # laser Hellfire
+    count: 25
+  - item: weapons.missiles.AGM_114      # radar Hellfire (AGM-114L)
+    count: 15
+  - item: weapons.shells.M230_HEDP M789 # 30 mm
+    count: 2400
+```
+
+A player cow finds them under **Load**, in a logistic zone; a flight requesting an AI cow picks one under **Request a Fat Cow**.
+The four defaults all carry two 800 gal tanks (4 800 kg), with 40 Hellfires (25 laser, 15 radar) and 2 400 rounds, 60 Hellfires (38 laser, 22 radar) and 1 200 rounds, 40 laser Hellfires and 2 400 rounds, or 60 laser Hellfires and 1 200 rounds.
+They weigh 7 800 to 8 200 kg, under the 8 837 kg a CH-47F lifts with 80 % of its internal fuel (22 680 kg at most, 11 400 kg empty, 2 444 kg of fuel, from DCS's units database); an AI cow is given those 80 %.
+
+`item` is the name DCS gives the weapon in a warehouse.
+`weapons.missiles.AGM_114K` was checked in game for the laser Hellfire.
+`weapons.missiles.AGM_114` (the AGM-114L, from the DCS data mine) and `weapons.shells.M230_HEDP M789` (the Apache's rounds) are not yet checked as warehouse items.
 
 ### Cow crates
 
-Each `fatCowCrates` entry is one crate a player cow can request:
+A player cow carries its loadout in crates: **Load** splits it into the `fatCowCrates` that carry each part, every crate full but the last of each kind.
 
 ```yaml
 fatCowCrates:
 - desc: Fat Cow fuel tank (800 gal)
-  weight: 2400            # kg in the hold; also the crate's catalogue key
-  fuelKg: 2400            # jet fuel it holds
-- desc: Fat Cow Hellfires (x4)
-  weight: 250
-  item: weapons.missiles.AGM_114K   # DCS warehouse item name
-  count: 4
+  weight: 2400            # kg in the hold when full; also the crate's catalogue key
+  fuelKg: 2400            # jet fuel a full crate holds
+- desc: Fat Cow laser Hellfires (x20)
+  weight: 906             # 20 x 45.3 kg
+  item: weapons.missiles.AGM_114K
+  count: 20
 ```
 
-An entry has either `fuelKg`, or `item` and `count`.
-`item` is the name DCS gives the weapon in a warehouse: `weapons.missiles.AGM_114K` was checked in game for the Hellfire.
-The 30 mm entry (`weapons.shells.M230_HEDP M789`) is the name DCS gives the Apache's rounds, not yet checked as a warehouse item.
-
-Cow crates never show in **Request Equipment** nor in **Unpack Crate**: they are requested from the Fat Cow menu, and deployed from the hold.
-
-### Loadouts
-
-Each `fatCowLoadouts` entry is one **Load: <desc>** command: its crates, named by their `fatCowCrates` desc, go straight into the hold, in a logistic zone.
-
-```yaml
-fatCowLoadouts:
-- desc: 4 Hellfires + max fuel
-  crates:
-  - crate: Fat Cow fuel tank (800 gal)
-    count: 3
-  - crate: Fat Cow Hellfires (x4)
-    count: 1
-```
-
-A loadout that would exceed the aircraft's `maxCratesOnboard` (8 for the CH-47F) is refused.
-The default "Max weapons + max fuel" is about 8 100 kg: what a CH-47F full of internal fuel can lift (22 680 kg at most, 11 400 kg empty, 3 054 kg of fuel, from DCS's units database).
+An entry has either `fuelKg`, or `item` and `count`; a part-full crate weighs its share.
+The defaults are an 800 gal tank (2 400 kg), 20 laser Hellfires (906 kg), 20 radar Hellfires (980 kg) and 1 200 rounds of 30 mm (600 kg, 0.5 kg a round with its packing: an estimate).
+Every default loadout fits in 6 or 7 crates; a loadout that would exceed the aircraft's `maxCratesOnboard` (8 for the CH-47F) is refused, and so is one carrying an item no crate carries.
+**Request a crate** brings one full crate at a time.
+Cow crates never show in **Request Equipment** nor in **Unpack Crate**.
 
 ## Placing an AI cow in a mission
 
@@ -89,6 +105,7 @@ To give a flight its cow from the start instead, place the cow in the Mission Ed
 fatCowAICows:
 - group: Fat Cow Gunfighter      # the CH-47 group, exact name
   escort: Gunfighter             # the flight it escorts, exact group name
+  loadout: 2                     # optional: the fatCowLoadouts entry it carries, 1 by default
 ```
 
 CTLD activates the cow as soon as the escorted group is in the world: at mission start for an AI flight, or when the first player takes a slot of a client flight.
@@ -97,5 +114,5 @@ If it is a client flight, its players command the cow from F10, as a requested o
 
 At start, CTLD logs what DCS reports for the warehouse of the mission's FARPs (`FARP warehouse '<name>': jet fuel …`): a measurement before **FARP status** covers every FARP, and not only Fat Cow ones.
 
-This declaration is the contract the VEAF Mission Creation Tools rely on to add a cow escorting a named flight: a late-activated helicopter group, and one `fatCowAICows` entry `{ group, escort }`.
+This declaration is the contract the VEAF Mission Creation Tools rely on to add a cow escorting a named flight: a late-activated helicopter group, and one `fatCowAICows` entry `{ group, escort, loadout }` (`loadout` optional).
 CTLD never recognises a cow by its name.

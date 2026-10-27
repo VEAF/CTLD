@@ -42,8 +42,8 @@ ED announced a native Fat Cow on 2024-04-19 and again on 2024-08-23; it is absen
 
 Documented for mission makers in `docs/mission-maker/fat-cow.md` (EN + FR).
 
-- **A mission-placed AI cow** is a **late-activated helicopter group** declared in `fatCowAICows` with the flight it escorts: `fatCowAICows = [{ group: "<CH-47 group>", escort: "<flight group>" }]`. CTLD activates it once the escorted group is in the world (at start for an AI flight, at the first player's birth for a client flight). The engine never parses a cow's name (see `CONTEXT.md`, "Config-referenced zone").
-- **Settings:** `fatCowEnabled`, `fatCowTypes` (`[CH-47Fbl1]`), `fatCowCrates` (`desc`, `weight`, and `fuelKg` or `item` + `count`), `fatCowDeployDelay` (60 s), `fatCowAIType` (`CH-47Fbl1`; empty disables the request), `fatCowAIFuelKg` (7 200), `fatCowAIItems` (6 × `weapons.missiles.AGM_114K`), `fatCowAICows`. Catalogue version 2.3.0.
+- **A mission-placed AI cow** is a **late-activated helicopter group** declared in `fatCowAICows` with the flight it escorts: `fatCowAICows = [{ group: "<CH-47 group>", escort: "<flight group>", loadout: <index, default 1> }]`. CTLD activates it once the escorted group is in the world (at start for an AI flight, at the first player's birth for a client flight). The engine never parses a cow's name (see `CONTEXT.md`, "Config-referenced zone").
+- **Settings:** `fatCowEnabled`, `fatCowTypes` (`[CH-47Fbl1]`), `fatCowCrates` (`desc`, `weight`, and `fuelKg` or `item` + `count`), `fatCowLoadouts` (`desc`, `fuelKg`, `items`: what a cow carries, piloted or AI), `fatCowDeployDelay` (60 s), `fatCowAIType` (`CH-47Fbl1`; empty disables the request), `fatCowAICows` (`fatCowAIFuelKg` and `fatCowAIItems`, in no release, were replaced by the loadouts). Catalogue version 2.3.0.
 - A requested AI cow is created by script (`coalition.addGroup`, type `fatCowAIType`), so no template group is needed in the mission; the draft's `fatCow.aiTemplate` was dropped for that reason.
 
 ## Tickets

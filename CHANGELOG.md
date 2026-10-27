@@ -12,18 +12,21 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ED announced a native Fat Cow on 2024-04-19, and again on 2024-08-23; DCS 2.9.30.28738 still has none, so CTLD brings its own while the Chinooks wait.
 
-- A **player-flown CH-47F** loads Fat Cow crates in a logistic zone, at once (**Load: Full fuel**, **4 Hellfires + max fuel**, **Max weapons + max fuel**, `fatCowLoadouts`, straight into the hold) or one at a time (an 800 gal ERFS tank of 2 400 kg of jet fuel, 4 Hellfires, 300 rounds of 30 mm), lands, and **Deploy the Fat Cow FARP** from F10 → CTLD → Fat Cow.
+- A **player-flown CH-47F** loads a loadout in a logistic zone (**Load**, `fatCowLoadouts`, split into crates straight into the hold) or one crate at a time (**Request a crate**: an 800 gal ERFS tank of 2 400 kg of jet fuel, 20 laser Hellfires, 20 radar Hellfires, 1 200 rounds of 30 mm), lands, and **Deploy the Fat Cow FARP** from F10 → CTLD → Fat Cow.
+  The four default loadouts carry two tanks (4 800 kg) with 40 Hellfires (25 laser, 15 radar) and 2 400 rounds, 60 Hellfires (38 laser, 22 radar) and 1 200 rounds, 40 laser Hellfires and 2 400 rounds, or 60 laser Hellfires and 1 200 rounds: 7 800 to 8 200 kg, what a CH-47F lifts with 80 % of its internal fuel.
   The crates stay in the hold; **Pack the Fat Cow FARP**, or taking off, puts what was not used back into them, lightens the hold and removes the emptied crates. **Unload the Fat Cow crates** empties the hold.
-- Any other player can **Request a Fat Cow** from anywhere: an AI CH-47 comes from the nearest friendly logistic zone on land, with its distance and an estimated joining time, and follows the flight.
+- Any other player can **Request a Fat Cow** from anywhere, picking one of the same loadouts: an AI CH-47 comes from the nearest friendly logistic zone on land, with its distance and an estimated joining time, and follows the flight.
   The flight commands it from F10 and it does nothing on its own: **Land here** (FARP open 60 s after touchdown, `fatCowDeployDelay`), **Take off**, **Hold here**, **Join us**, **RTB** (back to base, despawn). **Fat Cow status** gives its phase, distance, bearing, joining time and stock.
-  By default it carries 7 200 kg of fuel and 6 Hellfires (`fatCowAIFuelKg`, `fatCowAIItems`).
+  It flies with 80 % of its internal fuel.
 - **FARP status** tells what the Fat Cow FARP you are at still holds, whoever it belongs to.
-- A cow placed in the mission (a late-activated helicopter group) escorts a named flight when declared in `fatCowAICows` (`{ group, escort }`): the contract the VEAF Mission Creation Tools rely on. With an AI flight it lands and takes off with the leader on its own; a client flight commands it like a requested one.
+- A cow placed in the mission (a late-activated helicopter group) escorts a named flight when declared in `fatCowAICows` (`{ group, escort, loadout }`): the contract the VEAF Mission Creation Tools rely on. With an AI flight it lands and takes off with the leader on its own; a client flight commands it like a requested one.
 - The FARP is an Invisible FARP, a FARP Fuel Depot, a few crates and three soldiers: no vehicle, no tent, no ammo dump.
   Its warehouse holds the cow's stock and nothing else, and DCS serves it until it runs out ("Unable to comply" once a request outruns it).
+  Each cow has one FARP (`CTLD_FatCow_FARP_<n>`), emptied when packed and added again at the next deployment, never destroyed: a destroyed heliport stayed on the F10 map, and an AI cow blew up when its FARP was destroyed under it (server run, 2026-10-26).
   All of this was measured in DCS first (FEAT-FAT-COW ticket 01): a FARP spawned mid-mission serves a player already in game, enforces a finite stock, and needs a supplier in range, which the FARP Fuel Depot alone is.
-- The warehouse is written again whenever a player joins, with what the server holds: whether DCS shares a scripted warehouse with clients was not measured.
-- New settings `fatCowEnabled`, `fatCowTypes`, `fatCowCrates`, `fatCowLoadouts`, `fatCowDeployDelay`, `fatCowAIType`, `fatCowAIFuelKg`, `fatCowAIItems`, `fatCowAICows`; catalogue version 2.3.0.
+- The warehouse is written again every 10 s and whenever a player joins, at once and two seconds later, with what the server holds: whether DCS shares a scripted warehouse with clients was not measured.
+  A quantity that went up was refilled by another script (VMCT refills every FARP on each player birth, which made a cow unlimited): CTLD keeps the cow's count and removes any weapon the cow does not carry.
+- New settings `fatCowEnabled`, `fatCowTypes`, `fatCowCrates`, `fatCowLoadouts`, `fatCowDeployDelay`, `fatCowAIType`, `fatCowAICows`; catalogue version 2.3.0.
 - A part-used Fat Cow crate weighs what it still holds (`getLoadedCrateWeight` reads `metadata.massKg`), and Fat Cow crates are never offered to Unpack Crate.
 - The countryside FARP scene's comment claiming an Invisible FARP has no warehouse is corrected: it has one, measured.
 - FR/ES/KO texts are a proposal for review. Docs: pilot and mission-maker **Fat Cow** pages, EN + FR.

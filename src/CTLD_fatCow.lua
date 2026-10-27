@@ -49,8 +49,18 @@ function CTLDFatCow:isEmpty()
     return true
 end
 
---- Writes the stock into a FARP warehouse: jet fuel, every other liquid at 0, each stocked item.
+--- Sets every weapon the warehouse lists to 0 (pcall: getInventory is an observation, not a contract).
+local function clearWeapons(w)
+    local ok, inv = pcall(w.getInventory, w)
+    for name in pairs(ok and inv and inv.weapon or {}) do
+        pcall(w.setItem, w, name, 0)
+    end
+end
+
+--- Writes the stock into a FARP warehouse: jet fuel, every other liquid at 0, each stocked item, and
+-- nothing else (a weapon someone else put there is removed).
 function CTLDFatCow:writeWarehouse(w)
+    clearWeapons(w)
     w:setLiquidAmount(JET_FUEL, self.stock.fuelKg)
     for t = JET_FUEL + 1, LIQUID_LAST do
         w:setLiquidAmount(t, 0)
@@ -60,11 +70,30 @@ function CTLDFatCow:writeWarehouse(w)
     end
 end
 
---- Reads the stock back from the FARP warehouse: what the players took is gone.
-function CTLDFatCow:readWarehouse(w)
-    self.stock.fuelKg = w:getLiquidAmount(JET_FUEL) or 0
+--- Empties a FARP warehouse: every liquid and every weapon it lists.
+function CTLDFatCow.emptyAnyWarehouse(w)
+    clearWeapons(w)
+    for t = JET_FUEL, LIQUID_LAST do
+        w:setLiquidAmount(t, 0)
+    end
+end
+
+--- Empties a FARP warehouse: a packed cow's FARP stays in the world, with nothing in it.
+function CTLDFatCow:emptyWarehouse(w)
+    CTLDFatCow.emptyAnyWarehouse(w)
     for name in pairs(self.stock.items) do
-        self.stock.items[name] = w:getItemCount(name) or 0
+        w:setItem(name, 0)
+    end
+end
+
+--- Reads the stock back from the FARP warehouse: what the players took is gone. A count that went up
+-- was refilled by someone else (VMCT's GRASS refills every FARP on each player birth, evening run
+-- 2026-10-26): the cow keeps its own count, and the next write puts it back. What was taken between
+-- the last read and such a refill is not seen, so the stock stays at most what it was at that read.
+function CTLDFatCow:readWarehouse(w)
+    self.stock.fuelKg = math.min(self.stock.fuelKg, w:getLiquidAmount(JET_FUEL) or 0)
+    for name, count in pairs(self.stock.items) do
+        self.stock.items[name] = math.min(count, w:getItemCount(name) or 0)
     end
 end
 
@@ -88,14 +117,23 @@ local function isCowCrate(crate)
     return crate and crate.descriptor and crate.descriptor.fatCow ~= nil
 end
 
---- "2400 kg of fuel, AGM_114K x4" — for the players.
+--- What the players read for a warehouse item; an item not listed shows its DCS name.
+-- Literal ctld.tr calls, so the dictionary generator sees each label.
+local function itemLabel(name)
+    if name == "weapons.missiles.AGM_114K" then return ctld.tr("laser Hellfire") end
+    if name == "weapons.missiles.AGM_114" then return ctld.tr("radar Hellfire") end
+    if name == "weapons.shells.M230_HEDP M789" then return ctld.tr("30 mm rounds") end
+    return (name:gsub("^weapons%.[%a_]+%.", ""))
+end
+
+--- "2400 kg of fuel, laser Hellfire x4" — for the players.
 function CTLDFatCow.describeStock(stock)
     local parts = { ctld.tr("%1 kg of fuel", math.floor((stock.fuelKg or 0) + 0.5)) }
     local names = {}
     for name in pairs(stock.items or {}) do names[#names + 1] = name end
     table.sort(names)
     for _, name in ipairs(names) do
-        parts[#parts + 1] = string.format("%s x%d", (name:gsub("^weapons%.[%a_]+%.", "")), stock.items[name])
+        parts[#parts + 1] = string.format("%s x%d", itemLabel(name), stock.items[name])
     end
     return table.concat(parts, ", ")
 end
@@ -167,7 +205,32 @@ function CTLDFatCowManager.getInstance()
 end
 
 function CTLDFatCowManager:init()
-    self._cows = {}   -- unit name → CTLDFatCow
+    self._cows      = {}   -- unit name → CTLDFatCow
+    self._farpNames = {}   -- unit name → the name of its FARP, kept across deployments
+    self._freeFarps = {}   -- FARP names of AI cows gone, for the next cow to reuse
+end
+
+--- The cow's own FARP name: one heliport per cow, added again at each deployment and never destroyed.
+-- "CTLD_" so other scripts can tell a cow FARP from a mission FARP. A name an AI cow left is reused,
+-- so the map does not gain an empty FARP with every cow requested.
+function CTLDFatCowManager:_farpNameFor(unitName)
+    if not self._farpNames[unitName] then
+        local name = table.remove(self._freeFarps)
+        if not name then
+            self._farpCounter = (self._farpCounter or 0) + 1
+            name = string.format("CTLD_FatCow_FARP_%d", self._farpCounter)
+        end
+        self._farpNames[unitName] = name
+    end
+    return self._farpNames[unitName]
+end
+
+--- An AI cow is gone for good (despawned or dead): its FARP name goes back to the pool.
+function CTLDFatCowManager:_releaseFarpName(unitName)
+    local name = self._farpNames[unitName]
+    if not name then return end
+    self._farpNames[unitName] = nil
+    self._freeFarps[#self._freeFarps + 1] = name
 end
 
 --- Declares a unit a cow with the given stock (replaces a previous declaration of the same unit).
@@ -204,11 +267,14 @@ function CTLDFatCowManager:deploy(unit)
     if cow.state ~= CTLDFatCow.STATE_STOWED then return false, "deployed" end
     if cow:isEmpty() then return false, "empty" end
     cow.state = CTLDFatCow.STATE_DEPLOYING
-    local scene = CTLDSceneManager.getInstance():playScene(unit, CTLDFatCowManager.SCENE_NAME, { fatCow = cow })
+    local scene = CTLDSceneManager.getInstance():playScene(unit, CTLDFatCowManager.SCENE_NAME,
+        { fatCow = cow, farpName = self:_farpNameFor(cow.unitName) })
     if not scene then
         cow.state = CTLDFatCow.STATE_STOWED
         return false, "scene"
     end
+    -- The first step runs at once: a FARP that could not be added has already stowed the cow and said so.
+    if cow.state == CTLDFatCow.STATE_STOWED then return false, "failed" end
     cow.scene = scene
     return true
 end
@@ -223,6 +289,7 @@ function CTLDFatCowManager:onSceneLaidOut(scene)
     if not w then
         ctld.utils.log("ERROR", "CTLDFatCowManager: no warehouse for FARP '%s' of cow '%s'",
             tostring(cow.farpName), cow.unitName)
+        self:onSceneFailed(scene)
         return
     end
     cow:writeWarehouse(w)
@@ -232,6 +299,17 @@ function CTLDFatCowManager:onSceneLaidOut(scene)
     self:_notify(cow, ctld.tr("Fat Cow FARP open: %1", CTLDFatCow.describeStock(cow.stock)))
 end
 
+--- Called by the scene when its FARP could not be added: the cow is stowed again.
+function CTLDFatCowManager:onSceneFailed(scene)
+    local cow = scene._params and scene._params.fatCow
+    if not cow then return end
+    CTLDSceneManager.getInstance():packScene(scene)
+    cow.scene, cow.farpName = nil, nil
+    cow.state = CTLDFatCow.STATE_STOWED
+    ctld.utils.log("ERROR", "CTLDFatCowManager: FARP of cow '%s' not added", cow.unitName)
+    self:_notify(cow, ctld.tr("The Fat Cow FARP could not be deployed."))
+end
+
 --- Tells the cow's audience (its own group when piloted, the escorted flight when AI).
 function CTLDFatCowManager:_notify(cow, text)
     if cow.notifyGroupId then
@@ -239,13 +317,23 @@ function CTLDFatCowManager:_notify(cow, text)
     end
 end
 
---- Reads what the players left back into the stock, then removes the scene.
+--- Reads what the players left back into the stock, empties the FARP, then removes the scene (the
+-- FARP itself stays: see the scene's first step).
 -- @return true when a deployed cow was packed
 function CTLDFatCowManager:pack(unitName)
     local cow = self._cows[unitName]
     if not cow or cow.state == CTLDFatCow.STATE_STOWED then return false end
-    local w = warehouseOf(cow.farpName)
-    if w then cow:readWarehouse(w) end
+    if cow.state == CTLDFatCow.STATE_DEPLOYED then
+        local w = warehouseOf(cow.farpName)
+        if w then
+            cow:readWarehouse(w)
+            cow:emptyWarehouse(w)
+        end
+    else
+        -- Still laying out: the FARP may exist already, its warehouse never written. Emptied, not read.
+        local w = warehouseOf(cow.scene and cow.scene._params and cow.scene._params.farpName)
+        if w then CTLDFatCow.emptyAnyWarehouse(w) end
+    end
     if cow.scene then
         -- A scene still laying out would go on spawning after the pack: stop it first.
         if cow.state == CTLDFatCow.STATE_DEPLOYING and cow.scene.abort then
@@ -260,17 +348,43 @@ function CTLDFatCowManager:pack(unitName)
     return true
 end
 
---- S_EVENT_BIRTH: a player arriving gets every open FARP's warehouse re-written (see resyncWarehouse).
+--- S_EVENT_BIRTH: a player arriving gets every cow FARP re-written (see _resyncFarps), now and again a
+-- moment later: a script refilling FARPs on the same birth (VMCT) may run before or after CTLD.
 function CTLDFatCowManager:onBirth(event)
     if self._started and next(ctld.gs("fatCowAICows") or {}) then self:_activateMissionCows() end
     local obj = event and event.initiator
     if not (obj and obj.getPlayerName) then return end
     local ok, playerName = pcall(obj.getPlayerName, obj)
     if not (ok and playerName) then return end
+    self:_resyncFarps()
+    local mgr = self
+    ctld.scheduler.schedule(function() mgr:_resyncFarps() end, nil, timer.getTime() + 2)
+end
+
+-- How often every cow FARP is read and re-written: a refill run before CTLD reads hides what was taken
+-- since the last read (see readWarehouse), so the reads are kept close together.
+local RESYNC_PERIOD_S = 10
+
+--- Every cow FARP: an open one gets its stock read and written back (see resyncWarehouse), any other is
+-- emptied (it stays in the world, and a refill would make it serve next to another cow's depot).
+function CTLDFatCowManager:_resyncFarps()
+    local open = {}
     for _, cow in pairs(self._cows) do
         if cow.state == CTLDFatCow.STATE_DEPLOYED then
+            open[cow.farpName or ""] = true
             local w = warehouseOf(cow.farpName)
             if w then cow:resyncWarehouse(w) end
+        elseif cow.state == CTLDFatCow.STATE_DEPLOYING then
+            open[(cow.scene and cow.scene._params and cow.scene._params.farpName) or ""] = true
+        end
+    end
+    local names = {}
+    for _, name in pairs(self._farpNames) do names[#names + 1] = name end
+    for _, name in ipairs(self._freeFarps) do names[#names + 1] = name end
+    for _, name in ipairs(names) do
+        if not open[name] then
+            local w = warehouseOf(name)
+            if w then CTLDFatCow.emptyAnyWarehouse(w) end
         end
     end
 end
@@ -291,6 +405,11 @@ function CTLDFatCowManager:start()
     bridge:register(self, world.event.S_EVENT_CRASH,   "onDead")
     bridge:register(self, world.event.S_EVENT_PLAYER_LEAVE_UNIT, "onPlayerLeave")
     self:_activateMissionCows()
+    local mgr = self
+    ctld.scheduler.register("fatCow_resync", ctld.scheduler.schedule(function(_, now)
+        mgr:_resyncFarps()
+        return now + RESYNC_PERIOD_S
+    end, nil, timer.getTime() + RESYNC_PERIOD_S))
     pcall(self._logFarpWarehouses, self)
     ctld.utils.log("INFO", "CTLDFatCowManager: started, %d cow crate type(s)", #self._crateDescs)
 end
@@ -320,13 +439,15 @@ end
 function CTLDFatCowManager:_injectCrateDescriptors()
     local cm = CTLDCrateManager.getInstance()
     self._crateDescs = {}
+    self._kgPerItem  = {}
     for _, def in ipairs(ctld.gs("fatCowCrates") or {}) do
-        local content = (def.fuelKg and { fuelKg = def.fuelKg })
-                     or (def.item and def.count and { item = def.item, count = def.count })
+        local content = ((def.fuelKg or 0) > 0 and { fuelKg = def.fuelKg })
+                     or (def.item and (def.count or 0) > 0 and { item = def.item, count = def.count })
         if not (content and def.desc and (def.weight or 0) > 0) then
             ctld.utils.log("WARN", "CTLDFatCowManager: fatCowCrates entry '%s' ignored: it needs desc, weight, and fuelKg or item + count",
                 tostring(def.desc))
         else
+            if content.item then self._kgPerItem[content.item] = def.weight / content.count end
             local d = cm:registerDescriptor({
                 weight         = def.weight,
                 desc           = ctld.tr(def.desc),
@@ -334,7 +455,6 @@ function CTLDFatCowManager:_injectCrateDescriptors()
                 cratesRequired = 1,
                 showSets       = false,
                 fatCow         = content,
-                fatCowKey      = def.desc,   -- the untranslated name loadouts refer to
             })
             self._crateDescs[#self._crateDescs + 1] = d
         end
@@ -402,24 +522,52 @@ local function atLogistics(t, gid)
     return true
 end
 
---- F10 "Load: <loadout>": every crate of a fatCowLoadouts entry, straight into the hold.
+--- Splits a fatCowLoadouts entry into the cow crates that carry it: its fuel into fuel tanks, each item
+-- into the crates of that item, every crate full but the last of each kind. Matching by content, not by
+-- crate name: CTLDConfig translates every desc (evening run, 2026-10-26: refused on the French server).
+-- @return list of { desc, content, fraction }, or nil and what no crate carries
+function CTLDFatCowManager:cratesForLoadout(loadout)
+    local fuelDesc, itemDesc = nil, {}
+    for _, d in ipairs(self._crateDescs or {}) do
+        if d.fatCow.fuelKg then
+            fuelDesc = fuelDesc or d
+        else
+            itemDesc[d.fatCow.item] = itemDesc[d.fatCow.item] or d
+        end
+    end
+    local out = {}
+    local function split(d, total, makeContent, capacity)
+        while total > 0 do
+            local n = math.min(capacity, total)
+            out[#out + 1] = { desc = d, content = makeContent(n), fraction = n / capacity }
+            total = total - n
+        end
+    end
+    if (loadout.fuelKg or 0) > 0 then
+        if not fuelDesc then return nil, "fuel" end
+        split(fuelDesc, loadout.fuelKg, function(n) return { fuelKg = n } end, fuelDesc.fatCow.fuelKg)
+    end
+    for _, it in ipairs(loadout.items or {}) do
+        local d = itemDesc[it.item]
+        if not d then return nil, tostring(it.item) end
+        split(d, it.count or 0, function(n) return { item = it.item, count = n } end, d.fatCow.count)
+    end
+    return out
+end
+
+--- F10 "Load" > a loadout: a fatCowLoadouts entry, straight into the hold.
 function CTLDFatCowManager:loadLoadout(unitName, index)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
     local gid = ctld.utils.getGroupId(t)
     local loadout = (ctld.gs("fatCowLoadouts") or {})[index]
     if not (loadout and atLogistics(t, gid)) then return end
-    local byKey = {}
-    for _, d in ipairs(self._crateDescs or {}) do byKey[d.fatCowKey] = d end
-    local wanted = {}
-    for _, line in ipairs(loadout.crates or {}) do
-        local d = byKey[line.crate]
-        if not d then
-            ctld.utils.log("WARN", "CTLDFatCowManager: loadout '%s' names an unknown crate '%s'", tostring(loadout.desc), tostring(line.crate))
-            trigger.action.outTextForGroup(gid, ctld.tr("This loadout cannot be loaded."), 10)
-            return
-        end
-        for _ = 1, (line.count or 1) do wanted[#wanted + 1] = d end
+    local wanted, missing = self:cratesForLoadout(loadout)
+    if not wanted then
+        ctld.utils.log("WARN", "CTLDFatCowManager: loadout '%s' needs '%s', which no fatCowCrates entry carries",
+            tostring(loadout.desc), missing)
+        trigger.action.outTextForGroup(gid, ctld.tr("This loadout cannot be loaded."), 10)
+        return
     end
     local cm       = CTLDCrateManager.getInstance()
     local caps     = (ctld.gs("capabilitiesByType") or {})[t:getTypeName()] or {}
@@ -431,7 +579,15 @@ function CTLDFatCowManager:loadLoadout(unitName, index)
         return
     end
     local loaded = {}
-    for _, d in ipairs(wanted) do loaded[#loaded + 1] = cm:loadIntoHold(d, t, unitName) end
+    for _, w in ipairs(wanted) do
+        local crate = cm:loadIntoHold(w.desc, t, unitName)
+        if w.fraction < 1 then
+            crate.metadata.fatCow = w.content
+            crate.metadata.massKg = w.desc.weight * w.fraction
+        end
+        loaded[#loaded + 1] = crate
+    end
+    ctld.utils.updateTransportWeight(unitName)
     trigger.action.outTextForGroup(gid,
         ctld.tr("Loaded into your hold: %1", CTLDFatCow.describeStock(CTLDFatCow.stockOfCrates(loaded))), 10)
 end
@@ -479,6 +635,7 @@ function CTLDFatCowManager:deployFromHold(unitName)
     local ok, why = self:deploy(t)
     if not ok then
         self._cows[unitName] = nil
+        if why == "failed" then return end   -- onSceneFailed has said so
         local text = (why == "empty") and ctld.tr("The Fat Cow crates on board are empty.")
                   or ctld.tr("The Fat Cow FARP could not be deployed.")
         trigger.action.outTextForGroup(gid, text, 10)
@@ -550,8 +707,10 @@ end
 function CTLDFatCowManager:onDead(event)
     local name = ctld.utils.safeObjectName(event and event.initiator)
     if name and self._cows[name] then
+        local wasAI = self._cows[name].ai ~= nil
         self:removeCow(name)
         self:_forgetAICow(name)
+        if wasAI then self:_releaseFarpName(name) end   -- a piloted slot keeps its FARP for the next pilot
     end
     self:_checkFlightsLater()
 end
@@ -584,15 +743,18 @@ function CTLDFatCowManager:buildMenuSection(playerObj, menu)
     if playerObj.isTransport and self:isCowType(playerObj.typeName) then
         menu:addSubMenu({ root }, sub, { order = 50 })
         local mgr = CTLDFatCowManager.getInstance
+        local loadPath, cratePath = { root, sub, ctld.tr("Load") }, { root, sub, ctld.tr("Request a crate") }
+        menu:addSubMenu(path, loadPath[3], { order = 1 })
+        for i, l in ipairs(ctld.gs("fatCowLoadouts") or {}) do
+            menu:addCommand(loadPath, ctld.tr(l.desc or "?"),
+                function(arg) mgr():loadLoadout(arg.unitName, arg.index) end,
+                { unitName = playerObj.unitName, index = i }, { order = i })
+        end
+        menu:addSubMenu(path, cratePath[3], { order = 2 })
         for i, d in ipairs(self._crateDescs or {}) do
-            menu:addCommand(path, ctld.tr("Request %1", d.desc),
+            menu:addCommand(cratePath, d.desc,
                 function(arg) mgr():requestCrate(arg.unitName, arg.weight) end,
                 { unitName = playerObj.unitName, weight = d.weight }, { order = i })
-        end
-        for i, l in ipairs(ctld.gs("fatCowLoadouts") or {}) do
-            menu:addCommand(path, ctld.tr("Load: %1", ctld.tr(l.desc or "?")),
-                function(arg) mgr():loadLoadout(arg.unitName, arg.index) end,
-                { unitName = playerObj.unitName, index = i }, { order = 10 + i })
         end
         menu:addCommand(path, ctld.tr("Unload the Fat Cow crates"),
             function(arg) mgr():unloadHold(arg.unitName) end, { unitName = playerObj.unitName }, { order = 19 })
@@ -632,9 +794,10 @@ CTLDFatCowManager.PHASE_LANDED    = "landed"      -- on the ground, deployment p
 CTLDFatCowManager.PHASE_RETURNING = "returning"   -- going home to despawn
 CTLDFatCowManager.PHASE_HOLDING   = "holding"     -- orbiting, on "Take off" or "Hold here"
 
--- Internal fuel given to a scripted cow: the CH-47Fbl1's M_fuel_max in DCS's db.Units.lua.
--- A scripted aircraft created without fuel falls out of the sky.
-local AI_COW_FUEL_KG   = 3054
+-- Internal fuel given to a scripted cow: 80 % of the CH-47Fbl1's M_fuel_max (3054.6 kg in DCS's
+-- db.Units.lua), what a CH-47 usually flies with (Zip); the loadouts are sized for it. A scripted
+-- aircraft created without fuel falls out of the sky.
+local AI_COW_FUEL_KG   = 2444
 local FOLLOW_OFFSET    = { x = -200, y = 60, z = 150 }   -- behind, above and to the right of the leader
 local LAND_OFFSET_M    = 120                              -- landing point, to the leader's left
 local CRUISE_SPEED_MPS = 60
@@ -646,10 +809,13 @@ local AI_COW_CRUISE_MPS = 65
 -- The flight's take-off or a release re-tasks it long before.
 local LAND_DURATION_S  = 86400
 
-local function aiStockFromConfig()
-    local stock = { fuelKg = ctld.gs("fatCowAIFuelKg"), items = {} }
-    for _, it in ipairs(ctld.gs("fatCowAIItems") or {}) do
-        if it.item and it.count then stock.items[it.item] = it.count end
+--- The stock of a fatCowLoadouts entry, or nil when there is no such entry.
+local function loadoutStock(index)
+    local l = (ctld.gs("fatCowLoadouts") or {})[index]
+    if not l then return nil end
+    local stock = { fuelKg = l.fuelKg or 0, items = {} }
+    for _, it in ipairs(l.items or {}) do
+        if it.item and it.count then stock.items[it.item] = (stock.items[it.item] or 0) + it.count end
     end
     return stock
 end
@@ -682,20 +848,30 @@ local function landMission(point)
     }
 end
 
+-- What a stock weighs: its fuel, and each item at its crate's mass per item (50 kg for an item no
+-- crate carries, about a missile).
+function CTLDFatCowManager:massOf(stock)
+    local kg = stock.fuelKg or 0
+    for item, count in pairs(stock.items) do
+        kg = kg + count * ((self._kgPerItem or {})[item] or 50)
+    end
+    return kg
+end
+
 local function setCargoMass(cow)
-    local kg = cow.stock.fuelKg or 0
-    for _, count in pairs(cow.stock.items) do kg = kg + 50 * count end   -- ~50 kg a missile
-    pcall(trigger.action.setUnitInternalCargo, cow.unitName, kg)
+    pcall(trigger.action.setUnitInternalCargo, cow.unitName, CTLDFatCowManager.getInstance():massOf(cow.stock))
 end
 
 --- Registers an AI cow already in the world.
--- @param groupName   string  the cow's group
--- @param flightGroup string  the group it escorts
--- @param homePoint   vec3    where it goes back to despawn
-function CTLDFatCowManager:addAICow(groupName, flightGroup, homePoint)
-    local unit = firstUnitOf(groupName)
-    if not unit then return nil end
-    local cow = self:addCow(unit, aiStockFromConfig())
+-- @param groupName    string  the cow's group
+-- @param flightGroup  string  the group it escorts
+-- @param homePoint    vec3    where it goes back to despawn
+-- @param loadoutIndex number  the fatCowLoadouts entry it carries
+function CTLDFatCowManager:addAICow(groupName, flightGroup, homePoint, loadoutIndex)
+    local unit  = firstUnitOf(groupName)
+    local stock = loadoutStock(loadoutIndex)
+    if not (unit and stock) then return nil end
+    local cow = self:addCow(unit, stock)
     cow.ai = { groupName = groupName, flightGroup = flightGroup, home = homePoint,
                phase = CTLDFatCowManager.PHASE_FOLLOWING }
     self._aiByFlight = self._aiByFlight or {}
@@ -785,6 +961,7 @@ function CTLDFatCowManager:onLand(event)
         if cow.ai.phase == CTLDFatCowManager.PHASE_RETURNING then
             local g = Group.getByName(cow.ai.groupName)
             self._cows[name] = nil
+            self:_releaseFarpName(name)
             if g and g:isExist() then g:destroy() end
         elseif cow.ai.phase == CTLDFatCowManager.PHASE_LANDING then
             cow.ai.phase = CTLDFatCowManager.PHASE_LANDED
@@ -931,9 +1108,9 @@ local function etaMinutes(distanceM)
     return math.max(1, math.floor(distanceM / AI_COW_CRUISE_MPS / 60 + 0.5))
 end
 
---- F10 "Request a Fat Cow", from anywhere: it takes off from the friendly logistic zone nearest to
--- the requester and joins the flight. One cow per flight.
-function CTLDFatCowManager:requestAICow(unitName)
+--- F10 "Request a Fat Cow" > a loadout, from anywhere: it takes off from the friendly logistic zone
+-- nearest to the requester, carrying that fatCowLoadouts entry, and joins the flight. One cow per flight.
+function CTLDFatCowManager:requestAICow(unitName, loadoutIndex)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
     local gid    = ctld.utils.getGroupId(t)
@@ -942,6 +1119,7 @@ function CTLDFatCowManager:requestAICow(unitName)
         trigger.action.outTextForGroup(gid, ctld.tr("Your flight already has a Fat Cow."), 10)
         return
     end
+    if not loadoutStock(loadoutIndex) then return end
     local p = t:getPoint()
     local zone, distance = self:nearestHomeZone(p, t:getCoalition())
     if not zone then
@@ -978,7 +1156,7 @@ function CTLDFatCowManager:requestAICow(unitName)
     local zoneName = zone.name
     -- The group exists at once, its controller takes a task better on the next frame.
     ctld.scheduler.schedule(function()
-        local cow = mgr:addAICow(groupName, flight, home)
+        local cow = mgr:addAICow(groupName, flight, home, loadoutIndex)
         if cow then cow.ai.homeName = zoneName end
     end, nil, timer.getTime() + 1)
     trigger.action.outTextForGroup(gid,
@@ -1004,7 +1182,13 @@ function CTLDFatCowManager:_buildAIMenu(playerObj, menu, path)
     menu:addSubMenu({ path[1] }, path[2], { order = 50 })
     local mgr = CTLDFatCowManager.getInstance
     local u = { unitName = playerObj.unitName }
-    menu:addCommand(path, ctld.tr("Request a Fat Cow"), function(arg) mgr():requestAICow(arg.unitName) end, u, { order = 1 })
+    local requestPath = { path[1], path[2], ctld.tr("Request a Fat Cow") }
+    menu:addSubMenu(path, requestPath[3], { order = 1 })
+    for i, l in ipairs(ctld.gs("fatCowLoadouts") or {}) do
+        menu:addCommand(requestPath, ctld.tr(l.desc or "?"),
+            function(arg) mgr():requestAICow(arg.unitName, arg.index) end,
+            { unitName = playerObj.unitName, index = i }, { order = i })
+    end
     menu:addCommand(path, ctld.tr("Land here"), function(arg) mgr():orderLandHere(arg.unitName) end, u, { order = 2 })
     menu:addCommand(path, ctld.tr("Take off"), function(arg) mgr():orderTakeOff(arg.unitName) end, u, { order = 3 })
     menu:addCommand(path, ctld.tr("Hold here"), function(arg) mgr():orderHoldHere(arg.unitName) end, u, { order = 4 })
@@ -1082,7 +1266,8 @@ function CTLDFatCowManager:reportFarpStatus(unitName)
 end
 
 -- ── Mission-placed cows (fatCowAICows): the VMCT contract ──────────────────────────────────────
--- Each entry { group = "<late-activated CH-47 group>", escort = "<flight group>" }. CTLD activates
+-- Each entry { group = "<late-activated CH-47 group>", escort = "<flight group>", loadout = <index,
+-- default 1> }. CTLD activates
 -- the cow when the escorted flight is in the world (at start, or when its first unit is born).
 
 --- True when the group has a unit actually in the world: a late-activated group exists to scripts
@@ -1100,11 +1285,17 @@ function CTLDFatCowManager:_activateMissionCow(entry)
     local flight = Group.getByName(entry.escort)
     if not (g and inWorld(flight)) then return false end
     if self:aiCowOfFlight(entry.escort) then return true end
+    if not loadoutStock(entry.loadout or 1) then
+        ctld.utils.log("ERROR", "CTLDFatCowManager: fatCowAICows entry '%s' names loadout %s, which fatCowLoadouts does not have: not activated",
+            tostring(entry.group), tostring(entry.loadout or 1))
+        return true
+    end
     pcall(g.activate, g)
     local u = g:getUnit(1)
     local home = u and u:getPoint() or nil
     local mgr = self
-    ctld.scheduler.schedule(function() mgr:addAICow(entry.group, entry.escort, home) end, nil, timer.getTime() + 1)
+    ctld.scheduler.schedule(function() mgr:addAICow(entry.group, entry.escort, home, entry.loadout or 1) end,
+        nil, timer.getTime() + 1)
     return true
 end
 

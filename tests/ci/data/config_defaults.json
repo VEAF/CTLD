@@ -351,13 +351,6 @@
   "farpTroopPickupRadius": 150,
   "fastRopeMaximumHeight": 18.28,
   "fatCowAICows": [],
-  "fatCowAIFuelKg": 7200,
-  "fatCowAIItems": [
-    {
-      "count": 6,
-      "item": "weapons.missiles.AGM_114K"
-    }
-  ],
   "fatCowAIType": "CH-47Fbl1",
   "fatCowCrates": [
     {
@@ -366,59 +359,90 @@
       "weight": 2400
     },
     {
-      "count": 4,
-      "desc": "Fat Cow Hellfires (x4)",
+      "count": 20,
+      "desc": "Fat Cow laser Hellfires (x20)",
       "item": "weapons.missiles.AGM_114K",
-      "weight": 250
+      "weight": 906
     },
     {
-      "count": 300,
-      "desc": "Fat Cow 30 mm (x300)",
+      "count": 20,
+      "desc": "Fat Cow radar Hellfires (x20)",
+      "item": "weapons.missiles.AGM_114",
+      "weight": 980
+    },
+    {
+      "count": 1200,
+      "desc": "Fat Cow 30 mm (x1200)",
       "item": "weapons.shells.M230_HEDP M789",
-      "weight": 150
+      "weight": 600
     }
   ],
   "fatCowDeployDelay": 60,
   "fatCowEnabled": true,
   "fatCowLoadouts": [
     {
-      "crates": [
+      "desc": "40 Hellfires (25 laser, 15 radar), 2400 rounds",
+      "fuelKg": 4800,
+      "items": [
         {
-          "count": 3,
-          "crate": "Fat Cow fuel tank (800 gal)"
+          "count": 25,
+          "item": "weapons.missiles.AGM_114K"
+        },
+        {
+          "count": 15,
+          "item": "weapons.missiles.AGM_114"
+        },
+        {
+          "count": 2400,
+          "item": "weapons.shells.M230_HEDP M789"
         }
-      ],
-      "desc": "Full fuel"
+      ]
     },
     {
-      "crates": [
+      "desc": "60 Hellfires (38 laser, 22 radar), 1200 rounds",
+      "fuelKg": 4800,
+      "items": [
         {
-          "count": 3,
-          "crate": "Fat Cow fuel tank (800 gal)"
+          "count": 38,
+          "item": "weapons.missiles.AGM_114K"
         },
         {
-          "count": 1,
-          "crate": "Fat Cow Hellfires (x4)"
+          "count": 22,
+          "item": "weapons.missiles.AGM_114"
+        },
+        {
+          "count": 1200,
+          "item": "weapons.shells.M230_HEDP M789"
         }
-      ],
-      "desc": "4 Hellfires + max fuel"
+      ]
     },
     {
-      "crates": [
+      "desc": "40 laser Hellfires, 2400 rounds",
+      "fuelKg": 4800,
+      "items": [
         {
-          "count": 3,
-          "crate": "Fat Cow fuel tank (800 gal)"
+          "count": 40,
+          "item": "weapons.missiles.AGM_114K"
         },
         {
-          "count": 3,
-          "crate": "Fat Cow Hellfires (x4)"
-        },
-        {
-          "count": 1,
-          "crate": "Fat Cow 30 mm (x300)"
+          "count": 2400,
+          "item": "weapons.shells.M230_HEDP M789"
         }
-      ],
-      "desc": "Max weapons + max fuel"
+      ]
+    },
+    {
+      "desc": "60 laser Hellfires, 1200 rounds",
+      "fuelKg": 4800,
+      "items": [
+        {
+          "count": 60,
+          "item": "weapons.missiles.AGM_114K"
+        },
+        {
+          "count": 1200,
+          "item": "weapons.shells.M230_HEDP M789"
+        }
+      ]
     }
   ],
   "fatCowTypes": [

@@ -10,6 +10,11 @@ local function newWarehouse()
     function w:setLiquidAmount(t, v) self.liquids[t] = v end
     function w:getItemCount(n) return self.items[n] or 0 end
     function w:setItem(n, v) self.items[n] = v end
+    function w:getInventory()
+        local weapon = {}
+        for n, v in pairs(self.items) do if v > 0 then weapon[n] = v end end
+        return { weapon = weapon }
+    end
     return w
 end
 
@@ -80,6 +85,32 @@ describe("CTLDFatCow stock", function()
         assert.equals(5000, cow.stock.fuelKg)
         assert.is_true(writes > 0)
     end)
+
+    it("keeps its own count when someone else refills the warehouse, and puts it back", function()
+        local w = newWarehouse()
+        local cow = CTLDFatCow:new("cow", 2, { fuelKg = 4800, items = { [HELLFIRE] = 6 } })
+        cow:writeWarehouse(w)
+        w.liquids[0] = 4500                                   -- an Apache took 300 kg
+        cow:resyncWarehouse(w)                                -- a player is born: CTLD reads first
+        w.liquids[0], w.liquids[1] = w.liquids[0] + 50000, 50000   -- then VMCT's GRASS refill
+        w.items[HELLFIRE], w.items["weapons.nurs.HYDRA_70_M151"] = 5000, 5000
+        cow:resyncWarehouse(w)
+        assert.equals(4500, cow.stock.fuelKg)
+        assert.equals(6, cow.stock.items[HELLFIRE])
+        assert.equals(4500, w.liquids[0])
+        assert.equals(0, w.liquids[1])
+        assert.equals(6, w.items[HELLFIRE])
+        assert.equals(0, w.items["weapons.nurs.HYDRA_70_M151"])   -- not the cow's: removed
+    end)
+
+    it("empties the warehouse", function()
+        local w = newWarehouse()
+        local cow = CTLDFatCow:new("cow", 2, { fuelKg = 4800, items = { [HELLFIRE] = 6 } })
+        cow:writeWarehouse(w)
+        cow:emptyWarehouse(w)
+        assert.equals(0, w.liquids[0])
+        assert.equals(0, w.items[HELLFIRE])
+    end)
 end)
 
 -- ── The scene itself ───────────────────────────────────────────────────────────────────────────
@@ -105,12 +136,13 @@ describe("Fat Cow FARP scene", function()
     end)
 
     it("lays out a FARP, a fuel depot, dressing and a crew — no vehicle, no tent, no ammo dump", function()
-        local spawned, statics, laidOut = {}, {}, nil
+        local spawned, statics, laidOut, farpName = {}, {}, nil, nil
         local function obj(name) return { getName = function() return name end, isExist = function() return true end } end
-        CTLDObjectRegistry.spawnObject = function(key, coa, cid)
+        CTLDObjectRegistry.spawnObject = function(key, coa, cid, x, z, hdg, overrides)
             local types = CTLDTypeCollector.typesOfDescriptor(CTLDObjectRegistry.get(key))
             for _, t in ipairs(types) do spawned[#spawned + 1] = t end
-            return obj(key .. "-1")
+            if key == "Invisible_FARP" then farpName = overrides and overrides.name end
+            return obj((overrides and overrides.name) or (key .. "-1"))
         end
         coalition.addStaticObject = function(_, sd) statics[#statics + 1] = sd; return obj(sd.name) end
         CTLDFatCowManager.onSceneLaidOut = function(_, scene) laidOut = scene end
@@ -120,7 +152,7 @@ describe("Fat Cow FARP scene", function()
             getPoint = function() return { x = 0, y = 0, z = 0 } end,
             getPosition = function() return { x = { x = 1, y = 0, z = 0 }, p = { x = 0, y = 0, z = 0 } } end,
         }
-        CTLDSceneManager.getInstance():playScene(unit, "Fat Cow FARP", {})
+        local scene = CTLDSceneManager.getInstance():playScene(unit, "Fat Cow FARP", { farpName = "CTLD_FatCow_FARP_1" })
         local all = {}
         for _, t in ipairs(spawned) do all[t] = true end
         for _, sd in ipairs(statics) do all[sd.type] = true end
@@ -135,7 +167,28 @@ describe("Fat Cow FARP scene", function()
             assert.equals("CTLD_", sd.name:sub(1, 5))   -- never registered as a loadable crate
         end
         assert.is_not_nil(laidOut)
-        assert.equals("Invisible_FARP-1", laidOut._params.farpName)
+        assert.equals("CTLD_FatCow_FARP_1", farpName)
+        for _, o in ipairs(scene._spawnedObjs) do                  -- packing never destroys the FARP
+            assert.is_true(o:getName() ~= "CTLD_FatCow_FARP_1")
+        end
+        CTLDSceneManager.getInstance():packScene(scene)
+    end)
+
+    it("stows the cow again when its FARP cannot be added", function()
+        CTLDObjectRegistry.spawnObject = function() return nil end
+        local failed
+        local savedFailed = CTLDFatCowManager.onSceneFailed
+        CTLDFatCowManager.onSceneFailed = function(_, scene) failed = scene end
+        local unit = {
+            getName = function() return "Cow-1" end, isExist = function() return true end,
+            getCoalition = function() return coalition.side.BLUE end, getCountry = function() return 2 end,
+            getPoint = function() return { x = 0, y = 0, z = 0 } end,
+            getPosition = function() return { x = { x = 1, y = 0, z = 0 }, p = { x = 0, y = 0, z = 0 } } end,
+        }
+        local scene = CTLDSceneManager.getInstance():playScene(unit, "Fat Cow FARP", { farpName = "CTLD_FatCow_FARP_1" })
+        CTLDFatCowManager.onSceneFailed = savedFailed
+        assert.equals(scene, failed)
+        assert.is_true(scene._aborted)
     end)
 end)
 
@@ -167,13 +220,12 @@ describe("CTLDFatCowManager deploy / pack", function()
         sm.playScene = function(_, unit, modelName, params)
             played = { unit = unit, model = modelName, params = params }
             local scene = { _name = "Fat Cow FARP#1", _params = params }
-            params.farpName = "FatCow_FARP-1"
             mgr:onSceneLaidOut(scene)
             return scene
         end
         sm.packScene = function(_, scene) packed = scene; return {} end
         Airbase.getByName = function(name)
-            if name == "FatCow_FARP-1" then return { getWarehouse = function() return w end } end
+            if name:find("^CTLD_FatCow_FARP_") then return { getWarehouse = function() return w end } end
         end
     end)
 
@@ -191,7 +243,20 @@ describe("CTLDFatCowManager deploy / pack", function()
         assert.equals(6, w.items[HELLFIRE])
         local cow = mgr:getCow("Cow-1")
         assert.equals(CTLDFatCow.STATE_DEPLOYED, cow.state)
-        assert.equals("FatCow_FARP-1", cow.farpName)
+        assert.equals("CTLD_FatCow_FARP_1", cow.farpName)
+    end)
+
+    it("gives each cow one FARP name, the same at every deployment", function()
+        local a, b = cowUnit("Cow-1"), cowUnit("Cow-2")
+        mgr:addCow(a, { fuelKg = 100, items = {} })
+        mgr:deploy(a)
+        mgr:pack("Cow-1")
+        mgr:addCow(b, { fuelKg = 100, items = {} })
+        mgr:deploy(b)
+        assert.equals("CTLD_FatCow_FARP_2", played.params.farpName)
+        mgr:addCow(a, { fuelKg = 100, items = {} })          -- a piloted cow is declared again each time
+        mgr:deploy(a)
+        assert.equals("CTLD_FatCow_FARP_1", played.params.farpName)
     end)
 
     it("refuses to deploy a cow that is already deployed, or an empty one", function()
@@ -231,6 +296,8 @@ describe("CTLDFatCowManager deploy / pack", function()
         assert.equals(6908, cow.stock.fuelKg)
         assert.equals(2, cow.stock.items[HELLFIRE])
         assert.is_nil(cow.scene)
+        assert.equals(0, w.liquids[0])                       -- the FARP stays, emptied
+        assert.equals(0, w.items[HELLFIRE])
     end)
 
     it("packing while the scene is still laying out stops it", function()
@@ -258,9 +325,63 @@ describe("CTLDFatCowManager deploy / pack", function()
         mgr:deploy(unit)
         w.liquids[0] = 4000
         local player = { getPlayerName = function() return "Zip" end }
+        local later = {}
+        local savedSchedule = ctld.scheduler.schedule
+        ctld.scheduler.schedule = function(fn) later[#later + 1] = fn end
         mgr:onBirth({ initiator = player })
+        ctld.scheduler.schedule = savedSchedule
         assert.equals(4000, mgr:getCow("Cow-1").stock.fuelKg)
         assert.equals(4000, w.liquids[0])
+        w.liquids[0] = 54000                                 -- a refill run after CTLD on the same birth
+        assert.equals(1, #later)
+        later[1]()
+        assert.equals(4000, w.liquids[0])
+    end)
+
+    it("empties, without reading it, the FARP of a cow packed while still laying out", function()
+        sm.playScene = function(_, _, _, params)
+            local scene = { _name = "Fat Cow FARP#1", _params = params, abort = function() end }
+            return scene                                     -- step 1 done, the warehouse not written yet
+        end
+        local unit = cowUnit("Cow-1")
+        mgr:addCow(unit, { fuelKg = 100, items = { [HELLFIRE] = 6 } })
+        mgr:deploy(unit)
+        w.liquids[0], w.items["weapons.nurs.HYDRA_70_M151"] = 50000, 5000   -- whatever a new FARP holds
+        mgr:pack("Cow-1")
+        assert.equals(0, w.liquids[0])
+        assert.equals(0, w.items["weapons.nurs.HYDRA_70_M151"])
+        assert.equals(100, mgr:getCow("Cow-1").stock.fuelKg)   -- not read back as empty
+    end)
+
+    it("reports a deployment whose FARP could not be added as failed", function()
+        sm.playScene = function(_, _, _, params)
+            local scene = { _name = "Fat Cow FARP#1", _params = params }
+            mgr:onSceneFailed(scene)                          -- what the scene's first step does
+            return scene
+        end
+        local unit = cowUnit("Cow-1")
+        mgr:addCow(unit, { fuelKg = 100, items = {} })
+        local ok, why = mgr:deploy(unit)
+        assert.is_false(ok)
+        assert.equals("failed", why)
+        assert.equals(CTLDFatCow.STATE_STOWED, mgr:getCow("Cow-1").state)
+        assert.is_nil(mgr:getCow("Cow-1").scene)
+    end)
+
+    it("empties the FARP of a packed cow when it is re-synced, and refills nothing", function()
+        local farps = { CTLD_FatCow_FARP_1 = newWarehouse(), CTLD_FatCow_FARP_2 = newWarehouse() }
+        Airbase.getByName = function(n) local wh = farps[n]; return wh and { getWarehouse = function() return wh end } end
+        local a, b = cowUnit("Cow-1"), cowUnit("Cow-2")
+        mgr:addCow(a, { fuelKg = 100, items = {} })
+        mgr:deploy(a)
+        mgr:pack("Cow-1")
+        mgr:addCow(b, { fuelKg = 200, items = {} })
+        mgr:deploy(b)
+        farps.CTLD_FatCow_FARP_1.liquids[0] = 50000          -- a refill of every FARP
+        farps.CTLD_FatCow_FARP_2.liquids[0] = 50000
+        mgr:_resyncFarps()
+        assert.equals(0, farps.CTLD_FatCow_FARP_1.liquids[0])
+        assert.equals(200, farps.CTLD_FatCow_FARP_2.liquids[0])
     end)
 
     it("removing a deployed cow packs it first", function()

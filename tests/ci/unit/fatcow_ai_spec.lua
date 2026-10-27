@@ -6,6 +6,7 @@
 -- ============================================================
 
 local HELLFIRE = "weapons.missiles.AGM_114K"
+local RADAR    = "weapons.missiles.AGM_114"
 
 describe("AI Fat Cow", function()
     local mgr, sm, w, groups, units, scheduled, messages, added, inZone, saved
@@ -96,14 +97,16 @@ describe("AI Fat Cow", function()
         end
         sm.playScene = function(_, u, model, params)
             local scene = { _name = "Fat Cow FARP#1", _params = params }
-            params.farpName = "FatCow_FARP-1"
             mgr:onSceneLaidOut(scene)
             return scene
         end
         sm.packScene = function() return {} end
-        Airbase.getByName = function(n) if n == "FatCow_FARP-1" then return { getWarehouse = function() return w end } end end
-        local settings = { fatCowAIType = "CH-47Fbl1", fatCowAIFuelKg = 7200, fatCowDeployDelay = 60,
-                           fatCowAIItems = { { item = HELLFIRE, count = 6 } }, fatCowAICows = {} }
+        Airbase.getByName = function(n) if n == "CTLD_FatCow_FARP_1" then return { getWarehouse = function() return w end } end end
+        local settings = { fatCowAIType = "CH-47Fbl1", fatCowDeployDelay = 60, fatCowAICows = {},
+                           fatCowLoadouts = {
+                               { desc = "Six", fuelKg = 7200, items = { { item = HELLFIRE, count = 6 } } },
+                               { desc = "Radar", fuelKg = 4800, items = { { item = RADAR, count = 20 } } },
+                           } }
         ctld.gs = function(k) if settings[k] ~= nil then return settings[k] end return saved.gs(k) end
         mgr._settings = settings
     end)
@@ -124,7 +127,7 @@ describe("AI Fat Cow", function()
         newGroup("Gunfighter", 7, "Gunfighter-1")
         local leader = newUnit("Gunfighter-1", "Gunfighter", 1000, 2000)
         if player then function leader:getPlayerName() return "Zip" end end
-        mgr:requestAICow("Gunfighter-1")
+        mgr:requestAICow("Gunfighter-1", 1)
         runScheduled()
         local cow = mgr:aiCowOfFlight("Gunfighter")
         return leader, cow
@@ -137,7 +140,7 @@ describe("AI Fat Cow", function()
         assert.equals("CH-47Fbl1", added[1].units[1].type)
         assert.equals("Turning Point", added[1].route.points[1].type)
         assert.equals(5000, added[1].units[1].x)
-        assert.is_true(added[1].units[1].payload.fuel > 0)
+        assert.equals(2444, added[1].units[1].payload.fuel)   -- 80 % of the CH-47F's internal fuel
         assert.is_not_nil(cow)
         assert.equals(7200, cow.stock.fuelKg)
         assert.equals(6, cow.stock.items[HELLFIRE])
@@ -146,17 +149,30 @@ describe("AI Fat Cow", function()
         assert.equals(7, t.params.groupId)
     end)
 
+    it("carries the loadout the flight picked", function()
+        newGroup("Gunfighter", 7, "Gunfighter-1")
+        newUnit("Gunfighter-1", "Gunfighter")
+        mgr:requestAICow("Gunfighter-1", 2)
+        runScheduled()
+        local cow = mgr:aiCowOfFlight("Gunfighter")
+        assert.equals(4800, cow.stock.fuelKg)
+        assert.equals(20, cow.stock.items[RADAR])
+        assert.is_nil(cow.stock.items[HELLFIRE])
+        mgr:requestAICow("Gunfighter-1", 9)                -- no such loadout: nothing comes
+        assert.equals(1, #added)
+    end)
+
     it("can be requested in the air, but not without a friendly logistic zone, nor twice", function()
         newGroup("Gunfighter", 7, "Gunfighter-1")
         local leader = newUnit("Gunfighter-1", "Gunfighter")
         leader.airborne = true
         inZone = false
-        mgr:requestAICow("Gunfighter-1")
+        mgr:requestAICow("Gunfighter-1", 1)
         assert.equals(0, #added)
         inZone = true
-        mgr:requestAICow("Gunfighter-1")
+        mgr:requestAICow("Gunfighter-1", 1)
         runScheduled()
-        mgr:requestAICow("Gunfighter-1")
+        mgr:requestAICow("Gunfighter-1", 1)
         assert.equals(1, #added)
         assert.is_not_nil(messages[2].text:find("Akrotiri", 1, true))
     end)
@@ -202,7 +218,7 @@ describe("AI Fat Cow", function()
         mgr:reportFlightCowStatus("Gunfighter-1")
         local text = messages[#messages].text
         assert.is_not_nil(text:find("7200 kg", 1, true))
-        assert.is_not_nil(text:find("AGM_114K x6", 1, true))
+        assert.is_not_nil(text:find("laser Hellfire x6", 1, true))
         assert.equals(CTLDFatCow.STATE_STOWED, cow.state)
     end)
 
@@ -322,6 +338,39 @@ describe("AI Fat Cow", function()
         assert.is_true(groups["Cow Group"].activated)
         local cow = mgr:aiCowOfFlight("Gunfighter")
         assert.is_not_nil(cow)
+        assert.equals(7200, cow.stock.fuelKg)            -- loadout 1 when the entry names none
         assert.equals("Follow", lastTask("Cow Group").id)
+    end)
+
+    it("does not activate a mission-placed cow whose loadout does not exist", function()
+        mgr._settings.fatCowAICows = { { group = "Cow Group", escort = "Gunfighter", loadout = 7 } }
+        newGroup("Cow Group", 50, "Cow-1")
+        newUnit("Cow-1", "Cow Group")
+        newGroup("Gunfighter", 7, "Gunfighter-1")
+        newUnit("Gunfighter-1", "Gunfighter")
+        mgr:_activateMissionCows()
+        assert.is_false(groups["Cow Group"].activated)
+    end)
+
+    it("hands the FARP of a cow gone home to the next one", function()
+        local leader, cow = flightWithCow()
+        mgr:onLand({ initiator = leader })
+        mgr:onLand({ initiator = units[cow.unitName] })
+        runScheduled()
+        local farp = cow.farpName
+        mgr:releaseAICow("Gunfighter-1")
+        mgr:onLand({ initiator = units[cow.unitName] })     -- home: despawned
+        assert.equals(farp, mgr:_farpNameFor("someone else"))
+    end)
+
+    it("gives a mission-placed cow the loadout its entry names", function()
+        mgr._settings.fatCowAICows = { { group = "Cow Group", escort = "Gunfighter", loadout = 2 } }
+        newGroup("Cow Group", 50, "Cow-1")
+        newUnit("Cow-1", "Cow Group")
+        newGroup("Gunfighter", 7, "Gunfighter-1")
+        newUnit("Gunfighter-1", "Gunfighter")
+        mgr:_activateMissionCows()
+        runScheduled()
+        assert.equals(20, mgr:aiCowOfFlight("Gunfighter").stock.items[RADAR])
     end)
 end)

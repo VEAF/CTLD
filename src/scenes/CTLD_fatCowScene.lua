@@ -7,7 +7,8 @@
 -- static alone supplies both fuel and weapons. So: no vehicle, no tent, no ammo dump.
 --
 -- Layout (offsets from the cow, which is the trigger unit):
---   Invisible FARP   — at the cow (distance 0): the airbase whose warehouse holds the cow's stock
+--   Invisible FARP   — at the cow (distance 0): the airbase whose warehouse holds the cow's stock;
+--                      one per cow, added again at each deployment, never destroyed
 --   FARP Fuel Depot  — 25 m behind the ramp (180°): the supplier
 --   Ammo crates      — 20 m / 135° and 20 m / 130°: dressing (never loadable: "CTLD_" name prefix)
 --   Barrels          — 21 m / 124°: dressing
@@ -30,16 +31,20 @@ fatCowScene.DRESSING = {
 
 fatCowScene.steps = {
 
-    -- Step 1: the Invisible FARP at the cow. Its name is what the warehouse is looked up by.
+    -- Step 1: the Invisible FARP at the cow, under the cow's own FARP name (ctx.scene._params.farpName).
+    -- Kept out of the scene's spawned objects, so packing never destroys it (evening run, 2026-10-26):
+    -- a destroyed heliport stays on the F10 map, and the AI cow sitting on it blew up. The next
+    -- deployment adds it again under the same name, at the new spot.
     {
-        polar                    = { distance = 0, angle = 0 },
-        delayAfterPreviousStep   = 0,
-        relativeHeadingInDegrees = 0,
-        relativeAltitudeInMeters = 0,
-        registryKey              = "Invisible_FARP",
-        critical                 = true,
+        delayAfterPreviousStep = 0,
         func = function(ctx)
-            ctx.scene._params.farpName = ctx.spawnedObj:getName()
+            local sc = ctx.scene
+            local farp = CTLDObjectRegistry.spawnObject("Invisible_FARP", sc._coalitionId, sc._countryId,
+                sc._refX, sc._refZ, sc._refHdgRad, { name = sc._params.farpName })
+            if not farp then
+                sc:abort("Fat Cow FARP not spawned")
+                CTLDFatCowManager.getInstance():onSceneFailed(sc)
+            end
             return true
         end,
     },

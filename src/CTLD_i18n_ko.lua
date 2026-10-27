@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.32"
+ctld.i18n["ko"].translation_version = "1.33"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -508,18 +508,15 @@ ctld.i18n["ko"]["%1 kg of fuel"] = "연료 %1 kg"
 ctld.i18n["ko"]["Deploy the Fat Cow FARP"] = "Fat Cow FARP 전개"
 ctld.i18n["ko"]["Deploying the Fat Cow FARP..."] = "Fat Cow FARP 전개 중..."
 ctld.i18n["ko"]["Fat Cow"] = "Fat Cow"
-ctld.i18n["ko"]["Fat Cow 30 mm (x300)"] = "Fat Cow 30mm (x300)"
 ctld.i18n["ko"]["Fat Cow FARP open: %1"] = "Fat Cow FARP 개방: %1"
 ctld.i18n["ko"]["Fat Cow FARP packed: %1 left."] = "Fat Cow FARP 철수: %1 남음."
 ctld.i18n["ko"]["Fat Cow fuel tank (800 gal)"] = "Fat Cow 연료 탱크 (800 gal)"
-ctld.i18n["ko"]["Fat Cow Hellfires (x4)"] = "Fat Cow 헬파이어 (x4)"
 ctld.i18n["ko"]["Fat Cow stock"] = "Fat Cow 재고"
 ctld.i18n["ko"]["Fat Cow stock: %1"] = "Fat Cow 재고: %1"
 ctld.i18n["ko"]["Land to deploy the Fat Cow FARP."] = "Fat Cow FARP를 전개하려면 착륙하세요."
 ctld.i18n["ko"]["No Fat Cow crate on board: load a fuel tank or an ammo crate first."] = "탑재된 Fat Cow 화물 없음: 먼저 연료 탱크나 탄약 상자를 적재하세요."
 ctld.i18n["ko"]["No Fat Cow FARP deployed."] = "전개된 Fat Cow FARP 없음."
 ctld.i18n["ko"]["Pack the Fat Cow FARP"] = "Fat Cow FARP 철수"
-ctld.i18n["ko"]["Request %1"] = "%1 요청"
 ctld.i18n["ko"]["Request a Fat Cow"] = "Fat Cow 요청"
 ctld.i18n["ko"]["The Fat Cow could not be brought in."] = "Fat Cow를 불러올 수 없습니다."
 ctld.i18n["ko"]["The Fat Cow crates on board are empty."] = "탑재된 Fat Cow 화물이 비어 있습니다."
@@ -530,7 +527,6 @@ ctld.i18n["ko"]["Your flight has no Fat Cow."] = "편대에 Fat Cow가 없습니
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
 ctld.i18n["ko"]["%1 Fat Cow crate(s) unloaded."] = "Fat Cow 화물 %1개 하역."
-ctld.i18n["ko"]["4 Hellfires + max fuel"] = "헬파이어 4발 + 최대 연료"
 ctld.i18n["ko"]["FARP status"] = "FARP 상태"
 ctld.i18n["ko"]["Fat Cow FARP %1 m away: %2"] = "%1 m 거리의 Fat Cow FARP: %2"
 ctld.i18n["ko"]["Fat Cow holding over your position."] = "Fat Cow가 당신 위치 상공에서 대기합니다."
@@ -540,14 +536,11 @@ ctld.i18n["ko"]["Fat Cow on its way from %1: %2 km, joining in about %3 min. Lan
 ctld.i18n["ko"]["Fat Cow status"] = "Fat Cow 상태"
 ctld.i18n["ko"]["Fat Cow taking off: it orbits where it stands."] = "Fat Cow 이륙: 현재 위치에서 선회합니다."
 ctld.i18n["ko"]["Fat Cow: %1, %2 km at %3°."] = "Fat Cow: %1, %3° 방향 %2 km."
-ctld.i18n["ko"]["Full fuel"] = "연료 만재"
 ctld.i18n["ko"]["Hold here"] = "여기서 선회 대기"
 ctld.i18n["ko"]["Join us"] = "합류하라"
 ctld.i18n["ko"]["Joining in about %1 min."] = "약 %1분 후 합류."
 ctld.i18n["ko"]["Land here"] = "여기 착륙"
-ctld.i18n["ko"]["Load: %1"] = "적재: %1"
 ctld.i18n["ko"]["Loaded into your hold: %1"] = "화물칸 적재 완료: %1"
-ctld.i18n["ko"]["Max weapons + max fuel"] = "최대 무장 + 최대 연료"
 ctld.i18n["ko"]["No Fat Cow FARP within %1 km."] = "%1 km 이내에 Fat Cow FARP 없음."
 ctld.i18n["ko"]["No friendly logistic zone to send a Fat Cow from."] = "Fat Cow를 보낼 아군 보급 구역이 없습니다."
 ctld.i18n["ko"]["Not enough room: %1 crate(s) on board, %2 more needed, %3 at most."] = "공간 부족: 탑재 %1개, 추가 %2개 필요, 최대 %3개."
@@ -568,3 +561,17 @@ ctld.i18n["ko"]["on the ground"] = "지상"
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
 ctld.i18n["ko"]["Fat Cow RTB."] = "Fat Cow 기지로 귀환합니다."
 ctld.i18n["ko"]["RTB"] = "기지로 귀환"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-27
+ctld.i18n["ko"]["30 mm rounds"] = "30mm 탄"
+ctld.i18n["ko"]["40 Hellfires (25 laser, 15 radar), 2400 rounds"] = "헬파이어 40발 (레이저 25, 레이더 15), 2400발"
+ctld.i18n["ko"]["40 laser Hellfires, 2400 rounds"] = "레이저 헬파이어 40발, 2400발"
+ctld.i18n["ko"]["60 Hellfires (38 laser, 22 radar), 1200 rounds"] = "헬파이어 60발 (레이저 38, 레이더 22), 1200발"
+ctld.i18n["ko"]["60 laser Hellfires, 1200 rounds"] = "레이저 헬파이어 60발, 1200발"
+ctld.i18n["ko"]["Fat Cow 30 mm (x1200)"] = "Fat Cow 30mm (x1200)"
+ctld.i18n["ko"]["Fat Cow laser Hellfires (x20)"] = "Fat Cow 레이저 헬파이어 (x20)"
+ctld.i18n["ko"]["Fat Cow radar Hellfires (x20)"] = "Fat Cow 레이더 헬파이어 (x20)"
+ctld.i18n["ko"]["laser Hellfire"] = "레이저 헬파이어"
+ctld.i18n["ko"]["Load"] = "적재"
+ctld.i18n["ko"]["radar Hellfire"] = "레이더 헬파이어"
+ctld.i18n["ko"]["Request a crate"] = "상자 요청"

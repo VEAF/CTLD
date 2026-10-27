@@ -38,7 +38,7 @@ The `Hawk` run needs nobody: CTLD logs it (`CTLDFatCowManager:` lines in `dcs.lo
 - Findings, all addressed in the second build (`-v2`, `ctld.VERSION` `2.0.0-rc13-fatcow-5cd3286a`): loading one crate at a time is tedious (loadouts); the AI cow reported an empty stock until it landed (bug: it read crates it does not have); its request was refused outside a logistic zone (now from anywhere, from the nearest zone, with an ETA); it packed and left whenever the leader hopped onto its FARP (a player flight now commands it: Land here, Take off, Hold here, Join us); no way to know what the FARP you are at still holds (FARP status).
 - Measurement for "FARP status on every FARP": the Open Training's mission FARPs (filled by VMCT) read jet fuel 1000000 and AGM_114K 1000000 through `getLiquidAmount` / `getItemCount`, while `getInventory` lists 0 weapon types. A follow-up can show such a warehouse as "full".
 
-### Evening run — 2026-10-26 (Privé 1, Zip, Griffin, Paluche): findings, fixes pending Zip's go
+### Evening run — 2026-10-26 (Privé 1, Zip, Griffin, Paluche): findings
 
 1. **The AI cow exploded on take-off** (21:06:29.9), under a second after its FARP was packed: the Invisible FARP under it was destroyed. Hypothesis, not measured: an AI aircraft sitting on an airbase dies when the airbase is destroyed (Zip's piloted CH-47 survived the same pack at 21:06:16).
 2. **A packed FARP stays on the F10 map**: destroying a heliport static leaves its airbase. One ghost per deployment (`CS_FARP-55`, `-61`, `-67`, `-73`).
@@ -46,7 +46,15 @@ The `Hawk` run needs nobody: CTLD logs it (`CTLDFatCowManager:` lines in `dcs.lo
 3. **The cow's FARP became unlimited**: VMCT's `veafGrass.onBirth` refills every FARP warehouse (50 000 kg of each liquid, ~5 000 of every weapon) on every player birth; packs read 50 035 and 50 055 kg. Proposed: the cow's FARP named `CTLD_…`, VMCT's refill skips `CTLD_` FARPs (VMCT PR), and CTLD restores its own count if fuel or Hellfires go up.
 4. **"Load: Max weapons + max fuel" refused on the French server**: CTLDConfig translates every config `desc`, so the crate is named "Réservoir Fat Cow (800 gal)" while the loadout names it in English. Proposed: look the crate up by its translated name, with a test in French.
 5. **No CSAR menu in the CH-47F**: VMCT's `CSAR.lua` lists no `CH-47Fbl1` in `csar.aircraftType`, in every VMCT mission. Proposed: one line in the same VMCT PR.
-6. **Radar missiles** (Zip): the cow should also carry AGM-114L (Longbow, radar). Proposed: a Hellfire L crate, in the loadouts and the AI default; the warehouse item name `weapons.missiles.AGM_114L` is to be checked in game.
+6. **Radar missiles** (Zip): the cow should also carry AGM-114L (Longbow, radar).
+
+Fixed on 2026-10-27, in this PR (Zip's lot 1):
+- 1 and 2: one FARP per cow (`CTLD_FatCow_FARP_<n>`), never destroyed: packing removes the depot, dressing and crew and empties the warehouse; the next deployment adds the heliport again under the same name, where the cow is. To measure in game: that adding a static under an existing name moves the FARP and leaves no ghost.
+- 3, CTLD side: a warehouse count that went up is put back to the cow's own, weapons the cow does not carry are removed, and the warehouses are written again 2 s after a birth too. The VMCT side (GRASS skipping `CTLD_` FARPs) is a separate VMCT PR.
+- 4: a loadout no longer names crates: it lists fuel kg and items, and CTLD splits it into the crates that carry them.
+- 5: VMCT side, the same VMCT PR.
+- 6, and Zip's loadout profiles: four loadouts, each two 800 gal tanks (4 800 kg) with 40 Hellfires (25 laser, 15 radar) + 2 400 rounds, 60 (38 + 22) + 1 200, 40 laser + 2 400, 60 laser + 1 200 (crates of 20 laser, 20 radar, 1 200 rounds); an AI cow flies with 80 % internal fuel and carries the loadout the requesting flight picks (submenu). Masses from the DCS data mine: AGM-114K 45.3 kg, AGM-114L (warehouse name `weapons.missiles.AGM_114`, to check in game) 49 kg.
+- F10 menus regrouped: a piloted cow's **Load** and **Request a crate** submenus, an AI request's loadout submenu.
 
 ## Procedure
 
@@ -56,11 +64,11 @@ The `Hawk` run needs nobody: CTLD logs it (`CTLDFatCowManager:` lines in `dcs.lo
 
 1. **MISSION** → `Test_FatCow_LiveCheck.miz` → **OK**, slot **Cow-1**.
    The message `[Fat Cow live check] CTLD loaded…` shows.
-2. `\` → **F10 Other** → **CTLD** → **Fat Cow** → **Request Fat Cow fuel tank (800 gal)**. 📸
-   Then **Request Fat Cow Hellfires (x4)**.
+2. `\` → **F10 Other** → **CTLD** → **Fat Cow** → **Request a crate** → **Fat Cow fuel tank (800 gal)**. 📸
+   Then **Request a crate** → **Fat Cow laser Hellfires (x20)**.
 3. `\` → **F10 Other** → **CTLD** → **Crate Commands** → **Load Crate** → the fuel tank; again for the Hellfires.
    If **Load Crate** is not there, load them with the DCS cargo window.
-4. `\` → **F10 Other** → **CTLD** → **Fat Cow** → **Fat Cow stock**: expected 2400 kg of fuel, AGM_114K x4. 📸
+4. `\` → **F10 Other** → **CTLD** → **Fat Cow** → **Fat Cow stock**: expected 2400 kg of fuel, laser Hellfire x20. 📸
 5. `\` → **F10 Other** → **CTLD** → **Fat Cow** → **Deploy the Fat Cow FARP**.
    Wait for `Fat Cow FARP open: …` (a few seconds). **F2** (external view) to look at the layout. 📸
 6. **Esc** → **Choose slot** → **Gunfighter** (60 m away).
@@ -74,12 +82,20 @@ The `Hawk` run needs nobody: CTLD logs it (`CTLDFatCowManager:` lines in `dcs.lo
 ### B — Requested AI cow (needs flying)
 
 1. **MISSION** → `Test_FatCow_LiveCheck.miz` → **OK**, slot **Gunfighter**.
-2. `\` → **F10 Other** → **CTLD** → **Fat Cow** → **Request a Fat Cow**. A CH-47 appears 80 m behind you.
+2. `\` → **F10 Other** → **CTLD** → **Fat Cow** → **Request a Fat Cow** → a loadout. A CH-47 comes from the nearest logistic zone.
 3. Take off, fly 2 km over open fields, land in the open. The cow should land about 120 m to your left and announce `Fat Cow FARP open` one minute after touching down. 📸
 4. Rearm and refuel as in A6. 📸
 5. Take off: the cow should pack and follow. Land again somewhere else: it lands next to you again.
 6. `\` → **F10 Other** → **CTLD** → **Fat Cow** → **RTB**: it flies back to where it appeared and disappears.
 7. Quit.
+
+### C — Lot 1 fixes (2026-10-27), on the server with the next build
+
+1. CH-47F in a logistic zone: **Fat Cow** → **Load** → **40 Hellfires (25 laser, 15 radar), 2400 rounds**: 7 crates in the hold, the message lists 4800 kg of fuel, laser Hellfire x25, radar Hellfire x15, 30 mm rounds x2400.
+2. Land elsewhere, **Deploy the Fat Cow FARP**; an Apache rearms with **radar** Hellfires (AGM-114L) and the gun: served, or "We don't have this in stock" (then the warehouse name `weapons.missiles.AGM_114` or the 30 mm name is wrong: tell the session).
+3. Another player takes a slot, then **FARP status** at the cow: the stock has not jumped to 50 000 kg (VMCT's refill is undone).
+4. Take off (the FARP packs), land 2 km further, deploy again: on the F10 map, **one** FARP for the cow, now at the new spot, and no new one at the old spot.
+5. Apache: **Request a Fat Cow** → **60 laser Hellfires, 1200 rounds**; **Land here**, wait for the FARP, then **Take off**: the cow lifts off and does **not** blow up.
 
 ## Reading the results
 

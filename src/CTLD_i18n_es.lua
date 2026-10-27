@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.32"
+ctld.i18n["es"].translation_version = "1.33"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -626,18 +626,15 @@ ctld.i18n["es"]["%1 kg of fuel"] = "%1 kg de combustible"
 ctld.i18n["es"]["Deploy the Fat Cow FARP"] = "Desplegar el FARP Fat Cow"
 ctld.i18n["es"]["Deploying the Fat Cow FARP..."] = "Desplegando el FARP Fat Cow..."
 ctld.i18n["es"]["Fat Cow"] = "Fat Cow"
-ctld.i18n["es"]["Fat Cow 30 mm (x300)"] = "Fat Cow 30 mm (x300)"
 ctld.i18n["es"]["Fat Cow FARP open: %1"] = "FARP Fat Cow abierto: %1"
 ctld.i18n["es"]["Fat Cow FARP packed: %1 left."] = "FARP Fat Cow recogido: quedan %1."
 ctld.i18n["es"]["Fat Cow fuel tank (800 gal)"] = "Tanque Fat Cow (800 gal)"
-ctld.i18n["es"]["Fat Cow Hellfires (x4)"] = "Hellfire Fat Cow (x4)"
 ctld.i18n["es"]["Fat Cow stock"] = "Existencias del Fat Cow"
 ctld.i18n["es"]["Fat Cow stock: %1"] = "Existencias del Fat Cow: %1"
 ctld.i18n["es"]["Land to deploy the Fat Cow FARP."] = "Aterriza para desplegar el FARP Fat Cow."
 ctld.i18n["es"]["No Fat Cow crate on board: load a fuel tank or an ammo crate first."] = "Ninguna caja Fat Cow a bordo: carga primero un tanque o una caja de munición."
 ctld.i18n["es"]["No Fat Cow FARP deployed."] = "Ningún FARP Fat Cow desplegado."
 ctld.i18n["es"]["Pack the Fat Cow FARP"] = "Recoger el FARP Fat Cow"
-ctld.i18n["es"]["Request %1"] = "Solicitar %1"
 ctld.i18n["es"]["Request a Fat Cow"] = "Solicitar un Fat Cow"
 ctld.i18n["es"]["The Fat Cow could not be brought in."] = "No se pudo traer el Fat Cow."
 ctld.i18n["es"]["The Fat Cow crates on board are empty."] = "Las cajas Fat Cow a bordo están vacías."
@@ -648,7 +645,6 @@ ctld.i18n["es"]["Your flight has no Fat Cow."] = "Tu escuadrilla no tiene Fat Co
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
 ctld.i18n["es"]["%1 Fat Cow crate(s) unloaded."] = "%1 caja(s) Fat Cow descargada(s)."
-ctld.i18n["es"]["4 Hellfires + max fuel"] = "4 Hellfire + combustible máx."
 ctld.i18n["es"]["FARP status"] = "Estado del FARP"
 ctld.i18n["es"]["Fat Cow FARP %1 m away: %2"] = "FARP Fat Cow a %1 m: %2"
 ctld.i18n["es"]["Fat Cow holding over your position."] = "Fat Cow en espera sobre tu posición."
@@ -658,14 +654,11 @@ ctld.i18n["es"]["Fat Cow on its way from %1: %2 km, joining in about %3 min. Lan
 ctld.i18n["es"]["Fat Cow status"] = "Estado del Fat Cow"
 ctld.i18n["es"]["Fat Cow taking off: it orbits where it stands."] = "Fat Cow despega: orbita sobre su posición."
 ctld.i18n["es"]["Fat Cow: %1, %2 km at %3°."] = "Fat Cow: %1, %2 km al %3°."
-ctld.i18n["es"]["Full fuel"] = "Combustible completo"
 ctld.i18n["es"]["Hold here"] = "Espera aquí en órbita"
 ctld.i18n["es"]["Join us"] = "Únete a nosotros"
 ctld.i18n["es"]["Joining in about %1 min."] = "Se une en unos %1 min."
 ctld.i18n["es"]["Land here"] = "Aterriza aquí"
-ctld.i18n["es"]["Load: %1"] = "Cargar: %1"
 ctld.i18n["es"]["Loaded into your hold: %1"] = "Cargado en la bodega: %1"
-ctld.i18n["es"]["Max weapons + max fuel"] = "Armamento máx. + combustible máx."
 ctld.i18n["es"]["No Fat Cow FARP within %1 km."] = "Ningún FARP Fat Cow a menos de %1 km."
 ctld.i18n["es"]["No friendly logistic zone to send a Fat Cow from."] = "Ninguna zona logística aliada desde donde enviar un Fat Cow."
 ctld.i18n["es"]["Not enough room: %1 crate(s) on board, %2 more needed, %3 at most."] = "No hay sitio: %1 caja(s) a bordo, %2 más necesarias, %3 como máximo."
@@ -686,3 +679,17 @@ ctld.i18n["es"]["on the ground"] = "en tierra"
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-26
 ctld.i18n["es"]["Fat Cow RTB."] = "Fat Cow regresa a la base."
 ctld.i18n["es"]["RTB"] = "Regresa a la base"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-27
+ctld.i18n["es"]["30 mm rounds"] = "proyectiles de 30 mm"
+ctld.i18n["es"]["40 Hellfires (25 laser, 15 radar), 2400 rounds"] = "40 Hellfire (25 láser, 15 radar), 2400 proyectiles"
+ctld.i18n["es"]["40 laser Hellfires, 2400 rounds"] = "40 Hellfire láser, 2400 proyectiles"
+ctld.i18n["es"]["60 Hellfires (38 laser, 22 radar), 1200 rounds"] = "60 Hellfire (38 láser, 22 radar), 1200 proyectiles"
+ctld.i18n["es"]["60 laser Hellfires, 1200 rounds"] = "60 Hellfire láser, 1200 proyectiles"
+ctld.i18n["es"]["Fat Cow 30 mm (x1200)"] = "Fat Cow 30 mm (x1200)"
+ctld.i18n["es"]["Fat Cow laser Hellfires (x20)"] = "Hellfire láser Fat Cow (x20)"
+ctld.i18n["es"]["Fat Cow radar Hellfires (x20)"] = "Hellfire radar Fat Cow (x20)"
+ctld.i18n["es"]["laser Hellfire"] = "Hellfire láser"
+ctld.i18n["es"]["Load"] = "Cargar"
+ctld.i18n["es"]["radar Hellfire"] = "Hellfire radar"
+ctld.i18n["es"]["Request a crate"] = "Solicitar una caja"

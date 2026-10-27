@@ -471,14 +471,14 @@ fatCowCrates:
   group: fob
   label: {en: Fat Cow crates, fr: Caisses Fat Cow}
   description:
-    en: 'What a player cow can load: each crate has a desc, a weight (kg in the hold, and its catalogue key) and either fuelKg (jet fuel) or an item (a DCS warehouse item name) with its count. Default: an 800 gal ERFS tank of 2400 kg, 4 Hellfires, 300 rounds of 30 mm.'
-    fr: "Ce qu'une cow pilotée peut charger : chaque caisse a un desc, un poids (kg en soute, et sa clé dans le catalogue) et soit fuelKg (carburant jet), soit un item (nom d'article d'entrepôt DCS) avec son nombre. Par défaut : un réservoir ERFS de 800 gal de 2400 kg, 4 Hellfire, 300 obus de 30 mm."
+    en: 'The crates a player cow carries its stock in: each has a desc, a weight (kg in the hold when full, and its catalogue key) and either fuelKg (jet fuel) or an item (a DCS warehouse item name) with the count a full crate holds. A loadout is split into these crates. Default: an 800 gal ERFS tank of 2400 kg, 20 laser Hellfires, 20 radar Hellfires, 1200 rounds of 30 mm.'
+    fr: "Les caisses dans lesquelles une cow pilotée emporte son stock : chacune a un desc, un poids (kg en soute quand elle est pleine, et sa clé dans le catalogue) et soit fuelKg (carburant jet), soit un item (nom d'article d'entrepôt DCS) avec le nombre qu'en contient une caisse pleine. Un lot de chargement est réparti dans ces caisses. Par défaut : un réservoir ERFS de 800 gal de 2400 kg, 20 Hellfire laser, 20 Hellfire radar, 1200 obus de 30 mm."
 fatCowLoadouts:
   group: fob
   label: {en: Fat Cow loadouts, fr: Lots de chargement Fat Cow}
   description:
-    en: 'What a player cow can load at once, straight into the hold, in a logistic zone: each loadout has a desc and a list of crates, each a fatCowCrates desc with its count. Default: full fuel; 4 Hellfires + max fuel; max weapons + max fuel (about 8 100 kg, what a CH-47F full of internal fuel can lift, in 7 of its 8 crate slots).'
-    fr: "Ce qu'une cow pilotée peut charger d'un coup, directement en soute, dans une zone logistique : chaque lot a un desc et une liste de caisses, chacune un desc de fatCowCrates avec son nombre. Par défaut : plein carburant ; 4 Hellfire + carburant max ; armement max + carburant max (environ 8 100 kg, ce qu'un CH-47F plein de carburant interne peut emporter, sur 7 de ses 8 places de caisse)."
+    en: 'What a cow carries: a player cow loads one into its hold in a logistic zone, a flight requesting an AI cow picks one. Each loadout has a desc, fuelKg (jet fuel) and a list of items (DCS warehouse item name and count). Default: two 800 gal tanks (4800 kg) with 40 Hellfires (25 laser, 15 radar) and 2400 rounds, 60 Hellfires (38 laser, 22 radar) and 1200 rounds, 40 laser Hellfires and 2400 rounds, or 60 laser Hellfires and 1200 rounds: 7800 to 8200 kg, under what a CH-47F with 80 % of its internal fuel lifts.'
+    fr: "Ce qu'emporte une cow : une cow pilotée en charge un en soute dans une zone logistique, une patrouille qui demande une cow IA en choisit un. Chaque lot a un desc, fuelKg (carburant jet) et une liste d'items (nom d'article d'entrepôt DCS et nombre). Par défaut : deux réservoirs de 800 gal (4800 kg) avec 40 Hellfire (25 laser, 15 radar) et 2400 obus, 60 Hellfire (38 laser, 22 radar) et 1200 obus, 40 Hellfire laser et 2400 obus, ou 60 Hellfire laser et 1200 obus : de 7800 à 8200 kg, sous ce qu'emporte un CH-47F avec 80 % de son carburant interne."
 fatCowDeployDelay:
   group: fob
   label: {en: AI Fat Cow deployment delay, fr: Délai de déploiement de la cow IA}
@@ -492,25 +492,12 @@ fatCowAIType:
   description:
     en: DCS type of the helicopter brought in when a flight requests a Fat Cow. Empty removes the Request a Fat Cow command.
     fr: Type DCS de l'hélicoptère amené quand une patrouille demande une Fat Cow. Vide, la commande Demander une Fat Cow disparaît.
-fatCowAIFuelKg:
-  group: fob
-  label: {en: AI Fat Cow fuel, fr: Carburant de la cow IA}
-  unit: kg
-  description:
-    en: Jet fuel an AI cow carries for its FARP. Default 7200 kg, three 800 gal ERFS tanks.
-    fr: Carburant jet qu'une cow IA emporte pour sa FARP. Par défaut 7200 kg, trois réservoirs ERFS de 800 gal.
-fatCowAIItems:
-  group: fob
-  label: {en: AI Fat Cow ammunition, fr: Munitions de la cow IA}
-  description:
-    en: 'Ammunition an AI cow carries, each an item (DCS warehouse item name) and a count. Default: 6 Hellfires (weapons.missiles.AGM_114K).'
-    fr: "Munitions qu'une cow IA emporte, chacune un item (nom d'article d'entrepôt DCS) et un nombre. Par défaut : 6 Hellfire (weapons.missiles.AGM_114K)."
 fatCowAICows:
   group: fob
   label: {en: Mission-placed Fat Cows, fr: Fat Cows placées dans la mission}
   description:
-    en: 'AI cows placed in the mission: each entry names a late-activated helicopter group (group) and the flight it escorts (escort). CTLD activates the cow once the flight is in the world.'
-    fr: "Cows IA placées dans la mission : chaque entrée nomme un groupe d'hélicoptère en activation différée (group) et la patrouille qu'il escorte (escort). CTLD active la cow dès que la patrouille est en jeu."
+    en: 'AI cows placed in the mission: each entry names a late-activated helicopter group (group), the flight it escorts (escort) and optionally the number of the fatCowLoadouts entry it carries (loadout, default 1). CTLD activates the cow once the flight is in the world.'
+    fr: "Cows IA placées dans la mission : chaque entrée nomme un groupe d'hélicoptère en activation différée (group), la patrouille qu'il escorte (escort) et, au besoin, le numéro du lot de fatCowLoadouts qu'il emporte (loadout, 1 par défaut). CTLD active la cow dès que la patrouille est en jeu."
 fobDestructionThreshold:
   group: fob
   label: {en: FOB destruction threshold, fr: Seuil de destruction d'une FOB}

@@ -14,8 +14,10 @@ Everything is in **F10 → CTLD → Fat Cow**.
 
 1. Land in a logistic zone.
 2. Load what you want to carry:
-    - **Load: Full fuel** (3 tanks, 7 200 kg), **Load: 4 Hellfires + max fuel** or **Load: Max weapons + max fuel** (3 tanks, 12 Hellfires, 300 rounds of 30 mm, about 8 100 kg): the crates go straight into the hold;
-    - or one crate at a time, **Request Fat Cow fuel tank (800 gal)** (2 400 kg of jet fuel, and 2 400 kg in your hold), **Request Fat Cow Hellfires (x4)**, **Request Fat Cow 30 mm (x300)**, then load them like any CTLD crate.
+    - **Load**, then a loadout: the crates go straight into the hold.
+      Each loadout carries two 800 gal tanks (4 800 kg of jet fuel) and one of: 40 Hellfires (25 laser, 15 radar) and 2 400 rounds of 30 mm; 60 Hellfires (38 laser, 22 radar) and 1 200 rounds; 40 laser Hellfires and 2 400 rounds; 60 laser Hellfires and 1 200 rounds.
+      That is 7 800 to 8 200 kg in 6 or 7 crates, what a CH-47F lifts with 80 % of its internal fuel: no need to fill the tanks.
+    - or one crate at a time, **Request a crate**: a fuel tank (2 400 kg), 20 laser Hellfires, 20 radar Hellfires or 1 200 rounds of 30 mm, then load it like any CTLD crate.
 
     **Unload the Fat Cow crates** empties the hold, to make up another loadout.
 3. Fly to where the attack helicopters need you, and land.
@@ -35,7 +37,7 @@ If you leave your slot while the FARP is open, the FARP stays, with what it stil
 
 ## Asking for an AI cow
 
-Any player whose aircraft is not a cow can **Request a Fat Cow**, on the ground or in the air.
+Any player whose aircraft is not a cow can **Request a Fat Cow**, on the ground or in the air, and pick its loadout.
 A CH-47 takes off from the friendly logistic zone nearest to you, and you are told where it comes from, how far it is and when it should join.
 
 The cow then does what your flight tells it, and nothing on its own:
@@ -52,7 +54,7 @@ So you can lift off to hover-taxi onto its FARP, or reposition, without the cow 
 
 **Fat Cow status** tells where your flight's cow is (phase, distance and bearing), when it should join, and what it still holds, before it has landed too.
 
-By default an AI cow carries 7 200 kg of fuel (three 800 gal tanks) and 6 Hellfires.
+**Request a Fat Cow** opens the list of loadouts, the same as a piloted cow's: pick what your flight needs.
 One cow per flight.
 
 !!! tip "Land in the open"

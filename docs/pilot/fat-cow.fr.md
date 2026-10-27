@@ -14,8 +14,10 @@ Tout se trouve dans **F10 → CTLD → Fat Cow**.
 
 1. Posez-vous dans une zone logistique.
 2. Chargez ce que vous voulez emporter :
-    - **Charger : Plein carburant** (3 réservoirs, 7 200 kg), **Charger : 4 Hellfire + carburant max** ou **Charger : Armement max + carburant max** (3 réservoirs, 12 Hellfire, 300 obus de 30 mm, environ 8 100 kg) : les caisses vont directement en soute ;
-    - ou une caisse à la fois, **Demander Réservoir Fat Cow (800 gal)** (2 400 kg de carburant jet, et 2 400 kg dans votre soute), **Demander Hellfire Fat Cow (x4)**, **Demander Fat Cow 30 mm (x300)**, puis chargez-les comme n'importe quelle caisse CTLD.
+    - **Charger**, puis un lot : les caisses vont directement en soute.
+      Chaque lot emporte deux réservoirs de 800 gal (4 800 kg de carburant jet) et au choix : 40 Hellfire (25 laser, 15 radar) et 2 400 obus de 30 mm ; 60 Hellfire (38 laser, 22 radar) et 1 200 obus ; 40 Hellfire laser et 2 400 obus ; 60 Hellfire laser et 1 200 obus.
+      Cela fait de 7 800 à 8 200 kg en 6 ou 7 caisses, ce qu'emporte un CH-47F avec 80 % de son carburant interne : inutile de faire le plein.
+    - ou une caisse à la fois, **Demander une caisse** : un réservoir (2 400 kg), 20 Hellfire laser, 20 Hellfire radar ou 1 200 obus de 30 mm, puis chargez-la comme n'importe quelle caisse CTLD.
 
     **Décharger les caisses Fat Cow** vide la soute, pour composer un autre lot.
 3. Volez jusqu'aux hélicoptères d'attaque qui ont besoin de vous, et posez-vous.
@@ -35,7 +37,7 @@ Si vous quittez votre slot pendant que la FARP est ouverte, la FARP reste, avec 
 
 ## Demander une cow IA
 
-Tout joueur dont l'appareil n'est pas une cow peut **Demander une Fat Cow**, au sol comme en vol.
+Tout joueur dont l'appareil n'est pas une cow peut **Demander une Fat Cow**, au sol comme en vol, et choisir son lot.
 Un CH-47 décolle de la zone logistique amie la plus proche de vous, et on vous annonce d'où il vient, à quelle distance il est et quand il devrait vous rejoindre.
 
 La cow fait ensuite ce que votre patrouille lui dit, et rien d'elle-même :
@@ -52,7 +54,7 @@ Vous pouvez donc redécoller pour vous déplacer en stationnaire jusqu'à sa FAR
 
 **Statut Fat Cow** dit où est la cow de votre patrouille (phase, distance et relèvement), quand elle devrait vous rejoindre, et ce qu'elle contient encore, y compris avant qu'elle se soit posée.
 
-Par défaut, une cow IA emporte 7 200 kg de carburant (trois réservoirs de 800 gal) et 6 Hellfire.
+**Demander une Fat Cow** ouvre la liste des lots, les mêmes que ceux d'une cow pilotée : choisissez ce dont votre patrouille a besoin.
 Une cow par patrouille.
 
 !!! tip "Posez-vous à découvert"

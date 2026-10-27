@@ -100,12 +100,11 @@ describe("Piloted cow commands", function()
         cm.crates = {}
         sm.playScene = function(_, u, model, params)
             local scene = { _name = "Fat Cow FARP#1", _params = params }
-            params.farpName = "FatCow_FARP-1"
             mgr:onSceneLaidOut(scene)
             return scene
         end
         sm.packScene = function() return {} end
-        Airbase.getByName = function(n) if n == "FatCow_FARP-1" then return { getWarehouse = function() return w end } end end
+        Airbase.getByName = function(n) if n == "CTLD_FatCow_FARP_1" then return { getWarehouse = function() return w end } end end
     end)
 
     after_each(function()
@@ -231,24 +230,55 @@ describe("Fat Cow loadouts", function()
         CTLDFatCowManager._instance = nil
     end)
 
-    local function indexOf(desc)
-        for i, l in ipairs(ctld.gs("fatCowLoadouts")) do if l.desc == desc then return i end end
-    end
+    -- The default loadouts: 1 = 40 Hellfires (25 laser, 15 radar) + 2400 rounds, 2 = 60 (38 + 22) + 1200,
+    -- 3 = 40 laser + 2400, 4 = 60 laser + 1200; all with 4800 kg of fuel.
+    local RADAR, ROUNDS = "weapons.missiles.AGM_114", "weapons.shells.M230_HEDP M789"
 
-    it("puts a whole loadout straight into the hold", function()
-        mgr:loadLoadout("Cow-1", indexOf("Max weapons + max fuel"))
+    it("splits a loadout into crates, the last of each kind part-full, straight into the hold", function()
+        mgr:loadLoadout("Cow-1", 1)
         local onboard = cm:cratesOnboard("Cow-1")
-        assert.equals(7, #onboard)
+        assert.equals(7, #onboard)                           -- 2 tanks, 20 + 5 laser, 15 radar, 2 x 1200 rounds
         local stock = CTLDFatCow.stockOfCrates(onboard)
-        assert.equals(7200, stock.fuelKg)
-        assert.equals(12, stock.items[HELLFIRE])
-        assert.equals(300, stock.items["weapons.shells.M230_HEDP M789"])
-        for _, c in ipairs(onboard) do assert.is_nil(c.dcsStatic) end   -- nothing left on the ground
+        assert.equals(4800, stock.fuelKg)
+        assert.equals(25, stock.items[HELLFIRE])
+        assert.equals(15, stock.items[RADAR])
+        assert.equals(2400, stock.items[ROUNDS])
+        local mass = 0
+        for _, c in ipairs(onboard) do
+            assert.is_nil(c.dcsStatic)                       -- nothing left on the ground
+            mass = mass + (c.metadata.massKg or c.descriptor.weight)
+        end
+        assert.is_true(math.abs(mass - 7867.5) < 0.5)        -- 4800 + 25 x 45.3 + 15 x 49 + 2400 x 0.5
+    end)
+
+    it("fits every default loadout into the CH-47F's hold, under what it lifts with 80 % internal fuel", function()
+        local caps = ctld.gs("capabilitiesByType")["CH-47Fbl1"]
+        for i = 1, #ctld.gs("fatCowLoadouts") do
+            local crates = mgr:cratesForLoadout(ctld.gs("fatCowLoadouts")[i])
+            local mass = 0
+            for _, c in ipairs(crates) do mass = mass + c.desc.weight * c.fraction end
+            assert.is_true(#crates <= caps.maxCratesOnboard)
+            assert.is_true(mass <= 22680 - 11400 - 2444)        -- db.Units.lua: M_max, M_empty, 80 % of M_fuel_max
+        end
+    end)
+
+    it("finds the crates by what they carry, whatever their translated name", function()
+        mgr._crateDescs = {
+            { weight = 2400, desc = "Réservoir Fat Cow (800 gal)", fatCow = { fuelKg = 2400 } },
+            { weight = 906, desc = "Hellfire laser Fat Cow (x20)", fatCow = { item = HELLFIRE, count = 20 } },
+        }
+        local crates = mgr:cratesForLoadout({ fuelKg = 3000, items = { { item = HELLFIRE, count = 20 } } })
+        assert.equals(3, #crates)
+        assert.equals(600, crates[2].content.fuelKg)
+        assert.equals(0.25, crates[2].fraction)
+        local none, missing = mgr:cratesForLoadout({ fuelKg = 0, items = { { item = RADAR, count = 1 } } })
+        assert.is_nil(none)
+        assert.equals(RADAR, missing)
     end)
 
     it("refuses a loadout the hold has no room for, and outside a logistic zone", function()
-        mgr:loadLoadout("Cow-1", indexOf("Max weapons + max fuel"))
-        mgr:loadLoadout("Cow-1", indexOf("Full fuel"))                    -- 7 + 3 > 8
+        mgr:loadLoadout("Cow-1", 1)
+        mgr:loadLoadout("Cow-1", 3)                           -- 7 + 6 > 8
         assert.equals(7, #cm:cratesOnboard("Cow-1"))
         CTLDZoneManager.getInstance().getLogisticZonesAtPoint = function() return {} end
         mgr:unloadHold("Cow-1")
@@ -256,7 +286,7 @@ describe("Fat Cow loadouts", function()
     end)
 
     it("unloads the cow crates in a logistic zone", function()
-        mgr:loadLoadout("Cow-1", indexOf("Full fuel"))
+        mgr:loadLoadout("Cow-1", 4)
         mgr:unloadHold("Cow-1")
         assert.equals(0, #cm:cratesOnboard("Cow-1"))
     end)
