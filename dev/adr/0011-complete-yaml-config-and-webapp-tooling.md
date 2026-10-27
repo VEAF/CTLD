@@ -241,3 +241,39 @@ version at `2.0.0` on both sides the version-gap detection reported nothing. The
 - A completion only helps once an `ctld-tools.exe` that contains it is built and used: an older exe knows neither
   the new settings nor the completion, and its own validation cannot flag what it does not know.
 - Every change to the catalogue's keys or list-entry fields now costs a version increment and a snapshot file.
+
+## Addendum 3 — a list newer than the configuration is not a removal (2026-10-27)
+
+Point 1 reads an omitted list as a deliberate removal. That holds only for a list the configuration's own catalogue
+already had. The Fat Cow (catalogue `2.3.0`) added `fatCowTypes`, `fatCowCrates`, `fatCowLoadouts` and
+`fatCowAICows`; every mission configuration written against `2.2.0` lacks them, so the engine read them as removed
+and the Fat Cow was on with no aircraft, no crate and no loadout.
+Measured on the VEAF Open Trainings the day rc14 shipped: their `ctld-config.yaml` (VMCT, `2.2.0`) became
+`ctld.configUser` without a single Fat Cow list.
+Addendum 2's completion did not help either: it adds scalars and entry fields, never a whole list, and saving
+stamps the new version, which turns the missing lists into removals for good.
+
+### Decision
+
+- **The build dates every list** from the pinned shapes (`tests/ci/data/catalogue_shapes`): `ctld-tools since`
+  writes `ctld.configListSince = { [list] = "<first version that has it>" }` next to `ctld.configDefault`, for the
+  lists that appeared after the oldest pinned shape.
+- **The engine** gives such a list its default when the snapshot omits it and its `configVersion` is older than the
+  list (a snapshot with no version is older than any); the list is named in the startup notice with the omitted
+  parameters. A list the snapshot omits at or after its version stays a removal, as does any list the table does not
+  name.
+- **`ctld-tools`** applies the same rule when it opens a configuration (`complete()`, reading the table from the
+  engine it installs), so saving keeps the list instead of stamping its absence.
+
+### Considered options
+
+- **Merge every list default at runtime.** Still rejected: it resurrects deliberate removals.
+- **Fix it downstream, in each tool that writes configurations (VMCT's `ctld-upgrade`).** Rejected: a hand-written or
+  older configuration would keep the trap, and VMCT has no shapes to tell a new list from a removed one.
+
+### Consequences
+
+- The shapes become a build input, not only a test guard: a catalogue change without its snapshot now also leaves
+  the new lists undated, on top of failing the guard.
+- Lists already in the oldest pinned shape (`2.1.0`) cannot be dated: an older configuration that lacks one still
+  reads it as removed.

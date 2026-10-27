@@ -8,6 +8,7 @@ CTLD_i18n_es.lua
 CTLD_i18n_ko.lua
 -- Verbatim config YAML embedded as ctld.configDefault string; parsed by CTLDConfig:load().
 CTLD_config_default_yaml.lua
+CTLD_config_list_since.lua
 CTLD_utils.lua
 CTLD_menu.lua
 core/CTLD_objectRegistry.lua

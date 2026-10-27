@@ -79,6 +79,76 @@ describe("CTLDConfig parameter/list tiers (ADR 0011 addendum 1)", function()
         end)
     end)
 
+    -- ── ADR 0011 Addendum 3: a list newer than the snapshot was never removed by its author ──
+    describe("a missing list newer than the snapshot's version takes its default", function()
+
+        local SINCE = { fatCowCrates = "2.3.0", fatCowLoadouts = "2.3.0" }
+        local savedSince
+
+        before_each(function()
+            savedSince = ctld.configListSince
+            ctld.configListSince = SINCE
+        end)
+        after_each(function()
+            ctld.configListSince = savedSince
+        end)
+
+        -- Drop `key` and its block (the `- ` items at its indent, and anything deeper).
+        local function withoutList(yaml, key)
+            local out, indent = {}, nil
+            for line in yaml:gmatch("[^\r\n]+") do
+                local lead = #line:match("^(%s*)")
+                if indent and (lead > indent or (lead == indent and line:match("^%s*%- "))) then
+                    -- inside the dropped block
+                else
+                    indent = nil
+                    if line:match("^%s*" .. key .. "%s*:") then indent = lead else out[#out + 1] = line end
+                end
+            end
+            return table.concat(out, "\n")
+        end
+
+        local function atVersion(yaml, version)
+            return (yaml:gsub('configVersion: "[^"]*"', 'configVersion: "' .. version .. '"', 1))
+        end
+
+        it("a 2.2.0 snapshot without fatCowCrates gets the catalogue's crates", function()
+            local cfg = loadUser(atVersion(withoutList(DEFAULT, "fatCowCrates"), "2.2.0"))
+            local crates = cfg:getSetting("fatCowCrates")
+            assert.is_table(crates)
+            assert.is_true(#crates > 0)
+            assert.equals(2400, crates[1].fuelKg)
+        end)
+
+        it("reports the list among the settings taken from the default", function()
+            local cfg = loadUser(atVersion(withoutList(withoutList(DEFAULT, "fatCowCrates"), "fatCowLoadouts"), "2.2.0"))
+            assert.same({ "fatCowCrates", "fatCowLoadouts" }, cfg:getDefaultedParameters())
+        end)
+
+        it("a snapshot with no configVersion predates the list too", function()
+            local yaml = withoutList(DEFAULT, "fatCowCrates"):gsub('configVersion: "[^"]*"\n?', "", 1)
+            local cfg = loadUser(yaml)
+            assert.is_table(cfg:getSetting("fatCowCrates"))
+        end)
+
+        it("a 2.3.0 snapshot without fatCowCrates removed it: it stays absent", function()
+            local cfg = loadUser(withoutList(DEFAULT, "fatCowCrates"))
+            assert.is_nil(cfg:getSetting("fatCowCrates"))
+            assert.same({}, cfg:getDefaultedParameters())
+        end)
+
+        it("a list kept by the snapshot is the snapshot's, even when older", function()
+            local yaml = atVersion(DEFAULT, "2.2.0"):gsub("desc: Fat Cow fuel tank %(800 gal%)", "desc: My tank", 1)
+            local cfg = loadUser(yaml)
+            assert.equals("My tank", cfg:getSetting("fatCowCrates")[1].desc)
+        end)
+
+        it("a list the table does not name stays a removal at any version", function()
+            local cfg = loadUser(atVersion(without(DEFAULT, "aiZones"), "2.0.0"))
+            assert.is_nil(cfg:getSetting("aiZones"))
+        end)
+    end)
+
     -- ── Ticket 03: a parameter must have exactly one default, in the catalogue ──
     describe("no parameter carries a duplicate default in code", function()
 

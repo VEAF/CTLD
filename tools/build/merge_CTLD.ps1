@@ -85,6 +85,12 @@ Push-Location $ctldToolsDir
 try {
     & poetry run ctld-tools embed --yaml $configYaml --out $configDefaultLua --var configDefault
     if ($LASTEXITCODE -ne 0) { throw "embed returned $LASTEXITCODE" }
+    # The version each list appeared in (ctld.configListSince, ADR 0011 Addendum 3): a mission config
+    # older than a list gets its default instead of reading its absence as a removal.
+    $configListSinceLua = Join-Path $srcDir "CTLD_config_list_since.lua"
+    $catalogueShapes = Join-Path (Split-Path $srcDir -Parent) "tests\ci\data\catalogue_shapes"
+    & poetry run ctld-tools since --yaml $configYaml --shapes $catalogueShapes --out $configListSinceLua
+    if ($LASTEXITCODE -ne 0) { throw "since returned $LASTEXITCODE" }
 }
 catch {
     Write-Host "[ERROR] Could not embed CTLD_config.yaml via ctld-tools."

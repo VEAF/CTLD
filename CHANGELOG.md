@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a mission configuration written before the Fat Cow gets its crates and loadouts (FIX-CONFIG-NEW-LISTS)
+
+- A mission configuration omits a list on purpose to remove it (ADR 0011), but a configuration written before
+  catalogue `2.3.0` never had the Fat Cow lists: CTLD read `fatCowTypes`, `fatCowCrates`, `fatCowLoadouts` and
+  `fatCowAICows` as removed, and the Fat Cow was on with no aircraft, crate or loadout (seen on the VEAF Open
+  Trainings, whose configurations date from `2.2.0`). The build now dates every list from the pinned catalogue
+  shapes (`ctld.configListSince`, `ctld-tools since`): a list newer than the configuration's `configVersion` takes
+  its default and is named in the startup notice, and `ctld-tools` adds it when it opens the configuration. A list
+  omitted at or after its own version is still a removal (ADR 0011 Addendum 3).
+
 ### Added — Fat Cow: a CH-47 that lands in the field and becomes a forward refuel and rearm point (FEAT-FAT-COW)
 
 ED announced a native Fat Cow on 2024-04-19, and again on 2024-08-23; DCS 2.9.30.28738 still has none, so CTLD brings its own while the Chinooks wait.

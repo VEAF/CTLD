@@ -83,14 +83,26 @@ function CTLDConfig:load()
     self._defaultVersion  = nil
     if usingUser and ctld.configDefault then
         self._defaults = CTLDConfig.flatten(CTLDConfig.parseYAML(ctld.configDefault))
+        self._userVersion    = flat.configVersion
+        self._defaultVersion = self._defaults.configVersion
         for k, v in pairs(self._defaults) do
             if type(v) ~= "table" and flat[k] == nil then
                 self._defaultedParams[#self._defaultedParams + 1] = k
             end
         end
+        -- ADR 0011 Addendum 3 — a list the catalogue gained after the snapshot's version was not removed
+        -- by its author, who never saw it: it takes its default, reported like an omitted parameter.
+        -- A snapshot with no version predates every list in ctld.configListSince.
+        for k, since in pairs(ctld.configListSince or {}) do
+            local d = self._defaults[k]
+            if type(d) == "table" and flat[k] == nil
+                    and (self._userVersion == nil or ctld.utils.compareVersions(self._userVersion, since) < 0) then
+                CTLDConfig.localiseI18n(d)
+                self.settings[k] = d
+                self._defaultedParams[#self._defaultedParams + 1] = k
+            end
+        end
         table.sort(self._defaultedParams)
-        self._userVersion    = flat.configVersion
-        self._defaultVersion = self._defaults.configVersion
     end
 
     return true, "CTLDConfig: loaded (" .. (usingUser and "user" or "default") .. " config)."
@@ -150,7 +162,7 @@ function CTLDConfig:reportRetiredSettings()
     end
 end
 
---- Parameters the loaded snapshot omitted, resolved from the default catalogue.
+--- Parameters the loaded snapshot omitted, and lists newer than its version, resolved from the default catalogue.
 -- Sorted; empty when the snapshot is complete, or when the default catalogue is the winner.
 -- Reported once on screen at startup by CTLD_bootstrap (ADR 0011 Addendum 1).
 -- @return table  array of setting names

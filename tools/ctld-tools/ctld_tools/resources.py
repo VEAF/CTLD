@@ -122,6 +122,30 @@ def read_engine() -> bytes:
     return path.read_bytes()
 
 
+def list_since() -> dict[str, str]:
+    """The catalogue version each list appeared in (`ctld.configListSince`, ADR 0011 Addendum 3).
+
+    Read from the engine the tool installs, so the tool and the engine agree; in a checkout with no built
+    engine, computed from the pinned shapes the build reads.
+    """
+    import re
+
+    path = engine_path()
+    if path.is_file():
+        text = path.read_text(encoding="utf-8", errors="replace")
+        block = re.search(r"ctld\.configListSince\s*=\s*\{(.*?)\n\}", text, re.S)
+        if block:
+            return dict(re.findall(r'\["([^"]+)"\]\s*=\s*"([^"]+)"', block.group(1)))
+    shapes = _repo_root() / "tests" / "ci" / "data" / "catalogue_shapes"
+    if _frozen_dir() is None and shapes.is_dir():
+        from ctld_tools.catalog import Catalog
+        from ctld_tools.since import list_since as compute
+        from ctld_tools.since import load_shapes
+
+        return compute(Catalog.load(default_catalog_path()), load_shapes(shapes))
+    return {}
+
+
 def read_sounds() -> dict[str, bytes]:
     """The beacon sounds, keyed by file name."""
     out: dict[str, bytes] = {}

@@ -82,14 +82,14 @@ class Session:
             if found is None:
                 raise ValueError(f"no CTLD configuration in {path.name}")
             self._catalog = Catalog.loads(found.yaml)
-            self._completion = complete(self._catalog, self.default_catalog())
+            self._completion = complete(self._catalog, self.default_catalog(), resources.list_since())
             self._path = None
             self._mission_path = path
             self._config_shape = found.shape
             self._sounds = read_sounds_from_miz(path, self._catalog)
             return
         self._catalog = Catalog.load(path)
-        self._completion = complete(self._catalog, self.default_catalog())
+        self._completion = complete(self._catalog, self.default_catalog(), resources.list_since())
         self._path = path
         self._mission_path = None
         self._config_shape = "file"
