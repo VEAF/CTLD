@@ -1,4 +1,4 @@
-# CTLD 2.0.0-rc14 — release candidate
+# CTLD 2.0.0-rc15 — release candidate
 
 ## Installation
 
@@ -9,13 +9,20 @@
 **Windows blocks it on the first run?** The tool is not code-signed, so SmartScreen stops it: click **More info** → **Run anyway**.
 If the file came through a browser you may also need right-click → **Properties** → tick **Unblock** → **OK**.
 
-Prefer doing it by hand? The files are attached to this release too — see the [documentation](https://veaf.github.io/CTLD/2.0.0-rc14/mission-maker/).
+Prefer doing it by hand? The files are attached to this release too — see the [documentation](https://veaf.github.io/CTLD/2.0.0-rc15/mission-maker/).
 
 ---
 
 The Fat Cow release candidate: a CH-47 that lands in the field and becomes a forward refuel and rearm point for helicopters.
 DCS still has no native Fat Cow, so CTLD brings its own.
-Nothing breaks for an existing mission: the Fat Cow is a new F10 submenu, on by default, and `ctld-tools` adds its settings to an older configuration.
+Nothing breaks for an existing mission: the Fat Cow is a new F10 submenu, on by default, and works with a mission configuration written for an older CTLD.
+
+## Fixed since rc14
+
+- **The Fat Cow works with a mission configuration written before it.**
+  In rc14, a configuration saved with an older CTLD had no Fat Cow aircraft, crates or loadouts: CTLD read the missing lists as removed on purpose.
+  A list CTLD added after your configuration's version now takes its default, and the startup message names it; opening the configuration in `ctld-tools` adds it for good.
+  A list you removed yourself stays removed.
 
 ## Fat Cow
 
@@ -28,12 +35,12 @@ Nothing breaks for an existing mission: the Fat Cow is a new F10 submenu, on by 
 - **Mission makers** can place a late-activated CH-47 escorting a named flight (`fatCowAICows`, with the loadout to carry), and change the crates and loadouts (`fatCowCrates`, `fatCowLoadouts`, with a `menu` field for the Russian and Mixed submenus).
 - The stock is finite and guarded: if another script refills the FARPs (as the VEAF Mission Creation Tools did on every player join), CTLD puts the cow's own count back.
 
-See the pilot and mission-maker **Fat Cow** pages of the [documentation](https://veaf.github.io/CTLD/2.0.0-rc14/).
+See the pilot and mission-maker **Fat Cow** pages of the [documentation](https://veaf.github.io/CTLD/2.0.0-rc15/).
 
 ## Configuration
 
 - New settings `fatCowEnabled`, `fatCowTypes`, `fatCowCrates`, `fatCowLoadouts`, `fatCowDeployDelay`, `fatCowAIType`, `fatCowAICows`; catalogue version `2.3.0`.
-  `ctld-tools` gives them their default when it opens an older configuration.
+  An older configuration gets their defaults, from CTLD at mission start and from `ctld-tools` when it opens it.
 
 ## Other fixes
 
