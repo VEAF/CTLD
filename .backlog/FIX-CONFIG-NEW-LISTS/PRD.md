@@ -1,6 +1,6 @@
 # FIX-CONFIG-NEW-LISTS — a list newer than the mission configuration is not a removal
 
-Status: done
+Status: done — 2026-10-27 (PR #275)
 
 ## Problem
 
