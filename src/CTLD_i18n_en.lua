@@ -15,7 +15,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.33"
+ctld.i18n["en"].translation_version = "1.34"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -686,3 +686,25 @@ ctld.i18n["en"]["laser Hellfire"] = "laser Hellfire"
 ctld.i18n["en"]["Load"] = "Load"
 ctld.i18n["en"]["radar Hellfire"] = "radar Hellfire"
 ctld.i18n["en"]["Request a crate"] = "Request a crate"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-27
+ctld.i18n["en"]["20 Hellfires (12 laser, 8 radar), 20 Vikhr, 1200 + 460 rounds"] = "20 Hellfires (12 laser, 8 radar), 20 Vikhr, 1200 + 460 rounds"
+ctld.i18n["en"]["20 laser Hellfires, 16 Ataka, 1200 + 500 rounds"] = "20 laser Hellfires, 16 Ataka, 1200 + 500 rounds"
+ctld.i18n["en"]["2A42 AP rounds"] = "2A42 AP rounds"
+ctld.i18n["en"]["2A42 HE rounds"] = "2A42 HE rounds"
+ctld.i18n["en"]["32 Ataka, 500 rounds (Mi-24P)"] = "32 Ataka, 500 rounds (Mi-24P)"
+ctld.i18n["en"]["32 Shturm, 500 rounds (Mi-24P)"] = "32 Shturm, 500 rounds (Mi-24P)"
+ctld.i18n["en"]["40 Vikhr, 920 rounds (Ka-50)"] = "40 Vikhr, 920 rounds (Ka-50)"
+ctld.i18n["en"]["60 Vikhr, 460 rounds (Ka-50)"] = "60 Vikhr, 460 rounds (Ka-50)"
+ctld.i18n["en"]["Ataka"] = "Ataka"
+ctld.i18n["en"]["Fat Cow 2A42 AP (x460)"] = "Fat Cow 2A42 AP (x460)"
+ctld.i18n["en"]["Fat Cow 2A42 HE (x460)"] = "Fat Cow 2A42 HE (x460)"
+ctld.i18n["en"]["Fat Cow Ataka (x16)"] = "Fat Cow Ataka (x16)"
+ctld.i18n["en"]["Fat Cow GSh-30 (x500)"] = "Fat Cow GSh-30 (x500)"
+ctld.i18n["en"]["Fat Cow Shturm (x16)"] = "Fat Cow Shturm (x16)"
+ctld.i18n["en"]["Fat Cow Vikhr (x20)"] = "Fat Cow Vikhr (x20)"
+ctld.i18n["en"]["GSh-30 rounds"] = "GSh-30 rounds"
+ctld.i18n["en"]["Mixed"] = "Mixed"
+ctld.i18n["en"]["Russian"] = "Russian"
+ctld.i18n["en"]["Shturm"] = "Shturm"
+ctld.i18n["en"]["Vikhr"] = "Vikhr"

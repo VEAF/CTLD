@@ -123,6 +123,12 @@ local function itemLabel(name)
     if name == "weapons.missiles.AGM_114K" then return ctld.tr("laser Hellfire") end
     if name == "weapons.missiles.AGM_114" then return ctld.tr("radar Hellfire") end
     if name == "weapons.shells.M230_HEDP M789" then return ctld.tr("30 mm rounds") end
+    if name == "weapons.missiles.Vikhr_M" then return ctld.tr("Vikhr") end
+    if name == "weapons.missiles.Ataka_9M120" then return ctld.tr("Ataka") end
+    if name == "weapons.missiles.AT_6" then return ctld.tr("Shturm") end
+    if name == "weapons.shells.2A42_30_HE" then return ctld.tr("2A42 HE rounds") end
+    if name == "weapons.shells.2A42_30_AP" then return ctld.tr("2A42 AP rounds") end
+    if name == "weapons.shells.GSh_30_2K_HE" then return ctld.tr("GSh-30 rounds") end
     return (name:gsub("^weapons%.[%a_]+%.", ""))
 end
 
@@ -737,6 +743,34 @@ end
 
 -- ── Menu section ────────────────────────────────────────────────────────────────────────────────
 
+--- One command per fatCowLoadouts entry under `path`, calling manager method `method`(unitName, index):
+-- the entries without a `menu` at the top (the Apache ones), the others in the Russian and Mixed
+-- submenus (Zip: one CH-47 for everyone, the Russian and mixed loadouts one level down).
+function CTLDFatCowManager:_addLoadoutCommands(menu, path, unitName, method)
+    local subs = { russian = { ctld.tr("Russian"), 98 }, mixed = { ctld.tr("Mixed"), 99 } }
+    local made = {}
+    local mgr = CTLDFatCowManager.getInstance
+    for i, l in ipairs(ctld.gs("fatCowLoadouts") or {}) do
+        local where, sub = path, l.menu and subs[l.menu]
+        if l.menu and not sub then
+            ctld.utils.log("WARN", "CTLDFatCowManager: loadout '%s' has an unknown menu '%s': shown at the top",
+                tostring(l.desc), tostring(l.menu))
+        end
+        if sub then
+            where = {}
+            for k, v in ipairs(path) do where[k] = v end
+            where[#where + 1] = sub[1]
+            if not made[l.menu] then
+                menu:addSubMenu(path, sub[1], { order = sub[2] })
+                made[l.menu] = true
+            end
+        end
+        menu:addCommand(where, ctld.tr(l.desc or "?"),
+            function(arg) local m = mgr(); m[arg.method](m, arg.unitName, arg.index) end,
+            { unitName = unitName, index = i, method = method }, { order = i })
+    end
+end
+
 function CTLDFatCowManager:buildMenuSection(playerObj, menu)
     local root, sub = ctld.tr("CTLD"), ctld.tr("Fat Cow")
     local path = { root, sub }
@@ -745,11 +779,7 @@ function CTLDFatCowManager:buildMenuSection(playerObj, menu)
         local mgr = CTLDFatCowManager.getInstance
         local loadPath, cratePath = { root, sub, ctld.tr("Load") }, { root, sub, ctld.tr("Request a crate") }
         menu:addSubMenu(path, loadPath[3], { order = 1 })
-        for i, l in ipairs(ctld.gs("fatCowLoadouts") or {}) do
-            menu:addCommand(loadPath, ctld.tr(l.desc or "?"),
-                function(arg) mgr():loadLoadout(arg.unitName, arg.index) end,
-                { unitName = playerObj.unitName, index = i }, { order = i })
-        end
+        self:_addLoadoutCommands(menu, loadPath, playerObj.unitName, "loadLoadout")
         menu:addSubMenu(path, cratePath[3], { order = 2 })
         for i, d in ipairs(self._crateDescs or {}) do
             menu:addCommand(cratePath, d.desc,
@@ -1184,11 +1214,7 @@ function CTLDFatCowManager:_buildAIMenu(playerObj, menu, path)
     local u = { unitName = playerObj.unitName }
     local requestPath = { path[1], path[2], ctld.tr("Request a Fat Cow") }
     menu:addSubMenu(path, requestPath[3], { order = 1 })
-    for i, l in ipairs(ctld.gs("fatCowLoadouts") or {}) do
-        menu:addCommand(requestPath, ctld.tr(l.desc or "?"),
-            function(arg) mgr():requestAICow(arg.unitName, arg.index) end,
-            { unitName = playerObj.unitName, index = i }, { order = i })
-    end
+    self:_addLoadoutCommands(menu, requestPath, playerObj.unitName, "requestAICow")
     menu:addCommand(path, ctld.tr("Land here"), function(arg) mgr():orderLandHere(arg.unitName) end, u, { order = 2 })
     menu:addCommand(path, ctld.tr("Take off"), function(arg) mgr():orderTakeOff(arg.unitName) end, u, { order = 3 })
     menu:addCommand(path, ctld.tr("Hold here"), function(arg) mgr():orderHoldHere(arg.unitName) end, u, { order = 4 })

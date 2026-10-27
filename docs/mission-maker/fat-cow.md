@@ -39,8 +39,8 @@ All in the `fob` family of the configuration.
 |---|---|---|
 | `fatCowEnabled` | `true` | The F10 **Fat Cow** menu and the cow crates. |
 | `fatCowTypes` | `[CH-47Fbl1]` | Types a player can fly as a cow. Each must also be a transport in `capabilitiesByType`. |
-| `fatCowCrates` | fuel tank, 20 laser Hellfires, 20 radar Hellfires, 1 200 rounds of 30 mm | The crates a player cow carries its stock in (see below). |
-| `fatCowLoadouts` | four Hellfire and 30 mm loadouts, each with 4 800 kg of fuel | What a cow carries: loaded by a player cow, picked by a flight requesting an AI cow (see below). |
+| `fatCowCrates` | fuel tank; Hellfires and 30 mm (Apache); Vikhr and 2A42 rounds (Ka-50); Ataka, Shturm and GSh-30 rounds (Mi-24P) | The crates a player cow carries its stock in (see below). |
+| `fatCowLoadouts` | four Apache, four Russian and two mixed loadouts, each with 4 800 kg of fuel | What a cow carries: loaded by a player cow, picked by a flight requesting an AI cow (see below). |
 | `fatCowDeployDelay` | `60` | Seconds an AI cow stays on the ground before its FARP opens. |
 | `fatCowAIType` | `CH-47Fbl1` | Type of the helicopter brought in when a flight requests a cow. Empty removes **Request a Fat Cow**. |
 | `fatCowAICows` | `[]` | Cows placed in the mission (see below). |
@@ -63,12 +63,30 @@ fatCowLoadouts:
 ```
 
 A player cow finds them under **Load**, in a logistic zone; a flight requesting an AI cow picks one under **Request a Fat Cow**.
-The four defaults all carry two 800 gal tanks (4 800 kg), with 40 Hellfires (25 laser, 15 radar) and 2 400 rounds, 60 Hellfires (38 laser, 22 radar) and 1 200 rounds, 40 laser Hellfires and 2 400 rounds, or 60 laser Hellfires and 1 200 rounds.
-They weigh 7 800 to 8 200 kg, under the 8 837 kg a CH-47F lifts with 80 % of its internal fuel (22 680 kg at most, 11 400 kg empty, 2 444 kg of fuel, from DCS's units database); an AI cow is given those 80 %.
+A loadout with `menu: russian` or `menu: mixed` shows in the **Russian** or **Mixed** submenu, one without at the top.
+The cow is always a CH-47 (`fatCowAIType`), whatever the loadout and whatever the requester flies: it is the module players fly as a cow.
+
+The defaults all carry two 800 gal tanks (4 800 kg):
+
+| Menu | Loadout | Weapons | Total |
+|---|---|---|---|
+| top | Apache | 40 Hellfires (25 laser, 15 radar), 2 400 rounds of 30 mm | 7 868 kg |
+| top | Apache | 60 Hellfires (38 laser, 22 radar), 1 200 rounds | 8 199 kg |
+| top | Apache | 40 laser Hellfires, 2 400 rounds | 7 812 kg |
+| top | Apache | 60 laser Hellfires, 1 200 rounds | 8 118 kg |
+| Russian | Ka-50 | 40 Vikhr, 460 rounds of 2A42 HE and 460 AP | 7 382 kg |
+| Russian | Ka-50 | 60 Vikhr, 230 rounds of 2A42 HE and 230 AP | 7 891 kg |
+| Russian | Mi-24P | 32 Ataka, 500 rounds of GSh-30 | 6 809 kg |
+| Russian | Mi-24P | 32 Shturm, 500 rounds of GSh-30 | 6 358 kg |
+| Mixed | Apache + Ka-50 | 20 Hellfires (12 laser, 8 radar), 20 Vikhr, 1 200 rounds of 30 mm, 460 of 2A42 | 7 627 kg |
+| Mixed | Apache + Mi-24P | 20 laser Hellfires, 16 Ataka, 1 200 rounds of 30 mm, 500 of GSh-30 | 7 523 kg |
+
+All are under the 8 837 kg a CH-47F lifts with 80 % of its internal fuel (22 680 kg at most, 11 400 kg empty, 2 444 kg of fuel, from DCS's units database); an AI cow is given those 80 %.
+Missile masses are the DCS data mine's (AGM-114K 45.3 kg, AGM-114L 49 kg, Vikhr 45 kg, Ataka 49.5 kg, Shturm 35.4 kg); rounds are counted 0.5 kg (30 mm Apache) and 0.85 kg (30 × 165 Russian) with their packing, an estimate.
 
 `item` is the name DCS gives the weapon in a warehouse.
 `weapons.missiles.AGM_114K` was checked in game for the laser Hellfire.
-`weapons.missiles.AGM_114` (the AGM-114L, from the DCS data mine) and `weapons.shells.M230_HEDP M789` (the Apache's rounds) are not yet checked as warehouse items.
+The others come from the DCS data mine and are not yet checked as warehouse items: `weapons.missiles.AGM_114` (AGM-114L), `weapons.shells.M230_HEDP M789` (the Apache's rounds), `weapons.missiles.Vikhr_M`, `weapons.missiles.Ataka_9M120`, `weapons.missiles.AT_6` (Shturm), `weapons.shells.2A42_30_HE` and `2A42_30_AP` (Ka-50), `weapons.shells.GSh_30_2K_HE` (Mi-24P).
 
 ### Cow crates
 
@@ -86,8 +104,8 @@ fatCowCrates:
 ```
 
 An entry has either `fuelKg`, or `item` and `count`; a part-full crate weighs its share.
-The defaults are an 800 gal tank (2 400 kg), 20 laser Hellfires (906 kg), 20 radar Hellfires (980 kg) and 1 200 rounds of 30 mm (600 kg, 0.5 kg a round with its packing: an estimate).
-Every default loadout fits in 6 or 7 crates; a loadout that would exceed the aircraft's `maxCratesOnboard` (8 for the CH-47F) is refused, and so is one carrying an item no crate carries.
+The defaults are an 800 gal tank (2 400 kg); 20 laser Hellfires (906 kg), 20 radar Hellfires (980 kg), 1 200 rounds of 30 mm (600 kg); 20 Vikhr (900 kg), 460 rounds of 2A42 HE or AP (391 kg each); 16 Ataka (792 kg), 16 Shturm (566 kg), 500 rounds of GSh-30 (425 kg).
+Every default loadout fits in 5 to 8 crates; a loadout that would exceed the aircraft's `maxCratesOnboard` (8 for the CH-47F) is refused, and so is one carrying an item no crate carries.
 **Request a crate** brings one full crate at a time.
 Cow crates never show in **Request Equipment** nor in **Unpack Crate**.
 

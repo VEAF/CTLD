@@ -15,9 +15,16 @@ Everything is in **F10 → CTLD → Fat Cow**.
 1. Land in a logistic zone.
 2. Load what you want to carry:
     - **Load**, then a loadout: the crates go straight into the hold.
-      Each loadout carries two 800 gal tanks (4 800 kg of jet fuel) and one of: 40 Hellfires (25 laser, 15 radar) and 2 400 rounds of 30 mm; 60 Hellfires (38 laser, 22 radar) and 1 200 rounds; 40 laser Hellfires and 2 400 rounds; 60 laser Hellfires and 1 200 rounds.
-      That is 7 800 to 8 200 kg in 6 or 7 crates, what a CH-47F lifts with 80 % of its internal fuel: no need to fill the tanks.
-    - or one crate at a time, **Request a crate**: a fuel tank (2 400 kg), 20 laser Hellfires, 20 radar Hellfires or 1 200 rounds of 30 mm, then load it like any CTLD crate.
+      Each loadout carries two 800 gal tanks (4 800 kg of jet fuel) and weapons:
+
+      | Menu | Loadouts |
+      |---|---|
+      | **Load** (Apache) | 40 Hellfires (25 laser, 15 radar) and 2 400 rounds of 30 mm; 60 Hellfires (38 laser, 22 radar) and 1 200 rounds; 40 laser Hellfires and 2 400 rounds; 60 laser Hellfires and 1 200 rounds |
+      | **Load → Russian** | Ka-50: 40 Vikhr and 920 rounds of 2A42 (half HE, half AP), or 60 Vikhr and 460 rounds; Mi-24P: 32 Ataka or 32 Shturm, with 500 rounds of GSh-30 |
+      | **Load → Mixed** | 20 Hellfires (12 laser, 8 radar), 20 Vikhr, 1 200 rounds of 30 mm and 460 of 2A42; 20 laser Hellfires, 16 Ataka, 1 200 rounds of 30 mm and 500 of GSh-30 |
+
+      That is 6 400 to 8 200 kg in 5 to 8 crates, what a CH-47F lifts with 80 % of its internal fuel: no need to fill the tanks.
+    - or one crate at a time, **Request a crate**: a fuel tank (2 400 kg), 20 laser or 20 radar Hellfires, 1 200 rounds of 30 mm, 20 Vikhr, 16 Ataka, 16 Shturm, 460 rounds of 2A42 HE or AP, 500 rounds of GSh-30, then load it like any CTLD crate.
 
     **Unload the Fat Cow crates** empties the hold, to make up another loadout.
 3. Fly to where the attack helicopters need you, and land.
@@ -54,7 +61,8 @@ So you can lift off to hover-taxi onto its FARP, or reposition, without the cow 
 
 **Fat Cow status** tells where your flight's cow is (phase, distance and bearing), when it should join, and what it still holds, before it has landed too.
 
-**Request a Fat Cow** opens the list of loadouts, the same as a piloted cow's: pick what your flight needs.
+**Request a Fat Cow** opens the list of loadouts, the same as a piloted cow's (Apache at the top, **Russian** and **Mixed** one level down): pick what your flight needs.
+It is always a CH-47, whatever you fly.
 One cow per flight.
 
 !!! tip "Land in the open"

@@ -286,11 +286,9 @@ Quatre tests (`test_install`, `test_inject_into_miz`) échouent en local quand `
 qu'ils passent contre la version commitée utilisée par le CI. Idée : les faire partir d'une copie « pristine »
 comme le fait déjà la fixture `pristine_miz`, ou d'une fixture minimale indépendante de la mission de dev.
 
-## Fat Cow — profils pour les hélicos russes (lot 2)
-
-Décidé par Zip le 2026-10-27, après FEAT-FAT-COW : des lots de chargement pour Ka-50 (Vikhr `Vikhr_M`, 45 kg) et Mi-24P (Ataka `Ataka_9M120`, 49,5 kg ; Shturm `AT_6`, 35,4 kg ; 30 mm 2A42 / GSh-30-2K), portés par une cow IA **Mi-26** (IA seulement dans DCS ; 56 000 kg max, 28 890 kg à vide, 9 600 kg de carburant, soit 19 430 kg de charge utile à 80 % de carburant).
-Le réel : le Mi-26TZ est la vraie cow russe.
-À cadrer : le choix du type de cow et des lots selon l'appareil du demandeur (un pilote de Ka-50 ne voit pas les lots Apache), et la mesure en jeu des noms d'entrepôt (`weapons.missiles.Vikhr_M`, `Ataka_9M120`, `AT_6`, obus `2A42_30_HE`…), aucun n'étant vérifié.
+<!-- Fat Cow — profils pour les hélicos russes (lot 2) : fait dans FEAT-FAT-COW (PR #273), avec un CH-47 pour
+     tout le monde (Zip, 2026-10-27 : c'est le module pilotable) et des sous-menus Russes et Mixtes ; la cow Mi-26
+     a été écartée. -->
 
 ## Fat Cow — Mi-8 piloté en « petite cow » (lot 3, optionnel)
 

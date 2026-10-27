@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.33"
+ctld.i18n["ko"].translation_version = "1.34"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -575,3 +575,25 @@ ctld.i18n["ko"]["laser Hellfire"] = "레이저 헬파이어"
 ctld.i18n["ko"]["Load"] = "적재"
 ctld.i18n["ko"]["radar Hellfire"] = "레이더 헬파이어"
 ctld.i18n["ko"]["Request a crate"] = "상자 요청"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-27
+ctld.i18n["ko"]["20 Hellfires (12 laser, 8 radar), 20 Vikhr, 1200 + 460 rounds"] = "헬파이어 20발 (레이저 12, 레이더 8), 비흐르 20발, 1200 + 460발"
+ctld.i18n["ko"]["20 laser Hellfires, 16 Ataka, 1200 + 500 rounds"] = "레이저 헬파이어 20발, 아타카 16발, 1200 + 500발"
+ctld.i18n["ko"]["2A42 AP rounds"] = "2A42 철갑탄"
+ctld.i18n["ko"]["2A42 HE rounds"] = "2A42 고폭탄"
+ctld.i18n["ko"]["32 Ataka, 500 rounds (Mi-24P)"] = "아타카 32발, 500발 (Mi-24P)"
+ctld.i18n["ko"]["32 Shturm, 500 rounds (Mi-24P)"] = "슈투름 32발, 500발 (Mi-24P)"
+ctld.i18n["ko"]["40 Vikhr, 920 rounds (Ka-50)"] = "비흐르 40발, 920발 (Ka-50)"
+ctld.i18n["ko"]["60 Vikhr, 460 rounds (Ka-50)"] = "비흐르 60발, 460발 (Ka-50)"
+ctld.i18n["ko"]["Ataka"] = "아타카"
+ctld.i18n["ko"]["Fat Cow 2A42 AP (x460)"] = "Fat Cow 2A42 철갑탄 (x460)"
+ctld.i18n["ko"]["Fat Cow 2A42 HE (x460)"] = "Fat Cow 2A42 고폭탄 (x460)"
+ctld.i18n["ko"]["Fat Cow Ataka (x16)"] = "Fat Cow 아타카 (x16)"
+ctld.i18n["ko"]["Fat Cow GSh-30 (x500)"] = "Fat Cow GSh-30 (x500)"
+ctld.i18n["ko"]["Fat Cow Shturm (x16)"] = "Fat Cow 슈투름 (x16)"
+ctld.i18n["ko"]["Fat Cow Vikhr (x20)"] = "Fat Cow 비흐르 (x20)"
+ctld.i18n["ko"]["GSh-30 rounds"] = "GSh-30 탄"
+ctld.i18n["ko"]["Mixed"] = "혼합"
+ctld.i18n["ko"]["Russian"] = "러시아"
+ctld.i18n["ko"]["Shturm"] = "슈투름"
+ctld.i18n["ko"]["Vikhr"] = "비흐르"

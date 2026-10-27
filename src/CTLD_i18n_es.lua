@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.33"
+ctld.i18n["es"].translation_version = "1.34"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -693,3 +693,25 @@ ctld.i18n["es"]["laser Hellfire"] = "Hellfire láser"
 ctld.i18n["es"]["Load"] = "Cargar"
 ctld.i18n["es"]["radar Hellfire"] = "Hellfire radar"
 ctld.i18n["es"]["Request a crate"] = "Solicitar una caja"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-27
+ctld.i18n["es"]["20 Hellfires (12 laser, 8 radar), 20 Vikhr, 1200 + 460 rounds"] = "20 Hellfire (12 láser, 8 radar), 20 Vikhr, 1200 + 460 proyectiles"
+ctld.i18n["es"]["20 laser Hellfires, 16 Ataka, 1200 + 500 rounds"] = "20 Hellfire láser, 16 Ataka, 1200 + 500 proyectiles"
+ctld.i18n["es"]["2A42 AP rounds"] = "proyectiles perforantes de 2A42"
+ctld.i18n["es"]["2A42 HE rounds"] = "proyectiles explosivos de 2A42"
+ctld.i18n["es"]["32 Ataka, 500 rounds (Mi-24P)"] = "32 Ataka, 500 proyectiles (Mi-24P)"
+ctld.i18n["es"]["32 Shturm, 500 rounds (Mi-24P)"] = "32 Shturm, 500 proyectiles (Mi-24P)"
+ctld.i18n["es"]["40 Vikhr, 920 rounds (Ka-50)"] = "40 Vikhr, 920 proyectiles (Ka-50)"
+ctld.i18n["es"]["60 Vikhr, 460 rounds (Ka-50)"] = "60 Vikhr, 460 proyectiles (Ka-50)"
+ctld.i18n["es"]["Ataka"] = "Ataka"
+ctld.i18n["es"]["Fat Cow 2A42 AP (x460)"] = "2A42 perforantes Fat Cow (x460)"
+ctld.i18n["es"]["Fat Cow 2A42 HE (x460)"] = "2A42 explosivos Fat Cow (x460)"
+ctld.i18n["es"]["Fat Cow Ataka (x16)"] = "Ataka Fat Cow (x16)"
+ctld.i18n["es"]["Fat Cow GSh-30 (x500)"] = "GSh-30 Fat Cow (x500)"
+ctld.i18n["es"]["Fat Cow Shturm (x16)"] = "Shturm Fat Cow (x16)"
+ctld.i18n["es"]["Fat Cow Vikhr (x20)"] = "Vikhr Fat Cow (x20)"
+ctld.i18n["es"]["GSh-30 rounds"] = "proyectiles de GSh-30"
+ctld.i18n["es"]["Mixed"] = "Mixtos"
+ctld.i18n["es"]["Russian"] = "Rusos"
+ctld.i18n["es"]["Shturm"] = "Shturm"
+ctld.i18n["es"]["Vikhr"] = "Vikhr"

@@ -39,8 +39,8 @@ Tous dans la famille `fob` de la configuration.
 |---|---|---|
 | `fatCowEnabled` | `true` | Le menu F10 **Fat Cow** et les caisses cow. |
 | `fatCowTypes` | `[CH-47Fbl1]` | Types qu'un joueur peut piloter en cow. Chacun doit aussi être un transport dans `capabilitiesByType`. |
-| `fatCowCrates` | réservoir, 20 Hellfire laser, 20 Hellfire radar, 1 200 obus de 30 mm | Les caisses dans lesquelles une cow pilotée emporte son stock (voir plus bas). |
-| `fatCowLoadouts` | quatre lots Hellfire et 30 mm, chacun avec 4 800 kg de carburant | Ce qu'emporte une cow : chargé par une cow pilotée, choisi par une patrouille qui demande une cow IA (voir plus bas). |
+| `fatCowCrates` | réservoir ; Hellfire et 30 mm (Apache) ; Vikhr et obus de 2A42 (Ka-50) ; Ataka, Shturm et obus de GSh-30 (Mi-24P) | Les caisses dans lesquelles une cow pilotée emporte son stock (voir plus bas). |
+| `fatCowLoadouts` | quatre lots Apache, quatre russes et deux mixtes, chacun avec 4 800 kg de carburant | Ce qu'emporte une cow : chargé par une cow pilotée, choisi par une patrouille qui demande une cow IA (voir plus bas). |
 | `fatCowDeployDelay` | `60` | Secondes qu'une cow IA passe au sol avant que sa FARP ouvre. |
 | `fatCowAIType` | `CH-47Fbl1` | Type de l'hélicoptère amené quand une patrouille demande une cow. Vide, **Demander une Fat Cow** disparaît. |
 | `fatCowAICows` | `[]` | Cows placées dans la mission (voir plus bas). |
@@ -63,12 +63,30 @@ fatCowLoadouts:
 ```
 
 Une cow pilotée les trouve sous **Charger**, dans une zone logistique ; une patrouille qui demande une cow IA en choisit un sous **Demander une Fat Cow**.
-Les quatre lots par défaut emportent tous deux réservoirs de 800 gal (4 800 kg), avec 40 Hellfire (25 laser, 15 radar) et 2 400 obus, 60 Hellfire (38 laser, 22 radar) et 1 200 obus, 40 Hellfire laser et 2 400 obus, ou 60 Hellfire laser et 1 200 obus.
-Ils pèsent de 7 800 à 8 200 kg, sous les 8 837 kg qu'emporte un CH-47F avec 80 % de son carburant interne (22 680 kg au plus, 11 400 kg à vide, 2 444 kg de carburant, d'après la base d'unités de DCS) ; une cow IA reçoit ces 80 %.
+Un lot avec `menu: russian` ou `menu: mixed` apparaît dans le sous-menu **Russes** ou **Mixtes**, un lot sans `menu` en tête.
+La cow est toujours un CH-47 (`fatCowAIType`), quel que soit le lot et quel que soit l'appareil du demandeur : c'est le module que les joueurs pilotent en cow.
+
+Les lots par défaut emportent tous deux réservoirs de 800 gal (4 800 kg) :
+
+| Menu | Lot | Armes | Total |
+|---|---|---|---|
+| en tête | Apache | 40 Hellfire (25 laser, 15 radar), 2 400 obus de 30 mm | 7 868 kg |
+| en tête | Apache | 60 Hellfire (38 laser, 22 radar), 1 200 obus | 8 199 kg |
+| en tête | Apache | 40 Hellfire laser, 2 400 obus | 7 812 kg |
+| en tête | Apache | 60 Hellfire laser, 1 200 obus | 8 118 kg |
+| Russes | Ka-50 | 40 Vikhr, 460 obus de 2A42 explosifs et 460 perforants | 7 382 kg |
+| Russes | Ka-50 | 60 Vikhr, 230 obus de 2A42 explosifs et 230 perforants | 7 891 kg |
+| Russes | Mi-24P | 32 Ataka, 500 obus de GSh-30 | 6 809 kg |
+| Russes | Mi-24P | 32 Shturm, 500 obus de GSh-30 | 6 358 kg |
+| Mixtes | Apache + Ka-50 | 20 Hellfire (12 laser, 8 radar), 20 Vikhr, 1 200 obus de 30 mm, 460 de 2A42 | 7 627 kg |
+| Mixtes | Apache + Mi-24P | 20 Hellfire laser, 16 Ataka, 1 200 obus de 30 mm, 500 de GSh-30 | 7 523 kg |
+
+Tous restent sous les 8 837 kg qu'emporte un CH-47F avec 80 % de son carburant interne (22 680 kg au plus, 11 400 kg à vide, 2 444 kg de carburant, d'après la base d'unités de DCS) ; une cow IA reçoit ces 80 %.
+Les masses des missiles sont celles du data mine DCS (AGM-114K 45,3 kg, AGM-114L 49 kg, Vikhr 45 kg, Ataka 49,5 kg, Shturm 35,4 kg) ; les obus comptent 0,5 kg (30 mm de l'Apache) et 0,85 kg (30 × 165 russe) emballage compris, une estimation.
 
 `item` est le nom que DCS donne à l'arme dans un entrepôt.
 `weapons.missiles.AGM_114K` a été vérifié en jeu pour le Hellfire laser.
-`weapons.missiles.AGM_114` (l'AGM-114L, d'après le data mine DCS) et `weapons.shells.M230_HEDP M789` (les obus de l'Apache) ne sont pas encore vérifiés comme articles d'entrepôt.
+Les autres viennent du data mine DCS et ne sont pas encore vérifiés comme articles d'entrepôt : `weapons.missiles.AGM_114` (AGM-114L), `weapons.shells.M230_HEDP M789` (les obus de l'Apache), `weapons.missiles.Vikhr_M`, `weapons.missiles.Ataka_9M120`, `weapons.missiles.AT_6` (Shturm), `weapons.shells.2A42_30_HE` et `2A42_30_AP` (Ka-50), `weapons.shells.GSh_30_2K_HE` (Mi-24P).
 
 ### Caisses cow
 
@@ -86,8 +104,8 @@ fatCowCrates:
 ```
 
 Une entrée a soit `fuelKg`, soit `item` et `count` ; une caisse en partie pleine pèse sa part.
-Par défaut : un réservoir de 800 gal (2 400 kg), 20 Hellfire laser (906 kg), 20 Hellfire radar (980 kg) et 1 200 obus de 30 mm (600 kg, 0,5 kg par obus emballage compris : une estimation).
-Chaque lot par défaut tient en 6 ou 7 caisses ; un lot qui dépasserait le `maxCratesOnboard` de l'appareil (8 pour le CH-47F) est refusé, tout comme un lot qui emporte un article qu'aucune caisse ne porte.
+Par défaut : un réservoir de 800 gal (2 400 kg) ; 20 Hellfire laser (906 kg), 20 Hellfire radar (980 kg), 1 200 obus de 30 mm (600 kg) ; 20 Vikhr (900 kg), 460 obus de 2A42 explosifs ou perforants (391 kg chacun) ; 16 Ataka (792 kg), 16 Shturm (566 kg), 500 obus de GSh-30 (425 kg).
+Chaque lot par défaut tient en 5 à 8 caisses ; un lot qui dépasserait le `maxCratesOnboard` de l'appareil (8 pour le CH-47F) est refusé, tout comme un lot qui emporte un article qu'aucune caisse ne porte.
 **Demander une caisse** amène une caisse pleine à la fois.
 Les caisses cow n'apparaissent ni dans **Request Equipment** ni dans **Unpack Crate**.
 

@@ -15,9 +15,16 @@ Tout se trouve dans **F10 → CTLD → Fat Cow**.
 1. Posez-vous dans une zone logistique.
 2. Chargez ce que vous voulez emporter :
     - **Charger**, puis un lot : les caisses vont directement en soute.
-      Chaque lot emporte deux réservoirs de 800 gal (4 800 kg de carburant jet) et au choix : 40 Hellfire (25 laser, 15 radar) et 2 400 obus de 30 mm ; 60 Hellfire (38 laser, 22 radar) et 1 200 obus ; 40 Hellfire laser et 2 400 obus ; 60 Hellfire laser et 1 200 obus.
-      Cela fait de 7 800 à 8 200 kg en 6 ou 7 caisses, ce qu'emporte un CH-47F avec 80 % de son carburant interne : inutile de faire le plein.
-    - ou une caisse à la fois, **Demander une caisse** : un réservoir (2 400 kg), 20 Hellfire laser, 20 Hellfire radar ou 1 200 obus de 30 mm, puis chargez-la comme n'importe quelle caisse CTLD.
+      Chaque lot emporte deux réservoirs de 800 gal (4 800 kg de carburant jet) et des armes :
+
+      | Menu | Lots |
+      |---|---|
+      | **Charger** (Apache) | 40 Hellfire (25 laser, 15 radar) et 2 400 obus de 30 mm ; 60 Hellfire (38 laser, 22 radar) et 1 200 obus ; 40 Hellfire laser et 2 400 obus ; 60 Hellfire laser et 1 200 obus |
+      | **Charger → Russes** | Ka-50 : 40 Vikhr et 920 obus de 2A42 (moitié explosifs, moitié perforants), ou 60 Vikhr et 460 obus ; Mi-24P : 32 Ataka ou 32 Shturm, avec 500 obus de GSh-30 |
+      | **Charger → Mixtes** | 20 Hellfire (12 laser, 8 radar), 20 Vikhr, 1 200 obus de 30 mm et 460 de 2A42 ; 20 Hellfire laser, 16 Ataka, 1 200 obus de 30 mm et 500 de GSh-30 |
+
+      Cela fait de 6 400 à 8 200 kg en 5 à 8 caisses, ce qu'emporte un CH-47F avec 80 % de son carburant interne : inutile de faire le plein.
+    - ou une caisse à la fois, **Demander une caisse** : un réservoir (2 400 kg), 20 Hellfire laser ou 20 radar, 1 200 obus de 30 mm, 20 Vikhr, 16 Ataka, 16 Shturm, 460 obus de 2A42 explosifs ou perforants, 500 obus de GSh-30, puis chargez-la comme n'importe quelle caisse CTLD.
 
     **Décharger les caisses Fat Cow** vide la soute, pour composer un autre lot.
 3. Volez jusqu'aux hélicoptères d'attaque qui ont besoin de vous, et posez-vous.
@@ -54,7 +61,8 @@ Vous pouvez donc redécoller pour vous déplacer en stationnaire jusqu'à sa FAR
 
 **Statut Fat Cow** dit où est la cow de votre patrouille (phase, distance et relèvement), quand elle devrait vous rejoindre, et ce qu'elle contient encore, y compris avant qu'elle se soit posée.
 
-**Demander une Fat Cow** ouvre la liste des lots, les mêmes que ceux d'une cow pilotée : choisissez ce dont votre patrouille a besoin.
+**Demander une Fat Cow** ouvre la liste des lots, les mêmes que ceux d'une cow pilotée (Apache en tête, **Russes** et **Mixtes** un niveau plus bas) : choisissez ce dont votre patrouille a besoin.
+C'est toujours un CH-47, quel que soit votre appareil.
 Une cow par patrouille.
 
 !!! tip "Posez-vous à découvert"

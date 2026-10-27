@@ -294,6 +294,30 @@ mm_facing:
     weight: 600
     item: weapons.shells.M230_HEDP M789
     count: 1200
+  - desc: Fat Cow Vikhr (x20)
+    weight: 900
+    item: weapons.missiles.Vikhr_M
+    count: 20
+  - desc: Fat Cow Ataka (x16)
+    weight: 792
+    item: weapons.missiles.Ataka_9M120
+    count: 16
+  - desc: Fat Cow Shturm (x16)
+    weight: 566
+    item: weapons.missiles.AT_6
+    count: 16
+  - desc: Fat Cow 2A42 HE (x460)
+    weight: 391
+    item: weapons.shells.2A42_30_HE
+    count: 460
+  - desc: Fat Cow 2A42 AP (x460)
+    weight: 391
+    item: weapons.shells.2A42_30_AP
+    count: 460
+  - desc: Fat Cow GSh-30 (x500)
+    weight: 425
+    item: weapons.shells.GSh_30_2K_HE
+    count: 500
   fatCowDeployDelay: 60
   fatCowEnabled: true
   fatCowLoadouts:
@@ -329,6 +353,70 @@ mm_facing:
       count: 60
     - item: weapons.shells.M230_HEDP M789
       count: 1200
+  - desc: 40 Vikhr, 920 rounds (Ka-50)
+    menu: russian
+    fuelKg: 4800
+    items:
+    - item: weapons.missiles.Vikhr_M
+      count: 40
+    - item: weapons.shells.2A42_30_HE
+      count: 460
+    - item: weapons.shells.2A42_30_AP
+      count: 460
+  - desc: 60 Vikhr, 460 rounds (Ka-50)
+    menu: russian
+    fuelKg: 4800
+    items:
+    - item: weapons.missiles.Vikhr_M
+      count: 60
+    - item: weapons.shells.2A42_30_HE
+      count: 230
+    - item: weapons.shells.2A42_30_AP
+      count: 230
+  - desc: 32 Ataka, 500 rounds (Mi-24P)
+    menu: russian
+    fuelKg: 4800
+    items:
+    - item: weapons.missiles.Ataka_9M120
+      count: 32
+    - item: weapons.shells.GSh_30_2K_HE
+      count: 500
+  - desc: 32 Shturm, 500 rounds (Mi-24P)
+    menu: russian
+    fuelKg: 4800
+    items:
+    - item: weapons.missiles.AT_6
+      count: 32
+    - item: weapons.shells.GSh_30_2K_HE
+      count: 500
+  - desc: 20 Hellfires (12 laser, 8 radar), 20 Vikhr, 1200 + 460 rounds
+    menu: mixed
+    fuelKg: 4800
+    items:
+    - item: weapons.missiles.AGM_114K
+      count: 12
+    - item: weapons.missiles.AGM_114
+      count: 8
+    - item: weapons.missiles.Vikhr_M
+      count: 20
+    - item: weapons.shells.M230_HEDP M789
+      count: 1200
+    - item: weapons.shells.2A42_30_HE
+      count: 230
+    - item: weapons.shells.2A42_30_AP
+      count: 230
+  - desc: 20 laser Hellfires, 16 Ataka, 1200 + 500 rounds
+    menu: mixed
+    fuelKg: 4800
+    items:
+    - item: weapons.missiles.AGM_114K
+      count: 20
+    - item: weapons.missiles.Ataka_9M120
+      count: 16
+    - item: weapons.shells.M230_HEDP M789
+      count: 1200
+    - item: weapons.shells.GSh_30_2K_HE
+      count: 500
   fatCowTypes:
   - CH-47Fbl1
   fobCrateCollectionRadius: 750

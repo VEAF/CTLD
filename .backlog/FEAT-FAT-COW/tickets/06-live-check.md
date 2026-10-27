@@ -96,6 +96,7 @@ Fixed on 2026-10-27, in this PR (Zip's lot 1):
 3. Another player takes a slot, then **FARP status** at the cow: the stock has not jumped to 50 000 kg (VMCT's refill is undone).
 4. Take off (the FARP packs), land 2 km further, deploy again: on the F10 map, **one** FARP for the cow, now at the new spot, and no new one at the old spot.
 5. Apache: **Request a Fat Cow** → **60 laser Hellfires, 1200 rounds**; **Land here**, wait for the FARP, then **Take off**: the cow lifts off and does **not** blow up.
+6. Ka-50: **Request a Fat Cow** → **Russian** → **40 Vikhr, 920 rounds (Ka-50)**; rearm with Vikhr and the gun at its FARP. Mi-24P: same with **32 Ataka, 500 rounds (Mi-24P)**. Each refused item ("We don't have this in stock") is a warehouse name to correct: tell the session which.
 
 ## Reading the results
 

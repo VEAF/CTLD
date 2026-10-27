@@ -262,6 +262,27 @@ describe("Fat Cow loadouts", function()
         end
     end)
 
+    it("lists the Apache loadouts at the top, the Russian and mixed ones in their submenus", function()
+        local subs, cmds = {}, {}
+        local menu = {
+            addSubMenu = function(_, path, name) subs[#subs + 1] = table.concat(path, "/") .. "/" .. name end,
+            addCommand = function(_, path, label, fn, arg) cmds[#cmds + 1] = { path = table.concat(path, "/"), label = label, fn = fn, arg = arg } end,
+        }
+        mgr:_addLoadoutCommands(menu, { "CTLD", "Fat Cow", "Load" }, "Cow-1", "loadLoadout")
+        assert.same({ "CTLD/Fat Cow/Load/Russian", "CTLD/Fat Cow/Load/Mixed" }, subs)
+        local where = {}
+        for _, c in ipairs(cmds) do where[c.path] = (where[c.path] or 0) + 1 end
+        assert.equals(4, where["CTLD/Fat Cow/Load"])
+        assert.equals(4, where["CTLD/Fat Cow/Load/Russian"])
+        assert.equals(2, where["CTLD/Fat Cow/Load/Mixed"])
+        local called
+        local savedLoad = mgr.loadLoadout
+        mgr.loadLoadout = function(_, unitName, index) called = { unitName, index } end
+        cmds[5].fn(cmds[5].arg)
+        mgr.loadLoadout = savedLoad
+        assert.same({ "Cow-1", 5 }, called)
+    end)
+
     it("finds the crates by what they carry, whatever their translated name", function()
         mgr._crateDescs = {
             { weight = 2400, desc = "Réservoir Fat Cow (800 gal)", fatCow = { fuelKg = 2400 } },
