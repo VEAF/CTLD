@@ -388,6 +388,7 @@ local TAKE_OVER_REFRESH_S = 30
 --- Every cow FARP: an open one gets its stock read and written back (see resyncWarehouse), any other is
 -- emptied (it stays in the world, and a refill would make it serve next to another cow's depot).
 function CTLDFatCowManager:_resyncFarps()
+    self:_forgetVanishedCows()
     local open = {}
     for _, cow in pairs(self._cows) do
         if cow.state == CTLDFatCow.STATE_DEPLOYED then
@@ -730,15 +731,33 @@ end
 -- removed the unit.
 function CTLDFatCowManager:onDead(event)
     local name = ctld.utils.safeObjectName(event and event.initiator)
-    if name and self._cows[name] then
-        local cow   = self._cows[name]
-        local wasAI = cow.ai ~= nil
-        self:removeCow(name)
-        self:_forgetAICow(name)
-        if wasAI then self:_releaseFarpName(name) end   -- a piloted slot keeps its FARP for the next pilot
-        if wasAI and self:_isTakeable(cow) then self:_rebuildMenus(cow.coalitionId) end
-    end
+    if name and self._cows[name] then self:_cowGone(name) end
     self:_checkFlightsLater()
+end
+
+--- A cow is gone for good: its FARP is packed and, for an AI cow, its name released and its flight freed.
+function CTLDFatCowManager:_cowGone(name)
+    local cow   = self._cows[name]
+    local wasAI = cow.ai ~= nil
+    self:removeCow(name)
+    self:_forgetAICow(name)
+    if wasAI then self:_releaseFarpName(name) end   -- a piloted slot keeps its FARP for the next pilot
+    if wasAI and self:_isTakeable(cow) then self:_rebuildMenus(cow.coalitionId) end
+end
+
+--- An AI cow whose unit is no longer in the world is gone, event or not: one that struck a tree landing
+-- fired S_EVENT_HIT and S_EVENT_KILL, never S_EVENT_DEAD, S_EVENT_CRASH nor S_EVENT_UNIT_LOST, and stayed
+-- registered, its flight refused another cow (FIX-FAT-COW-AI-LANDING, 2026-10-30).
+function CTLDFatCowManager:_forgetVanishedCows()
+    local gone = {}
+    for name, cow in pairs(self._cows) do
+        local u = cow.ai and Unit.getByName(name)
+        if cow.ai and not (u and u:isExist()) then gone[#gone + 1] = name end
+    end
+    for _, name in ipairs(gone) do
+        ctld.utils.log("WARN", "CTLDFatCowManager: cow '%s' is no longer in the world, with no event: forgotten", name)
+        self:_cowGone(name)
+    end
 end
 
 function CTLDFatCowManager:onPlayerLeave(_)
@@ -850,6 +869,14 @@ CTLDFatCowManager.PHASE_HOLDING   = "holding"     -- orbiting, on "Take off" or 
 local AI_COW_FUEL_KG   = 2444
 local FOLLOW_OFFSET    = { x = -200, y = 60, z = 150 }   -- behind, above and to the right of the leader
 local LAND_OFFSET_M    = 120                              -- landing point, to the leader's left
+-- The clearing searched around it, within VMCT's helicopter search radius (veafAircraftSpawn
+-- HELICOPTER_LZ_SEARCH, veaf.SPAWN_SEARCH_ATTEMPTS), and never on the leader. The clearance descends as
+-- veaf.findSpawnPoint's does: the widest first. 30 m (VMCT's HELICOPTER_LZ_CLEARANCE, for a Mi-8) put the
+-- cow next to the only tree of an open field, which a CH-47 drifting down at 3 m/s struck (2026-10-30).
+local LZ_SEARCH_M          = 300
+local LZ_CLEARANCES_M      = { 100, 50, 30 }
+local LZ_ATTEMPTS          = 10
+local LZ_MIN_FROM_LEADER_M = 60
 local CRUISE_SPEED_MPS = 60
 local CRUISE_ALT_M     = 150
 local ORBIT_SPEED_MPS  = 40
@@ -947,13 +974,55 @@ function CTLDFatCowManager:_follow(cow)
     return true
 end
 
+--- The nearest point to `point` within LZ_SEARCH_M, `clearance` clear of scenery, on land and
+-- LZ_MIN_FROM_LEADER_M from the leader, or nil (none, or the call failed).
+local function clearingAt(point, leaderPoint, clearance)
+    local ok, candidates = pcall(Disposition.getSimpleZones, point, LZ_SEARCH_M, clearance, LZ_ATTEMPTS)
+    if not (ok and type(candidates) == "table") then return nil end
+    local best, bestD
+    for _, c in ipairs(candidates) do
+        -- A candidate may be a vec2, whose y is the map's z (VMCT's horizontalDistance convention).
+        local q = type(c) == "table" and c.x and { x = c.x, z = c.z or c.y }
+        if q and q.z then
+            local d = math.sqrt((q.x - point.x) ^ 2 + (q.z - point.z) ^ 2)
+            local fromLeader = math.sqrt((q.x - leaderPoint.x) ^ 2 + (q.z - leaderPoint.z) ^ 2)
+            local okS, s = pcall(land.getSurfaceType, { x = q.x, y = q.z })
+            local wet = okS and (s == land.SurfaceType.WATER or s == land.SurfaceType.SHALLOW_WATER)
+            if d <= LZ_SEARCH_M and fromLeader >= LZ_MIN_FROM_LEADER_M and not wet and (not bestD or d < bestD) then
+                best, bestD = q, d
+            end
+        end
+    end
+    return best and { x = best.x, y = land.getHeight({ x = best.x, y = best.z }), z = best.z }
+end
+
+--- Where a cow lands near `point`: the nearest clearing with the widest clearance of LZ_CLEARANCES_M that
+-- offers one, else `point`. Searched with Disposition.getSimpleZones, the undocumented DCS singleton VMCT's
+-- veaf.findSpawnPoint lands its helicopters with (measured 2026-08-06: its points avoid buildings and
+-- forests), so guarded: an absent singleton or an error keeps `point`. The cow sent 120 m left of its
+-- leader struck a tree there (FIX-FAT-COW-AI-LANDING, 2026-10-30).
+local function clearLandingPoint(point, leaderPoint)
+    if not (Disposition and Disposition.getSimpleZones) then return point end
+    for _, clearance in ipairs(LZ_CLEARANCES_M) do
+        local q = clearingAt(point, leaderPoint, clearance)
+        if q then return q end
+    end
+    return point
+end
+
 function CTLDFatCowManager:_landNextTo(cow, leader)
     local ctrl = controllerOf(cow.ai.groupName)
     if not ctrl then return end
     local p   = leader:getPoint()
     local hdg = ctld.utils.getHeadingInRadians("CTLDFatCowManager", leader, true)
     local left = hdg - math.pi / 2
-    ctrl:setTask(landMission({ x = p.x + math.cos(left) * LAND_OFFSET_M, y = p.y, z = p.z + math.sin(left) * LAND_OFFSET_M }))
+    local asked = { x = p.x + math.cos(left) * LAND_OFFSET_M, y = p.y, z = p.z + math.sin(left) * LAND_OFFSET_M }
+    local point = clearLandingPoint(asked, p)
+    if point ~= asked then
+        ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' lands in a clearing %d m from the asked point",
+            cow.unitName, math.floor(math.sqrt((point.x - asked.x) ^ 2 + (point.z - asked.z) ^ 2) + 0.5))
+    end
+    ctrl:setTask(landMission(point))
     cow.ai.phase = CTLDFatCowManager.PHASE_LANDING
 end
 

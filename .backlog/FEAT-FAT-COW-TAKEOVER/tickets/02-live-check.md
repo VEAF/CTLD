@@ -57,6 +57,12 @@ Or the server variant on Privé 1 with this build: any two AH-64D slots in diffe
     Player 1 gets, within a few seconds, `A Fat Cow lost its flight and is going home to LGZ_cowbase_B: … km at …° from you, with …`. 📸
     Without a second player: Claude kills the `Hawk` leader through the bridge (`trigger.action.explosion` on its position) once `Fat Cow Hawk` has landed with it, while Zip sits in **Gunfighter**; the message then says "going home" without a zone name (a mission-placed cow).
 
+## Result so far (2026-10-30, `tests/dcs/pilotPassive/scenario_fatcow_takeover.lua` on `Test_FatCow_Takeover.miz`, nobody flying)
+
+- 1 and 2: **PASS**. Hawk removed while its cow served on the ground 1.3 km from home: the cow stayed, lifted off 20 s after the re-task, was taken over by the AI flight `Viper` 3 km away and closed on it; sent RTB, it landed home and despawned.
+- 3: released **in flight** (holding), then taken back: PASS. A release on the ground, and the FARP packing on the take-over that follows, are not checked yet (C).
+- 4: the lost-flight and released messages reached Gunfighter's group with distance and bearing; the submenu's content is not checked yet (A 5–6, B 9).
+
 ## Log lines expected (`dcs.log`)
 
 - `CTLDFatCowManager: cow '…' lost flight '…', offered for take-over`, or `… released by flight '…', offered for take-over`
