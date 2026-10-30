@@ -65,6 +65,14 @@ Vous pouvez donc redécoller pour vous déplacer en stationnaire jusqu'à sa FAR
 C'est toujours un CH-47, quel que soit votre appareil.
 Une cow par patrouille.
 
+### Quand une cow perd sa patrouille
+
+Si la patrouille qu'une cow sert est abattue, ou si son dernier joueur quitte son slot, la cow replie sa FARP et rentre à la base.
+S'il lui reste quelque chose, chaque patrouille de joueurs de sa coalition qui n'a pas de cow est prévenue : où elle est par rapport à vous, où elle rentre et ce qu'elle transporte.
+**Reprendre une Fat Cow** apparaît alors dans leur menu **Fat Cow** : la première patrouille qui l'utilise prend la cow concernée la plus proche, qui la rejoint et obéit à ses commandes comme si elle l'avait demandée.
+La commande disparaît dès que la cow est reprise, rentrée à la base ou abattue.
+Une cow renvoyée avec **Rentre à la base**, ou vide, n'est pas proposée.
+
 !!! tip "Posez-vous à découvert"
     Choisissez un terrain dégagé pour **Atterris ici** : un hélicoptère envoyé se poser en lisière de forêt y reste en stationnaire sans jamais toucher le sol.
 

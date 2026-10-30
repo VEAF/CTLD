@@ -1,6 +1,6 @@
 # 01 — despawn only at home, announce the orphan, take it over
 
-Status: in progress
+Status: done
 
 See the [PRD](../PRD.md).
 

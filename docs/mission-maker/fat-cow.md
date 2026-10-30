@@ -129,6 +129,7 @@ fatCowAICows:
 CTLD activates the cow as soon as the escorted group is in the world: at mission start for an AI flight, or when the first player takes a slot of a client flight.
 If the escorted flight is an AI flight, the cow lands next to the leader when it lands, deploys after `fatCowDeployDelay`, packs and follows when the leader takes off, and flies back to where it started once empty: an AI flight cannot use the menu.
 If it is a client flight, its players command the cow from F10, as a requested one.
+If the escorted flight is lost, the cow flies back to where it started, and any player flight of its coalition without a cow can take it over from F10 on the way (**Take over a Fat Cow**, see the pilot guide).
 
 At start, CTLD logs what DCS reports for the warehouse of the mission's FARPs (`FARP warehouse '<name>': jet fuel …`): a measurement before **FARP status** covers every FARP, and not only Fat Cow ones.
 
