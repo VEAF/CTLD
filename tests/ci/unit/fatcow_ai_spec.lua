@@ -601,6 +601,96 @@ describe("AI Fat Cow", function()
         assert.is_nil(aiMenuOf(p)["Take over a Fat Cow"])
     end)
 
+    -- ── FIX-FAT-COW-AI-LANDING ───────────────────────────────────────────────────────────────────
+
+    -- The Land task point the cow was last given, as { x, z }.
+    local function landPoint(cow)
+        local p = lastTask(cow.ai.groupName).params.route.points[1].task.params.tasks[1].params.point
+        return { x = p.x, z = p.y }
+    end
+
+    describe("landing next to the leader", function()
+        local savedDisposition, asked
+        before_each(function()
+            savedDisposition, asked = Disposition, nil
+        end)
+        after_each(function() Disposition = savedDisposition end)
+
+        local function disposition(candidates)
+            Disposition = { getSimpleZones = function(p, radius, clearance, attempts)
+                asked = { p = p, radius = radius, clearance = clearance, attempts = attempts }
+                return candidates
+            end }
+        end
+
+        it("lands in the nearest clearing around the point 120 m left of the leader", function()
+            disposition({
+                { x = 1000, y = 0, z = 1950 },     -- 50 m from the leader: too close
+                { x = 1000, y = 0, z = 1700 },     -- 180 m from the asked point
+                { x = 1100, y = 0, z = 1880 },     -- 100 m: the one
+                { x = 1500, y = 0, z = 1880 },     -- 500 m: out of the search radius
+            })
+            local leader, cow = flightWithCow()
+            mgr:onLand({ initiator = leader })
+            assert.equals(1000, asked.p.x)
+            assert.equals(1880, asked.p.z)
+            assert.equals(300, asked.radius)
+            assert.equals(30, asked.clearance)
+            assert.same({ x = 1100, z = 1880 }, landPoint(cow))
+        end)
+
+        it("reads a candidate given as a vec2 (y is the map z)", function()
+            disposition({ { x = 1050, y = 1800 } })
+            local leader, cow = flightWithCow()
+            mgr:onLand({ initiator = leader })
+            assert.same({ x = 1050, z = 1800 }, landPoint(cow))
+        end)
+
+        it("skips a clearing on water", function()
+            disposition({ { x = 1100, y = 0, z = 1880 } })
+            local leader, cow = flightWithCow()
+            local savedSurface = land.getSurfaceType
+            land.getSurfaceType = function() return land.SurfaceType.WATER end
+            mgr:onLand({ initiator = leader })
+            land.getSurfaceType = savedSurface
+            assert.same({ x = 1000, z = 1880 }, landPoint(cow))
+        end)
+
+        it("keeps the asked point without the singleton, on an error, or with no clearing", function()
+            Disposition = nil
+            local leader, cow = flightWithCow()
+            mgr:onLand({ initiator = leader })
+            assert.same({ x = 1000, z = 1880 }, landPoint(cow))
+            Disposition = { getSimpleZones = function() error("signature changed") end }
+            mgr:orderLandHere("Gunfighter-1")
+            units[cow.unitName].airborne = true
+            mgr:orderLandHere("Gunfighter-1")
+            assert.same({ x = 1000, z = 1880 }, landPoint(cow))
+            disposition({})
+            mgr:orderLandHere("Gunfighter-1")
+            assert.same({ x = 1000, z = 1880 }, landPoint(cow))
+        end)
+
+        it("searches a clearing for Land here too", function()
+            disposition({ { x = 1100, y = 0, z = 1880 } })
+            local _, cow = flightWithCow(true)
+            units[cow.unitName].airborne = true
+            mgr:orderLandHere("Gunfighter-1")
+            assert.same({ x = 1100, z = 1880 }, landPoint(cow))
+        end)
+    end)
+
+    it("forgets a cow whose unit vanished without an event, and its flight may request another", function()
+        local leader, cow = flightWithCow()
+        mgr:onLand({ initiator = leader })
+        units[cow.unitName] = nil                                           -- struck a tree: no DEAD, no CRASH
+        mgr:_resyncFarps()
+        assert.is_nil(mgr:getCow(cow.unitName))
+        assert.is_nil(mgr:aiCowOfFlight("Gunfighter"))
+        mgr:requestAICow("Gunfighter-1", 1)
+        assert.equals(2, #added)
+    end)
+
     it("orbits where it stands when released in the air", function()
         local _, cow = flightWithCow()
         units[cow.unitName].airborne = true

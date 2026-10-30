@@ -30,6 +30,8 @@ read_globals = {
     "dcsCommon", "mist",
     -- Optional external mods, always guarded at the call site (e.g. `if STTS and ...`)
     "STTS",
+    -- Undocumented DCS singleton (clearings free of scenery), guarded the same way
+    "Disposition",
     -- Legacy MM customization global (deprecated, guarded with type() checks)
     "ctld_config_user",
     -- Lua 5.1 stdlib present in DCS but not in luacheck min std
