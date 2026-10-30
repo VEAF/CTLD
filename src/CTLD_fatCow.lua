@@ -382,6 +382,8 @@ end
 -- How often every cow FARP is read and re-written: a refill run before CTLD reads hides what was taken
 -- since the last read (see readWarehouse), so the reads are kept close together.
 local RESYNC_PERIOD_S = 10
+-- How often the "Take over a Fat Cow" entries are rebuilt, their distances with them, while there are any.
+local TAKE_OVER_REFRESH_S = 30
 
 --- Every cow FARP: an open one gets its stock read and written back (see resyncWarehouse), any other is
 -- emptied (it stays in the world, and a refill would make it serve next to another cow's depot).
@@ -428,6 +430,10 @@ function CTLDFatCowManager:start()
         mgr:_resyncFarps()
         return now + RESYNC_PERIOD_S
     end, nil, timer.getTime() + RESYNC_PERIOD_S))
+    ctld.scheduler.register("fatCow_takeOverMenus", ctld.scheduler.schedule(function(_, now)
+        mgr:_refreshTakeOverMenus()
+        return now + TAKE_OVER_REFRESH_S
+    end, nil, timer.getTime() + TAKE_OVER_REFRESH_S))
     pcall(self._logFarpWarehouses, self)
     ctld.utils.log("INFO", "CTLDFatCowManager: started, %d cow crate type(s)", #self._crateDescs)
 end
@@ -725,10 +731,12 @@ end
 function CTLDFatCowManager:onDead(event)
     local name = ctld.utils.safeObjectName(event and event.initiator)
     if name and self._cows[name] then
-        local wasAI = self._cows[name].ai ~= nil
+        local cow   = self._cows[name]
+        local wasAI = cow.ai ~= nil
         self:removeCow(name)
         self:_forgetAICow(name)
         if wasAI then self:_releaseFarpName(name) end   -- a piloted slot keeps its FARP for the next pilot
+        if wasAI and self:_isTakeable(cow) then self:_rebuildMenus(cow.coalitionId) end
     end
     self:_checkFlightsLater()
 end
@@ -748,7 +756,7 @@ function CTLDFatCowManager:_sendHomeOrphans()
     for flight, cow in pairs(self._aiByFlight or {}) do
         local g = Group.getByName(flight)
         if not (g and g:isExist() and g:getUnit(1)) then
-            self:_returnHome(cow)
+            self:_returnHome(cow, true)
         end
     end
 end
@@ -850,6 +858,9 @@ local AI_COW_CRUISE_MPS = 65
 -- How long a Land task keeps the cow down: a day, so it never lifts off on its own while serving.
 -- The flight's take-off or a release re-tasks it long before.
 local LAND_DURATION_S  = 86400
+-- How far from its home point a returning cow may land and be despawned: the Land task puts it down
+-- on the point itself.
+local HOME_RADIUS_M    = 2000
 
 --- The stock of a fatCowLoadouts entry, or nil when there is no such entry.
 local function loadoutStock(index)
@@ -946,13 +957,16 @@ function CTLDFatCowManager:_landNextTo(cow, leader)
     cow.ai.phase = CTLDFatCowManager.PHASE_LANDING
 end
 
-function CTLDFatCowManager:_returnHome(cow)
+-- @param orphaned boolean  its flight is lost: the flights that could take it over are told
+function CTLDFatCowManager:_returnHome(cow, orphaned)
     self:_cancelDeploy(cow)
     if cow.state ~= CTLDFatCow.STATE_STOWED then self:pack(cow.unitName) end
     local ctrl = controllerOf(cow.ai.groupName)
     if ctrl and cow.ai.home then ctrl:setTask(landMission(cow.ai.home)) end
     cow.ai.phase = CTLDFatCowManager.PHASE_RETURNING
     if self._aiByFlight then self._aiByFlight[cow.ai.flightGroup] = nil end
+    if orphaned then self:_announceOrphan(cow) end
+    self:_rebuildMenus(cow.coalitionId)
 end
 
 function CTLDFatCowManager:_cancelDeploy(cow)
@@ -1001,10 +1015,19 @@ function CTLDFatCowManager:onLand(event)
     local cow = self._cows[name]
     if cow and cow.ai then
         if cow.ai.phase == CTLDFatCowManager.PHASE_RETURNING then
+            -- Only a landing at home is the arrival: DCS also fires one when a cow on the ground is
+            -- re-tasked to go home (Marteau du Golan, 2026-10-29: despawned on the spot, 0.98 s later).
+            local d = cow.ai.home and ctld.utils.getDistance("CTLDFatCowManager", unit:getPoint(), cow.ai.home)
+            if d and d > HOME_RADIUS_M then
+                ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' landed %d m from home: not despawned",
+                    name, math.floor(d))
+                return
+            end
             local g = Group.getByName(cow.ai.groupName)
             self._cows[name] = nil
             self:_releaseFarpName(name)
             if g and g:isExist() then g:destroy() end
+            self:_rebuildMenus(cow.coalitionId)
         elseif cow.ai.phase == CTLDFatCowManager.PHASE_LANDING then
             cow.ai.phase = CTLDFatCowManager.PHASE_LANDED
             local mgr = self
@@ -1150,6 +1173,12 @@ local function etaMinutes(distanceM)
     return math.max(1, math.floor(distanceM / AI_COW_CRUISE_MPS / 60 + 0.5))
 end
 
+--- Distance in metres from `me` to `it`, and the bearing to it in whole degrees.
+local function rangeAndBearing(me, it)
+    local d = ctld.utils.getDistance("CTLDFatCowManager", me, it)
+    return d, math.floor((math.deg(math.atan2(it.z - me.z, it.x - me.x)) + 360) % 360 + 0.5)
+end
+
 --- F10 "Request a Fat Cow" > a loadout, from anywhere: it takes off from the friendly logistic zone
 -- nearest to the requester, carrying that fatCowLoadouts entry, and joins the flight. One cow per flight.
 function CTLDFatCowManager:requestAICow(unitName, loadoutIndex)
@@ -1219,6 +1248,181 @@ function CTLDFatCowManager:releaseAICow(unitName)
     trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Fat Cow RTB."), 10)
 end
 
+--- F10 "Release the Fat Cow": it leaves the flight where it stands, for another flight to take over. On the
+-- ground it keeps its FARP open; in the air it orbits there.
+function CTLDFatCowManager:freeAICow(unitName)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local gid = ctld.utils.getGroupId(t)
+    local cow, u = self:_flightCowFor(t)
+    if not cow then return end
+    self._aiByFlight[cow.ai.flightGroup] = nil
+    cow.ai.released = true
+    if u:inAir() and cow.ai.phase ~= CTLDFatCowManager.PHASE_LANDING then self:_orbit(cow, u:getPoint()) end
+    trigger.action.outTextForGroup(gid, ctld.tr("Fat Cow released: it stays where it is, for another flight to take over."), 10)
+    self:_announceOrphan(cow, true)
+    self:_rebuildMenus(cow.coalitionId)
+end
+
+-- ── Taking over a free cow (FEAT-FAT-COW-TAKEOVER) ─────────────────────────────────────────────
+-- A cow going home (sent with RTB or after losing its flight, empty or not) until it has landed there, or
+-- one its flight released where it stands, can be taken over by a helicopter flight with no cow: F10
+-- "Take over a Fat Cow" lists those of the coalition, nearest first. A cow that lost its flight, or was
+-- released, also tells those flights.
+
+--- True when the player flies a helicopter.
+local function isHelicopter(p)
+    local u = Unit.getByName(p.unitName)
+    if not (u and u:isExist()) then return false end
+    local ok, desc = pcall(u.getDesc, u)
+    return ok and desc and desc.category == Unit.Category.HELICOPTER or false
+end
+
+--- True when the player may take a cow over: a helicopter of its coalition that sees the AI Fat Cow menu
+-- (not a cow pilot), in a flight with no cow.
+function CTLDFatCowManager:_mayTakeOver(p, coalitionId)
+    return p.coalition == coalitionId and not self:aiCowOfFlight(p.groupName)
+        and not (p.isTransport and self:isCowType(p.typeName)) and isHelicopter(p)
+end
+
+--- The player flights of a coalition that may take a cow over, one player of each.
+-- @return list of CTLDPlayer
+function CTLDFatCowManager:_takeOverCandidates(coalitionId)
+    local out, seen = {}, {}
+    for _, p in pairs(CTLDPlayerManager.getInstance()._players) do
+        if not seen[p.groupName] and self:_mayTakeOver(p, coalitionId) then
+            seen[p.groupName] = true
+            out[#out + 1] = p
+        end
+    end
+    return out
+end
+
+--- True when another flight may take the cow over: it is going home, or was released.
+function CTLDFatCowManager:_isTakeable(cow)
+    return cow.ai ~= nil and (cow.ai.phase == CTLDFatCowManager.PHASE_RETURNING or cow.ai.released == true)
+end
+
+--- The cows of a coalition another flight may take over, nearest to `point` first.
+-- @return list of { cow, d } (d in metres)
+function CTLDFatCowManager:_takeableCows(coalitionId, point)
+    local out = {}
+    for _, cow in pairs(self._cows) do
+        local u = self:_isTakeable(cow) and cow.coalitionId == coalitionId and Unit.getByName(cow.unitName)
+        if u and u:isExist() then
+            out[#out + 1] = { cow = cow, d = ctld.utils.getDistance("CTLDFatCowManager", point, u:getPoint()) }
+        end
+    end
+    table.sort(out, function(a, b) return a.d < b.d end)
+    return out
+end
+
+--- Rebuilds the menus of a coalition's players: "Take over a Fat Cow" comes, goes, or updates.
+-- @param onlyCandidates boolean  only the players who may take a cow over (the periodic distance update)
+function CTLDFatCowManager:_rebuildMenus(coalitionId, onlyCandidates)
+    local pm = CTLDPlayerManager.getInstance()
+    for _, p in pairs(pm._players) do
+        if p.coalition == coalitionId and (not onlyCandidates or self:_mayTakeOver(p, coalitionId)) then
+            pm:buildMenu(p)
+        end
+    end
+end
+
+--- The periodic update: the menus of whoever sees a cow going home get its distance again.
+function CTLDFatCowManager:_refreshTakeOverMenus()
+    local done = {}
+    for _, cow in pairs(self._cows) do
+        if self:_isTakeable(cow) and not done[cow.coalitionId] then
+            done[cow.coalitionId] = true
+            self:_rebuildMenus(cow.coalitionId, true)
+        end
+    end
+end
+
+--- One flight's message: where the cow is from its player, what it carries, how to take it.
+function CTLDFatCowManager:_announceTo(p, cow, it, stock, released)
+    local t = Unit.getByName(p.unitName)
+    local d, bearing = rangeAndBearing(t:getPoint(), it)
+    local km = string.format("%.1f", d / 1000)
+    local text = released
+        and ctld.tr("A Fat Cow was released and waits for a flight: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours.",
+            km, bearing, stock)
+        or cow.ai.homeName
+        and ctld.tr("A Fat Cow lost its flight and is going home to %1: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours.",
+            cow.ai.homeName, km, bearing, stock)
+        or ctld.tr("A Fat Cow lost its flight and is going home: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours.",
+            km, bearing, stock)
+    trigger.action.outTextForGroup(p.groupId, text, 20)
+end
+
+--- Tells each flight that could take the cow over where it is from them and what it carries.
+-- @param released boolean  its flight let it go where it stands (else: it lost its flight, going home)
+function CTLDFatCowManager:_announceOrphan(cow, released)
+    local u = Unit.getByName(cow.unitName)
+    if not (u and u:isExist()) then return end
+    local it    = u:getPoint()
+    local stock = CTLDFatCow.describeStock(cow.stock)
+    for _, p in ipairs(self:_takeOverCandidates(cow.coalitionId)) do
+        if p.groupName ~= cow.ai.flightGroup then self:_announceTo(p, cow, it, stock, released) end
+    end
+    ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' %s flight '%s', offered for take-over",
+        cow.unitName, released and "released by" or "lost", cow.ai.flightGroup)
+end
+
+--- F10 "Take over a Fat Cow" > a cow: that cow, if still free, joins the requester's flight.
+function CTLDFatCowManager:takeOverAICow(unitName, cowUnitName)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local gid    = ctld.utils.getGroupId(t)
+    local flight = t:getGroup():getName()
+    if self:aiCowOfFlight(flight) then
+        trigger.action.outTextForGroup(gid, ctld.tr("Your flight already has a Fat Cow."), 10)
+        return
+    end
+    local cow = self._cows[cowUnitName]
+    local u   = cow and self:_isTakeable(cow) and Unit.getByName(cowUnitName)
+    if not (u and u:isExist()) then
+        trigger.action.outTextForGroup(gid, ctld.tr("This Fat Cow is no longer available."), 10)
+        return
+    end
+    local d = ctld.utils.getDistance("CTLDFatCowManager", t:getPoint(), u:getPoint())
+    ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' taken over by flight '%s' (was '%s')",
+        cow.unitName, flight, cow.ai.flightGroup)
+    cow.ai.flightGroup = flight
+    cow.ai.released    = nil
+    self._aiByFlight = self._aiByFlight or {}
+    self._aiByFlight[flight] = cow
+    self:_readyToMove(cow)
+    self:_follow(cow)
+    trigger.action.outTextForGroup(gid,
+        ctld.tr("Fat Cow joining your flight: %1 km, in about %2 min, with %3.",
+            string.format("%.1f", d / 1000), etaMinutes(d), CTLDFatCow.describeStock(cow.stock)), 15)
+    self:_rebuildMenus(cow.coalitionId)
+end
+
+--- The "Take over a Fat Cow" submenu: one entry per cow going home, nearest first, with its distance.
+function CTLDFatCowManager:_addTakeOverCommands(playerObj, menu, path)
+    if not self:_mayTakeOver(playerObj, playerObj.coalition) then return end
+    local cows = self:_takeableCows(playerObj.coalition, Unit.getByName(playerObj.unitName):getPoint())
+    if #cows == 0 then return end
+    local sub = { path[1], path[2], ctld.tr("Take over a Fat Cow") }
+    menu:addSubMenu(path, sub[3], { order = 10 })
+    local mgr = CTLDFatCowManager.getInstance
+    for i, c in ipairs(cows) do
+        local km = math.floor(c.d / 1000 + 0.5)
+        local label
+        if c.cow.ai.released then
+            label = ctld.tr("Fat Cow %1 km away, waiting", km)
+        elseif c.cow.ai.homeName then
+            label = ctld.tr("Fat Cow %1 km away, going home to %2", km, c.cow.ai.homeName)
+        else
+            label = ctld.tr("Fat Cow %1 km away, going home", km)
+        end
+        menu:addCommand(sub, label, function(arg) mgr():takeOverAICow(arg.unitName, arg.cow) end,
+            { unitName = playerObj.unitName, cow = c.cow.unitName }, { order = i })
+    end
+end
+
 function CTLDFatCowManager:_buildAIMenu(playerObj, menu, path)
     if ctld.gs("fatCowAIType") == "" then return end
     menu:addSubMenu({ path[1] }, path[2], { order = 50 })
@@ -1234,6 +1438,8 @@ function CTLDFatCowManager:_buildAIMenu(playerObj, menu, path)
     menu:addCommand(path, ctld.tr("Fat Cow status"), function(arg) mgr():reportFlightCowStatus(arg.unitName) end, u, { order = 6 })
     menu:addCommand(path, ctld.tr("FARP status"), function(arg) mgr():reportFarpStatus(arg.unitName) end, u, { order = 7 })
     menu:addCommand(path, ctld.tr("RTB"), function(arg) mgr():releaseAICow(arg.unitName) end, u, { order = 8 })
+    menu:addCommand(path, ctld.tr("Release the Fat Cow"), function(arg) mgr():freeAICow(arg.unitName) end, u, { order = 9 })
+    self:_addTakeOverCommands(playerObj, menu, path)
 end
 
 -- Literal ctld.tr calls, so the dictionary generator sees each phase.
@@ -1259,10 +1465,8 @@ function CTLDFatCowManager:reportFlightCowStatus(unitName)
         trigger.action.outTextForGroup(gid, ctld.tr("Your flight has no Fat Cow."), 10)
         return
     end
-    local me, it = t:getPoint(), u:getPoint()
-    local d       = ctld.utils.getDistance("CTLDFatCowManager", me, it)
-    local bearing = math.floor((math.deg(math.atan2(it.z - me.z, it.x - me.x)) + 360) % 360 + 0.5)
-    local lines   = { ctld.tr("Fat Cow: %1, %2 km at %3°.", phaseText(cow), string.format("%.1f", d / 1000), bearing) }
+    local d, bearing = rangeAndBearing(t:getPoint(), u:getPoint())
+    local lines   ={ ctld.tr("Fat Cow: %1, %2 km at %3°.", phaseText(cow), string.format("%.1f", d / 1000), bearing) }
     if cow.ai.phase == CTLDFatCowManager.PHASE_FOLLOWING and d > 1500 then
         lines[#lines + 1] = ctld.tr("Joining in about %1 min.", etaMinutes(d))
     end

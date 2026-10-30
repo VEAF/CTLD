@@ -129,6 +129,7 @@ fatCowAICows:
 CTLD active la cow dès que le groupe escorté est en jeu : au démarrage de la mission pour une patrouille IA, ou quand le premier joueur prend un slot d'une patrouille de clients.
 Si la patrouille escortée est une patrouille IA, la cow se pose à côté du leader quand il se pose, se déploie après `fatCowDeployDelay`, se replie et suit quand le leader décolle, et rentre à son point de départ une fois vide : une patrouille IA ne peut pas utiliser le menu.
 Si c'est une patrouille de clients, ses joueurs commandent la cow depuis le F10, comme une cow demandée.
+Si la patrouille escortée est perdue, la cow rentre à son point de départ, et toute patrouille d'hélicoptères de sa coalition sans cow peut la reprendre en chemin depuis le F10 (**Reprendre une Fat Cow**, voir le guide pilote).
 
 Au démarrage, CTLD note dans le log ce que DCS renvoie pour l'entrepôt des FARP de la mission (`FARP warehouse '<nom>': jet fuel …`) : une mesure, avant que **Statut FARP** couvre toutes les FARP et pas seulement celles des Fat Cow.
 

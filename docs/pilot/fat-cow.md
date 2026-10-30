@@ -56,6 +56,7 @@ The cow then does what your flight tells it, and nothing on its own:
 | **Hold here** | packs its FARP if needed and orbits over your position |
 | **Join us** | packs its FARP if needed and follows your flight |
 | **RTB** | packs its FARP and flies back to base, where it disappears |
+| **Release the Fat Cow** | leaves your flight and stays where it is, for another flight to take over: on the ground its FARP stays open, in the air it orbits there |
 
 So you can lift off to hover-taxi onto its FARP, or reposition, without the cow leaving.
 
@@ -64,6 +65,16 @@ So you can lift off to hover-taxi onto its FARP, or reposition, without the cow 
 **Request a Fat Cow** opens the list of loadouts, the same as a piloted cow's (Apache at the top, **Russian** and **Mixed** one level down): pick what your flight needs.
 It is always a CH-47, whatever you fly.
 One cow per flight.
+
+### Taking over a free cow
+
+If the flight a cow serves is shot down, or its last player leaves, the cow packs its FARP and flies back to base.
+Every helicopter flight of its coalition with no cow of its own is told: where it is from them, where it goes and what it holds.
+
+As long as a cow is flying home, for that reason or after an **RTB**, empty or not, or has been released by its flight (**Release the Fat Cow**, which tells those flights too), they find it in **Fat Cow → Take over a Fat Cow**: one entry per cow, nearest first, with its distance from you (updated every 30 s).
+The cow you pick joins your flight and obeys its commands as if you had requested it.
+A cow released on the ground packs its FARP before joining you.
+An entry goes away once its cow is taken over, has landed at its base, or is shot down.
 
 !!! tip "Land in the open"
     Pick open ground for **Land here**: a helicopter sent to land at the edge of a forest hovers there and never touches down.

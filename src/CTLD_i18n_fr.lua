@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.34"
+ctld.i18n["fr"].translation_version = "1.35"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -740,3 +740,16 @@ ctld.i18n["fr"]["Mixed"] = "Mixtes"
 ctld.i18n["fr"]["Russian"] = "Russes"
 ctld.i18n["fr"]["Shturm"] = "Shturm"
 ctld.i18n["fr"]["Vikhr"] = "Vikhr"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-10-30
+ctld.i18n["fr"]["A Fat Cow lost its flight and is going home to %1: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Une Fat Cow a perdu sa patrouille et rentre à %1 : %2 km au %3° de vous, avec %4. F10 CTLD > Fat Cow > Reprendre une Fat Cow pour qu'elle vous rejoigne."
+ctld.i18n["fr"]["A Fat Cow lost its flight and is going home: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Une Fat Cow a perdu sa patrouille et rentre à sa base : %1 km au %2° de vous, avec %3. F10 CTLD > Fat Cow > Reprendre une Fat Cow pour qu'elle vous rejoigne."
+ctld.i18n["fr"]["Fat Cow joining your flight: %1 km, in about %2 min, with %3."] = "Fat Cow en route vers votre patrouille : %1 km, environ %2 min, avec %3."
+ctld.i18n["fr"]["Take over a Fat Cow"] = "Reprendre une Fat Cow"
+ctld.i18n["fr"]["Fat Cow %1 km away, going home"] = "Fat Cow à %1 km, rentre à sa base"
+ctld.i18n["fr"]["Fat Cow %1 km away, going home to %2"] = "Fat Cow à %1 km, rentre à %2"
+ctld.i18n["fr"]["This Fat Cow is no longer available."] = "Cette Fat Cow n'est plus disponible."
+ctld.i18n["fr"]["A Fat Cow was released and waits for a flight: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Une Fat Cow a été libérée et attend une patrouille : %1 km au %2° de vous, avec %3. F10 CTLD > Fat Cow > Reprendre une Fat Cow pour qu'elle vous rejoigne."
+ctld.i18n["fr"]["Fat Cow %1 km away, waiting"] = "Fat Cow à %1 km, en attente"
+ctld.i18n["fr"]["Fat Cow released: it stays where it is, for another flight to take over."] = "Fat Cow libérée : elle reste où elle est, une autre patrouille peut la reprendre."
+ctld.i18n["fr"]["Release the Fat Cow"] = "Libérer la Fat Cow"

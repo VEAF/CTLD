@@ -8,6 +8,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Fat Cow: a cow going home can be taken over by another flight (FEAT-FAT-COW-TAKEOVER)
+
+- An AI Fat Cow whose flight is shot down, or whose last player leaves, still packs and flies home, and every helicopter flight of its coalition without a cow is told where it is, where it goes and what it holds.
+- **Release the Fat Cow** (F10, next to **RTB**): the cow leaves the flight and stays where it is, FARP open on the ground or orbiting in the air, and those helicopter flights are told.
+- Any cow flying home, after losing its flight or an **RTB**, empty or not, or released, is listed in those flights' F10 **Fat Cow → Take over a Fat Cow**, nearest first with its distance (updated every 30 s), until it is taken over, has landed at its base, or is dead (a released cow on the ground packs its FARP before it moves).
+  The cow picked follows the flight and obeys it as if it had requested it.
+
+### Fixed — an AI Fat Cow sent home from the ground no longer vanishes on the spot (FEAT-FAT-COW-TAKEOVER)
+
+- A cow re-tasked to go home while on the ground gets an `S_EVENT_LAND` from DCS right away, which CTLD took for its arrival home and despawned it where it stood (Marteau du Golan, 2026-10-29: the cow at MASADA vanished a second after its flight was found lost).
+  A returning cow is now despawned only when it lands within 2 km of its home point.
+
 ### Fixed — a mission configuration written before the Fat Cow gets its crates and loadouts (FIX-CONFIG-NEW-LISTS)
 
 - A mission configuration omits a list on purpose to remove it (ADR 0011), but a configuration written before

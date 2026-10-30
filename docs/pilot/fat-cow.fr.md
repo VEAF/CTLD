@@ -56,6 +56,7 @@ La cow fait ensuite ce que votre patrouille lui dit, et rien d'elle-même :
 | **Reste ici en orbite** | replie sa FARP si besoin et tourne au-dessus de votre position |
 | **Rejoins-nous** | replie sa FARP si besoin et suit votre patrouille |
 | **Rentre à la base** | replie sa FARP et rentre à la base, où elle disparaît |
+| **Libérer la Fat Cow** | quitte votre patrouille et reste où elle est, pour qu'une autre patrouille la reprenne : au sol sa FARP reste ouverte, en vol elle tourne sur place |
 
 Vous pouvez donc redécoller pour vous déplacer en stationnaire jusqu'à sa FARP, ou vous repositionner, sans que la cow parte.
 
@@ -64,6 +65,16 @@ Vous pouvez donc redécoller pour vous déplacer en stationnaire jusqu'à sa FAR
 **Demander une Fat Cow** ouvre la liste des lots, les mêmes que ceux d'une cow pilotée (Apache en tête, **Russes** et **Mixtes** un niveau plus bas) : choisissez ce dont votre patrouille a besoin.
 C'est toujours un CH-47, quel que soit votre appareil.
 Une cow par patrouille.
+
+### Reprendre une cow libre
+
+Si la patrouille qu'une cow sert est abattue, ou si son dernier joueur quitte son slot, la cow replie sa FARP et rentre à la base.
+Chaque patrouille d'hélicoptères de sa coalition qui n'a pas de cow est prévenue : où elle est par rapport à vous, où elle rentre et ce qu'elle transporte.
+
+Tant qu'une cow rentre, pour cette raison ou après un **Rentre à la base**, vide ou non, ou a été libérée par sa patrouille (**Libérer la Fat Cow**, qui prévient aussi ces patrouilles), elles la trouvent dans **Fat Cow → Reprendre une Fat Cow** : une entrée par cow, la plus proche en tête, avec sa distance par rapport à vous (mise à jour toutes les 30 s).
+La cow choisie rejoint votre patrouille et obéit à ses commandes comme si vous l'aviez demandée.
+Une cow libérée au sol replie sa FARP avant de vous rejoindre.
+Une entrée disparaît dès que sa cow est reprise, posée à sa base ou abattue.
 
 !!! tip "Posez-vous à découvert"
     Choisissez un terrain dégagé pour **Atterris ici** : un hélicoptère envoyé se poser en lisière de forêt y reste en stationnaire sans jamais toucher le sol.
