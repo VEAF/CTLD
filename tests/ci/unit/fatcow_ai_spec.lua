@@ -9,7 +9,7 @@ local HELLFIRE = "weapons.missiles.AGM_114K"
 local RADAR    = "weapons.missiles.AGM_114"
 
 describe("AI Fat Cow", function()
-    local mgr, sm, w, groups, units, scheduled, messages, added, inZone, saved
+    local mgr, sm, w, groups, units, scheduled, messages, added, inZone, saved, players, rebuilt
 
     local function newUnit(name, groupName, x, z)
         local u = {
@@ -71,13 +71,18 @@ describe("AI Fat Cow", function()
         function w:getItemCount(n) return self.items[n] or 0 end
         function w:setItem(n, v) self.items[n] = v end
         local zm = CTLDZoneManager.getInstance()
+        local pm = CTLDPlayerManager.getInstance()
+        players, rebuilt = {}, {}
         saved = {
+            players = pm._players, buildMenu = pm.buildMenu,
             unitGet = Unit.getByName, groupGet = Group.getByName, addGroup = coalition.addGroup,
             schedule = ctld.scheduler.schedule, remove = ctld.scheduler.remove,
             inAir = ctld.utils.inAir, gid = ctld.utils.getGroupId, outGroup = trigger.action.outTextForGroup,
             play = sm.playScene, pack = sm.packScene, airbase = Airbase.getByName,
             zone = zm.getLogisticZonesForCoalition, gs = ctld.gs, cargo = trigger.action.setUnitInternalCargo,
         }
+        pm._players  = players
+        pm.buildMenu = function(_, p) rebuilt[#rebuilt + 1] = p.groupName end
         Unit.getByName  = function(n) return units[n] end
         Group.getByName = function(n) return groups[n] end
         coalition.addGroup = function(_, _, data)
@@ -103,6 +108,7 @@ describe("AI Fat Cow", function()
         sm.packScene = function() return {} end
         Airbase.getByName = function(n) if n == "CTLD_FatCow_FARP_1" then return { getWarehouse = function() return w end } end end
         local settings = { fatCowAIType = "CH-47Fbl1", fatCowDeployDelay = 60, fatCowAICows = {},
+                           fatCowTypes = { "CH-47Fbl1" },
                            fatCowLoadouts = {
                                { desc = "Six", fuelKg = 7200, items = { { item = HELLFIRE, count = 6 } } },
                                { desc = "Radar", fuelKg = 4800, items = { { item = RADAR, count = 20 } } },
@@ -113,6 +119,8 @@ describe("AI Fat Cow", function()
 
     after_each(function()
         local zm = CTLDZoneManager.getInstance()
+        local pm = CTLDPlayerManager.getInstance()
+        pm._players, pm.buildMenu = saved.players, saved.buildMenu
         Unit.getByName, Group.getByName, coalition.addGroup = saved.unitGet, saved.groupGet, saved.addGroup
         ctld.scheduler.schedule, ctld.scheduler.remove = saved.schedule, saved.remove
         ctld.utils.inAir, ctld.utils.getGroupId = saved.inAir, saved.gid
@@ -372,5 +380,174 @@ describe("AI Fat Cow", function()
         mgr:_activateMissionCows()
         runScheduled()
         assert.equals(20, mgr:aiCowOfFlight("Gunfighter").stock.items[RADAR])
+    end)
+
+    -- ── FEAT-FAT-COW-TAKEOVER: a cow that lost its flight ─────────────────────────────────────────
+
+    -- A tracked player, as CTLDPlayerManager holds it.
+    local function player(unitName, groupName, groupId, coalitionId, typeName, isTransport)
+        players[unitName] = { unitName = unitName, groupName = groupName, groupId = groupId,
+                              coalition = coalitionId or coalition.side.BLUE, typeName = typeName or "AH-64D_BLK_II",
+                              isTransport = isTransport or false }
+        return players[unitName]
+    end
+
+    -- Gunfighter's cow, landed and deployed 55 km from home, then Gunfighter shot down.
+    local function orphanCow()
+        local leader, cow = flightWithCow()
+        units[cow.unitName]._p = { x = 60000, y = 20, z = 2000 }
+        mgr:onLand({ initiator = leader })
+        mgr:onLand({ initiator = units[cow.unitName] })
+        runScheduled()
+        groups["Gunfighter"].destroyed = true
+        mgr:onDead({ initiator = leader })
+        runScheduled()
+        return cow
+    end
+
+    -- The labels the AI Fat Cow menu shows to `p`, as a set.
+    local function aiMenuOf(p)
+        local set = {}
+        local menu = { addSubMenu = function() end,
+                       addCommand = function(_, _, label) set[label] = true end }
+        mgr:_buildAIMenu(p, menu, { "CTLD", "Fat Cow" })
+        return set
+    end
+
+    -- An Apache flight "Viper" (group id 8), with a player, 3 km from home.
+    local function viper()
+        newGroup("Viper", 8, "Viper-1")
+        newUnit("Viper-1", "Viper", 8000, 2000)
+        return player("Viper-1", "Viper", 8)
+    end
+
+    it("is not despawned by a landing away from home (Marteau du Golan, 2026-10-29)", function()
+        local cow = orphanCow()
+        assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
+        assert.equals(CTLDFatCow.STATE_STOWED, cow.state)
+        mgr:onLand({ initiator = units[cow.unitName] })     -- DCS fires it on the re-task, on the spot
+        assert.is_false(groups[cow.ai.groupName].destroyed)
+        assert.equals(cow, mgr:getCow(cow.unitName))
+        units[cow.unitName]._p = { x = 5100, y = 20, z = 2000 }   -- home
+        mgr:onLand({ initiator = units[cow.unitName] })
+        assert.is_true(groups[cow.ai.groupName].destroyed)
+        assert.is_nil(mgr:getCow(cow.unitName))
+    end)
+
+    it("is not despawned by a landing away from home after RTB either", function()
+        local leader, cow = flightWithCow()
+        units[cow.unitName]._p = { x = 60000, y = 20, z = 2000 }
+        mgr:onLand({ initiator = leader })
+        mgr:onLand({ initiator = units[cow.unitName] })
+        runScheduled()
+        mgr:releaseAICow("Gunfighter-1")
+        mgr:onLand({ initiator = units[cow.unitName] })
+        assert.is_false(groups[cow.ai.groupName].destroyed)
+    end)
+
+    it("tells the flights that could take it over that it is going home, and no one else", function()
+        viper()
+        player("Viper-2", "Viper", 8)                                       -- same flight: told once
+        player("Red-1", "Red", 9, coalition.side.RED)                        -- other coalition
+        player("Chinook-1", "Chinook", 10, nil, "CH-47Fbl1", true)          -- a cow pilot
+        newGroup("Hammer", 11, "Hammer-1")
+        newUnit("Hammer-1", "Hammer", 9000, 2000)
+        player("Hammer-1", "Hammer", 11)
+        mgr:requestAICow("Hammer-1", 2)                                      -- a flight with a cow already
+        runScheduled()
+        messages = {}
+        orphanCow()
+        local to = {}
+        for _, m in ipairs(messages) do to[m.gid] = (to[m.gid] or 0) + 1 end
+        assert.equals(1, to[8])
+        assert.is_nil(to[9])
+        assert.is_nil(to[10])
+        assert.is_nil(to[11])
+        local text
+        for _, m in ipairs(messages) do if m.gid == 8 then text = m.text end end
+        assert.is_not_nil(text:find("Akrotiri", 1, true))
+        assert.is_not_nil(text:find("52.0 km", 1, true))                    -- from Viper-1, at x 8000
+        assert.is_not_nil(text:find("Take over a Fat Cow", 1, true))
+    end)
+
+    it("shows Take over a Fat Cow to a flight without a cow while one waits, and no longer once taken", function()
+        local p = viper()
+        assert.is_nil(aiMenuOf(p)["Take over a Fat Cow"])
+        local cow = orphanCow()
+        assert.is_true(aiMenuOf(p)["Take over a Fat Cow"])
+        assert.equals("Viper", rebuilt[#rebuilt])                          -- its menu was rebuilt
+        rebuilt = {}
+        mgr:takeOverAICow("Viper-1")
+        assert.is_nil(aiMenuOf(p)["Take over a Fat Cow"])
+        assert.equals("Viper", rebuilt[1])
+        assert.is_nil(cow.ai.orphan)
+    end)
+
+    it("leaves the menus once the cow it was offered for is home or dead", function()
+        local p = viper()
+        local cow = orphanCow()
+        units[cow.unitName]._p = { x = 5000, y = 20, z = 2000 }
+        rebuilt = {}
+        mgr:onLand({ initiator = units[cow.unitName] })
+        assert.is_nil(aiMenuOf(p)["Take over a Fat Cow"])
+        assert.equals("Viper", rebuilt[1])
+        groups["Gunfighter"].destroyed = false
+        cow = orphanCow()
+        rebuilt = {}
+        mgr:onDead({ initiator = units[cow.unitName] })
+        assert.is_nil(aiMenuOf(p)["Take over a Fat Cow"])
+        assert.equals("Viper", rebuilt[1])
+    end)
+
+    it("joins the flight that takes it over, which then commands it as its own", function()
+        viper()
+        local cow = orphanCow()
+        messages = {}
+        mgr:takeOverAICow("Viper-1")
+        assert.equals(cow, mgr:aiCowOfFlight("Viper"))
+        assert.equals(CTLDFatCowManager.PHASE_FOLLOWING, cow.ai.phase)
+        local t = lastTask(cow.ai.groupName)
+        assert.equals("Follow", t.id)
+        assert.equals(8, t.params.groupId)
+        assert.equals(8, messages[1].gid)
+        assert.is_not_nil(messages[1].text:find("7200 kg", 1, true))
+        mgr:orderHoldHere("Viper-1")
+        assert.equals("Orbit", lastTask(cow.ai.groupName).id)
+        mgr:releaseAICow("Viper-1")
+        assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
+        assert.is_nil(cow.ai.orphan)                                      -- released on purpose: not offered
+    end)
+
+    it("refuses a take-over to a flight with a cow, or when none waits", function()
+        viper()
+        mgr:takeOverAICow("Viper-1")
+        assert.is_not_nil(messages[#messages].text:find("No Fat Cow is waiting", 1, true))
+        local cow = orphanCow()
+        mgr:requestAICow("Viper-1", 2)
+        runScheduled()
+        mgr:takeOverAICow("Viper-1")
+        assert.is_not_nil(messages[#messages].text:find("already has a Fat Cow", 1, true))
+        assert.is_true(cow.ai.orphan)
+    end)
+
+    it("offers neither a cow released with RTB nor an empty one", function()
+        local p = viper()
+        local leader, cow = flightWithCow()
+        mgr:onLand({ initiator = leader })
+        mgr:onLand({ initiator = units[cow.unitName] })
+        runScheduled()
+        mgr:releaseAICow("Gunfighter-1")
+        assert.is_nil(aiMenuOf(p)["Take over a Fat Cow"])
+        newGroup("Hammer", 11, "Hammer-1")
+        local hammer = newUnit("Hammer-1", "Hammer", 9000, 2000)
+        mgr:requestAICow("Hammer-1", 1)
+        runScheduled()
+        local empty = mgr:aiCowOfFlight("Hammer")
+        empty.stock = { fuelKg = 0, items = {} }
+        groups["Hammer"].destroyed = true
+        mgr:onDead({ initiator = hammer })
+        runScheduled()
+        assert.equals(CTLDFatCowManager.PHASE_RETURNING, empty.ai.phase)
+        assert.is_nil(aiMenuOf(p)["Take over a Fat Cow"])
     end)
 end)
