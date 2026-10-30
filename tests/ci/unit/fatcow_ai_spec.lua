@@ -612,12 +612,12 @@ describe("AI Fat Cow", function()
     describe("landing next to the leader", function()
         local savedDisposition, asked
         before_each(function()
-            savedDisposition, asked = Disposition, nil
+            savedDisposition, asked = _G.Disposition, nil
         end)
-        after_each(function() Disposition = savedDisposition end)
+        after_each(function() _G.Disposition = savedDisposition end)
 
         local function disposition(candidates)
-            Disposition = { getSimpleZones = function(p, radius, clearance, attempts)
+            _G.Disposition = { getSimpleZones = function(p, radius, clearance, attempts)
                 asked = { p = p, radius = radius, clearance = clearance, attempts = attempts }
                 return candidates
             end }
@@ -657,11 +657,11 @@ describe("AI Fat Cow", function()
         end)
 
         it("keeps the asked point without the singleton, on an error, or with no clearing", function()
-            Disposition = nil
+            _G.Disposition = nil
             local leader, cow = flightWithCow()
             mgr:onLand({ initiator = leader })
             assert.same({ x = 1000, z = 1880 }, landPoint(cow))
-            Disposition = { getSimpleZones = function() error("signature changed") end }
+            _G.Disposition = { getSimpleZones = function() error("signature changed") end }
             mgr:orderLandHere("Gunfighter-1")
             units[cow.unitName].airborne = true
             mgr:orderLandHere("Gunfighter-1")
