@@ -12,7 +12,8 @@ The unit specs mock DCS; three things only DCS can answer:
 
 1. A cow on the ground sent home lifts off and flies home, instead of vanishing on the spot (the 2026-10-29 bug), and despawns once there.
 2. A grounded cow given a `Follow` task by a take-over lifts off and follows the new flight.
-3. The message and the **Take over a Fat Cow** submenu reach a client of another helicopter flight (nearest cow first, with its distance), and an entry leaves the menu once its cow is taken.
+3. **Release the Fat Cow** on the ground leaves the cow and its FARP serving where they are, and the cow packs before it follows the flight that takes it over.
+4. The message and the **Take over a Fat Cow** submenu reach a client of another helicopter flight (nearest cow first, with its distance), and an entry leaves the menu once its cow is taken.
 
 ## Kit
 
@@ -44,14 +45,20 @@ Or the server variant on Privé 1 with this build: any two AH-64D slots in diffe
 9. On the way, **Fat Cow** → **Take over a Fat Cow** lists it again (an RTB cow can be taken back). 📸
    Do not pick it: on the **F10** map the cow lifts off, flies to the zone, lands there and disappears, and the entry goes with it. 📸
 
-### C — The message, with a second player (Griffin or Paluche), or the AI flight
+### C — Released on the ground
 
-10. Player 1 in **Gunfighter**, player 2 in **Apache-300m**: player 2 requests a cow, lets it land next to him, then leaves his slot.
+10. Slot **Gunfighter**, request a cow, **Land here** away from the zone, wait for its FARP.
+11. **Fat Cow** → **Release the Fat Cow**: expected `Fat Cow released: …`; the cow and its FARP stay. 📸
+12. **Fat Cow** → **Take over a Fat Cow**: `Fat Cow … km away, waiting`. Pick it: the FARP packs (crew and depot gone), the cow lifts off and follows you. 📸
+
+### D — The message, with a second player (Griffin or Paluche), or the AI flight
+
+13. Player 1 in **Gunfighter**, player 2 in **Apache-300m**: player 2 requests a cow, lets it land next to him, then leaves his slot.
     Player 1 gets, within a few seconds, `A Fat Cow lost its flight and is going home to LGZ_cowbase_B: … km at …° from you, with …`. 📸
     Without a second player: Claude kills the `Hawk` leader through the bridge (`trigger.action.explosion` on its position) once `Fat Cow Hawk` has landed with it, while Zip sits in **Gunfighter**; the message then says "going home" without a zone name (a mission-placed cow).
 
 ## Log lines expected (`dcs.log`)
 
-- `CTLDFatCowManager: cow '…' lost flight '…', going home, offered for take-over`
+- `CTLDFatCowManager: cow '…' lost flight '…', offered for take-over`, or `… released by flight '…', offered for take-over`
 - possibly `CTLDFatCowManager: cow '…' landed … m from home: not despawned` right after (the event that despawned the cow on 2026-10-29)
 - `CTLDFatCowManager: cow '…' taken over by flight 'Apache-150m' (was 'Gunfighter')`

@@ -570,4 +570,46 @@ describe("AI Fat Cow", function()
         mgr:takeOverAICow("Viper-1", cow.unitName)
         assert.is_not_nil(messages[#messages].text:find("already has a Fat Cow", 1, true))
     end)
+
+    it("is released where it stands, FARP open, for another flight to take over", function()
+        local p = playerFlight("Viper", 8, 8000, 2000)
+        assert.is_true(aiMenuOf(p)["Release the Fat Cow"])
+        local leader, cow = flightWithCow()
+        units[cow.unitName]._p = { x = 20000, y = 20, z = 2000 }           -- 12 km from Viper-1
+        mgr:onLand({ initiator = leader })
+        mgr:onLand({ initiator = units[cow.unitName] })
+        runScheduled()
+        local tasks = #groups[cow.ai.groupName].tasks
+        messages = {}
+        mgr:freeAICow("Gunfighter-1")
+        assert.equals(CTLDFatCow.STATE_DEPLOYED, cow.state)                 -- still serving
+        assert.equals(tasks, #groups[cow.ai.groupName].tasks)               -- not re-tasked
+        assert.is_nil(mgr:aiCowOfFlight("Gunfighter"))
+        local to = {}
+        for _, m in ipairs(messages) do to[m.gid] = m.text end
+        assert.is_not_nil(to[7]:find("released", 1, true))
+        assert.is_not_nil(to[8]:find("was released", 1, true))
+        assert.is_not_nil(to[8]:find("12.0 km", 1, true))
+        local _, takeOver = aiMenuOf(p)
+        assert.equals("Fat Cow 12 km away, waiting", takeOver[1].label)
+        mgr:takeOverAICow("Viper-1", cow.unitName)
+        assert.equals(CTLDFatCow.STATE_STOWED, cow.state)                   -- packed before it moves
+        local t = lastTask(cow.ai.groupName)
+        assert.equals("Follow", t.id)
+        assert.equals(8, t.params.groupId)
+        assert.is_nil(cow.ai.released)
+        assert.is_nil(aiMenuOf(p)["Take over a Fat Cow"])
+    end)
+
+    it("orbits where it stands when released in the air", function()
+        local _, cow = flightWithCow()
+        units[cow.unitName].airborne = true
+        units[cow.unitName]._p = { x = 20000, y = 20, z = 2000 }
+        mgr:freeAICow("Gunfighter-1")
+        local t = lastTask(cow.ai.groupName)
+        assert.equals("Orbit", t.id)
+        assert.equals(20000, t.params.point.x)
+        mgr:freeAICow("Gunfighter-1")
+        assert.is_not_nil(messages[#messages].text:find("no Fat Cow", 1, true))
+    end)
 end)

@@ -32,10 +32,12 @@ A cow released with **RTB** while on the ground was exposed to the same despawn.
 2. **The cow says it is going home**: when its flight is lost, every helicopter flight of its coalition that could take it over gets a message: where it is from them, where it goes, what it carries, and the F10 command.
 3. **"Take over a Fat Cow"**: a submenu of F10 > CTLD > Fat Cow, for the helicopter flights that have no cow, listing every cow of their coalition flying home (lost flight or RTB, empty or not), nearest first, with its distance from the caller. The cow picked joins the flight and serves it as its own (follows it, Land here / Take off / Hold here / Join us / RTB, FARP after the delay). An entry goes once its cow is taken over, has landed at home, or is dead.
 
+4. **"Release the Fat Cow"** (Zip, 2026-10-30), next to RTB: the cow leaves its flight and stays where it is, FARP open on the ground, orbiting in the air (landing if it was landing). The helicopter flights that could take it over are told, and it is listed as `waiting` until one does; it packs its FARP before it moves.
+
 ## Decisions
 
 - **Who is told, who may take over**: the helicopter flights of the cow's coalition that see the AI Fat Cow menu (not a cow pilot) and have no cow (Zip, 2026-10-30: helicopters only). The message names a command only they can use.
-- **Which cows can be taken**: any cow flying home, released with RTB or empty included, until it has landed at home (Zip, 2026-10-30, reversing the first version, which offered only a cow that lost its flight and still carried something).
+- **Which cows can be taken**: any cow flying home, sent with RTB or empty included, until it has landed at home, and any cow its flight released (Zip, 2026-10-30, reversing the first version, which offered only a cow that lost its flight and still carried something).
 - **One entry per cow, nearest first, with its distance** (Zip, 2026-10-30). The distance is the one at the menu's last build: the menus are rebuilt when a cow starts home, is taken over, lands home or dies, and every 30 s for the flights that may take one over. A label that changes is a removed entry and a new one: ADR 0027 parks the freed id, so a screen left open across the update fires nothing rather than the wrong cow.
 - **Home radius 2 km**: the Land task puts the cow down at the home point itself; the wrong landing was measured tens of km away.
 
