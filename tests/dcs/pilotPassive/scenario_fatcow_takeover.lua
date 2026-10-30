@@ -8,7 +8,7 @@
 --
 -- Re-injection step machine: inject again until PASS / FAIL. Each injection advances when its
 -- condition holds, else answers RUNNING with what it waits for.
---   1  the cow has opened its FARP at Hawk's second stop (> 2.5 km from its home, unlike the first)
+--   1  the cow has opened its FARP away from its home (> 1 km): Hawk's first stop, where Hawk stays
 --      → Hawk is removed and the flight check run, as a shot-down flight would trigger it
 --   2  the cow is still there 5 s later (the 2026-10-29 bug: despawned 0.98 s after the re-task),
 --      then lifts off within 120 s (DCS behaviour the unit specs cannot show)
@@ -50,8 +50,8 @@ if S.step == 1 then
     -- Seen on 2026-10-30: the cow died landing at Hawk's first stop, and CTLD never heard of it.
     if not u then return done("ABORT: the cow is dead but CTLD still holds it (phase " .. tostring(cow.ai.phase) .. ")") end
     local d = cow.ai.home and dist(u:getPoint(), cow.ai.home) or 0
-    if not (cow.state == CTLDFatCow.STATE_DEPLOYED and d > 2500) then
-        return done(string.format("RUNNING: step=1 waiting for the cow's FARP at Hawk's 2nd stop (state %s, phase %s, %.0f m from home)",
+    if not (cow.state == CTLDFatCow.STATE_DEPLOYED and d > 1000) then
+        return done(string.format("RUNNING: step=1 waiting for the cow's FARP at Hawk's stop (state %s, phase %s, %.0f m from home)",
             cow.state, tostring(cow.ai.phase), d))
     end
     S.cow, S.home, S.t2 = cow.unitName, cow.ai.home, now
