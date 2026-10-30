@@ -635,8 +635,22 @@ describe("AI Fat Cow", function()
             assert.equals(1000, asked.p.x)
             assert.equals(1880, asked.p.z)
             assert.equals(300, asked.radius)
-            assert.equals(30, asked.clearance)
+            assert.equals(100, asked.clearance)                             -- the widest first
             assert.same({ x = 1100, z = 1880 }, landPoint(cow))
+        end)
+
+        it("takes the widest clearance that offers a clearing: 100 m, else 50, else 30", function()
+            local clearances = {}
+            _G.Disposition = { getSimpleZones = function(_, _, clearance)
+                clearances[#clearances + 1] = clearance
+                if clearance == 50 then return { { x = 1200, y = 1880 } } end   -- 200 m away
+                if clearance == 30 then return { { x = 1040, y = 1880 } } end   -- nearer, but closer to scenery
+                return {}
+            end }
+            local leader, cow = flightWithCow()
+            mgr:onLand({ initiator = leader })
+            assert.same({ 100, 50 }, clearances)
+            assert.same({ x = 1200, z = 1880 }, landPoint(cow))
         end)
 
         it("reads a candidate given as a vec2 (y is the map z)", function()

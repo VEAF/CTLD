@@ -869,10 +869,12 @@ CTLDFatCowManager.PHASE_HOLDING   = "holding"     -- orbiting, on "Take off" or 
 local AI_COW_FUEL_KG   = 2444
 local FOLLOW_OFFSET    = { x = -200, y = 60, z = 150 }   -- behind, above and to the right of the leader
 local LAND_OFFSET_M    = 120                              -- landing point, to the leader's left
--- The clearing searched around it: VMCT's helicopter landing values (veafAircraftSpawn
--- HELICOPTER_LZ_SEARCH, HELICOPTER_LZ_CLEARANCE, veaf.SPAWN_SEARCH_ATTEMPTS), and never on the leader.
+-- The clearing searched around it, within VMCT's helicopter search radius (veafAircraftSpawn
+-- HELICOPTER_LZ_SEARCH, veaf.SPAWN_SEARCH_ATTEMPTS), and never on the leader. The clearance descends as
+-- veaf.findSpawnPoint's does: the widest first. 30 m (VMCT's HELICOPTER_LZ_CLEARANCE, for a Mi-8) put the
+-- cow next to the only tree of an open field, which a CH-47 drifting down at 3 m/s struck (2026-10-30).
 local LZ_SEARCH_M          = 300
-local LZ_CLEARANCE_M       = 30
+local LZ_CLEARANCES_M      = { 100, 50, 30 }
 local LZ_ATTEMPTS          = 10
 local LZ_MIN_FROM_LEADER_M = 60
 local CRUISE_SPEED_MPS = 60
@@ -972,15 +974,11 @@ function CTLDFatCowManager:_follow(cow)
     return true
 end
 
---- The nearest clearing to `point` within LZ_SEARCH_M, LZ_CLEARANCE_M clear of scenery, on land and
--- LZ_MIN_FROM_LEADER_M from the leader; else `point`. Searched with Disposition.getSimpleZones, the
--- undocumented DCS singleton VMCT's veaf.findSpawnPoint lands its helicopters with (measured 2026-08-06:
--- its points avoid buildings and forests), so guarded: an absent singleton or an error keeps `point`.
--- The cow sent 120 m left of its leader struck a tree there (FIX-FAT-COW-AI-LANDING, 2026-10-30).
-local function clearLandingPoint(point, leaderPoint)
-    if not (Disposition and Disposition.getSimpleZones) then return point end
-    local ok, candidates = pcall(Disposition.getSimpleZones, point, LZ_SEARCH_M, LZ_CLEARANCE_M, LZ_ATTEMPTS)
-    if not (ok and type(candidates) == "table") then return point end
+--- The nearest point to `point` within LZ_SEARCH_M, `clearance` clear of scenery, on land and
+-- LZ_MIN_FROM_LEADER_M from the leader, or nil (none, or the call failed).
+local function clearingAt(point, leaderPoint, clearance)
+    local ok, candidates = pcall(Disposition.getSimpleZones, point, LZ_SEARCH_M, clearance, LZ_ATTEMPTS)
+    if not (ok and type(candidates) == "table") then return nil end
     local best, bestD
     for _, c in ipairs(candidates) do
         -- A candidate may be a vec2, whose y is the map's z (VMCT's horizontalDistance convention).
@@ -995,8 +993,21 @@ local function clearLandingPoint(point, leaderPoint)
             end
         end
     end
-    if not best then return point end
-    return { x = best.x, y = land.getHeight({ x = best.x, y = best.z }), z = best.z }
+    return best and { x = best.x, y = land.getHeight({ x = best.x, y = best.z }), z = best.z }
+end
+
+--- Where a cow lands near `point`: the nearest clearing with the widest clearance of LZ_CLEARANCES_M that
+-- offers one, else `point`. Searched with Disposition.getSimpleZones, the undocumented DCS singleton VMCT's
+-- veaf.findSpawnPoint lands its helicopters with (measured 2026-08-06: its points avoid buildings and
+-- forests), so guarded: an absent singleton or an error keeps `point`. The cow sent 120 m left of its
+-- leader struck a tree there (FIX-FAT-COW-AI-LANDING, 2026-10-30).
+local function clearLandingPoint(point, leaderPoint)
+    if not (Disposition and Disposition.getSimpleZones) then return point end
+    for _, clearance in ipairs(LZ_CLEARANCES_M) do
+        local q = clearingAt(point, leaderPoint, clearance)
+        if q then return q end
+    end
+    return point
 end
 
 function CTLDFatCowManager:_landNextTo(cow, leader)

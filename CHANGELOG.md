@@ -10,7 +10,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed — an AI Fat Cow no longer lands into trees, and one gone without an event is forgotten (FIX-FAT-COW-AI-LANDING)
 
-- An AI cow sent to land 120 m left of its leader (or of the requester of **Land here**) went there whatever stood there: on the 2026-10-30 live check it struck a tree at 10 m, twice at the same spot. It now lands in the nearest clearing within 300 m of that point, 30 m clear of scenery, on land and at least 60 m from the leader (`Disposition.getSimpleZones`, the DCS search VMCT lands its helicopters with); without one, at the point as before.
+- An AI cow sent to land 120 m left of its leader (or of the requester of **Land here**) went there whatever stood there: on the 2026-10-30 live check it struck a tree at 10 m, twice at the same spot. It now lands in the nearest clearing within 300 m of that point, with the widest clearance from scenery that offers one (100 m, else 50, else 30), on land and at least 60 m from the leader (`Disposition.getSimpleZones`, the DCS search VMCT lands its helicopters with); without one, at the point as before.
 - That cow's death fired no `S_EVENT_DEAD`, `S_EVENT_CRASH` nor `S_EVENT_UNIT_LOST`, and CTLD kept it: its FARP never opened and its flight was refused another cow. Every 10 s, an AI cow whose unit is no longer in the world is now forgotten as dead.
 
 ### Added — Fat Cow: a cow going home can be taken over by another flight (FEAT-FAT-COW-TAKEOVER)

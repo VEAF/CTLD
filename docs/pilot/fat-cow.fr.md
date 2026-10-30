@@ -51,7 +51,7 @@ La cow fait ensuite ce que votre patrouille lui dit, et rien d'elle-même :
 
 | Commande | Ce que fait la cow |
 |---|---|
-| **Atterris ici** | se pose dans la clairière la plus proche d'un point situé à environ 120 m à votre gauche (dans un rayon de 300 m, jamais à moins de 60 m de vous) et ouvre sa FARP une minute après avoir touché le sol |
+| **Atterris ici** | se pose dans la clairière la plus proche d'un point situé à environ 120 m à votre gauche (dans un rayon de 300 m, aussi loin des arbres et des bâtiments que possible, jamais à moins de 60 m de vous) et ouvre sa FARP une minute après avoir touché le sol |
 | **Redécolle** | replie sa FARP, décolle et tourne sur place |
 | **Reste ici en orbite** | replie sa FARP si besoin et tourne au-dessus de votre position |
 | **Rejoins-nous** | replie sa FARP si besoin et suit votre patrouille |

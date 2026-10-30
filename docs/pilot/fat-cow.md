@@ -51,7 +51,7 @@ The cow then does what your flight tells it, and nothing on its own:
 
 | Command | What the cow does |
 |---|---|
-| **Land here** | lands in the clearing nearest to a point about 120 m to your left (within 300 m, never closer than 60 m to you) and opens its FARP one minute after touching down |
+| **Land here** | lands in the clearing nearest to a point about 120 m to your left (within 300 m, as far from trees and buildings as it can, never closer than 60 m to you) and opens its FARP one minute after touching down |
 | **Take off** | packs its FARP, lifts off and orbits where it stands |
 | **Hold here** | packs its FARP if needed and orbits over your position |
 | **Join us** | packs its FARP if needed and follows your flight |

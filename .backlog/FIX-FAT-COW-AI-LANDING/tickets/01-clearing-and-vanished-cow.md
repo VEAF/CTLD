@@ -6,5 +6,5 @@ See the [PRD](../PRD.md).
 
 ## Acceptance
 
-- The Land task point is the nearest `Disposition.getSimpleZones` candidate within 300 m of the point 120 m left of the leader, on land and at least 60 m from the leader; the asked point when there is none or the call fails.
+- The Land task point is the nearest `Disposition.getSimpleZones` candidate within 300 m of the point 120 m left of the leader, at the widest clearance (100, 50, 30 m) that offers one, on land and at least 60 m from the leader; the asked point when there is none or the call fails.
 - An AI cow whose unit no longer exists is forgotten within 10 s, as if it had died: its flight can request another cow.

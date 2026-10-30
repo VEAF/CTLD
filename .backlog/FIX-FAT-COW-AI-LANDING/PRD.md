@@ -19,8 +19,13 @@ A probe logged every event naming the cow and its state every second:
 
 ## Solution
 
-1. **A clearing around the asked point**: the point 120 m left of the leader is searched for the nearest clearing within 300 m, 30 m clear of scenery, with `Disposition.getSimpleZones` — the undocumented DCS singleton VMCT's `veaf.findSpawnPoint` uses for its helicopter landings (measured on 2026-08-06: its points avoid buildings and forests; `veafAircraftSpawn` HELICOPTER_LZ_SEARCH 300 m, HELICOPTER_LZ_CLEARANCE 30 m). A candidate closer than 60 m to the leader, or on water, is skipped. No singleton, an error, or no candidate: the asked point, as today.
+1. **A clearing around the asked point**: the point 120 m left of the leader is searched for the nearest clearing within 300 m, with the widest clearance from scenery that offers one (100 m, else 50, else 30), with `Disposition.getSimpleZones` — the undocumented DCS singleton VMCT's `veaf.findSpawnPoint` uses for its helicopter landings (measured on 2026-08-06: its points avoid buildings and forests; `veafAircraftSpawn` HELICOPTER_LZ_SEARCH 300 m; descending clearances as `veaf.findSpawnPoint`'s). A single 30 m clearance (VMCT's, for a Mi-8) was the first try: on the live check of 2026-10-30 it put the cow next to the only tree of an open field, which the CH-47, drifting down at 3 m/s, struck (`87975620`, screenshot by Zip). With 50 m the nearest point there is 100 m from the leader, with 100 m 227 m. A candidate closer than 60 m to the leader, or on water, is skipped. No singleton, an error, or no candidate: the asked point, as today.
 2. **A vanished cow is forgotten**: the 10 s loop that re-syncs the FARPs also checks every AI cow's unit; one no longer in the world is handled as a dead cow (FARP packed and released, flight free to request another, take-over menus updated).
+
+## Measured in game (2026-10-30, `Test_FatCow_Takeover.miz`)
+
+- The vanished cow is forgotten: `registered=false`, Hawk free of its cow, within the 10 s loop.
+- 30 m clearance: not enough (above).
 
 ## Definition of done
 
