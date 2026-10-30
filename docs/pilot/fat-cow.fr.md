@@ -51,7 +51,7 @@ La cow fait ensuite ce que votre patrouille lui dit, et rien d'elle-même :
 
 | Commande | Ce que fait la cow |
 |---|---|
-| **Atterris ici** | se pose à environ 120 m à votre gauche et ouvre sa FARP une minute après avoir touché le sol |
+| **Atterris ici** | se pose dans la clairière la plus proche d'un point situé à environ 120 m à votre gauche (dans un rayon de 300 m, jamais à moins de 60 m de vous) et ouvre sa FARP une minute après avoir touché le sol |
 | **Redécolle** | replie sa FARP, décolle et tourne sur place |
 | **Reste ici en orbite** | replie sa FARP si besoin et tourne au-dessus de votre position |
 | **Rejoins-nous** | replie sa FARP si besoin et suit votre patrouille |
@@ -77,7 +77,7 @@ Une cow libérée au sol replie sa FARP avant de vous rejoindre.
 Une entrée disparaît dès que sa cow est reprise, posée à sa base ou abattue.
 
 !!! tip "Posez-vous à découvert"
-    Choisissez un terrain dégagé pour **Atterris ici** : un hélicoptère envoyé se poser en lisière de forêt y reste en stationnaire sans jamais toucher le sol.
+    La cow cherche une clairière près du point situé 120 m à votre gauche, mais seulement dans un rayon de 300 m : en forêt, choisissez quand même un terrain dégagé pour **Atterris ici**.
 
 ## Ce que contient encore une FARP
 

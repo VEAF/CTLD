@@ -51,7 +51,7 @@ The cow then does what your flight tells it, and nothing on its own:
 
 | Command | What the cow does |
 |---|---|
-| **Land here** | lands about 120 m to your left and opens its FARP one minute after touching down |
+| **Land here** | lands in the clearing nearest to a point about 120 m to your left (within 300 m, never closer than 60 m to you) and opens its FARP one minute after touching down |
 | **Take off** | packs its FARP, lifts off and orbits where it stands |
 | **Hold here** | packs its FARP if needed and orbits over your position |
 | **Join us** | packs its FARP if needed and follows your flight |
@@ -77,7 +77,7 @@ A cow released on the ground packs its FARP before joining you.
 An entry goes away once its cow is taken over, has landed at its base, or is shot down.
 
 !!! tip "Land in the open"
-    Pick open ground for **Land here**: a helicopter sent to land at the edge of a forest hovers there and never touches down.
+    The cow looks for a clearing near the point 120 m to your left, but it can only search within 300 m: in a forest, pick open ground for **Land here** anyway.
 
 ## What a FARP still holds
 
