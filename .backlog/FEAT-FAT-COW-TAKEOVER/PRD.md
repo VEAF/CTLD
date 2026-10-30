@@ -29,19 +29,19 @@ A cow released with **RTB** while on the ground was exposed to the same despawn.
 ## Solution
 
 1. **Despawn only at home**: a returning cow that lands more than 2 km from its home point is left alone (logged with the distance).
-2. **The cow says it is going home**: when its flight is lost and it still carries something, every player flight of its coalition that could take it over gets a message: where it is from them, what it carries, and the F10 command.
-3. **"Take over a Fat Cow"**: shown in F10 > CTLD > Fat Cow to the flights that have no cow, while a cow of their coalition is going home after losing its flight. The nearest such cow joins the flight and serves it as its own (follows it, Land here / Take off / Hold here / Join us / RTB, FARP after the delay).
+2. **The cow says it is going home**: when its flight is lost, every helicopter flight of its coalition that could take it over gets a message: where it is from them, where it goes, what it carries, and the F10 command.
+3. **"Take over a Fat Cow"**: a submenu of F10 > CTLD > Fat Cow, for the helicopter flights that have no cow, listing every cow of their coalition flying home (lost flight or RTB, empty or not), nearest first, with its distance from the caller. The cow picked joins the flight and serves it as its own (follows it, Land here / Take off / Hold here / Join us / RTB, FARP after the delay). An entry goes once its cow is taken over, has landed at home, or is dead.
 
 ## Decisions
 
-- **Who is told**: the player flights of the cow's coalition that see the AI Fat Cow menu (every player but a cow pilot) and have no cow, rather than the whole coalition: the message names a command only they can use, and a fighter pilot with a cow already would only read noise.
-- **Which cows can be taken**: only a cow that lost its flight and still carries something. A cow sent home with RTB was released on purpose; an empty one has nothing to give.
-- **One command, the nearest cow**: rather than one command per cow, whose label would carry long group names.
-- **Home radius 2 km**: the Land task puts the cow down at the home point itself; a wrong landing was measured tens of km away.
+- **Who is told, who may take over**: the helicopter flights of the cow's coalition that see the AI Fat Cow menu (not a cow pilot) and have no cow (Zip, 2026-10-30: helicopters only). The message names a command only they can use.
+- **Which cows can be taken**: any cow flying home, released with RTB or empty included, until it has landed at home (Zip, 2026-10-30, reversing the first version, which offered only a cow that lost its flight and still carried something).
+- **One entry per cow, nearest first, with its distance** (Zip, 2026-10-30). The distance is the one at the menu's last build: the menus are rebuilt when a cow starts home, is taken over, lands home or dies, and every 30 s for the flights that may take one over. A label that changes is a removed entry and a new one: ADR 0027 parks the freed id, so a screen left open across the update fires nothing rather than the wrong cow.
+- **Home radius 2 km**: the Land task puts the cow down at the home point itself; the wrong landing was measured tens of km away.
 
 ## Definition of done
 
-- Unit specs (`tests/ci/unit/fatcow_ai_spec.lua`): no despawn away from home; the message to eligible flights only; the command shown while an orphan cow exists and gone once it is taken, home or dead; the take-over re-tasks the cow to follow the new flight, which then commands it.
+- Unit specs (`tests/ci/unit/fatcow_ai_spec.lua`): no despawn away from home; the message to eligible flights only; the submenu listing the cows going home, nearest first, to helicopter flights without a cow only, and each entry gone once its cow is taken, home or dead; the take-over re-tasks the cow to follow the new flight, which then commands it.
 - Docs (pilot + mission maker, EN + FR), CHANGELOG, i18n (four dictionaries).
 - Live check written for Zip (ticket 02).
 

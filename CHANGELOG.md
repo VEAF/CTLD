@@ -8,11 +8,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Added — Fat Cow: a cow that lost its flight goes home, says so, and can be taken over (FEAT-FAT-COW-TAKEOVER)
+### Added — Fat Cow: a cow going home can be taken over by another flight (FEAT-FAT-COW-TAKEOVER)
 
-- An AI Fat Cow whose flight is shot down, or whose last player leaves, still packs and flies home; if it carries something, every player flight of its coalition without a cow is told where it is, where it goes and what it holds, and **Take over a Fat Cow** shows in their F10 Fat Cow menu until the cow is taken over, home or dead.
-  The first flight to use it gets the nearest such cow, which follows it and obeys it as if it had requested it.
-  A cow sent home with **RTB**, or empty, is not offered.
+- An AI Fat Cow whose flight is shot down, or whose last player leaves, still packs and flies home, and every helicopter flight of its coalition without a cow is told where it is, where it goes and what it holds.
+- Any cow flying home, after losing its flight or an **RTB**, empty or not, is listed in those flights' F10 **Fat Cow → Take over a Fat Cow**, nearest first with its distance (updated every 30 s), until it is taken over, has landed at its base, or is dead.
+  The cow picked follows the flight and obeys it as if it had requested it.
 
 ### Fixed — an AI Fat Cow sent home from the ground no longer vanishes on the spot (FEAT-FAT-COW-TAKEOVER)
 

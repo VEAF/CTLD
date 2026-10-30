@@ -65,13 +65,14 @@ So you can lift off to hover-taxi onto its FARP, or reposition, without the cow 
 It is always a CH-47, whatever you fly.
 One cow per flight.
 
-### When a cow loses its flight
+### Taking over a cow on its way home
 
 If the flight a cow serves is shot down, or its last player leaves, the cow packs its FARP and flies back to base.
-If it still carries something, every player flight of its coalition with no cow of its own is told: where it is from them, where it goes and what it holds.
-**Take over a Fat Cow** then shows in their **Fat Cow** menu: the first flight to use it gets the nearest such cow, which joins it and obeys its commands as if that flight had requested it.
-The command goes away once the cow is taken over, back at base, or shot down.
-A cow sent home with **RTB**, or with nothing left, is not offered.
+Every helicopter flight of its coalition with no cow of its own is told: where it is from them, where it goes and what it holds.
+
+As long as a cow is flying home, for that reason or after an **RTB**, empty or not, those flights find it in **Fat Cow → Take over a Fat Cow**: one entry per cow, nearest first, with its distance from you (updated every 30 s).
+The cow you pick joins your flight and obeys its commands as if you had requested it.
+An entry goes away once its cow is taken over, has landed at its base, or is shot down.
 
 !!! tip "Land in the open"
     Pick open ground for **Land here**: a helicopter sent to land at the edge of a forest hovers there and never touches down.

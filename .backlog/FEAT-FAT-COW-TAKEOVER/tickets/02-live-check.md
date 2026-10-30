@@ -12,7 +12,7 @@ The unit specs mock DCS; three things only DCS can answer:
 
 1. A cow on the ground sent home lifts off and flies home, instead of vanishing on the spot (the 2026-10-29 bug), and despawns once there.
 2. A grounded cow given a `Follow` task by a take-over lifts off and follows the new flight.
-3. The message and the **Take over a Fat Cow** command reach a client of another flight, and the command leaves the menu once used.
+3. The message and the **Take over a Fat Cow** submenu reach a client of another helicopter flight (nearest cow first, with its distance), and an entry leaves the menu once its cow is taken.
 
 ## Kit
 
@@ -25,22 +25,24 @@ Or the server variant on Privé 1 with this build: any two AH-64D slots in diffe
 
 ### A — The flight is lost while its cow serves on the ground (the 2026-10-29 case)
 
-1. Slot **Gunfighter**. Take off and land about 3 km out of the zone, on open ground.
+1. Slot **Gunfighter**. Take off and land about 10 km out of the zone, on open ground (the cow then needs about 2.5 min to fly home: time to change slot).
 2. `\` → **F10 Other** → **CTLD** → **Fat Cow** → **Request a Fat Cow** → the first loadout.
    Wait for the cow, then **Fat Cow** → **Land here**, and wait for `Fat Cow FARP open: …`.
 3. **Esc** → **Choose slot** → **Spectators**: Gunfighter has no player, its flight is lost.
 4. **F10** map, 30 s later: the cow is no longer on the ground at your landing spot, it flies back towards the zone. 📸
    If it is still there, note whether it has its crew and FARP around it.
-5. Slot **Apache-150m** before the cow is home (about 1 min at its speed for 3 km: go straight in).
-   `\` → **F10 Other** → **CTLD** → **Fat Cow**: **Take over a Fat Cow** is the last entry. 📸
-6. **Take over a Fat Cow**: expected `Fat Cow joining your flight: … km, in about … min, with …`.
+5. Slot **Apache-150m** before the cow is home: go straight in.
+   `\` → **F10 Other** → **CTLD** → **Fat Cow** → **Take over a Fat Cow**: one entry, `Fat Cow … km away, going home to LGZ_cowbase_B`. 📸
+   Wait 30 s and open it again: the distance went down.
+6. Pick that entry: expected `Fat Cow joining your flight: … km, in about … min, with …`.
    **Fat Cow** again: **Take over a Fat Cow** is gone. 📸
 7. Take off: the cow turns back and follows you. **Land here**: it lands next to you and opens its FARP a minute later.
 
 ### B — Back home
 
 8. With the cow on the ground and its FARP open, **Fat Cow** → **RTB**.
-9. **F10** map: the cow lifts off, flies to the zone, lands there and disappears. 📸
+9. On the way, **Fat Cow** → **Take over a Fat Cow** lists it again (an RTB cow can be taken back). 📸
+   Do not pick it: on the **F10** map the cow lifts off, flies to the zone, lands there and disappears, and the entry goes with it. 📸
 
 ### C — The message, with a second player (Griffin or Paluche), or the AI flight
 
