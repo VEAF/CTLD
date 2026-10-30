@@ -2319,7 +2319,8 @@ To give a flight its cow from the start instead, place the cow in the Mission Ed
 </code></pre></div>
 <p>CTLD activates the cow as soon as the escorted group is in the world: at mission start for an AI flight, or when the first player takes a slot of a client flight.
 If the escorted flight is an AI flight, the cow lands next to the leader when it lands, deploys after <code>fatCowDeployDelay</code>, packs and follows when the leader takes off, and flies back to where it started once empty: an AI flight cannot use the menu.
-If it is a client flight, its players command the cow from F10, as a requested one.</p>
+If it is a client flight, its players command the cow from F10, as a requested one.
+If the escorted flight is lost, the cow flies back to where it started, and any helicopter flight of its coalition without a cow can take it over from F10 on the way (<strong>Take over a Fat Cow</strong>, see the pilot guide).</p>
 <p>At start, CTLD logs what DCS reports for the warehouse of the mission's FARPs (<code>FARP warehouse '&lt;name&gt;': jet fuel …</code>): a measurement before <strong>FARP status</strong> covers every FARP, and not only Fat Cow ones.</p>
 <p>This declaration is the contract the VEAF Mission Creation Tools rely on to add a cow escorting a named flight: a late-activated helicopter group, and one <code>fatCowAICows</code> entry <code>{ group, escort, loadout }</code> (<code>loadout</code> optional).
 CTLD never recognises a cow by its name.</p>

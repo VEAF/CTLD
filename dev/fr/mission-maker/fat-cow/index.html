@@ -2319,7 +2319,8 @@ Pour donner sa cow à une patrouille dès le départ, placez la cow dans l'édit
 </code></pre></div>
 <p>CTLD active la cow dès que le groupe escorté est en jeu : au démarrage de la mission pour une patrouille IA, ou quand le premier joueur prend un slot d'une patrouille de clients.
 Si la patrouille escortée est une patrouille IA, la cow se pose à côté du leader quand il se pose, se déploie après <code>fatCowDeployDelay</code>, se replie et suit quand le leader décolle, et rentre à son point de départ une fois vide : une patrouille IA ne peut pas utiliser le menu.
-Si c'est une patrouille de clients, ses joueurs commandent la cow depuis le F10, comme une cow demandée.</p>
+Si c'est une patrouille de clients, ses joueurs commandent la cow depuis le F10, comme une cow demandée.
+Si la patrouille escortée est perdue, la cow rentre à son point de départ, et toute patrouille d'hélicoptères de sa coalition sans cow peut la reprendre en chemin depuis le F10 (<strong>Reprendre une Fat Cow</strong>, voir le guide pilote).</p>
 <p>Au démarrage, CTLD note dans le log ce que DCS renvoie pour l'entrepôt des FARP de la mission (<code>FARP warehouse '&lt;nom&gt;': jet fuel …</code>) : une mesure, avant que <strong>Statut FARP</strong> couvre toutes les FARP et pas seulement celles des Fat Cow.</p>
 <p>Cette déclaration est le contrat sur lequel s'appuient les VEAF Mission Creation Tools pour ajouter une cow qui escorte une patrouille nommée : un groupe d'hélicoptère en activation différée, et une entrée <code>fatCowAICows</code> <code>{ group, escort, loadout }</code> (<code>loadout</code> facultatif).
 CTLD ne reconnaît jamais une cow à son nom.</p>
