@@ -8,6 +8,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — a piloted Fat Cow leaves its FARP open, and packs it into crates on the ground (FEAT-FAT-COW-LEAVE-FARP)
+
+- **Load** > a loadout sets its crates down next to the CH-47, for the pilot to load like any CTLD crate, instead of putting them straight into the hold; the last crate of each kind holds and weighs only what the loadout puts in it.
+- **Deploy the Fat Cow FARP** takes the cow crates out of the hold: their content is the FARP's stock, and the helicopter is lighter.
+- Taking off no longer packs the FARP: it stays open, and the pilot is told its name on the F10 map and what it holds. It also stays open when the CH-47 is shot down, its pilot leaves, or another pilot takes the slot, until a CH-47 packs it.
+- **Pack the Fat Cow FARP**, from any piloted CH-47 of the coalition landed within 150 m, sets what is left down as Fat Cow crates next to it (an empty FARP gives none), to load and deploy elsewhere.
+- Each open FARP has its own name, so a pilot can open several; a packed FARP's name goes to the next one. **Fat Cow stock** now reports the crates in the hold only (**FARP status** reports an open FARP).
+- AI Fat Cows are unchanged.
+
 ### Fixed — an AI Fat Cow no longer lands into trees, and one gone without an event is forgotten (FIX-FAT-COW-AI-LANDING)
 
 - An AI cow sent to land 120 m left of its leader (or of the requester of **Land here**) went there whatever stood there: on the 2026-10-30 live check it struck a tree at 10 m, twice at the same spot. It now lands in the nearest clearing within 300 m of that point, with the widest clearance from scenery that offers one (100 m, else 50, else 30), on land and at least 60 m from the leader (`Disposition.getSimpleZones`, the DCS search VMCT lands its helicopters with); without one, at the point as before.

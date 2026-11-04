@@ -1942,14 +1942,16 @@ function CTLDCrateManager:_aircraftHeading(unit)
 end
 
 --- @param heading number|nil  heading of the crate in radians (0 when absent): that of the aircraft it is created for
-function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading)
+--- @param metadata table|nil  the crate's metadata from the start; its massKg, when set, is what the static weighs
+---                           (a part-full Fat Cow crate)
+function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading, metadata)
     if not (descriptor and position) then
         _log("WARNING", "CTLDCrateManager:spawnCrate - missing descriptor or position")
         return nil
     end
 
     local crateName, dcsStatic = self:_spawnStatic(
-        descriptor.weight, position, coalitionId, countryId, modelKey, descriptor.desc, heading)
+        (metadata and metadata.massKg) or descriptor.weight, position, coalitionId, countryId, modelKey, descriptor.desc, heading)
     if not dcsStatic then return nil end
 
     local models  = ctld.gs("spawnableCratesModels") or {}
@@ -1965,6 +1967,7 @@ function CTLDCrateManager:spawnCrate(descriptor, position, coalitionId, spawnedB
         dcsStatic   = dcsStatic,
         modelKey    = (models[usedKey] and usedKey) or "load",
     })
+    for k, v in pairs(metadata or {}) do crate.metadata[k] = v end
     self:_register(crate)
 
     self:_publish("OnCrateSpawned", {
@@ -2018,8 +2021,9 @@ end
 -- @param coalitionId  number  coalition.side.*
 -- @param spawnedBy    string  unit name for attribution
 -- @param spawnMethod  string  CTLDCrate.SPAWN_METHOD.*
+-- @param metadatas    table|nil  metadata per crate, in the order of `descriptors` (see spawnCrate)
 -- @return number spawned count, table spawnInfo {positions, clock, distance}, table the CTLDCrate objects created
-function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId, spawnedBy, spawnMethod)
+function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId, spawnedBy, spawnMethod, metadatas)
     local modelKey = self:_crateModelKey(transport)
 
     -- An aircraft type that declares where its crates spawn gets them in a row just clear of its hull,
@@ -2027,7 +2031,7 @@ function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId
     -- crate model that declares no size, since the row is computed from it.
     local plan = self:getCrateRowPlan(transport, modelKey)
     if plan then
-        return self:_spawnCratesInRow(descriptors, transport, coalitionId, spawnedBy, spawnMethod, plan, modelKey)
+        return self:_spawnCratesInRow(descriptors, transport, coalitionId, spawnedBy, spawnMethod, plan, modelKey, metadatas)
     end
 
     local spawnInfo = self:_radialCratePositions(transport, #descriptors)
@@ -2037,7 +2041,8 @@ function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId
     for i, descriptor in ipairs(descriptors) do
         local pos = spawnInfo.positions[i]
         if descriptor and pos then
-            local crate = self:spawnCrate(descriptor, pos, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading)
+            local crate = self:spawnCrate(descriptor, pos, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading,
+                metadatas and metadatas[i])
             if crate then crates[#crates + 1] = crate end
         end
     end
@@ -2124,7 +2129,7 @@ end
 --- Spawn a wave of crates in a row just clear of an aircraft that declares a crate spawn plan.
 -- @param plan  table  { sector, distance } from getCrateSpawnPlan
 -- @return number spawned count, table spawnInfo {positions, clock, distance}, table the CTLDCrate objects created
-function CTLDCrateManager:_spawnCratesInRow(descriptors, transport, coalitionId, spawnedBy, spawnMethod, plan, modelKey)
+function CTLDCrateManager:_spawnCratesInRow(descriptors, transport, coalitionId, spawnedBy, spawnMethod, plan, modelKey, metadatas)
     local size  = self:getCrateSize(modelKey)
     local sizes = {}
     for i = 1, #descriptors do sizes[i] = size end
@@ -2137,7 +2142,8 @@ function CTLDCrateManager:_spawnCratesInRow(descriptors, transport, coalitionId,
     for i, descriptor in ipairs(descriptors) do
         local p = positions[i]
         if descriptor and p then
-            local crate = self:spawnCrate(descriptor, p, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading)
+            local crate = self:spawnCrate(descriptor, p, coalitionId, spawnedBy, spawnMethod, countryId, modelKey, heading,
+                metadatas and metadatas[i])
             if crate then crates[#crates + 1] = crate end
         end
     end

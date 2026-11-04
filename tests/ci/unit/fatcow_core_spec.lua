@@ -404,23 +404,6 @@ describe("CTLDFatCowManager deploy / pack", function()
         assert.equals(200, farps.CTLD_FatCow_FARP_2.liquids[0])
     end)
 
-    it("closes, emptied, the FARP a piloted cow's pilot left open when a new pilot takes the slot", function()
-        local unit = cowUnit("Cow-1")
-        local cow = mgr:addCow(unit, { fuelKg = 2400, items = {} })
-        cow.crates = {}                                       -- a piloted cow
-        mgr:deploy(unit)
-        local newPilot = cowUnit("Cow-1")
-        newPilot.getPlayerName = function() return "Griffin" end
-        local savedName, savedSchedule = ctld.utils.safeObjectName, ctld.scheduler.schedule
-        ctld.utils.safeObjectName = function(o) return o:getName() end
-        ctld.scheduler.schedule = function() end
-        mgr:onBirth({ initiator = newPilot })
-        ctld.utils.safeObjectName, ctld.scheduler.schedule = savedName, savedSchedule
-        assert.is_nil(mgr:getCow("Cow-1"))
-        assert.is_not_nil(packed)
-        assert.equals(0, w.liquids[0])
-    end)
-
     it("removing a deployed cow packs it first", function()
         local unit = cowUnit("Cow-1")
         mgr:addCow(unit, { fuelKg = 100, items = {} })
