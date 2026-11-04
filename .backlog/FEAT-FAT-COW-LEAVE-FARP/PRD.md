@@ -1,6 +1,6 @@
 # FEAT-FAT-COW-LEAVE-FARP — a piloted Fat Cow leaves its FARP behind, and packs it into crates on the ground
 
-Status: ready
+Status: merged (PR #286) — 02 waiting-human (live check)
 
 ## Problem
 

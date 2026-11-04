@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.35"
+ctld.i18n["es"].translation_version = "1.36"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -627,13 +627,13 @@ ctld.i18n["es"]["Deploy the Fat Cow FARP"] = "Desplegar el FARP Fat Cow"
 ctld.i18n["es"]["Deploying the Fat Cow FARP..."] = "Desplegando el FARP Fat Cow..."
 ctld.i18n["es"]["Fat Cow"] = "Fat Cow"
 ctld.i18n["es"]["Fat Cow FARP open: %1"] = "FARP Fat Cow abierto: %1"
-ctld.i18n["es"]["Fat Cow FARP packed: %1 left."] = "FARP Fat Cow recogido: quedan %1."
+-- STALE: ctld.i18n["es"]["Fat Cow FARP packed: %1 left."] = "FARP Fat Cow recogido: quedan %1."
 ctld.i18n["es"]["Fat Cow fuel tank (800 gal)"] = "Tanque Fat Cow (800 gal)"
 ctld.i18n["es"]["Fat Cow stock"] = "Existencias del Fat Cow"
 ctld.i18n["es"]["Fat Cow stock: %1"] = "Existencias del Fat Cow: %1"
 ctld.i18n["es"]["Land to deploy the Fat Cow FARP."] = "Aterriza para desplegar el FARP Fat Cow."
 ctld.i18n["es"]["No Fat Cow crate on board: load a fuel tank or an ammo crate first."] = "Ninguna caja Fat Cow a bordo: carga primero un tanque o una caja de munición."
-ctld.i18n["es"]["No Fat Cow FARP deployed."] = "Ningún FARP Fat Cow desplegado."
+-- STALE: ctld.i18n["es"]["No Fat Cow FARP deployed."] = "Ningún FARP Fat Cow desplegado."
 ctld.i18n["es"]["Pack the Fat Cow FARP"] = "Recoger el FARP Fat Cow"
 ctld.i18n["es"]["Request a Fat Cow"] = "Solicitar un Fat Cow"
 ctld.i18n["es"]["The Fat Cow could not be brought in."] = "No se pudo traer el Fat Cow."
@@ -658,10 +658,10 @@ ctld.i18n["es"]["Hold here"] = "Espera aquí en órbita"
 ctld.i18n["es"]["Join us"] = "Únete a nosotros"
 ctld.i18n["es"]["Joining in about %1 min."] = "Se une en unos %1 min."
 ctld.i18n["es"]["Land here"] = "Aterriza aquí"
-ctld.i18n["es"]["Loaded into your hold: %1"] = "Cargado en la bodega: %1"
+-- STALE: ctld.i18n["es"]["Loaded into your hold: %1"] = "Cargado en la bodega: %1"
 ctld.i18n["es"]["No Fat Cow FARP within %1 km."] = "Ningún FARP Fat Cow a menos de %1 km."
 ctld.i18n["es"]["No friendly logistic zone to send a Fat Cow from."] = "Ninguna zona logística aliada desde donde enviar un Fat Cow."
-ctld.i18n["es"]["Not enough room: %1 crate(s) on board, %2 more needed, %3 at most."] = "No hay sitio: %1 caja(s) a bordo, %2 más necesarias, %3 como máximo."
+-- STALE: ctld.i18n["es"]["Not enough room: %1 crate(s) on board, %2 more needed, %3 at most."] = "No hay sitio: %1 caja(s) a bordo, %2 más necesarias, %3 como máximo."
 ctld.i18n["es"]["Stock: %1"] = "Existencias: %1"
 ctld.i18n["es"]["Take off"] = "Despega"
 ctld.i18n["es"]["The Fat Cow is already on the ground."] = "El Fat Cow ya está en tierra."
@@ -728,3 +728,13 @@ ctld.i18n["es"]["A Fat Cow was released and waits for a flight: %1 km at %2° fr
 ctld.i18n["es"]["Fat Cow %1 km away, waiting"] = "Fat Cow a %1 km, en espera"
 ctld.i18n["es"]["Fat Cow released: it stays where it is, for another flight to take over."] = "Fat Cow liberado: se queda donde está, otra escuadrilla puede tomarlo."
 ctld.i18n["es"]["Release the Fat Cow"] = "Liberar el Fat Cow"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-04
+ctld.i18n["es"]["Fat Cow FARP packed, set down next to you: %1"] = "FARP Fat Cow recogido, depositado a tu lado: %1"
+ctld.i18n["es"]["Land to pack the Fat Cow FARP."] = "Aterriza para recoger el FARP Fat Cow."
+ctld.i18n["es"]["No Fat Cow FARP within %1 m."] = "Ningún FARP Fat Cow a menos de %1 m."
+ctld.i18n["es"]["Set down next to you, to load into your hold: %1"] = "Depositado a tu lado, para cargar en la bodega: %1"
+ctld.i18n["es"]["The Fat Cow FARP stays open (%1 on the F10 map): %2. Land within %3 m of it to pack it."] = "El FARP Fat Cow sigue abierto (%1 en el mapa F10): %2. Aterriza a menos de %3 m para recogerlo."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-04
+ctld.i18n["es"]["Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2."] = "Entrega primero las cajas Fat Cow a CTLD: abre las puertas y luego F10 > CTLD > %1 > %2."

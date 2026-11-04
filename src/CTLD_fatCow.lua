@@ -7,7 +7,8 @@
 -- Invisible FARP has a warehouse, starts empty, and serves its stock until it runs out.
 --
 -- CTLDFatCow        — one cow: its stock (fuel kg + weapon items by warehouse name) and its state.
--- CTLDFatCowManager — singleton, cows by unit name; deploy, pack, re-sync on player birth.
+-- CTLDFatCowManager — singleton, AI cows by unit name and open piloted FARPs by FARP name; deploy, pack,
+--                     re-sync on player birth.
 --
 -- Dependencies: class, CTLDSceneManager, CTLDCrateManager, CTLDZoneManager, CTLDPlayerManager,
 -- CTLDDCSEventBridge, CTLDUtils (the scene: CTLDObjectRegistry)
@@ -108,8 +109,8 @@ end
 
 -- ── Cow crates (piloted cow) ────────────────────────────────────────────────────────────────────
 -- A cow crate's descriptor carries `fatCow = { fuelKg }` or `fatCow = { item, count }`: what it holds
--- when full. Once it has served, crate.metadata.fatCow holds what is left and crate.metadata.massKg
--- what it weighs.
+-- when full. A part-full one (the last of its kind in a loadout, or in a packed FARP) has
+-- crate.metadata.fatCow holding what it holds and crate.metadata.massKg what it weighs.
 
 local function contentOf(crate)
     return crate.metadata and crate.metadata.fatCow or crate.descriptor.fatCow
@@ -162,38 +163,6 @@ function CTLDFatCow.stockOfCrates(crates)
     return stock
 end
 
---- Puts what is left of a stock back into the cow crates it came from, in order, each up to what it
--- held when the FARP opened. Sets each crate's metadata (content and mass).
--- @return the crates left empty, for the caller to remove
-function CTLDFatCow.refillCrates(stock, crates)
-    local fuelLeft  = stock.fuelKg or 0
-    local itemsLeft = {}
-    for name, count in pairs(stock.items or {}) do itemsLeft[name] = count end
-    local emptied = {}
-    for _, crate in ipairs(crates) do
-        if isCowCrate(crate) then
-            local full   = crate.descriptor.fatCow
-            local before = contentOf(crate)
-            local now, fraction
-            if before.fuelKg then
-                local kg = math.min(before.fuelKg, fuelLeft)
-                fuelLeft = fuelLeft - kg
-                now      = { fuelKg = kg }
-                fraction = full.fuelKg > 0 and kg / full.fuelKg or 0
-            else
-                local n = math.min(before.count or 0, itemsLeft[before.item] or 0)
-                itemsLeft[before.item] = (itemsLeft[before.item] or 0) - n
-                now      = { item = before.item, count = n }
-                fraction = (full.count or 0) > 0 and n / full.count or 0
-            end
-            crate.metadata.fatCow = now
-            crate.metadata.massKg = crate.descriptor.weight * fraction
-            if fraction <= 0 then emptied[#emptied + 1] = crate end
-        end
-    end
-    return emptied
-end
-
 -- ====================================================================================================
 -- CTLDFatCowManager
 -- ====================================================================================================
@@ -213,22 +182,28 @@ function CTLDFatCowManager.getInstance()
 end
 
 function CTLDFatCowManager:init()
-    self._cows      = {}   -- unit name → CTLDFatCow
-    self._farpNames = {}   -- unit name → the name of its FARP, kept across deployments
-    self._freeFarps = {}   -- FARP names of AI cows gone, for the next cow to reuse
+    -- An AI cow by its unit name; an open piloted FARP by its FARP name: it outlives the helicopter
+    -- that laid it out (FEAT-FAT-COW-LEAVE-FARP).
+    self._cows      = {}
+    self._farpNames = {}   -- AI cow's unit name → the name of its FARP, kept across deployments
+    self._freeFarps = {}   -- FARP names of AI cows gone and of piloted FARPs packed, for the next to reuse
 end
 
---- The cow's own FARP name: one heliport per cow, added again at each deployment and never destroyed.
--- "CTLD_" so other scripts can tell a cow FARP from a mission FARP. A name an AI cow left is reused,
--- so the map does not gain an empty FARP with every cow requested.
+--- A FARP name for a new heliport: one left free if any, so the map does not gain an empty FARP with
+-- every cow requested, else a new one. "CTLD_" so other scripts can tell a cow FARP from a mission FARP.
+function CTLDFatCowManager:_newFarpName()
+    local name = table.remove(self._freeFarps)
+    if not name then
+        self._farpCounter = (self._farpCounter or 0) + 1
+        name = string.format("CTLD_FatCow_FARP_%d", self._farpCounter)
+    end
+    return name
+end
+
+--- An AI cow's own FARP name: one heliport per cow, added again at each deployment and never destroyed.
 function CTLDFatCowManager:_farpNameFor(unitName)
     if not self._farpNames[unitName] then
-        local name = table.remove(self._freeFarps)
-        if not name then
-            self._farpCounter = (self._farpCounter or 0) + 1
-            name = string.format("CTLD_FatCow_FARP_%d", self._farpCounter)
-        end
-        self._farpNames[unitName] = name
+        self._farpNames[unitName] = self:_newFarpName()
     end
     return self._farpNames[unitName]
 end
@@ -267,17 +242,19 @@ end
 
 --- Lays out the Fat Cow scene at the cow. The warehouse is written when the scene is laid out
 -- (onSceneLaidOut), not here: the FARP does not exist yet.
+-- @param cow      CTLDFatCow|nil  the cow to lay out (default: the one declared for `unit`)
+-- @param farpName string|nil      its FARP (default: the cow's own, see _farpNameFor)
 -- @return true, or false and a reason: "unknown", "airborne", "deployed", "empty", "scene" (not started),
 -- "failed" (its FARP or fuel depot could not be added: the cow is stowed and its audience told)
-function CTLDFatCowManager:deploy(unit)
-    local cow = self._cows[unit:getName()]
+function CTLDFatCowManager:deploy(unit, cow, farpName)
+    cow = cow or self._cows[unit:getName()]
     if not cow then return false, "unknown" end
     if unit:inAir() then return false, "airborne" end
     if cow.state ~= CTLDFatCow.STATE_STOWED then return false, "deployed" end
     if cow:isEmpty() then return false, "empty" end
     cow.state = CTLDFatCow.STATE_DEPLOYING
     local scene = CTLDSceneManager.getInstance():playScene(unit, CTLDFatCowManager.SCENE_NAME,
-        { fatCow = cow, farpName = self:_farpNameFor(cow.unitName) })
+        { fatCow = cow, farpName = farpName or self:_farpNameFor(cow.unitName) })
     if not scene then
         cow.state = CTLDFatCow.STATE_STOWED
         return false, "scene"
@@ -303,13 +280,14 @@ function CTLDFatCowManager:onSceneLaidOut(scene)
     end
     cow:writeWarehouse(w)
     cow.state = CTLDFatCow.STATE_DEPLOYED
+    if cow.crates then self:_consumeCrates(cow) end
     ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' deployed, FARP '%s', %d kg of fuel",
         cow.unitName, cow.farpName, cow.stock.fuelKg)
     self:_notify(cow, ctld.tr("Fat Cow FARP open: %1", CTLDFatCow.describeStock(cow.stock)))
 end
 
 --- Called by the scene when its FARP or its fuel depot could not be added: the cow is stowed again
--- (its FARP, if added, stays empty).
+-- (its FARP, if added, stays empty). A piloted FARP is forgotten; its crates, still in the hold, stay there.
 function CTLDFatCowManager:onSceneFailed(scene)
     local cow = scene._params and scene._params.fatCow
     if not cow then return end
@@ -318,6 +296,7 @@ function CTLDFatCowManager:onSceneFailed(scene)
     if w then CTLDFatCow.emptyAnyWarehouse(w) end
     cow.scene, cow.farpName = nil, nil
     cow.state = CTLDFatCow.STATE_STOWED
+    if cow.pilotedFarp then self:_forgetPilotedFarp(cow) end
     ctld.utils.log("ERROR", "CTLDFatCowManager: FARP of cow '%s' not added", cow.unitName)
     self:_notify(cow, ctld.tr("The Fat Cow FARP could not be deployed."))
 end
@@ -368,12 +347,6 @@ function CTLDFatCowManager:onBirth(event)
     if not (obj and obj.getPlayerName) then return end
     local ok, playerName = pcall(obj.getPlayerName, obj)
     if not (ok and playerName) then return end
-    -- A pilot taking the slot of a piloted cow whose FARP was left open (its pilot left the slot): the
-    -- FARP closes, emptied, so the new pilot starts from a clean hold instead of "already deployed"
-    -- and a pack that no longer finds the previous pilot's crates.
-    local name = ctld.utils.safeObjectName(obj)
-    local left = name and self._cows[name]
-    if left and left.crates then self:removeCow(name) end
     self:_resyncFarps()
     local mgr = self
     ctld.scheduler.schedule(function() mgr:_resyncFarps() end, nil, timer.getTime() + 2)
@@ -580,7 +553,27 @@ function CTLDFatCowManager:cratesForLoadout(loadout)
     return out
 end
 
---- F10 "Load" > a loadout: a fatCowLoadouts entry, straight into the hold.
+--- Sets cow crates down next to a helicopter, a part-full one at what it holds and weighs.
+-- @param wanted list of { desc, content, fraction } (cratesForLoadout)
+-- @return the crates set down (fewer than wanted when some could not be brought out)
+function CTLDFatCowManager:_setDownCrates(t, wanted)
+    local descs, metadatas = {}, {}
+    for i, w in ipairs(wanted) do
+        descs[i]     = w.desc
+        metadatas[i] = (w.fraction < 1) and { fatCow = w.content, massKg = w.desc.weight * w.fraction } or {}
+    end
+    local _, _, crates = CTLDCrateManager.getInstance():spawnCratesAligned(descs, t, t:getCoalition(), t:getName(),
+        CTLDCrate.SPAWN_METHOD.MENU_CTLD, metadatas)
+    crates = crates or {}
+    if #crates < #descs then
+        ctld.utils.log("WARN", "CTLDFatCowManager: %d of %d Fat Cow crate(s) set down next to '%s'",
+            #crates, #descs, t:getName())
+    end
+    return crates
+end
+
+--- F10 "Load" > a loadout: a fatCowLoadouts entry, its crates set down next to the helicopter for the pilot
+-- to load like any CTLD crate (Zip, 2026-11-03).
 function CTLDFatCowManager:loadLoadout(unitName, index)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
@@ -594,27 +587,13 @@ function CTLDFatCowManager:loadLoadout(unitName, index)
         trigger.action.outTextForGroup(gid, ctld.tr("This loadout cannot be loaded."), 10)
         return
     end
-    local cm       = CTLDCrateManager.getInstance()
-    local caps     = (ctld.gs("capabilitiesByType") or {})[t:getTypeName()] or {}
-    local capacity = caps.maxCratesOnboard or 1
-    local onboard  = #cm:cratesOnboard(unitName)
-    if onboard + #wanted > capacity then
-        trigger.action.outTextForGroup(gid,
-            ctld.tr("Not enough room: %1 crate(s) on board, %2 more needed, %3 at most.", onboard, #wanted, capacity), 10)
+    local crates = self:_setDownCrates(t, wanted)
+    if #crates == 0 then
+        trigger.action.outTextForGroup(gid, ctld.tr("Request failed: the equipment could not be brought out."), 10)
         return
     end
-    local loaded = {}
-    for _, w in ipairs(wanted) do
-        local crate = cm:loadIntoHold(w.desc, t, unitName)
-        if w.fraction < 1 then
-            crate.metadata.fatCow = w.content
-            crate.metadata.massKg = w.desc.weight * w.fraction
-        end
-        loaded[#loaded + 1] = crate
-    end
-    ctld.utils.updateTransportWeight(unitName)
     trigger.action.outTextForGroup(gid,
-        ctld.tr("Loaded into your hold: %1", CTLDFatCow.describeStock(CTLDFatCow.stockOfCrates(loaded))), 10)
+        ctld.tr("Set down next to you, to load into your hold: %1", CTLDFatCow.describeStock(CTLDFatCow.stockOfCrates(crates))), 10)
 end
 
 --- F10 "Unload the Fat Cow crates": back to the logistic zone, to make up another loadout.
@@ -622,11 +601,6 @@ function CTLDFatCowManager:unloadHold(unitName)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
     local gid = ctld.utils.getGroupId(t)
-    local cow = self._cows[unitName]
-    if cow and cow.state ~= CTLDFatCow.STATE_STOWED then
-        trigger.action.outTextForGroup(gid, ctld.tr("The Fat Cow FARP is already deployed."), 10)
-        return
-    end
     if not atLogistics(t, gid) then return end
     local cm = CTLDCrateManager.getInstance()
     local crates = cowCratesOnboard(unitName)
@@ -635,31 +609,69 @@ function CTLDFatCowManager:unloadHold(unitName)
     trigger.action.outTextForGroup(gid, ctld.tr("%1 Fat Cow crate(s) unloaded.", #crates), 10)
 end
 
---- Deploys the FARP with the cow crates on board as its stock. The crates stay on board.
+--- The crates of a list that no FARP still laying out was opened with.
+function CTLDFatCowManager:_cratesNotDeploying(crates)
+    local taken = {}
+    for _, cow in pairs(self._cows) do
+        for _, crate in ipairs(cow.crates or {}) do taken[crate] = true end
+    end
+    local out = {}
+    for _, crate in ipairs(crates) do
+        if not taken[crate] then out[#out + 1] = crate end
+    end
+    return out
+end
+
+--- A piloted FARP is laid out: the crates it was opened with leave the hold, their content is its warehouse
+-- now, and the helicopter is lighter by their mass. A crate unloaded meanwhile goes too: it is in the FARP.
+function CTLDFatCowManager:_consumeCrates(cow)
+    local cm = CTLDCrateManager.getInstance()
+    for _, crate in ipairs(cow.crates) do cm:destroyCrate(crate.crateName) end
+    cow.crates = nil
+    ctld.utils.updateTransportWeight(cow.unitName)
+end
+
+--- A piloted FARP is closed (packed, or never laid out): forgotten, its name back to the pool.
+function CTLDFatCowManager:_forgetPilotedFarp(cow)
+    if self._cows[cow.pilotedFarp] ~= cow then return end
+    self._cows[cow.pilotedFarp] = nil
+    self._freeFarps[#self._freeFarps + 1] = cow.pilotedFarp
+end
+
+--- Deploys a FARP with the cow crates on board as its stock; once it is laid out, the crates leave the hold
+-- (_consumeCrates). The FARP then lives on its own, under its own name, whatever becomes of the helicopter,
+-- until a piloted cow of its coalition packs it (packFarp).
 function CTLDFatCowManager:deployFromHold(unitName)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
     local gid = ctld.utils.getGroupId(t)
-    local existing = self._cows[unitName]
-    if existing and existing.state ~= CTLDFatCow.STATE_STOWED then
-        trigger.action.outTextForGroup(gid, ctld.tr("The Fat Cow FARP is already deployed."), 10)
-        return
-    end
     if ctld.utils.inAir(t) then
         trigger.action.outTextForGroup(gid, ctld.tr("Land to deploy the Fat Cow FARP."), 10)
         return
     end
-    local crates = cowCratesOnboard(unitName)
+    local onboard = cowCratesOnboard(unitName)
+    local crates, held = {}, 0
+    for _, crate in ipairs(self:_cratesNotDeploying(onboard)) do
+        -- A crate DCS still holds in its own cargo system (doors closed when loaded) cannot leave the hold
+        -- through CTLD: it stays out of the FARP until it is handed over.
+        if crate:isLoadedByCTLD() then crates[#crates + 1] = crate else held = held + 1 end
+    end
     if #crates == 0 then
-        trigger.action.outTextForGroup(gid, ctld.tr("No Fat Cow crate on board: load a fuel tank or an ammo crate first."), 10)
+        local text = (held > 0) and ctld.tr("Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2.",
+                                        ctld.tr("Crate Commands"), ctld.tr("Fit parachute"))
+                  or (#onboard > 0) and ctld.tr("The Fat Cow FARP is already deployed.")
+                  or ctld.tr("No Fat Cow crate on board: load a fuel tank or an ammo crate first.")
+        trigger.action.outTextForGroup(gid, text, 10)
         return
     end
-    local cow = self:addCow(t, CTLDFatCow.stockOfCrates(crates))
+    local cow = CTLDFatCow:new(unitName, t:getCoalition(), CTLDFatCow.stockOfCrates(crates))
     cow.crates        = crates
     cow.notifyGroupId = gid
-    local ok, why = self:deploy(t)
+    cow.pilotedFarp   = self:_newFarpName()
+    self._cows[cow.pilotedFarp] = cow
+    local ok, why = self:deploy(t, cow, cow.pilotedFarp)
     if not ok then
-        self._cows[unitName] = nil
+        self:_forgetPilotedFarp(cow)
         if why == "failed" then return end   -- onSceneFailed has said so
         local text = (why == "empty") and ctld.tr("The Fat Cow crates on board are empty.")
                   or ctld.tr("The Fat Cow FARP could not be deployed.")
@@ -669,61 +681,89 @@ function CTLDFatCowManager:deployFromHold(unitName)
     trigger.action.outTextForGroup(gid, ctld.tr("Deploying the Fat Cow FARP..."), 10)
 end
 
---- Packs a piloted cow: what is left goes back into its crates, emptied crates are removed.
--- @param quiet boolean  no "nothing to pack" message (take-off)
-function CTLDFatCowManager:packIntoHold(unitName, quiet)
-    local cow = self._cows[unitName]
-    local t   = Unit.getByName(unitName)
-    local gid = t and t:isExist() and ctld.utils.getGroupId(t)
-    if not (cow and cow.crates and self:pack(unitName)) then
-        if gid and not quiet then
-            trigger.action.outTextForGroup(gid, ctld.tr("No Fat Cow FARP deployed."), 10)
+-- How close to an open piloted FARP a cow packs it: the reach of its deployment (FEAT-FAT-COW-LEAVE-FARP).
+local PACK_RANGE_M = 150
+
+--- The open piloted FARP of a coalition nearest to a point, and its distance, or nil.
+function CTLDFatCowManager:_nearestPilotedFarp(point, coalitionId)
+    local best, bestD
+    for _, cow in pairs(self._cows) do
+        local farp = cow.pilotedFarp and cow.coalitionId == coalitionId and cow.state == CTLDFatCow.STATE_DEPLOYED
+            and StaticObject.getByName(cow.farpName)
+        if farp and farp:isExist() then
+            local d = ctld.utils.getDistance("CTLDFatCowManager", point, farp:getPoint())
+            if not bestD or d < bestD then best, bestD = cow, d end
         end
-        return
     end
-    -- Every crate the FARP was opened with gets its share back, wherever it is now (one unloaded
-    -- while the FARP was open included); a crate destroyed meanwhile is gone with its share.
-    local cm = CTLDCrateManager.getInstance()
-    local stillThere = {}
-    for _, crate in ipairs(cow.crates) do
-        if cm.crates[crate.crateName] == crate then stillThere[#stillThere + 1] = crate end
-    end
-    for _, crate in ipairs(CTLDFatCow.refillCrates(cow.stock, stillThere)) do
-        cm:destroyCrate(crate.crateName)
-    end
-    ctld.utils.updateTransportWeight(unitName)
-    self._cows[unitName] = nil
-    if gid then
-        trigger.action.outTextForGroup(gid, ctld.tr("Fat Cow FARP packed: %1 left.", CTLDFatCow.describeStock(cow.stock)), 10)
-    end
+    return best, bestD
 end
 
+--- A stock as a fatCowLoadouts entry (whole kilograms of fuel, items in name order), for cratesForLoadout.
+local function asLoadout(stock)
+    local names, items = {}, {}
+    for name, count in pairs(stock.items or {}) do
+        if count > 0 then names[#names + 1] = name end
+    end
+    table.sort(names)
+    for i, name in ipairs(names) do items[i] = { item = name, count = stock.items[name] } end
+    return { fuelKg = math.floor(stock.fuelKg or 0), items = items }
+end
+
+--- F10 "Pack the Fat Cow FARP": the open piloted FARP within PACK_RANGE_M of a landed piloted cow of its
+-- coalition, whoever laid it out, becomes cow crates set down next to that cow (full crates, a part-full last
+-- one of each kind, none when it is empty), for its pilot to load. The FARP is emptied and its name freed.
+function CTLDFatCowManager:packFarp(unitName)
+    local t = Unit.getByName(unitName)
+    if not (t and t:isExist()) then return end
+    local gid = ctld.utils.getGroupId(t)
+    if ctld.utils.inAir(t) then
+        trigger.action.outTextForGroup(gid, ctld.tr("Land to pack the Fat Cow FARP."), 10)
+        return
+    end
+    local cow, d = self:_nearestPilotedFarp(t:getPoint(), t:getCoalition())
+    if not (cow and d <= PACK_RANGE_M) then
+        trigger.action.outTextForGroup(gid, ctld.tr("No Fat Cow FARP within %1 m.", PACK_RANGE_M), 10)
+        return
+    end
+    self:pack(cow.pilotedFarp)
+    self:_forgetPilotedFarp(cow)
+    local wanted, missing = self:cratesForLoadout(asLoadout(cow.stock))
+    if not wanted then
+        ctld.utils.log("ERROR", "CTLDFatCowManager: FARP '%s' packed, but no fatCowCrates entry carries '%s': lost",
+            cow.pilotedFarp, missing)
+    end
+    local crates = wanted and self:_setDownCrates(t, wanted) or {}
+    trigger.action.outTextForGroup(gid,
+        ctld.tr("Fat Cow FARP packed, set down next to you: %1", CTLDFatCow.describeStock(CTLDFatCow.stockOfCrates(crates))), 10)
+end
+
+--- F10 "Fat Cow stock": the cow crates in the hold ("FARP status" reports an open FARP).
 -- @param toGroupId number|nil  who is told (default: the cow's own group)
 function CTLDFatCowManager:reportStock(unitName, toGroupId)
     local t = Unit.getByName(unitName)
     if not (t and t:isExist()) then return end
-    local cow = self._cows[unitName]
-    local stock
-    if cow and cow.state == CTLDFatCow.STATE_DEPLOYED then
-        local w = warehouseOf(cow.farpName)
-        if w then cow:readWarehouse(w) end
-        stock = cow.stock
-    else
-        stock = CTLDFatCow.stockOfCrates(cowCratesOnboard(unitName))
-    end
+    local stock = CTLDFatCow.stockOfCrates(cowCratesOnboard(unitName))
     trigger.action.outTextForGroup(toGroupId or ctld.utils.getGroupId(t), ctld.tr("Fat Cow stock: %1", CTLDFatCow.describeStock(stock)), 15)
 end
 
---- S_EVENT_TAKEOFF: a piloted cow taking off packs its FARP (AI cows: see onTakeoff below).
+--- S_EVENT_TAKEOFF: a piloted cow leaves its FARP open; taking off from it, its pilot is told so, with what
+-- it holds (AI cows: see _onAITakeoff below).
 function CTLDFatCowManager:onTakeoff(event)
     local unit = event and event.initiator
     local name = ctld.utils.safeObjectName(unit)
     if not name then return end
-    local cow = self._cows[name]
-    if cow and cow.crates and cow.state ~= CTLDFatCow.STATE_STOWED then
-        self:packIntoHold(name, true)
-    end
+    self:_tellFarpLeftOpen(name)
     self:_onAITakeoff(name)
+end
+
+function CTLDFatCowManager:_tellFarpLeftOpen(name)
+    local t = Unit.getByName(name)
+    if not (t and t:isExist()) then return end
+    local cow, d = self:_nearestPilotedFarp(t:getPoint(), t:getCoalition())
+    if not (cow and cow.unitName == name and d <= PACK_RANGE_M) then return end
+    trigger.action.outTextForGroup(ctld.utils.getGroupId(t),
+        ctld.tr("The Fat Cow FARP stays open (%1 on the F10 map): %2. Land within %3 m of it to pack it.",
+            cow.farpName, CTLDFatCow.describeStock(self:liveStock(cow)), PACK_RANGE_M), 15)
 end
 
 --- S_EVENT_DEAD / S_EVENT_CRASH: a dead cow's FARP goes with it. Any loss (and a player leaving,
@@ -741,7 +781,7 @@ function CTLDFatCowManager:_cowGone(name)
     local wasAI = cow.ai ~= nil
     self:removeCow(name)
     self:_forgetAICow(name)
-    if wasAI then self:_releaseFarpName(name) end   -- a piloted slot keeps its FARP for the next pilot
+    if wasAI then self:_releaseFarpName(name) end
     if wasAI and self:_isTakeable(cow) then self:_rebuildMenus(cow.coalitionId) end
 end
 
@@ -843,7 +883,7 @@ function CTLDFatCowManager:buildMenuSection(playerObj, menu)
         menu:addCommand(path, ctld.tr("Deploy the Fat Cow FARP"),
             function(arg) mgr():deployFromHold(arg.unitName) end, { unitName = playerObj.unitName }, { order = 20 })
         menu:addCommand(path, ctld.tr("Pack the Fat Cow FARP"),
-            function(arg) mgr():packIntoHold(arg.unitName) end, { unitName = playerObj.unitName }, { order = 21 })
+            function(arg) mgr():packFarp(arg.unitName) end, { unitName = playerObj.unitName }, { order = 21 })
         menu:addCommand(path, ctld.tr("Fat Cow stock"),
             function(arg) mgr():reportStock(arg.unitName) end, { unitName = playerObj.unitName }, { order = 22 })
         menu:addCommand(path, ctld.tr("FARP status"),

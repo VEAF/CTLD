@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.35"
+ctld.i18n["fr"].translation_version = "1.36"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -652,13 +652,13 @@ ctld.i18n["fr"]["Deploy the Fat Cow FARP"] = "Déployer la FARP Fat Cow"
 ctld.i18n["fr"]["Deploying the Fat Cow FARP..."] = "Déploiement de la FARP Fat Cow..."
 ctld.i18n["fr"]["Fat Cow"] = "Fat Cow"
 ctld.i18n["fr"]["Fat Cow FARP open: %1"] = "FARP Fat Cow ouverte : %1"
-ctld.i18n["fr"]["Fat Cow FARP packed: %1 left."] = "FARP Fat Cow repliée : il reste %1."
+-- STALE: ctld.i18n["fr"]["Fat Cow FARP packed: %1 left."] = "FARP Fat Cow repliée : il reste %1."
 ctld.i18n["fr"]["Fat Cow fuel tank (800 gal)"] = "Réservoir Fat Cow (800 gal)"
 ctld.i18n["fr"]["Fat Cow stock"] = "Stock de la Fat Cow"
 ctld.i18n["fr"]["Fat Cow stock: %1"] = "Stock de la Fat Cow : %1"
 ctld.i18n["fr"]["Land to deploy the Fat Cow FARP."] = "Posez-vous pour déployer la FARP Fat Cow."
 ctld.i18n["fr"]["No Fat Cow crate on board: load a fuel tank or an ammo crate first."] = "Aucune caisse Fat Cow à bord : chargez d'abord un réservoir ou une caisse de munitions."
-ctld.i18n["fr"]["No Fat Cow FARP deployed."] = "Aucune FARP Fat Cow déployée."
+-- STALE: ctld.i18n["fr"]["No Fat Cow FARP deployed."] = "Aucune FARP Fat Cow déployée."
 ctld.i18n["fr"]["Pack the Fat Cow FARP"] = "Replier la FARP Fat Cow"
 ctld.i18n["fr"]["Request a Fat Cow"] = "Demander une Fat Cow"
 ctld.i18n["fr"]["The Fat Cow could not be brought in."] = "La Fat Cow n'a pas pu être amenée."
@@ -683,10 +683,10 @@ ctld.i18n["fr"]["Hold here"] = "Reste ici en orbite"
 ctld.i18n["fr"]["Join us"] = "Rejoins-nous"
 ctld.i18n["fr"]["Joining in about %1 min."] = "Rejointe dans environ %1 min."
 ctld.i18n["fr"]["Land here"] = "Atterris ici"
-ctld.i18n["fr"]["Loaded into your hold: %1"] = "Chargé en soute : %1"
+-- STALE: ctld.i18n["fr"]["Loaded into your hold: %1"] = "Chargé en soute : %1"
 ctld.i18n["fr"]["No Fat Cow FARP within %1 km."] = "Aucune FARP Fat Cow à moins de %1 km."
 ctld.i18n["fr"]["No friendly logistic zone to send a Fat Cow from."] = "Aucune zone logistique amie d'où envoyer une Fat Cow."
-ctld.i18n["fr"]["Not enough room: %1 crate(s) on board, %2 more needed, %3 at most."] = "Pas assez de place : %1 caisse(s) à bord, %2 de plus demandées, %3 au maximum."
+-- STALE: ctld.i18n["fr"]["Not enough room: %1 crate(s) on board, %2 more needed, %3 at most."] = "Pas assez de place : %1 caisse(s) à bord, %2 de plus demandées, %3 au maximum."
 ctld.i18n["fr"]["Stock: %1"] = "Stock : %1"
 ctld.i18n["fr"]["Take off"] = "Redécolle"
 ctld.i18n["fr"]["The Fat Cow is already on the ground."] = "La Fat Cow est déjà au sol."
@@ -753,3 +753,13 @@ ctld.i18n["fr"]["A Fat Cow was released and waits for a flight: %1 km at %2° fr
 ctld.i18n["fr"]["Fat Cow %1 km away, waiting"] = "Fat Cow à %1 km, en attente"
 ctld.i18n["fr"]["Fat Cow released: it stays where it is, for another flight to take over."] = "Fat Cow libérée : elle reste où elle est, une autre patrouille peut la reprendre."
 ctld.i18n["fr"]["Release the Fat Cow"] = "Libérer la Fat Cow"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-04
+ctld.i18n["fr"]["Fat Cow FARP packed, set down next to you: %1"] = "FARP Fat Cow repliée, posée à côté de vous : %1"
+ctld.i18n["fr"]["Land to pack the Fat Cow FARP."] = "Posez-vous pour replier la FARP Fat Cow."
+ctld.i18n["fr"]["No Fat Cow FARP within %1 m."] = "Aucune FARP Fat Cow à moins de %1 m."
+ctld.i18n["fr"]["Set down next to you, to load into your hold: %1"] = "Posé à côté de vous, à charger en soute : %1"
+ctld.i18n["fr"]["The Fat Cow FARP stays open (%1 on the F10 map): %2. Land within %3 m of it to pack it."] = "La FARP Fat Cow reste ouverte (%1 sur la carte F10) : %2. Posez-vous à moins de %3 m pour la replier."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-04
+ctld.i18n["fr"]["Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2."] = "Confiez d'abord les caisses Fat Cow à CTLD : ouvrez les portes, puis F10 > CTLD > %1 > %2."

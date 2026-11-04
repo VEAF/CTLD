@@ -17,9 +17,12 @@ When a cow deploys, CTLD plays the **Fat Cow FARP** scene at the cow:
 No vehicle, no tent, no ammo dump.
 This was measured in DCS 2.9.30.28738: a FARP spawned during a mission serves a player already in game, but only with a supplier in range, and the FARP Fuel Depot alone supplies both fuel and weapons (fuel trucks, ammo trucks and the ammo dump are not needed; cargo crates and barrels supply nothing).
 
-Each cow has one FARP of its own, named `CTLD_FatCow_FARP_<n>`.
+Each AI cow has one FARP of its own, named `CTLD_FatCow_FARP_<n>`.
+A piloted cow's FARP is not tied to its helicopter: each FARP a CH-47 opens gets its own name, and lives on its own until a piloted CH-47 of its coalition packs it, whatever happens to the one that laid it out (taking off, its pilot leaving, another pilot in the slot, being shot down).
+A pilot can open several at once; a packed FARP's name goes to the next FARP opened.
+An open FARP does not survive a mission restart.
 Packing removes the depot, the dressing and the crew and empties the FARP's warehouse, but leaves the FARP itself: a heliport destroyed during a mission stays on the F10 map, and an AI cow sitting on its FARP blew up when the FARP was destroyed under it.
-The next deployment adds the FARP again under the same name, where the cow now is.
+The next deployment adds the FARP again under that name, where the cow now is.
 So an emptied FARP stays on the map where each cow last deployed; with no supplier next to it, it serves nothing.
 
 The FARP's warehouse is set to the cow's stock and nothing else: jet fuel, and each ammunition item the cow carries.

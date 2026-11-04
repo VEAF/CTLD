@@ -1,7 +1,8 @@
 ---@diagnostic disable
 -- tests/ci/unit/fatcow_piloted_spec.lua
--- FEAT-FAT-COW ticket 03: a piloted cow's stock is the cow crates in its hold; packing puts what is
--- left back into them.
+-- FEAT-FAT-COW ticket 03: a piloted cow's stock is the cow crates in its hold.
+-- FEAT-FAT-COW-LEAVE-FARP: a loadout sets its crates on the ground, deploying consumes them, the FARP stays
+-- open when its helicopter leaves, and any piloted cow of the coalition packs it into crates on the ground.
 -- ============================================================
 
 local HELLFIRE = "weapons.missiles.AGM_114K"
@@ -12,6 +13,35 @@ end
 
 local function fuelCrate(name)     return crate(name, { fuelKg = 2400 }, 2400) end
 local function hellfireCrate(name) return crate(name, { item = HELLFIRE, count = 4 }, 250) end
+
+--- A stand-in for CTLDCrateManager:spawnCratesAligned: each crate on the ground next to the transport, with
+-- the metadata spawnCrate would give it (crate_manager_spec checks spawnCrate itself), its static mass noted.
+local function fakeSpawnAligned(cm, statics)
+    local n = 0
+    return function(_, descriptors, transport, coalitionId, spawnedBy, spawnMethod, metadatas)
+        local out = {}
+        for i, d in ipairs(descriptors) do
+            n = n + 1
+            local c = CTLDCrate:new({ crateName = "ground-" .. n, descriptor = d, coalition = coalitionId,
+                position = transport:getPoint(), spawnedBy = spawnedBy, spawnMethod = spawnMethod })
+            for k, v in pairs(metadatas and metadatas[i] or {}) do c.metadata[k] = v end
+            statics[c.crateName] = (metadatas and metadatas[i] and metadatas[i].massKg) or d.weight
+            cm.crates[c.crateName] = c
+            out[#out + 1] = c
+        end
+        return #out, {}, out
+    end
+end
+
+--- The cow crates on the ground, by name order.
+local function cratesOnGround(cm)
+    local out = {}
+    for _, c in pairs(cm.crates) do
+        if c:isOnGround() then out[#out + 1] = c end
+    end
+    table.sort(out, function(a, b) return a.crateName < b.crateName end)
+    return out
+end
 
 describe("Fat Cow crates on board", function()
 
@@ -33,145 +63,251 @@ describe("Fat Cow crates on board", function()
         local stock = CTLDFatCow.stockOfCrates({ other, fuelCrate("a") })
         assert.equals(2400, stock.fuelKg)
     end)
-
-    it("puts what is left back into the crates, in order, and lists the emptied ones", function()
-        local a, b, h = fuelCrate("a"), fuelCrate("b"), hellfireCrate("h")
-        local emptied = CTLDFatCow.refillCrates({ fuelKg = 3000, items = { [HELLFIRE] = 0 } }, { a, b, h })
-        assert.equals(2400, a.metadata.fatCow.fuelKg)
-        assert.equals(600, b.metadata.fatCow.fuelKg)
-        assert.equals(2400, a.metadata.massKg)
-        assert.equals(600, b.metadata.massKg)
-        assert.equals(1, #emptied)
-        assert.equals("h", emptied[1].crateName)
-    end)
-
-    it("scales a part-used ammo crate's mass to what it still holds", function()
-        local h = hellfireCrate("h")
-        local emptied = CTLDFatCow.refillCrates({ fuelKg = 0, items = { [HELLFIRE] = 1 } }, { h })
-        assert.equals(0, #emptied)
-        assert.equals(1, h.metadata.fatCow.count)
-        assert.equals(62.5, h.metadata.massKg)
-    end)
-
-    it("never fills a crate beyond what it held when the FARP opened", function()
-        local a = fuelCrate("a")
-        a.metadata.fatCow = { fuelKg = 500 }
-        CTLDFatCow.refillCrates({ fuelKg = 2000, items = {} }, { a })
-        assert.equals(500, a.metadata.fatCow.fuelKg)
-    end)
 end)
 
 describe("Piloted cow commands", function()
-    local mgr, cm, sm, w, unit, messages, saved
+    local mgr, cm, sm, units, farps, statics, messages, weighed, saved
+
+    -- A piloted CH-47 at a point; `airborne` flips inAir.
+    local function cowUnit(name, p)
+        return {
+            airborne     = false,
+            getName      = function() return name end,
+            isExist      = function() return true end,
+            getTypeName  = function() return "CH-47Fbl1" end,
+            getCoalition = function() return coalition.side.BLUE end,
+            getCountry   = function() return 2 end,
+            getPoint     = function() return p end,
+            inAir        = function(self) return self.airborne end,
+        }
+    end
+
+    local function newWarehouse()
+        local w = { liquids = { [0] = 0, [1] = 0, [2] = 0, [3] = 0 }, items = {} }
+        function w:getLiquidAmount(t) return self.liquids[t] end
+        function w:setLiquidAmount(t, v) self.liquids[t] = v end
+        function w:getItemCount(n) return self.items[n] or 0 end
+        function w:setItem(n, v) self.items[n] = v end
+        return w
+    end
 
     before_each(function()
         CTLDFatCowManager._instance = nil
         mgr = CTLDFatCowManager.getInstance()
         mgr._crateDescs = {
             { weight = 2400, desc = "Fat Cow fuel tank", unit = "FatCow:fuel", fatCow = { fuelKg = 2400 } },
+            { weight = 250, desc = "Fat Cow Hellfire", unit = "FatCow:hf", fatCow = { item = HELLFIRE, count = 4 } },
         }
         cm, sm = CTLDCrateManager.getInstance(), CTLDSceneManager.getInstance()
-        w = { liquids = { [0] = 0, [1] = 0, [2] = 0, [3] = 0 }, items = {} }
-        function w:getLiquidAmount(t) return self.liquids[t] end
-        function w:setLiquidAmount(t, v) self.liquids[t] = v end
-        function w:getItemCount(n) return self.items[n] or 0 end
-        function w:setItem(n, v) self.items[n] = v end
-        messages = {}
-        unit = {
-            airborne     = false,
-            getName      = function() return "Cow-1" end,
-            isExist      = function() return true end,
-            getCoalition = function() return coalition.side.BLUE end,
-            getCountry   = function() return 2 end,
-            getPoint     = function() return { x = 0, y = 0, z = 0 } end,
-            inAir        = function(self) return self.airborne end,
-        }
+        units = { ["Cow-1"] = cowUnit("Cow-1", { x = 0, y = 0, z = 0 }) }
+        farps, statics, messages, weighed = {}, {}, {}, {}
         saved = {
             unitGet = Unit.getByName, inAir = ctld.utils.inAir, gid = ctld.utils.getGroupId,
             outGroup = trigger.action.outTextForGroup, crates = cm.crates, play = sm.playScene,
-            pack = sm.packScene, airbase = Airbase.getByName, weight = ctld.utils.updateTransportWeight,
-            zones = CTLDZoneManager.getInstance().getLogisticZonesAtPoint, aligned = cm.spawnCratesAligned,
+            pack = sm.packScene, airbase = Airbase.getByName, static = StaticObject.getByName,
+            weight = ctld.utils.updateTransportWeight, zones = CTLDZoneManager.getInstance().getLogisticZonesAtPoint,
+            aligned = cm.spawnCratesAligned, schedule = ctld.scheduler.schedule,
         }
-        Unit.getByName = function(n) if n == "Cow-1" then return unit end end
+        Unit.getByName = function(n) return units[n] end
         ctld.utils.inAir = function(u) return u.airborne end
         ctld.utils.getGroupId = function() return 7 end
         trigger.action.outTextForGroup = function(_, text) messages[#messages + 1] = text end
-        ctld.utils.updateTransportWeight = function() end
+        ctld.utils.updateTransportWeight = function(n) weighed[#weighed + 1] = n end
+        ctld.scheduler.schedule = function() end
         cm.crates = {}
-        sm.playScene = function(_, u, model, params)
+        cm.spawnCratesAligned = fakeSpawnAligned(cm, statics)
+        -- The scene is laid out at once, its FARP where the helicopter stands.
+        sm.playScene = function(_, u, _, params)
+            farps[params.farpName] = { w = newWarehouse(), p = u:getPoint() }
             local scene = { _name = "Fat Cow FARP#1", _params = params }
             mgr:onSceneLaidOut(scene)
             return scene
         end
         sm.packScene = function() return {} end
-        Airbase.getByName = function(n) if n == "CTLD_FatCow_FARP_1" then return { getWarehouse = function() return w end } end end
+        Airbase.getByName = function(n)
+            local f = farps[n]
+            return f and { getWarehouse = function() return f.w end }
+        end
+        StaticObject.getByName = function(n)
+            local f = farps[n]
+            return f and { isExist = function() return true end, getPoint = function() return f.p end }
+        end
     end)
 
     after_each(function()
         Unit.getByName, ctld.utils.inAir, ctld.utils.getGroupId = saved.unitGet, saved.inAir, saved.gid
         trigger.action.outTextForGroup, cm.crates = saved.outGroup, saved.crates
         sm.playScene, sm.packScene, Airbase.getByName = saved.play, saved.pack, saved.airbase
-        ctld.utils.updateTransportWeight = saved.weight
+        StaticObject.getByName, ctld.utils.updateTransportWeight = saved.static, saved.weight
         CTLDZoneManager.getInstance().getLogisticZonesAtPoint = saved.zones
-        cm.spawnCratesAligned = saved.aligned
+        cm.spawnCratesAligned, ctld.scheduler.schedule = saved.aligned, saved.schedule
         CTLDFatCowManager._instance = nil
     end)
 
-    local function loadFuelCrate(name)
-        local c = CTLDCrate:new({ crateName = name, descriptor = mgr._crateDescs[1] })
-        c.state, c.loadedBy = CTLDCrate.STATE.LOADED, unit
+    local function loadCrateInto(name, desc, unit)
+        local c = CTLDCrate:new({ crateName = name, descriptor = desc or mgr._crateDescs[1] })
+        c.state, c.loadedBy = CTLDCrate.STATE.LOADED, unit or units["Cow-1"]
         cm.crates[name] = c
         return c
     end
 
-    it("deploys with the cow crates on board as the FARP's stock", function()
-        loadFuelCrate("a"); loadFuelCrate("b")
+    local function loadEveryCrateOnGround(unit)
+        for _, c in ipairs(cratesOnGround(cm)) do cm:loadCrate(c.crateName, unit) end
+    end
+
+    local function openFarp(name)
+        for _, cow in pairs(mgr._cows) do
+            if cow.farpName == name then return cow end
+        end
+    end
+
+    it("deploys with the cow crates on board as the FARP's stock, and takes them out of the hold", function()
+        loadCrateInto("a"); loadCrateInto("b"); loadCrateInto("h", mgr._crateDescs[2])
         mgr:deployFromHold("Cow-1")
-        assert.equals(4800, w.liquids[0])
-        assert.equals(CTLDFatCow.STATE_DEPLOYED, mgr:getCow("Cow-1").state)
+        local farp = farps.CTLD_FatCow_FARP_1
+        assert.equals(4800, farp.w.liquids[0])
+        assert.equals(4, farp.w.items[HELLFIRE])
+        assert.equals(CTLDFatCow.STATE_DEPLOYED, openFarp("CTLD_FatCow_FARP_1").state)
+        assert.equals(0, #cm:cratesOnboard("Cow-1"))
+        assert.is_nil(next(cm.crates))
+        assert.equals("Cow-1", weighed[#weighed])             -- the helicopter is lighter
     end)
 
     it("refuses to deploy without a cow crate on board, or in the air", function()
         mgr:deployFromHold("Cow-1")
-        assert.is_nil(mgr:getCow("Cow-1"))
-        loadFuelCrate("a")
-        unit.airborne = true
+        assert.is_nil(next(mgr._cows))
+        loadCrateInto("a")
+        units["Cow-1"].airborne = true
         mgr:deployFromHold("Cow-1")
-        assert.is_nil(mgr:getCow("Cow-1"))
+        assert.is_nil(next(mgr._cows))
         assert.equals(2, #messages)
+        assert.is_not_nil(cm.crates["a"])                    -- still on board
     end)
 
-    it("packs what is left into the hold and removes the crates left empty", function()
-        local a, b = loadFuelCrate("a"), loadFuelCrate("b")
+    it("leaves out of the FARP a crate DCS still holds in its own cargo system", function()
+        local native = loadCrateInto("n")
+        native.loadedByDCSNative = true
         mgr:deployFromHold("Cow-1")
-        w.liquids[0] = 1000
-        mgr:packIntoHold("Cow-1")
-        assert.is_nil(mgr:getCow("Cow-1"))
-        assert.equals(1000, a.metadata.fatCow.fuelKg)
-        assert.is_nil(cm.crates["b"])
-        -- Deploying again starts from what is left.
+        assert.is_nil(next(mgr._cows))
+        assert.equals(native, cm.crates["n"])
+        assert.is_truthy(messages[#messages]:find("Fit parachute", 1, true))
+        loadCrateInto("a")
         mgr:deployFromHold("Cow-1")
-        assert.equals(1000, w.liquids[0])
+        assert.equals(2400, farps.CTLD_FatCow_FARP_1.w.liquids[0])
+        assert.equals(native, cm.crates["n"])                    -- still on board, untouched
     end)
 
-    it("gives a crate unloaded while the FARP was open its share back", function()
-        local a, b = loadFuelCrate("a"), loadFuelCrate("b")
+    it("does not open a second FARP with crates a FARP still laying out was opened with", function()
+        sm.playScene = function(_, _, _, params) return { _name = "Fat Cow FARP#1", _params = params } end
+        loadCrateInto("a")
         mgr:deployFromHold("Cow-1")
-        b.state, b.loadedBy = CTLDCrate.STATE.LANDED, nil   -- unloaded meanwhile
-        w.liquids[0] = 4800                                 -- nobody refuelled
-        mgr:packIntoHold("Cow-1")
-        assert.equals(2400, a.metadata.fatCow.fuelKg)
-        assert.equals(2400, b.metadata.fatCow.fuelKg)
+        mgr:deployFromHold("Cow-1")
+        local n = 0
+        for _ in pairs(mgr._cows) do n = n + 1 end
+        assert.equals(1, n)
+        assert.equals("The Fat Cow FARP is already deployed.", messages[#messages])
     end)
 
-    it("packs on take-off", function()
-        loadFuelCrate("a")
+    it("leaves the FARP open on take-off, and tells its pilot what it holds", function()
+        loadCrateInto("a")
         mgr:deployFromHold("Cow-1")
-        w.liquids[0] = 2000
-        unit.airborne = true
-        mgr:onTakeoff({ initiator = unit })
-        assert.is_nil(mgr:getCow("Cow-1"))
-        assert.equals(2000, cm.crates["a"].metadata.fatCow.fuelKg)
+        farps.CTLD_FatCow_FARP_1.w.liquids[0] = 2000
+        units["Cow-1"].airborne = true
+        mgr:onTakeoff({ initiator = units["Cow-1"] })
+        local cow = openFarp("CTLD_FatCow_FARP_1")
+        assert.equals(CTLDFatCow.STATE_DEPLOYED, cow.state)
+        assert.equals(2000, farps.CTLD_FatCow_FARP_1.w.liquids[0])
+        assert.is_truthy(messages[#messages]:find("CTLD_FatCow_FARP_1", 1, true))
+        assert.is_truthy(messages[#messages]:find("2000", 1, true))
+    end)
+
+    it("leaves the FARP open, its stock intact, when the helicopter dies or a new pilot takes the slot", function()
+        loadCrateInto("a")
+        mgr:deployFromHold("Cow-1")
+        farps.CTLD_FatCow_FARP_1.w.liquids[0] = 1500
+        mgr:onDead({ initiator = units["Cow-1"] })
+        local newPilot = cowUnit("Cow-1", { x = 0, y = 0, z = 0 })
+        newPilot.getPlayerName = function() return "Griffin" end
+        mgr:onBirth({ initiator = newPilot })
+        assert.equals(CTLDFatCow.STATE_DEPLOYED, openFarp("CTLD_FatCow_FARP_1").state)
+        assert.equals(1500, farps.CTLD_FatCow_FARP_1.w.liquids[0])
+    end)
+
+    it("keeps re-syncing a FARP whose helicopter is gone", function()
+        loadCrateInto("a")
+        mgr:deployFromHold("Cow-1")
+        units["Cow-1"] = nil
+        farps.CTLD_FatCow_FARP_1.w.liquids[0] = 1800              -- what the players left
+        mgr:_resyncFarps()
+        farps.CTLD_FatCow_FARP_1.w.liquids[0] = 50000             -- a refill of every FARP
+        mgr:_resyncFarps()
+        assert.equals(1800, farps.CTLD_FatCow_FARP_1.w.liquids[0])
+    end)
+
+    it("packs from another CH-47 into crates on the ground, which open the same FARP again elsewhere", function()
+        loadCrateInto("a"); loadCrateInto("b"); loadCrateInto("h", mgr._crateDescs[2])
+        mgr:deployFromHold("Cow-1")
+        local w = farps.CTLD_FatCow_FARP_1.w
+        w.liquids[0], w.items[HELLFIRE] = 3000, 3
+        units["Cow-1"] = nil                                       -- its pilot is gone
+        units["Cow-2"] = cowUnit("Cow-2", { x = 100, y = 0, z = 0 })
+        mgr:packFarp("Cow-2")
+        assert.is_nil(next(mgr._cows))
+        assert.equals(0, w.liquids[0])                             -- the FARP is emptied
+        local ground = cratesOnGround(cm)
+        assert.equals(3, #ground)                                  -- 2400 + 600 kg of fuel, 3 Hellfires
+        local stock = CTLDFatCow.stockOfCrates(ground)
+        assert.equals(3000, stock.fuelKg)
+        assert.equals(3, stock.items[HELLFIRE])
+        for _, c in ipairs(ground) do
+            assert.equals(c.metadata.massKg or c.descriptor.weight, statics[c.crateName])
+        end
+        -- Loaded and deployed elsewhere: the FARP's name is reused, with what was packed.
+        units["Cow-2"] = cowUnit("Cow-2", { x = 50000, y = 0, z = 0 })
+        loadEveryCrateOnGround(units["Cow-2"])
+        assert.equals(3, #cm:cratesOnboard("Cow-2"))
+        mgr:deployFromHold("Cow-2")
+        assert.equals(3000, farps.CTLD_FatCow_FARP_1.w.liquids[0])
+        assert.equals(3, farps.CTLD_FatCow_FARP_1.w.items[HELLFIRE])
+    end)
+
+    it("refuses to pack beyond 150 m or in the air, with the reason", function()
+        loadCrateInto("a")
+        mgr:deployFromHold("Cow-1")
+        units["Cow-2"] = cowUnit("Cow-2", { x = 151, y = 0, z = 0 })
+        mgr:packFarp("Cow-2")
+        assert.equals("No Fat Cow FARP within 150 m.", messages[#messages])
+        units["Cow-2"] = cowUnit("Cow-2", { x = 149, y = 0, z = 0 })
+        units["Cow-2"].airborne = true
+        mgr:packFarp("Cow-2")
+        assert.equals("Land to pack the Fat Cow FARP.", messages[#messages])
+        assert.equals(CTLDFatCow.STATE_DEPLOYED, openFarp("CTLD_FatCow_FARP_1").state)
+        assert.equals(0, #cratesOnGround(cm))
+    end)
+
+    it("packs an emptied FARP into no crate at all", function()
+        loadCrateInto("a")
+        mgr:deployFromHold("Cow-1")
+        farps.CTLD_FatCow_FARP_1.w.liquids[0] = 0
+        mgr:packFarp("Cow-1")
+        assert.is_nil(next(mgr._cows))
+        assert.equals(0, #cratesOnGround(cm))
+    end)
+
+    it("opens two FARPs at once under two names, and gives a packed FARP's name to the next one", function()
+        loadCrateInto("a")
+        mgr:deployFromHold("Cow-1")
+        units["Cow-1"] = cowUnit("Cow-1", { x = 20000, y = 0, z = 0 })
+        loadCrateInto("b")
+        mgr:deployFromHold("Cow-1")
+        assert.equals(CTLDFatCow.STATE_DEPLOYED, openFarp("CTLD_FatCow_FARP_1").state)
+        assert.equals(CTLDFatCow.STATE_DEPLOYED, openFarp("CTLD_FatCow_FARP_2").state)
+        mgr:packFarp("Cow-1")                                    -- the second one, at 20 km
+        assert.is_nil(openFarp("CTLD_FatCow_FARP_2"))
+        loadEveryCrateOnGround(units["Cow-1"])
+        mgr:deployFromHold("Cow-1")
+        assert.equals(CTLDFatCow.STATE_DEPLOYED, openFarp("CTLD_FatCow_FARP_2").state)
+        assert.is_nil(farps.CTLD_FatCow_FARP_3)
     end)
 
     it("requests a cow crate only on the ground inside a logistic zone", function()
@@ -184,27 +320,29 @@ describe("Piloted cow commands", function()
         mgr:requestCrate("Cow-1", 2400)
         assert.equals(0, spawned)
         inZone = true
-        unit.airborne = true
+        units["Cow-1"].airborne = true
         mgr:requestCrate("Cow-1", 2400)
         assert.equals(0, spawned)
-        unit.airborne = false
+        units["Cow-1"].airborne = false
         mgr:requestCrate("Cow-1", 2400)
         assert.equals(1, spawned)
     end)
 end)
 
 describe("Fat Cow loadouts", function()
-    local mgr, cm, unit, messages, saved
+    local mgr, cm, unit, messages, statics, saved
 
     before_each(function()
         CTLDFatCowManager._instance = nil
-        mgr, cm, messages = CTLDFatCowManager.getInstance(), CTLDCrateManager.getInstance(), {}
+        mgr, cm, messages, statics = CTLDFatCowManager.getInstance(), CTLDCrateManager.getInstance(), {}, {}
         local zm = CTLDZoneManager.getInstance()
         saved = { unitGet = Unit.getByName, inAir = ctld.utils.inAir, gid = ctld.utils.getGroupId,
                   outGroup = trigger.action.outTextForGroup, crates = cm.crates, index = cm._weightIndex,
-                  weight = ctld.utils.updateTransportWeight, zones = zm.getLogisticZonesAtPoint }
+                  weight = ctld.utils.updateTransportWeight, zones = zm.getLogisticZonesAtPoint,
+                  aligned = cm.spawnCratesAligned }
         cm.crates = {}
         cm._weightIndex = {}
+        cm.spawnCratesAligned = fakeSpawnAligned(cm, statics)
         unit = {
             airborne = false,
             getName = function() return "Cow-1" end, isExist = function() return true end,
@@ -227,6 +365,7 @@ describe("Fat Cow loadouts", function()
         Unit.getByName, ctld.utils.inAir, ctld.utils.getGroupId = saved.unitGet, saved.inAir, saved.gid
         trigger.action.outTextForGroup, cm.crates, cm._weightIndex = saved.outGroup, saved.crates, saved.index
         ctld.utils.updateTransportWeight, zm.getLogisticZonesAtPoint = saved.weight, saved.zones
+        cm.spawnCratesAligned = saved.aligned
         CTLDFatCowManager._instance = nil
     end)
 
@@ -234,21 +373,32 @@ describe("Fat Cow loadouts", function()
     -- 3 = 40 laser + 2400, 4 = 60 laser + 1200; all with 4800 kg of fuel.
     local RADAR, ROUNDS = "weapons.missiles.AGM_114", "weapons.shells.M230_HEDP M789"
 
-    it("splits a loadout into crates, the last of each kind part-full, straight into the hold", function()
+    it("sets a loadout's crates down next to the helicopter, the last of each kind part-full, none in the hold", function()
         mgr:loadLoadout("Cow-1", 1)
-        local onboard = cm:cratesOnboard("Cow-1")
-        assert.equals(7, #onboard)                           -- 2 tanks, 20 + 5 laser, 15 radar, 2 x 1200 rounds
-        local stock = CTLDFatCow.stockOfCrates(onboard)
+        assert.equals(0, #cm:cratesOnboard("Cow-1"))
+        local ground = cratesOnGround(cm)
+        assert.equals(7, #ground)                            -- 2 tanks, 20 + 5 laser, 15 radar, 2 x 1200 rounds
+        local stock = CTLDFatCow.stockOfCrates(ground)
         assert.equals(4800, stock.fuelKg)
         assert.equals(25, stock.items[HELLFIRE])
         assert.equals(15, stock.items[RADAR])
         assert.equals(2400, stock.items[ROUNDS])
         local mass = 0
-        for _, c in ipairs(onboard) do
-            assert.is_nil(c.dcsStatic)                       -- nothing left on the ground
-            mass = mass + (c.metadata.massKg or c.descriptor.weight)
+        for _, c in ipairs(ground) do
+            mass = mass + statics[c.crateName]               -- what each static weighs on the ground
         end
         assert.is_true(math.abs(mass - 7867.5) < 0.5)        -- 4800 + 25 x 45.3 + 15 x 49 + 2400 x 0.5
+    end)
+
+    it("keeps a part-full crate's content and mass through the CTLD load", function()
+        mgr:loadLoadout("Cow-1", 1)
+        for _, c in ipairs(cratesOnGround(cm)) do cm:loadCrate(c.crateName, unit) end
+        local onboard = cm:cratesOnboard("Cow-1")
+        assert.equals(7, #onboard)
+        local stock = CTLDFatCow.stockOfCrates(onboard)
+        assert.equals(25, stock.items[HELLFIRE])
+        assert.equals(15, stock.items[RADAR])
+        assert.is_true(math.abs(cm:getLoadedCrateWeight("Cow-1") - 7867.5) < 0.5)
     end)
 
     it("fits every default loadout into the CH-47F's hold, under what it lifts with 80 % internal fuel", function()
@@ -297,17 +447,25 @@ describe("Fat Cow loadouts", function()
         assert.equals(RADAR, missing)
     end)
 
-    it("refuses a loadout the hold has no room for, and outside a logistic zone", function()
-        mgr:loadLoadout("Cow-1", 1)
-        mgr:loadLoadout("Cow-1", 3)                           -- 7 + 6 > 8
-        assert.equals(7, #cm:cratesOnboard("Cow-1"))
+    it("refuses a loadout outside a logistic zone, or in the air", function()
         CTLDZoneManager.getInstance().getLogisticZonesAtPoint = function() return {} end
-        mgr:unloadHold("Cow-1")
-        assert.equals(7, #cm:cratesOnboard("Cow-1"))
+        mgr:loadLoadout("Cow-1", 1)
+        CTLDZoneManager.getInstance().getLogisticZonesAtPoint = function() return { {} } end
+        unit.airborne = true
+        mgr:loadLoadout("Cow-1", 1)
+        assert.equals(0, #cratesOnGround(cm))
+        assert.equals(2, #messages)
     end)
 
-    it("unloads the cow crates in a logistic zone", function()
+    it("unloads the cow crates in a logistic zone, not elsewhere", function()
         mgr:loadLoadout("Cow-1", 4)
+        for _, c in ipairs(cratesOnGround(cm)) do cm:loadCrate(c.crateName, unit) end
+        local loaded = #cm:cratesOnboard("Cow-1")
+        assert.is_true(loaded > 0)
+        CTLDZoneManager.getInstance().getLogisticZonesAtPoint = function() return {} end
+        mgr:unloadHold("Cow-1")
+        assert.equals(loaded, #cm:cratesOnboard("Cow-1"))
+        CTLDZoneManager.getInstance().getLogisticZonesAtPoint = function() return { {} } end
         mgr:unloadHold("Cow-1")
         assert.equals(0, #cm:cratesOnboard("Cow-1"))
     end)

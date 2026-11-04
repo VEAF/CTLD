@@ -1,6 +1,6 @@
 # 02 — live check (Zip)
 
-Status: ready
+Status: waiting-human (Zip, in DCS)
 
 See the [PRD](../PRD.md).
 

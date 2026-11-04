@@ -506,6 +506,15 @@ describe("CTLDCrateManager spawnCrate", function()
         assert.equals("Cargos", sd.data.category)
     end)
 
+    it("a crate spawned with metadata keeps it, and its static weighs the metadata mass", function()
+        local d    = cm:findDescriptorByUnitType("M1043 HMMWV Armament")
+        local crate = cm:spawnCrate(d, { x = 0, y = 0, z = 0 }, coalition.side.BLUE, nil, "crate_spawn",
+            nil, nil, nil, { fatCow = { fuelKg = 600 }, massKg = 600 })
+        assert.equals(600, crate.metadata.fatCow.fuelKg)
+        assert.equals(600, crate.metadata.massKg)
+        assert.equals(600, spawnedStatics[crate.crateName].data.mass)
+    end)
+
     it("crate is registered in manager.crates", function()
         local d    = cm:findDescriptorByUnitType("M1043 HMMWV Armament")
         local crate = cm:spawnCrate(d, { x=0, y=0, z=0 }, coalition.side.BLUE, nil, "crate_spawn")

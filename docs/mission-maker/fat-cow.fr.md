@@ -17,9 +17,12 @@ Quand une cow se déploie, CTLD joue la scène **Fat Cow FARP** à la cow :
 Pas de véhicule, pas de tente, pas de dépôt de munitions.
 C'est mesuré dans DCS 2.9.30.28738 : une FARP créée en cours de mission sert un joueur déjà en jeu, mais seulement avec un fournisseur à portée, et le FARP Fuel Depot suffit à lui seul pour le carburant et les armes (camions citernes, camions de munitions et dépôt de munitions sont inutiles ; caisses et fûts ne fournissent rien).
 
-Chaque cow a sa propre FARP, nommée `CTLD_FatCow_FARP_<n>`.
+Chaque cow IA a sa propre FARP, nommée `CTLD_FatCow_FARP_<n>`.
+La FARP d'une cow pilotée n'est pas liée à son hélicoptère : chaque FARP ouverte par un CH-47 a son propre nom, et vit sa vie jusqu'à ce qu'un CH-47 piloté de sa coalition la replie, quoi qu'il arrive à celui qui l'a installée (décollage, pilote parti, autre pilote dans le slot, abattu).
+Un pilote peut en ouvrir plusieurs à la fois ; le nom d'une FARP repliée passe à la prochaine FARP ouverte.
+Une FARP ouverte ne survit pas à un redémarrage de la mission.
 Le repli retire le dépôt, le décor et l'équipe et vide l'entrepôt de la FARP, mais laisse la FARP elle-même : un héliport détruit en cours de mission reste sur la carte F10, et une cow IA posée sur sa FARP a explosé quand la FARP a été détruite sous elle.
-Le déploiement suivant ajoute de nouveau la FARP sous le même nom, là où se trouve la cow.
+Le déploiement suivant ajoute de nouveau la FARP sous ce nom, là où se trouve la cow.
 Il reste donc une FARP vide sur la carte là où chaque cow s'est déployée en dernier ; sans fournisseur à côté, elle ne sert rien.
 
 L'entrepôt de la FARP reçoit le stock de la cow et rien d'autre : du carburant jet, et chaque munition que la cow transporte.
