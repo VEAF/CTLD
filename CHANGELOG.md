@@ -8,6 +8,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — an aeroplane no longer gets the Fat Cow menu (FIX-FAT-COW-HELICOPTERS-ONLY)
+
+- Every player who was not a cow pilot got the AI Fat Cow menu, so an A-10 could request a cow (Zip, Open Training, 2026-11-01).
+  The cow refuels and rearms helicopters: the menu is now a helicopter's only, as taking a cow over already was, and a request from any other aircraft sends nothing.
+
 ### Fixed — an AI Fat Cow no longer lands into trees, and one gone without an event is forgotten (FIX-FAT-COW-AI-LANDING)
 
 - An AI cow sent to land 120 m left of its leader (or of the requester of **Land here**) went there whatever stood there: on the 2026-10-30 live check it struck a tree at 10 m, twice at the same spot. It now lands in the nearest clearing within 300 m of that point, with the widest clearance from scenery that offers one (100 m, else 50, else 30), on land and at least 60 m from the leader (`Disposition.getSimpleZones`, the DCS search VMCT lands its helicopters with); without one, at the point as before.

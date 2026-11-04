@@ -810,6 +810,19 @@ function CTLDFatCowManager:_addLoadoutCommands(menu, path, unitName, method)
     end
 end
 
+--- True when the unit is a helicopter.
+local function unitIsHelicopter(u)
+    if not (u and u:isExist()) then return false end
+    local ok, desc = pcall(u.getDesc, u)
+    return ok and desc and desc.category == Unit.Category.HELICOPTER or false
+end
+
+--- True when the player flies a helicopter.
+local function isHelicopter(p)
+    return unitIsHelicopter(Unit.getByName(p.unitName))
+end
+
+-- The cow refuels and rearms helicopters: an aeroplane gets no Fat Cow menu at all (FIX-FAT-COW-HELICOPTERS-ONLY).
 function CTLDFatCowManager:buildMenuSection(playerObj, menu)
     local root, sub = ctld.tr("CTLD"), ctld.tr("Fat Cow")
     local path = { root, sub }
@@ -835,7 +848,7 @@ function CTLDFatCowManager:buildMenuSection(playerObj, menu)
             function(arg) mgr():reportStock(arg.unitName) end, { unitName = playerObj.unitName }, { order = 22 })
         menu:addCommand(path, ctld.tr("FARP status"),
             function(arg) mgr():reportFarpStatus(arg.unitName) end, { unitName = playerObj.unitName }, { order = 23 })
-    else
+    elseif isHelicopter(playerObj) then
         self:_buildAIMenu(playerObj, menu, path)
     end
 end
@@ -1252,7 +1265,7 @@ end
 -- nearest to the requester, carrying that fatCowLoadouts entry, and joins the flight. One cow per flight.
 function CTLDFatCowManager:requestAICow(unitName, loadoutIndex)
     local t = Unit.getByName(unitName)
-    if not (t and t:isExist()) then return end
+    if not unitIsHelicopter(t) then return end                -- a menu left over from another aircraft
     local gid    = ctld.utils.getGroupId(t)
     local flight = t:getGroup():getName()
     if self:aiCowOfFlight(flight) then
@@ -1338,14 +1351,6 @@ end
 -- one its flight released where it stands, can be taken over by a helicopter flight with no cow: F10
 -- "Take over a Fat Cow" lists those of the coalition, nearest first. A cow that lost its flight, or was
 -- released, also tells those flights.
-
---- True when the player flies a helicopter.
-local function isHelicopter(p)
-    local u = Unit.getByName(p.unitName)
-    if not (u and u:isExist()) then return false end
-    local ok, desc = pcall(u.getDesc, u)
-    return ok and desc and desc.category == Unit.Category.HELICOPTER or false
-end
 
 --- True when the player may take a cow over: a helicopter of its coalition that sees the AI Fat Cow menu
 -- (not a cow pilot), in a flight with no cow.
