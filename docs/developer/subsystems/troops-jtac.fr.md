@@ -278,3 +278,16 @@ explosion) acquièrent donc chacun une cible suivante **différente** au lieu de
 `CTLDJTACDetector.findNearestVisibleEnemy()` est désormais un fin wrapper renvoyant
 `findAllVisibleEnemies()[1]`, conservé pour les callsites qui n'ont besoin que du meilleur candidat unique et ne
 requièrent pas de déconfliction.
+
+## Ce que le log dit d'un JTAC { #what-the-log-says-about-a-jtac }
+
+Un pilote qui ne trouve pas de spot sur le code du JTAC trouve sa réponse dans le log DCS, où chaque ligne JTAC commence par `[JTAC]`, au niveau `INFO` :
+
+| Ligne | Quand |
+| --- | --- |
+| `[JTAC] register: 'Reaper 1', code 1511 (imposed), radio 36.0 FM` | le JTAC s'enregistre ; `imposed` est un code donné par l'appelant, `pool` un code tiré du pool |
+| `[JTAC] claim: 'Reaper 1' → 'BMP-2 #1'` | le JTAC choisit une cible |
+| `[JTAC] lase: 'Reaper 1', code 1511 on 'BMP-2 #1' (BMP-2), range 5000 m, JTAC at 3000 m, spot created` | le spot est créé : le code qu'il porte, la distance oblique depuis le JTAC, l'altitude du JTAC, et si `Spot.createLaser` a renvoyé un spot (`NO spot` sinon) |
+| `[JTAC] release claim on 'BMP-2 #1' (was: 'Reaper 1')` | le lasage s'arrête, quelle qu'en soit la raison |
+
+Un JTAC dont le code change logue `re-coded <ancien> -> <nouveau>`, et sa ligne `lase` suivante porte le nouveau code.

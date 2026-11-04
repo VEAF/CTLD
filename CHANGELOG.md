@@ -8,6 +8,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — the JTAC logs its laser code and its spot (FEAT-JTAC-LOG-REAL-LASER-CODE)
+
+- An A-10C's LSS on 1511 found no spot while Reaper 1 (`jtac: 1511`) claimed target after target (Sinai Open Training, 2026-10-12), and the log, which held only claims and releases, could not say why.
+  A JTAC now logs at `INFO` its code (imposed or from the pool) and its radio when it registers, and, each time it starts lasing, the code the spot carries, the target, the slant range, its own altitude, and whether DCS returned a spot.
+
 ### Fixed — an aeroplane no longer gets the Fat Cow menu (FIX-FAT-COW-HELICOPTERS-ONLY)
 
 - Every player who was not a cow pilot got the AI Fat Cow menu, so an A-10 could request a cow (Zip, Open Training, 2026-11-01).

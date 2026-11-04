@@ -485,4 +485,98 @@ describe("CTLDJTACManager", function()
 
     end)
 
+    -- ── FEAT-JTAC-LOG-REAL-LASER-CODE ────────────────────────────
+    -- Reaper 1 (jtac: 1511) claimed nine targets on the Sinai OT (2026-10-12) and an A-10C's LSS on
+    -- 1511 found no spot: the log must say which code the spot carried, and whether there was one.
+    describe("the log says the code and the spot (FEAT-JTAC-LOG-REAL-LASER-CODE)", function()
+
+        local _origLog, _origNotify, _origFind, _origLaser, _origPosStr
+        local infos
+
+        -- A drone 3000 m up over the origin, and a BMP-2 4000 m north of it on the ground.
+        local function stubDrone(name)
+            local unit = {
+                _desc        = { attributes = { Planes = true } },
+                getName      = function() return name .. "_Unit" end,
+                getID        = function() return 9901 end,
+                getTypeName  = function() return "MQ-9 Reaper" end,
+                getPoint     = function() return { x = 0, y = 3000, z = 0 } end,
+                getDesc      = function(self) return self._desc end,
+                isExist      = function() return true end,
+                getCoalition = function() return coalition.side.BLUE end,
+            }
+            local group = makeMockGroup(name, name .. "_Unit")
+            group.getUnits = function() return { unit } end
+            Group.getByName = function(n) return n == name and group or _origGetByName(n) end
+        end
+
+        local function target()
+            local u = {
+                getPoint     = function() return { x = 4000, y = 0, z = 0 } end,
+                getCoalition = function() return coalition.side.RED end,
+                getName      = function() return "BMP-2 #1" end,
+                getTypeName  = function() return "BMP-2" end,
+            }
+            return { dcsUnit = u, unitName = "BMP-2 #1", unitType = "BMP-2", unitId = 77,
+                     position = { x = 4000, y = 0, z = 0 }, priority = 4, distance = 4000 }
+        end
+
+        local function infoWith(text)
+            for _, line in ipairs(infos) do
+                if line:find(text, 1, true) then return line end
+            end
+        end
+
+        before_each(function()
+            _origLog, _origNotify = ctld.utils.log, ctld.utils.notifyCoalition
+            _origFind, _origLaser = CTLDJTACDetector.findAllVisibleEnemies, Spot.createLaser
+            _origPosStr = ctld.utils.getPositionString
+            ctld.utils.getPositionString = function() return "" end
+            infos = {}
+            ctld.utils.log = function(level, fmt, ...)
+                if level == "INFO" then
+                    infos[#infos + 1] = select("#", ...) > 0 and string.format(fmt, ...) or fmt
+                end
+            end
+            ctld.utils.notifyCoalition = function() end
+            CTLDJTACDetector.findAllVisibleEnemies = function() return { target() } end
+        end)
+
+        after_each(function()
+            ctld.utils.log, ctld.utils.notifyCoalition = _origLog, _origNotify
+            CTLDJTACDetector.findAllVisibleEnemies, Spot.createLaser = _origFind, _origLaser
+            ctld.utils.getPositionString = _origPosStr
+        end)
+
+        it("logs the imposed code and the radio when the JTAC registers", function()
+            stubDrone("Reaper 1")
+            mgr:autoLase("Reaper 1", 1511, false, "all", 0, { freq = "36.0", mod = "FM" })
+            assert.is_not_nil(infoWith("[JTAC] register: 'Reaper 1', code 1511 (imposed), radio 36.0 FM"))
+        end)
+
+        it("logs a code drawn from the pool as such", function()
+            stubDrone("Reaper 1")
+            local j = mgr:spawnJTAC("Reaper 1", nil, "mission_maker")
+            assert.is_not_nil(infoWith(string.format("[JTAC] register: 'Reaper 1', code %d (pool), radio %s FM",
+                j.laserCode, j.radio.freq)))
+        end)
+
+        it("logs the code, the target, the range and the spot each time it starts lasing", function()
+            stubDrone("Reaper 1")
+            mgr:autoLase("Reaper 1", 1511, false, "all", 0)
+            mgr:_autoLaseLoop("Reaper 1", 0)
+            assert.is_not_nil(infoWith(
+                "[JTAC] lase: 'Reaper 1', code 1511 on 'BMP-2 #1' (BMP-2), range 5000 m, JTAC at 3000 m, spot created"))
+        end)
+
+        it("says so when DCS returns no laser spot", function()
+            stubDrone("Reaper 1")
+            Spot.createLaser = function() return nil end
+            mgr:autoLase("Reaper 1", 1511, false, "all", 0)
+            mgr:_autoLaseLoop("Reaper 1", 0)
+            assert.is_not_nil(infoWith("[JTAC] lase: 'Reaper 1', code 1511 on 'BMP-2 #1' (BMP-2), range 5000 m, JTAC at 3000 m, NO spot"))
+        end)
+
+    end)
+
 end)
