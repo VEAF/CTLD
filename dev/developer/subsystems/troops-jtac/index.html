@@ -1643,6 +1643,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#what-the-log-says-about-a-jtac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the log says about a JTAC
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2212,6 +2223,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#what-the-log-says-about-a-jtac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the log says about a JTAC
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2708,6 +2730,35 @@ explosion) therefore each acquire a <strong>different</strong> next target inste
 <p><code>CTLDJTACDetector.findNearestVisibleEnemy()</code> is now a thin wrapper returning
 <code>findAllVisibleEnemies()[1]</code>, kept for callsites that only need the single best candidate and do not
 require deconfliction.</p>
+<h2 id="what-the-log-says-about-a-jtac">What the log says about a JTAC<a class="headerlink" href="#what-the-log-says-about-a-jtac" title="Permanent link">&para;</a></h2>
+<p>A pilot who finds no spot on the JTAC's code is answered from the DCS log, where every JTAC line starts with <code>[JTAC]</code> at <code>INFO</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Line</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[JTAC] register: 'Reaper 1', code 1511 (imposed), radio 36.0 FM</code></td>
+<td>the JTAC registers; <code>imposed</code> is a code the caller gave, <code>pool</code> one drawn from the pool</td>
+</tr>
+<tr>
+<td><code>[JTAC] claim: 'Reaper 1' → 'BMP-2 #1'</code></td>
+<td>the JTAC picks a target</td>
+</tr>
+<tr>
+<td><code>[JTAC] lase: 'Reaper 1', code 1511 on 'BMP-2 #1' (BMP-2), range 5000 m, JTAC at 3000 m, spot created</code></td>
+<td>the spot is created: the code it carries, the slant range from the JTAC, the JTAC's altitude, and whether <code>Spot.createLaser</code> returned a spot (<code>NO spot</code> otherwise)</td>
+</tr>
+<tr>
+<td><code>[JTAC] release claim on 'BMP-2 #1' (was: 'Reaper 1')</code></td>
+<td>lasing stops, for any reason</td>
+</tr>
+</tbody>
+</table>
+<p>A re-coded JTAC logs <code>re-coded &lt;old&gt; -&gt; &lt;new&gt;</code>, and its next <code>lase</code> line carries the new code.</p>
 
 
 
