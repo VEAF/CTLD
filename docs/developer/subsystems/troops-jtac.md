@@ -278,3 +278,16 @@ explosion) therefore each acquire a **different** next target instead of converg
 `CTLDJTACDetector.findNearestVisibleEnemy()` is now a thin wrapper returning
 `findAllVisibleEnemies()[1]`, kept for callsites that only need the single best candidate and do not
 require deconfliction.
+
+## What the log says about a JTAC
+
+A pilot who finds no spot on the JTAC's code is answered from the DCS log, where every JTAC line starts with `[JTAC]` at `INFO`:
+
+| Line | When |
+| --- | --- |
+| `[JTAC] register: 'Reaper 1', code 1511 (imposed), radio 36.0 FM` | the JTAC registers; `imposed` is a code the caller gave, `pool` one drawn from the pool |
+| `[JTAC] claim: 'Reaper 1' → 'BMP-2 #1'` | the JTAC picks a target |
+| `[JTAC] lase: 'Reaper 1', code 1511 on 'BMP-2 #1' (BMP-2), range 5000 m, JTAC at 3000 m, spot created` | the spot is created: the code it carries, the slant range from the JTAC, the JTAC's altitude, and whether `Spot.createLaser` returned a spot (`NO spot` otherwise) |
+| `[JTAC] release claim on 'BMP-2 #1' (was: 'Reaper 1')` | lasing stops, for any reason |
+
+A re-coded JTAC logs `re-coded <old> -> <new>`, and its next `lase` line carries the new code.

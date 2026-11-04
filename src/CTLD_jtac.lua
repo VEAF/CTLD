@@ -529,6 +529,7 @@ function CTLDJTACManager:spawnJTAC(groupName, cfg, spawner)
     })
 
     self.jtacs[groupName] = jtac
+    self:_logRegistered(groupName, jtac)
 
     -- DCS bug: coalition.addGroup leaves the group empty for ~1s after spawn.
     -- isFlying may be false if the unit wasn't readable yet. Schedule a T+2s retry
@@ -880,8 +881,7 @@ function CTLDJTACManager:startLaseTroopUnit(unitName, cfg)
         timestamp = timer.getAbsTime(),
     })
 
-    ctld.utils.log("INFO",
-        "CTLDJTACManager:startLaseTroopUnit — '%s' registered (code=%d)", unitName, laserCode)
+    self:_logRegistered(unitName, jtac)
     return jtac
 end
 
@@ -1055,6 +1055,7 @@ function CTLDJTACManager:_autoLaseLoop(groupName, t)
     local spotOffset = { x = 0, y = 2, z = 0 }
     local laserSpot  = Spot.createLaser(jtacUnit, spotOffset, lasePos, jtac.laserCode)
     local irSpot     = Spot.createInfraRed(jtacUnit, spotOffset, lasePos)
+    self:_logLaseStart(groupName, jtac, jtacUnit:getPoint(), found, lasePos, laserSpot)
 
     jtac:startLase(found, laserSpot, irSpot)
 
@@ -1320,6 +1321,32 @@ function CTLDJTACManager:_setOrbitTask(dcsGroup, jtacUnit, center, _radius)
     -- popTask on UNIT first removes any stale unit-level task before group-level push.
     jtacUnit:getController():popTask()
     dcsGroup:getController():pushTask(orbit)
+end
+
+--- Log the code and the radio a JTAC registers with, and whether the code was imposed or drawn from
+-- the pool: a "no spot on my code" report is settled from the log (FEAT-JTAC-LOG-REAL-LASER-CODE).
+-- @param jtacKey string  registry key of the JTAC
+-- @param jtac    CTLDJTAC
+function CTLDJTACManager:_logRegistered(jtacKey, jtac)
+    local radio = jtac.radio or {}
+    ctld.utils.log("INFO", "[JTAC] register: '%s', code %d (%s), radio %s %s", jtacKey, jtac.laserCode,
+        jtac.codeImposed and "imposed" or "pool", tostring(radio.freq), string.upper(radio.mod or "FM"))
+end
+
+--- Log a lase as DCS got it: the code the spot carries, the target, the slant range from the JTAC,
+-- the JTAC's altitude, and whether Spot.createLaser returned a spot (FEAT-JTAC-LOG-REAL-LASER-CODE).
+-- @param jtacKey   string  registry key of the JTAC
+-- @param jtac      CTLDJTAC
+-- @param jtacPos   table   JTAC unit position (Vec3)
+-- @param target    table   candidate from findAllVisibleEnemies
+-- @param lasePos   table   point the spot was created on (Vec3)
+-- @param laserSpot DCS Spot or nil
+function CTLDJTACManager:_logLaseStart(jtacKey, jtac, jtacPos, target, lasePos, laserSpot)
+    local dx, dy, dz = lasePos.x - jtacPos.x, lasePos.y - jtacPos.y, lasePos.z - jtacPos.z
+    ctld.utils.log("INFO", "[JTAC] lase: '%s', code %d on '%s' (%s), range %d m, JTAC at %d m, %s",
+        jtacKey, jtac.laserCode, target.unitName, tostring(target.unitType),
+        math.floor(math.sqrt(dx * dx + dy * dy + dz * dz) + 0.5), math.floor(jtacPos.y + 0.5),
+        laserSpot and "spot created" or "NO spot")
 end
 
 --- Record that jtacKey is actively lasing enemyUnitName.
