@@ -1,6 +1,6 @@
 # FIX-FAT-COW-HELICOPTERS-ONLY — an aeroplane gets no Fat Cow menu
 
-Status: done
+Status: done — 2026-11-04 (PR #285)
 
 ## Problem
 

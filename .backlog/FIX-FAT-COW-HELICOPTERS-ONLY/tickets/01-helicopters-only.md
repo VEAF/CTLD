@@ -1,6 +1,6 @@
 # 01 — the AI Fat Cow menu and request, helicopters only
 
-Status: done
+Status: done — 2026-11-04 (PR #285)
 
 See the [PRD](../PRD.md).
 
