@@ -6,13 +6,6 @@ Chemin vers la formalisation : `grill-with-docs` → `to-prd` → `to-issues`.
 
 ---
 
-<!-- ctld-tools — aiZones : troopStock/vehicleStock absents : formalisé en lot
-     `.backlog/FIX-CTLD-TOOLS-AIZ-STOCK-GAP/`, mergé (PR #180, 4 tickets) — défaut troopStock
-     asymétrique, validation WARNING dans validate.py, indicateur ⚠/ⓘ inline dans l'éditeur. -->
-
-<!-- ctld-tools — mode « configuration seule » à l'installation : formalisé en lot
-     `.backlog/FEAT-CTLD-TOOLS-CONFIG-ONLY-INSTALL/`, mergé (PR #174). -->
-
 ## AA System → Scenes — Remplacer CTLDCrateAssemblyManager par des scènes
 
 Contexte: analyser si la mécanique AA system (`CTLD_aasystem.lua` / `CTLDCrateAssemblyManager`)
@@ -20,23 +13,15 @@ peut être remplacée par des scènes pilotées par `CTLDSceneManager`. Les scè
 spawn ; la question porte sur la mécanique d'*assembly* (construction progressive depuis des
 caisses) : absorbable par les scènes, ou couche séparée inévitable ?
 
-<!-- ctld-tools — injection .miz automatique : livré (lot CTLD-TOOLS-MIZ-INJECT, PR #50). -->
-
 ## ctld-tools — dépréciation du companion asset-check
 
-Contexte (émergé du grill TUI). Deux points liés à l'origine ; le premier est réglé :
-1. ~~`ctld-tools validate` ne vérifie un `unit` que contre le **datamine stock**, ignorant les
-   `modTypes` déclarés par le MM~~ — **fait**, livré par `FIX-VALIDATE-MODTYPES` (PR #87) :
-   `validate.py` résout désormais `datamine ∪ modTypes` (constaté le 2026-08-10, vérification
-   roadmap).
-2. Le **companion asset-check** (`tools/companion/asset_check.lua`) fait exactement la même
-   validation (même datamine stock + `modTypes`), mais **dans DCS après coup** → largement
-   **redondant** avec `ctld-tools`, maintenant que (1) est fait. À déprécier/retirer. Résidu
-   couvert : les types **injectés au runtime** (scènes de plugins) que le design-time ne voit pas —
-   marginal, et rattrapé par le test-en-DCS. `logDefaults` reste (debug power-user). Décision David
-   (2026-07-20) : pas maintenant, à faire en lot séparé.
-
-<!-- ctld-tools — mode TUI interactif : livré (lot CTLD-TOOLS-TUI, PR #52). -->
+Contexte (émergé du grill TUI). Le **companion asset-check** (`tools/companion/asset_check.lua`)
+fait exactement la même validation que `ctld-tools validate` (même datamine stock + `modTypes`
+déclarés par le MM, depuis `FIX-VALIDATE-MODTYPES`, PR #87), mais **dans DCS après coup** →
+largement **redondant** avec `ctld-tools`. À déprécier/retirer. Résidu couvert : les types
+**injectés au runtime** (scènes de plugins) que le design-time ne voit pas — marginal, et rattrapé
+par le test-en-DCS. `logDefaults` reste (debug power-user). Décision David (2026-07-20) : pas
+maintenant, à faire en lot séparé.
 
 ## ctld-tools — générer les tableaux de config de la doc depuis le schéma
 
@@ -46,37 +31,11 @@ dans la TUI. Il reste une **duplication** : les tableaux de settings de `docs/mi
 configuration.md` / `.fr.md` répètent ces descriptions. Candidat lot : **générer** ces tableaux depuis
 le schéma (le schéma est la source de vérité) pour supprimer la double maintenance.
 
-<!-- DEV-LOCAL-MIZ — formalisé en lot `.backlog/DEV-LOCAL-MIZ/` (grill-with-docs, 2026-07-19). -->
+## ctld-tools — descriptions manquantes pour ~44 réglages
 
-_(Note post-formalisation : le constat « chemins absolus… `dcs-bridge.lua` » était partiellement
-inexact — `dcs-bridge.lua` est embarqué dans le miz, pas chargé par chemin ; seul `CTLD.lua` était
-un chemin machine. Détail dans le PRD.)_
-
----
-
-<!-- FEAT-MOVING-ZONE — déjà livré, PR #49 (archive/FEAT-MOVING-ZONE.md). Cette entrée dupliquait
-     un lot déjà mergé et est retirée (constaté le 2026-08-10, vérification roadmap :
-     trigger.misc.getZone() bien utilisé dans src/CTLD_zone.lua et ailleurs). -->
-
----
-
-<!-- STARTUP-REPORT-UNIFIED — formalisé en lot `.backlog/STARTUP-REPORT-UNIFIED/` (grill-with-docs, 2026-07-21). -->
-
-<!-- FIX-I18N-DICT-SYNC — formalisé en lot `.backlog/FIX-I18N-DICT-SYNC/` (grill-with-docs, 2026-07-22). Livré PR #57. -->
-<!-- ctld-tools — i18n FR de l'interface web : livré (lot CTLD-TOOLS-MM-UX, ticket 11). -->
-
----
-
-<!-- ctld-tools — unit:/group: manquants dans le schéma : apparemment déjà livré (constaté le
-     2026-08-10, vérification roadmap — pas de lot dédié identifié dans .backlog/README.md, donc
-     probablement fait en marge d'un autre lot sans mise à jour de cette entrée).
-     `src/CTLD_config_schema.yaml` porte désormais un champ `unit:` explicite (67 réglages) et
-     `web/src/lib/labels.ts` le lit en priorité avant l'extraction depuis la `description` ; `web/
-     src/lib/families.ts`'s `familyOf()` dérive une famille par nom de clé avec `OTHER_FAMILY`
-     comme résidu irréductible (confirmé par families.test.ts) — exactement le mécanisme
-     initialement proposé ici. Résiduel non couvert : les descriptions des ~44 réglages non
-     documentés (les inventer serait contraire à la règle zéro-supposition) — pas un candidat de
-     lot en soi, juste une dette de documentation qui traînera tant que personne ne les écrit. -->
+Constaté le 2026-08-10 : les descriptions des ~44 réglages non documentés ne sont pas écrites (les
+inventer serait contraire à la règle zéro-supposition). Pas un candidat de lot en soi, juste une
+dette de documentation qui traînera tant que personne ne les écrit.
 
 ## CHANGELOG — réorganiser `[Unreleased]` avant la 2.0.0 stable
 
@@ -102,98 +61,14 @@ makers, ou s'il redescend d'un cran.
 À faire pendant la préparation de la release stable, pas avant : chaque lot mergé d'ici là y ajoute
 des lignes.
 
-<!-- TOOLING-I18N-CLAUDE-CODE-TRANSLATE — formalisé en lot `.backlog/TOOLING-I18N-CLAUDE-CODE-TRANSLATE/` (grill-with-docs, 2026-08-10, ADR 0014). -->
+## Lien générique zone ↔ objet de référence (owner-triggered)
 
-<!-- TOOLING — i18n_dict_utils.py ne distingue pas une entrée -- STALE: d'une entrée live —
-     formalisé en lot `.backlog/FIX-I18N-STALE-COMMENT-PARSING/` (grill-with-docs, 2026-08-10).
-     Pas d'ADR (bug factuel, pas de trade-off de conception). -->
-
-<!-- Parachutage — garde générale d'activation `enableParachuteDrop` : formalisé en lot
-     `.backlog/FEAT-PARACHUTE-DROP-GATE/` (grill-with-docs, 2026-09-27, ADR 0019). Le point resté
-     ouvert ici (quels points d'appel menu) est résolu : 5 sites inline (2 CTLD_crate.lua,
-     1 CTLD_troop.lua, 2 CTLD_vehicle.lua), pas de mécanisme centralisé ni de helper partagé —
-     voir l'ADR pour le raisonnement complet. -->
-
-<!-- extractableGroups — détection automatique par convention de nommage EXTR_ : formalisé en lot
-     `.backlog/FEAT-EXTR-GROUP-NAMING-CONVENTION/` (grill-with-docs, 2026-09-27). Le point resté
-     ouvert ici (métadonnée dans le nom) est résolu : aucune, `EXTR_<name>` reste un préfixe nu —
-     rien à configurer, la coalition est déjà lue en direct sur l'objet DCS. Nouveau terme
-     CONTEXT.md "Auto-discovered group", sibling de "Auto-discovered zone". -->
-
-<!-- Zones dynamiques — aucun rafraîchissement du menu F10 des joueurs déjà sur place : grillé le
-     2026-09-28 avec "TRZ_ automatique" ci-dessous (couplés : toute TRZ_ auto-créée en cours de
-     mission touche ce trou plus souvent qu'aujourd'hui), formalisé en lot
-     `.backlog/FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY/`. Conclusion : pas de calcul de portée
-     géométrique — toute création/suppression dynamique de zone (troupe ou logistique) rafraîchit
-     CTLDTroopManager:refreshMenuSection/CTLDCrateManager:refreshCrateFlightSection pour tous les
-     joueurs transport au sol trackés, chaque fonction filtrant déjà elle-même par appartenance de
-     zone. Un bug d'asymétrie trouvé en creusant la destruction d'ancre (bunker/convoi/navire) dans
-     le même gril : une zone logistique linkedUnit est déjà réellement supprimée à la mort de son
-     ancre, une zone de troupe équivalente (navire, camion) ne l'était jamais — unifié sur la
-     suppression réelle pour les deux familles, voir ADR 0021. -->
-
-<!-- luacheck n'est en réalité vérifié nulle part (ni local, ni CI) : formalisé en lot
-     `.backlog/TOOLING-LUACHECK-CI-RATCHET/` (grill-with-docs, 2026-09-27). Résolu : nouveau job
-     CI dédié avec un ratchet inversé (LUACHECK_WARNING_CEILING, démarre à 89, ne peut que baisser
-     — miroir de COVERAGE_FLOOR), 0 erreur toujours bloquant. Hook local rendu visible (message
-     une fois, marqueur simple dans .git/, jamais réinitialisé). Le nettoyage des 89 warnings
-     eux-mêmes reste hors scope, candidat de lot séparé (détail de la dette toujours ci-dessous
-     pour référence future — variables inutilisées/shadowing sur ~8 fichiers, 2 `if` vides dans
-     CTLD_vehicle.lua, une négation simplifiable dans CTLD_jtac.lua, et le gros du volume dans
-     legacy_api.lua où un paramètre `_préfixé` est en fait utilisé). -->
-
-<!-- luacheck cleanup, Lot A — legacy_api.lua : formalisé en lot
-     `.backlog/FIX-LEGACY-API-PARAM-PREFIX/`, mergé — 58 des 89 warnings corrigés (préfixe `_`
-     retiré sur les 58 paramètres, tous réellement utilisés), plafond CI abaissé à 31. -->
-
-<!-- Détection de la sortie d'un véhicule en carry natif (`CTLDVehicleSpawner`, branche bbox vide) :
-     fermé par le lot `.backlog/FIX-NATIVE-CARRY-DETECTION/` (2026-10-01, ADR 0022). La détection
-     native, véhicules et caisses, lit désormais la liste de cargo à bord (`unit:getCargosOnBoard()`) :
-     la sortie est vue quand l'objet quitte la liste (au sol : `WAITING` ; en vol : `FALLING` puis
-     `WAITING` à l'atterrissage), validée en jeu sur le C-130J-30. -->
-
-<!-- luacheck cleanup, Lot B — le reste (30 des 31 restants après le gap ci-dessus, ~9 fichiers) :
-     formalisé en lot `.backlog/FIX-LUACHECK-REMAINING-WARNINGS/`, mergé — plafond CI abaissé à 0.
-     Le nettoyage luacheck complet (89 → 0) est terminé ; le seul résidu (bbox-exit ci-dessus) est
-     un gap de fonctionnalité documenté, pas une dette de lint. -->
-
-<!-- TRZ_ automatique — création liée au spawn d'un objet (FOB, FARP, etc.) : demandé le 2026-08-26,
-     grillé le 2026-09-28 avec "Zones dynamiques" ci-dessus, formalisé en lot
-     `.backlog/FEAT-TRZ-DYNAMIC-OBJECT-AUTODISCOVERY/`. FOB/FARP hors périmètre final (mécanisme
-     dédié déjà existant, troopPickupAtFOB/troopPickupAtFARP) ; le vrai besoin, confirmé par un cas
-     concret (RV avec un convoi, un navire, ou un bunker/fortification statique pour embarquer/
-     déposer des troupes) : auto-détection TRZ_<name>_<coalition>_<stock>_<flag>_<target> — syntaxe
-     inchangée — sur un static, unit ou group quelconque, détection continue (init +
-     S_EVENT_BIRTH, déjà prouvé fiable pour les trois types d'objets dans ce code), même chemin de
-     résolution/construction que createTroopZoneAtObject, aucun réglage global (le nommage est déjà
-     l'opt-in, cohérent avec EXTR_). Voir CONTEXT.md ("Auto-discovered zone", "Anchor") et ADR 0021
-     pour le détail des décisions couplées. -->
-
-<!-- Volet FOB formalisé/livré via FIX-FOB-TROOP-PICKUP (PR #136) ; volet FARP formalisé en lot
-     `.backlog/FEAT-FARP-TROOP-PICKUP/` (grill-with-docs, 2026-08-26). Les deux couvrent l'idée
-     d'origine (FOB, FARP) sans le réglage générique imaginé au départ — chaque cas réutilise le
-     réglage/mécanisme le plus proche déjà existant plutôt qu'un système de sélection par
-     type/convention. -->
-
-<!-- Lien générique zone ↔ objet de référence (owner-triggered) — le volet "duplication d'ancrage
-     entre CTLDTroopZone/CTLDLogisticZone" est formalisé en lot
-     `.backlog/FIX-ZONE-ANCHOR-DUPLICATION/` (lancé directement en to-prd le 2026-09-27, sans grill
-     dédié, sur instruction explicite). Le registre générique linkZonesToOwner/unlinkOwner que
-     cette entrée proposait n'est PAS construit : FEAT-FARP-TROOP-PICKUP a confirmé que le FARP
-     (le seul second candidat "propriétaire composite" envisagé) n'en a pas besoin (Airbase
-     binaire, pas un jugement composite comme le FOB) — il ne reste qu'un seul consommateur réel
-     (le FOB), ce qui rend le registre générique prématuré (CLAUDE.md, pas d'abstraction
-     spéculative). À reconsidérer si un vrai deuxième propriétaire composite apparaît un jour. -->
-
-<!-- Pickup zone mobile sur un camion de transport : demandé le 2026-08-26, formalisé en lot
-     `.backlog/FEAT-TRUCK-MOBILE-PICKUP-ZONE/` (verification-first, pas de grill dédié). Confirmé
-     live en DCS le 2026-09-28 (`tests/dcs/noPlayer/scenario_truck_anchor.lua`, PASS 4/4) :
-     `createTroopZoneAtObject`/`linkedUnit` ancrent déjà correctement une TRZ_ sur un véhicule
-     terrestre en mouvement — suivi de position, `isDynamic()`, et gel à la dernière position
-     connue à la destruction, tout identique au cas navire déjà prouvé. Aucun changement de code.
-     Les deux questions ouvertes (automatisation par convention de nommage, comportement souhaité
-     à la destruction du camion) restent non tranchées — pas de nouvelle information les motivant,
-     reportées tant qu'un besoin concret ne les fait pas remonter. -->
+Idée écartée comme prématurée, à reconsidérer : le registre générique `linkZonesToOwner` /
+`unlinkOwner` n'est PAS construit. `FEAT-FARP-TROOP-PICKUP` a confirmé que le FARP (le seul second
+candidat « propriétaire composite » envisagé) n'en a pas besoin (Airbase binaire, pas un jugement
+composite comme le FOB) — il ne reste qu'un seul consommateur réel (le FOB), ce qui rend le registre
+générique prématuré (CLAUDE.md, pas d'abstraction spéculative). À reconsidérer si un vrai deuxième
+propriétaire composite apparaît un jour.
 
 <!-- AIZ_ — pourquoi une config explicite : grillé le 2026-09-23, formalisé en lot
      `.backlog/FEAT-EXZ-AUTODISCOVERY/` (aiZones injectée pour Test_CTLDNEXT_01.miz via le
@@ -209,11 +84,6 @@ des lignes.
      diffusé) — voir l'ADR pour le raisonnement et sa limite de validité dans le temps. Le code de
      détection de FIX-AIZONE-NAME-COLLISION (PR #88) reste en place, désormais un filet inatteignable
      en pratique plutôt que du code prouvé mort. -->
-
-<!-- Rappel — donner les paramètres ctld-tools pour configurer Test_CTLDNEXT_01.miz : résolu
-     2026-09-24 — table des 15 zones donnée à a.lingo, saisie via ctld-tools, config persistée et
-     vérifiée en live DCS (F-176, MT-07/08/08B/09/10/11/12/13/14 tous PASS), lot
-     `FEAT-EXZ-AUTODISCOVERY` ticket 01, PR #181. -->
 
 <!-- ctld-tools — lire les zones du .miz pour peupler et synchroniser l'éditeur AIZ_ : formalisé
      en lot `.backlog/FEAT-CTLD-TOOLS-AIZ-SYNC/`, mergé (PR #169) — datalist dcsZoneName +
@@ -285,10 +155,6 @@ Quatre tests (`test_install`, `test_inject_into_miz`) échouent en local quand `
 été réexportée par ctld-tools (elle porte alors déjà un moteur et des sons, `replacedPrevious` vaut vrai), alors
 qu'ils passent contre la version commitée utilisée par le CI. Idée : les faire partir d'une copie « pristine »
 comme le fait déjà la fixture `pristine_miz`, ou d'une fixture minimale indépendante de la mission de dev.
-
-<!-- Fat Cow — profils pour les hélicos russes (lot 2) : fait dans FEAT-FAT-COW (PR #273), avec un CH-47 pour
-     tout le monde (Zip, 2026-10-27 : c'est le module pilotable) et des sous-menus Russes et Mixtes ; la cow Mi-26
-     a été écartée. -->
 
 ## Fat Cow — Mi-8 piloté en « petite cow » (lot 3, optionnel)
 
