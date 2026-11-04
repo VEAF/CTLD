@@ -1,6 +1,6 @@
 # 01 — loadouts on the ground, FARP left open, packed into crates on the ground
 
-Status: ready
+Status: done
 
 See the [PRD](../PRD.md).
 

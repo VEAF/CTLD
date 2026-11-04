@@ -14,7 +14,7 @@ Tout se trouve dans **F10 → CTLD → Fat Cow**.
 
 1. Posez-vous dans une zone logistique.
 2. Chargez ce que vous voulez emporter :
-    - **Charger**, puis un lot : les caisses vont directement en soute.
+    - **Charger**, puis un lot : ses caisses sont posées à côté de vous, à charger comme n'importe quelle caisse CTLD.
       Chaque lot emporte deux réservoirs de 800 gal (4 800 kg de carburant jet) et des armes :
 
       | Menu | Lots |
@@ -26,17 +26,22 @@ Tout se trouve dans **F10 → CTLD → Fat Cow**.
       Cela fait de 6 400 à 8 200 kg en 5 à 8 caisses, ce qu'emporte un CH-47F avec 80 % de son carburant interne : inutile de faire le plein.
     - ou une caisse à la fois, **Demander une caisse** : un réservoir (2 400 kg), 20 Hellfire laser ou 20 radar, 1 200 obus de 30 mm, 20 Vikhr, 16 Ataka, 16 Shturm, 460 obus de 2A42 explosifs ou perforants, 500 obus de GSh-30, puis chargez-la comme n'importe quelle caisse CTLD.
 
+    La dernière caisse de chaque sorte peut n'être que partiellement remplie : elle ne contient et ne pèse que ce que le lot y met.
     **Décharger les caisses Fat Cow** vide la soute, pour composer un autre lot.
 3. Volez jusqu'aux hélicoptères d'attaque qui ont besoin de vous, et posez-vous.
 4. **Déployer la FARP Fat Cow.**
    La FARP ouvre quelques secondes plus tard et on vous annonce ce qu'elle contient.
-   Les caisses restent dans votre soute : le carburant ne quitte jamais le Chinook.
+   Les caisses quittent votre soute : leur contenu est désormais le stock de la FARP, et votre hélicoptère s'allège.
 5. Les autres hélicoptères se posent à côté de vous et se ravitaillent par le menu de leur équipe au sol, comme sur n'importe quelle FARP.
-6. **Replier la FARP Fat Cow**, ou décollez simplement : la FARP est repliée pour vous.
-   Ce qui n'a pas servi retourne dans vos caisses, la soute s'allège, et une caisse vidée disparaît.
+6. Décollez quand vous voulez : la FARP reste ouverte, et on vous annonce son nom sur la carte F10 et ce qu'elle contient encore.
+   Partez faire autre chose (une CSAR, un autre transport), ou allez ouvrir une autre FARP ailleurs : chaque FARP vit sa vie.
+7. Pour la déplacer, posez-vous à moins de 150 m et **Replier la FARP Fat Cow**.
+   Ce qui reste est posé à côté de vous en caisses Fat Cow (des pleines, et une dernière partiellement remplie de chaque sorte) ; une FARP vide n'en donne aucune.
+   Chargez-les, partez ailleurs et redéployez-les, ou laissez-les là pour un autre.
 
-**Stock de la Fat Cow** vous dit ce qu'il vous reste, au sol comme en vol.
-Si vous quittez votre slot pendant que la FARP est ouverte, la FARP reste, avec ce qu'elle contient encore, jusqu'à ce qu'un pilote reprenne ce slot : elle se ferme alors, vidée, et le nouveau pilote repart soute vide.
+**Stock de la Fat Cow** vous dit ce que contiennent les caisses Fat Cow de votre soute.
+Une FARP ouverte reste jusqu'à ce qu'un CH-47 la replie, quoi qu'il arrive à celui qui l'a installée : abattu, son pilote parti, un autre pilote dans le slot.
+N'importe quel CH-47 piloté de votre coalition peut la replier, pas seulement le vôtre.
 
 !!! note "Quand le stock s'épuise"
     Un hélicoptère qui demande plus que ce qui reste reçoit ce qui reste, et son équipe au sol répond « Unable to comply ».

@@ -14,7 +14,7 @@ Everything is in **F10 → CTLD → Fat Cow**.
 
 1. Land in a logistic zone.
 2. Load what you want to carry:
-    - **Load**, then a loadout: the crates go straight into the hold.
+    - **Load**, then a loadout: its crates are set down next to you, to load like any CTLD crate.
       Each loadout carries two 800 gal tanks (4 800 kg of jet fuel) and weapons:
 
       | Menu | Loadouts |
@@ -26,17 +26,22 @@ Everything is in **F10 → CTLD → Fat Cow**.
       That is 6 400 to 8 200 kg in 5 to 8 crates, what a CH-47F lifts with 80 % of its internal fuel: no need to fill the tanks.
     - or one crate at a time, **Request a crate**: a fuel tank (2 400 kg), 20 laser or 20 radar Hellfires, 1 200 rounds of 30 mm, 20 Vikhr, 16 Ataka, 16 Shturm, 460 rounds of 2A42 HE or AP, 500 rounds of GSh-30, then load it like any CTLD crate.
 
+    The last crate of each kind may be part-full: it holds and weighs only what the loadout puts in it.
     **Unload the Fat Cow crates** empties the hold, to make up another loadout.
 3. Fly to where the attack helicopters need you, and land.
 4. **Deploy the Fat Cow FARP.**
    The FARP opens a few seconds later and you are told what it holds.
-   The crates stay in your hold: the fuel never leaves the Chinook.
+   The crates leave your hold: their content is the FARP's stock now, and your helicopter is lighter.
 5. The other helicopters land next to you and rearm and refuel through their ground crew menu, as on any FARP.
-6. **Pack the Fat Cow FARP**, or simply take off: the FARP is packed for you.
-   What was not used goes back into your crates, the hold gets lighter, and a crate left empty disappears.
+6. Take off whenever you like: the FARP stays open, and you are told its name on the F10 map and what it still holds.
+   Fly something else (a CSAR, another load), or go and open another FARP elsewhere: each FARP is on its own.
+7. To move it, land within 150 m of it and **Pack the Fat Cow FARP**.
+   What is left is set down next to you as Fat Cow crates (full ones, and a part-full last one of each kind); an empty FARP gives none.
+   Load them, fly elsewhere and deploy them again, or leave them there for someone else.
 
-**Fat Cow stock** tells you what you still have, on the ground or in the air.
-If you leave your slot while the FARP is open, the FARP stays, with what it still holds, until a pilot takes that slot again: it then closes, emptied, and the new pilot starts with an empty hold.
+**Fat Cow stock** tells you what the Fat Cow crates in your hold hold.
+An open FARP stays until a CH-47 packs it, whatever happens to the one that laid it out: shot down, its pilot gone, another pilot in the slot.
+Any piloted CH-47 of your coalition can pack it, not only yours.
 
 !!! note "When the stock runs out"
     A helicopter asking for more than what is left gets what is left, and its ground crew answers "Unable to comply".
