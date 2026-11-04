@@ -617,3 +617,6 @@ ctld.i18n["ko"]["Land to pack the Fat Cow FARP."] = "Fat Cow FARP를 철수하�
 ctld.i18n["ko"]["No Fat Cow FARP within %1 m."] = "%1 m 이내에 Fat Cow FARP 없음."
 ctld.i18n["ko"]["Set down next to you, to load into your hold: %1"] = "옆에 내려놓음, 화물칸에 적재하십시오: %1"
 ctld.i18n["ko"]["The Fat Cow FARP stays open (%1 on the F10 map): %2. Land within %3 m of it to pack it."] = "Fat Cow FARP 계속 운영 중 (F10 지도의 %1): %2. 철수하려면 %3 m 이내에 착륙하십시오."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-04
+ctld.i18n["ko"]["Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2."] = "먼저 Fat Cow 화물을 CTLD에 넘기십시오: 문을 연 다음 F10 > CTLD > %1 > %2."

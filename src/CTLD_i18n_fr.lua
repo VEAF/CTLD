@@ -760,3 +760,6 @@ ctld.i18n["fr"]["Land to pack the Fat Cow FARP."] = "Posez-vous pour replier la 
 ctld.i18n["fr"]["No Fat Cow FARP within %1 m."] = "Aucune FARP Fat Cow à moins de %1 m."
 ctld.i18n["fr"]["Set down next to you, to load into your hold: %1"] = "Posé à côté de vous, à charger en soute : %1"
 ctld.i18n["fr"]["The Fat Cow FARP stays open (%1 on the F10 map): %2. Land within %3 m of it to pack it."] = "La FARP Fat Cow reste ouverte (%1 sur la carte F10) : %2. Posez-vous à moins de %3 m pour la replier."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-04
+ctld.i18n["fr"]["Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2."] = "Confiez d'abord les caisses Fat Cow à CTLD : ouvrez les portes, puis F10 > CTLD > %1 > %2."

@@ -728,3 +728,6 @@ ctld.i18n["en"]["Land to pack the Fat Cow FARP."] = "Land to pack the Fat Cow FA
 ctld.i18n["en"]["No Fat Cow FARP within %1 m."] = "No Fat Cow FARP within %1 m."
 ctld.i18n["en"]["Set down next to you, to load into your hold: %1"] = "Set down next to you, to load into your hold: %1"
 ctld.i18n["en"]["The Fat Cow FARP stays open (%1 on the F10 map): %2. Land within %3 m of it to pack it."] = "The Fat Cow FARP stays open (%1 on the F10 map): %2. Land within %3 m of it to pack it."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-04
+ctld.i18n["en"]["Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2."] = "Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2."

@@ -32,6 +32,7 @@ Everything is in **F10 → CTLD → Fat Cow**.
 4. **Deploy the Fat Cow FARP.**
    The FARP opens a few seconds later and you are told what it holds.
    The crates leave your hold: their content is the FARP's stock now, and your helicopter is lighter.
+   A crate loaded through the DCS cargo window with the doors closed stays with DCS and is left out: open the doors and use **Crate Commands → Fit parachute** to hand it over to CTLD first.
 5. The other helicopters land next to you and rearm and refuel through their ground crew menu, as on any FARP.
 6. Take off whenever you like: the FARP stays open, and you are told its name on the F10 map and what it still holds.
    Fly something else (a CSAR, another load), or go and open another FARP elsewhere: each FARP is on its own.

@@ -650,9 +650,16 @@ function CTLDFatCowManager:deployFromHold(unitName)
         return
     end
     local onboard = cowCratesOnboard(unitName)
-    local crates  = self:_cratesNotDeploying(onboard)
+    local crates, held = {}, 0
+    for _, crate in ipairs(self:_cratesNotDeploying(onboard)) do
+        -- A crate DCS still holds in its own cargo system (doors closed when loaded) cannot leave the hold
+        -- through CTLD: it stays out of the FARP until it is handed over.
+        if crate:isLoadedByCTLD() then crates[#crates + 1] = crate else held = held + 1 end
+    end
     if #crates == 0 then
-        local text = (#onboard > 0) and ctld.tr("The Fat Cow FARP is already deployed.")
+        local text = (held > 0) and ctld.tr("Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2.",
+                                        ctld.tr("Crate Commands"), ctld.tr("Fit parachute"))
+                  or (#onboard > 0) and ctld.tr("The Fat Cow FARP is already deployed.")
                   or ctld.tr("No Fat Cow crate on board: load a fuel tank or an ammo crate first.")
         trigger.action.outTextForGroup(gid, text, 10)
         return

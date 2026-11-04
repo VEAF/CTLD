@@ -184,6 +184,19 @@ describe("Piloted cow commands", function()
         assert.is_not_nil(cm.crates["a"])                    -- still on board
     end)
 
+    it("leaves out of the FARP a crate DCS still holds in its own cargo system", function()
+        local native = loadCrateInto("n")
+        native.loadedByDCSNative = true
+        mgr:deployFromHold("Cow-1")
+        assert.is_nil(next(mgr._cows))
+        assert.equals(native, cm.crates["n"])
+        assert.is_truthy(messages[#messages]:find("Fit parachute", 1, true))
+        loadCrateInto("a")
+        mgr:deployFromHold("Cow-1")
+        assert.equals(2400, farps.CTLD_FatCow_FARP_1.w.liquids[0])
+        assert.equals(native, cm.crates["n"])                    -- still on board, untouched
+    end)
+
     it("does not open a second FARP with crates a FARP still laying out was opened with", function()
         sm.playScene = function(_, _, _, params) return { _name = "Fat Cow FARP#1", _params = params } end
         loadCrateInto("a")

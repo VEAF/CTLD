@@ -32,6 +32,7 @@ Tout se trouve dans **F10 → CTLD → Fat Cow**.
 4. **Déployer la FARP Fat Cow.**
    La FARP ouvre quelques secondes plus tard et on vous annonce ce qu'elle contient.
    Les caisses quittent votre soute : leur contenu est désormais le stock de la FARP, et votre hélicoptère s'allège.
+   Une caisse chargée par la fenêtre cargo de DCS portes fermées reste à DCS et n'est pas prise : ouvrez les portes et utilisez d'abord **Commandes de caisses → Ajouter le parachute** pour la confier à CTLD.
 5. Les autres hélicoptères se posent à côté de vous et se ravitaillent par le menu de leur équipe au sol, comme sur n'importe quelle FARP.
 6. Décollez quand vous voulez : la FARP reste ouverte, et on vous annonce son nom sur la carte F10 et ce qu'elle contient encore.
    Partez faire autre chose (une CSAR, un autre transport), ou allez ouvrir une autre FARP ailleurs : chaque FARP vit sa vie.
