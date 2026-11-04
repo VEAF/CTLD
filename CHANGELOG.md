@@ -8,6 +8,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — an aeroplane no longer gets the Fat Cow menu (FIX-FAT-COW-HELICOPTERS-ONLY)
+
+- Every player who was not a cow pilot got the AI Fat Cow menu, so an A-10 could request a cow (Zip, Open Training, 2026-11-01).
+  The cow refuels and rearms helicopters: the menu is now a helicopter's only, as taking a cow over already was, and a request from any other aircraft sends nothing.
+
 ### Changed — a piloted Fat Cow leaves its FARP open, and packs it into crates on the ground (FEAT-FAT-COW-LEAVE-FARP)
 
 - **Load** > a loadout sets its crates down next to the CH-47, for the pilot to load like any CTLD crate, instead of putting them straight into the hold; the last crate of each kind holds and weighs only what the loadout puts in it.

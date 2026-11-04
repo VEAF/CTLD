@@ -50,7 +50,8 @@ Any piloted CH-47 of your coalition can pack it, not only yours.
 
 ## Asking for an AI cow
 
-Any player whose aircraft is not a cow can **Request a Fat Cow**, on the ground or in the air, and pick its loadout.
+Any helicopter pilot whose aircraft is not a cow can **Request a Fat Cow**, on the ground or in the air, and pick its loadout.
+An aeroplane has no Fat Cow menu: the cow refuels and rearms helicopters.
 A CH-47 takes off from the friendly logistic zone nearest to you, and you are told where it comes from, how far it is and when it should join.
 
 The cow then does what your flight tells it, and nothing on its own:

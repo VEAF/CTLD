@@ -50,7 +50,8 @@ N'importe quel CH-47 piloté de votre coalition peut la replier, pas seulement l
 
 ## Demander une cow IA
 
-Tout joueur dont l'appareil n'est pas une cow peut **Demander une Fat Cow**, au sol comme en vol, et choisir son lot.
+Tout pilote d'hélicoptère dont l'appareil n'est pas une cow peut **Demander une Fat Cow**, au sol comme en vol, et choisir son lot.
+Un avion n'a pas de menu Fat Cow : la cow ravitaille et réarme des hélicoptères.
 Un CH-47 décolle de la zone logistique amie la plus proche de vous, et on vous annonce d'où il vient, à quelle distance il est et quand il devrait vous rejoindre.
 
 La cow fait ensuite ce que votre patrouille lui dit, et rien d'elle-même :

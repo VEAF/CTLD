@@ -431,6 +431,32 @@ describe("AI Fat Cow", function()
         return set, takeOver
     end
 
+    -- Every label of the whole Fat Cow menu section `p` sees.
+    local function sectionOf(p)
+        local set = {}
+        local menu = {
+            addSubMenu = function(_, _, label) set[label] = true end,
+            addCommand = function(_, _, label) set[label] = true end,
+        }
+        mgr:buildMenuSection(p, menu)
+        return set
+    end
+
+    -- FIX-FAT-COW-HELICOPTERS-ONLY: Zip, in an A-10 on an Open Training (2026-11-01), could request a cow.
+    it("gives an aeroplane no Fat Cow menu, and a helicopter the AI one", function()
+        local hog = playerFlight("Hog", 13, 8000, 2000, Unit.Category.AIRPLANE)
+        assert.same({}, sectionOf(hog))
+        local apache = playerFlight("Apache", 14, 8000, 2000)
+        assert.is_true(sectionOf(apache)["Request a Fat Cow"])
+    end)
+
+    it("sends no cow to an aeroplane, whatever menu it clicked", function()
+        playerFlight("Hog", 13, 8000, 2000, Unit.Category.AIRPLANE)
+        mgr:requestAICow("Hog-1", 1)
+        runScheduled()
+        assert.is_nil(mgr:aiCowOfFlight("Hog"))
+    end)
+
     it("is not despawned by a landing away from home (Marteau du Golan, 2026-10-29)", function()
         local cow = orphanCow()
         assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
