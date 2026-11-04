@@ -1,6 +1,6 @@
 # FEAT-FAT-COW — a CH-47 that lands in the field and becomes a forward refuel/rearm point
 
-**Status:** 🔄 in-progress — ticket 01 phase 1 done (2026-10-26): a runtime Invisible FARP serves a player already in game, enforces a finite stock, and needs a supplier in range, which the `FARP Fuel Depot` static alone satisfies, for fuel and weapons, without any vehicle. Phase 2 (a remote multiplayer client) not run: Zip hosted, so his view was the server's; the design re-applies the stock on every birth instead. Tickets 02-05 implemented (Zip, 2026-10-26: "implémente"), then reworked after the first server run (loadouts, F10-commanded AI cow, statuses, RTB); PR #273. Ticket 06, the live check with the squadron, waits for Zip.
+**Status:** ✅ done — live check passed in use (Zip, 2026-11-04: the squadron flew the Fat Cow several evenings in a row, it works). Ticket 01 phase 1 done (2026-10-26): a runtime Invisible FARP serves a player already in game, enforces a finite stock, and needs a supplier in range, which the `FARP Fuel Depot` static alone satisfies, for fuel and weapons, without any vehicle. Phase 2 (a remote multiplayer client) not run: Zip hosted, so his view was the server's; the design re-applies the stock on every birth instead. Tickets 02-05 implemented (Zip, 2026-10-26: "implémente"), then reworked after the first server run (loadouts, F10-commanded AI cow, statuses, RTB); PR #273. Ticket 06, the live check with the squadron, passed in use.
 
 Designed with Zip on 2026-10-26 (VMCT session). Zip decided that the runtime belongs in CTLD, not in the VMCT Lua; VMCT will vendor this CTLD and add a static mission-editing tool for it afterwards.
 
@@ -55,7 +55,7 @@ Documented for mission makers in `docs/mission-maker/fat-cow.md` (EN + FR).
 | 03 | [Piloted cow: cow crates in a CH-47F and the F10 commands](tickets/03-piloted-cow.md) | ✅ done |
 | 04 | [AI cow: requested by a flight, escorts it, serves it, goes home](tickets/04-ai-cow.md) | ✅ done |
 | 05 | [Config, VMCT contract doc, CHANGELOG and release notes](tickets/05-config-docs-release.md) | ✅ done (release-notes jab in the CHANGELOG entry, for the release to carry) |
-| 06 | [Live check in DCS](tickets/06-live-check.md) | 🧑 waiting-human (Zip) |
+| 06 | [Live check in DCS](tickets/06-live-check.md) | ✅ passed in use (Zip, 2026-11-04) |
 
 ## Release notes
 

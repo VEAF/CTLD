@@ -1,6 +1,6 @@
 # 06 — Live check in DCS
 
-**Status:** 🧑 waiting-human · **Type:** HITL (live DCS, Zip)
+**Status:** ✅ done — passed in use (Zip, 2026-11-04: the squadron flew the Fat Cow several evenings in a row, it works) · **Type:** HITL (live DCS, Zip)
 
 ## Parent
 
