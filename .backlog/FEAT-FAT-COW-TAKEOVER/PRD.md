@@ -1,6 +1,6 @@
 # FEAT-FAT-COW-TAKEOVER — a Fat Cow that lost its flight goes home, says so, and can be taken over
 
-Status: merged (PR #277) — 02 waiting-human (live check)
+Status: done — merged (PR #277); 02 live check verified in game by Zip, 2026-11-05
 
 ## Problem
 

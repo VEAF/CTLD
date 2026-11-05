@@ -1,6 +1,6 @@
 # 02 — live check (Zip)
 
-Status: waiting-human (Zip, in DCS)
+Status: done — verified in game by Zip, 2026-11-05
 
 See the [PRD](../PRD.md).
 

@@ -1,6 +1,6 @@
 # 04 — Live check in a CTLD mission
 
-**Status:** 🧑 waiting-human · **Type:** HITL (live DCS, Zip)
+**Status:** ✅ done — verified in game by Zip, 2026-11-05 · **Type:** HITL (live DCS, Zip)
 
 ## Parent
 
