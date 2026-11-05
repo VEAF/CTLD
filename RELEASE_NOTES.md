@@ -1,4 +1,4 @@
-# CTLD 2.0.0-rc16 — release candidate
+# CTLD 2.0.0-rc17 — release candidate
 
 ## Installation
 
@@ -9,7 +9,7 @@
 **Windows blocks it on the first run?** The tool is not code-signed, so SmartScreen stops it: click **More info** → **Run anyway**.
 If the file came through a browser you may also need right-click → **Properties** → tick **Unblock** → **OK**.
 
-Prefer doing it by hand? The files are attached to this release too — see the [documentation](https://veaf.github.io/CTLD/2.0.0-rc16/mission-maker/).
+Prefer doing it by hand? The files are attached to this release too — see the [documentation](https://veaf.github.io/CTLD/2.0.0-rc17/mission-maker/).
 
 ---
 
@@ -17,36 +17,45 @@ The Fat Cow release candidate: a CH-47 that lands in the field and becomes a for
 DCS still has no native Fat Cow, so CTLD brings its own.
 Nothing breaks for an existing mission: the Fat Cow is a new F10 submenu, on by default, and works with a mission configuration written for an older CTLD.
 
-## New since rc15
+## New since rc16
 
-- **A Fat Cow that loses its flight can be taken over.**
-  When an AI cow's flight is shot down or its last player leaves, the cow packs and flies home, and every helicopter flight of its coalition without a cow is told where it is, where it goes and what it holds.
-  **F10 → CTLD → Fat Cow → Take over a Fat Cow** lists the cows on their way home, nearest first with their distance: the one picked joins the flight and obeys it as if it had requested it.
-- **Release the Fat Cow**, next to **RTB**: the cow leaves the flight and stays where it is, FARP open on the ground or orbiting in the air, for another flight to take over.
-  A cow sent home with **RTB**, empty or not, can also be taken over until it has landed at its base.
-- **Fixed: an AI Fat Cow sent home from the ground no longer vanishes on the spot.** It now flies home and despawns only once there.
-- **Fixed: an AI Fat Cow no longer lands into trees.** Told to **Land here**, or landing with its flight, it picks the nearest clearing around the point it was sent to.
-- **Fixed: a Fat Cow killed without DCS reporting its death is forgotten** within 10 s, so its flight can request another one.
+- **A piloted Fat Cow leaves its FARP open.**
+  Taking off no longer packs the FARP: it stays open, with what is left, and the pilot is told its name on the F10 map and what it holds.
+  It also stays open when the CH-47 is shot down, its pilot leaves, or another pilot takes the slot.
+- **Packing sets the crates down on the ground.**
+  **Pack the Fat Cow FARP**, from any piloted CH-47 of the coalition landed within 150 m, sets what is left down as Fat Cow crates next to it, to load and deploy elsewhere.
+- **Load** > a loadout now sets its crates down next to the CH-47, to load like any CTLD crate, instead of putting them straight into the hold.
+  **Deploy the Fat Cow FARP** takes the cow crates out of the hold: their content is the FARP's stock, and the helicopter is lighter.
+- Each open FARP has its own name, so a pilot can open several. **Fat Cow stock** reports the crates in the hold; **FARP status** reports an open FARP.
+- AI Fat Cows are unchanged.
+- **Fixed: an aeroplane no longer gets the Fat Cow menu.** An A-10 could request a cow; the menu is now a helicopter's only.
+- **The JTAC logs its laser code and its spot.** When it registers, a JTAC logs its code (imposed or from the pool) and its radio; each time it starts lasing, the code the spot carries, the target, the range, its altitude, and whether DCS returned a spot.
+  A report like "the LSS finds nothing on 1511" can now be settled from `dcs.log`.
 
-## Fixed since rc14
+## Changed for pilots since rc16
 
-- **The Fat Cow works with a mission configuration written before it.**
-  In rc14, a configuration saved with an older CTLD had no Fat Cow aircraft, crates or loadouts: CTLD read the missing lists as removed on purpose.
-  A list CTLD added after your configuration's version now takes its default, and the startup message names it; opening the configuration in `ctld-tools` adds it for good.
-  A list you removed yourself stays removed.
+A player-flown cow works differently: its loadout comes as crates on the ground to load, and taking off leaves the FARP behind instead of packing it.
+Nothing changes in a mission configuration.
+
+## Since rc15
+
+- **A Fat Cow that loses its flight can be taken over**: it flies home, the helicopter flights of its coalition are told, and **F10 → CTLD → Fat Cow → Take over a Fat Cow** lists it, nearest first.
+  **Release the Fat Cow** leaves a cow where it is for another flight; a cow sent home with **RTB** can be taken over until it has landed.
+- Fixed: an AI Fat Cow sent home from the ground no longer vanishes on the spot, no longer lands into trees, and one killed without DCS reporting its death is forgotten within 10 s.
+- Fixed since rc14: the Fat Cow works with a mission configuration written before it (a list CTLD added after your configuration's version takes its default).
 
 ## Fat Cow
 
-- **A player-flown CH-47F** loads a ready-made loadout in a logistic zone (F10 → CTLD → Fat Cow → **Load**), lands, and **deploys its FARP**: helicopters around it refuel and rearm from what the cow carries, and nothing more.
-  **Pack** the FARP, or take off, and what was not used goes back into the hold.
+- **A player-flown CH-47F** sets a ready-made loadout down as crates in a logistic zone (F10 → CTLD → Fat Cow → **Load**), loads them, lands, and **deploys its FARP**: helicopters around it refuel and rearm from what the cow carries, and nothing more.
+  The FARP stays open when the cow takes off; **Pack** it, from any piloted CH-47 landed within 150 m, and what was not used is set down as crates on the ground.
 - **Ready-made loadouts**, all with two 800 gal tanks (4 800 kg of fuel): Apache loadouts at the top (40 or 60 Hellfires, laser and radar, with 30 mm rounds), a **Russian** submenu (Vikhr for the Ka-50, Ataka or Shturm for the Mi-24P, with their rounds) and a **Mixed** one.
   Crates can also be requested one at a time.
-- **Any pilot can request an AI Fat Cow**, choosing its loadout: an AI CH-47 comes from the nearest friendly logistic zone and follows the flight, which commands it from F10 (**Land here**, **Take off**, **Hold here**, **Join us**, **RTB**, **Release the Fat Cow**).
+- **Any helicopter pilot can request an AI Fat Cow**, choosing its loadout: an AI CH-47 comes from the nearest friendly logistic zone and follows the flight, which commands it from F10 (**Land here**, **Take off**, **Hold here**, **Join us**, **RTB**, **Release the Fat Cow**).
 - **FARP status** tells what the Fat Cow FARP you are at still holds.
 - **Mission makers** can place a late-activated CH-47 escorting a named flight (`fatCowAICows`, with the loadout to carry), and change the crates and loadouts (`fatCowCrates`, `fatCowLoadouts`, with a `menu` field for the Russian and Mixed submenus).
 - The stock is finite and guarded: if another script refills the FARPs (as the VEAF Mission Creation Tools did on every player join), CTLD puts the cow's own count back.
 
-See the pilot and mission-maker **Fat Cow** pages of the [documentation](https://veaf.github.io/CTLD/2.0.0-rc16/).
+See the pilot and mission-maker **Fat Cow** pages of the [documentation](https://veaf.github.io/CTLD/2.0.0-rc17/).
 
 ## Configuration
 
@@ -61,9 +70,8 @@ See the pilot and mission-maker **Fat Cow** pages of the [documentation](https:/
 
 ## Known limits
 
-- The Fat Cow was tested on a VEAF server on 2026-10-26; the fixes that followed that evening are in this release and have not been flown yet. Reports welcome.
 - The Russian weapon names in the warehouse come from the DCS data, not yet from a flight: a weapon the ground crew reports as out of stock is a name to fix.
 
 ---
 
-Thanks to the VEAF pilots of the 2026-10-26 Fat Cow evening for their reports.
+Thanks to the VEAF pilots who flew the Fat Cow on the Open Trainings, evening after evening, and checked every change of this release in game.
