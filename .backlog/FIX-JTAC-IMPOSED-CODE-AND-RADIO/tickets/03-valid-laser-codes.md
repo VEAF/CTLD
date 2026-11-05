@@ -1,6 +1,6 @@
 # 03 — The laser pool holds valid codes only
 
-**Status:** ✅ done — rule from the legacy `ctld.generateLaserCode`, to verify in game (is 1199 refused?)
+**Status:** ✅ done — rule from the legacy `ctld.generateLaserCode`, verified in game by Zip, 2026-11-05 (1199 refused)
 
 Files: `src/CTLD_jtac.lua` (`_initLaserPool`), busted tests, the mission-maker docs on laser codes.
 

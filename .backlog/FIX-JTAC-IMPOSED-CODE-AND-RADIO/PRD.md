@@ -82,5 +82,5 @@ The template `veafSpawn-MQ9 - AFAC - JTAC - DRONE` is `lateActivation = true` in
 |---|--------|--------|
 | 01 | [An imposed laser code is reserved, whatever the order](tickets/01-imposed-code-reserved.md) | ✅ |
 | 02 | [A supplied radio is kept](tickets/02-supplied-radio-kept.md) | ✅ |
-| 03 | [The laser pool holds valid codes only](tickets/03-valid-laser-codes.md) | ✅ (rule to verify in game) |
+| 03 | [The laser pool holds valid codes only](tickets/03-valid-laser-codes.md) | ✅ (verified in game by Zip, 2026-11-05) |
 | 04 | [A late-activated JTAC group is not coded at start](tickets/04-late-activated-not-coded.md) | ✅ |

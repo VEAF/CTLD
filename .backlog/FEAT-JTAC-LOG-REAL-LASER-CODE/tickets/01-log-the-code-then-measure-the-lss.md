@@ -1,6 +1,6 @@
 # 01 — Log the real code and the spot, then find why the LSS saw nothing
 
-Status: 🟡 waiting-human — logging done 2026-11-04; the measurement below needs DCS (Zip)
+Status: ✅ done — logging done 2026-11-04; verified in game by Zip, 2026-11-05
 
 - Add at `INFO`: the JTAC's laser code and radio when it registers (`_resolveLaserCode`, `spawnJTAC`), and the code, the target and the range from the drone at each `startLase`, plus whether `Spot.createLaser` returned a spot.
 - Then **measure** the reported case: Sinai OT, Medium zone of Gizeh, A-10C_2, TGP LSS on 1511 at 15 nm, nothing found in a minute while Reaper 1 lased a target.

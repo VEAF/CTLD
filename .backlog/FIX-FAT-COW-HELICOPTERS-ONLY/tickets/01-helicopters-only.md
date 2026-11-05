@@ -1,6 +1,6 @@
 # 01 — the AI Fat Cow menu and request, helicopters only
 
-Status: done — 2026-11-04 (PR #285)
+Status: done — 2026-11-04 (PR #285); verified in game by Zip, 2026-11-05
 
 See the [PRD](../PRD.md).
 

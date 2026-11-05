@@ -1,6 +1,6 @@
 # FEAT-JTAC-LOG-REAL-LASER-CODE — the JTAC never logs its laser code or its spot, so a "no laser" report cannot be settled
 
-Status: 🟡 waiting-human — the log lines are in (2026-11-04); the LSS measurement needs DCS
+Status: ✅ done — the log lines are in (2026-11-04); verified in game by Zip, 2026-11-05
 
 ## Found
 
@@ -13,7 +13,7 @@ The log cannot say which code the drone's spot actually carried, nor whether `Sp
 
 | # | Ticket | Status |
 |---|---|---|
-| [01](tickets/01-log-the-code-then-measure-the-lss.md) | Log the real code and the spot, then find why the LSS saw nothing | 🟡 logging done, measurement waiting-human |
+| [01](tickets/01-log-the-code-then-measure-the-lss.md) | Log the real code and the spot, then find why the LSS saw nothing | ✅ logging done, verified in game by Zip, 2026-11-05 |
 
 ## Definition of done
 
