@@ -32,9 +32,9 @@ le travail courant fusionné dans le dépôt ne change rien pour vous. Pour en p
 `ctld-tools.exe` depuis la page [Releases](https://github.com/VEAF/CTLD/releases) et réinjectez dans
 votre mission ; réinjecter remplace ce que l'outil avait écrit au lieu de le dupliquer.
 
-!!! note "Les *release candidates* ne portent pas le badge *Latest*"
-    Tant que la v2 est en release candidate, chaque release est publiée en **pré-version**, et GitHub
-    réserve le badge *Latest* aux versions stables. Prenez l'entrée la plus haute de la page Releases.
+!!! note "Prenez la release *Latest*"
+    La release marquée *Latest* est la dernière version stable. Une entrée marquée *Pre-release* est
+    une release candidate de la version suivante : ne la prenez que pour essayer cette version.
 
 On peut aussi vous transmettre un **build de développement** : un `ctld-tools.exe` construit à partir
 du travail du jour plutôt que d'une release, reconnaissable au commit inscrit dans sa version

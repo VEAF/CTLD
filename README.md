@@ -36,8 +36,8 @@ A new CTLD therefore reaches your missions only once a **release is published**:
 merged into the repository changes nothing on your side. To move to it, **download
 `ctld-tools.exe` again** from the [Releases page](../../releases) and re-install into your mission.
 
-While v2 is in release candidate, each release is published as a **pre-release** — GitHub keeps the
-"Latest" badge for stable releases — so take the topmost entry on the Releases page.
+Take the release marked **Latest**: it is the last stable one. An entry marked **Pre-release** is a
+release candidate of the next version — take it only to try that version out.
 
 One exception to "only a release": someone may hand you a **dev build**, an exe rebuilt from the
 latest work merged into `develop` and published as the floating
