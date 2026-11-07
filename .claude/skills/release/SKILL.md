@@ -55,8 +55,8 @@ operations or push without an explicit go.
    **Link the documentation of the version being released**, not the site root:
    `https://veaf.github.io/CTLD/<version>/mission-maker/` — every tag publishes its own copy
    (`FEAT-TOOL-VERSION-AND-DOCS`), so a reader landing on an old release page gets the pages that
-   match it. There is deliberately **no `latest` alias yet**: it is created by the first *stable*
-   release, and linking `/latest/` before that would be a dead link.
+   match it. The `latest` alias exists since 2.0.0, the first stable release, but it moves with every
+   stable: a release page that linked `/latest/` would later show another version's pages.
 
    ```markdown
    ## Installation

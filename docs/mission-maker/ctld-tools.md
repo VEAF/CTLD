@@ -30,9 +30,9 @@ merged into the repository changes nothing for you. To move to it, download `ctl
 from the [Releases](https://github.com/VEAF/CTLD/releases) page and re-inject into your mission;
 re-injecting replaces what the tool wrote before instead of duplicating it.
 
-!!! note "Release candidates carry no *Latest* badge"
-    While v2 is in release candidate, each release is published as a **pre-release**, and GitHub
-    keeps the *Latest* badge for stable releases. Take the topmost entry on the Releases page.
+!!! note "Take the *Latest* release"
+    The release marked *Latest* is the last stable one. An entry marked *Pre-release* is a release
+    candidate of the next version: take it only to try that version out.
 
 You may also be handed a **dev build** — a `ctld-tools.exe` built from the day's work rather than
 from a release, recognisable by the commit in its version (`2.0.0-rc6-a1b2c3d`). Only take one if

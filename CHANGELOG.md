@@ -8,6 +8,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [2.0.0] — 2026-11-07
+
 ### Added — the JTAC logs its laser code and its spot (FEAT-JTAC-LOG-REAL-LASER-CODE)
 
 - An A-10C's LSS on 1511 found no spot while Reaper 1 (`jtac: 1511`) claimed target after target (Sinai Open Training, 2026-10-12), and the log, which held only claims and releases, could not say why.
@@ -2511,7 +2515,7 @@ no runtime behaviour change.
 
 ---
 
-## [2.0.0] — 2026-07-06
+## 2.0.0 groundwork — 2026-07-06 (bootstrap, not released)
 
 Complete ground-up modular rewrite of DCS-CTLD as a maintainable, testable, and extensible Lua project.
 Single-file deliverable (`CTLD.lua`) produced by the build system from `src/`.
