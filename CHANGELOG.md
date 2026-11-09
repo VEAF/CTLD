@@ -13,6 +13,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - **Pack Vehicle** destroyed the vehicle first, then announced the crates it *asked* for ("Humvee MG packed into 1 crate(s).") whether DCS created them or not.
   The crates are now created first, all of them or none; only then is the vehicle destroyed (and its JTAC deregistered). If DCS refuses, the vehicle stays where it was and the pilot reads "Pack failed: the crates could not be created.".
   `OnVehiclePacked` now publishes the number of crates actually created as `cratesSpawned`, and is not published for a pack that did not happen. See ADR 0028.
+- **Pack <FARP>** destroyed the FARP's objects, then created the crates, so a refusal from DCS lost the FARP and its warehouse stock (since #268 the pilot was at least told). The warehouse snapshot is now read first, the crates are created all or nothing, and the FARP is destroyed only once they exist; otherwise it stays deployed, stock included, and can be packed again. The "FARP packed: X of Y crates created." message is gone, a partial pack no longer exists.
 
 ---
 

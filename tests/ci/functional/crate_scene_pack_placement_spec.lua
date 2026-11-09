@@ -29,6 +29,7 @@ describe("Pack <scene> places its crates by the common rule", function()
     local UH1H_BOX = { min = { x = -8.86, y = -1.63, z = -1.59 }, max = { x = 3.95, y = 1.59, z = 1.56 } }
 
     local cm, sm, transport, created, avoid, avoidSeen, broadcasts, caps, messages, logs, createLimit
+    local sceneObj, removedCrates
     local origGs, origGetByName, origInAir, origRandom, origGroupId, origOutTextGroup, origOutText
     local origPositions, origActive, origModels, origLog
 
@@ -108,16 +109,21 @@ describe("Pack <scene> places its crates by the common rule", function()
             crate    = { cratesRequired = 3 },
             onRepack = function(_, data) data.warehouseSnapshot = SNAPSHOT end,
         } }
-        sm._active = { [SCENE] = { _name = SCENE, _modelName = MODEL, _refX = CX + 50, _refZ = CZ, _spawnedObjs = {} } }
+        -- One object in the scene, to see whether the pack destroyed it.
+        sceneObj = { destroyed = false, isExist = function() return true end }
+        sceneObj.destroy = function() sceneObj.destroyed = true end
+        sm._active = { [SCENE] = { _name = SCENE, _modelName = MODEL, _refX = CX + 50, _refZ = CZ, _spawnedObjs = { sceneObj } } }
 
         cm._getDynamicBBoxes = function() return avoid end
         cm.findDescriptorByUnitType = function() return { desc = "FARP crate", unit = MODEL, weight = 1000 } end
         cm.spawnCrate = function(_, _, pos)
             if #created >= createLimit then return nil end
-            local crate = { position = pos, metadata = {} }
+            local crate = { position = pos, metadata = {}, crateName = "CTLD_pack_" .. (#created + 1) }
             created[#created + 1] = crate
             return crate
         end
+        removedCrates = {}
+        cm.destroyCrate = function(_, name) removedCrates[#removedCrates + 1] = name end
         cm.refreshUnpackSectionForUnit = function() end
     end)
 
@@ -173,7 +179,7 @@ describe("Pack <scene> places its crates by the common rule", function()
 
     end)
 
-    describe("reports how many crates the pack produced", function()
+    describe("creates its crates before destroying the scene (ADR 0028)", function()
 
         local function said(text)
             for _, m in ipairs(messages) do if m == text then return true end end
@@ -187,26 +193,32 @@ describe("Pack <scene> places its crates by the common rule", function()
             return false
         end
 
-        it("announces the success when every crate was created (control)", function()
+        it("announces the success and destroys the scene when every crate was created (control)", function()
             pack()
             assert.is_true(said("FARP packed successfully!"))
-            assert.is_false(logged("ERROR", "packed but no crate"))
+            assert.is_true(sceneObj.destroyed)
+            assert.is_nil(sm._active[SCENE])
         end)
 
-        it("tells the pilot and logs an ERROR when no crate was created", function()
+        it("keeps the scene deployed, tells the pilot and logs an ERROR when no crate was created", function()
             createLimit = 0
             pack()
             assert.is_true(said("Pack failed: the crates could not be created."))
             assert.is_false(said("FARP packed successfully!"))
-            assert.is_true(logged("ERROR", "packed but no crate"))
+            assert.is_true(logged("ERROR", "kept"))
+            assert.is_false(sceneObj.destroyed)
+            assert.is_not_nil(sm._active[SCENE])      -- can be packed again
         end)
 
-        it("tells the pilot how many crates were created and logs a WARNING when only some were", function()
+        it("removes the crates already created and keeps the scene when only some were", function()
             createLimit = 2
             pack()
-            assert.is_true(said("FARP packed: 2 of 3 crates created."))
+            assert.same({ "CTLD_pack_1", "CTLD_pack_2" }, removedCrates)
+            assert.is_true(said("Pack failed: the crates could not be created."))
             assert.is_false(said("FARP packed successfully!"))
-            assert.is_true(logged("WARNING", "only 2 of 3 crates"))
+            assert.is_true(logged("ERROR", "kept"))
+            assert.is_false(sceneObj.destroyed)
+            assert.is_not_nil(sm._active[SCENE])
         end)
 
     end)

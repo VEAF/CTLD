@@ -396,11 +396,11 @@ function CTLDSceneManager:findNearbyRepackableScenes(pos, radius)
     return result
 end
 
---- Capture warehouse snapshot via onRepack, destroy all spawned objects, remove from active.
+--- Capture the warehouse snapshot via onRepack. Reads the live scene and changes nothing.
 -- Must be called BEFORE the scene objects are gone (onRepack reads the live warehouse).
 -- @param scene CtldScene
 -- @return table  repackData (may contain .warehouseSnapshot)
-function CTLDSceneManager:packScene(scene)
+function CTLDSceneManager:captureRepackData(scene)
     local model      = self._models[scene._modelName]
     local repackData = {}
     if model and model.onRepack then
@@ -410,6 +410,22 @@ function CTLDSceneManager:packScene(scene)
                 scene._name, tostring(err))
         end
     end
+    return repackData
+end
+
+--- Capture warehouse snapshot via onRepack, destroy all spawned objects, remove from active.
+-- Must be called BEFORE the scene objects are gone (onRepack reads the live warehouse).
+-- @param scene CtldScene
+-- @return table  repackData (may contain .warehouseSnapshot)
+function CTLDSceneManager:packScene(scene)
+    local repackData = self:captureRepackData(scene)
+    self:destroyScene(scene)
+    return repackData
+end
+
+--- Destroy all spawned objects of a scene and remove it from the active set.
+-- @param scene CtldScene
+function CTLDSceneManager:destroyScene(scene)
     local destroyed = 0
     for _, obj in ipairs(scene._spawnedObjs) do
         local ok, err = pcall(function()
@@ -425,7 +441,6 @@ function CTLDSceneManager:packScene(scene)
     self._active[scene._name] = nil
     ctld.utils.log("INFO", "CTLDSceneManager:packScene: '%s' packed (%d object(s) destroyed)",
         scene._name, destroyed)
-    return repackData
 end
 
 -- ====================================================================================================
