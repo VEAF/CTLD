@@ -1,6 +1,6 @@
 # 01 — AA repair and rearm consume their crate through the crate manager
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #302) · **Type:** AFK
 
 ## Parent
 
