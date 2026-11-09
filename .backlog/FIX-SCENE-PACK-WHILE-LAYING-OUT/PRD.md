@@ -6,7 +6,7 @@ Found while checking an observation of the live check of FIX-CREATE-BEFORE-DESTR
 
 ## Problem Statement
 
-A scene (a FARP, for instance the Countryside FARP) takes 15 to 20 seconds to lay itself out: the heliport and the flags first, the trucks five seconds later, the tent, the ammunition box, then the guards, the lights, the windsock.
+A scene (a FARP, for instance the Countryside FARP) takes about thirty seconds to lay itself out: the heliport and the flags first, the trucks five seconds later, the tent, the ammunition box, then the guards, the lights, the windsock, and last the warehouse stock.
 The scene is in the *Pack* list from its very first tick.
 
 A pilot who packs the FARP during that window gets the crates, and the objects already in place are destroyed. The steps that have not run yet keep going: the repair truck, the tent, a guard group, the lights and the windsock appear after the pack, on the spot where the FARP was.
