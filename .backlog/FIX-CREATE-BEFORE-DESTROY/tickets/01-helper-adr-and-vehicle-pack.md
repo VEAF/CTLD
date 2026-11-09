@@ -1,6 +1,6 @@
 # 01 — All-or-nothing crate creation, ADR 0028, and the vehicle pack
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #300) · **Type:** AFK
 
 ## Parent
 

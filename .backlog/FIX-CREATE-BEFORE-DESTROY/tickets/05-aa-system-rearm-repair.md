@@ -1,6 +1,6 @@
 # 05 — AA system rearm and repair keep the old system until the new one exists
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #300) · **Type:** AFK
 
 ## Parent
 

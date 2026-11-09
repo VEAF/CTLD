@@ -1,6 +1,6 @@
 # 02 — FARP scene pack creates its crates before destroying the scene
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #300) · **Type:** AFK
 
 ## Parent
 

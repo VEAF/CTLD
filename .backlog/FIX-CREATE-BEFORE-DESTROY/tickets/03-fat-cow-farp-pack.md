@@ -1,6 +1,6 @@
 # 03 — Fat Cow FARP pack creates its crates before closing the FARP
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #300) · **Type:** AFK
 
 ## Parent
 

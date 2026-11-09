@@ -1,6 +1,6 @@
 # 04 — Unpacking crates into a unit keeps the crates until the unit exists
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #300) · **Type:** AFK
 
 ## Parent
 

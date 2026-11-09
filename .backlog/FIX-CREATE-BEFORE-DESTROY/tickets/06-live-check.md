@@ -1,6 +1,6 @@
 # 06 — Live check in DCS
 
-**Status:** ⬜ ready (after 01-05 are merged) · **Type:** HITL
+**Status:** ⬜ ready (01-05 done in PR #300; to run before it is merged) · **Type:** HITL
 
 ## Parent
 
