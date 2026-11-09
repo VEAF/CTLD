@@ -799,10 +799,8 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, noRefresh)
                         return
                     end
 
-                    -- Standard (non-AA) path: unpack crates, spawn vehicle ≥ 50 m away.
-                    for _, c in ipairs(toUnpack) do
-                        mgr:unpackCrate(c.crateName, t)
-                    end
+                    -- Standard (non-AA) path: spawn vehicle ≥ 50 m away, then unpack (consume) the crates
+                    -- once it exists (ADR 0028).
                     local MIN_UNPACK_DIST = 50
                     local safeDist = math.max(
                         MIN_UNPACK_DIST,
@@ -819,8 +817,12 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, noRefresh)
                         ctld.utils.log("WARNING", "Unpack Crate — nothing attempted for '%s' (unit=%s): no descriptor, unit type or spawn position",
                             tostring(arg.unitType), tostring(arg.unitName))
                     end
-                    -- A refused group, or a JTAC limit, has already been reported to the group by _spawnUnpacked.
+                    -- A refused group, or a JTAC limit, has already been reported to the group by _spawnUnpacked;
+                    -- the crates stay on the ground.
                     if spawned == true then
+                        for _, c in ipairs(toUnpack) do
+                            mgr:unpackCrate(c.crateName, t)
+                        end
                         trigger.action.outTextForGroup(gid,
                             ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
                     end
@@ -2940,11 +2942,13 @@ function CTLDCrateManager:_checkAutoUnpack(landedCrate)
                 desc.unit, required, centroid.x, centroid.y, centroid.z)
         end
     else
-        -- Equipment crate (vehicle, static, JTAC): destroy crates then spawn.
-        for _, c in ipairs(toUnpack) do
-            self:unpackCrate(c.crateName, nil)
+        -- Equipment crate (vehicle, static, JTAC): spawn, then consume the crates once the equipment exists
+        -- (ADR 0028); a refusal leaves them on the ground.
+        if self:_spawnUnpacked(desc, centroid, coa, cId, nil) == true then
+            for _, c in ipairs(toUnpack) do
+                self:unpackCrate(c.crateName, nil)
+            end
         end
-        self:_spawnUnpacked(desc, centroid, coa, cId, nil)
         ctld.utils.log("INFO",
             "CTLDCrateManager: auto-unpack (parachute) EQUIPMENT — type=%s required=%d centroid=(%.0f,%.0f,%.0f)",
             desc.unit, required, centroid.x, centroid.y, centroid.z)

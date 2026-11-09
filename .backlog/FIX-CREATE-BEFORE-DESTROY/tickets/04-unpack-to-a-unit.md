@@ -17,13 +17,13 @@ refused by DCS (the group is already told), or nothing attempted (missing data, 
 consumes the crates; the two others leave them on the ground, so the pilot can unpack again or move them.
 
 - The `OnCrateUnpacked` and `OnCrateCleared` events are published when the crates are really consumed, not before.
-- Messages: those of PR #267 stay (a refusal or limit is already reported to the group; success only on a created equipment). A refusal logs an ERROR naming the descriptor.
+- Messages: those of PR #267 stay (a refusal or limit is already reported to the group; success only on a created equipment), and so does the log line `_spawnUnpacked` already writes on a refusal (a WARNING naming the type, country and coalition).
 - The other unpack paths that start a stepped scene (FOB, FARP, any scene) are **out of scope** (PRD decision 3) and keep their order.
 - The AA-system assembly path is ticket 05.
 
 ## Acceptance criteria
 
-- [ ] Equipment refused by DCS: the crates are still on the ground and registered, no `OnCrateUnpacked` / `OnCrateCleared`, the pilot reads the refusal and not "unpacked successfully", an ERROR is logged.
+- [ ] Equipment refused by DCS: the crates are still on the ground and registered, no `OnCrateUnpacked` / `OnCrateCleared`, the pilot reads the refusal and not "unpacked successfully".
 - [ ] Nothing attempted (JTAC limit, JTAC drop disabled, no spawn position): the crates stay too.
 - [ ] Created: the crates are consumed and the events published, as today; "%1 unpacked successfully!" unchanged.
 - [ ] The same holds for the auto-unpack of a parachuted equipment crate.

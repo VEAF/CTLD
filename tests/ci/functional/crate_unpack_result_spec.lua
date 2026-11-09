@@ -173,4 +173,73 @@ describe("Unpack Crate announces only what was created", function()
         assert.is_false(said(SUCCESS))
         assert.is_true(logged("WARNING", "Unpack Crate — nothing attempted"))
     end)
+
+    -- FIX-CREATE-BEFORE-DESTROY (ADR 0028): the crates are consumed only once the equipment exists.
+    describe("keeps the crates on the ground until the equipment exists", function()
+
+        local function crateStillThere()
+            local c = CTLDCrateManager.getInstance().crates["unp1"]
+            return c ~= nil and c:isOnGround()
+        end
+
+        it("consumes the crate when the equipment was created (control)", function()
+            unpack(false)
+            assert.is_nil(CTLDCrateManager.getInstance().crates["unp1"])
+        end)
+
+        it("keeps the crate, publishing no unpack event, when DCS refuses the group", function()
+            spawnResult = false
+            local fired = 0
+            local ed = EventDispatcher.getInstance()
+            local cb = function() fired = fired + 1 end
+            ed:subscribe("OnCrateUnpacked", cb)
+            unpack(false)
+            ed:unsubscribe("OnCrateUnpacked", cb)
+            assert.is_true(crateStillThere())
+            assert.equals(0, fired)
+        end)
+
+        it("keeps the crate when the JTAC limit of the coalition is reached", function()
+            jtacLimit = 0
+            unpack(true)
+            assert.is_true(crateStillThere())
+        end)
+
+        it("keeps the crate when no spawn position was found", function()
+            noPosition = true
+            unpack(false)
+            assert.is_true(crateStillThere())
+        end)
+
+        describe("and the same for a parachuted crate that lands by itself", function()
+
+            local function landParachutedCrate()
+                local desc = { desc = "Test Jeep", unit = "Hummer", weight = 100, cratesRequired = 1 }
+                local cm = CTLDCrateManager.getInstance()
+                local crate = CTLDCrate:new({
+                    crateName = "para1", descriptor = desc, spawnMethod = CTLDCrate.SPAWN_METHOD.CRATE_SPAWN,
+                    position = { x = CX + 500, y = 0, z = CZ }, coalition = coalition.side.BLUE,
+                })
+                crate.fromParachute = true
+                crate.dcsStatic = { isExist = function() return true end, destroy = function() end,
+                                    getPoint = function() return crate.position end }
+                cm.crates["para1"] = crate
+                cm:_checkAutoUnpack(crate)
+                return cm.crates["para1"]
+            end
+
+            it("consumes the crate when the equipment was created (control)", function()
+                assert.is_nil(landParachutedCrate())
+            end)
+
+            it("keeps the crate when DCS refuses the group", function()
+                spawnResult = false
+                local c = landParachutedCrate()
+                assert.is_not_nil(c)
+                assert.is_true(c:isOnGround())
+            end)
+
+        end)
+
+    end)
 end)
