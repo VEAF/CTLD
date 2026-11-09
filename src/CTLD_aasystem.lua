@@ -605,8 +605,9 @@ function CTLDCrateAssemblyManager:_rearm(heli, crate, allCrates, template)
         template = template,
     }
 
-    -- Destroy launcher crate
-    crate:destroy()
+    -- Destroy launcher crate through the crate manager: it also leaves the registry (no ghost crate)
+    -- and OnCrateCleared is published.
+    CTLDCrateManager.getInstance():destroyCrate(crate.crateName)
 
     EventDispatcher.getInstance():publish("OnAASystemRearmed", {
         systemName = template.name,
@@ -674,7 +675,8 @@ function CTLDCrateAssemblyManager:_repair(heli, crate, template)
         template = template,
     }
 
-    crate:destroy()
+    -- Destroy repair crate through the crate manager (leaves the registry, publishes OnCrateCleared).
+    CTLDCrateManager.getInstance():destroyCrate(crate.crateName)
 
     EventDispatcher.getInstance():publish("OnAASystemRepaired", {
         systemName = template.name,
