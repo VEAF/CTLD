@@ -311,15 +311,25 @@ describe("CTLDCrateAssemblyManager assembly + repair", function()
             assert.equals(0, group.destroyedCount)               -- the damaged system still stands
             assert.is_not_nil(aam._completeSystems[name])        -- and is still tracked
             assert.equals(0, repairCrate.destroyedCount)
+            assert.is_not_nil(CTLDCrateManager.getInstance().crates[repairCrate.crateName])
             assert.is_true(told())
         end)
 
         it("destroys the old group and the repair crate once the new group exists (control)", function()
             local _, group = deployedKub()
             local repairCrate = aaCrate(nil, "KUB AA System")
-            aam:tryUnpackOrRepair(heli(), repairCrate, {}, 500)
+            local cleared = capture("OnCrateCleared", function()
+                aam:tryUnpackOrRepair(heli(), repairCrate, {}, 500)
+            end)
             assert.equals(1, group.destroyedCount)
             assert.is_true(repairCrate.destroyedCount >= 1)
+            -- FIX-AA-CRATE-REGISTRY: consumed through the crate manager, not left behind as a ghost.
+            assert.is_nil(CTLDCrateManager.getInstance().crates[repairCrate.crateName])
+            local forRepair = 0
+            for _, e in ipairs(cleared) do
+                if e.crateName == repairCrate.crateName and e.reason == "destroyed" then forRepair = forRepair + 1 end
+            end
+            assert.equals(1, forRepair)
         end)
 
         it("names the units of the new group differently from the old group still standing", function()
@@ -345,15 +355,25 @@ describe("CTLDCrateAssemblyManager assembly + repair", function()
             assert.equals(0, group.destroyedCount)
             assert.is_not_nil(aam._completeSystems[name])
             assert.equals(0, launcherCrate.destroyedCount)
+            assert.is_not_nil(CTLDCrateManager.getInstance().crates[launcherCrate.crateName])
             assert.is_true(told())
         end)
 
         it("destroys the old group and the launcher crate once the rearmed system exists (control)", function()
             local _, group, launcher = deployedKub()
             local launcherCrate = aaCrate(launcher)
-            aam:tryUnpackOrRepair(heli(), launcherCrate, { launcherCrate }, 500)
+            local cleared = capture("OnCrateCleared", function()
+                aam:tryUnpackOrRepair(heli(), launcherCrate, { launcherCrate }, 500)
+            end)
             assert.equals(1, group.destroyedCount)
             assert.is_true(launcherCrate.destroyedCount >= 1)
+            -- FIX-AA-CRATE-REGISTRY: consumed through the crate manager, not left behind as a ghost.
+            assert.is_nil(CTLDCrateManager.getInstance().crates[launcherCrate.crateName])
+            local forLauncher = 0
+            for _, e in ipairs(cleared) do
+                if e.crateName == launcherCrate.crateName and e.reason == "destroyed" then forLauncher = forLauncher + 1 end
+            end
+            assert.equals(1, forLauncher)
         end)
 
     end)

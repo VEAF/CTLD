@@ -8,6 +8,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a repaired or rearmed AA system no longer leaves its crate behind as a ghost (FIX-AA-CRATE-REGISTRY)
+
+- Repairing or rearming an AA system destroyed the repair or launcher crate's object but left the crate in CTLD's registry, where a crate with no object still counted as on the ground: the consumed crate could be found again by the crate counts and the unpack menu, and no `OnCrateCleared` announced it (found on the live check of FIX-CREATE-BEFORE-DESTROY, 2026-11-09).
+  Both now consume the crate through the crate manager, as the assembly does: the object goes, the registry entry is removed and `OnCrateCleared` (reason `destroyed`) is published, so the unpack menu of the pilots nearby refreshes.
+
 ### Fixed — an action that replaces one thing by another no longer destroys the original when DCS refuses the replacement (FIX-CREATE-BEFORE-DESTROY, issue #293)
 
 - **Pack Vehicle** destroyed the vehicle first, then announced the crates it *asked* for ("Humvee MG packed into 1 crate(s).") whether DCS created them or not.

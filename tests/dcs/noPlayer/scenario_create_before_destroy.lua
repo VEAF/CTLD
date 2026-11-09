@@ -238,9 +238,8 @@ step(function()
             for n in pairs(aam._completeSystems) do if not oldNames[n] then newName = n end end
             check("4.2 one system, the new group", newName ~= nil and aam:countComplete(BLUE) == 1,
                   "complete systems " .. aam:countComplete(BLUE) .. ", new group " .. tostring(newName))
-            -- The repair crate's static goes (CTLDCrate:destroy); its registry entry is left behind by the pre-existing
-            -- crate:destroy() call, which this lot does not touch.
-            check("4.3 repair crate static destroyed", rc.dcsStatic == nil, "the repair crate static is still there")
+            check("4.3 repair crate consumed", cm.crates[rc.crateName] == nil and rc.dcsStatic == nil,
+                  "the repair crate is still registered (ghost crate)")
 
             step(function()
                 local oldGone = true
@@ -254,7 +253,8 @@ step(function()
                 for n in pairs(aam._completeSystems) do before2[n] = true end
                 aam:tryUnpackOrRepair(mock, cl2, cm.crates, 500)
                 check("5.1 OnAASystemRearmed published", #events.OnAASystemRearmed == 1, "published " .. #events.OnAASystemRearmed)
-                check("5.2 launcher crate static destroyed", cl2.dcsStatic == nil, "the launcher crate static is still there")
+                check("5.2 launcher crate consumed", cm.crates[cl2.crateName] == nil and cl2.dcsStatic == nil,
+                      "the launcher crate is still registered (ghost crate)")
                 local rearmedName
                 for n in pairs(aam._completeSystems) do if not before2[n] then rearmedName = n end end
 
