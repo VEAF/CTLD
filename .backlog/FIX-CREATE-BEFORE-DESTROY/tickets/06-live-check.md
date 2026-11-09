@@ -1,6 +1,6 @@
 # 06 — Live check in DCS
 
-**Status:** 🧑 waiting-human — automated checks PASS 2026-11-09; the hand test in the CH-47F cockpit is left to the maintainer · **Type:** HITL
+**Status:** ✅ done — automated checks PASS and the hand test in the CH-47F cockpit confirmed by the maintainer (2026-11-09) · **Type:** HITL
 
 ## Parent
 
@@ -36,7 +36,7 @@ Found on the way, **not caused by this lot**: after an AA repair or rearm the cr
 
 - [x] Each of the five checks recorded PASS or FAIL with the DCS log lines that prove it.
 - [x] AA respawn overlap: no error in the DCS log, one system left, the repair crate static destroyed.
-- [ ] The maintainer confirms the hand test; the lot's index line and PRD status are set to done.
+- [x] The maintainer confirms the hand test (Zip, 2026-11-09); the lot's index line and PRD status are set to done.
 
 ## Blocked by
 

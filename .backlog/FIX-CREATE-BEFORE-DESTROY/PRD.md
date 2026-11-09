@@ -1,6 +1,6 @@
 # FIX-CREATE-BEFORE-DESTROY — an action that replaces one thing by another creates the new one first, and destroys the old one only if that worked
 
-**Status:** 🔄 in progress — tickets 01-05 done (PR #300), 06 automated live check PASS (2026-11-09), the hand test is left to the maintainer; both decisions confirmed by the maintainer on 2026-11-09 (see "Decisions (Zip, 2026-11-09)").
+**Status:** ✅ done (PR #300) — live check passed 2026-11-09 (automated scenarios and a hand test by the maintainer); both decisions confirmed by the maintainer on 2026-11-09 (see "Decisions (Zip, 2026-11-09)").
 
 GitHub issue #293 (automated review of `develop` at `1b61b10`: "Pack Vehicle" destroys the vehicle, then announces the crates *requested*,
 never the crates *created*), widened by the maintainer on 2026-11-09 to every destructive situation: "Créer avant de détruire", for all of them.
