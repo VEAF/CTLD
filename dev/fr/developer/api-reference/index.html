@@ -2716,7 +2716,7 @@ scripting des troops IA.</em></p>
 <tr>
 <td><code>packVehicle</code></td>
 <td><code>(transportUnitName, packableUnitName, playerObj)</code></td>
-<td>Détruit un véhicule en attente et fait spawn ses crates près du transport. Déclenche <code>OnVehiclePacked</code>.</td>
+<td>Crée les crates près du transport, puis détruit le véhicule en attente ; un refus de DCS conserve le véhicule. Déclenche <code>OnVehiclePacked</code>.</td>
 </tr>
 <tr>
 <td><code>findLoadableVehicles</code></td>
@@ -3073,9 +3073,19 @@ mission maker et inaudible pour le pilote qui a affiché la fréquence annoncée
 <td>Retourne un tableau d'objets <code>CTLDScene</code> actifs situés à moins de <code>radius</code> mètres de <code>pos</code> et exposant un hook <code>onRepack</code>.</td>
 </tr>
 <tr>
+<td><code>captureRepackData</code></td>
+<td><code>(scene)</code></td>
+<td>Appelle le hook <code>onRepack</code> du modèle et retourne <code>repackData</code> (peut porter <code>.warehouseSnapshot</code>). Ne change rien.</td>
+</tr>
+<tr>
+<td><code>destroyScene</code></td>
+<td><code>(scene)</code></td>
+<td>Détruit tous les objets spawn de la scène et la retire de l'ensemble actif.</td>
+</tr>
+<tr>
 <td><code>packScene</code></td>
 <td><code>(scene)</code></td>
-<td>Exécute la séquence de pack : appelle <code>onRepack</code>, détruit tous les objets spawn, fait spawn les crates. Retourne <code>repackData</code> (peut porter <code>.warehouseSnapshot</code>).</td>
+<td><code>captureRepackData</code> puis <code>destroyScene</code>. Retourne <code>repackData</code>. La commande de pack de FARP crée ses crates entre les deux (ADR 0028).</td>
 </tr>
 </tbody>
 </table>

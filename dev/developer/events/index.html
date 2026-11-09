@@ -4430,7 +4430,8 @@ in the engine has published it since.</p>
 <p>A vehicle is unloaded from a transport. Same fields as <code>OnVehicleLoaded</code>.</p>
 <p><strong>Published by</strong>: <code>CTLDVehicleSpawner:unloadVehicle()</code></p>
 <h4 id="onvehiclepacked"><code>OnVehiclePacked</code><a class="headerlink" href="#onvehiclepacked" title="Permanent link">&para;</a></h4>
-<p>A vehicle is packed into crates.</p>
+<p>A vehicle is packed into crates. Published only once the crates exist and the vehicle is gone: a pack
+DCS refused publishes nothing (ADR 0028).</p>
 <table>
 <thead>
 <tr>
@@ -4463,7 +4464,7 @@ in the engine has published it since.</p>
 <tr>
 <td><code>cratesSpawned</code></td>
 <td>number</td>
-<td>Number of crates spawned</td>
+<td>Number of crates created</td>
 </tr>
 </tbody>
 </table>

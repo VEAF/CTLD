@@ -2269,19 +2269,23 @@ son entrepôt (warehouse). Le flux est réparti entre le gestionnaire de scènes
               └── returns _active scenes within radius whose model defines onRepack
         └── on click, per scene:
               1. sc = CTLDSceneManager._active[sceneName]
-              2. repackData = CTLDSceneManager:packScene(sc)
-                    ├── model.onRepack(sc, repackData)   ← snapshot warehouse into repackData
+              2. repackData = CTLDSceneManager:captureRepackData(sc)
+                    └── model.onRepack(sc, repackData)   ← snapshot warehouse into repackData (changes nothing)
+              3. create cratesRequired crates via CTLDCrateManager:spawnCratesAllOrNothing(...)
+                    └── crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
+                    └── none or only some created: the crates made are removed, the scene stays deployed
+              4. only then CTLDSceneManager:destroyScene(sc)
                     ├── destroy every obj in sc._spawnedObjs
                     └── _active[sc._name] = nil
-              3. spawn cratesRequired crates via CTLDCrateManager:spawnCrate(...)
-                    └── crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
 
 On crate unpack at a new site (auto-unpack path in CTLDCrateManager):
   └── sm:getModel(desc.unit) resolves the scene model
         └── CTLDSceneManager:playSceneAtPos(desc.unit, centroid, coa, cId, { repackData = … })
               └── warehouse step reads ctx.scene._params.repackData.warehouseSnapshot to restore fuel/inventory
 </code></pre></div>
-<p><code>packScene(scene)</code> ne prend que l'instance de scène ; <code>onRepack(scene, repackData)</code> est l'endroit où
+<p>Les crates sont créées avant la destruction de la scène, toutes ou aucune (ADR 0028) : un refus de DCS
+laisse la FARP déployée avec son stock. <code>packScene(scene)</code> reste pour les autres appelants et vaut
+<code>captureRepackData</code> puis <code>destroyScene</code>. <code>onRepack(scene, repackData)</code> est l'endroit où
 un modèle écrit son <code>repackData.warehouseSnapshot</code>. L'instantané voyage sur le crate via
 <code>crate.metadata.warehouseSnapshot</code> et est réinjecté dans le <code>_params.repackData</code> de la nouvelle
 scène, afin que l'étape d'approvisionnement de l'entrepôt puisse restaurer les liquides et

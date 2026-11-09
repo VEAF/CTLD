@@ -2613,12 +2613,13 @@ behind <code>coalition.addGroup</code>).</p>
 <code>packVehicle(transportUnitName, packableUnitName, playerObj)</code>:</p>
 <ol>
 <li>Resolve the descriptor for the unit type (<code>findDescriptorByUnitType</code>); refuse if none.</li>
-<li>Silently deregister any JTAC on the unit, then <code>destroy()</code> it and publish <code>OnGroundUnitRemoved</code>
-   (<code>reason = "packed"</code>).</li>
-<li>Spawn <code>descriptor.cratesRequired</code> crates via <code>CTLDCrateManager:spawnCratesAligned(...)</code> with
+<li>Create <code>descriptor.cratesRequired</code> crates via <code>CTLDCrateManager:spawnCratesAllOrNothing(...)</code> with
    <code>CTLDCrate.SPAWN_METHOD.VEHICLE_PACK</code>, in the front sector (helicopter) or rear sector
-   (native-cargo aircraft).</li>
-<li>Publish <code>OnVehiclePacked</code>, then rebuild the player menu one frame later (to dodge the
+   (native-cargo aircraft). If DCS refuses any of them the crates made are removed, the vehicle stays
+   where it is and the pilot reads "Pack failed: the crates could not be created." (ADR 0028).</li>
+<li>Only then silently deregister any JTAC on the unit, <code>destroy()</code> it and publish <code>OnGroundUnitRemoved</code>
+   (<code>reason = "packed"</code>).</li>
+<li>Publish <code>OnVehiclePacked</code> (<code>cratesSpawned</code> is the number created), then rebuild the player menu one frame later (to dodge the
    one-frame <code>coalition.getGroups()</code> lag after <code>destroy()</code>).</li>
 </ol>
 <p>The landing-triggered pack-menu refresh (<code>_checkPackingLanding</code>, 3 s tick) is gated on

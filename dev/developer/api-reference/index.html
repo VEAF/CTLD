@@ -2715,7 +2715,7 @@ event.</em></p>
 <tr>
 <td><code>packVehicle</code></td>
 <td><code>(transportUnitName, packableUnitName, playerObj)</code></td>
-<td>Destroy a waiting vehicle and spawn its crates near the transport. Fires <code>OnVehiclePacked</code>.</td>
+<td>Create the crates near the transport, then destroy the waiting vehicle; a DCS refusal keeps the vehicle. Fires <code>OnVehiclePacked</code>.</td>
 </tr>
 <tr>
 <td><code>findLoadableVehicles</code></td>
@@ -3071,9 +3071,19 @@ inaudible to the pilot who tuned the briefed one. Four refusals:</p>
 <td>Return an array of active <code>CTLDScene</code> objects within <code>radius</code> metres of <code>pos</code> that expose an <code>onRepack</code> hook.</td>
 </tr>
 <tr>
+<td><code>captureRepackData</code></td>
+<td><code>(scene)</code></td>
+<td>Call the model's <code>onRepack</code> hook and return <code>repackData</code> (may carry <code>.warehouseSnapshot</code>). Changes nothing.</td>
+</tr>
+<tr>
+<td><code>destroyScene</code></td>
+<td><code>(scene)</code></td>
+<td>Destroy all spawned objects of the scene and remove it from the active set.</td>
+</tr>
+<tr>
 <td><code>packScene</code></td>
 <td><code>(scene)</code></td>
-<td>Execute the pack sequence: call <code>onRepack</code>, destroy all spawned objects, spawn crates. Returns <code>repackData</code> (may carry <code>.warehouseSnapshot</code>).</td>
+<td><code>captureRepackData</code> then <code>destroyScene</code>. Returns <code>repackData</code>. The FARP pack command creates its crates between the two (ADR 0028).</td>
 </tr>
 </tbody>
 </table>
