@@ -1,6 +1,6 @@
 # FIX-AA-CRATE-REGISTRY — repairing or rearming an AA system leaves its crate behind as a ghost
 
-**Status:** ✅ done (PR #302)
+**Status:** ✅ done (PR #302) — verified in game 2026-11-09 (the live scenario, 24/24, on the build of `develop` at `a88b43f`)
 
 Found on the live check of FIX-CREATE-BEFORE-DESTROY (PR #300, 2026-11-09, DCS 2.9.30.28738), decided with the maintainer the same day. The faulty call predates that lot (it is in `dba0410`).
 
