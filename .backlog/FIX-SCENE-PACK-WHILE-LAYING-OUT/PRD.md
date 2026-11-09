@@ -1,6 +1,6 @@
 # FIX-SCENE-PACK-WHILE-LAYING-OUT — packing a FARP before it has finished laying out leaves orphan objects
 
-**Status:** ✅ done (PR #304)
+**Status:** ✅ done (PR #304) — verified in game 2026-11-09 (a Countryside FARP packed 3 s after it started left nothing 60 s later; six orphans before the fix)
 
 Found while checking an observation of the live check of FIX-CREATE-BEFORE-DESTROY (2026-11-09, DCS 2.9.30.28738), decided with the maintainer the same day.
 
