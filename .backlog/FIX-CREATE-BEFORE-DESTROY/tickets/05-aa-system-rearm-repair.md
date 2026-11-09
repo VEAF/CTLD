@@ -11,8 +11,11 @@
 Rearming or repairing an AA system respawns it at the same positions, types and headings. It now creates the new group first; only when it
 exists does it destroy the old group, consume the rearm or repair crate, and replace the system in the manager's list of complete systems.
 
+The same holds for the **assembly of a new system** from its crates: the group is spawned first and the crates are consumed only once it exists.
+
 If the respawn fails the damaged system stays standing, still in the list, the crate stays on the ground, an ERROR is logged, and the
-pilot is told the action failed (a new message through the translation function if no existing one fits, translated FR/ES/KO for review).
+pilot is told the action failed, with the existing message "Unpack failed: the equipment could not be created." (no new key).
+A refused rearm is reported as handled, so the same crates are not then used to assemble a second system.
 The success path — the rearmed/repaired events, the coalition message — is unchanged.
 
 The new group is created while the old one still stands on the same spots; DCS must accept it. If the live check shows it does not, this ticket

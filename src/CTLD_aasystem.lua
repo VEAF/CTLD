@@ -484,7 +484,16 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     -- ---- Compute spawn positions relative to origin ----
     local positions, types, headings = self:_buildSpawnArrays(template, systemParts, origin, heli)
 
-    -- ---- Destroy consumed crates ----
+    -- ---- Spawn group first: the crates are consumed only once it exists (ADR 0028) ----
+    local spawnedGroup = self:_spawnGroup(positions, types, headings, heli:getCountry())
+    if not spawnedGroup then
+        ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_assemble — spawnGroup failed for " .. template.name)
+        trigger.action.outTextForGroup(ctld.utils.getGroupId(heli),
+            ctld.tr("Unpack failed: the equipment could not be created."), 10)
+        return
+    end
+
+    -- ---- Destroy consumed crates (the group exists) ----
     -- Use CTLDCrateManager:destroyCrate() so that OnCrateCleared is published for
     -- each consumed crate and the F10 unpack menu refreshes for nearby pilots.
     local stacking = ctld.gs("AASystemCrateStacking")
@@ -515,13 +524,6 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
                 deleted = deleted + 1
             end
         end
-    end
-
-    -- ---- Spawn group ----
-    local spawnedGroup = self:_spawnGroup(positions, types, headings, heli:getCountry())
-    if not spawnedGroup then
-        ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_assemble — spawnGroup failed for " .. template.name)
-        return
     end
 
     self._completeSystems[spawnedGroup:getName()] = {
@@ -558,7 +560,7 @@ end
 -- @param crate     CTLDCrate   launcher crate
 -- @param allCrates table
 -- @param template  table
--- @return boolean  true if rearm was performed
+-- @return boolean  true if the rearm was handled (performed, or refused by DCS and reported)
 function CTLDCrateAssemblyManager:_rearm(heli, crate, allCrates, template)
     local nearest = self:_findNearest(heli, template)
     if not nearest or nearest.dist > ctld.gs("aaRearmDistance") then return false end
@@ -583,16 +585,20 @@ function CTLDCrateAssemblyManager:_rearm(heli, crate, allCrates, template)
     for _ in pairs(uniqueTypes) do typeCount = typeCount + 1 end
     if typeCount < template.count then return false end  -- system not complete
 
+    -- Respawn with same positions/types/headings (fully rearmed) first: the old group and the launcher crate
+    -- go only once it exists (ADR 0028). A refusal keeps both; true still tells the caller the rearm was
+    -- handled, so it does not go on to assemble a new system from the same crates.
+    local spawnedGroup = self:_spawnGroup(points, types, headings, heli:getCountry())
+    if not spawnedGroup then
+        ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_rearm — spawnGroup failed, system and crate kept")
+        trigger.action.outTextForGroup(ctld.utils.getGroupId(heli),
+            ctld.tr("Unpack failed: the equipment could not be created."), 10)
+        return true
+    end
+
     -- Destroy old group
     self._completeSystems[grp:getName()] = nil
     grp:destroy()
-
-    -- Respawn with same positions/types/headings (fully rearmed)
-    local spawnedGroup = self:_spawnGroup(points, types, headings, heli:getCountry())
-    if not spawnedGroup then
-        ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_rearm — spawnGroup failed")
-        return false
-    end
 
     self._completeSystems[spawnedGroup:getName()] = {
         details  = self:_getDetails(spawnedGroup, template),
@@ -650,15 +656,18 @@ function CTLDCrateAssemblyManager:_repair(heli, crate, template)
         table.insert(headings, detail.hdg)
     end
 
+    -- Respawn first: the damaged group and the repair crate go only once the new group exists (ADR 0028).
+    local spawnedGroup = self:_spawnGroup(points, types, headings, heli:getCountry())
+    if not spawnedGroup then
+        ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_repair — spawnGroup failed, system and crate kept")
+        trigger.action.outTextForGroup(ctld.utils.getGroupId(heli),
+            ctld.tr("Unpack failed: the equipment could not be created."), 10)
+        return
+    end
+
     -- Destroy old (damaged) group
     self._completeSystems[oldGrp:getName()] = nil
     oldGrp:destroy()
-
-    local spawnedGroup = self:_spawnGroup(points, types, headings, heli:getCountry())
-    if not spawnedGroup then
-        ctld.utils.log("ERROR", "CTLDCrateAssemblyManager:_repair — spawnGroup failed")
-        return
-    end
 
     self._completeSystems[spawnedGroup:getName()] = {
         details  = self:_getDetails(spawnedGroup, template),

@@ -111,8 +111,9 @@ describe("CTLDCrateAssemblyManager assembly + repair", function()
                 getName      = function() return gd.name end,
                 getCoalition = function() return coalition.side.BLUE end,
                 getUnits     = function() return units end,
-                destroy      = function() end,
+                destroyedCount = 0,
             }
+            g.destroy = function() g.destroyedCount = g.destroyedCount + 1 end
             spawnedGroups[gd.name] = g
             return { name = gd.name }
         end
@@ -249,6 +250,98 @@ describe("CTLDCrateAssemblyManager assembly + repair", function()
             local after = 0
             for _ in pairs(aam._completeSystems) do after = after + 1 end
             assert.equals(1, after)   -- old system replaced, not duplicated
+        end)
+
+    end)
+
+    -- ── FIX-CREATE-BEFORE-DESTROY (ADR 0028) : the new system exists before anything is destroyed ──
+    describe("when DCS refuses the new group", function()
+
+        local FAILED = "Unpack failed: the equipment could not be created."
+        local origOutText, messages
+
+        before_each(function()
+            origOutText = trigger.action.outTextForGroup
+            messages = {}
+            trigger.action.outTextForGroup = function(_, text) messages[#messages + 1] = text end
+        end)
+
+        after_each(function()
+            trigger.action.outTextForGroup = origOutText
+        end)
+
+        local function refuseGroups() ctld.utils.dynAdd = function() return nil end end
+
+        local function told()
+            for _, m in ipairs(messages) do if m == FAILED then return true end end
+            return false
+        end
+
+        local function deployedKub()
+            local _, launcher, radar = kubTemplate()
+            local crateLn = aaCrate(launcher)
+            aam:tryUnpackOrRepair(heli(), crateLn, { kub_ln = crateLn, kub_sr = aaCrate(radar) }, 500)
+            local name = next(aam._completeSystems)
+            return name, spawnedGroups[name], launcher, radar
+        end
+
+        it("keeps the crates of a new assembly", function()
+            local _, launcher, radar = kubTemplate()
+            local crateLn, crateSr = aaCrate(launcher), aaCrate(radar)
+            refuseGroups()
+            local fired = capture("OnAASystemDeployed", function()
+                aam:tryUnpackOrRepair(heli(), crateLn, { kub_ln = crateLn, kub_sr = crateSr }, 500)
+            end)
+            assert.equals(0, #fired)
+            assert.equals(0, crateLn.destroyedCount)
+            assert.equals(0, crateSr.destroyedCount)
+            assert.is_not_nil(CTLDCrateManager.getInstance().crates[crateLn.crateName])
+            assert.is_nil(next(aam._completeSystems))
+            assert.is_true(told())
+        end)
+
+        it("keeps the damaged system and the repair crate", function()
+            local name, group = deployedKub()
+            local repairCrate = aaCrate(nil, "KUB AA System")
+            refuseGroups()
+            local fired = capture("OnAASystemRepaired", function()
+                aam:tryUnpackOrRepair(heli(), repairCrate, {}, 500)
+            end)
+            assert.equals(0, #fired)
+            assert.equals(0, group.destroyedCount)               -- the damaged system still stands
+            assert.is_not_nil(aam._completeSystems[name])        -- and is still tracked
+            assert.equals(0, repairCrate.destroyedCount)
+            assert.is_true(told())
+        end)
+
+        it("destroys the old group and the repair crate once the new group exists (control)", function()
+            local _, group = deployedKub()
+            local repairCrate = aaCrate(nil, "KUB AA System")
+            aam:tryUnpackOrRepair(heli(), repairCrate, {}, 500)
+            assert.equals(1, group.destroyedCount)
+            assert.is_true(repairCrate.destroyedCount >= 1)
+        end)
+
+        it("keeps the system and the launcher crate of a rearm", function()
+            local name, group, launcher = deployedKub()
+            local launcherCrate = aaCrate(launcher)
+            refuseGroups()
+            local fired = capture("OnAASystemRearmed", function()
+                aam:tryUnpackOrRepair(heli(), launcherCrate, { launcherCrate }, 500)
+            end)
+            assert.equals(0, #fired)
+            assert.equals(0, group.destroyedCount)
+            assert.is_not_nil(aam._completeSystems[name])
+            assert.equals(0, launcherCrate.destroyedCount)
+            assert.is_true(told())
+        end)
+
+        it("destroys the old group and the launcher crate once the rearmed system exists (control)", function()
+            local _, group, launcher = deployedKub()
+            local launcherCrate = aaCrate(launcher)
+            aam:tryUnpackOrRepair(heli(), launcherCrate, { launcherCrate }, 500)
+            assert.equals(1, group.destroyedCount)
+            assert.is_true(launcherCrate.destroyedCount >= 1)
         end)
 
     end)
