@@ -555,12 +555,17 @@ end
 
 --- Sets cow crates down next to a helicopter, a part-full one at what it holds and weighs.
 -- @param wanted list of { desc, content, fraction } (cratesForLoadout)
--- @return the crates set down (fewer than wanted when some could not be brought out)
-function CTLDFatCowManager:_setDownCrates(t, wanted)
+-- @param strict true: all the crates or none (ADR 0028), nil when some could not be brought out
+-- @return the crates set down (fewer than wanted when some could not be brought out, unless strict)
+function CTLDFatCowManager:_setDownCrates(t, wanted, strict)
     local descs, metadatas = {}, {}
     for i, w in ipairs(wanted) do
         descs[i]     = w.desc
         metadatas[i] = (w.fraction < 1) and { fatCow = w.content, massKg = w.desc.weight * w.fraction } or {}
+    end
+    if strict then
+        return CTLDCrateManager.getInstance():spawnCratesAllOrNothing(descs, t, t:getCoalition(), t:getName(),
+            CTLDCrate.SPAWN_METHOD.MENU_CTLD, metadatas)
     end
     local _, _, crates = CTLDCrateManager.getInstance():spawnCratesAligned(descs, t, t:getCoalition(), t:getName(),
         CTLDCrate.SPAWN_METHOD.MENU_CTLD, metadatas)
@@ -725,14 +730,29 @@ function CTLDFatCowManager:packFarp(unitName)
         trigger.action.outTextForGroup(gid, ctld.tr("No Fat Cow FARP within %1 m.", PACK_RANGE_M), 10)
         return
     end
-    self:pack(cow.pilotedFarp)
-    self:_forgetPilotedFarp(cow)
+    -- The crates are set down first and the FARP closed only once they exist (ADR 0028): what the players left
+    -- is read back (nothing is changed), and a failure leaves the FARP open with its stock.
+    local farpWarehouse = warehouseOf(cow.farpName)
+    if farpWarehouse and cow.state == CTLDFatCow.STATE_DEPLOYED then cow:readWarehouse(farpWarehouse) end
     local wanted, missing = self:cratesForLoadout(asLoadout(cow.stock))
     if not wanted then
-        ctld.utils.log("ERROR", "CTLDFatCowManager: FARP '%s' packed, but no fatCowCrates entry carries '%s': lost",
+        ctld.utils.log("ERROR", "CTLDFatCowManager: FARP '%s' kept, no fatCowCrates entry carries '%s'",
             cow.pilotedFarp, missing)
+        trigger.action.outTextForGroup(gid, ctld.tr("Pack failed: the crates could not be created."), 10)
+        return
     end
-    local crates = wanted and self:_setDownCrates(t, wanted) or {}
+    local crates = {}
+    if #wanted > 0 then
+        crates = self:_setDownCrates(t, wanted, true)
+        if not crates then
+            ctld.utils.log("ERROR", "CTLDFatCowManager: FARP '%s' kept, its %d crate(s) could not all be set down next to '%s'",
+                cow.pilotedFarp, #wanted, unitName)
+            trigger.action.outTextForGroup(gid, ctld.tr("Pack failed: the crates could not be created."), 10)
+            return
+        end
+    end
+    self:pack(cow.pilotedFarp)
+    self:_forgetPilotedFarp(cow)
     trigger.action.outTextForGroup(gid,
         ctld.tr("Fat Cow FARP packed, set down next to you: %1", CTLDFatCow.describeStock(CTLDFatCow.stockOfCrates(crates))), 10)
 end
