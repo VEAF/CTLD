@@ -650,6 +650,107 @@ describe("CTLDVehicleSpawner pack (F-099)", function()
             assert.equals(0, #packed)   -- no packing happened
         end)
 
+        -- FIX-CREATE-BEFORE-DESTROY: the crates are created first; DCS refusing them leaves the vehicle where it was.
+        describe("when DCS refuses the crates", function()
+
+            local origOutText, origLog, origDeregister
+            local messages, logs, deregistered, removedEvents
+
+            before_each(function()
+                origOutText = trigger.action.outTextForGroup
+                origLog     = ctld.utils.log
+                messages, logs, deregistered, removedEvents = {}, {}, {}, 0
+                trigger.action.outTextForGroup = function(_, text) messages[#messages + 1] = text end
+                ctld.utils.log = function(level, fmt, ...)
+                    logs[#logs + 1] = { level = level, text = string.format(fmt, ...) }
+                end
+                -- DCS refuses every static: no crate can be found again after it was added.
+                StaticObject.getByName = function() return nil end
+                local jtacMgr = CTLDJTACManager.getInstance()
+                origDeregister = jtacMgr.deregisterJTAC
+                jtacMgr.deregisterJTAC = function(_, name) deregistered[#deregistered + 1] = name end
+            end)
+
+            after_each(function()
+                trigger.action.outTextForGroup = origOutText
+                ctld.utils.log = origLog
+                CTLDJTACManager.getInstance().deregisterJTAC = origDeregister
+            end)
+
+            local function jtacVehicle(ref)
+                local veh = packableVehicle(ref)
+                veh.getGroup = function() return { getName = function() return "JTAC Humvee" end } end
+                return veh
+            end
+
+            local function pack(veh, t)
+                Unit.getByName = function(name)
+                    if name == "Heli1"     then return t   end
+                    if name == "HumveeMG1" then return veh end
+                    return nil
+                end
+                local ed = EventDispatcher.getInstance()
+                local cb = function() removedEvents = removedEvents + 1 end
+                ed:subscribe("OnGroundUnitRemoved", cb)
+                local packed = capture("OnVehiclePacked", function()
+                    vs:packVehicle("Heli1", "HumveeMG1", { unitName = "Heli1", groupId = 1,
+                                                            coalition = coalition.side.BLUE })
+                end)
+                ed:unsubscribe("OnGroundUnitRemoved", cb)
+                return packed
+            end
+
+            it("keeps the vehicle, tells the pilot and logs an ERROR", function()
+                local ref = { done = false }
+                local packed = pack(jtacVehicle(ref), transport())
+
+                assert.is_false(ref.done)                                  -- the vehicle is still there
+                assert.equals(0, #packed)                                  -- OnVehiclePacked not published
+                assert.equals(0, removedEvents)                            -- nor "ground unit removed"
+                local told = false
+                for _, m in ipairs(messages) do
+                    if m == ctld.tr("Pack failed: the crates could not be created.") then told = true end
+                    assert.is_nil(m:find("packed into", 1, true))
+                end
+                assert.is_true(told)
+                local errored = false
+                for _, l in ipairs(logs) do if l.level == "ERROR" then errored = true end end
+                assert.is_true(errored)
+            end)
+
+            it("leaves a JTAC vehicle registered", function()
+                local ref = { done = false }
+                pack(jtacVehicle(ref), transport())
+                assert.equals(0, #deregistered)
+            end)
+
+        end)
+
+        it("deregisters the JTAC and publishes the created count once the crates exist", function()
+            local origDeregister = CTLDJTACManager.getInstance().deregisterJTAC
+            local deregistered = {}
+            CTLDJTACManager.getInstance().deregisterJTAC = function(_, name) deregistered[#deregistered + 1] = name end
+            local ref = { done = false }
+            local veh = packableVehicle(ref)
+            veh.getGroup = function() return { getName = function() return "JTAC Humvee" end } end
+            local t = transport()
+            Unit.getByName = function(name)
+                if name == "Heli1"     then return t   end
+                if name == "HumveeMG1" then return veh end
+                return nil
+            end
+            local packed = capture("OnVehiclePacked", function()
+                vs:packVehicle("Heli1", "HumveeMG1", { unitName = "Heli1", groupId = 1,
+                                                        coalition = coalition.side.BLUE })
+            end)
+            CTLDJTACManager.getInstance().deregisterJTAC = origDeregister
+            local n = 0
+            for _ in pairs(vs._spawnedStatics) do n = n + 1 end
+            assert.is_true(ref.done)
+            assert.same({ "JTAC Humvee" }, deregistered)
+            assert.equals(n, packed[1].cratesSpawned)   -- the number created, not the number requested
+        end)
+
     end)
 
 end)

@@ -8,6 +8,12 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — an action that replaces one thing by another no longer destroys the original when DCS refuses the replacement (FIX-CREATE-BEFORE-DESTROY, issue #293)
+
+- **Pack Vehicle** destroyed the vehicle first, then announced the crates it *asked* for ("Humvee MG packed into 1 crate(s).") whether DCS created them or not.
+  The crates are now created first, all of them or none; only then is the vehicle destroyed (and its JTAC deregistered). If DCS refuses, the vehicle stays where it was and the pilot reads "Pack failed: the crates could not be created.".
+  `OnVehiclePacked` now publishes the number of crates actually created as `cratesSpawned`, and is not published for a pack that did not happen. See ADR 0028.
+
 ---
 
 ## [2.0.0] — 2026-11-07

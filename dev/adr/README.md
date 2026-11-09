@@ -33,3 +33,4 @@ Retroactive ADRs document decisions already made during the v2.0.0 rewrite.
 | [0025](0025-ctld-actions-apply-to-virtual-carry-only.md) | CTLD's unload, parachute and weight apply to virtual carry only; DCS owns native carry | Accepted |
 | [0026](0026-dcs-cargo-ui-loads-are-handed-over-by-fit-parachute.md) | A DCS cargo-UI load is handed over to CTLD by an explicit "Fit parachute" action | Accepted |
 | [0027](0027-stable-f10-entries.md) | An F10 entry that did not change is never recreated; every freed id is parked | Accepted — supersedes 0015 |
+| [0028](0028-create-the-replacement-before-destroying-the-original.md) | An action that replaces one thing by another creates the new one first, and destroys the old one only if that worked | Accepted |

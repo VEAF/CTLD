@@ -2049,6 +2049,18 @@ function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId
     return #crates, spawnInfo, crates
 end
 
+--- Creates a batch of crates, all of them or none (ADR 0028). Used by every action that replaces something by crates:
+-- it destroys the original only once this returned the crates. A batch that came out incomplete is removed again.
+-- Same arguments as spawnCratesAligned.
+-- @return table|nil the CTLDCrate objects, or nil after the rollback
+-- @return number    how many crates DCS created (before the rollback)
+function CTLDCrateManager:spawnCratesAllOrNothing(descriptors, transport, coalitionId, spawnedBy, spawnMethod, metadatas)
+    local created, _, crates = self:spawnCratesAligned(descriptors, transport, coalitionId, spawnedBy, spawnMethod, metadatas)
+    if created == #descriptors then return crates, created end
+    for _, crate in ipairs(crates or {}) do self:destroyCrate(crate.crateName) end
+    return nil, created
+end
+
 --- Positions of a wave of crates around an aircraft, by the radial rule: the secure distance plus 5 m for the
 -- first crate and `crateSpacing` more for each next one, along a random axis in the rear sector for a
 -- native-cargo-capable type and in the front sector otherwise, rotated until clear of the other aircraft's
