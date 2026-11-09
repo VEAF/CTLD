@@ -1,6 +1,6 @@
 # 01 — Stop a scene that is still laying out before destroying it
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #304) · **Type:** AFK
 
 ## Parent
 
