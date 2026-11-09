@@ -100,6 +100,19 @@ describe("F-057/F-058 — parachuteCrates", function()
             assert.equals(CTLDCrate.STATE.FALLING, crate.state)
         end)
 
+        -- FIX-AUTO-UNPACK-SILENT-FAILURE: who dropped the crate is kept, to be told if its unpack fails.
+        it("records the unit that dropped the crate", function()
+            assert.is_nil(crate.droppedBy)
+            cm:parachuteCrates(mockTransport, { unitName="MockTransport_F57", groupId=9901, groupName="G", coalition=2 })
+            assert.equals("MockTransport_F57", crate.droppedBy)
+        end)
+
+        it("forgets the dropper when the crate is loaded again", function()
+            cm:parachuteCrates(mockTransport, { unitName="MockTransport_F57", groupId=9901, groupName="G", coalition=2 })
+            crate:load(mockTransport)
+            assert.is_nil(crate.droppedBy)
+        end)
+
     end)
 
     describe("F-058 — altitude too low (AGL=10m < 30m)", function()

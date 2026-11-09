@@ -213,14 +213,16 @@ describe("Unpack Crate announces only what was created", function()
 
         describe("and the same for a parachuted crate that lands by itself", function()
 
-            local function landParachutedCrate()
-                local desc = { desc = "Test Jeep", unit = "Hummer", weight = 100, cratesRequired = 1 }
+            -- dropper: the unit name recorded on the crate at the drop (nil: a DCS-native release).
+            local function landParachutedCrate(dropper, isJTAC)
+                local desc = { desc = "Test Jeep", unit = "Hummer", weight = 100, cratesRequired = 1, isJTAC = isJTAC }
                 local cm = CTLDCrateManager.getInstance()
                 local crate = CTLDCrate:new({
                     crateName = "para1", descriptor = desc, spawnMethod = CTLDCrate.SPAWN_METHOD.CRATE_SPAWN,
                     position = { x = CX + 500, y = 0, z = CZ }, coalition = coalition.side.BLUE,
                 })
                 crate.fromParachute = true
+                crate.droppedBy = dropper
                 crate.dcsStatic = { isExist = function() return true end, destroy = function() end,
                                     getPoint = function() return crate.position end }
                 cm.crates["para1"] = crate
@@ -237,6 +239,59 @@ describe("Unpack Crate announces only what was created", function()
                 local c = landParachutedCrate()
                 assert.is_not_nil(c)
                 assert.is_true(c:isOnGround())
+            end)
+
+            -- FIX-AUTO-UNPACK-SILENT-FAILURE (issue #294): the dropper is told, and the log tells the truth.
+            local function registerDropper()
+                CTLDPlayerManager.getInstance()._players[PLAYER_UNIT] = {
+                    unitName = PLAYER_UNIT, groupId = 9904, groupName = "Grp_up1", coalition = coalition.side.BLUE,
+                    typeName = "UH-1H", isTransport = true, canCarryVehicles = false,
+                }
+            end
+
+            it("tells the dropper when DCS refuses the group", function()
+                registerDropper()
+                spawnResult = false
+                landParachutedCrate(PLAYER_UNIT)
+                assert.is_true(said(FAILURE))
+            end)
+
+            it("tells the dropper the reason when the JTAC limit is reached", function()
+                registerDropper()
+                jtacLimit = 0
+                landParachutedCrate(PLAYER_UNIT, true)
+                assert.is_true(said(LIMIT))
+            end)
+
+            it("tells nobody and logs a warning, not a success, when the crate has no dropper", function()
+                registerDropper()
+                spawnResult = false
+                landParachutedCrate(nil)
+                assert.equals(0, #messages)
+                assert.is_true(logged("WARNING", "not created"))
+                assert.is_false(logged("INFO", "auto-unpack (parachute) EQUIPMENT"))
+            end)
+
+            it("raises nothing when the dropper has left the slot", function()
+                spawnResult = false
+                assert.has_no.errors(function() landParachutedCrate("a pilot who left") end)
+                assert.equals(0, #messages)
+            end)
+
+            it("logs the unpack, and no warning, when the equipment was created", function()
+                landParachutedCrate(PLAYER_UNIT)
+                assert.is_true(logged("INFO", "auto-unpack (parachute) EQUIPMENT"))
+                assert.is_false(logged("WARNING", "not created"))
+            end)
+
+            it("logs the cause in the warning (DCS refusal, or nothing attempted)", function()
+                spawnResult = false
+                landParachutedCrate(nil)
+                assert.is_true(logged("WARNING", "refused"))
+                logs = {}
+                jtacLimit = 0
+                landParachutedCrate(nil, true)
+                assert.is_true(logged("WARNING", "nothing attempted"))
             end)
 
         end)

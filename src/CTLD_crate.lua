@@ -72,6 +72,7 @@ function CTLDCrate:init(data)
     self.canBeUnpacked = not (data.descriptor and data.descriptor.fatCow)
     -- Feature A: virtual parachute
     self.fromParachute          = false   -- true → eligible for autoUnpack on landing
+    self.droppedBy              = nil     -- unit name of the pilot who parachuted it (told if its auto-unpack fails)
     self.loadedByDCSNative      = false   -- true → native carry (DCS cargo UI): CTLD never unloads, parachutes or weighs it
     -- Feature B: virtual slingload
     self.inTransitOnSlingload   = false
@@ -86,6 +87,7 @@ function CTLDCrate:load(transport)
     self.loadedBy      = transport
     self.loadTime      = timer.getAbsTime()
     self.fromParachute = false   -- reset: a new load clears any prior parachute flag
+    self.droppedBy     = nil
     -- A load is virtual carry unless the DCS-native entry path says otherwise right after this
     -- call: a flag left by an earlier native carry must not hide the crate from CTLD's actions.
     self.loadedByDCSNative = false
@@ -2690,6 +2692,7 @@ function CTLDCrateManager:parachuteCrates(transport, playerObj)
     for _, crate in ipairs(loaded) do
         local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
         crate:startParachute(altAGL)
+        crate.droppedBy = playerObj.unitName
 
         local dropData = {
             type          = "crate",
@@ -2944,14 +2947,21 @@ function CTLDCrateManager:_checkAutoUnpack(landedCrate)
     else
         -- Equipment crate (vehicle, static, JTAC): spawn, then consume the crates once the equipment exists
         -- (ADR 0028); a refusal leaves them on the ground.
-        if self:_spawnUnpacked(desc, centroid, coa, cId, nil) == true then
+        -- The dropper (nil for a DCS-native release) is the player _spawnUnpacked tells if the equipment
+        -- cannot be created: the DCS refusal, the JTAC limit.
+        local spawned = self:_spawnUnpacked(desc, centroid, coa, cId, landedCrate.droppedBy)
+        if spawned == true then
             for _, c in ipairs(toUnpack) do
                 self:unpackCrate(c.crateName, nil)
             end
+            ctld.utils.log("INFO",
+                "CTLDCrateManager: auto-unpack (parachute) EQUIPMENT — type=%s required=%d centroid=(%.0f,%.0f,%.0f)",
+                desc.unit, required, centroid.x, centroid.y, centroid.z)
+        else
+            ctld.utils.log("WARNING",
+                "CTLDCrateManager: auto-unpack (parachute) EQUIPMENT — type=%s: equipment not created (%s), %d crate(s) kept",
+                desc.unit, spawned == false and "DCS refused the group" or "nothing attempted", required)
         end
-        ctld.utils.log("INFO",
-            "CTLDCrateManager: auto-unpack (parachute) EQUIPMENT — type=%s required=%d centroid=(%.0f,%.0f,%.0f)",
-            desc.unit, required, centroid.x, centroid.y, centroid.z)
     end
 end
 
