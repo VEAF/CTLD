@@ -108,12 +108,14 @@ Player selects "Pack Equipt → Pack <scene>"
               └── returns _active scenes within radius whose model defines onRepack
         └── on click, per scene:
               1. sc = CTLDSceneManager._active[sceneName]
-              2. repackData = CTLDSceneManager:packScene(sc)
-                    ├── model.onRepack(sc, repackData)   ← snapshot warehouse into repackData
+              2. repackData = CTLDSceneManager:captureRepackData(sc)
+                    └── model.onRepack(sc, repackData)   ← snapshot warehouse into repackData (changes nothing)
+              3. create cratesRequired crates via CTLDCrateManager:spawnCratesAllOrNothing(...)
+                    └── crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
+                    └── none or only some created: the crates made are removed, the scene stays deployed
+              4. only then CTLDSceneManager:destroyScene(sc)
                     ├── destroy every obj in sc._spawnedObjs
                     └── _active[sc._name] = nil
-              3. spawn cratesRequired crates via CTLDCrateManager:spawnCrate(...)
-                    └── crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
 
 On crate unpack at a new site (auto-unpack path in CTLDCrateManager):
   └── sm:getModel(desc.unit) resolves the scene model
@@ -121,7 +123,9 @@ On crate unpack at a new site (auto-unpack path in CTLDCrateManager):
               └── warehouse step reads ctx.scene._params.repackData.warehouseSnapshot to restore fuel/inventory
 ```
 
-`packScene(scene)` ne prend que l'instance de scène ; `onRepack(scene, repackData)` est l'endroit où
+Les crates sont créées avant la destruction de la scène, toutes ou aucune (ADR 0028) : un refus de DCS
+laisse la FARP déployée avec son stock. `packScene(scene)` reste pour les autres appelants et vaut
+`captureRepackData` puis `destroyScene`. `onRepack(scene, repackData)` est l'endroit où
 un modèle écrit son `repackData.warehouseSnapshot`. L'instantané voyage sur le crate via
 `crate.metadata.warehouseSnapshot` et est réinjecté dans le `_params.repackData` de la nouvelle
 scène, afin que l'étape d'approvisionnement de l'entrepôt puisse restaurer les liquides et

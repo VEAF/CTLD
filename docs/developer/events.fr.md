@@ -376,7 +376,7 @@ Un véhicule est packed en crates.
 | `descriptor` | table | Descripteur de crate utilisé |
 | `transport` | string | Nom de l'unit de transport |
 | `player` | string ou nil | |
-| `cratesSpawned` | number | Nombre de crates spawnées |
+| `cratesSpawned` | number | Nombre de crates créées (l'événement n'est publié qu'une fois les crates créées : un pack refusé par DCS ne publie rien, ADR 0028) |
 
 **Published by** : `CTLDVehicleSpawner:packVehicle()`
 

@@ -365,7 +365,8 @@ A vehicle is unloaded from a transport. Same fields as `OnVehicleLoaded`.
 **Published by**: `CTLDVehicleSpawner:unloadVehicle()`
 
 #### `OnVehiclePacked`
-A vehicle is packed into crates.
+A vehicle is packed into crates. Published only once the crates exist and the vehicle is gone: a pack
+DCS refused publishes nothing (ADR 0028).
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -373,7 +374,7 @@ A vehicle is packed into crates.
 | `descriptor` | table | Crate descriptor used |
 | `transport` | string | Transport unit name |
 | `player` | string or nil | |
-| `cratesSpawned` | number | Number of crates spawned |
+| `cratesSpawned` | number | Number of crates created |
 
 **Published by**: `CTLDVehicleSpawner:packVehicle()`
 

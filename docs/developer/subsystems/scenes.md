@@ -102,12 +102,14 @@ Player selects "Pack Equipt → Pack <scene>"
               └── returns _active scenes within radius whose model defines onRepack
         └── on click, per scene:
               1. sc = CTLDSceneManager._active[sceneName]
-              2. repackData = CTLDSceneManager:packScene(sc)
-                    ├── model.onRepack(sc, repackData)   ← snapshot warehouse into repackData
+              2. repackData = CTLDSceneManager:captureRepackData(sc)
+                    └── model.onRepack(sc, repackData)   ← snapshot warehouse into repackData (changes nothing)
+              3. create cratesRequired crates via CTLDCrateManager:spawnCratesAllOrNothing(...)
+                    └── crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
+                    └── none or only some created: the crates made are removed, the scene stays deployed
+              4. only then CTLDSceneManager:destroyScene(sc)
                     ├── destroy every obj in sc._spawnedObjs
                     └── _active[sc._name] = nil
-              3. spawn cratesRequired crates via CTLDCrateManager:spawnCrate(...)
-                    └── crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
 
 On crate unpack at a new site (auto-unpack path in CTLDCrateManager):
   └── sm:getModel(desc.unit) resolves the scene model
@@ -115,7 +117,9 @@ On crate unpack at a new site (auto-unpack path in CTLDCrateManager):
               └── warehouse step reads ctx.scene._params.repackData.warehouseSnapshot to restore fuel/inventory
 ```
 
-`packScene(scene)` takes only the scene instance; `onRepack(scene, repackData)` is where a model
+The crates are created before the scene is destroyed, all or nothing (ADR 0028), so a DCS refusal leaves
+the FARP deployed with its stock. `packScene(scene)` remains for the other callers and is
+`captureRepackData` followed by `destroyScene`. `onRepack(scene, repackData)` is where a model
 writes its `repackData.warehouseSnapshot`. The snapshot travels on the crate through
 `crate.metadata.warehouseSnapshot` and is threaded back into the new scene's `_params.repackData`
 so the warehouse-stocking step can restore liquids and inventory instead of zeroing them.
