@@ -799,10 +799,8 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, noRefresh)
                         return
                     end
 
-                    -- Standard (non-AA) path: unpack crates, spawn vehicle ≥ 50 m away.
-                    for _, c in ipairs(toUnpack) do
-                        mgr:unpackCrate(c.crateName, t)
-                    end
+                    -- Standard (non-AA) path: spawn vehicle ≥ 50 m away, then unpack (consume) the crates
+                    -- once it exists (ADR 0028).
                     local MIN_UNPACK_DIST = 50
                     local safeDist = math.max(
                         MIN_UNPACK_DIST,
@@ -819,8 +817,12 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, noRefresh)
                         ctld.utils.log("WARNING", "Unpack Crate — nothing attempted for '%s' (unit=%s): no descriptor, unit type or spawn position",
                             tostring(arg.unitType), tostring(arg.unitName))
                     end
-                    -- A refused group, or a JTAC limit, has already been reported to the group by _spawnUnpacked.
+                    -- A refused group, or a JTAC limit, has already been reported to the group by _spawnUnpacked;
+                    -- the crates stay on the ground.
                     if spawned == true then
+                        for _, c in ipairs(toUnpack) do
+                            mgr:unpackCrate(c.crateName, t)
+                        end
                         trigger.action.outTextForGroup(gid,
                             ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
                     end
@@ -1032,31 +1034,28 @@ function CTLDCrateManager:refreshPackEquiptSection(playerObj, overrideInAir, noR
                 local mgr_c = CTLDCrateManager.getInstance()
                 local desc  = mgr_c:findDescriptorByUnitType(sc._modelName)
                 if not (cd and desc) then return end
-                local repackData = smgr:packScene(sc)
+                -- The crates are created first and the scene destroyed only once they all exist (ADR 0028): the
+                -- warehouse snapshot is read from the live scene beforehand.
+                local repackData = smgr:captureRepackData(sc)
                 -- Same placement as every other crate wave (ADR 0024), so a native-cargo pilot can load the
                 -- crates of the FARP just packed.
                 local descriptors = {}
                 for i = 1, (cd.cratesRequired or 1) do descriptors[i] = desc end
-                local createdCount, _, crates = mgr_c:spawnCratesAligned(descriptors, t, t:getCoalition(), t:getName(),
+                local crates, createdCount = mgr_c:spawnCratesAllOrNothing(descriptors, t, t:getCoalition(), t:getName(),
                     CTLDCrate.SPAWN_METHOD.CRATE_SPAWN)
+                if not crates then
+                    ctld.utils.log("ERROR", "Pack %s: scene '%s' kept, only %d of %d crates could be created (unit=%s)",
+                        tostring(sc._modelName), tostring(arg.sceneName), createdCount or 0, #descriptors, tostring(arg.unitName))
+                    trigger.action.outTextForGroup(gid, ctld.tr("Pack failed: the crates could not be created."), 10)
+                    return
+                end
                 if repackData and repackData.warehouseSnapshot then
                     for _, crate in ipairs(crates) do
                         crate.metadata.warehouseSnapshot = repackData.warehouseSnapshot
                     end
                 end
-                -- The scene is already destroyed: a pack that produced nothing, or only part of its crates, must say so.
-                if createdCount == 0 then
-                    ctld.utils.log("ERROR", "Pack %s: scene '%s' packed but no crate was created (unit=%s)",
-                        tostring(sc._modelName), tostring(arg.sceneName), tostring(arg.unitName))
-                    trigger.action.outTextForGroup(gid, ctld.tr("Pack failed: the crates could not be created."), 10)
-                elseif createdCount < #descriptors then
-                    ctld.utils.log("WARNING", "Pack %s: only %d of %d crates created for scene '%s' (unit=%s)",
-                        tostring(sc._modelName), createdCount, #descriptors, tostring(arg.sceneName), tostring(arg.unitName))
-                    trigger.action.outTextForGroup(gid,
-                        ctld.tr("FARP packed: %1 of %2 crates created.", createdCount, #descriptors), 10)
-                else
-                    trigger.action.outTextForGroup(gid, ctld.tr("FARP packed successfully!"), 10)
-                end
+                smgr:destroyScene(sc)
+                trigger.action.outTextForGroup(gid, ctld.tr("FARP packed successfully!"), 10)
                 mgr_c:refreshUnpackSectionForUnit(arg.unitName)
             end,
             { unitName = playerObj.unitName, sceneName = scene._name })
@@ -2049,6 +2048,18 @@ function CTLDCrateManager:spawnCratesAligned(descriptors, transport, coalitionId
     return #crates, spawnInfo, crates
 end
 
+--- Creates a batch of crates, all of them or none (ADR 0028). Used by every action that replaces something by crates:
+-- it destroys the original only once this returned the crates. A batch that came out incomplete is removed again.
+-- Same arguments as spawnCratesAligned.
+-- @return table|nil the CTLDCrate objects, or nil after the rollback
+-- @return number    how many crates DCS created (before the rollback)
+function CTLDCrateManager:spawnCratesAllOrNothing(descriptors, transport, coalitionId, spawnedBy, spawnMethod, metadatas)
+    local created, _, crates = self:spawnCratesAligned(descriptors, transport, coalitionId, spawnedBy, spawnMethod, metadatas)
+    if created == #descriptors then return crates, created end
+    for _, crate in ipairs(crates or {}) do self:destroyCrate(crate.crateName) end
+    return nil, created
+end
+
 --- Positions of a wave of crates around an aircraft, by the radial rule: the secure distance plus 5 m for the
 -- first crate and `crateSpacing` more for each next one, along a random axis in the rear sector for a
 -- native-cargo-capable type and in the front sector otherwise, rotated until clear of the other aircraft's
@@ -2931,11 +2942,13 @@ function CTLDCrateManager:_checkAutoUnpack(landedCrate)
                 desc.unit, required, centroid.x, centroid.y, centroid.z)
         end
     else
-        -- Equipment crate (vehicle, static, JTAC): destroy crates then spawn.
-        for _, c in ipairs(toUnpack) do
-            self:unpackCrate(c.crateName, nil)
+        -- Equipment crate (vehicle, static, JTAC): spawn, then consume the crates once the equipment exists
+        -- (ADR 0028); a refusal leaves them on the ground.
+        if self:_spawnUnpacked(desc, centroid, coa, cId, nil) == true then
+            for _, c in ipairs(toUnpack) do
+                self:unpackCrate(c.crateName, nil)
+            end
         end
-        self:_spawnUnpacked(desc, centroid, coa, cId, nil)
         ctld.utils.log("INFO",
             "CTLDCrateManager: auto-unpack (parachute) EQUIPMENT — type=%s required=%d centroid=(%.0f,%.0f,%.0f)",
             desc.unit, required, centroid.x, centroid.y, centroid.z)

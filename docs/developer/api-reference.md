@@ -136,7 +136,7 @@ Full event catalogue: [Events](events.md).
 | --- | --- | --- |
 | `getInstance` | `() → CTLDVehicleSpawner` | Returns the singleton. |
 | `findPackableVehicles` | `(transport)` | Return the list of `CTLDVehicle` objects in the WAITING state near `transport`. |
-| `packVehicle` | `(transportUnitName, packableUnitName, playerObj)` | Destroy a waiting vehicle and spawn its crates near the transport. Fires `OnVehiclePacked`. |
+| `packVehicle` | `(transportUnitName, packableUnitName, playerObj)` | Create the crates near the transport, then destroy the waiting vehicle; a DCS refusal keeps the vehicle. Fires `OnVehiclePacked`. |
 | `findLoadableVehicles` | `(transport)` | Return vehicle types eligible for boarding onto `transport` at its current position. |
 | `findLoadedVehicles` | `(transport)` | Return the `CTLDVehicle` objects currently loaded on `transport`. |
 | `getLoadedVehicleWeight` | `(transportUnitName)` | Return the total weight (kg) of vehicles loaded on the transport. |
@@ -264,7 +264,9 @@ inaudible to the pilot who tuned the briefed one. Four refusals:
 | `getScene` | `(name)` | Return the active `CTLDScene` instance for `name`, or `nil`. |
 | `isSceneEnabled` | `(name)` | Return `true` if the scene model `name` is registered and not disabled. |
 | `findNearbyRepackableScenes` | `(pos, radius)` | Return an array of active `CTLDScene` objects within `radius` metres of `pos` that expose an `onRepack` hook. |
-| `packScene` | `(scene)` | Execute the pack sequence: call `onRepack`, destroy all spawned objects, spawn crates. Returns `repackData` (may carry `.warehouseSnapshot`). |
+| `captureRepackData` | `(scene)` | Call the model's `onRepack` hook and return `repackData` (may carry `.warehouseSnapshot`). Changes nothing. |
+| `destroyScene` | `(scene)` | Destroy all spawned objects of the scene and remove it from the active set. |
+| `packScene` | `(scene)` | `captureRepackData` then `destroyScene`. Returns `repackData`. The FARP pack command creates its crates between the two (ADR 0028). |
 
 **Scene model fields:**
 

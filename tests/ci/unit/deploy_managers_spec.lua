@@ -111,8 +111,9 @@ describe("CTLDCrateAssemblyManager assembly + repair", function()
                 getName      = function() return gd.name end,
                 getCoalition = function() return coalition.side.BLUE end,
                 getUnits     = function() return units end,
-                destroy      = function() end,
+                destroyedCount = 0,
             }
+            g.destroy = function() g.destroyedCount = g.destroyedCount + 1 end
             spawnedGroups[gd.name] = g
             return { name = gd.name }
         end
@@ -249,6 +250,110 @@ describe("CTLDCrateAssemblyManager assembly + repair", function()
             local after = 0
             for _ in pairs(aam._completeSystems) do after = after + 1 end
             assert.equals(1, after)   -- old system replaced, not duplicated
+        end)
+
+    end)
+
+    -- ── FIX-CREATE-BEFORE-DESTROY (ADR 0028) : the new system exists before anything is destroyed ──
+    describe("when DCS refuses the new group", function()
+
+        local FAILED = "Unpack failed: the equipment could not be created."
+        local origOutText, messages
+
+        before_each(function()
+            origOutText = trigger.action.outTextForGroup
+            messages = {}
+            trigger.action.outTextForGroup = function(_, text) messages[#messages + 1] = text end
+        end)
+
+        after_each(function()
+            trigger.action.outTextForGroup = origOutText
+        end)
+
+        local function refuseGroups() ctld.utils.dynAdd = function() return nil end end
+
+        local function told()
+            for _, m in ipairs(messages) do if m == FAILED then return true end end
+            return false
+        end
+
+        local function deployedKub()
+            local _, launcher, radar = kubTemplate()
+            local crateLn = aaCrate(launcher)
+            aam:tryUnpackOrRepair(heli(), crateLn, { kub_ln = crateLn, kub_sr = aaCrate(radar) }, 500)
+            local name = next(aam._completeSystems)
+            return name, spawnedGroups[name], launcher, radar
+        end
+
+        it("keeps the crates of a new assembly", function()
+            local _, launcher, radar = kubTemplate()
+            local crateLn, crateSr = aaCrate(launcher), aaCrate(radar)
+            refuseGroups()
+            local fired = capture("OnAASystemDeployed", function()
+                aam:tryUnpackOrRepair(heli(), crateLn, { kub_ln = crateLn, kub_sr = crateSr }, 500)
+            end)
+            assert.equals(0, #fired)
+            assert.equals(0, crateLn.destroyedCount)
+            assert.equals(0, crateSr.destroyedCount)
+            assert.is_not_nil(CTLDCrateManager.getInstance().crates[crateLn.crateName])
+            assert.is_nil(next(aam._completeSystems))
+            assert.is_true(told())
+        end)
+
+        it("keeps the damaged system and the repair crate", function()
+            local name, group = deployedKub()
+            local repairCrate = aaCrate(nil, "KUB AA System")
+            refuseGroups()
+            local fired = capture("OnAASystemRepaired", function()
+                aam:tryUnpackOrRepair(heli(), repairCrate, {}, 500)
+            end)
+            assert.equals(0, #fired)
+            assert.equals(0, group.destroyedCount)               -- the damaged system still stands
+            assert.is_not_nil(aam._completeSystems[name])        -- and is still tracked
+            assert.equals(0, repairCrate.destroyedCount)
+            assert.is_true(told())
+        end)
+
+        it("destroys the old group and the repair crate once the new group exists (control)", function()
+            local _, group = deployedKub()
+            local repairCrate = aaCrate(nil, "KUB AA System")
+            aam:tryUnpackOrRepair(heli(), repairCrate, {}, 500)
+            assert.equals(1, group.destroyedCount)
+            assert.is_true(repairCrate.destroyedCount >= 1)
+        end)
+
+        it("names the units of the new group differently from the old group still standing", function()
+            local _, oldGroup = deployedKub()
+            local oldNames = {}
+            for _, u in ipairs(oldGroup.getUnits()) do oldNames[u.getName()] = true end
+            aam:tryUnpackOrRepair(heli(), aaCrate(nil, "KUB AA System"), {}, 500)
+            local newName = next(aam._completeSystems)
+            assert.is_not_nil(newName)
+            for _, u in ipairs(spawnedGroups[newName].getUnits()) do
+                assert.is_nil(oldNames[u.getName()], "unit name reused while the old group stands: " .. u.getName())
+            end
+        end)
+
+        it("keeps the system and the launcher crate of a rearm", function()
+            local name, group, launcher = deployedKub()
+            local launcherCrate = aaCrate(launcher)
+            refuseGroups()
+            local fired = capture("OnAASystemRearmed", function()
+                aam:tryUnpackOrRepair(heli(), launcherCrate, { launcherCrate }, 500)
+            end)
+            assert.equals(0, #fired)
+            assert.equals(0, group.destroyedCount)
+            assert.is_not_nil(aam._completeSystems[name])
+            assert.equals(0, launcherCrate.destroyedCount)
+            assert.is_true(told())
+        end)
+
+        it("destroys the old group and the launcher crate once the rearmed system exists (control)", function()
+            local _, group, launcher = deployedKub()
+            local launcherCrate = aaCrate(launcher)
+            aam:tryUnpackOrRepair(heli(), launcherCrate, { launcherCrate }, 500)
+            assert.equals(1, group.destroyedCount)
+            assert.is_true(launcherCrate.destroyedCount >= 1)
         end)
 
     end)
@@ -648,6 +753,107 @@ describe("CTLDVehicleSpawner pack (F-099)", function()
                                                    coalition = coalition.side.BLUE })
             end)
             assert.equals(0, #packed)   -- no packing happened
+        end)
+
+        -- FIX-CREATE-BEFORE-DESTROY: the crates are created first; DCS refusing them leaves the vehicle where it was.
+        describe("when DCS refuses the crates", function()
+
+            local origOutText, origLog, origDeregister
+            local messages, logs, deregistered, removedEvents
+
+            before_each(function()
+                origOutText = trigger.action.outTextForGroup
+                origLog     = ctld.utils.log
+                messages, logs, deregistered, removedEvents = {}, {}, {}, 0
+                trigger.action.outTextForGroup = function(_, text) messages[#messages + 1] = text end
+                ctld.utils.log = function(level, fmt, ...)
+                    logs[#logs + 1] = { level = level, text = string.format(fmt, ...) }
+                end
+                -- DCS refuses every static: no crate can be found again after it was added.
+                StaticObject.getByName = function() return nil end
+                local jtacMgr = CTLDJTACManager.getInstance()
+                origDeregister = jtacMgr.deregisterJTAC
+                jtacMgr.deregisterJTAC = function(_, name) deregistered[#deregistered + 1] = name end
+            end)
+
+            after_each(function()
+                trigger.action.outTextForGroup = origOutText
+                ctld.utils.log = origLog
+                CTLDJTACManager.getInstance().deregisterJTAC = origDeregister
+            end)
+
+            local function jtacVehicle(ref)
+                local veh = packableVehicle(ref)
+                veh.getGroup = function() return { getName = function() return "JTAC Humvee" end } end
+                return veh
+            end
+
+            local function pack(veh, t)
+                Unit.getByName = function(name)
+                    if name == "Heli1"     then return t   end
+                    if name == "HumveeMG1" then return veh end
+                    return nil
+                end
+                local ed = EventDispatcher.getInstance()
+                local cb = function() removedEvents = removedEvents + 1 end
+                ed:subscribe("OnGroundUnitRemoved", cb)
+                local packed = capture("OnVehiclePacked", function()
+                    vs:packVehicle("Heli1", "HumveeMG1", { unitName = "Heli1", groupId = 1,
+                                                            coalition = coalition.side.BLUE })
+                end)
+                ed:unsubscribe("OnGroundUnitRemoved", cb)
+                return packed
+            end
+
+            it("keeps the vehicle, tells the pilot and logs an ERROR", function()
+                local ref = { done = false }
+                local packed = pack(jtacVehicle(ref), transport())
+
+                assert.is_false(ref.done)                                  -- the vehicle is still there
+                assert.equals(0, #packed)                                  -- OnVehiclePacked not published
+                assert.equals(0, removedEvents)                            -- nor "ground unit removed"
+                local told = false
+                for _, m in ipairs(messages) do
+                    if m == ctld.tr("Pack failed: the crates could not be created.") then told = true end
+                    assert.is_nil(m:find("packed into", 1, true))
+                end
+                assert.is_true(told)
+                local errored = false
+                for _, l in ipairs(logs) do if l.level == "ERROR" then errored = true end end
+                assert.is_true(errored)
+            end)
+
+            it("leaves a JTAC vehicle registered", function()
+                local ref = { done = false }
+                pack(jtacVehicle(ref), transport())
+                assert.equals(0, #deregistered)
+            end)
+
+        end)
+
+        it("deregisters the JTAC and publishes the created count once the crates exist", function()
+            local origDeregister = CTLDJTACManager.getInstance().deregisterJTAC
+            local deregistered = {}
+            CTLDJTACManager.getInstance().deregisterJTAC = function(_, name) deregistered[#deregistered + 1] = name end
+            local ref = { done = false }
+            local veh = packableVehicle(ref)
+            veh.getGroup = function() return { getName = function() return "JTAC Humvee" end } end
+            local t = transport()
+            Unit.getByName = function(name)
+                if name == "Heli1"     then return t   end
+                if name == "HumveeMG1" then return veh end
+                return nil
+            end
+            local packed = capture("OnVehiclePacked", function()
+                vs:packVehicle("Heli1", "HumveeMG1", { unitName = "Heli1", groupId = 1,
+                                                        coalition = coalition.side.BLUE })
+            end)
+            CTLDJTACManager.getInstance().deregisterJTAC = origDeregister
+            local n = 0
+            for _ in pairs(vs._spawnedStatics) do n = n + 1 end
+            assert.is_true(ref.done)
+            assert.same({ "JTAC Humvee" }, deregistered)
+            assert.equals(n, packed[1].cratesSpawned)   -- the number created, not the number requested
         end)
 
     end)

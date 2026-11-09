@@ -1347,6 +1347,23 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
     local coa          = transport:getCoalition()
     local packPos      = packableUnit:getPoint()   -- capture before destroy
 
+    -- Create the crates first, in a straight line; spawnCratesAligned picks a random axis within the front
+    -- sector (standard) or rear sector (native-cargo-capable). The vehicle is destroyed only once they all
+    -- exist (ADR 0028): a DCS refusal leaves it where it was.
+    local descriptors = {}
+    for _ = 1, cratesReq do table.insert(descriptors, descriptor) end
+    local crates, created = CTLDCrateManager.getInstance():spawnCratesAllOrNothing(
+        descriptors, transport, coa,
+        playerObj and playerObj.unitName or nil,
+        CTLDCrate.SPAWN_METHOD.VEHICLE_PACK)
+    if not crates then
+        ctld.utils.log("ERROR", "packVehicle: '%s' kept, only %d of %d crates could be created (unit=%s)",
+            tostring(descriptor.desc), created or 0, cratesReq, tostring(transportUnitName))
+        trigger.action.outTextForGroup(playerObj.groupId,
+            ctld.tr("Pack failed: the crates could not be created."), 10)
+        return
+    end
+
     -- Silently deregister JTAC before destroy to prevent false OnJTACDead event.
     local packGroup = packableUnit:getGroup()
     if packGroup then
@@ -1361,24 +1378,15 @@ function CTLDVehicleSpawner:packVehicle(transportUnitName, packableUnitName, pla
         timestamp   = timer.getAbsTime(),
     })
 
-    -- Spawn crates in a straight line; spawnCratesAligned picks a random axis
-    -- within the front sector (standard) or rear sector (native-cargo-capable).
-    local descriptors = {}
-    for _ = 1, cratesReq do table.insert(descriptors, descriptor) end
-    CTLDCrateManager.getInstance():spawnCratesAligned(
-        descriptors, transport, coa,
-        playerObj and playerObj.unitName or nil,
-        CTLDCrate.SPAWN_METHOD.VEHICLE_PACK)
-
     trigger.action.outTextForGroup(playerObj.groupId,
-        ctld.tr("%1 packed into %2 crate(s).", descriptor.desc, cratesReq), 10)
+        ctld.tr("%1 packed into %2 crate(s).", descriptor.desc, #crates), 10)
 
     EventDispatcher.getInstance():publish("OnVehiclePacked", {
         vehicleType  = packableUnit:getTypeName(),
         descriptor   = descriptor,
         transport    = transportUnitName,
         player       = playerObj and playerObj.unitName or nil,
-        cratesSpawned = cratesReq,
+        cratesSpawned = #crates,
         timestamp    = timer.getAbsTime(),
     })
 

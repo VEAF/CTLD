@@ -285,6 +285,60 @@ describe("Piloted cow commands", function()
         assert.equals(0, #cratesOnGround(cm))
     end)
 
+    -- FIX-CREATE-BEFORE-DESTROY (ADR 0028): the crates are set down first, the FARP closed only once they exist.
+    describe("when DCS refuses the crates of a pack", function()
+
+        local FAILED = "Pack failed: the crates could not be created."
+
+        local function openWithStock()
+            loadCrateInto("a"); loadCrateInto("b"); loadCrateInto("h", mgr._crateDescs[2])
+            mgr:deployFromHold("Cow-1")
+            local w = farps.CTLD_FatCow_FARP_1.w
+            w.liquids[0], w.items[HELLFIRE] = 3000, 3
+            return w
+        end
+
+        local function assertStillOpen(w)
+            local cow = openFarp("CTLD_FatCow_FARP_1")
+            assert.is_not_nil(cow)
+            assert.equals(CTLDFatCow.STATE_DEPLOYED, cow.state)
+            assert.equals(3000, w.liquids[0])                      -- the stock is still in the FARP
+            assert.equals(3, w.items[HELLFIRE])
+            assert.equals(0, #cratesOnGround(cm))
+            assert.equals(FAILED, messages[#messages])
+        end
+
+        it("keeps the FARP open with its stock when no crate could be created", function()
+            local w = openWithStock()
+            cm.spawnCratesAligned = function() return 0, {}, {} end
+            mgr:packFarp("Cow-1")
+            assertStillOpen(w)
+        end)
+
+        it("removes the crates already set down and keeps the FARP when only some could be created", function()
+            local w = openWithStock()
+            local real = cm.spawnCratesAligned
+            cm.spawnCratesAligned = function(self, descriptors, ...)
+                local out = {}
+                for i = 1, 1 do                                  -- one crate, whatever was asked for
+                    local _, _, made = real(self, { descriptors[i] }, ...)
+                    out[#out + 1] = made[1]
+                end
+                return #out, {}, out
+            end
+            mgr:packFarp("Cow-1")
+            assertStillOpen(w)
+        end)
+
+        it("keeps the FARP open when no crate entry can carry its stock", function()
+            local w = openWithStock()
+            mgr._crateDescs = {}
+            mgr:packFarp("Cow-1")
+            assertStillOpen(w)
+        end)
+
+    end)
+
     it("packs an emptied FARP into no crate at all", function()
         loadCrateInto("a")
         mgr:deployFromHold("Cow-1")

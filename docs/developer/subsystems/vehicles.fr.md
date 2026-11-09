@@ -220,12 +220,13 @@ arbitraires). `packVehicle(transportUnitName, packableUnitName, playerObj)` :
 
 1. Résoudre le descripteur pour le type d'unité (`findDescriptorByUnitType`) ; refuser s'il n'y en
    a aucun.
-2. Désenregistrer silencieusement tout JTAC sur l'unité, puis la `destroy()` et publier
-   `OnGroundUnitRemoved` (`reason = "packed"`).
-3. Spawner `descriptor.cratesRequired` crates via `CTLDCrateManager:spawnCratesAligned(...)` avec
+2. Créer `descriptor.cratesRequired` crates via `CTLDCrateManager:spawnCratesAllOrNothing(...)` avec
    `CTLDCrate.SPAWN_METHOD.VEHICLE_PACK`, dans le secteur avant (hélicoptère) ou le secteur arrière
-   (appareil à cargo natif).
-4. Publier `OnVehiclePacked`, puis reconstruire le menu du joueur une frame plus tard (pour éviter
+   (appareil à cargo natif). Si DCS en refuse une, les crates faites sont retirées, le véhicule reste
+   en place et le pilote lit « Pack failed: the crates could not be created. » (ADR 0028).
+3. Alors seulement, désenregistrer silencieusement tout JTAC sur l'unité, la `destroy()` et publier
+   `OnGroundUnitRemoved` (`reason = "packed"`).
+4. Publier `OnVehiclePacked` (`cratesSpawned` est le nombre créé), puis reconstruire le menu du joueur une frame plus tard (pour éviter
    la frame de retard de `coalition.getGroups()` après `destroy()`).
 
 Le rafraîchissement du menu de pack déclenché à l'atterrissage (`_checkPackingLanding`, tick 3 s)

@@ -137,7 +137,7 @@ scripting des troops IA.*
 | --- | --- | --- |
 | `getInstance` | `() → CTLDVehicleSpawner` | Retourne le singleton. |
 | `findPackableVehicles` | `(transport)` | Retourne la liste des objets `CTLDVehicle` dans l'état WAITING près de `transport`. |
-| `packVehicle` | `(transportUnitName, packableUnitName, playerObj)` | Détruit un véhicule en attente et fait spawn ses crates près du transport. Déclenche `OnVehiclePacked`. |
+| `packVehicle` | `(transportUnitName, packableUnitName, playerObj)` | Crée les crates près du transport, puis détruit le véhicule en attente ; un refus de DCS conserve le véhicule. Déclenche `OnVehiclePacked`. |
 | `findLoadableVehicles` | `(transport)` | Retourne les types de véhicules éligibles à l'embarquement sur `transport` à sa position actuelle. |
 | `findLoadedVehicles` | `(transport)` | Retourne les objets `CTLDVehicle` actuellement chargés sur `transport`. |
 | `getLoadedVehicleWeight` | `(transportUnitName)` | Retourne le poids total (kg) des véhicules chargés sur le transport. |
@@ -266,7 +266,9 @@ mission maker et inaudible pour le pilote qui a affiché la fréquence annoncée
 | `getScene` | `(name)` | Retourne l'instance `CTLDScene` active pour `name`, ou `nil`. |
 | `isSceneEnabled` | `(name)` | Retourne `true` si le modèle de scène `name` est enregistré et non désactivé. |
 | `findNearbyRepackableScenes` | `(pos, radius)` | Retourne un tableau d'objets `CTLDScene` actifs situés à moins de `radius` mètres de `pos` et exposant un hook `onRepack`. |
-| `packScene` | `(scene)` | Exécute la séquence de pack : appelle `onRepack`, détruit tous les objets spawn, fait spawn les crates. Retourne `repackData` (peut porter `.warehouseSnapshot`). |
+| `captureRepackData` | `(scene)` | Appelle le hook `onRepack` du modèle et retourne `repackData` (peut porter `.warehouseSnapshot`). Ne change rien. |
+| `destroyScene` | `(scene)` | Détruit tous les objets spawn de la scène et la retire de l'ensemble actif. |
+| `packScene` | `(scene)` | `captureRepackData` puis `destroyScene`. Retourne `repackData`. La commande de pack de FARP crée ses crates entre les deux (ADR 0028). |
 
 **Champs du modèle de scène :**
 

@@ -210,12 +210,13 @@ Whole-vehicle behaviour is driven by the transport's `capabilitiesByType` entry
 `packVehicle(transportUnitName, packableUnitName, playerObj)`:
 
 1. Resolve the descriptor for the unit type (`findDescriptorByUnitType`); refuse if none.
-2. Silently deregister any JTAC on the unit, then `destroy()` it and publish `OnGroundUnitRemoved`
-   (`reason = "packed"`).
-3. Spawn `descriptor.cratesRequired` crates via `CTLDCrateManager:spawnCratesAligned(...)` with
+2. Create `descriptor.cratesRequired` crates via `CTLDCrateManager:spawnCratesAllOrNothing(...)` with
    `CTLDCrate.SPAWN_METHOD.VEHICLE_PACK`, in the front sector (helicopter) or rear sector
-   (native-cargo aircraft).
-4. Publish `OnVehiclePacked`, then rebuild the player menu one frame later (to dodge the
+   (native-cargo aircraft). If DCS refuses any of them the crates made are removed, the vehicle stays
+   where it is and the pilot reads "Pack failed: the crates could not be created." (ADR 0028).
+3. Only then silently deregister any JTAC on the unit, `destroy()` it and publish `OnGroundUnitRemoved`
+   (`reason = "packed"`).
+4. Publish `OnVehiclePacked` (`cratesSpawned` is the number created), then rebuild the player menu one frame later (to dodge the
    one-frame `coalition.getGroups()` lag after `destroy()`).
 
 The landing-triggered pack-menu refresh (`_checkPackingLanding`, 3 s tick) is gated on

@@ -8,6 +8,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — an action that replaces one thing by another no longer destroys the original when DCS refuses the replacement (FIX-CREATE-BEFORE-DESTROY, issue #293)
+
+- **Pack Vehicle** destroyed the vehicle first, then announced the crates it *asked* for ("Humvee MG packed into 1 crate(s).") whether DCS created them or not.
+  The crates are now created first, all of them or none; only then is the vehicle destroyed (and its JTAC deregistered). If DCS refuses, the vehicle stays where it was and the pilot reads "Pack failed: the crates could not be created.".
+  `OnVehiclePacked` now publishes the number of crates actually created as `cratesSpawned`, and is not published for a pack that did not happen. See ADR 0028.
+- **Pack <FARP>** destroyed the FARP's objects, then created the crates, so a refusal from DCS lost the FARP and its warehouse stock (since #268 the pilot was at least told). The warehouse snapshot is now read first, the crates are created all or nothing, and the FARP is destroyed only once they exist; otherwise it stays deployed, stock included, and can be packed again. The "FARP packed: X of Y crates created." message is gone, a partial pack no longer exists.
+- **Pack the Fat Cow FARP** closed the FARP and emptied it before setting the cow crates down, so a refusal from DCS, or a stock no `fatCowCrates` entry could carry, lost the fuel and ammunition (it only logged "lost"). The stock is now read back first, the crates are set down all or nothing, and the FARP closes only once they exist; otherwise it stays open with its stock and the pilot reads "Pack failed: the crates could not be created.".
+- **Unpack Crate** (a vehicle, a static, a JTAC), and the automatic unpack of a parachuted load, consumed the crates before asking DCS for the equipment, so a refusal, a JTAC limit or a missing spawn position cost the crates for nothing. The equipment is now created first and the crates are consumed only once it exists; otherwise they stay on the ground and `OnCrateUnpacked` is not published. An unpack that starts a stepped scene (FOB, FARP) is unchanged (ADR 0028).
+- **AA systems**: assembling a system from its crates, rearming it and repairing it destroyed the crates, or the old group, before spawning the new group, so a refusal from DCS lost them (a repair left no defence at all). The new group is now spawned first; the crates and the old group go only once it exists, and a refusal keeps them and tells the pilot "Unpack failed: the equipment could not be created.". A refused rearm no longer falls through to assembling a second system from the same crates. The new group is created over the old one for the instant before it is destroyed, so each AA group now gets its own unit names (`CTLD_AA_<type>_<n>_<id>`): to be confirmed on the live check.
+
 ---
 
 ## [2.0.0] — 2026-11-07
