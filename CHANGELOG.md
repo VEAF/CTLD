@@ -10,7 +10,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed — packing a FARP before it has finished laying out no longer leaves orphan objects (FIX-SCENE-PACK-WHILE-LAYING-OUT)
 
-- A FARP scene takes 15 to 20 seconds to lay itself out but is in the *Pack* list from its first tick. Packed during that window, the objects already in place were destroyed while the steps not yet run (repair truck, tent, guards, lights, windsock) went on spawning after the pack, with nothing left to track or destroy them (measured in game: six orphan objects when packed three seconds in).
+- A FARP scene takes about thirty seconds to lay itself out but is in the *Pack* list from its first tick. Packed during that window, the objects already in place were destroyed while the steps not yet run (repair truck, tent, guards, lights, windsock) went on spawning after the pack, with nothing left to track or destroy them (measured in game: six orphan objects when packed three seconds in).
   Packing a scene now stops it first when it has not finished, so nothing is spawned after the pack. A FARP packed once finished, and the Fat Cow's own FARP, are unchanged.
 
 ### Fixed — a repaired or rearmed AA system no longer leaves its crate behind as a ghost (FIX-AA-CRATE-REGISTRY)

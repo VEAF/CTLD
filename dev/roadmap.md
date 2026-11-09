@@ -161,3 +161,53 @@ comme le fait déjà la fixture `pristine_miz`, ou d'une fixture minimale indép
 Le Mi-8MTV2 pilotable comme cow : 13 000 kg max, 8 866 kg à vide, 1 929 kg de carburant, soit 2 591 kg de charge utile à 80 % de carburant.
 Assez pour un ou deux hélicos (par exemple 1 400 kg de carburant et 20 Vikhr) : fidèle au réel, où le Mi-8 ravitailleur emporte des réservoirs de convoyage d'environ 900 L.
 Demande un réservoir plus petit que celui de 800 gal du CH-47 et son entrée dans `fatCowTypes` / `capabilitiesByType`.
+
+## Scènes — le bouton « Pack » est offert avant la fin de la pose de la FARP
+
+**Le point à traiter.** Une scène est inscrite dans l'ensemble des scènes actives dès son premier tick, et
+`findNearbyRepackableScenes` la propose donc aussitôt dans **Pack Equipt**. Or une FARP Countryside met environ
+trente secondes à se poser : l'héliport et les repères au départ, les camions à +5 s, la tente, la caisse de
+munitions à +15 s, les gardes à +20 s, les lumières, la manche à air et le marqueur à +25 s, et seulement à +30 s
+l'étape qui remplit (ou restaure) l'entrepôt, suivie de l'enregistrement de la zone de ramassage de troupes. Pendant
+cette demi-minute, le pilote peut cliquer sur Pack. La question : faut-il le lui permettre, et sinon comment le lui
+dire ?
+
+**Ce qui est déjà réglé** (lot `FIX-SCENE-PACK-WHILE-LAYING-OUT`, PR #304, vérifié en jeu le 2026-11-09). Packer en
+cours de pose arrête maintenant la scène : ses étapes restantes ne tournent plus, il ne reste aucun objet orphelin
+(six avaient été comptés pour un pack à +3 s ; zéro désormais). Le lot a volontairement laissé l'entrée visible : la
+cacher est un choix d'interface, pas un correctif.
+
+**Pourquoi il reste quelque chose à traiter.**
+
+1. *Un stock perdu en silence.* L'instantané de l'entrepôt est pris au moment du pack. Sur une FARP **redéployée**
+   depuis des caisses, l'entrepôt n'est restauré qu'à l'étape de +30 s. Un pack à +10 s lit donc un entrepôt encore
+   vide : les caisses emportent un instantané vide, et le prochain déploiement remet la FARP à zéro. Le carburant
+   et les armes de la FARP d'origine sont perdus, sans autre signe que le message de succès. *Déduit, pas mesuré* :
+   il vient de l'ordre des étapes et de la mesure de `FEAT-FAT-COW` (un héliport invisible créé en cours de mission
+   démarre avec un entrepôt vide) ; à confirmer en jeu avant d'en faire un lot.
+2. *Un message qui ment un peu.* Le pilote lit « FARP packed successfully! » pour une FARP qui n'a jamais fini de se
+   poser ; ce qu'il récupère (les caisses) est correct, ce que la FARP contenait ne l'est pas.
+3. *Une incohérence avec la Fat Cow.* La FARP de la Fat Cow en cours de pose est déjà protégée (la cow arrête sa
+   scène avant de la packer) ; celle d'une scène classique ne l'est que depuis la PR #304, et par un arrêt
+   silencieux, pas par un refus expliqué au pilote.
+4. *Aucune explication.* L'entrée est là, elle marche, et rien n'indique qu'il vaut mieux attendre.
+
+**Pourquoi ce n'est pas un correctif.** Il y a au moins trois réponses valables, qui changent ce que voit le
+pilote, et le choix ne se déduit pas du code :
+
+- *Cacher l'entrée tant que la scène n'est pas terminée.* Le drapeau `_completed` existe depuis la PR #304. Mais le
+  menu F10 ne se reconstruit que sur des événements : il faudrait rafraîchir la section Pack à la fin de la scène
+  (son `onComplete`), sans quoi l'entrée n'apparaîtrait qu'au rafraîchissement suivant.
+- *Garder l'entrée mais refuser avec un message* du type « FARP en cours de pose, patientez N s ». Plus simple
+  (pas de rafraîchissement à ajouter), au prix d'une entrée qui ne fait rien pendant trente secondes.
+- *Ne rien changer* : le pack arrête la scène, comme aujourd'hui. Reste alors le stock perdu du point 1, qu'il
+  faudrait au moins signaler.
+
+**Pourquoi c'est peu urgent.** La fenêtre dure une demi-minute, une fois par déploiement ; un pilote qui packe sa
+FARP à peine posée est rare, et depuis la PR #304 plus rien ne traîne dans la mission. Le cas qui fait mal est le
+point 1 : une FARP redéployée avec du stock, packée aussitôt. À reprendre si un équipage le rencontre, ou avec un
+prochain lot sur les FARP.
+
+**Où regarder.** `CTLDSceneManager:findNearbyRepackableScenes` (la liste), `CTLDCrateManager:refreshPackEquiptSection`
+(l'entrée et son rappel), `_completed` et `onComplete` de `CtldScene`, l'étape 11 de la FARP Countryside (la
+restauration de l'entrepôt). Seule la FARP Countryside déclare `onRepack` aujourd'hui.
