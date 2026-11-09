@@ -1,6 +1,6 @@
 # 01 — Tell the dropper, and log the truth, when a parachuted equipment crate cannot be unpacked
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #307) · **Type:** AFK
 
 ## Parent
 

@@ -1,6 +1,6 @@
 # FIX-AUTO-UNPACK-SILENT-FAILURE — a parachuted equipment crate that cannot be unpacked fails in silence and is logged as a success
 
-**Status:** ⬜ ready — no open decision.
+**Status:** ✅ done (PR #307)
 
 GitHub issue #294 (automated review of `develop` at `1b61b10`), decided with the maintainer on 2026-11-10 (who is told: the dropper).
 
