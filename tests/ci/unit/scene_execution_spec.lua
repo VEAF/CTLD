@@ -199,4 +199,60 @@ describe("CtldScene execution engine — func-only steps, onComplete", function(
 
     end)
 
+    -- ── FIX-SCENE-PACK-WHILE-LAYING-OUT : a scene packed before its last step stops spawning ──
+    describe("destroyScene() on a scene still laying out", function()
+
+        local origSchedule, pending, lateRan, firstObj
+
+        before_each(function()
+            origSchedule = ctld.scheduler.schedule
+            pending, lateRan = {}, false
+            -- A step with a delay is scheduled, not run: keep it so the test decides when the timer fires.
+            ctld.scheduler.schedule = function(fn) pending[#pending + 1] = fn end
+            firstObj = { destroyed = false, isExist = function() return true end }
+            firstObj.destroy = function() firstObj.destroyed = true end
+        end)
+
+        after_each(function()
+            ctld.scheduler.schedule = origSchedule
+        end)
+
+        local function layOut(name)
+            mgr:registerSceneModel({ name = name, steps = {
+                { delayAfterPreviousStep = 0, func = function(ctx) ctx.scene._spawnedObjs[1] = firstObj end },
+                -- the engine waits this step's delay before running the next one
+                { delayAfterPreviousStep = 5, func = function() end },
+                { delayAfterPreviousStep = 0, func = function() lateRan = true end },
+            }})
+            return mgr:playScene(mockUnit, name, {}, nil)
+        end
+
+        it("stops the steps that have not run yet, so nothing is spawned after the pack", function()
+            local scene = layOut("TestPackWhileLaying1")
+            assert.equals(1, #pending)                       -- the last step waits for its timer
+            mgr:destroyScene(scene)
+            for _, fn in ipairs(pending) do fn() end         -- its timer fires after the pack
+            assert.is_false(lateRan)
+            assert.is_true(firstObj.destroyed)
+            assert.is_nil(mgr._active[scene._name])
+        end)
+
+        it("does the same through packScene", function()
+            local scene = layOut("TestPackWhileLaying2")
+            mgr:packScene(scene)
+            for _, fn in ipairs(pending) do fn() end
+            assert.is_false(lateRan)
+        end)
+
+        it("leaves a scene that finished untouched (control)", function()
+            local scene = layOut("TestPackWhileLaying3")
+            for _, fn in ipairs(pending) do fn() end         -- the last step runs
+            assert.is_true(lateRan)
+            mgr:destroyScene(scene)
+            assert.is_false(scene._aborted)
+            assert.is_true(firstObj.destroyed)
+        end)
+
+    end)
+
 end)
