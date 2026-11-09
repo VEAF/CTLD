@@ -8,6 +8,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — a parachuted equipment crate that cannot be unpacked is no longer silent, and no longer logged as a success (FIX-AUTO-UNPACK-SILENT-FAILURE, issue #294)
+
+- When a parachuted equipment crate (a vehicle, a static, a JTAC drone) landed and its equipment could not be created — the coalition's JTAC limit reached, or the group refused by DCS — nobody was told, and the log line "auto-unpack (parachute) EQUIPMENT" read as a success.
+  CTLD now notes on each crate the unit that parachuted it, and that pilot reads the same message as on the menu path (the DCS refusal, or the JTAC limit). The log line is written only when the equipment was created; otherwise a warning gives the cause and says the crates were kept (they stay on the ground since FIX-CREATE-BEFORE-DESTROY). A crate released by the DCS cargo system itself has no recorded dropper: the warning is then the only trace.
+
 ### Fixed — packing a FARP before it has finished laying out no longer leaves orphan objects (FIX-SCENE-PACK-WHILE-LAYING-OUT)
 
 - A FARP scene takes about thirty seconds to lay itself out but is in the *Pack* list from its first tick. Packed during that window, the objects already in place were destroyed while the steps not yet run (repair truck, tent, guards, lights, windsock) went on spawning after the pack, with nothing left to track or destroy them (measured in game: six orphan objects when packed three seconds in).
