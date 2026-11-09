@@ -322,6 +322,18 @@ describe("CTLDCrateAssemblyManager assembly + repair", function()
             assert.is_true(repairCrate.destroyedCount >= 1)
         end)
 
+        it("names the units of the new group differently from the old group still standing", function()
+            local _, oldGroup = deployedKub()
+            local oldNames = {}
+            for _, u in ipairs(oldGroup.getUnits()) do oldNames[u.getName()] = true end
+            aam:tryUnpackOrRepair(heli(), aaCrate(nil, "KUB AA System"), {}, 500)
+            local newName = next(aam._completeSystems)
+            assert.is_not_nil(newName)
+            for _, u in ipairs(spawnedGroups[newName].getUnits()) do
+                assert.is_nil(oldNames[u.getName()], "unit name reused while the old group stands: " .. u.getName())
+            end
+        end)
+
         it("keeps the system and the launcher crate of a rearm", function()
             local name, group, launcher = deployedKub()
             local launcherCrate = aaCrate(launcher)

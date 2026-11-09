@@ -846,11 +846,14 @@ function CTLDCrateAssemblyManager:_spawnGroup(positions, types, headings, countr
         units    = {},
     }
 
+    -- A rearm or a repair spawns the new group while the old one still stands (ADR 0028): its unit names
+    -- must differ from the old group's, so each group gets its own suffix.
+    local groupUid = ctld.utils.getNextUniqId()
     for i, pos in ipairs(positions) do
         local hdg = headings[i] or 0
         groupData.units[i] = {
             type           = types[i],
-            name           = string.format("CTLD_AA_%s_%d", types[i]:gsub("[%s/\\]", "_"), i),
+            name           = string.format("CTLD_AA_%s_%d_%d", types[i]:gsub("[%s/\\]", "_"), i, groupUid),
             x              = pos.x,
             y              = pos.z,   -- dynAdd convention: y == world Z
             heading        = hdg,
