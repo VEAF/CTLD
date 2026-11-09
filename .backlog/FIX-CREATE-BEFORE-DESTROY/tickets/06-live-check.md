@@ -1,6 +1,6 @@
 # 06 — Live check in DCS
 
-**Status:** ⬜ ready (01-05 done in PR #300; to run before it is merged) · **Type:** HITL
+**Status:** 🧑 waiting-human — automated checks PASS 2026-11-09; the hand test in the CH-47F cockpit is left to the maintainer · **Type:** HITL
 
 ## Parent
 
@@ -22,10 +22,20 @@ Through the DCS bridge's Python scenario runner (never the MCP tool), on `Test_C
 
 The maintainer plays one pack by hand in the cockpit (a CH-47F pack of a vehicle) to confirm what the pilot reads.
 
+## Result (2026-11-09, DCS 2.9.30.28738 mission `Test_CTLDNEXT_01.miz`, CTLD built from `fix/FIX-CREATE-BEFORE-DESTROY`)
+
+Two scenarios, driven over the bridge's HTTP API with a mock transport 3 km from the player, real DCS objects, cleaned up afterwards:
+
+- `tests/dcs/noPlayer/scenario_create_before_destroy.lua` (CBD): **PASS 24/24**. Pack Vehicle (3 crates, `cratesSpawned` 3, Humvee gone), unpack of the parachuted crates into a vehicle, AA assembly, repair and rearm of a KUB system.
+  The new AA group is spawned over the old one and DCS accepts it; the old group is then destroyed, one system is left.
+- `tests/dcs/noPlayer/scenario_create_before_destroy_farp.lua` (CBD2): **PASS 12/12**. A Countryside FARP packed through the real F10 *Pack Equipt* callback (crates with the warehouse snapshot, scene gone), and a piloted Fat Cow FARP packed (the fuel crate carries 2 400 kg, cow forgotten, FARP emptied).
+
+Found on the way, **not caused by this lot**: after an AA repair or rearm the crate is destroyed with `crate:destroy()`, which leaves its registry entry behind, and an entry with no DCS static counts as on the ground (a ghost crate); and the Countryside FARP's guard and repair-truck groups survive its pack.
+
 ## Acceptance criteria
 
-- [ ] Each of the five checks recorded PASS or FAIL with the DCS log lines that prove it.
-- [ ] AA respawn overlap: no error in the DCS log, one system left, the repair crate consumed.
+- [x] Each of the five checks recorded PASS or FAIL with the DCS log lines that prove it.
+- [x] AA respawn overlap: no error in the DCS log, one system left, the repair crate static destroyed.
 - [ ] The maintainer confirms the hand test; the lot's index line and PRD status are set to done.
 
 ## Blocked by
