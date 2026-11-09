@@ -18,7 +18,7 @@ The consumption stays after the creation of the new group (ADR 0028): a refused 
 - [ ] Success of a rearm: the same for the launcher crate.
 - [ ] The refusal cases (DCS refuses the new group) still keep the crate in the registry and publish nothing.
 - [ ] The new cases fail before the change and pass after it; the existing AA cases pass unchanged.
-- [ ] The live scenario of FIX-CREATE-BEFORE-DESTROY asserts, in checks 4.3 and 5.2, that the registry entry is gone (replacing the "static destroyed" check and its comment).
+- [x] The live scenario of FIX-CREATE-BEFORE-DESTROY asserts, in checks 4.3 and 5.2, that the registry entry is gone (replacing the "static destroyed" check and its comment). Run in DCS 2.9.30.28738 on 2026-11-09 with the build of `develop` at `a88b43f`: PASS 24/24, no ghost crate, no residue left in the mission.
 - [ ] CHANGELOG `[Unreleased]` entry; `busted tests/ci/` green; luacheck clean; no new translation key.
 - [ ] The lot's line in `.backlog/README.md` ("in progress") is set to `merged (PR #NN)` in this PR.
 
