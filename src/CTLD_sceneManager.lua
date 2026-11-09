@@ -231,6 +231,7 @@ function CtldScene:_runNextStep()
         end
     else
         ctld.utils.log("INFO", "CtldScene '%s': completed (%d steps)", self._name, self._stepIndex)
+        self._completed = true
         if self._onComplete then
             local ok, err = pcall(self._onComplete, self)
             if not ok then
@@ -424,8 +425,13 @@ function CTLDSceneManager:packScene(scene)
 end
 
 --- Destroy all spawned objects of a scene and remove it from the active set.
+-- A scene still laying out is stopped first: its remaining steps would otherwise go on spawning (groups,
+-- tent, lights…) after the pack, with nothing left to destroy them.
 -- @param scene CtldScene
 function CTLDSceneManager:destroyScene(scene)
+    if not (scene._completed or scene._aborted) and scene.abort then
+        scene:abort("packed while laying out")
+    end
     local destroyed = 0
     for _, obj in ipairs(scene._spawnedObjs) do
         local ok, err = pcall(function()
