@@ -8,6 +8,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — `ctld.unloadTransport` and `ctld.unloadInProximityToEnemy` work again (FIX-TROOP-UNLOAD-TRANSPORT)
+
+- Both scripted troop drops ended by calling a troop manager method that no longer exists (the drop was renamed in the rewrite), so a mission script that called either raised "attempt to call method 'deploy' (a nil value)" and nothing was dropped.
+  They now follow the v1 rules, for every troop group on board. `ctld.unloadTransport`: in an extraction zone the troops are dropped to the objective; otherwise in a pickup zone they go back to its stock; otherwise they are dropped; with no troops it does nothing. `ctld.unloadInProximityToEnemy` (AI transports only): drops the troops when an enemy is in sight, and leaves a player-controlled transport alone. The drop and the return publish `OnTroopsUnloaded` and `OnTroopsReturned`.
+
 ### Added — four troop gestures now publish an event (FEAT-TROOP-GESTURE-EVENTS, issue #308)
 
 - Dropping a troop group, loading troops in a pickup zone, extracting a dropped group in the field and returning troops to the zone published nothing: only the parachute drop did. A layer that followed these gestures through the v1 callbacks (`dropped_troops`, `load_troops`, `extract_troops`, `unload_troops_zone`) lost four of its twelve gestures on CTLD 2 (reported by VMCT).

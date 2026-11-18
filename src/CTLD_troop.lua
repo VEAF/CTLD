@@ -2325,7 +2325,9 @@ function CTLDTroopManager:preLoadTransport(unitName, number, troops)
     return true
 end
 
---- Force-deploy all troops from a named transport.
+--- Unload the troops of a named transport, with the v1 rules (ctld.unloadTroops): standing in a pickup
+-- zone they go back to its stock; anywhere else every group on board is deployed. An extraction zone takes
+-- priority over a pickup zone, as for the "Disembark" menu entry.
 -- @param unitName string  DCS unit name
 -- @return boolean
 function CTLDTroopManager:unloadTransport(unitName)
@@ -2335,7 +2337,12 @@ function CTLDTroopManager:unloadTransport(unitName)
         return false
     end
     if not self:hasTroops(unitName) then return false end
-    return self:deploy(unit)
+    local zm = CTLDZoneManager.getInstance()
+    if not zm:isUnitInZone(unitName, "extract") then
+        local pickupZone = zm:isUnitInZone(unitName, "pickup")
+        if pickupZone then return self:returnToTroopZone(unit, pickupZone) end
+    end
+    return self:disembarkAll(unit)
 end
 
 --- Force-load troops into a named transport from the nearest active pickup zone.
@@ -2371,7 +2378,7 @@ function CTLDTroopManager:unloadInProximityToEnemy(unitName, distance)
     if not self:hasTroops(unitName) then return false end
     local enemy = CTLDJTACDetector.findNearestVisibleEnemy(unit, "all", distance)
     if not enemy then return false end
-    return self:deploy(unit)
+    return self:disembarkAll(unit)
 end
 
 --- Start a recurring watcher counting dropped groups in a zone, writing DCS flags.
