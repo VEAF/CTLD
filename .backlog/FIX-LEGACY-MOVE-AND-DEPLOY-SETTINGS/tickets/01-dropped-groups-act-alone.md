@@ -1,6 +1,6 @@
 # 01 — Troops dropped by a pilot or an AI transport act on their own
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 
@@ -16,14 +16,14 @@ The foundation: the behaviour of a dropped group, and the settings that drive it
 
 ## Acceptance criteria
 
-- [ ] A group dropped with an enemy ground group in range is ordered toward the nearest one (no line of sight needed).
-- [ ] With none in range it is ordered toward a random point within `maximumMoveDistance` of the drop point; the random source is the only thing a test fixes.
-- [ ] With both distances at 0 no order is given.
-- [ ] A waypoint zone and a template task keep priority over this default; a drop into an extraction zone orders nothing.
-- [ ] A pilot's ground drop, a fast-rope drop and an AI transport's drop all behave so.
-- [ ] `maximumMoveDistance` (2000) is in the catalogue, `maximumSearchDistance` defaults to 4000; the catalogue version is raised and its shape file recorded; the `ctld-tools` schema and the settings tables (EN and FR) describe both settings.
-- [ ] The new cases fail before the change and pass after it; the existing troop specs pass unchanged (the drop specs that assert no order are updated only where they now contradict the decision).
-- [ ] `busted tests/ci/` green; luacheck clean; the catalogue shape test passes.
+- [x] A group dropped with an enemy ground group in range is ordered toward the nearest one (no line of sight needed).
+- [x] With none in range it is ordered toward a random point within `maximumMoveDistance` of the drop point; the random source is the only thing a test fixes.
+- [x] With both distances at 0 no order is given.
+- [x] A waypoint zone and a template task keep priority over this default; a drop into an extraction zone orders nothing.
+- [x] A pilot's ground drop, a fast-rope drop and an AI transport's drop all behave so.
+- [x] `maximumMoveDistance` (2000) is in the catalogue, `maximumSearchDistance` defaults to 4000; the catalogue version is raised and its shape file recorded; the `ctld-tools` schema and the settings tables (EN and FR) describe both settings.
+- [x] The new cases fail before the change and pass after it; the existing troop specs pass unchanged (the drop specs that assert no order are updated only where they now contradict the decision).
+- [x] `busted tests/ci/` green; luacheck clean; the catalogue shape test passes.
 
 ## Blocked by
 

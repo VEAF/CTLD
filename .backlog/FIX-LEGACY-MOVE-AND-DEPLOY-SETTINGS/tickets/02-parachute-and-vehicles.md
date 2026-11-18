@@ -1,6 +1,6 @@
 # 02 — Parachuted troops and whole vehicles unloaded act on their own
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 
@@ -15,12 +15,12 @@ Two more ways a group reaches the ground now follow the behaviour built in ticke
 
 ## Acceptance criteria
 
-- [ ] Troops that land by parachute get the order of a dropped group: toward the nearest enemy in range, else a random point within `maximumMoveDistance`; a waypoint zone and a template task keep priority.
-- [ ] A whole vehicle unloaded from a transport gets the same order, a JTAC vehicle included.
-- [ ] A vehicle spawned by unpacking a crate gets no order.
-- [ ] With both distances at 0 none of these gets an order.
-- [ ] The new cases fail before the change and pass after it; the existing parachute and vehicle specs pass unchanged.
-- [ ] `busted tests/ci/` green; luacheck clean.
+- [x] Troops that land by parachute get the order of a dropped group: toward the nearest enemy in range, else a random point within `maximumMoveDistance`; a waypoint zone and a template task keep priority.
+- [x] A whole vehicle unloaded from a transport gets the same order, a JTAC vehicle included.
+- [x] A vehicle spawned by unpacking a crate gets no order.
+- [x] With both distances at 0 none of these gets an order.
+- [x] The new cases fail before the change and pass after it; the existing parachute and vehicle specs pass unchanged.
+- [x] `busted tests/ci/` green; luacheck clean.
 
 ## Blocked by
 

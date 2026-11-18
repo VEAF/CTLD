@@ -1,6 +1,6 @@
 # 03 — Scripted spawns keep the v1 meaning of their search distance
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 
@@ -16,12 +16,12 @@ A group a mission script spawns (`spawnGroupAtTrigger`, `spawnGroupAtPoint`) is 
 
 ## Acceptance criteria
 
-- [ ] A scripted spawn with no search distance orders the group as a dropped group, with `maximumSearchDistance`.
-- [ ] A scripted spawn with a search distance looks for the enemy within that distance; with 0 it looks for none and walks at random.
-- [ ] The deprecated `ctld.*` wrappers pass their last argument as the search distance, a negative one as 0.
-- [ ] The CTLD 2 methods keep `radius` as the placement circle; an existing call with `radius` only is unchanged in placement.
-- [ ] The new cases fail before the change and pass after it; the existing scripted-spawn specs pass unchanged.
-- [ ] `busted tests/ci/` green; luacheck clean.
+- [x] A scripted spawn with no search distance orders the group as a dropped group, with `maximumSearchDistance`.
+- [x] A scripted spawn with a search distance looks for the enemy within that distance; with 0 it looks for none and walks at random.
+- [x] The deprecated `ctld.*` wrappers pass their last argument as the search distance, a negative one as 0.
+- [x] The CTLD 2 methods keep `radius` as the placement circle; an existing call with `radius` only is unchanged in placement.
+- [x] The new cases fail before the change and pass after it; the existing scripted-spawn specs pass unchanged.
+- [x] `busted tests/ci/` green; luacheck clean.
 
 ## Blocked by
 
