@@ -13,7 +13,7 @@ When the AI cow cannot land in a clearing, the log says why. The search tells it
 - **Found**: unchanged, the existing "lands in a clearing" line.
 - **Singleton missing**: a `WARN`, once per mission, naming the cow.
 - **Error raised**: a `WARN`, once per mission, carrying the error as it was raised.
-- **Wrong shape**: a `WARN`, once per mission, saying what came back: something that is not a table, or a non-empty table none of whose entries is a well-formed point. The definition of *well-formed* is the one ticket 01 recorded (the table with `x` and a `z`, or a `y`, if the real output confirms it).
+- **Wrong shape**: a `WARN`, once per mission, saying what came back: something that is not a table, or a non-empty table none of whose entries is a well-formed point. The definition of *well-formed* is the one the probe of ticket 01 confirmed on the real output: a table whose `x` is a number and whose `z`, else `y`, is a number (real candidates are vec2 `{ x, y, course }`, `y` being the map's z).
 - **No clearing**: an `INFO` at every landing, when the table is empty or every well-formed candidate is rejected by the filters (too close to the leader, in water, out of range) at the three clearances. It is the benign outcome and never a `WARN`.
 
 The three `WARN` causes (missing, error, shape) are tracked independently, so that a first cause does not hide a later, different one. The exact texts are those of the PRD, in English and untranslated.
