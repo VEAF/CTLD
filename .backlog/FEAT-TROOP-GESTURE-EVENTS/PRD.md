@@ -1,6 +1,6 @@
 # FEAT-TROOP-GESTURE-EVENTS — four troop gestures publish no event
 
-**Status:** ✅ done (PR #311)
+**Status:** ✅ done (PR #311) — verified in game 2026-11-18 (live scenario `scenario_troop_gesture_events.lua`, 17/17, DCS 2.9.30.28738, build of `develop` at `3f4618a`)
 
 GitHub issue #308 (reported by VMCT, 2026-11-18), decided with the maintainer on 2026-11-18 on the recommendation below.
 
