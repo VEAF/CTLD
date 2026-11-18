@@ -1,6 +1,6 @@
 # FIX-FAT-COW-EMPTY-AI-TYPE — an empty `fatCowAIType` removes the whole Fat Cow menu from the pilots a cow serves, not just "Request a Fat Cow"
 
-**Status:** ⬜ ready — decisions taken in the grill of 2026-11-18 (no ADR, no `CONTEXT.md` term).
+**Status:** ✅ done (PR #318) — decisions taken in the grill of 2026-11-18 (no ADR, no `CONTEXT.md` term).
 
 GitHub issue #297 (found by an automated review of `develop`; the code has moved since, the analysis holds).
 

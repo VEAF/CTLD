@@ -1,6 +1,6 @@
 # 01 — The Fat Cow menu stays when `fatCowAIType` is empty
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #318) · **Type:** AFK
 
 ## Parent
 
