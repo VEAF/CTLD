@@ -1,6 +1,6 @@
 # 01 — The Fat Cow asks the shared helper whether it is on the ground
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #320) · **Type:** AFK
 
 ## Parent
 
@@ -24,7 +24,7 @@ The Fat Cow code asks `ctld.utils.inAir`, as the rest of CTLD does, instead of D
 - [x] **Land here** on a landed cow answers "The Fat Cow is already on the ground." and gives the cow no new landing task.
 - [x] **Release the Fat Cow** on a landed cow gives it no orbit task and leaves its FARP open.
 - [x] A cow really in the air (both answers say so) is still refused by the deployment as "airborne", is still sent to land by **Land here**, and still orbits when released.
-- [x] The new cases fail before the change, for the right reason (the landed cow is taken for airborne), and pass after it; the other Fat Cow specs pass unchanged.
+- [x] The new cases fail before the change, for the right reason (the landed cow is taken for airborne), and pass after it; the other Fat Cow specs pass (one existing mock, which lacked a velocity, is completed now that the deployment reads it).
 - [x] The `CHANGELOG` entry is there; no dictionary, text or configuration change.
 - [x] `busted tests/ci/` green; luacheck clean.
 

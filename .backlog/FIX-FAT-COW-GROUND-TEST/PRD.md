@@ -1,6 +1,6 @@
 # FIX-FAT-COW-GROUND-TEST — the Fat Cow tests for the ground with DCS's raw `inAir()`, the case `ctld.utils.inAir` exists for
 
-**Status:** ⬜ ready — decisions taken in the grill of 2026-11-18 (no ADR, no `CONTEXT.md` term).
+**Status:** ✅ done (PR #320) — decisions taken in the grill of 2026-11-18 (no ADR, no `CONTEXT.md` term).
 
 GitHub issue #295 (found by an automated review of `develop`; the code has moved since, the analysis holds).
 
