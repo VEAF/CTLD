@@ -184,6 +184,20 @@ describe("Piloted cow commands", function()
         assert.is_not_nil(cm.crates["a"])                    -- still on board
     end)
 
+    -- FIX-FAT-COW-GROUND-TEST (issue #295): a landed CH-47 can read "in the air" to DCS's raw inAir(); the shared helper
+    -- (what `airborne` stands for here) counts it as on the ground, and so must the deployment.
+    it("deploys a landed CH-47 whose raw inAir() says it flies, and does not tell its pilot it failed", function()
+        loadCrateInto("a")
+        units["Cow-1"].inAir = function() return true end
+        mgr:deployFromHold("Cow-1")
+        local cow = openFarp("CTLD_FatCow_FARP_1")
+        assert.is_not_nil(cow, "no FARP was opened")
+        assert.equals(CTLDFatCow.STATE_DEPLOYED, cow.state)
+        for _, text in ipairs(messages) do
+            assert.is_nil(text:find("could not be deployed", 1, true))
+        end
+    end)
+
     it("leaves out of the FARP a crate DCS still holds in its own cargo system", function()
         local native = loadCrateInto("n")
         native.loadedByDCSNative = true

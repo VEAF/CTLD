@@ -1,6 +1,6 @@
 # 01 — The Fat Cow asks the shared helper whether it is on the ground
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 
@@ -19,14 +19,14 @@ The Fat Cow code asks `ctld.utils.inAir`, as the rest of CTLD does, instead of D
 
 ## Acceptance criteria
 
-- [ ] An AI cow that has landed deploys its FARP when the delay expires, with a unit whose raw `inAir()` says "in the air" and whose helper says "on the ground".
-- [ ] A piloted cow, landed, with cow crates in its hold, deploys its FARP from **Deploy the Fat Cow FARP** and the pilot does not read "The Fat Cow FARP could not be deployed.".
-- [ ] **Land here** on a landed cow answers "The Fat Cow is already on the ground." and gives the cow no new landing task.
-- [ ] **Release the Fat Cow** on a landed cow gives it no orbit task and leaves its FARP open.
-- [ ] A cow really in the air (both answers say so) is still refused by the deployment as "airborne", is still sent to land by **Land here**, and still orbits when released.
-- [ ] The new cases fail before the change, for the right reason (the landed cow is taken for airborne), and pass after it; the other Fat Cow specs pass unchanged.
-- [ ] The `CHANGELOG` entry is there; no dictionary, text or configuration change.
-- [ ] `busted tests/ci/` green; luacheck clean.
+- [x] An AI cow that has landed deploys its FARP when the delay expires, with a unit whose raw `inAir()` says "in the air" and whose helper says "on the ground".
+- [x] A piloted cow, landed, with cow crates in its hold, deploys its FARP from **Deploy the Fat Cow FARP** and the pilot does not read "The Fat Cow FARP could not be deployed.".
+- [x] **Land here** on a landed cow answers "The Fat Cow is already on the ground." and gives the cow no new landing task.
+- [x] **Release the Fat Cow** on a landed cow gives it no orbit task and leaves its FARP open.
+- [x] A cow really in the air (both answers say so) is still refused by the deployment as "airborne", is still sent to land by **Land here**, and still orbits when released.
+- [x] The new cases fail before the change, for the right reason (the landed cow is taken for airborne), and pass after it; the other Fat Cow specs pass unchanged.
+- [x] The `CHANGELOG` entry is there; no dictionary, text or configuration change.
+- [x] `busted tests/ci/` green; luacheck clean.
 
 ## Blocked by
 
