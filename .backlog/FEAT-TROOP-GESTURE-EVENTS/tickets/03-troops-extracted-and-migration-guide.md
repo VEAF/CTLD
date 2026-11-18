@@ -1,6 +1,6 @@
 # 03 — Extraction in the field is announced (`OnTroopsExtracted`), and the migration guide tells the truth
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #311) · **Type:** AFK
 
 ## Parent
 

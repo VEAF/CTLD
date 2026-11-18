@@ -1,6 +1,6 @@
 # 02 — Loading in a pickup zone and returning to it are announced (`OnTroopsLoaded`, `OnTroopsReturned`)
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #311) · **Type:** AFK
 
 ## Parent
 

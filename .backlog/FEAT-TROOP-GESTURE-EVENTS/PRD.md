@@ -1,6 +1,6 @@
 # FEAT-TROOP-GESTURE-EVENTS — four troop gestures publish no event
 
-**Status:** ⬜ ready — no open decision.
+**Status:** ✅ done (PR #311)
 
 GitHub issue #308 (reported by VMCT, 2026-11-18), decided with the maintainer on 2026-11-18 on the recommendation below.
 

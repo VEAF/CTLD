@@ -1,6 +1,6 @@
 # 01 — A dropped troop group is announced (`OnTroopsUnloaded`)
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #311) · **Type:** AFK
 
 ## Parent
 
