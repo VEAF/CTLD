@@ -294,13 +294,25 @@ describe("CTLDFatCowManager deploy / pack", function()
         assert.equals("empty", why)
     end)
 
+    -- The deployment asks ctld.utils.inAir (FIX-FAT-COW-GROUND-TEST, issue #295), which also reads the position and
+    -- the speed: a cow in the air is high and moving.
     it("refuses to deploy a cow in the air", function()
         local unit = cowUnit("Cow-1")
-        unit.inAir = function() return true end
+        unit.inAir        = function() return true end
+        unit.getPoint     = function() return { x = 0, y = 150, z = 0 } end
+        unit.getVelocity  = function() return { x = 60, y = 0, z = 0 } end
         mgr:addCow(unit, { fuelKg = 100, items = {} })
         local ok, why = mgr:deploy(unit)
         assert.is_false(ok)
         assert.equals("airborne", why)
+    end)
+
+    it("deploys a landed CH-47 whose raw inAir() says it flies: low and at rest, it is on the ground", function()
+        local unit = cowUnit("Cow-1")
+        unit.inAir        = function() return true end                       -- DCS's raw answer for a high chassis
+        unit.getVelocity  = function() return { x = 0, y = 0, z = 0 } end
+        mgr:addCow(unit, { fuelKg = 100, items = {} })
+        assert.is_true(mgr:deploy(unit))
     end)
 
     it("packs: reads what is left back into the stock and removes the scene", function()

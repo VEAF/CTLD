@@ -249,7 +249,8 @@ end
 function CTLDFatCowManager:deploy(unit, cow, farpName)
     cow = cow or self._cows[unit:getName()]
     if not cow then return false, "unknown" end
-    if unit:inAir() then return false, "airborne" end
+    -- The shared helper, not DCS's raw inAir(): a landed CH-47 can read "in the air" there (FIX-FAT-COW-GROUND-TEST).
+    if ctld.utils.inAir(unit) then return false, "airborne" end
     if cow.state ~= CTLDFatCow.STATE_STOWED then return false, "deployed" end
     if cow:isEmpty() then return false, "empty" end
     cow.state = CTLDFatCow.STATE_DEPLOYING
@@ -1305,7 +1306,7 @@ function CTLDFatCowManager:orderLandHere(unitName)
     if not (t and t:isExist()) then return end
     local cow, u = self:_flightCowFor(t)
     if not cow then return end
-    if not u:inAir() then
+    if not ctld.utils.inAir(u) then
         trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("The Fat Cow is already on the ground."), 10)
         return
     end
@@ -1463,7 +1464,7 @@ function CTLDFatCowManager:freeAICow(unitName)
     if not cow then return end
     self._aiByFlight[cow.ai.flightGroup] = nil
     cow.ai.released = true
-    if u:inAir() and cow.ai.phase ~= CTLDFatCowManager.PHASE_LANDING then self:_orbit(cow, u:getPoint()) end
+    if ctld.utils.inAir(u) and cow.ai.phase ~= CTLDFatCowManager.PHASE_LANDING then self:_orbit(cow, u:getPoint()) end
     trigger.action.outTextForGroup(gid, ctld.tr("Fat Cow released: it stays where it is, for another flight to take over."), 10)
     self:_announceOrphan(cow, true)
     self:_rebuildMenus(cow.coalitionId)

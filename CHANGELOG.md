@@ -8,6 +8,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — the Fat Cow no longer takes a landed CH-47 for an airborne one (FIX-FAT-COW-GROUND-TEST, issue #295)
+
+- DCS's own `inAir()` can answer "in the air" for a high-chassis helicopter such as the CH-47, the cow of the whole feature, while it is landed and at rest. CTLD has `ctld.utils.inAir` for exactly that case, and the rest of the code uses it; the Fat Cow called the raw `inAir()` at three places. A landed cow was therefore refused by the FARP deployment as "airborne" (an AI cow's FARP never opened, and a piloted cow's pilot, on the ground with his crates in the hold, read "The Fat Cow FARP could not be deployed."), the "The Fat Cow is already on the ground." guard of **Land here** never fired, and **Release the Fat Cow** gave a landed cow an orbit task, so it lifted off from its open FARP and left it behind.
+  The three places now ask the shared helper. A cow really in the air is treated as before: refused by the deployment as airborne, sent to land by **Land here**, orbiting where it stands when released. The two raw calls of the mine field scene are untouched. DCS's behaviour for the CH-47 was not re-measured: the shared helper's own documentation is the premise.
+
 ### Fixed — an AI cow that cannot open its FARP says so (FIX-FAT-COW-DEPLOY-REFUSALS, issue #296)
 
 - When an AI cow lands, a timer waits for `fatCowDeployDelay` and then asks it to open its FARP. The answer can be a refusal with a reason (empty, in the air, its scene did not start, already deployed, no such cow), and the timer threw it away: neither the flight nor the log heard of it. The piloted cow's own path already told its pilot. The simplest way to meet it needs no DCS failure: a flight empties its cow, orders **Take off** (the cow folds its FARP and stays, empty, as a player flight's cow does nothing on its own), then **Land here**; it reads "FARP open 60 s after touchdown" and waits for a FARP that never comes.

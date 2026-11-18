@@ -1025,6 +1025,67 @@ describe("AI Fat Cow", function()
         end)
     end)
 
+    -- FIX-FAT-COW-GROUND-TEST (issue #295): a landed CH-47 can read "in the air" to DCS's raw inAir(). The cow asks the
+    -- shared helper, which counts it as on the ground. The mock tells the two apart: its raw inAir() always says
+    -- "in the air", while `airborne` (what the helper reads, as in every spec of this file) says it is landed.
+    describe("a landed CH-47 whose raw inAir() says it flies", function()
+        local function atRest(cow) units[cow.unitName].inAir = function() return true end end
+
+        it("deploys its FARP when the delay expires", function()
+            local leader, cow = flightWithCow()
+            mgr:onLand({ initiator = leader })
+            mgr:onLand({ initiator = units[cow.unitName] })
+            atRest(cow)
+            runScheduled()
+            assert.equals(CTLDFatCow.STATE_DEPLOYED, cow.state)
+        end)
+
+        it("is told by Land here that it is already on the ground, and is not re-tasked", function()
+            local _, cow = flightWithCow(true)
+            atRest(cow)
+            local tasks = #groups[cow.ai.groupName].tasks
+            messages = {}
+            mgr:orderLandHere("Gunfighter-1")
+            assert.is_not_nil(messages[#messages].text:find("already on the ground", 1, true))
+            assert.equals(tasks, #groups[cow.ai.groupName].tasks)
+        end)
+
+        it("stays on the ground, its FARP open, when released", function()
+            local leader, cow = flightWithCow()
+            mgr:onLand({ initiator = leader })
+            mgr:onLand({ initiator = units[cow.unitName] })
+            runScheduled()
+            assert.equals(CTLDFatCow.STATE_DEPLOYED, cow.state)
+            atRest(cow)
+            local tasks = #groups[cow.ai.groupName].tasks
+            mgr:freeAICow("Gunfighter-1")
+            assert.equals(tasks, #groups[cow.ai.groupName].tasks)            -- no orbit task: it does not lift off
+            assert.equals(CTLDFatCow.STATE_DEPLOYED, cow.state)
+        end)
+
+        it("is still refused as airborne by the deployment when it really flies (control)", function()
+            local _, cow = flightWithCow()
+            units[cow.unitName].airborne = true
+            local ok, why = mgr:deploy(units[cow.unitName])
+            assert.is_false(ok)
+            assert.equals("airborne", why)
+        end)
+
+        it("is still sent to land by Land here when it really flies (control)", function()
+            local _, cow = flightWithCow(true)
+            units[cow.unitName].airborne = true
+            mgr:orderLandHere("Gunfighter-1")
+            assert.equals("Mission", lastTask(cow.ai.groupName).id)
+        end)
+
+        it("still orbits where it stands when released while it really flies (control)", function()
+            local _, cow = flightWithCow()
+            units[cow.unitName].airborne = true
+            mgr:freeAICow("Gunfighter-1")
+            assert.equals("Orbit", lastTask(cow.ai.groupName).id)
+        end)
+    end)
+
     -- ── FIX-FAT-COW-AI-LANDING ───────────────────────────────────────────────────────────────────
 
     -- The Land task point the cow was last given, as { x, z }.
