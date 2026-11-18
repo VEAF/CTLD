@@ -67,6 +67,8 @@ La cow fait ensuite ce que votre patrouille lui dit, et rien d'elle-même :
 
 Vous pouvez donc redécoller pour vous déplacer en stationnaire jusqu'à sa FARP, ou vous repositionner, sans que la cow parte.
 
+Une cow qui n'a plus rien n'ouvre pas de FARP : vous le lisez quand le délai s'écoule, avec le conseil de la renvoyer avec **Rentre à la base**.
+
 **Statut Fat Cow** dit où est la cow de votre patrouille (phase, distance et relèvement), quand elle devrait vous rejoindre, et ce qu'elle contient encore, y compris avant qu'elle se soit posée.
 
 **Demander une Fat Cow** ouvre la liste des lots, les mêmes que ceux d'une cow pilotée (Apache en tête, **Russes** et **Mixtes** un niveau plus bas) : choisissez ce dont votre patrouille a besoin.

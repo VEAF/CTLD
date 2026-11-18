@@ -1,6 +1,6 @@
 # 01 — The AI cow's deployment timer reports a refused deployment
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 
@@ -23,16 +23,16 @@ When an AI cow lands and the deployment that follows the delay is refused, the f
 
 ## Acceptance criteria
 
-- [ ] After the delay, an empty cow tells the flight "The Fat Cow is empty: send it home with RTB." and logs a warning that names the reason.
-- [ ] A cow that is airborne, whose scene did not start, or that is no longer registered tells the flight "The Fat Cow FARP could not be deployed." and logs a warning that names the reason.
-- [ ] A cow already deployed when the delay runs out tells the flight nothing and logs an information line.
-- [ ] A deployment that failed (its FARP or fuel depot could not be added) gives the flight exactly one message, the scene's; the timer adds none.
-- [ ] When the flight no longer exists, no message is sent and the line is logged.
-- [ ] A cow with stock deploys as before, with no warning and no refusal message; the existing nominal and cancellation tests pass unchanged.
-- [ ] The new cases fail before the change, for the right reason (nothing is said and nothing is logged), and pass after it.
-- [ ] The dictionaries are regenerated and the new text has French and Spanish translations; the Korean one is flagged for review.
-- [ ] The pilot guide (English and French) says that a cow with nothing left opens no FARP, and the `CHANGELOG` entry is there.
-- [ ] `busted tests/ci/` green; luacheck clean.
+- [x] After the delay, an empty cow tells the flight "The Fat Cow is empty: send it home with RTB." and logs a warning that names the reason.
+- [x] A cow that is airborne, whose scene did not start, or that is no longer registered tells the flight "The Fat Cow FARP could not be deployed." and logs a warning that names the reason.
+- [x] A cow already deployed when the delay runs out tells the flight nothing and logs an information line.
+- [x] A deployment that failed (its FARP or fuel depot could not be added) gives the flight exactly one message, the scene's; the timer adds none.
+- [x] When the flight no longer exists, no message is sent and the line is logged.
+- [x] A cow with stock deploys as before, with no warning and no refusal message; the existing nominal and cancellation tests pass unchanged.
+- [x] The new cases fail before the change, for the right reason (nothing is said and nothing is logged), and pass after it.
+- [x] The dictionaries are regenerated and the new text has French and Spanish translations; the Korean one is flagged for review.
+- [x] The pilot guide (English and French) says that a cow with nothing left opens no FARP, and the `CHANGELOG` entry is there.
+- [x] `busted tests/ci/` green; luacheck clean.
 
 ## Blocked by
 
