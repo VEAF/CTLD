@@ -714,8 +714,14 @@ function CTLDTroopManager:_orderDroppedGroup(grpName, dropPt, coalitionId, searc
         dest.y = land.getHeight({ x = dest.x, y = dest.z })
     end
 
-    local wpFrom = ctld.utils.buildWP("_orderDroppedGroup", dropPt, 'Off Road', 50)
-    local wpDest = ctld.utils.buildWP("_orderDroppedGroup", dest,   'Off Road', 50)
+    return self:_scheduleRoute(grpName, dropPt, dest)
+end
+
+--- Orders a group to go from `fromPt` to `destPt` (two waypoints, off road, as v1's ctld.orderGroupToMoveToPoint).
+-- @return boolean  true when the order was scheduled
+function CTLDTroopManager:_scheduleRoute(grpName, fromPt, destPt)
+    local wpFrom = ctld.utils.buildWP("_scheduleRoute", fromPt, 'Off Road', 50)
+    local wpDest = ctld.utils.buildWP("_scheduleRoute", destPt, 'Off Road', 50)
     if not (wpFrom and wpDest) then return false end
     local mission = { id = 'Mission', params = { route = { points = { wpFrom, wpDest } } } }
 
@@ -729,6 +735,27 @@ function CTLDTroopManager:_orderDroppedGroup(grpName, dropPt, coalitionId, searc
         ctrl:setTask(arg.mission)
     end, { grpName = grpName, mission = mission }, timer.getTime() + 2)
     return true
+end
+
+--- The whole routing of a dropped group, in its order of priority: a template task, then a waypoint zone (it marches
+-- to the zone's centre), then the default (nearest enemy, else a random walk). Used by every drop path that does
+-- not route by itself (the parachute landing, the vehicle unload, the scripted spawns).
+-- @param grpName        string
+-- @param pt             vec3    where it was dropped
+-- @param coalitionId    number
+-- @param specificParams table|nil  the troop template's params (nil for a vehicle)
+-- @param searchDistance number|nil  enemy search distance (nil: maximumSearchDistance)
+function CTLDTroopManager:_orderDropped(grpName, pt, coalitionId, specificParams, searchDistance)
+    if specificParams and specificParams.task then
+        self:_assignPostSpawnTask(grpName, pt, coalitionId, specificParams)
+        return
+    end
+    local wpzZone = CTLDZoneManager.getInstance():getWaypointZoneAt(pt, coalitionId)
+    if wpzZone then
+        self:_scheduleRoute(grpName, pt, wpzZone:getCenter())
+        return
+    end
+    self:_orderDroppedGroup(grpName, pt, coalitionId, searchDistance)
 end
 
 -- ============================================================
@@ -1908,12 +1935,10 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
                 end
             end
 
-            -- Feature I: specificParams.task post-spawn route assignment
+            -- A template task (Feature I), a waypoint zone, or the default behaviour of a dropped group (ADR 0029)
             local _landPt = _landPositions and _landPositions[1]
             if _landPt then
-                self:_assignPostSpawnTask(
-                    _groupName, _landPt,
-                    _coalition, _troopGroup.specificParams)
+                self:_orderDropped(_groupName, _landPt, _coalition, _troopGroup.specificParams)
             end
         end
 

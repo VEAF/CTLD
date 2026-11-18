@@ -122,9 +122,11 @@ describe("A dropped group acts on its own (issue #309)", function()
                                      val = { ALARM_STATE = { AUTO = 1 }, ROE = { OPEN_FIRE = 2 } } } } }
 
         origRandom, randoms = math.random, {}
-        -- Only the two-argument calls (the walk's offsets) are fixed; the drop's own spawn angle keeps the real source.
+        -- Only the walk's offsets, math.random(0, maximumMoveDistance), are fixed; the drop's own spawn angle and
+        -- the parachute drift keep the real source.
         math.random = function(...)
-            if select("#", ...) == 2 and #randoms > 0 then return table.remove(randoms, 1) end
+            local a, b = ...
+            if select("#", ...) == 2 and a == 0 and b == moveDist and #randoms > 0 then return table.remove(randoms, 1) end
             return origRandom(...)
         end
 
@@ -259,6 +261,104 @@ describe("A dropped group acts on its own (issue #309)", function()
             local o = drop()
             trigger.misc.getUserFlag, trigger.action.setUserFlag = origGet, origSet
             assert.equals(0, #o)
+        end)
+
+    end)
+
+    describe("parachuted troops (ticket 02)", function()
+
+        local origAddGroup, origTimerSchedule, origGetHeight, jumpers
+        local transport = {
+            getPoint = function() return { x = 1000, y = 200, z = 2000 } end,
+            getVelocity = function() return { x = 0, y = 0, z = 0 } end,
+            getName = function() return "UH-1H-1" end,
+        }
+
+        before_each(function()
+            origAddGroup, origTimerSchedule, origGetHeight = coalition.addGroup, timer.scheduleFunction, land.getHeight
+            -- The landing runs when the descent ends: run it at once (the first callback scheduled with an empty
+            -- argument), while keeping the group orders for the test to run.
+            local landed = false
+            local capture = ctld.scheduler.schedule
+            ctld.scheduler.schedule = function(fn, arg, t)
+                if type(arg) == "table" and arg.grpName then return capture(fn, arg, t) end
+                if not landed and type(arg) == "table" and next(arg) == nil then
+                    landed = true
+                    fn(arg, t)
+                end
+            end
+            timer.scheduleFunction = function() return 0 end
+            land.getHeight = function() return 10 end
+            local spawned = {}
+            coalition.addGroup = function(_, _, data)
+                spawned[data.name] = true
+                return { getName = function() return data.name end }
+            end
+            -- the real Group.getByName of this spec only knows MockDropped; the parachuted group has its own name
+            local prev = Group.getByName
+            Group.getByName = function(n)
+                if spawned[n] then
+                    return { isExist = function() return true end, getName = function() return n end,
+                             getUnits = function() return {} end,
+                             getController = function()
+                                 return { setOption = function() end, setTask = function(_, t) orders[#orders + 1] = t end }
+                             end }
+                end
+                return prev(n)
+            end
+            local ctldGs = ctld.gs
+            ctld.gs = function(k)
+                if k == "parachuteMinAltitudeTroops" then return 50 end
+                if k == "parachuteDescentRateTroops" then return 100 end
+                if k == "parachuteInertiaFactor"     then return 0.0 end
+                if k == "parachuteLateralDriftMin"   then return 5 end
+                if k == "parachuteLateralDriftMax"   then return 10 end
+                return ctldGs(k)
+            end
+            jumpers = CTLDTroopGroup:new({ templateName = "Paras", unitTotal = 2, weight = 200, coalitionId = 2 })
+            tm._inTransit["UH-1H-1"] = { jumpers }
+        end)
+
+        after_each(function()
+            coalition.addGroup, timer.scheduleFunction, land.getHeight = origAddGroup, origTimerSchedule, origGetHeight
+        end)
+
+        local function jump()
+            tm:parachuteTroops(transport, { unitName = "UH-1H-1", groupId = 9901, groupName = "G", coalition = 2 })
+            for _, s in ipairs(scheduled) do s.fn(s.arg) end
+            return orders
+        end
+
+        it("get the order of a dropped group once they land: toward the nearest enemy in range", function()
+            enemies = { enemyGroup(1000 + 700, 2000 + 700) }
+            local o = jump()
+            assert.equals(1, #o)
+            local d = destination(o[1])
+            assert.equals(1700, d.x)
+            assert.equals(2700, d.y)
+        end)
+
+        it("walk at random when no enemy is in range", function()
+            randoms = { 600, 100, 300, 0 }               -- dx = 500, dz = 300
+            local o = jump()
+            assert.equals(1, #o)
+            local d = destination(o[1])
+            -- the landing point is the drop point drifted by a few metres: the walk is around it
+            assert.is_true(math.abs(d.x - 1500) < 40 and math.abs(d.y - 2300) < 40)
+        end)
+
+        it("stay where they land with both distances at 0", function()
+            searchDist, moveDist = 0, 0
+            enemies = { enemyGroup(1700, 2000) }
+            assert.equals(0, #jump())
+        end)
+
+        it("keep following their template task, with no default order on top", function()
+            jumpers.specificParams = { task = "gotoNearestWPZ" }
+            enemies = { enemyGroup(1700, 2000) }
+            local before = #scheduled
+            tm:parachuteTroops(transport, { unitName = "UH-1H-1", groupId = 9901, groupName = "G", coalition = 2 })
+            assert.equals(before + 1, #scheduled)         -- the task's own timer, nothing else
         end)
 
     end)

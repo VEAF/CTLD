@@ -608,6 +608,12 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method, re
         self._unitToVehicle[unloadedUnit:getName()] = vehicle.id
     end
 
+    -- A vehicle unloaded onto the ground is a dropped group: it acts on its own, as in v1 (ADR 0029). A falling
+    -- one is ordered when it lands.
+    if unloadedUnit and not inFlight and sd and sd.groupName then
+        CTLDTroopManager.getInstance():_orderDropped(sd.groupName, spawnPos, transport:getCoalition(), nil)
+    end
+
     -- Update DCS internal cargo weight (a native-carry weight is managed by DCS itself).
     if not nativeCarried then
         self:_updateVehicleCargo(transport:getName())
@@ -710,6 +716,8 @@ function CTLDVehicleSpawner:_scheduleNativeLandingPoll(vehicle)
             local groupName = vehicle.spawnData and vehicle.spawnData.groupName
             if groupName then
                 CTLDJTACManager.getInstance():resumeJTAC(groupName)
+                -- It has landed: it acts on its own, as in v1 (ADR 0029).
+                CTLDTroopManager.getInstance():_orderDropped(groupName, unit:getPoint(), unit:getCoalition(), nil)
             end
             ctld.utils.log("INFO", string.format(
                 "CTLDVehicleSpawner: vehicle %s (%s) landed", vehicle.id, vehicle.vehicleType))
@@ -1133,6 +1141,11 @@ function CTLDVehicleSpawner:parachuteVehicle(transport, vehicleId, playerObj)
         local spawnPos = { x = _landPos.x, y = _landPos.y, z = _landPos.z }
         if _spawnData then
             self:spawnVehicleAt(_spawnData, spawnPos)
+            -- It has landed: it acts on its own, as in v1 (ADR 0029).
+            if _spawnData.groupName then
+                CTLDTroopManager.getInstance():_orderDropped(_spawnData.groupName, spawnPos,
+                    _spawnData.coalitionId or transport:getCoalition(), nil)
+            end
         end
 
         -- Resume JTAC lasing if this vehicle is a registered JTAC (was set IN_TRANSIT on load).
