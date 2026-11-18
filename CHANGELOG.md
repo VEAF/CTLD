@@ -8,6 +8,12 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — the AI Fat Cow's clearing search no longer fails without a trace (FIX-FAT-COW-CLEARING-LOG, issue #299)
+
+- The AI cow lands in a clearing found with `Disposition.getSimpleZones`, an undocumented DCS function; when it could not be used the cow landed on the raw point 120 m to the left of its leader, the very case of the trees it struck on 2026-10-30, and nothing was written in the log. A DCS patch could have brought the defect back without a clue.
+  The log now tells apart the failures of the search from the ordinary "nothing usable here". A `WARN`, once per mission for each cause, says that the function is not available, that it raised an error (the error is quoted), or that it returned something that is not a list of points (what it returned is named: a list of entries that are no point counts as such). An `INFO` at every landing says that no clearing was found within 300 m of the asked point. The point the cow lands on is unchanged.
+  A candidate whose coordinates are not numbers is now counted as no point, instead of raising an error in the landing.
+
 ### Changed — dropped groups act on their own again, and the unpack guard returns as an option (FIX-LEGACY-MOVE-AND-DEPLOY-SETTINGS, issue #309)
 
 - Two CTLD v1 settings had no key in CTLD 2 (reported by VMCT): `maximumMoveDistance` and `minimumDeployDistance`. Their behaviour had gone with them — a snapshot carrying them was ignored without a word.
