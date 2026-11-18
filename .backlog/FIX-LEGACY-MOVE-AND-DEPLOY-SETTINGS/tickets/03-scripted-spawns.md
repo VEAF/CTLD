@@ -1,6 +1,6 @@
 # 03 — Scripted spawns keep the v1 meaning of their search distance
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #315) · **Type:** AFK
 
 ## Parent
 

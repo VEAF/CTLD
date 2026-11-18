@@ -1,6 +1,6 @@
 # FIX-LEGACY-MOVE-AND-DEPLOY-SETTINGS — dropped groups stay put, and crates unpack next to a logistic zone: two CTLD v1 behaviours are gone
 
-**Status:** ✅ done (PR #NN) — decisions taken in the grill of 2026-11-18, recorded in [ADR 0029](../../dev/adr/0029-dropped-groups-act-alone-and-the-unpack-guard-is-optional.md) and the `Dropped group` term of `CONTEXT.md`.
+**Status:** ✅ done (PR #315) — decisions taken in the grill of 2026-11-18, recorded in [ADR 0029](../../dev/adr/0029-dropped-groups-act-alone-and-the-unpack-guard-is-optional.md) and the `Dropped group` term of `CONTEXT.md`.
 
 GitHub issue #309 (reported by VMCT).
 

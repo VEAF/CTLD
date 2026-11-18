@@ -1,6 +1,6 @@
 # 05 — Live check in DCS
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK, needs the mission reloaded
+**Status:** ✅ done (PR #315) · **Type:** AFK, needs the mission reloaded
 
 ## Parent
 

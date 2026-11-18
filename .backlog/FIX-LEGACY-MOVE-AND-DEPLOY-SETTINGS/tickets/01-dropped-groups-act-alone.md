@@ -1,6 +1,6 @@
 # 01 — Troops dropped by a pilot or an AI transport act on their own
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #315) · **Type:** AFK
 
 ## Parent
 

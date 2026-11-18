@@ -1,6 +1,6 @@
 # 02 — Parachuted troops and whole vehicles unloaded act on their own
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #315) · **Type:** AFK
 
 ## Parent
 

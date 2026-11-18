@@ -1,6 +1,6 @@
 # 04 — An optional guard against unpacking in a logistic zone, and a notice for the retired v1 key
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #315) · **Type:** AFK
 
 ## Parent
 
@@ -12,7 +12,7 @@
 - **The catalogue and `ctld-tools`**: the key joins the catalogue (the version goes up again only if ticket 01 has not already raised it for this release, and the shape is recorded), the schema gets a boolean entry in the crates family with an English and French label and description, and the settings tables (EN and FR) get the row.
 - **A start-up notice** when a snapshot still carries `minimumDeployDistance`: it is not read by CTLD 2, and the notice names `forbidUnpackInLogisticZone`, built the way the `dropOffZones` one is.
 - **The migration guide (EN and FR)** covers the two v1 settings and what each became, and the **CHANGELOG** records the lot: the new default behaviour of dropped groups and how to get idle groups back (both distances at 0), the new option, the notice.
-- **The backlog index** line of the lot is added in the pull request ("in progress"), then set to `merged (PR #NN)`.
+- **The backlog index** line of the lot is added in the pull request ("in progress"), then set to `merged (PR #315)`.
 
 ## Acceptance criteria
 
