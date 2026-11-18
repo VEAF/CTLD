@@ -639,6 +639,30 @@ function CTLDTroopManager:_updateWeight(unitName)
 end
 
 -- ============================================================
+-- Gesture events (OnTroopsLoaded / Unloaded / Extracted / Returned)
+-- ============================================================
+
+--- Announces a troop gesture that really happened (issue #308). Same shape as the vehicle events: the
+-- group, the carrier, the player, a timestamp, and what the gesture adds (zone, method, destination).
+-- `player` is the slot unit name of a player transport, nil for an AI transport.
+-- @param eventName string
+-- @param unit      DCS Unit  the transport
+-- @param group     CTLDTroopGroup
+-- @param extra     table|nil  fields added to the payload
+function CTLDTroopManager:_publishGesture(eventName, unit, group, extra)
+    local unitName = unit:getName()
+    local pObj     = CTLDPlayerManager.getInstance():getPlayer(unitName)
+    local payload  = {
+        troops          = group,
+        carrierUnitName = unitName,
+        player          = pObj and pObj.unitName or nil,
+        timestamp       = timer.getAbsTime(),
+    }
+    for k, v in pairs(extra or {}) do payload[k] = v end
+    EventDispatcher.getInstance():publish(eventName, payload)
+end
+
+-- ============================================================
 -- loadFromZone
 -- ============================================================
 
@@ -750,6 +774,8 @@ function CTLDTroopManager:embarkFromTroopZone(unit, zone, template)
 
     local _pObj = CTLDPlayerManager.getInstance():getPlayer(unitName)
     if _pObj then self:refreshMenuSection(_pObj) end
+
+    self:_publishGesture("OnTroopsLoaded", unit, troopGroup, { zone = zone.zoneName })
 
     return true
 end
@@ -897,8 +923,16 @@ function CTLDTroopManager:disembark(unit)
     local _pObj = CTLDPlayerManager.getInstance():getPlayer(unitName)
     if _pObj then self:refreshMenuSection(_pObj) end
 
+    -- The drop happened: announce it (one event per group, "Unload All" loops over this method).
+    local byRope = canFastRope and self:_isInAir(unit)
+    self:_publishGesture("OnTroopsUnloaded", unit, group, {
+        method      = byRope and "fast_rope" or "ground",
+        destination = exzZone and { type = "extraction_zone", troopZone = exzZone.zoneName }
+                              or  { type = "combat", troopZone = nil },
+    })
+
     -- Confirm message
-    local method = (canFastRope and self:_isInAir(unit)) and "fast-roped" or "dropped"
+    local method = byRope and "fast-roped" or "dropped"
     local dest   = exzZone and ctld.tr("into %1", exzZone.zoneName) or ctld.tr("into combat")
     trigger.action.outTextForGroup(ctld.utils.getGroupId(unit),
         ctld.tr("%1 [%2] %3.", method, group.templateName, dest), 10)
@@ -980,6 +1014,11 @@ function CTLDTroopManager:returnToTroopZone(unit, zone)
 
     trigger.action.outTextForGroup(ctld.utils.getGroupId(unit),
         ctld.tr("Troops returned to base."), 10)
+
+    -- One event per group handed back.
+    for _, group in ipairs(list) do
+        self:_publishGesture("OnTroopsReturned", unit, group, { zone = zone.zoneName })
+    end
     return true
 end
 
@@ -1055,7 +1094,7 @@ function CTLDTroopManager:embarkFromField(unit)
     end
 
     if not self._inTransit[unitName] then self._inTransit[unitName] = {} end
-    table.insert(self._inTransit[unitName], CTLDTroopGroup:new({
+    local extractedGroup = CTLDTroopGroup:new({
         templateKey    = stored.key,
         templateName   = stored.name or nearest.groupName,  -- restore original template name (BUG-06)
         unitTotal      = logicalCount,   -- logical count (no mortar servants) for capacity/stock
@@ -1066,7 +1105,8 @@ function CTLDTroopManager:embarkFromField(unit)
         _aliveUnits    = _aliveUnits,
         _jtacUnits     = _jtacUnits,
         specificParams = stored.specificParams or {},
-    }))
+    })
+    table.insert(self._inTransit[unitName], extractedGroup)
 
     self:_removeFromDropped(coalition, nearest.groupName)
     nearest.group:destroy()
@@ -1082,6 +1122,8 @@ function CTLDTroopManager:embarkFromField(unit)
 
     ctld.utils.log("INFO", "extract: '%s' extracted group '%s' (%d logical troops, %d DCS units)",
         unitName, nearest.groupName, logicalCount, groupSize)
+
+    self:_publishGesture("OnTroopsExtracted", unit, extractedGroup)
     return true
 end
 

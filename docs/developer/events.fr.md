@@ -438,7 +438,7 @@ le vehicle spawner et le crate manager publient tous deux `OnGroundUnitSpawned`.
 - `OnGroundUnitSpawned` : `CTLDVehicleSpawner:_spawnGroundUnit()`, `CTLDCrateManager:_spawnUnpacked()`
 - `OnGroundUnitRemoved` : `CTLDVehicleSpawner:loadVehicle()`, `:onDead()`, `:packVehicle()`
 
-### Événements troop (2) { #troop-events-2 }
+### Événements troop (6) { #troop-events-6 }
 
 #### `OnTroopsDeployed`
 Des troops sont déployées par parachute.
@@ -467,6 +467,66 @@ Des troops parachutées atterrissent (asynchrone, après le timer de descente). 
 | `startAltitude` | number | |
 
 **Published by** : `CTLDTroopManager:parachuteTroops()` (callback d'atterrissage)
+
+#### `OnTroopsUnloaded`
+Un groupe de troupes est déposé : au sol, en rappel (fast-rope) ou dans une zone d'extraction. Publié à la fin
+d'un dépôt réussi, une fois par groupe (« Unload All » en publie un par groupe), pour les transports joueurs
+comme IA. Un dépôt refusé (pas de troupes à bord, trop haut ou trop vite pour le rappel, groupe non spawné)
+ne publie rien.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `troops` | CTLDTroopGroup | Le groupe déposé |
+| `carrierUnitName` | string | |
+| `player` | string ou nil | Nom d'unité du slot d'un transport joueur ; `nil` pour un transport IA |
+| `method` | string | `"ground"` ou `"fast_rope"` |
+| `destination` | table | `{ type="combat", troopZone=nil }`, ou `{ type="extraction_zone", troopZone=<nom de la zone> }` |
+| `timestamp` | number | |
+
+**Published by** : `CTLDTroopManager:disembark()` (atteint aussi par `:disembarkIndex()` et `:disembarkAll()`)
+
+#### `OnTroopsLoaded`
+Des troupes sont chargées dans une zone de ramassage : par le menu du joueur, par un transport IA ou par
+`loadTransport` en script. Publié à la fin d'un chargement réussi. Un chargement refusé (zone indisponible pour
+la coalition, stock épuisé, groupe trop gros pour l'appareil) ne publie rien.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `troops` | CTLDTroopGroup | Le groupe chargé |
+| `carrierUnitName` | string | |
+| `player` | string ou nil | Nom d'unité du slot d'un transport joueur ; `nil` pour un transport IA |
+| `zone` | string | Nom de la zone de ramassage |
+| `timestamp` | number | |
+
+**Published by** : `CTLDTroopManager:embarkFromTroopZone()`
+
+#### `OnTroopsReturned`
+Les troupes à bord sont rendues à la zone de ramassage (son stock est restauré). Un événement par groupe rendu.
+Rien n'est publié quand il n'y a pas de troupes à bord.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `troops` | CTLDTroopGroup | Un groupe rendu |
+| `carrierUnitName` | string | |
+| `player` | string ou nil | Nom d'unité du slot d'un transport joueur ; `nil` pour un transport IA |
+| `zone` | string | Nom de la zone de ramassage |
+| `timestamp` | number | |
+
+**Published by** : `CTLDTroopManager:returnToTroopZone()`
+
+#### `OnTroopsExtracted`
+Un groupe de troupes déposé est récupéré sur le terrain (le plus proche, ou un groupe choisi). Publié à la fin
+d'une extraction réussie. Une extraction refusée (appareil en vol, aucun groupe à proximité, appareil plein) ne
+publie rien.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `troops` | CTLDTroopGroup | Le groupe extrait |
+| `carrierUnitName` | string | |
+| `player` | string ou nil | Nom d'unité du slot d'un transport joueur ; `nil` pour un transport IA |
+| `timestamp` | number | |
+
+**Published by** : `CTLDTroopManager:embarkFromField()` (atteint aussi par `:embarkFromFieldByGroup()`)
 
 ### Événements JTAC (8) { #jtac-events-8 }
 

@@ -8,6 +8,12 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — four troop gestures now publish an event (FEAT-TROOP-GESTURE-EVENTS, issue #308)
+
+- Dropping a troop group, loading troops in a pickup zone, extracting a dropped group in the field and returning troops to the zone published nothing: only the parachute drop did. A layer that followed these gestures through the v1 callbacks (`dropped_troops`, `load_troops`, `extract_troops`, `unload_troops_zone`) lost four of its twelve gestures on CTLD 2 (reported by VMCT).
+  Four events now announce them, on the model of the vehicle ones: `OnTroopsUnloaded` (with the `method`, ground or fast-rope, and the `destination`, combat or extraction zone), `OnTroopsLoaded` and `OnTroopsReturned` (with the pickup `zone`), and `OnTroopsExtracted`. Each carries the troop group, the carrier unit, the `player` (the slot unit name; empty for an AI transport) and a timestamp, and is published only when the gesture really happened. "Unload All" and "Return" publish one event per group.
+  `OnTroopsDeployed` is unchanged (the parachute drop). The migration guide now says so, and maps the four v1 callbacks to the four events.
+
 ### Fixed — a parachuted equipment crate that cannot be unpacked is no longer silent, and no longer logged as a success (FIX-AUTO-UNPACK-SILENT-FAILURE, issue #294)
 
 - When a parachuted equipment crate (a vehicle, a static, a JTAC drone) landed and its equipment could not be created — the coalition's JTAC limit reached, or the group refused by DCS — nobody was told, and the log line "auto-unpack (parachute) EQUIPMENT" read as a success.
