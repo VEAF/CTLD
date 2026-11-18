@@ -1,6 +1,6 @@
 # 01 — The AI cow's deployment timer reports a refused deployment
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #319) · **Type:** AFK
 
 ## Parent
 

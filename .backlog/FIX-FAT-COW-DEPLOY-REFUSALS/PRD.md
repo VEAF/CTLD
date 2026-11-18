@@ -1,6 +1,6 @@
 # FIX-FAT-COW-DEPLOY-REFUSALS — the AI cow's deployment timer drops the reason `deploy` gave: every refusal is silent
 
-**Status:** ⬜ ready — decisions taken in the grill of 2026-11-18 (no ADR, no `CONTEXT.md` term).
+**Status:** ✅ done (PR #319) — decisions taken in the grill of 2026-11-18 (no ADR, no `CONTEXT.md` term).
 
 GitHub issue #296 (found by an automated review of `develop`; the code has moved since, the analysis holds).
 
