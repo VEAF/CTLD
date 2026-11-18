@@ -4,6 +4,11 @@
 -- Reference: live_tests/unit/U-084 through U-089
 -- ============================================================
 
+-- loader.lua only loads the English dictionary; the French one is needed by the i18n_lang cases below (issue #310).
+local _root = debug.getinfo(1, "S").source:match("^@(.+)tests[\\/]ci[\\/]unit[\\/]")
+if not _root then _root = "" end  -- relative path: cwd is repo root
+dofile(_root .. "src/CTLD_i18n_fr.lua")
+
 describe("CTLDConfig", function()
 
     local cfg
@@ -255,6 +260,53 @@ describe("CTLDConfig", function()
         it("keeps unquoted yes/no as strings (not booleans)", function()
             local t = CTLDConfig.parseYAML("flags:\n- - z1\n  - yes\n  - no")
             assert.same({ { "z1", "yes", "no" } }, t.flags)
+        end)
+
+    end)
+
+    -- ── Issue #310: the labels of the configuration follow the configuration's own i18n_lang ──
+    -- CTLDConfig:load() translated every desc/name BEFORE it filled the settings, so the translation looked up
+    -- the module's global language (the one a host script aligned on the mission) and not the `i18n_lang` the
+    -- snapshot sets. The setting wins, as for every other CTLD text.
+    describe("load() translates the labels in the snapshot's own i18n_lang", function()
+
+        local origLang
+
+        before_each(function()
+            origLang = ctld.i18n_lang
+        end)
+
+        after_each(function()
+            ctld.i18n_lang  = origLang
+            ctld.configUser = nil
+            CTLDConfig._instance = nil
+            CTLDConfig.get():load()
+        end)
+
+        local function loadSnapshot(yaml)
+            ctld.configUser = yaml
+            CTLDConfig._instance = nil
+            local c = CTLDConfig.get()
+            c:load()
+            return c
+        end
+
+        it("uses the snapshot's i18n_lang, not the module's global language", function()
+            ctld.i18n_lang = "en"
+            local c = loadSnapshot("i18n_lang: fr\nsomeList:\n  - desc: Standard Group\n")
+            assert.equals("Groupe standard", c.settings.someList[1].desc)
+        end)
+
+        it("keeps English when the snapshot says so, whatever the module's global language", function()
+            ctld.i18n_lang = "fr"
+            local c = loadSnapshot("i18n_lang: en\nsomeList:\n  - desc: Standard Group\n")
+            assert.equals("Standard Group", c.settings.someList[1].desc)
+        end)
+
+        it("falls back to the module's global language when the snapshot sets none", function()
+            ctld.i18n_lang = "fr"
+            local c = loadSnapshot("someList:\n  - desc: Standard Group\n")
+            assert.equals("Groupe standard", c.settings.someList[1].desc)
         end)
 
     end)

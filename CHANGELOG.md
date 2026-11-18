@@ -8,6 +8,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — the labels of the configuration follow the configuration's own `i18n_lang` (FIX-CONFIG-LABELS-I18N-LANG, issue #310)
+
+- Loading a configuration translated every `desc` and `name` label (crate and group descriptions, aircraft names) before it filled the settings, so the translation could not see the snapshot's `i18n_lang` and used the global language, the one a host script aligns on the mission. A mission in English with `i18n_lang: fr` in its `ctld-config.yaml` got a French menu and English labels (reported by VMCT).
+  The labels are now translated once the settings are in place: the snapshot's `i18n_lang` wins, as for every other CTLD text. A snapshot that sets no `i18n_lang` still uses the global language, and the default configuration is unchanged.
+
 ### Fixed — `ctld.unloadTransport` and `ctld.unloadInProximityToEnemy` work again (FIX-TROOP-UNLOAD-TRANSPORT)
 
 - Both scripted troop drops ended by calling a troop manager method that no longer exists (the drop was renamed in the rewrite), so a mission script that called either raised "attempt to call method 'deploy' (a nil value)" and nothing was dropped.

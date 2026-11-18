@@ -63,13 +63,16 @@ function CTLDConfig:load()
 
     self.isLoaded = true
 
-    -- Localise i18n labels: every desc/name string is an i18n key (mirrors the
-    -- gen-config _I18N_FIELDS wrapping, so runtime labels match in every language).
-    CTLDConfig.localiseI18n(flat)
-
     for k, v in pairs(flat) do
         self.settings[k] = v
     end
+
+    -- Localise i18n labels: every desc/name string is an i18n key (mirrors the
+    -- gen-config _I18N_FIELDS wrapping, so runtime labels match in every language).
+    -- After the settings are in place: ctld.tr reads the language through ctld.gs("i18n_lang"), so the
+    -- snapshot's own i18n_lang wins over the module's global language (issue #310). The tables are shared
+    -- with `self.settings`, so translating them here translates the settings too.
+    CTLDConfig.localiseI18n(flat)
 
     -- ADR 0011 Addendum 1 — two config tiers. A *parameter* (its default value is a scalar)
     -- must always resolve: omitting it is an incomplete document, not a removal, because the
