@@ -1,6 +1,6 @@
 # 02 — The clearing search leaves a trace when it cannot do its job
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done · **Type:** AFK
 
 ## Parent
 
@@ -22,15 +22,15 @@ A `CHANGELOG` *Fixed* entry under `[Unreleased]` records it. No configuration ke
 
 ## Acceptance criteria
 
-- [ ] With the singleton missing, a landing logs the `WARN` naming the cow; a second landing in the same mission does not log it again.
-- [ ] With a search that raises an error, the `WARN` carries the error text, once per mission.
-- [ ] With a return that is not a table, the shape `WARN` names its type; with a non-empty list of malformed entries, the shape `WARN` is logged; each once per mission.
-- [ ] With an empty list, and with well-formed candidates that are all rejected, an `INFO` "no clearing" is logged at every landing and no `WARN`.
-- [ ] The three `WARN` causes are independent (an error does not silence a later shape warning).
-- [ ] The success case still logs its line, and neither a `WARN` nor the "no clearing" line.
-- [ ] Both landing paths log alike, and the landing point is the same as before in every case (the existing assertions stay green).
-- [ ] The new cases fail before the change, for the right reason (nothing is logged today), and pass after it.
-- [ ] `busted tests/ci/` green; luacheck clean; the `CHANGELOG` entry is there.
+- [x] With the singleton missing, a landing logs the `WARN` naming the cow; a second landing in the same mission does not log it again.
+- [x] With a search that raises an error, the `WARN` carries the error text, once per mission.
+- [x] With a return that is not a table, the shape `WARN` names its type; with a non-empty list of malformed entries, the shape `WARN` is logged; each once per mission.
+- [x] With an empty list, and with well-formed candidates that are all rejected, an `INFO` "no clearing" is logged at every landing and no `WARN`.
+- [x] The three `WARN` causes are independent (an error does not silence a later shape warning).
+- [x] The success case still logs its line, and neither a `WARN` nor the "no clearing" line.
+- [x] Both landing paths log alike, and the landing point is the same as before in every case (the existing assertions stay green).
+- [x] The new cases fail before the change, for the right reason (nothing is logged today), and pass after it.
+- [x] `busted tests/ci/` green; luacheck clean; the `CHANGELOG` entry is there.
 
 ## Blocked by
 

@@ -1047,16 +1047,31 @@ function CTLDFatCowManager:_follow(cow)
     return true
 end
 
+--- A candidate as { x, z }, or nil when it is no point: a table whose `x` is a number and whose `z`, else `y`,
+-- is a number. DCS returns vec2 { x, y, course }, whose y is the map's z (VMCT's horizontalDistance convention;
+-- checked on the real output, FIX-FAT-COW-CLEARING-LOG).
+local function asPoint(c)
+    if type(c) ~= "table" then return nil end
+    local z = c.z or c.y
+    if type(c.x) == "number" and type(z) == "number" then return { x = c.x, z = z } end
+    return nil
+end
+
 --- The nearest point to `point` within LZ_SEARCH_M, `clearance` clear of scenery, on land and
--- LZ_MIN_FROM_LEADER_M from the leader, or nil (none, or the call failed).
+-- LZ_MIN_FROM_LEADER_M from the leader, or nil. A nil comes with a second value when the search itself failed
+-- (not when it merely found nothing usable): "error" (the call raised; the third value is the error) or "shape"
+-- (it did not return a list of points; the third value says what it returned).
 local function clearingAt(point, leaderPoint, clearance)
     local ok, candidates = pcall(Disposition.getSimpleZones, point, LZ_SEARCH_M, clearance, LZ_ATTEMPTS)
-    if not (ok and type(candidates) == "table") then return nil end
-    local best, bestD
+    if not ok then return nil, "error", tostring(candidates) end
+    if type(candidates) ~= "table" then
+        return nil, "shape", candidates == nil and "nil" or ("a " .. type(candidates))
+    end
+    local best, bestD, points = nil, nil, 0
     for _, c in ipairs(candidates) do
-        -- A candidate may be a vec2, whose y is the map's z (VMCT's horizontalDistance convention).
-        local q = type(c) == "table" and c.x and { x = c.x, z = c.z or c.y }
-        if q and q.z then
+        local q = asPoint(c)
+        if q then
+            points = points + 1
             local d = math.sqrt((q.x - point.x) ^ 2 + (q.z - point.z) ^ 2)
             local fromLeader = math.sqrt((q.x - leaderPoint.x) ^ 2 + (q.z - leaderPoint.z) ^ 2)
             local okS, s = pcall(land.getSurfaceType, { x = q.x, y = q.z })
@@ -1066,6 +1081,10 @@ local function clearingAt(point, leaderPoint, clearance)
             end
         end
     end
+    -- A non-empty list none of whose entries is a point is not a list of points: the API changed.
+    if points == 0 and candidates[1] ~= nil then
+        return nil, "shape", "a list whose first entry is a " .. type(candidates[1])
+    end
     return best and { x = best.x, y = land.getHeight({ x = best.x, y = best.z }), z = best.z }
 end
 
@@ -1074,13 +1093,36 @@ end
 -- veaf.findSpawnPoint lands its helicopters with (measured 2026-08-06: its points avoid buildings and
 -- forests), so guarded: an absent singleton or an error keeps `point`. The cow sent 120 m left of its
 -- leader struck a tree there (FIX-FAT-COW-AI-LANDING, 2026-10-30).
+-- A second and a third value say when the search itself failed, so that it is not mistaken for "no clearing"
+-- (FIX-FAT-COW-CLEARING-LOG): "missing" (no singleton), "error" or "shape", with what clearingAt says of it.
+-- The first failure seen is the one reported; the point is chosen as before.
 local function clearLandingPoint(point, leaderPoint)
-    if not (Disposition and Disposition.getSimpleZones) then return point end
+    if not (Disposition and Disposition.getSimpleZones) then return point, "missing" end
+    local failure, detail
     for _, clearance in ipairs(LZ_CLEARANCES_M) do
-        local q = clearingAt(point, leaderPoint, clearance)
-        if q then return q end
+        local q, f, d = clearingAt(point, leaderPoint, clearance)
+        if f and not failure then failure, detail = f, d end
+        if q then return q, failure, detail end
     end
-    return point
+    return point, failure, detail
+end
+
+--- Warns about a failed clearing search, once per mission for each cause: it recurs at every landing, and a
+-- second, different cause must not be hidden behind the first.
+function CTLDFatCowManager:_warnClearingFailure(failure, detail, unitName)
+    self._clearingWarned = self._clearingWarned or {}
+    if self._clearingWarned[failure] then return end
+    self._clearingWarned[failure] = true
+    if failure == "missing" then
+        ctld.utils.log("WARN", "CTLDFatCowManager: Disposition.getSimpleZones is not available: cow '%s' lands on the asked point, with no clearing search",
+            unitName)
+    elseif failure == "error" then
+        ctld.utils.log("WARN", "CTLDFatCowManager: Disposition.getSimpleZones failed (%s): cows land on the asked point, with no clearing search",
+            detail)
+    else
+        ctld.utils.log("WARN", "CTLDFatCowManager: Disposition.getSimpleZones returned %s, not a list of points: cows land on the asked point, with no clearing search",
+            detail)
+    end
 end
 
 function CTLDFatCowManager:_landNextTo(cow, leader)
@@ -1090,10 +1132,14 @@ function CTLDFatCowManager:_landNextTo(cow, leader)
     local hdg = ctld.utils.getHeadingInRadians("CTLDFatCowManager", leader, true)
     local left = hdg - math.pi / 2
     local asked = { x = p.x + math.cos(left) * LAND_OFFSET_M, y = p.y, z = p.z + math.sin(left) * LAND_OFFSET_M }
-    local point = clearLandingPoint(asked, p)
+    local point, failure, detail = clearLandingPoint(asked, p)
+    if failure then self:_warnClearingFailure(failure, detail, cow.unitName) end
     if point ~= asked then
         ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' lands in a clearing %d m from the asked point",
             cow.unitName, math.floor(math.sqrt((point.x - asked.x) ^ 2 + (point.z - asked.z) ^ 2) + 0.5))
+    elseif not failure then
+        ctld.utils.log("INFO", "CTLDFatCowManager: no clearing within %d m of the asked point: cow '%s' lands on it",
+            LZ_SEARCH_M, cow.unitName)
     end
     ctrl:setTask(landMission(point))
     cow.ai.phase = CTLDFatCowManager.PHASE_LANDING

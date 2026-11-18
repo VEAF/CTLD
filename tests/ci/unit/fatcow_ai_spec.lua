@@ -718,6 +718,162 @@ describe("AI Fat Cow", function()
             mgr:orderLandHere("Gunfighter-1")
             assert.same({ x = 1100, z = 1880 }, landPoint(cow))
         end)
+
+        -- FIX-FAT-COW-CLEARING-LOG (issue #299): the situations in which the search cannot do its job leave a trace.
+        describe("logs why it cannot land in a clearing", function()
+            local logs, savedLog
+
+            before_each(function()
+                logs, savedLog = {}, ctld.utils.log
+                ctld.utils.log = function(level, fmt, ...)
+                    local ok, text = pcall(string.format, fmt, ...)
+                    logs[#logs + 1] = { level = level, text = ok and text or fmt }
+                end
+            end)
+            after_each(function() ctld.utils.log = savedLog end)
+
+            local function lines(level, needle)
+                local out = {}
+                for _, l in ipairs(logs) do
+                    if l.level == level and (not needle or l.text:find(needle, 1, true)) then out[#out + 1] = l.text end
+                end
+                return out
+            end
+
+            -- A player flight's cow, airborne: "Land here" is the landing, as many times as it is called.
+            local function cowToLand()
+                local _, cow = flightWithCow(true)
+                units[cow.unitName].airborne = true
+                return cow
+            end
+
+            local ASKED = { x = 1000, z = 1880 }
+
+            it("warns once when the singleton is missing", function()
+                _G.Disposition = nil
+                local cow = cowToLand()
+                mgr:orderLandHere("Gunfighter-1")
+                local w = lines("WARN", "is not available")
+                assert.equals(1, #w)
+                assert.is_not_nil(w[1]:find(cow.unitName, 1, true))
+                mgr:orderLandHere("Gunfighter-1")
+                assert.equals(1, #lines("WARN", "is not available"))
+                assert.same(ASKED, landPoint(cow))
+            end)
+
+            it("warns once with the error the search raised", function()
+                _G.Disposition = { getSimpleZones = function() error("signature changed") end }
+                local cow = cowToLand()
+                mgr:orderLandHere("Gunfighter-1")
+                local w = lines("WARN", "failed")
+                assert.equals(1, #w)
+                assert.is_not_nil(w[1]:find("signature changed", 1, true))
+                mgr:orderLandHere("Gunfighter-1")
+                assert.equals(1, #lines("WARN", "failed"))
+                assert.same(ASKED, landPoint(cow))
+            end)
+
+            it("warns once when the search returns something that is not a table", function()
+                _G.Disposition = { getSimpleZones = function() return "oops" end }
+                local cow = cowToLand()
+                mgr:orderLandHere("Gunfighter-1")
+                local w = lines("WARN", "returned")
+                assert.equals(1, #w)
+                assert.is_not_nil(w[1]:find("a string", 1, true))
+                mgr:orderLandHere("Gunfighter-1")
+                assert.equals(1, #lines("WARN", "returned"))
+                assert.same(ASKED, landPoint(cow))
+            end)
+
+            it("says nil when the search returns nothing", function()
+                _G.Disposition = { getSimpleZones = function() return nil end }
+                cowToLand()
+                mgr:orderLandHere("Gunfighter-1")
+                local w = lines("WARN", "returned")
+                assert.equals(1, #w)
+                assert.is_not_nil(w[1]:find("returned nil", 1, true))
+            end)
+
+            it("warns when a non-empty list holds no point at all", function()
+                disposition({ 5, "x" })
+                local cow = cowToLand()
+                mgr:orderLandHere("Gunfighter-1")
+                local w = lines("WARN", "returned")
+                assert.equals(1, #w)
+                assert.is_not_nil(w[1]:find("a list whose first entry is a number", 1, true))
+                assert.same(ASKED, landPoint(cow))
+            end)
+
+            it("counts a candidate without numeric coordinates as no point, and does not raise", function()
+                disposition({ { x = "far", y = 1880 } })
+                local cow = cowToLand()
+                assert.has_no.errors(function() mgr:orderLandHere("Gunfighter-1") end)
+                assert.equals(1, #lines("WARN", "returned"))
+                assert.same(ASKED, landPoint(cow))
+            end)
+
+            it("does not warn when at least one candidate is a point: it picks it", function()
+                disposition({ 5, { x = 1100, y = 1880 } })
+                local cow = cowToLand()
+                mgr:orderLandHere("Gunfighter-1")
+                assert.equals(0, #lines("WARN"))
+                assert.same({ x = 1100, z = 1880 }, landPoint(cow))
+            end)
+
+            it("tells at every landing that there is no clearing, without a warning, for an empty list", function()
+                disposition({})
+                local cow = cowToLand()
+                mgr:orderLandHere("Gunfighter-1")
+                mgr:orderLandHere("Gunfighter-1")
+                local i = lines("INFO", "no clearing within 300 m")
+                assert.equals(2, #i)
+                assert.is_not_nil(i[1]:find(cow.unitName, 1, true))
+                assert.equals(0, #lines("WARN"))
+                assert.same(ASKED, landPoint(cow))
+            end)
+
+            it("does the same when every point is rejected (too close to the leader, out of range)", function()
+                disposition({ { x = 1000, y = 1950 }, { x = 1500, y = 1880 } })
+                local cow = cowToLand()
+                mgr:orderLandHere("Gunfighter-1")
+                assert.equals(1, #lines("INFO", "no clearing within 300 m"))
+                assert.equals(0, #lines("WARN"))
+                assert.same(ASKED, landPoint(cow))
+            end)
+
+            it("tracks the three causes apart: an error does not silence a later wrong shape", function()
+                local cow = cowToLand()
+                _G.Disposition = { getSimpleZones = function() error("boom") end }
+                mgr:orderLandHere("Gunfighter-1")
+                _G.Disposition = { getSimpleZones = function() return "oops" end }
+                mgr:orderLandHere("Gunfighter-1")
+                _G.Disposition = nil
+                mgr:orderLandHere("Gunfighter-1")
+                _G.Disposition = { getSimpleZones = function() error("boom again") end }
+                mgr:orderLandHere("Gunfighter-1")
+                assert.equals(1, #lines("WARN", "failed"))
+                assert.equals(1, #lines("WARN", "returned"))
+                assert.equals(1, #lines("WARN", "is not available"))
+                assert.equals(3, #lines("WARN"))
+                assert.same(ASKED, landPoint(cow))
+            end)
+
+            it("logs when the flight's own landing takes the fallback, not only on Land here", function()
+                _G.Disposition = nil
+                local leader = flightWithCow()
+                mgr:onLand({ initiator = leader })
+                assert.equals(1, #lines("WARN", "is not available"))
+            end)
+
+            it("keeps its line for a clearing that was found, and nothing else", function()
+                disposition({ { x = 1100, y = 1880 } })
+                cowToLand()
+                mgr:orderLandHere("Gunfighter-1")
+                assert.equals(1, #lines("INFO", "lands in a clearing"))
+                assert.equals(0, #lines("INFO", "no clearing"))
+                assert.equals(0, #lines("WARN"))
+            end)
+        end)
     end)
 
     it("forgets a cow whose unit vanished without an event, and its flight may request another", function()
