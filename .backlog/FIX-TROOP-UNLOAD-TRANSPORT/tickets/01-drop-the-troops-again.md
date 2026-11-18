@@ -1,6 +1,6 @@
 # 01 — The scripted troop drops drop the troops again
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #313) · **Type:** AFK
 
 ## Parent
 

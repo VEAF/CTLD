@@ -1,6 +1,6 @@
 # FIX-TROOP-UNLOAD-TRANSPORT — the scripted troop drops call a method that no longer exists
 
-**Status:** ⬜ ready — no open decision.
+**Status:** ✅ done (PR #313)
 
 Found on 2026-11-18 while preparing FEAT-TROOP-GESTURE-EVENTS (PR #311), decided with the maintainer the same day (the v1 rules are kept).
 
