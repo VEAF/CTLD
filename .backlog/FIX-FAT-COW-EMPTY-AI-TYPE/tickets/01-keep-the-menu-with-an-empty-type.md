@@ -1,6 +1,6 @@
 # 01 — The Fat Cow menu stays when `fatCowAIType` is empty
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 
@@ -17,15 +17,15 @@ An empty `fatCowAIType` removes only **Request a Fat Cow**, as the guide and the
 
 ## Acceptance criteria
 
-- [ ] With an empty `fatCowAIType`, a helicopter flight with no cow sees the Fat Cow submenu with FARP status, Land here, Take off, Hold here, Join us, Fat Cow status, RTB and Release the Fat Cow, and neither **Request a Fat Cow** nor its loadout commands.
-- [ ] With the default type the menu is unchanged, **Request a Fat Cow** included.
-- [ ] With an empty type, **Take over a Fat Cow** still appears when a cow can be taken over.
-- [ ] With an empty type and a cow placed by the mission, the pilot's **Land here** reaches the cow, which lands.
-- [ ] With an empty type and no cow, **Fat Cow status** and **Land here** answer "Your flight has no Fat Cow.".
-- [ ] The new cases fail before the change, for the right reason (the whole menu is absent), and pass after it; the other Fat Cow specs pass unchanged.
-- [ ] The mission maker's guide (English and French) and the description of the setting in the schema (English and French) say that only **Request a Fat Cow** disappears and why the other commands stay; the pilot guide is consistent with them.
-- [ ] No catalogue shape or dictionary changes after the build; the `CHANGELOG` entry is there.
-- [ ] `busted tests/ci/` green; luacheck clean.
+- [x] With an empty `fatCowAIType`, a helicopter flight with no cow sees the Fat Cow submenu with FARP status, Land here, Take off, Hold here, Join us, Fat Cow status, RTB and Release the Fat Cow, and neither **Request a Fat Cow** nor its loadout commands.
+- [x] With the default type the menu is unchanged, **Request a Fat Cow** included.
+- [x] With an empty type, **Take over a Fat Cow** still appears when a cow can be taken over.
+- [x] With an empty type and a cow placed by the mission, the pilot's **Land here** reaches the cow, which lands.
+- [x] With an empty type and no cow, **Fat Cow status** and **Land here** answer "Your flight has no Fat Cow.".
+- [x] The new cases fail before the change, for the right reason (the whole menu is absent), and pass after it; the other Fat Cow specs pass unchanged.
+- [x] The mission maker's guide (English and French) and the description of the setting in the schema (English and French) say that only **Request a Fat Cow** disappears and why the other commands stay; the pilot guide is consistent with them.
+- [x] No catalogue shape or dictionary changes after the build; the `CHANGELOG` entry is there.
+- [x] `busted tests/ci/` green; luacheck clean.
 
 ## Blocked by
 

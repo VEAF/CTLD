@@ -1595,13 +1595,16 @@ function CTLDFatCowManager:_addTakeOverCommands(playerObj, menu, path)
 end
 
 function CTLDFatCowManager:_buildAIMenu(playerObj, menu, path)
-    if ctld.gs("fatCowAIType") == "" then return end
     menu:addSubMenu({ path[1] }, path[2], { order = 50 })
     local mgr = CTLDFatCowManager.getInstance
     local u = { unitName = playerObj.unitName }
-    local requestPath = { path[1], path[2], ctld.tr("Request a Fat Cow") }
-    menu:addSubMenu(path, requestPath[3], { order = 1 })
-    self:_addLoadoutCommands(menu, requestPath, playerObj.unitName, "requestAICow")
+    -- An empty fatCowAIType removes this one command: the others serve the cows placed in the mission, which need
+    -- no type, and FARP status needs no AI cow (FIX-FAT-COW-EMPTY-AI-TYPE).
+    if ctld.gs("fatCowAIType") ~= "" then
+        local requestPath = { path[1], path[2], ctld.tr("Request a Fat Cow") }
+        menu:addSubMenu(path, requestPath[3], { order = 1 })
+        self:_addLoadoutCommands(menu, requestPath, playerObj.unitName, "requestAICow")
+    end
     menu:addCommand(path, ctld.tr("Land here"), function(arg) mgr():orderLandHere(arg.unitName) end, u, { order = 2 })
     menu:addCommand(path, ctld.tr("Take off"), function(arg) mgr():orderTakeOff(arg.unitName) end, u, { order = 3 })
     menu:addCommand(path, ctld.tr("Hold here"), function(arg) mgr():orderHoldHere(arg.unitName) end, u, { order = 4 })

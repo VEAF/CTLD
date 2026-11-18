@@ -45,7 +45,7 @@ Tous dans la famille `fob` de la configuration.
 | `fatCowCrates` | réservoir ; Hellfire et 30 mm (Apache) ; Vikhr et obus de 2A42 (Ka-50) ; Ataka, Shturm et obus de GSh-30 (Mi-24P) | Les caisses dans lesquelles une cow pilotée emporte son stock (voir plus bas). |
 | `fatCowLoadouts` | quatre lots Apache, quatre russes et deux mixtes, chacun avec 4 800 kg de carburant | Ce qu'emporte une cow : chargé par une cow pilotée, choisi par une patrouille qui demande une cow IA (voir plus bas). |
 | `fatCowDeployDelay` | `60` | Secondes qu'une cow IA passe au sol avant que sa FARP ouvre. |
-| `fatCowAIType` | `CH-47Fbl1` | Type de l'hélicoptère amené quand une patrouille demande une cow. Vide, **Demander une Fat Cow** disparaît. |
+| `fatCowAIType` | `CH-47Fbl1` | Type de l'hélicoptère amené quand une patrouille demande une cow. Vide, seule **Demander une Fat Cow** disparaît : les autres commandes restent (une cow placée dans la mission n'a pas besoin de type, et **Statut FARP** n'a besoin d'aucune cow IA). |
 | `fatCowAICows` | `[]` | Cows placées dans la mission (voir plus bas). |
 
 ### Lots de chargement

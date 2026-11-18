@@ -8,6 +8,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — an empty `fatCowAIType` removes only "Request a Fat Cow" (FIX-FAT-COW-EMPTY-AI-TYPE, issue #297)
+
+- The guide, the schema and the editor say that an empty `fatCowAIType` removes the **Request a Fat Cow** command. The code returned before the Fat Cow submenu was even created, so the whole branch disappeared for the helicopter pilots a cow serves (Apache, Ka-50, Mi-24P): Land here, Take off, Hold here, Join us, Fat Cow status, RTB, Release the Fat Cow, Take over a Fat Cow, and **FARP status**, which needs no AI cow at all. An empty type is the documented way to open only piloted cows, so those pilots had no menu to read what the FARP of a piloted cow still held; and a server that only uses cows placed in the mission (`fatCowAICows`, which need no type) could not command them.
+  The menu now leaves out only **Request a Fat Cow** and its loadouts; the other commands stay, and a flight with no cow still gets "Your flight has no Fat Cow.". The mission maker's guide and the description of the setting in the editor (English and French) now say so and say why.
+
 ### Fixed — the "Take over a Fat Cow" list no longer changes under the pilot's finger (FIX-FAT-COW-TAKEOVER-LABELS, issue #298)
 
 - Each entry of *Fat Cow → Take over a Fat Cow* carried its cow's distance, rounded to the kilometre, in its label, and a timer rebuilt the list every 30 s. Since the stable F10 entries (ADR 0027) a label is an entry's identity, so an entry whose distance changed was recreated: a click from a screen left open fired nothing, without any message, and a cow flying home at 65 m/s changed its kilometre at almost every refresh. Two cows at the same kilometre also shared a label, and could swap places between two refreshes, so a click took the other one.
