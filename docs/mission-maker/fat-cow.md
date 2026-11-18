@@ -45,7 +45,7 @@ All in the `fob` family of the configuration.
 | `fatCowCrates` | fuel tank; Hellfires and 30 mm (Apache); Vikhr and 2A42 rounds (Ka-50); Ataka, Shturm and GSh-30 rounds (Mi-24P) | The crates a player cow carries its stock in (see below). |
 | `fatCowLoadouts` | four Apache, four Russian and two mixed loadouts, each with 4 800 kg of fuel | What a cow carries: loaded by a player cow, picked by a flight requesting an AI cow (see below). |
 | `fatCowDeployDelay` | `60` | Seconds an AI cow stays on the ground before its FARP opens. |
-| `fatCowAIType` | `CH-47Fbl1` | Type of the helicopter brought in when a flight requests a cow. Empty removes **Request a Fat Cow**. |
+| `fatCowAIType` | `CH-47Fbl1` | Type of the helicopter brought in when a flight requests a cow. Empty removes **Request a Fat Cow** only: the other commands stay (a cow placed in the mission needs no type, and **FARP status** needs no AI cow). |
 | `fatCowAICows` | `[]` | Cows placed in the mission (see below). |
 
 ### Loadouts

@@ -503,8 +503,8 @@ fatCowAIType:
   group: fob
   label: {en: AI Fat Cow type, fr: Type de la cow IA}
   description:
-    en: DCS type of the helicopter brought in when a flight requests a Fat Cow. Empty removes the Request a Fat Cow command.
-    fr: Type DCS de l'hélicoptère amené quand une patrouille demande une Fat Cow. Vide, la commande Demander une Fat Cow disparaît.
+    en: DCS type of the helicopter brought in when a flight requests a Fat Cow. Empty removes only the Request a Fat Cow command; the other commands stay, for the cows placed in the mission (fatCowAICows) and for FARP status.
+    fr: Type DCS de l'hélicoptère amené quand une patrouille demande une Fat Cow. Vide, seule la commande Demander une Fat Cow disparaît ; les autres commandes restent, pour les cows placées dans la mission (fatCowAICows) et pour Statut FARP.
 fatCowAICows:
   group: fob
   label: {en: Mission-placed Fat Cows, fr: Fat Cows placées dans la mission}

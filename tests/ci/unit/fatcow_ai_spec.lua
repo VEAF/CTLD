@@ -858,6 +858,68 @@ describe("AI Fat Cow", function()
         end)
     end)
 
+    -- FIX-FAT-COW-EMPTY-AI-TYPE (issue #297): an empty fatCowAIType removes "Request a Fat Cow" and nothing else.
+    describe("with an empty fatCowAIType", function()
+        local COMMANDS = { "Land here", "Take off", "Hold here", "Join us", "Fat Cow status", "FARP status", "RTB",
+                           "Release the Fat Cow" }
+
+        it("keeps the Fat Cow menu, and removes only Request a Fat Cow", function()
+            mgr._settings.fatCowAIType = ""
+            local set = aiMenuOf(playerFlight("Viper", 8, 8000, 2000))
+            assert.is_true(set["Fat Cow"])
+            for _, label in ipairs(COMMANDS) do
+                assert.is_true(set[label], label .. " is missing")
+            end
+            assert.is_nil(set["Request a Fat Cow"])
+            assert.is_nil(set["Six"])                                        -- nor the loadouts under it
+            assert.is_nil(set["Radar"])
+        end)
+
+        it("is unchanged with a type (the control)", function()
+            local set = aiMenuOf(playerFlight("Viper", 8, 8000, 2000))
+            assert.is_true(set["Request a Fat Cow"])
+            assert.is_true(set["Six"])
+            for _, label in ipairs(COMMANDS) do
+                assert.is_true(set[label], label .. " is missing")
+            end
+        end)
+
+        it("still offers a cow to take over", function()
+            local p = playerFlight("Viper", 8, 8000, 2000)
+            orphanCow()                                                      -- a cow going home
+            mgr._settings.fatCowAIType = ""
+            assert.is_true(aiMenuOf(p)["Take over a Fat Cow"])
+        end)
+
+        it("lets the pilot command a cow placed by the mission", function()
+            mgr._settings.fatCowAIType = ""
+            mgr._settings.fatCowAICows = { { group = "Cow Group", escort = "Gunfighter" } }
+            newGroup("Cow Group", 50, "Cow-1")
+            newUnit("Cow-1", "Cow Group")
+            newGroup("Gunfighter", 7, "Gunfighter-1")
+            local leader = newUnit("Gunfighter-1", "Gunfighter")
+            function leader:getPlayerName() return "Zip" end
+            mgr:_activateMissionCows()
+            runScheduled()
+            local cow = mgr:aiCowOfFlight("Gunfighter")
+            assert.is_not_nil(cow)
+            assert.is_true(aiMenuOf(player("Gunfighter-1", "Gunfighter", 7))["Land here"])
+            units[cow.unitName].airborne = true
+            mgr:orderLandHere("Gunfighter-1")                               -- the click on Land here
+            assert.equals("Mission", lastTask(cow.ai.groupName).id)
+        end)
+
+        it("answers a flight with no cow that it has none", function()
+            mgr._settings.fatCowAIType = ""
+            playerFlight("Viper", 8, 8000, 2000)
+            mgr:reportFlightCowStatus("Viper-1")
+            assert.is_not_nil(messages[#messages].text:find("Your flight has no Fat Cow", 1, true))
+            messages = {}
+            mgr:orderLandHere("Viper-1")
+            assert.is_not_nil(messages[#messages].text:find("Your flight has no Fat Cow", 1, true))
+        end)
+    end)
+
     -- ── FIX-FAT-COW-AI-LANDING ───────────────────────────────────────────────────────────────────
 
     -- The Land task point the cow was last given, as { x, z }.
