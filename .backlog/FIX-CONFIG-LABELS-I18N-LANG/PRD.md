@@ -1,6 +1,6 @@
 # FIX-CONFIG-LABELS-I18N-LANG — the labels of the configuration ignore the configuration's own `i18n_lang`
 
-**Status:** ⬜ ready — no open decision.
+**Status:** ✅ done (PR #314)
 
 GitHub issue #310 (reported by VMCT), decided with the maintainer on 2026-11-18.
 

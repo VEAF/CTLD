@@ -1,6 +1,6 @@
 # 01 — Translate the labels of the configuration after the settings are in place
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #314) · **Type:** AFK
 
 ## Parent
 
