@@ -163,6 +163,11 @@ function CTLDConfig:reportRetiredSettings()
         ctld.startupReport.add("NOTICE", "config", ctld.tr(
             "dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"))
     end
+    -- v1's minimumDeployDistance (a distance) became the boolean forbidUnpackInLogisticZone (issue #309, ADR 0029).
+    if self.settings["minimumDeployDistance"] ~= nil and ctld.startupReport then
+        ctld.startupReport.add("NOTICE", "config", ctld.tr(
+            "minimumDeployDistance is not read by CTLD 2 — set forbidUnpackInLogisticZone: true to refuse unpacking crates inside a logistic zone"))
+    end
 end
 
 --- Parameters the loaded snapshot omitted, and lists newer than its version, resolved from the default catalogue.

@@ -424,6 +424,7 @@ mm_facing:
   fobLogisticZoneRadius: 150
   fobMinDistanceFromZones: 500
   fobTroopPickupRadius: 150
+  forbidUnpackInLogisticZone: false
   groundVehicleWeights:
     BTR_D: 8000
     Hummer: 2400

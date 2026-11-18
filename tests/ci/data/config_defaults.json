@@ -612,6 +612,7 @@
   "fobLogisticZoneRadius": 150,
   "fobMinDistanceFromZones": 500,
   "fobTroopPickupRadius": 150,
+  "forbidUnpackInLogisticZone": false,
   "groundAglThreshold": 5.0,
   "groundVehicleWeights": {
     "BRDM-2": 7000,

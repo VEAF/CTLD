@@ -94,6 +94,7 @@
     "fobLogisticZoneRadius",
     "fobMinDistanceFromZones",
     "fobTroopPickupRadius",
+    "forbidUnpackInLogisticZone",
     "groundAglThreshold",
     "groundVehicleWeights",
     "hoverTime",

@@ -8,6 +8,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — dropped groups act on their own again, and the unpack guard returns as an option (FIX-LEGACY-MOVE-AND-DEPLOY-SETTINGS, issue #309)
+
+- Two CTLD v1 settings had no key in CTLD 2 (reported by VMCT): `maximumMoveDistance` and `minimumDeployDistance`. Their behaviour had gone with them — a snapshot carrying them was ignored without a word.
+  **Default behaviour change.** A dropped group — troops dropped by a pilot (ground or fast-rope), by parachute or by an AI transport, a whole vehicle unloaded from a transport (menu, DCS native release, parachute; a JTAC vehicle included), or a group spawned by `CTLDTroopManager:spawnGroupAtTrigger` / `spawnGroupAtPoint` — acts on its own, as in v1: it goes for the nearest enemy ground group within `maximumSearchDistance`, otherwise it walks to a random point within the new `maximumMoveDistance` (2000 m) of where it was dropped. A waypoint zone, or a task declared by the troop template, keeps priority; a vehicle that comes out of an unpacked crate is not concerned. `maximumSearchDistance` goes back to its v1 default of `4000` (it was `3000`). **To keep groups where they are dropped, set both `maximumSearchDistance` and `maximumMoveDistance` to `0`.**
+  The deprecated `ctld.spawnGroupAtTrigger` / `ctld.spawnGroupAtPoint` keep the v1 meaning of their last argument, the enemy search distance (a negative value counts as `0`), through a new optional last parameter of the v2 methods; their units sit on the 30 m circle of v1.
+- New option `forbidUnpackInLogisticZone` (`false` by default: nothing is blocked, as in CTLD 2). When `true`, an ordinary crate (a vehicle, an AA system) is refused by the *Unpack Crate* menu inside a friendly logistic zone, with the v1 message "You can't unpack that here! Take it to where it's needed!", and a parachuted equipment crate that lands there is not unpacked by itself. FOB and FARP crates keep their own rules. It replaces the v1 `minimumDeployDistance` (a distance); a snapshot that still carries that key gets a startup notice naming the new option.
+- The catalogue is now `configVersion` 2.4.0 (two keys added). The settings tables and the v1 → v2 migration guide (EN and FR) describe both.
+
 ### Fixed — the labels of the configuration follow the configuration's own `i18n_lang` (FIX-CONFIG-LABELS-I18N-LANG, issue #310)
 
 - Loading a configuration translated every `desc` and `name` label (crate and group descriptions, aircraft names) before it filled the settings, so the translation could not see the snapshot's `i18n_lang` and used the global language, the one a host script aligns on the mission. A mission in English with `i18n_lang: fr` in its `ctld-config.yaml` got a French menu and English labels (reported by VMCT).

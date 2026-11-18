@@ -132,6 +132,7 @@ réglages devenus inutiles, valeurs par défaut déplacées — sans jamais rien
 | `enableHoverSlingload` | `true` | Autorise le chargement de crate en hover au-dessus. Si `false`, les crate ne se chargent que via le menu F10 (`loadCrateFromMenu`) |
 | `loadCrateFromMenu` | `true` | Autorise le chargement de crate via le menu F10 (utile pour les fixed-wing incapables de hover) |
 | `enableSmokeDrop` | `true` | Active l'entrée F10 « Drop Smoke » |
+| `forbidUnpackInLogisticZone` | `false` | Si `true`, une caisse ordinaire (véhicule, système AA) ne peut pas être déballée dans une zone logistique amie (le pilote lit « You can't unpack that here! »), et une caisse d'équipement larguée qui y atterrit ne se déballe pas toute seule. Les caisses FOB et FARP gardent leurs propres règles. Remplace le `minimumDeployDistance` de la v1 |
 
 ### Distances (mètres)
 

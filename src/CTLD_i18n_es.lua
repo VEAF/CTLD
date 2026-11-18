@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["es"] = {}
-ctld.i18n["es"].translation_version = "1.37"
+ctld.i18n["es"].translation_version = "1.38"
 
 --- groups names
 ctld.i18n["es"]["Standard Group"] = "Grupo estándar"
@@ -738,3 +738,7 @@ ctld.i18n["es"]["The Fat Cow FARP stays open (%1 on the F10 map): %2. Land withi
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-11-04
 ctld.i18n["es"]["Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2."] = "Entrega primero las cajas Fat Cow a CTLD: abre las puertas y luego F10 > CTLD > %1 > %2."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-18
+ctld.i18n["es"]["minimumDeployDistance is not read by CTLD 2 — set forbidUnpackInLogisticZone: true to refuse unpacking crates inside a logistic zone"] = "CTLD 2 no lee minimumDeployDistance — usa forbidUnpackInLogisticZone: true para impedir desembalar cajas dentro de una zona logística"
+ctld.i18n["es"]["You can't unpack that here! Take it to where it's needed!"] = "¡No puedes desembalar eso aquí! ¡Llévalo a donde lo necesiten!"

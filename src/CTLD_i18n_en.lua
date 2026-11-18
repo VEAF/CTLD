@@ -15,7 +15,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.37"
+ctld.i18n["en"].translation_version = "1.38"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -731,3 +731,7 @@ ctld.i18n["en"]["The Fat Cow FARP stays open (%1 on the F10 map): %2. Land withi
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-11-04
 ctld.i18n["en"]["Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2."] = "Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-18
+ctld.i18n["en"]["minimumDeployDistance is not read by CTLD 2 — set forbidUnpackInLogisticZone: true to refuse unpacking crates inside a logistic zone"] = "minimumDeployDistance is not read by CTLD 2 — set forbidUnpackInLogisticZone: true to refuse unpacking crates inside a logistic zone"
+ctld.i18n["en"]["You can't unpack that here! Take it to where it's needed!"] = "You can't unpack that here! Take it to where it's needed!"

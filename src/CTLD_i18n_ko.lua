@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.37"
+ctld.i18n["ko"].translation_version = "1.38"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -620,3 +620,7 @@ ctld.i18n["ko"]["The Fat Cow FARP stays open (%1 on the F10 map): %2. Land withi
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-11-04
 ctld.i18n["ko"]["Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2."] = "먼저 Fat Cow 화물을 CTLD에 넘기십시오: 문을 연 다음 F10 > CTLD > %1 > %2."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-18
+ctld.i18n["ko"]["minimumDeployDistance is not read by CTLD 2 — set forbidUnpackInLogisticZone: true to refuse unpacking crates inside a logistic zone"] = "CTLD 2는 minimumDeployDistance를 읽지 않습니다 — 보급 구역 안에서 상자 개봉을 막으려면 forbidUnpackInLogisticZone: true 로 설정하세요"
+ctld.i18n["ko"]["You can't unpack that here! Take it to where it's needed!"] = "여기서는 개봉할 수 없습니다! 필요한 곳으로 가져가세요!"

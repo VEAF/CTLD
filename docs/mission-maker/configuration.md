@@ -126,6 +126,7 @@ used, defaults that moved — without ever merging anything behind your back.
 | `enableHoverSlingload` | `true` | Allow crate loading by hovering above it. If `false`, crates load only via the F10 menu (`loadCrateFromMenu`) |
 | `loadCrateFromMenu` | `true` | Allow crate loading via the F10 menu (useful for fixed-wing that cannot hover) |
 | `enableSmokeDrop` | `true` | Enable the "Drop Smoke" F10 entry |
+| `forbidUnpackInLogisticZone` | `false` | When `true`, an ordinary crate (a vehicle, an AA system) cannot be unpacked inside a friendly logistic zone (the pilot is told "You can't unpack that here!"), and a parachuted equipment crate that lands there is not unpacked by itself. FOB and FARP crates keep their own rules. Replaces the v1 `minimumDeployDistance` |
 
 ### Distances (metres)
 

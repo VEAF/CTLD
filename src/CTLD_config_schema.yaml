@@ -165,6 +165,12 @@ maximumDistancePackableUnitsSearch:
   description:
     en: Max distance to search for packable vehicles
     fr: Distance max pour chercher des véhicules pack-ables
+forbidUnpackInLogisticZone:
+  group: crates
+  label: {en: Forbid unpacking in a logistic zone, fr: Interdire le déballage en zone logistique}
+  description:
+    en: When true, an ordinary crate (a vehicle, an AA system) cannot be unpacked inside a friendly logistic zone, and a parachuted equipment crate that lands there is not unpacked by itself. FOB and FARP crates keep their own rules. Replaces the v1 minimumDeployDistance
+    fr: Si true, une caisse ordinaire (véhicule, système AA) ne peut pas être déballée dans une zone logistique amie, et une caisse d'équipement larguée qui y atterrit ne se déballe pas toute seule. Les caisses FOB et FARP gardent leurs propres règles. Remplace le minimumDeployDistance de la v1
 
 # ── Troupes ──────────────────────────────────────────────────────────────────
 numberOfTroops:
