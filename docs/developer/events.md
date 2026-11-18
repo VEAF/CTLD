@@ -436,7 +436,7 @@ vehicle spawner and the crate manager publish `OnGroundUnitSpawned`.
 - `OnGroundUnitSpawned`: `CTLDVehicleSpawner:_spawnGroundUnit()`, `CTLDCrateManager:_spawnUnpacked()`
 - `OnGroundUnitRemoved`: `CTLDVehicleSpawner:loadVehicle()`, `:onDead()`, `:packVehicle()`
 
-### Troop events (5)
+### Troop events (6)
 
 #### `OnTroopsDeployed`
 Troops are deployed by parachute.
@@ -511,6 +511,20 @@ Nothing is published when there are no troops on board.
 | `timestamp` | number | |
 
 **Published by**: `CTLDTroopManager:returnToTroopZone()`
+
+#### `OnTroopsExtracted`
+A dropped troop group is picked up in the field (nearest group, or a chosen one). Published at the end of a
+successful extraction. A refused extraction (aircraft in the air, no group nearby, aircraft full) publishes
+nothing.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `troops` | CTLDTroopGroup | The group extracted |
+| `carrierUnitName` | string | |
+| `player` | string or nil | Slot unit name of a player transport; `nil` for an AI transport |
+| `timestamp` | number | |
+
+**Published by**: `CTLDTroopManager:embarkFromField()` (also reached by `:embarkFromFieldByGroup()`)
 
 ### JTAC events (8)
 

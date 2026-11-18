@@ -206,10 +206,20 @@ local ed   = EventDispatcher.getInstance()
 
 tm:spawnGroupAtTrigger(coalition.side.BLUE, 10, "LZ_NORTH", 100)
 jtac:autoLase("ENEMY_ARMOUR", 1688, true)
-ed:subscribe("OnTroopsDeployed", function(evt)
+ed:subscribe("OnTroopsUnloaded", function(evt)
     trigger.action.outText("Troops landed!", 10)
 end)
 ```
+
+`OnTroopsDeployed` ne couvre que le largage **par parachute**. Un dépôt au sol, en rappel (fast-rope) ou dans une
+zone d'extraction est `OnTroopsUnloaded`. Les quatre callbacks v1 de troupes correspondent à ces événements :
+
+| `action` du callback v1 | Événement v2 |
+| --- | --- |
+| `dropped_troops` | `OnTroopsUnloaded` (et `OnTroopsDeployed` pour un largage parachuté) |
+| `load_troops` | `OnTroopsLoaded` |
+| `extract_troops` | `OnTroopsExtracted` |
+| `unload_troops_zone` | `OnTroopsReturned` |
 
 ## Quels appareils sont des transports { #which-aircraft-are-transports }
 

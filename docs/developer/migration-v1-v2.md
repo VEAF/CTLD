@@ -200,10 +200,20 @@ local ed   = EventDispatcher.getInstance()
 
 tm:spawnGroupAtTrigger(coalition.side.BLUE, 10, "LZ_NORTH", 100)
 jtac:autoLase("ENEMY_ARMOUR", 1688, true)
-ed:subscribe("OnTroopsDeployed", function(evt)
+ed:subscribe("OnTroopsUnloaded", function(evt)
     trigger.action.outText("Troops landed!", 10)
 end)
 ```
+
+`OnTroopsDeployed` covers the **parachute** drop only. A drop on the ground, by fast-rope or into an extraction
+zone is `OnTroopsUnloaded`. The four v1 troop callbacks map to these events:
+
+| v1 callback `action` | v2 event |
+| --- | --- |
+| `dropped_troops` | `OnTroopsUnloaded` (and `OnTroopsDeployed` for a parachute drop) |
+| `load_troops` | `OnTroopsLoaded` |
+| `extract_troops` | `OnTroopsExtracted` |
+| `unload_troops_zone` | `OnTroopsReturned` |
 
 ## Which aircraft are transports
 

@@ -110,6 +110,70 @@ describe("Troop gesture events (issue #308)", function()
         zm.isUnitInZone, zm.getWaypointZoneAt = zmSaved.isUnitInZone, zmSaved.getWaypointZoneAt
     end)
 
+    -- ── OnTroopsExtracted (ticket 03) ─────────────────────────────────────────
+    describe("OnTroopsExtracted", function()
+
+        local origGetByName
+
+        local function dropped(name)
+            local p = mockUnit:getPoint()
+            local u = { getPoint = function() return { x = p.x + 10, y = p.y, z = p.z + 10 } end,
+                        getCountry = function() return 2 end, getName = function() return name .. "_u1" end,
+                        isExist = function() return true end }
+            return { getName = function() return name end, getUnits = function() return { u, u, u } end,
+                     getUnit = function() return u end, isExist = function() return true end,
+                     destroy = function() end }
+        end
+
+        before_each(function()
+            origGetByName = Group.getByName
+            local groups = { MockDropped_A = dropped("MockDropped_A"), MockDropped_B = dropped("MockDropped_B") }
+            Group.getByName = function(n) return groups[n] or origGetByName(n) end
+            tm._droppedGroups[mockUnit:getCoalition()] = { "MockDropped_A", "MockDropped_B" }
+            tm._droppedTemplates["MockDropped_A"] = { key = "Alpha_Squad", name = "Alpha Squad", weight = 520, total = 3 }
+            tm._droppedTemplates["MockDropped_B"] = { key = "Bravo_Squad", name = "Bravo Squad", weight = 520, total = 3 }
+        end)
+
+        after_each(function()
+            Group.getByName = origGetByName
+        end)
+
+        it("is published once, with the group, the carrier and the player", function()
+            asPlayer(mockUnit)
+            assert.is_true(tm:embarkFromField(mockUnit))
+            local ev = fired.OnTroopsExtracted
+            assert.equals(1, #ev)
+            assert.equals("Alpha Squad", ev[1].troops.templateName)
+            assert.equals("UH-1H-1", ev[1].carrierUnitName)
+            assert.equals("UH-1H-1", ev[1].player)
+            assert.is_number(ev[1].timestamp)
+        end)
+
+        it("is published when a chosen group is extracted", function()
+            assert.is_true(tm:embarkFromFieldByGroup(mockUnit, "MockDropped_B"))
+            assert.equals(1, #fired.OnTroopsExtracted)
+            assert.equals("Bravo Squad", fired.OnTroopsExtracted[1].troops.templateName)
+        end)
+
+        it("has an empty player for an AI transport", function()
+            assert.is_true(tm:embarkFromField(mockUnit))
+            assert.is_nil(fired.OnTroopsExtracted[1].player)
+        end)
+
+        it("is not published when the aircraft is in the air", function()
+            tm._isInAir = function() return true end
+            assert.is_false(tm:embarkFromField(mockUnit))
+            assert.equals(0, #fired.OnTroopsExtracted)
+        end)
+
+        it("is not published when no group is nearby", function()
+            tm._droppedGroups[mockUnit:getCoalition()] = {}
+            assert.is_false(tm:embarkFromField(mockUnit))
+            assert.equals(0, #fired.OnTroopsExtracted)
+        end)
+
+    end)
+
     -- ── OnTroopsLoaded (ticket 02) ────────────────────────────────────────────
     describe("OnTroopsLoaded", function()
 

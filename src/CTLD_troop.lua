@@ -1094,7 +1094,7 @@ function CTLDTroopManager:embarkFromField(unit)
     end
 
     if not self._inTransit[unitName] then self._inTransit[unitName] = {} end
-    table.insert(self._inTransit[unitName], CTLDTroopGroup:new({
+    local extractedGroup = CTLDTroopGroup:new({
         templateKey    = stored.key,
         templateName   = stored.name or nearest.groupName,  -- restore original template name (BUG-06)
         unitTotal      = logicalCount,   -- logical count (no mortar servants) for capacity/stock
@@ -1105,7 +1105,8 @@ function CTLDTroopManager:embarkFromField(unit)
         _aliveUnits    = _aliveUnits,
         _jtacUnits     = _jtacUnits,
         specificParams = stored.specificParams or {},
-    }))
+    })
+    table.insert(self._inTransit[unitName], extractedGroup)
 
     self:_removeFromDropped(coalition, nearest.groupName)
     nearest.group:destroy()
@@ -1121,6 +1122,8 @@ function CTLDTroopManager:embarkFromField(unit)
 
     ctld.utils.log("INFO", "extract: '%s' extracted group '%s' (%d logical troops, %d DCS units)",
         unitName, nearest.groupName, logicalCount, groupSize)
+
+    self:_publishGesture("OnTroopsExtracted", unit, extractedGroup)
     return true
 end
 
