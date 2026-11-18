@@ -79,6 +79,12 @@ redefined terms are added here in the same move as the decision that introduces 
   **always** designates the AI-controlled transport units (auto pickup/dropoff via AIZ zones).
 - **Troop** — an infantry group loaded/unloaded by a transport; state machine
   (loaded → deployed → field-loaded → extracted).
+- **Dropped group** — a troop group, or a whole vehicle, once unloaded onto the map (on the ground, by
+  fast-rope, by parachute, or spawned by a mission script): a DCS group CTLD keeps track of so it can
+  be **extracted** or loaded again. Left to itself it acts on its own — it goes for the nearest enemy
+  within `maximumSearchDistance`, and with none in range wanders within `maximumMoveDistance` of where
+  it was dropped (CTLD v1 behaviour, restored in CTLD 2). A waypoint zone, or a task the troop template
+  declares, orders it otherwise. Setting both distances to 0 leaves it where it was dropped.
 - **Logical troop count** — the number of DCS units in a troop group that count toward transport
   capacity, zone stock and player-facing counts. Excludes cosmetic crew (`SVNT_*` mortar servants,
   spawned alongside a mortar unit but never counted as a troop). Distinct from the raw DCS unit
