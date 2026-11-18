@@ -790,6 +790,12 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, noRefresh)
                         mgr:refreshUnpackSectionForUnit(arg.unitName)
                         return
                     end
+                    -- Optional guard (forbidUnpackInLogisticZone): nothing is consumed inside a friendly logistic zone.
+                    if mgr:_isUnpackForbiddenAt(t:getPoint(), arg.coalition) then
+                        trigger.action.outTextForGroup(gid,
+                            ctld.tr("You can't unpack that here! Take it to where it's needed!"), 10)
+                        return
+                    end
                     -- Delegate to AA assembly manager if this crate belongs to an AA template.
                     -- CTLDCrateAssemblyManager handles repair/rearm/assembly with correct
                     -- DCS type names and its own 100m offset + 50m radius placement.
@@ -2364,6 +2370,16 @@ function CTLDCrateManager:unloadCrate(crateName, position, method)
     })
 end
 
+--- True when forbidUnpackInLogisticZone is on and point lies inside a logistic zone of the coalition.
+-- Applies to ordinary crates only (vehicles, equipment); the FOB and the scenes keep their own rules.
+-- @param point  vec3
+-- @param coa    number  coalition.side.*
+-- @return boolean
+function CTLDCrateManager:_isUnpackForbiddenAt(point, coa)
+    if not ctld.gs("forbidUnpackInLogisticZone") then return false end
+    return CTLDZoneManager.getInstance():getLogisticZoneAtPoint(point, coa) ~= nil
+end
+
 --- Unpack a crate (contents deployed).
 -- Transitions crate: spawned|landed → unpacked.
 -- Publishes OnCrateUnpacked.
@@ -2945,6 +2961,13 @@ function CTLDCrateManager:_checkAutoUnpack(landedCrate)
                 desc.unit, required, centroid.x, centroid.y, centroid.z)
         end
     else
+        -- Optional guard (forbidUnpackInLogisticZone): equipment does not unpack by itself inside a friendly logistic zone.
+        if self:_isUnpackForbiddenAt(centroid, coa) then
+            ctld.utils.log("INFO",
+                "CTLDCrateManager: auto-unpack (parachute) blocked — %s centroid=(%.0f,%.0f) is inside a logistic zone",
+                desc.unit, centroid.x, centroid.z)
+            return
+        end
         -- Equipment crate (vehicle, static, JTAC): spawn, then consume the crates once the equipment exists
         -- (ADR 0028); a refusal leaves them on the ground.
         -- The dropper (nil for a DCS-native release) is the player _spawnUnpacked tells if the equipment

@@ -307,10 +307,17 @@ describe("parachuteTroops — unique group/unit names (FIX-PARACHUTE-GROUP-NAME-
                 return { ["UH-1H"] = { troopsEnabled=true, maxTroopsOnboard=10 } }
             end
             if k == "numberOfTroops" then return 10 end
+            -- These cases are about the names of the spawned groups: a landed group is left where it landed,
+            -- not sent after an enemy or on a walk (issue #309; troop_dropped_group_spec covers that).
+            if k == "maximumSearchDistance" or k == "maximumMoveDistance" then return 0 end
             return _origGs(k)
         end
 
         land.getHeight = function(_) return 10 end  -- AGL = 200-10 = 190m > 50m min
+
+        -- A landed group's routing looks at the waypoint zones: build the zone manager now, with the real timer,
+        -- so that its own pollers do not run through the synchronous timer below.
+        CTLDZoneManager.getInstance()
 
         -- Run the parachute-landing callback synchronously so the spawn is observable.
         -- Must forward `t` (the scheduled fire time) like the real DCS API does — some

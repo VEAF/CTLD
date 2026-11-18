@@ -15,7 +15,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.37"
+ctld.i18n["en"].translation_version = "1.38"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -155,7 +155,6 @@ ctld.i18n["en"]["2K22 Tunguska"] = "2K22 Tunguska"
 -- STALE: ctld.i18n["en"]["Nearby FOB Crates (Not Slingloadable):\n%1"] = "Nearby FOB Crates (Not Slingloadable):\n%1"
 -- STALE: ctld.i18n["en"]["%1\nFOB @ %2"] = "%1\nFOB @ %2"
 -- STALE: ctld.i18n["en"]["Sorry, there are no active FOBs!"] = "Sorry, there are no active FOBs!"
--- STALE: ctld.i18n["en"]["You can't unpack that here! Take it to where it's needed!"] = "You can't unpack that here! Take it to where it's needed!"
 -- STALE: ctld.i18n["en"]["Sorry you must move this crate before you unpack it!"] = "Sorry you must move this crate before you unpack it!"
 -- STALE: ctld.i18n["en"]["%1 successfully deployed %2 to the field"] = "%1 successfully deployed %2 to the field"
 -- STALE: ctld.i18n["en"]["No friendly crates close enough to unpack, or crate too close to aircraft."] = "No friendly crates close enough to unpack, or crate too close to aircraft."
@@ -731,3 +730,7 @@ ctld.i18n["en"]["The Fat Cow FARP stays open (%1 on the F10 map): %2. Land withi
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-11-04
 ctld.i18n["en"]["Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2."] = "Hand the Fat Cow crates over to CTLD first: open the doors, then F10 > CTLD > %1 > %2."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-18
+ctld.i18n["en"]["minimumDeployDistance is not read by CTLD 2 — set forbidUnpackInLogisticZone: true to refuse unpacking crates inside a logistic zone"] = "minimumDeployDistance is not read by CTLD 2 — set forbidUnpackInLogisticZone: true to refuse unpacking crates inside a logistic zone"
+ctld.i18n["en"]["You can't unpack that here! Take it to where it's needed!"] = "You can't unpack that here! Take it to where it's needed!"

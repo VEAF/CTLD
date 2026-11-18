@@ -53,15 +53,25 @@ describe("legacy API wrappers", function()
     -- ── F-094 : Troops / Transport ────────────────────────────────────────────
     describe("Troops / Transport (F-094)", function()
 
+        -- Issue #309: the last argument of the v1 functions is the enemy search distance. The v2 methods take it as
+        -- their 5th parameter; their own 4th, `radius`, is the placement circle, which v1 fixed at 30 m.
         it("spawnGroupAtTrigger → CTLDTroopManager:spawnGroupAtTrigger", function()
             assertRoute(troop, "spawnGroupAtTrigger",
-                function() ctld.spawnGroupAtTrigger(2, 3, "trig", 100) end, { 2, 3, "trig", 100 })
+                function() ctld.spawnGroupAtTrigger(2, 3, "trig", 100) end, { 2, 3, "trig", 30, 100 })
+        end)
+
+        it("a negative search distance counts as 0, as in v1", function()
+            assertRoute(troop, "spawnGroupAtTrigger",
+                function() ctld.spawnGroupAtTrigger(2, 3, "trig", -5) end, { 2, 3, "trig", 30, 0 })
+            local pt = { x = 1, y = 2, z = 3 }
+            assertRoute(troop, "spawnGroupAtPoint",
+                function() ctld.spawnGroupAtPoint(2, 3, pt, -5) end, { 2, 3, pt, 30, 0 })
         end)
 
         it("spawnGroupAtPoint → CTLDTroopManager:spawnGroupAtPoint", function()
             local pt = { x = 1, y = 0, z = 2 }
             assertRoute(troop, "spawnGroupAtPoint",
-                function() ctld.spawnGroupAtPoint(2, 3, pt, 100) end, { 2, 3, pt, 100 })
+                function() ctld.spawnGroupAtPoint(2, 3, pt, 100) end, { 2, 3, pt, 30, 100 })
         end)
 
         it("preLoadTransport → CTLDTroopManager:preLoadTransport", function()

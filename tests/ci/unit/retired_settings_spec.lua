@@ -75,6 +75,48 @@ describe("CTLDConfig:reportRetiredSettings", function()
         assert.equals(0, #notices())
     end)
 
+    -- FIX-LEGACY-MOVE-AND-DEPLOY-SETTINGS ticket 04 (issue #309): v1's minimumDeployDistance became forbidUnpackInLogisticZone.
+    describe("minimumDeployDistance", function()
+
+        local savedMin
+
+        before_each(function()
+            savedMin = cfg.settings["minimumDeployDistance"]
+            cfg.settings["minimumDeployDistance"] = nil
+        end)
+
+        after_each(function()
+            cfg.settings["minimumDeployDistance"] = savedMin
+        end)
+
+        it("is reported once, naming the setting that replaces it", function()
+            cfg.settings["minimumDeployDistance"] = 50
+
+            cfg:reportRetiredSettings()
+
+            local n = notices()
+            assert.equals(1, #n)
+            assert.equals("config", n[1].source)
+            assert.is_not_nil(n[1].message:find("minimumDeployDistance", 1, true))
+            assert.is_not_nil(n[1].message:find("forbidUnpackInLogisticZone", 1, true))
+        end)
+
+        it("is not reported on a snapshot that does not carry it", function()
+            cfg:reportRetiredSettings()
+            assert.equals(0, #notices())
+        end)
+
+        it("does not hide the dropOffZones notice", function()
+            cfg.settings["minimumDeployDistance"] = 1000
+            cfg.settings["dropOffZones"] = { { "dropzone1", "green", 2 } }
+
+            cfg:reportRetiredSettings()
+
+            assert.equals(2, #notices())
+        end)
+
+    end)
+
     it("resolves the message through ctld.tr in both languages", function()
         local key = "dropOffZones is not read by CTLD 2 — declare each AI drop-off point as an aiZones entry with isDropoff: true"
         local saved = ctld.i18n_lang

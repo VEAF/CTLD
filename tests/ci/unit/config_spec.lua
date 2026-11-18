@@ -106,6 +106,16 @@ describe("CTLDConfig", function()
             assert.equals(125, cfg:getSetting("maxExtractDistance"))
         end)
 
+        -- Issue #309: a dropped group goes for the nearest enemy within maximumSearchDistance (v1: 4000), and
+        -- with none in range walks within maximumMoveDistance (v1: 2000).
+        it("maximumSearchDistance defaults to 4000 (its v1 value)", function()
+            assert.equals(4000, cfg:getSetting("maximumSearchDistance"))
+        end)
+
+        it("maximumMoveDistance defaults to 2000 (its v1 value)", function()
+            assert.equals(2000, cfg:getSetting("maximumMoveDistance"))
+        end)
+
         it("JTAC_maxDistance defaults to 10000", function()
             assert.equals(10000, cfg:getSetting("JTAC_maxDistance"))
         end)

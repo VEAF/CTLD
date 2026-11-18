@@ -126,6 +126,7 @@ used, defaults that moved — without ever merging anything behind your back.
 | `enableHoverSlingload` | `true` | Allow crate loading by hovering above it. If `false`, crates load only via the F10 menu (`loadCrateFromMenu`) |
 | `loadCrateFromMenu` | `true` | Allow crate loading via the F10 menu (useful for fixed-wing that cannot hover) |
 | `enableSmokeDrop` | `true` | Enable the "Drop Smoke" F10 entry |
+| `forbidUnpackInLogisticZone` | `false` | When `true`, an ordinary crate (a vehicle, an AA system) cannot be unpacked inside a friendly logistic zone (the pilot is told "You can't unpack that here!"), and a parachuted equipment crate that lands there is not unpacked by itself. FOB and FARP crates keep their own rules. Replaces the v1 `minimumDeployDistance` |
 
 ### Distances (metres)
 
@@ -133,7 +134,8 @@ used, defaults that moved — without ever merging anything behind your back.
 |---|---|---|
 | `maximumDistanceLogistic` | `200` | Max distance from a logistics zone to load or spawn a crate |
 | `maxExtractDistance` | `125` | Max distance from the vehicle to troops for extraction |
-| `maximumSearchDistance` | `3000` | Max distance for deployed AI troops to search for enemies |
+| `maximumSearchDistance` | `4000` | Max distance within which a dropped group (troops, or a vehicle unloaded from a transport) looks for the nearest enemy to go for. `0` looks for none |
+| `maximumMoveDistance` | `2000` | With no enemy in range, a dropped group walks to a random point within this distance of where it was dropped. With both this and `maximumSearchDistance` at `0`, a dropped group stays where it was dropped |
 | `maximumDistancePackableUnitsSearch` | `200` | Max distance to search for packable vehicles |
 
 ### Troops

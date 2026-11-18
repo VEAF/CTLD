@@ -40,12 +40,41 @@ different order.
 
 | v1 call | v2 equivalent |
 | --- | --- |
-| `ctld.spawnGroupAtTrigger(side, number, triggerName, searchRadius)` | `CTLDTroopManager.getInstance():spawnGroupAtTrigger(side, number, triggerName, searchRadius)` |
-| `ctld.spawnGroupAtPoint(side, number, point, searchRadius)` | `CTLDTroopManager.getInstance():spawnGroupAtPoint(side, number, point, searchRadius)` |
+| `ctld.spawnGroupAtTrigger(side, number, triggerName, searchRadius)` | `CTLDTroopManager.getInstance():spawnGroupAtTrigger(side, number, triggerName, radius, searchDistance)` |
+| `ctld.spawnGroupAtPoint(side, number, point, searchRadius)` | `CTLDTroopManager.getInstance():spawnGroupAtPoint(side, number, point, radius, searchDistance)` |
 | `ctld.preLoadTransport(unitName, number, troops)` | `CTLDTroopManager.getInstance():preLoadTransport(unitName, number, troops)` |
 | `ctld.loadTransport(unitName)` | `CTLDTroopManager.getInstance():loadTransport(unitName)` |
 | `ctld.unloadTransport(unitName)` | `CTLDTroopManager.getInstance():unloadTransport(unitName)` |
 | `ctld.unloadInProximityToEnemy(unitName, distance)` | `CTLDTroopManager.getInstance():unloadInProximityToEnemy(unitName, distance)` |
+
+In v1 the last argument of `ctld.spawnGroupAtTrigger` / `ctld.spawnGroupAtPoint` was the **enemy search
+distance** of the spawned group (a negative value counts as `0`), and the units were placed on a circle of
+30 m. The deprecated wrappers keep both meanings. The v2 methods take the placement circle as `radius` and the
+search distance as an optional last parameter (omitted: `maximumSearchDistance`; `0` looks for no enemy).
+
+#### Two v1 settings: `maximumMoveDistance` and `minimumDeployDistance`
+
+Neither had a key in CTLD 2.0 to 2.3 (a snapshot that carried them was silently ignored).
+
+**`maximumMoveDistance` (v1, default 2000) is back.** A *dropped group* (troops dropped by a pilot, by
+fast-rope, by parachute or by an AI transport, a whole vehicle unloaded from a transport, or a group spawned by
+`spawnGroupAtTrigger` / `spawnGroupAtPoint`) acts on its own, as in v1: it goes for the nearest enemy ground
+group within `maximumSearchDistance` (now `4000` again), otherwise it walks to a random point within
+`maximumMoveDistance` of where it was dropped. A waypoint zone, or a task declared by the troop template, keeps
+priority. A vehicle that comes out of an unpacked crate is not concerned. **To get idle groups back (the 2.0 to 2.3
+behaviour), set both distances to `0`.** VMCT-style missions that set `maximumMoveDistance` to `100` keep that value.
+
+**`minimumDeployDistance` (v1, default 1000) became a switch, `forbidUnpackInLogisticZone` (default `false`).**
+v1 refused any unpack when the helicopter was within that distance of a logistic zone or unit. CTLD 2 keeps its
+rule of no block by default; with `forbidUnpackInLogisticZone: true`, an ordinary crate is refused inside a
+friendly logistic zone ("You can't unpack that here! Take it to where it's needed!") and a parachuted equipment
+crate does not unpack by itself there. FOB and FARP crates keep their own rules. A snapshot that still carries
+`minimumDeployDistance` gets a startup notice naming the new setting:
+
+```
+[NOTICE] config: minimumDeployDistance is not read by CTLD 2 — set forbidUnpackInLogisticZone: true
+to refuse unpacking crates inside a logistic zone
+```
 
 ### Zones — `CTLDZoneManager`
 
