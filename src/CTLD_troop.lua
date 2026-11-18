@@ -663,6 +663,75 @@ function CTLDTroopManager:_publishGesture(eventName, unit, group, extra)
 end
 
 -- ============================================================
+-- Behaviour of a dropped group (issue #309, ADR 0029)
+-- ============================================================
+
+--- The nearest enemy ground group's leader within `searchDistance` of `point`, as CTLD v1 found it
+-- (ctld.findNearestEnemy): the first alive unit of each enemy ground group, no line of sight required.
+-- @param point          vec3
+-- @param coalitionId    number  coalition of the dropped group
+-- @param searchDistance number  metres; 0 or nil looks for nobody
+-- @return vec3|nil
+function CTLDTroopManager:_nearestEnemyPoint(point, coalitionId, searchDistance)
+    if not (searchDistance and searchDistance > 0) then return nil end
+    local enemySide = (coalitionId == coalition.side.BLUE) and coalition.side.RED or coalition.side.BLUE
+    local best, bestDist = nil, searchDistance
+    for _, group in ipairs(coalition.getGroups(enemySide, Group.Category.GROUND) or {}) do
+        local units = group:getUnits()
+        if units and #units > 0 then
+            local leader
+            for _, u in ipairs(units) do
+                if u:getLife() > 0 then leader = u; break end
+            end
+            if leader then
+                local p    = leader:getPoint()
+                local dist = ctld.utils.getDistance("CTLDTroopManager:_nearestEnemyPoint", point, p)
+                if dist < bestDist then best, bestDist = p, dist end
+            end
+        end
+    end
+    return best
+end
+
+--- A dropped group acts on its own, as in CTLD v1: it goes for the nearest enemy within `searchDistance`, and with
+-- none in range walks to a random point within `maximumMoveDistance` of where it was dropped. Both distances at 0
+-- (or no enemy and no move distance) give no order: the group stays where it was dropped. The caller has already
+-- left the groups a template task or a waypoint zone orders.
+-- @param grpName      string  the DCS group's name
+-- @param dropPt       vec3    where it was dropped
+-- @param coalitionId  number
+-- @param searchDistance number|nil  metres (nil: maximumSearchDistance; a scripted spawn passes its own)
+-- @return boolean  true when an order was scheduled
+function CTLDTroopManager:_orderDroppedGroup(grpName, dropPt, coalitionId, searchDistance)
+    local dest = self:_nearestEnemyPoint(dropPt, coalitionId, searchDistance or ctld.gs("maximumSearchDistance"))
+    if not dest then
+        local moveDist = math.floor(tonumber(ctld.gs("maximumMoveDistance")) or 0)
+        if moveDist <= 0 then return false end
+        dest = {
+            x = dropPt.x + math.random(0, moveDist) - math.random(0, moveDist),
+            z = dropPt.z + math.random(0, moveDist) - math.random(0, moveDist),
+        }
+        dest.y = land.getHeight({ x = dest.x, y = dest.z })
+    end
+
+    local wpFrom = ctld.utils.buildWP("_orderDroppedGroup", dropPt, 'Off Road', 50)
+    local wpDest = ctld.utils.buildWP("_orderDroppedGroup", dest,   'Off Road', 50)
+    if not (wpFrom and wpDest) then return false end
+    local mission = { id = 'Mission', params = { route = { points = { wpFrom, wpDest } } } }
+
+    -- Delay 2 s: the DCS group controller may be empty immediately after the spawn.
+    ctld.scheduler.schedule(function(arg)
+        local grp = Group.getByName(arg.grpName)
+        if not grp or not grp:isExist() then return end
+        local ctrl = grp:getController()
+        ctrl:setOption(AI.Option.Ground.id.ALARM_STATE, AI.Option.Ground.val.ALARM_STATE.AUTO)
+        ctrl:setOption(AI.Option.Ground.id.ROE,         AI.Option.Ground.val.ROE.OPEN_FIRE)
+        ctrl:setTask(arg.mission)
+    end, { grpName = grpName, mission = mission }, timer.getTime() + 2)
+    return true
+end
+
+-- ============================================================
 -- loadFromZone
 -- ============================================================
 
@@ -913,6 +982,11 @@ function CTLDTroopManager:disembark(unit)
 
         -- Feature I: specificParams.task post-spawn route assignment
         self:_assignPostSpawnTask(grpName, pt, group.coalitionId, group.specificParams)
+
+        -- Neither a template task nor a waypoint zone: the group acts on its own, as in v1 (ADR 0029).
+        if not wpzZone and not _hasPostTask then
+            self:_orderDroppedGroup(grpName, pt, group.coalitionId)
+        end
     end
 
     table.remove(list, 1)

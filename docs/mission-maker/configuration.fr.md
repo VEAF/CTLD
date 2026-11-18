@@ -139,7 +139,8 @@ réglages devenus inutiles, valeurs par défaut déplacées — sans jamais rien
 |---|---|---|
 | `maximumDistanceLogistic` | `200` | Distance max depuis une zone logistique pour charger ou spawn une crate |
 | `maxExtractDistance` | `125` | Distance max entre le véhicule et les troops pour l'extraction |
-| `maximumSearchDistance` | `3000` | Distance max pour que les troops IA déployées cherchent des ennemis |
+| `maximumSearchDistance` | `4000` | Distance max dans laquelle un groupe déposé (troupes, ou véhicule déchargé d'un transport) cherche l'ennemi le plus proche pour s'y rendre. `0` n'en cherche aucun |
+| `maximumMoveDistance` | `2000` | Sans ennemi à portée, un groupe déposé marche vers un point tiré au hasard dans cette distance de l'endroit où il a été déposé. Avec celle-ci et `maximumSearchDistance` à `0`, un groupe déposé reste où il a été déposé |
 | `maximumDistancePackableUnitsSearch` | `200` | Distance max pour chercher des véhicules pack-ables |
 
 ### Troops

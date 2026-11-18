@@ -296,7 +296,7 @@
       "useNativeDcsCargoSystem": false
     }
   },
-  "configVersion": "2.3.0",
+  "configVersion": "2.4.0",
   "crateDropExtraDistance": 2,
   "crateSpacing": 5,
   "crateSpawnGap": 0.5,
@@ -729,7 +729,8 @@
   "maximumDistanceLogistic": 200,
   "maximumDistancePackableUnitsSearch": 200,
   "maximumHoverHeight": 12.0,
-  "maximumSearchDistance": 3000,
+  "maximumMoveDistance": 2000,
+  "maximumSearchDistance": 4000,
   "minimumHoverHeight": 7.5,
   "modTypes": [],
   "nbLimitSpawnedTroops": [

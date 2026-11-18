@@ -206,11 +206,18 @@ maxExtractDistance:
     fr: Distance max entre le véhicule et les troops pour l'extraction
 maximumSearchDistance:
   group: troops
-  label: {en: Enemy search distance for deployed troops, fr: Distance de recherche d'ennemis des troupes déployées}
+  label: {en: Enemy search distance of dropped groups, fr: Distance de recherche d'ennemis des groupes déposés}
   unit: m
   description:
-    en: Max distance for deployed AI troops to search for enemies
-    fr: Distance max pour que les troops IA déployées cherchent des ennemis
+    en: Max distance within which a dropped group (troops, or a vehicle unloaded from a transport) looks for the nearest enemy to go for. 0 looks for none; with maximumMoveDistance also 0 a dropped group stays where it was dropped.
+    fr: Distance max dans laquelle un groupe déposé (troupes, ou véhicule déchargé d'un transport) cherche l'ennemi le plus proche pour s'y rendre. 0 n'en cherche aucun ; avec maximumMoveDistance aussi à 0, un groupe déposé reste où il a été déposé.
+maximumMoveDistance:
+  group: troops
+  label: {en: Wander distance of dropped groups, fr: Distance d'errance des groupes déposés}
+  unit: m
+  description:
+    en: With no enemy in range, a dropped group (troops, or a vehicle unloaded from a transport) walks to a random point within this distance of where it was dropped. 0 gives no walk; with maximumSearchDistance also 0 a dropped group stays where it was dropped.
+    fr: Sans ennemi à portée, un groupe déposé (troupes, ou véhicule déchargé d'un transport) marche vers un point tiré au hasard dans cette distance de l'endroit où il a été déposé. 0 supprime la marche ; avec maximumSearchDistance aussi à 0, un groupe déposé reste où il a été déposé.
 
 # ── Embarquement ─────────────────────────────────────────────────────────────
 enableFastRopeInsertion:
