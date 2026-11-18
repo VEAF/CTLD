@@ -775,6 +775,8 @@ function CTLDTroopManager:embarkFromTroopZone(unit, zone, template)
     local _pObj = CTLDPlayerManager.getInstance():getPlayer(unitName)
     if _pObj then self:refreshMenuSection(_pObj) end
 
+    self:_publishGesture("OnTroopsLoaded", unit, troopGroup, { zone = zone.zoneName })
+
     return true
 end
 
@@ -1012,6 +1014,11 @@ function CTLDTroopManager:returnToTroopZone(unit, zone)
 
     trigger.action.outTextForGroup(ctld.utils.getGroupId(unit),
         ctld.tr("Troops returned to base."), 10)
+
+    -- One event per group handed back.
+    for _, group in ipairs(list) do
+        self:_publishGesture("OnTroopsReturned", unit, group, { zone = zone.zoneName })
+    end
     return true
 end
 

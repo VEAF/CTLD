@@ -436,7 +436,7 @@ vehicle spawner and the crate manager publish `OnGroundUnitSpawned`.
 - `OnGroundUnitSpawned`: `CTLDVehicleSpawner:_spawnGroundUnit()`, `CTLDCrateManager:_spawnUnpacked()`
 - `OnGroundUnitRemoved`: `CTLDVehicleSpawner:loadVehicle()`, `:onDead()`, `:packVehicle()`
 
-### Troop events (3)
+### Troop events (5)
 
 #### `OnTroopsDeployed`
 Troops are deployed by parachute.
@@ -482,6 +482,35 @@ publishes nothing.
 | `timestamp` | number | |
 
 **Published by**: `CTLDTroopManager:disembark()` (also reached by `:disembarkIndex()` and `:disembarkAll()`)
+
+#### `OnTroopsLoaded`
+Troops are loaded in a pickup zone: by the player's menu, by an AI transport, or by the scripted
+`loadTransport`. Published at the end of a successful load. A refused load (zone not available to the
+coalition, stock exhausted, group too big for the aircraft) publishes nothing.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `troops` | CTLDTroopGroup | The group loaded |
+| `carrierUnitName` | string | |
+| `player` | string or nil | Slot unit name of a player transport; `nil` for an AI transport |
+| `zone` | string | Name of the pickup zone |
+| `timestamp` | number | |
+
+**Published by**: `CTLDTroopManager:embarkFromTroopZone()`
+
+#### `OnTroopsReturned`
+Troops on board are given back to the pickup zone (its stock is restored). One event per group handed back.
+Nothing is published when there are no troops on board.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `troops` | CTLDTroopGroup | A group handed back |
+| `carrierUnitName` | string | |
+| `player` | string or nil | Slot unit name of a player transport; `nil` for an AI transport |
+| `zone` | string | Name of the pickup zone |
+| `timestamp` | number | |
+
+**Published by**: `CTLDTroopManager:returnToTroopZone()`
 
 ### JTAC events (8)
 

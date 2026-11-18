@@ -110,6 +110,87 @@ describe("Troop gesture events (issue #308)", function()
         zm.isUnitInZone, zm.getWaypointZoneAt = zmSaved.isUnitInZone, zmSaved.getWaypointZoneAt
     end)
 
+    -- ── OnTroopsLoaded (ticket 02) ────────────────────────────────────────────
+    describe("OnTroopsLoaded", function()
+
+        it("is published once, with the group, the carrier, the player and the pickup zone", function()
+            asPlayer(mockUnit)
+            assert.is_true(tm:embarkFromTroopZone(mockUnit, makeZone({ zoneName = "TRZ_alpha" }), makeTemplate()))
+            local ev = fired.OnTroopsLoaded
+            assert.equals(1, #ev)
+            assert.equals("Alpha Squad", ev[1].troops.templateName)
+            assert.equals("UH-1H-1", ev[1].carrierUnitName)
+            assert.equals("UH-1H-1", ev[1].player)
+            assert.equals("TRZ_alpha", ev[1].zone)
+            assert.is_number(ev[1].timestamp)
+        end)
+
+        it("has an empty player for an AI transport", function()
+            assert.is_true(tm:embarkFromTroopZone(mockUnit, makeZone(), makeTemplate()))
+            assert.equals(1, #fired.OnTroopsLoaded)
+            assert.is_nil(fired.OnTroopsLoaded[1].player)
+        end)
+
+        it("is published by the scripted loadTransport as well", function()
+            local zm = CTLDZoneManager.getInstance()
+            local origGetZone, origGetByName = zm.getTroopZoneForUnit, Unit.getByName
+            zm.getTroopZoneForUnit = function() return makeZone({ zoneName = "TRZ_script" }) end
+            Unit.getByName = function(n) if n == "UH-1H-1" then return mockUnit end return origGetByName(n) end
+            tm._templates = { makeTemplate() }
+            local ok = tm:loadTransport("UH-1H-1")
+            zm.getTroopZoneForUnit, Unit.getByName = origGetZone, origGetByName
+            assert.is_true(ok)
+            assert.equals(1, #fired.OnTroopsLoaded)
+            assert.equals("TRZ_script", fired.OnTroopsLoaded[1].zone)
+        end)
+
+        it("is not published when the zone is not available", function()
+            assert.is_false(tm:embarkFromTroopZone(mockUnit, makeZone({ active = false }), makeTemplate()))
+            assert.is_false(tm:embarkFromTroopZone(mockUnit, makeZone({ coalition = 1 }), makeTemplate()))
+            assert.equals(0, #fired.OnTroopsLoaded)
+        end)
+
+        it("is not published when the group is too big for the aircraft", function()
+            assert.is_false(tm:embarkFromTroopZone(mockUnit, makeZone(), makeTemplate({ total = 20, inf = 20 })))
+            assert.equals(0, #fired.OnTroopsLoaded)
+        end)
+
+    end)
+
+    -- ── OnTroopsReturned (ticket 02) ──────────────────────────────────────────
+    describe("OnTroopsReturned", function()
+
+        it("is published once per group handed back, with the zone", function()
+            asPlayer(mockUnit)
+            local zone = makeZone({ zoneName = "TRZ_alpha" })
+            tm:embarkFromTroopZone(mockUnit, zone, makeTemplate())
+            tm:embarkFromTroopZone(mockUnit, zone, makeTemplate({ name = "Bravo Squad" }))
+            assert.is_true(tm:returnToTroopZone(mockUnit, zone))
+            local ev = fired.OnTroopsReturned
+            assert.equals(2, #ev)
+            assert.equals("UH-1H-1", ev[1].carrierUnitName)
+            assert.equals("UH-1H-1", ev[1].player)
+            assert.equals("TRZ_alpha", ev[1].zone)
+            local names = { ev[1].troops.templateName, ev[2].troops.templateName }
+            table.sort(names)
+            assert.same({ "Alpha Squad", "Bravo Squad" }, names)
+            assert.is_number(ev[1].timestamp)
+        end)
+
+        it("has an empty player for an AI transport", function()
+            local zone = makeZone()
+            tm:embarkFromTroopZone(mockUnit, zone, makeTemplate())
+            assert.is_true(tm:returnToTroopZone(mockUnit, zone))
+            assert.is_nil(fired.OnTroopsReturned[1].player)
+        end)
+
+        it("is not published when there are no troops to return", function()
+            assert.is_false(tm:returnToTroopZone(mockUnit, makeZone()))
+            assert.equals(0, #fired.OnTroopsReturned)
+        end)
+
+    end)
+
     -- ── OnTroopsUnloaded (ticket 01) ──────────────────────────────────────────
     describe("OnTroopsUnloaded", function()
 
