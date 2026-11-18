@@ -1015,17 +1015,25 @@ local function setCargoMass(cow)
     pcall(trigger.action.setUnitInternalCargo, cow.unitName, CTLDFatCowManager.getInstance():massOf(cow.stock))
 end
 
+--- The next number of an AI cow: it names the cow in the F10 menu and in the messages (FIX-FAT-COW-TAKEOVER-LABELS),
+-- and numbers the group names of the cows a flight requests ("Fat Cow <flight> #N").
+function CTLDFatCowManager:_nextCowNumber()
+    self._aiCounter = (self._aiCounter or 0) + 1
+    return self._aiCounter
+end
+
 --- Registers an AI cow already in the world.
 -- @param groupName    string  the cow's group
 -- @param flightGroup  string  the group it escorts
 -- @param homePoint    vec3    where it goes back to despawn
 -- @param loadoutIndex number  the fatCowLoadouts entry it carries
-function CTLDFatCowManager:addAICow(groupName, flightGroup, homePoint, loadoutIndex)
+-- @param number       number|nil  its number, from _nextCowNumber (nil: it takes the next one)
+function CTLDFatCowManager:addAICow(groupName, flightGroup, homePoint, loadoutIndex, number)
     local unit  = firstUnitOf(groupName)
     local stock = loadoutStock(loadoutIndex)
     if not (unit and stock) then return nil end
     local cow = self:addCow(unit, stock)
-    cow.ai = { groupName = groupName, flightGroup = flightGroup, home = homePoint,
+    cow.ai = { groupName = groupName, flightGroup = flightGroup, home = homePoint, number = number or self:_nextCowNumber(),
                phase = CTLDFatCowManager.PHASE_FOLLOWING }
     self._aiByFlight = self._aiByFlight or {}
     self._aiByFlight[flightGroup] = cow
@@ -1385,11 +1393,11 @@ function CTLDFatCowManager:requestAICow(unitName, loadoutIndex)
         trigger.action.outTextForGroup(gid, ctld.tr("No friendly logistic zone to send a Fat Cow from."), 10)
         return
     end
-    self._aiCounter = (self._aiCounter or 0) + 1
+    local number = self:_nextCowNumber()
     local home = zone:getCenter()
     local hdg  = math.atan2(p.z - home.z, p.x - home.x)                 -- towards the requester
     local alt  = land.getHeight({ x = home.x, y = home.z }) + CRUISE_ALT_M
-    local groupName = string.format("Fat Cow %s #%d", flight, self._aiCounter)
+    local groupName = string.format("Fat Cow %s #%d", flight, number)
     -- An air start over the zone: no parking, no trees, and a carrier zone is never chosen (onLand).
     local data = {
         name  = groupName,
@@ -1415,7 +1423,7 @@ function CTLDFatCowManager:requestAICow(unitName, loadoutIndex)
     local zoneName = zone.name
     -- The group exists at once, its controller takes a task better on the next frame.
     ctld.scheduler.schedule(function()
-        local cow = mgr:addAICow(groupName, flight, home, loadoutIndex)
+        local cow = mgr:addAICow(groupName, flight, home, loadoutIndex, number)
         if cow then cow.ai.homeName = zoneName end
     end, nil, timer.getTime() + 1)
     trigger.action.outTextForGroup(gid,
@@ -1525,13 +1533,13 @@ function CTLDFatCowManager:_announceTo(p, cow, it, stock, released)
     local d, bearing = rangeAndBearing(t:getPoint(), it)
     local km = string.format("%.1f", d / 1000)
     local text = released
-        and ctld.tr("A Fat Cow was released and waits for a flight: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours.",
-            km, bearing, stock)
+        and ctld.tr("Fat Cow #%1 was released and waits for a flight: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours.",
+            cow.ai.number, km, bearing, stock)
         or cow.ai.homeName
-        and ctld.tr("A Fat Cow lost its flight and is going home to %1: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours.",
-            cow.ai.homeName, km, bearing, stock)
-        or ctld.tr("A Fat Cow lost its flight and is going home: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours.",
-            km, bearing, stock)
+        and ctld.tr("Fat Cow #%1 lost its flight and is going home to %2: %3 km at %4° from you, with %5. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours.",
+            cow.ai.number, cow.ai.homeName, km, bearing, stock)
+        or ctld.tr("Fat Cow #%1 lost its flight and is going home: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours.",
+            cow.ai.number, km, bearing, stock)
     trigger.action.outTextForGroup(p.groupId, text, 20)
 end
 
@@ -1716,7 +1724,8 @@ function CTLDFatCowManager:_activateMissionCow(entry)
     local u = g:getUnit(1)
     local home = u and u:getPoint() or nil
     local mgr = self
-    ctld.scheduler.schedule(function() mgr:addAICow(entry.group, entry.escort, home, entry.loadout or 1) end,
+    local number = self:_nextCowNumber()          -- drawn here, so the cows are numbered in the order of fatCowAICows
+    ctld.scheduler.schedule(function() mgr:addAICow(entry.group, entry.escort, home, entry.loadout or 1, number) end,
         nil, timer.getTime() + 1)
     return true
 end

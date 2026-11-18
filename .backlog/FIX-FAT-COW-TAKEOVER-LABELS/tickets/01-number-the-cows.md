@@ -1,6 +1,6 @@
 # 01 — Every AI cow has a number, and the announcements name it
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 
@@ -16,14 +16,14 @@ Give every AI Fat Cow a stable number, and let the messages that tell a flight a
 
 ## Acceptance criteria
 
-- [ ] A cow requested by a flight carries the number found in its group name.
-- [ ] A cow placed by the mission carries the next number from the same counter, and several placed cows are numbered in the order of `fatCowAICows`; the numbers of requested cows created afterwards go on from there, with no number used twice.
-- [ ] The number of a cow does not change while it exists.
-- [ ] The group name of a requested cow, and the group name of a placed cow, are unchanged.
-- [ ] Each of the three announcements names the cow with its number and keeps its distance, bearing and stock.
-- [ ] The new cases fail before the change (the cows have no number, the messages do not name it) and pass after it; the other Fat Cow specs pass unchanged.
-- [ ] The dictionaries are regenerated and the new texts have French and Spanish translations; the Korean ones are flagged for review.
-- [ ] `busted tests/ci/` green; luacheck clean.
+- [x] A cow requested by a flight carries the number found in its group name.
+- [x] A cow placed by the mission carries the next number from the same counter, and several placed cows are numbered in the order of `fatCowAICows`; the numbers of requested cows created afterwards go on from there, with no number used twice.
+- [x] The number of a cow does not change while it exists.
+- [x] The group name of a requested cow, and the group name of a placed cow, are unchanged.
+- [x] Each of the three announcements names the cow with its number and keeps its distance, bearing and stock.
+- [x] The new cases fail before the change (the cows have no number, the messages do not name it) and pass after it; the other Fat Cow specs pass unchanged.
+- [x] The dictionaries are regenerated and the new texts have French and Spanish translations; the Korean ones are flagged for review.
+- [x] `busted tests/ci/` green; luacheck clean.
 
 ## Blocked by
 

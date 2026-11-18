@@ -10,7 +10,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["ko"] = {}
-ctld.i18n["ko"].translation_version = "1.38"
+ctld.i18n["ko"].translation_version = "1.39"
 
 --- groups names
 ctld.i18n["ko"]["Standard Group"] = "표준 그룹"
@@ -599,14 +599,14 @@ ctld.i18n["ko"]["Shturm"] = "슈투름"
 ctld.i18n["ko"]["Vikhr"] = "비흐르"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-30
-ctld.i18n["ko"]["A Fat Cow lost its flight and is going home to %1: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Fat Cow가 편대를 잃고 %1(으)로 귀환합니다: 귀하로부터 %2 km, %3°, %4 보유. F10 CTLD > Fat Cow > Fat Cow 인수 로 합류시킬 수 있습니다."
-ctld.i18n["ko"]["A Fat Cow lost its flight and is going home: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Fat Cow가 편대를 잃고 기지로 귀환합니다: 귀하로부터 %1 km, %2°, %3 보유. F10 CTLD > Fat Cow > Fat Cow 인수 로 합류시킬 수 있습니다."
+-- STALE: ctld.i18n["ko"]["A Fat Cow lost its flight and is going home to %1: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Fat Cow가 편대를 잃고 %1(으)로 귀환합니다: 귀하로부터 %2 km, %3°, %4 보유. F10 CTLD > Fat Cow > Fat Cow 인수 로 합류시킬 수 있습니다."
+-- STALE: ctld.i18n["ko"]["A Fat Cow lost its flight and is going home: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Fat Cow가 편대를 잃고 기지로 귀환합니다: 귀하로부터 %1 km, %2°, %3 보유. F10 CTLD > Fat Cow > Fat Cow 인수 로 합류시킬 수 있습니다."
 ctld.i18n["ko"]["Fat Cow joining your flight: %1 km, in about %2 min, with %3."] = "Fat Cow가 편대에 합류합니다: %1 km, 약 %2분, %3 보유."
 ctld.i18n["ko"]["Take over a Fat Cow"] = "Fat Cow 인수"
 ctld.i18n["ko"]["Fat Cow %1 km away, going home"] = "Fat Cow %1 km, 기지로 귀환 중"
 ctld.i18n["ko"]["Fat Cow %1 km away, going home to %2"] = "Fat Cow %1 km, %2(으)로 귀환 중"
 ctld.i18n["ko"]["This Fat Cow is no longer available."] = "이 Fat Cow는 더 이상 이용할 수 없습니다."
-ctld.i18n["ko"]["A Fat Cow was released and waits for a flight: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Fat Cow가 해제되어 편대를 기다립니다: 귀하로부터 %1 km, %2°, %3 보유. F10 CTLD > Fat Cow > Fat Cow 인수 로 합류시킬 수 있습니다."
+-- STALE: ctld.i18n["ko"]["A Fat Cow was released and waits for a flight: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Fat Cow가 해제되어 편대를 기다립니다: 귀하로부터 %1 km, %2°, %3 보유. F10 CTLD > Fat Cow > Fat Cow 인수 로 합류시킬 수 있습니다."
 ctld.i18n["ko"]["Fat Cow %1 km away, waiting"] = "Fat Cow %1 km, 대기 중"
 ctld.i18n["ko"]["Fat Cow released: it stays where it is, for another flight to take over."] = "Fat Cow 해제: 현재 위치에 머물며 다른 편대가 인수할 수 있습니다."
 ctld.i18n["ko"]["Release the Fat Cow"] = "Fat Cow 해제"
@@ -624,3 +624,8 @@ ctld.i18n["ko"]["Hand the Fat Cow crates over to CTLD first: open the doors, the
 --- Keys added by generate_i18n_dicts.ps1 on 2026-11-18
 ctld.i18n["ko"]["minimumDeployDistance is not read by CTLD 2 — set forbidUnpackInLogisticZone: true to refuse unpacking crates inside a logistic zone"] = "CTLD 2는 minimumDeployDistance를 읽지 않습니다 — 보급 구역 안에서 상자 개봉을 막으려면 forbidUnpackInLogisticZone: true 로 설정하세요"
 ctld.i18n["ko"]["You can't unpack that here! Take it to where it's needed!"] = "여기서는 개봉할 수 없습니다! 필요한 곳으로 가져가세요!"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-18
+ctld.i18n["ko"]["Fat Cow #%1 lost its flight and is going home to %2: %3 km at %4° from you, with %5. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Fat Cow #%1이(가) 편대를 잃고 %2(으)로 귀환합니다: 귀하로부터 %3 km, %4°, %5 보유. F10 CTLD > Fat Cow > Fat Cow 인수 로 합류시킬 수 있습니다."
+ctld.i18n["ko"]["Fat Cow #%1 lost its flight and is going home: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Fat Cow #%1이(가) 편대를 잃고 기지로 귀환합니다: 귀하로부터 %2 km, %3°, %4 보유. F10 CTLD > Fat Cow > Fat Cow 인수 로 합류시킬 수 있습니다."
+ctld.i18n["ko"]["Fat Cow #%1 was released and waits for a flight: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Fat Cow #%1이(가) 해제되어 편대를 기다립니다: 귀하로부터 %2 km, %3°, %4 보유. F10 CTLD > Fat Cow > Fat Cow 인수 로 합류시킬 수 있습니다."

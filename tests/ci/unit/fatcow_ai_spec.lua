@@ -627,6 +627,116 @@ describe("AI Fat Cow", function()
         assert.is_nil(aiMenuOf(p)["Take over a Fat Cow"])
     end)
 
+    -- ── FIX-FAT-COW-TAKEOVER-LABELS (issue #298): every AI cow has a number, and the messages name it ──
+
+    describe("numbering the cows", function()
+        local function groupNumber(cow) return tonumber(cow.ai.groupName:match("#(%d+)$")) end
+
+        -- Two mission-placed cows "Cow A" and "Cow B" (escorting Gunfighter and Hammer), in the world.
+        local function missionCows()
+            mgr._settings.fatCowAICows = {
+                { group = "Cow A", escort = "Gunfighter" },
+                { group = "Cow B", escort = "Hammer" },
+            }
+            newGroup("Cow A", 50, "CowA-1"); newUnit("CowA-1", "Cow A")
+            newGroup("Cow B", 51, "CowB-1"); newUnit("CowB-1", "Cow B")
+            newGroup("Gunfighter", 7, "Gunfighter-1"); newUnit("Gunfighter-1", "Gunfighter")
+            newGroup("Hammer", 11, "Hammer-1"); newUnit("Hammer-1", "Hammer")
+            mgr:_activateMissionCows()
+            runScheduled()
+        end
+
+        it("gives a requested cow the number of its group name, and keeps it", function()
+            local leader, cow = flightWithCow()
+            assert.equals(1, cow.ai.number)
+            assert.equals("Fat Cow Gunfighter #1", cow.ai.groupName)
+            assert.equals(groupNumber(cow), cow.ai.number)
+            units[cow.unitName]._p = { x = 60000, y = 20, z = 2000 }
+            mgr:onLand({ initiator = leader })
+            mgr:onLand({ initiator = units[cow.unitName] })
+            runScheduled()
+            groups["Gunfighter"].destroyed = true
+            mgr:onDead({ initiator = leader })
+            runScheduled()
+            assert.equals(1, cow.ai.number)                                 -- lost its flight: still cow 1
+        end)
+
+        it("numbers each requested cow once", function()
+            local _, first = flightWithCow()
+            newGroup("Hammer", 11, "Hammer-1")
+            newUnit("Hammer-1", "Hammer", 9000, 2000)
+            mgr:requestAICow("Hammer-1", 1)
+            runScheduled()
+            local second = mgr:aiCowOfFlight("Hammer")
+            assert.equals(1, first.ai.number)
+            assert.equals(2, second.ai.number)
+            assert.equals(2, groupNumber(second))
+        end)
+
+        it("numbers the mission-placed cows from the same counter, in the order of fatCowAICows", function()
+            missionCows()
+            local a, b = mgr:aiCowOfFlight("Gunfighter"), mgr:aiCowOfFlight("Hammer")
+            assert.equals(1, a.ai.number)
+            assert.equals(2, b.ai.number)
+            newGroup("Viper", 8, "Viper-1")
+            newUnit("Viper-1", "Viper", 8000, 2000)
+            mgr:requestAICow("Viper-1", 1)
+            runScheduled()
+            assert.equals(3, mgr:aiCowOfFlight("Viper").ai.number)          -- no number used twice
+        end)
+
+        it("leaves the group name a mission maker gave a placed cow alone", function()
+            missionCows()
+            assert.equals("Cow A", mgr:aiCowOfFlight("Gunfighter").ai.groupName)
+            assert.equals("Cow B", mgr:aiCowOfFlight("Hammer").ai.groupName)
+        end)
+    end)
+
+    describe("announcing a free cow by its number", function()
+        local function toViper()
+            local text
+            for _, m in ipairs(messages) do if m.gid == 8 then text = m.text end end
+            return text
+        end
+
+        it("names the cow that lost its flight and is going home to a base, with its distance and stock", function()
+            playerFlight("Viper", 8, 8000, 2000)
+            local cow = orphanCow()
+            local text = toViper()
+            assert.is_not_nil(text:find("Fat Cow #" .. cow.ai.number .. " lost its flight and is going home to Akrotiri: 52.0 km", 1, true))
+            assert.is_not_nil(text:find("7200 kg", 1, true))
+        end)
+
+        it("names the cow that was released, with its distance", function()
+            playerFlight("Viper", 8, 8000, 2000)
+            local leader, cow = flightWithCow()
+            units[cow.unitName]._p = { x = 20000, y = 20, z = 2000 }
+            mgr:onLand({ initiator = leader })
+            mgr:onLand({ initiator = units[cow.unitName] })
+            runScheduled()
+            messages = {}
+            mgr:freeAICow("Gunfighter-1")
+            local text = toViper()
+            assert.is_not_nil(text:find("Fat Cow #" .. cow.ai.number .. " was released and waits for a flight: 12.0 km", 1, true))
+        end)
+
+        it("names a cow going home with no base known (a mission-placed cow)", function()
+            playerFlight("Viper", 8, 8000, 2000)
+            mgr._settings.fatCowAICows = { { group = "Cow A", escort = "Gunfighter" } }
+            newGroup("Cow A", 50, "CowA-1"); newUnit("CowA-1", "Cow A", 20000, 2000)
+            local leader = (function() newGroup("Gunfighter", 7, "Gunfighter-1"); return newUnit("Gunfighter-1", "Gunfighter") end)()
+            mgr:_activateMissionCows()
+            runScheduled()
+            local cow = mgr:aiCowOfFlight("Gunfighter")
+            messages = {}
+            groups["Gunfighter"].destroyed = true
+            mgr:onDead({ initiator = leader })
+            runScheduled()
+            local text = toViper()
+            assert.is_not_nil(text:find("Fat Cow #" .. cow.ai.number .. " lost its flight and is going home: ", 1, true))
+        end)
+    end)
+
     -- ── FIX-FAT-COW-AI-LANDING ───────────────────────────────────────────────────────────────────
 
     -- The Land task point the cow was last given, as { x, z }.
