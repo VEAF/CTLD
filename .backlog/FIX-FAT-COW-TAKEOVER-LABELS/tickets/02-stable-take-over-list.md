@@ -1,6 +1,6 @@
 # 02 — The "Take over a Fat Cow" list holds still
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #317) · **Type:** AFK
 
 ## Parent
 

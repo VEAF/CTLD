@@ -1,6 +1,6 @@
 # 01 — Every AI cow has a number, and the announcements name it
 
-**Status:** ✅ done (PR #NN) · **Type:** AFK
+**Status:** ✅ done (PR #317) · **Type:** AFK
 
 ## Parent
 

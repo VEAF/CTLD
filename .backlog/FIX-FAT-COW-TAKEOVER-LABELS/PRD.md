@@ -1,6 +1,6 @@
 # FIX-FAT-COW-TAKEOVER-LABELS — the "Take over a Fat Cow" entries are rebuilt under the pilot's finger, and two cows can share a label
 
-**Status:** ⬜ ready — decisions taken in the grill of 2026-11-18 (no ADR: the rule "a label is an identity, so nothing that moves goes in it" already follows from [ADR 0027](../../dev/adr/0027-stable-f10-entries.md) decision 1; no `CONTEXT.md` term: it has no Fat Cow vocabulary).
+**Status:** ✅ done (PR #317) — decisions taken in the grill of 2026-11-18 (no ADR: the rule "a label is an identity, so nothing that moves goes in it" already follows from [ADR 0027](../../dev/adr/0027-stable-f10-entries.md) decision 1; no `CONTEXT.md` term: it has no Fat Cow vocabulary).
 
 GitHub issue #298 (found by an automated review of `develop`; the code has moved since, the analysis holds).
 
