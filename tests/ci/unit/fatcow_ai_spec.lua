@@ -281,6 +281,111 @@ describe("AI Fat Cow", function()
         assert.equals("Follow", lastTask(cow.ai.groupName).id)
     end)
 
+    -- FIX-FAT-COW-DEPLOY-REFUSALS (issue #296): the deployment that follows the delay can be refused, and the flight
+    -- and the log are told why.
+    describe("when the deployment that follows the delay is refused", function()
+        local logs, savedLog
+        local EMPTY   = "The Fat Cow is empty: send it home with RTB."
+        local COULD_NOT = "The Fat Cow FARP could not be deployed."
+
+        before_each(function()
+            logs, savedLog = {}, ctld.utils.log
+            ctld.utils.log = function(level, fmt, ...)
+                local ok, text = pcall(string.format, fmt, ...)
+                logs[#logs + 1] = { level = level, text = ok and text or fmt }
+            end
+        end)
+        after_each(function() ctld.utils.log = savedLog end)
+
+        local function logged(level, needle)
+            local n = 0
+            for _, l in ipairs(logs) do
+                if l.level == level and l.text:find(needle, 1, true) then n = n + 1 end
+            end
+            return n
+        end
+
+        local function said(text)
+            local n = 0
+            for _, m in ipairs(messages) do if m.text == text then n = n + 1 end end
+            return n
+        end
+
+        -- The cow has landed next to the leader and its delay is running; `refuse` spoils what the timer will do.
+        local function landedThenRun(refuse)
+            local leader, cow = flightWithCow()
+            mgr:onLand({ initiator = leader })
+            mgr:onLand({ initiator = units[cow.unitName] })
+            if refuse then refuse(cow) end
+            messages, logs = {}, {}
+            runScheduled()
+            return cow
+        end
+
+        it("tells the flight that an empty cow has nothing to deploy, and logs why", function()
+            local cow = landedThenRun(function(c) c.stock.fuelKg, c.stock.items = 0, {} end)
+            assert.equals(1, said(EMPTY))
+            assert.equals(7, messages[#messages].gid)                        -- the flight it serves
+            assert.equals(1, logged("WARN", "did not deploy after the delay: empty"))
+            assert.is_not_nil(logs[1].text:find(cow.unitName, 1, true))
+            assert.equals(CTLDFatCow.STATE_STOWED, cow.state)
+        end)
+
+        it("tells the flight, and logs the reason, when the cow is in the air", function()
+            landedThenRun(function(c) units[c.unitName].airborne = true end)
+            assert.equals(1, said(COULD_NOT))
+            assert.equals(1, logged("WARN", "did not deploy after the delay: airborne"))
+        end)
+
+        it("tells the flight, and logs the reason, when the scene did not start", function()
+            sm.playScene = function() return nil end
+            landedThenRun()
+            assert.equals(1, said(COULD_NOT))
+            assert.equals(1, logged("WARN", "did not deploy after the delay: scene"))
+        end)
+
+        it("tells the flight, and logs the reason, when the cow is no longer registered", function()
+            landedThenRun(function(c) mgr._cows[c.unitName] = nil end)
+            assert.equals(1, said(COULD_NOT))
+            assert.equals(1, logged("WARN", "did not deploy after the delay: unknown"))
+        end)
+
+        it("only logs, at information level, when the FARP is already open", function()
+            local cow = landedThenRun(function(c) c.state = CTLDFatCow.STATE_DEPLOYED end)
+            assert.equals(0, #messages)
+            assert.equals(1, logged("INFO", "already deployed when its delay ran out"))
+            assert.equals(0, logged("WARN", "did not deploy"))
+            assert.equals(CTLDFatCow.STATE_DEPLOYED, cow.state)
+        end)
+
+        it("says nothing more than the scene did when the FARP could not be added (once)", function()
+            Airbase.getByName = function() return nil end                  -- no warehouse: the scene fails
+            landedThenRun()
+            assert.equals(1, said(COULD_NOT))
+            assert.equals(0, said(EMPTY))
+            assert.equals(0, logged("WARN", "did not deploy after the delay"))
+        end)
+
+        it("sends nothing once the flight is gone, and still logs it", function()
+            landedThenRun(function(c)
+                c.stock.fuelKg, c.stock.items = 0, {}
+                groups["Gunfighter"].destroyed = true
+            end)
+            assert.equals(0, said(EMPTY))
+            assert.equals(0, #messages)
+            assert.equals(1, logged("WARN", "did not deploy after the delay: empty"))
+        end)
+
+        it("leaves the nominal path alone: a cow with stock deploys, with no refusal", function()
+            local cow = landedThenRun()
+            assert.equals(CTLDFatCow.STATE_DEPLOYED, cow.state)
+            assert.equals(0, said(EMPTY))
+            assert.equals(0, said(COULD_NOT))
+            assert.equals(0, logged("WARN", "did not deploy"))
+            assert.equals(0, logged("INFO", "already deployed"))
+        end)
+    end)
+
     it("goes home when emptied, and despawns once landed there", function()
         local leader, cow = flightWithCow()
         mgr:onLand({ initiator = leader })

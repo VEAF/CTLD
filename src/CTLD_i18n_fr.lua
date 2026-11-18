@@ -9,7 +9,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["fr"] = {}
-ctld.i18n["fr"].translation_version = "1.40"
+ctld.i18n["fr"].translation_version = "1.41"
 
 --- groups names
 ctld.i18n["fr"]["Standard Group"] = "Groupe standard"
@@ -776,3 +776,6 @@ ctld.i18n["fr"]["Fat Cow #%1 was released and waits for a flight: %2 km at %3° 
 ctld.i18n["fr"]["Fat Cow #%1 — going home"] = "Fat Cow #%1 — rentre à sa base"
 ctld.i18n["fr"]["Fat Cow #%1 — going home to %2"] = "Fat Cow #%1 — rentre à %2"
 ctld.i18n["fr"]["Fat Cow #%1 — waiting"] = "Fat Cow #%1 — en attente"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-18
+ctld.i18n["fr"]["The Fat Cow is empty: send it home with RTB."] = "La Fat Cow est vide : renvoyez-la avec « Rentre à la base »."

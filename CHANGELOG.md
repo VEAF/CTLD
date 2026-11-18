@@ -8,6 +8,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — an AI cow that cannot open its FARP says so (FIX-FAT-COW-DEPLOY-REFUSALS, issue #296)
+
+- When an AI cow lands, a timer waits for `fatCowDeployDelay` and then asks it to open its FARP. The answer can be a refusal with a reason (empty, in the air, its scene did not start, already deployed, no such cow), and the timer threw it away: neither the flight nor the log heard of it. The piloted cow's own path already told its pilot. The simplest way to meet it needs no DCS failure: a flight empties its cow, orders **Take off** (the cow folds its FARP and stays, empty, as a player flight's cow does nothing on its own), then **Land here**; it reads "FARP open 60 s after touchdown" and waits for a FARP that never comes.
+  The timer now reads the answer. An empty cow tells the flight so ("The Fat Cow is empty: send it home with RTB."); a cow that cannot be deployed for any other reason says "The Fat Cow FARP could not be deployed."; a FARP that could not be added is still told once, by the scene. Each refusal is also logged as a warning with the cow's name and the reason, and a cow already deployed when its delay ran out as an information line. Nothing else changes: **Land here** still lands an empty cow, and an empty cow is not sent home on its own. The pilot guide (English and French) says that a cow with nothing left opens no FARP.
+
 ### Fixed — an empty `fatCowAIType` removes only "Request a Fat Cow" (FIX-FAT-COW-EMPTY-AI-TYPE, issue #297)
 
 - The guide, the schema and the editor say that an empty `fatCowAIType` removes the **Request a Fat Cow** command. The code returned before the Fat Cow submenu was even created, so the whole branch disappeared for the helicopter pilots a cow serves (Apache, Ka-50, Mi-24P): Land here, Take off, Hold here, Join us, Fat Cow status, RTB, Release the Fat Cow, Take over a Fat Cow, and **FARP status**, which needs no AI cow at all. An empty type is the documented way to open only piloted cows, so those pilots had no menu to read what the FARP of a piloted cow still held; and a server that only uses cows placed in the mission (`fatCowAICows`, which need no type) could not command them.

@@ -1195,6 +1195,20 @@ local function flightGroupId(cow)
     return g and g:isExist() and g:getID() or nil
 end
 
+--- Says why the deployment that followed the delay was refused (FIX-FAT-COW-DEPLOY-REFUSALS): to the flight the cow
+-- serves, if it still exists, and to the log. "failed" is not reported here: onSceneFailed has already told them.
+-- @param why string  the reason deploy gave
+function CTLDFatCowManager:_reportRefusedDeploy(cow, why)
+    if why == "failed" then return end
+    if why == "deployed" then
+        ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' already deployed when its delay ran out", cow.unitName)
+        return
+    end
+    ctld.utils.log("WARN", "CTLDFatCowManager: cow '%s' did not deploy after the delay: %s", cow.unitName, tostring(why))
+    self:_notify(cow, why == "empty" and ctld.tr("The Fat Cow is empty: send it home with RTB.")
+        or ctld.tr("The Fat Cow FARP could not be deployed."))
+end
+
 --- S_EVENT_LAND: the cow lands → it deploys after fatCowDeployDelay, or despawns when it was going home;
 -- an AI flight's leader lands → its cow lands next to it (a player flight uses "Land here").
 function CTLDFatCowManager:onLand(event)
@@ -1226,7 +1240,8 @@ function CTLDFatCowManager:onLand(event)
                 local u = Unit.getByName(cow.unitName)
                 if cow.ai.phase == CTLDFatCowManager.PHASE_LANDED and u and u:isExist() then
                     cow.notifyGroupId = flightGroupId(cow)
-                    mgr:deploy(u)
+                    local ok, why = mgr:deploy(u)
+                    if not ok then mgr:_reportRefusedDeploy(cow, why) end
                 end
             end, nil, timer.getTime() + ctld.gs("fatCowDeployDelay"))
         end
