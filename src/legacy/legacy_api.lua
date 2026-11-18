@@ -27,16 +27,23 @@ ctld = ctld or {}
 -- Troops / Transport
 -- ============================================================
 
+-- The last argument of the v1 functions is the ENEMY SEARCH DISTANCE of the spawned group (a negative value counts
+-- as 0), and v1 placed the units of the group on a circle of 30 m. The CTLD 2 methods take the search distance as
+-- their 5th parameter and the placement circle as their 4th (issue #309, ADR 0029).
+local V1_PLACEMENT_RADIUS = 30
+
 --- @deprecated Use CTLDTroopManager:spawnGroupAtTrigger()
 function ctld.spawnGroupAtTrigger(groupSide, number, triggerName, searchRadius)
     ctld.logWarning("DEPRECATED: ctld.spawnGroupAtTrigger — use CTLDTroopManager:spawnGroupAtTrigger()")
-    CTLDTroopManager.getInstance():spawnGroupAtTrigger(groupSide, number, triggerName, searchRadius)
+    CTLDTroopManager.getInstance():spawnGroupAtTrigger(groupSide, number, triggerName, V1_PLACEMENT_RADIUS,
+        searchRadius and math.max(0, searchRadius) or nil)
 end
 
 --- @deprecated Use CTLDTroopManager:spawnGroupAtPoint()
 function ctld.spawnGroupAtPoint(groupSide, number, point, searchRadius)
     ctld.logWarning("DEPRECATED: ctld.spawnGroupAtPoint — use CTLDTroopManager:spawnGroupAtPoint()")
-    CTLDTroopManager.getInstance():spawnGroupAtPoint(groupSide, number, point, searchRadius)
+    CTLDTroopManager.getInstance():spawnGroupAtPoint(groupSide, number, point, V1_PLACEMENT_RADIUS,
+        searchRadius and math.max(0, searchRadius) or nil)
 end
 
 --- @deprecated Use CTLDTroopManager:preLoadTransport()

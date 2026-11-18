@@ -363,6 +363,76 @@ describe("A dropped group acts on its own (issue #309)", function()
 
     end)
 
+    describe("scripted spawns (ticket 03)", function()
+
+        local POINT = { x = 1000, y = 5, z = 2000 }
+        local spawnOpts
+
+        before_each(function()
+            -- the real registry stub of this spec returns a group; keep the options the spawn was given
+            local base = CTLDObjectRegistry.spawnObject
+            CTLDObjectRegistry.spawnObject = function(key, coa, country, x, z, hdg, opts)
+                spawnOpts = opts
+                return base(key, coa, country, x, z, hdg, opts)
+            end
+        end)
+
+        local function spawn(...)
+            assert.is_true(tm:spawnGroupAtPoint("blue", 4, POINT, ...))
+            for _, s in ipairs(scheduled) do s.fn(s.arg) end
+            return orders
+        end
+
+        it("orders the spawned group toward the nearest enemy within maximumSearchDistance", function()
+            enemies = { enemyGroup(1000 + 900, 2000) }
+            local o = spawn(0)
+            assert.equals(1, #o)
+            assert.equals(1900, destination(o[1]).x)
+        end)
+
+        it("takes its own search distance, which can leave an enemy out of range", function()
+            enemies = { enemyGroup(1000 + 900, 2000) }
+            randoms = { 100, 0, 0, 0 }
+            local o = spawn(0, 500)                      -- radius 0 (placement), search distance 500
+            assert.equals(1100, destination(o[1]).x)     -- the enemy at 900 m is out of range: a random walk
+        end)
+
+        it("takes its own search distance, which can bring an enemy into range", function()
+            searchDist = 100                             -- the setting alone would not reach it
+            enemies = { enemyGroup(1000 + 900, 2000) }
+            local o = spawn(0, 5000)
+            assert.equals(1900, destination(o[1]).x)
+        end)
+
+        it("with a search distance of 0 looks for no enemy and walks at random (as the v1 code does)", function()
+            enemies = { enemyGroup(1000 + 900, 2000) }
+            randoms = { 300, 0, 0, 0 }
+            local o = spawn(0, 0)
+            assert.equals(1300, destination(o[1]).x)
+        end)
+
+        it("keeps `radius` as the placement circle", function()
+            spawn(120)
+            assert.equals(120, spawnOpts.circleRadius)
+        end)
+
+        it("lets a waypoint zone march the spawned group to its centre", function()
+            CTLDZoneManager.getInstance().getWaypointZoneAt = function()
+                return { zoneName = "WPZ_s", getCenter = function() return { x = 9000, y = 0, z = 9500 } end }
+            end
+            enemies = { enemyGroup(1500, 2000) }
+            local o = spawn(0)
+            assert.equals(9000, destination(o[1]).x)
+        end)
+
+        it("leaves a group where it was spawned with both distances at 0", function()
+            searchDist, moveDist = 0, 0
+            enemies = { enemyGroup(1500, 2000) }
+            assert.equals(0, #spawn(0))
+        end)
+
+    end)
+
     describe("however the troops come down", function()
 
         it("is ordered after a fast-rope drop", function()

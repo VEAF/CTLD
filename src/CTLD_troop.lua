@@ -2328,8 +2328,11 @@ end
 -- @param number      number|table   troop count or composition {inf=N,mg=N,...}
 -- @param triggerName string         DCS trigger zone name
 -- @param radius      number         random spread radius in metres (0 = at center)
+-- @param searchDistance number|nil  enemy search distance of the spawned group (nil: maximumSearchDistance; 0 looks
+--                                   for none, and the group walks at random). The deprecated ctld.spawnGroupAt*
+--                                   functions pass their last argument here, as v1 read it (issue #309).
 -- @return boolean
-function CTLDTroopManager:spawnGroupAtTrigger(side, number, triggerName, radius)
+function CTLDTroopManager:spawnGroupAtTrigger(side, number, triggerName, radius, searchDistance)
     local trig = trigger.misc.getZone(triggerName)
     if not trig then
         ctld.utils.log("ERROR", "CTLDTroopManager:spawnGroupAtTrigger — zone not found: %s", tostring(triggerName))
@@ -2337,17 +2340,19 @@ function CTLDTroopManager:spawnGroupAtTrigger(side, number, triggerName, radius)
     end
     local p2 = { x = trig.point.x, y = trig.point.z }
     local pt = { x = p2.x, y = land.getHeight(p2), z = p2.y }
-    return self:spawnGroupAtPoint(side, number, pt, radius)
+    return self:spawnGroupAtPoint(side, number, pt, radius, searchDistance)
 end
 
 --- Spawn a deployable troop group at a Vec3 point (MM DO SCRIPT).
--- The closest template by unit count is used; group is registered as droppable.
+-- The closest template by unit count is used; group is registered as droppable. It is a dropped group: it acts on
+-- its own (a template task, a waypoint zone, else the nearest enemy or a random walk).
 -- @param side    string         "red" | "blue"
 -- @param number  number|table   troop count or composition table
 -- @param point   table          vec3 {x, y, z}
 -- @param radius  number         random spread radius in metres
+-- @param searchDistance number|nil  enemy search distance (nil: maximumSearchDistance; 0 looks for none)
 -- @return boolean
-function CTLDTroopManager:spawnGroupAtPoint(side, number, point, radius)
+function CTLDTroopManager:spawnGroupAtPoint(side, number, point, radius, searchDistance)
     local coalitionId = (side == "red") and coalition.side.RED or coalition.side.BLUE
     local countryId   = ctld.utils.resolveCountryId(coalitionId)
     radius = math.max(0, radius or 0)
@@ -2370,6 +2375,7 @@ function CTLDTroopManager:spawnGroupAtPoint(side, number, point, radius)
     table.insert(self._droppedGroups[coalitionId], dcsGroup:getName())
     ctld.utils.log("INFO", "CTLDTroopManager:spawnGroupAtPoint — '%s' spawned (%s, %d units)",
         dcsGroup:getName(), side, tmpl.total)
+    self:_orderDropped(dcsGroup:getName(), point, coalitionId, tmpl.specificParams, searchDistance)
     return true
 end
 
