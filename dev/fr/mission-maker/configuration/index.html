@@ -2696,6 +2696,11 @@ un instantané produit par l'outil est donc toujours complet.</p>
 <td><code>true</code></td>
 <td>Active l'entrée F10 « Drop Smoke »</td>
 </tr>
+<tr>
+<td><code>forbidUnpackInLogisticZone</code></td>
+<td><code>false</code></td>
+<td>Si <code>true</code>, une caisse ordinaire (véhicule, système AA) ne peut pas être déballée dans une zone logistique amie (le pilote lit « You can't unpack that here! »), et une caisse d'équipement larguée qui y atterrit ne se déballe pas toute seule. Les caisses FOB et FARP gardent leurs propres règles. Remplace le <code>minimumDeployDistance</code> de la v1</td>
+</tr>
 </tbody>
 </table>
 <h3 id="distances-metres">Distances (mètres)<a class="headerlink" href="#distances-metres" title="Permanent link">&para;</a></h3>
@@ -2720,8 +2725,13 @@ un instantané produit par l'outil est donc toujours complet.</p>
 </tr>
 <tr>
 <td><code>maximumSearchDistance</code></td>
-<td><code>3000</code></td>
-<td>Distance max pour que les troops IA déployées cherchent des ennemis</td>
+<td><code>4000</code></td>
+<td>Distance max dans laquelle un groupe déposé (troupes, ou véhicule déchargé d'un transport) cherche l'ennemi le plus proche pour s'y rendre. <code>0</code> n'en cherche aucun</td>
+</tr>
+<tr>
+<td><code>maximumMoveDistance</code></td>
+<td><code>2000</code></td>
+<td>Sans ennemi à portée, un groupe déposé marche vers un point tiré au hasard dans cette distance de l'endroit où il a été déposé. Avec celle-ci et <code>maximumSearchDistance</code> à <code>0</code>, un groupe déposé reste où il a été déposé</td>
 </tr>
 <tr>
 <td><code>maximumDistancePackableUnitsSearch</code></td>
