@@ -1,6 +1,6 @@
 # FIX-FAT-COW-CLEARING-LOG — the AI cow's clearing search can fail without leaving anything in the log
 
-**Status:** ⬜ ready — decisions taken in the grill of 2026-11-18 (no ADR: reversible and unsurprising; no `CONTEXT.md` term: it has no Fat Cow vocabulary).
+**Status:** ✅ done (PR #316) — decisions taken in the grill of 2026-11-18 (no ADR: reversible and unsurprising; no `CONTEXT.md` term: it has no Fat Cow vocabulary).
 
 GitHub issue #299 (found by an automated review of `develop`).
 

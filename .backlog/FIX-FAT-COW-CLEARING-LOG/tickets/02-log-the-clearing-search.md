@@ -1,6 +1,6 @@
 # 02 — The clearing search leaves a trace when it cannot do its job
 
-**Status:** ✅ done · **Type:** AFK
+**Status:** ✅ done (PR #316) · **Type:** AFK
 
 ## Parent
 

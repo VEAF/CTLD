@@ -1,6 +1,6 @@
 # 01 — Check the real output of the clearing search
 
-**Status:** ✅ done (probe of 2026-11-18) · **Type:** AFK
+**Status:** ✅ done (probe of 2026-11-18, PR #316) · **Type:** AFK
 
 ## Parent
 
