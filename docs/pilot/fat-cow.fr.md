@@ -78,7 +78,8 @@ Une cow par patrouille.
 Si la patrouille qu'une cow sert est abattue, ou si son dernier joueur quitte son slot, la cow replie sa FARP et rentre à la base.
 Chaque patrouille d'hélicoptères de sa coalition qui n'a pas de cow est prévenue : où elle est par rapport à vous, où elle rentre et ce qu'elle transporte.
 
-Tant qu'une cow rentre, pour cette raison ou après un **Rentre à la base**, vide ou non, ou a été libérée par sa patrouille (**Libérer la Fat Cow**, qui prévient aussi ces patrouilles), elles la trouvent dans **Fat Cow → Reprendre une Fat Cow** : une entrée par cow, la plus proche en tête, avec sa distance par rapport à vous (mise à jour toutes les 30 s).
+Tant qu'une cow rentre, pour cette raison ou après un **Rentre à la base**, vide ou non, ou a été libérée par sa patrouille (**Libérer la Fat Cow**, qui prévient aussi ces patrouilles), elles la trouvent dans **Fat Cow → Reprendre une Fat Cow** : une entrée par cow, dans l'ordre des numéros des cows, nommée **Fat Cow #N** avec ce qu'elle fait (*en attente*, *rentre à sa base*, ou *rentre à* sa base).
+L'entrée n'affiche jamais de distance, elle ne change donc jamais sous votre doigt : la distance et le relèvement sont dans le message reçu quand cette cow a perdu sa patrouille ou a été libérée, qui nomme le même **#N**, et la confirmation de la reprise donne sa distance et le temps qu'il lui faut pour vous rejoindre.
 La cow choisie rejoint votre patrouille et obéit à ses commandes comme si vous l'aviez demandée.
 Une cow libérée au sol replie sa FARP avant de vous rejoindre.
 Une entrée disparaît dès que sa cow est reprise, posée à sa base ou abattue.

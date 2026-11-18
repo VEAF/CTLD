@@ -1,6 +1,6 @@
 # 02 — The "Take over a Fat Cow" list holds still
 
-**Status:** ⬜ ready · **Type:** AFK
+**Status:** ✅ done (PR #NN) · **Type:** AFK
 
 ## Parent
 
@@ -20,16 +20,16 @@ The list a pilot reads stops changing under their finger, and a click always rea
 
 ## Acceptance criteria
 
-- [ ] Two successive refreshes of the list, with a cow that came closer in between, create and remove no entry.
-- [ ] Two cows in the same state get two distinct labels; the label carries the number and the state, for each of the three states, and no distance.
-- [ ] The order is the same whatever the distances, including when they invert.
-- [ ] After two cows swap their distance ranks, the first entry still takes the cow it names.
-- [ ] The periodic refresh is gone (no timer registered, no function, no unused parameter), and every event that changes the cows that can be taken over still rebuilds the menus.
-- [ ] The take-over itself, its messages and its refusal for a cow no longer available behave as before.
-- [ ] The new regression test fails before the change, for the right reason (the entry is recreated), and passes after it; the rewritten assertions describe the new labels.
-- [ ] The dictionaries are regenerated and the new labels have French and Spanish translations; the Korean ones are flagged for review.
-- [ ] The pilot guide (English and French) and, if needed, the mission maker's page, and the `CHANGELOG`, are updated.
-- [ ] `busted tests/ci/` green; luacheck clean.
+- [x] Two successive refreshes of the list, with a cow that came closer in between, create and remove no entry.
+- [x] Two cows in the same state get two distinct labels; the label carries the number and the state, for each of the three states, and no distance.
+- [x] The order is the same whatever the distances, including when they invert.
+- [x] After two cows swap their distance ranks, the first entry still takes the cow it names.
+- [x] The periodic refresh is gone (no timer registered, no function, no unused parameter), and every event that changes the cows that can be taken over still rebuilds the menus.
+- [x] The take-over itself, its messages and its refusal for a cow no longer available behave as before.
+- [x] The new regression test fails before the change, for the right reason (the entry is recreated), and passes after it; the rewritten assertions describe the new labels.
+- [x] The dictionaries are regenerated and the new labels have French and Spanish translations; the Korean ones are flagged for review.
+- [x] The pilot guide (English and French) and, if needed, the mission maker's page, and the `CHANGELOG`, are updated.
+- [x] `busted tests/ci/` green; luacheck clean.
 
 ## Blocked by
 

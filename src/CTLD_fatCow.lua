@@ -355,8 +355,6 @@ end
 -- How often every cow FARP is read and re-written: a refill run before CTLD reads hides what was taken
 -- since the last read (see readWarehouse), so the reads are kept close together.
 local RESYNC_PERIOD_S = 10
--- How often the "Take over a Fat Cow" entries are rebuilt, their distances with them, while there are any.
-local TAKE_OVER_REFRESH_S = 30
 
 --- Every cow FARP: an open one gets its stock read and written back (see resyncWarehouse), any other is
 -- emptied (it stays in the world, and a refill would make it serve next to another cow's depot).
@@ -404,10 +402,6 @@ function CTLDFatCowManager:start()
         mgr:_resyncFarps()
         return now + RESYNC_PERIOD_S
     end, nil, timer.getTime() + RESYNC_PERIOD_S))
-    ctld.scheduler.register("fatCow_takeOverMenus", ctld.scheduler.schedule(function(_, now)
-        mgr:_refreshTakeOverMenus()
-        return now + TAKE_OVER_REFRESH_S
-    end, nil, timer.getTime() + TAKE_OVER_REFRESH_S))
     pcall(self._logFarpWarehouses, self)
     ctld.utils.log("INFO", "CTLDFatCowManager: started, %d cow crate type(s)", #self._crateDescs)
 end
@@ -1463,7 +1457,7 @@ end
 -- ── Taking over a free cow (FEAT-FAT-COW-TAKEOVER) ─────────────────────────────────────────────
 -- A cow going home (sent with RTB or after losing its flight, empty or not) until it has landed there, or
 -- one its flight released where it stands, can be taken over by a helicopter flight with no cow: F10
--- "Take over a Fat Cow" lists those of the coalition, nearest first. A cow that lost its flight, or was
+-- "Take over a Fat Cow" lists those of the coalition, in the order of their numbers. A cow that lost its flight, or was
 -- released, also tells those flights.
 
 --- True when the player may take a cow over: a helicopter of its coalition that sees the AI Fat Cow menu
@@ -1491,39 +1485,25 @@ function CTLDFatCowManager:_isTakeable(cow)
     return cow.ai ~= nil and (cow.ai.phase == CTLDFatCowManager.PHASE_RETURNING or cow.ai.released == true)
 end
 
---- The cows of a coalition another flight may take over, nearest to `point` first.
--- @return list of { cow, d } (d in metres)
-function CTLDFatCowManager:_takeableCows(coalitionId, point)
+--- The cows of a coalition another flight may take over, in the order of their numbers. The order is stable on
+-- purpose: an F10 entry that falls out of the wanted order is recreated (ADR 0027), so an order that followed
+-- a distance would recreate the entries as the cows move (FIX-FAT-COW-TAKEOVER-LABELS).
+-- @return list of CTLDFatCow
+function CTLDFatCowManager:_takeableCows(coalitionId)
     local out = {}
     for _, cow in pairs(self._cows) do
         local u = self:_isTakeable(cow) and cow.coalitionId == coalitionId and Unit.getByName(cow.unitName)
-        if u and u:isExist() then
-            out[#out + 1] = { cow = cow, d = ctld.utils.getDistance("CTLDFatCowManager", point, u:getPoint()) }
-        end
+        if u and u:isExist() then out[#out + 1] = cow end
     end
-    table.sort(out, function(a, b) return a.d < b.d end)
+    table.sort(out, function(a, b) return a.ai.number < b.ai.number end)
     return out
 end
 
 --- Rebuilds the menus of a coalition's players: "Take over a Fat Cow" comes, goes, or updates.
--- @param onlyCandidates boolean  only the players who may take a cow over (the periodic distance update)
-function CTLDFatCowManager:_rebuildMenus(coalitionId, onlyCandidates)
+function CTLDFatCowManager:_rebuildMenus(coalitionId)
     local pm = CTLDPlayerManager.getInstance()
     for _, p in pairs(pm._players) do
-        if p.coalition == coalitionId and (not onlyCandidates or self:_mayTakeOver(p, coalitionId)) then
-            pm:buildMenu(p)
-        end
-    end
-end
-
---- The periodic update: the menus of whoever sees a cow going home get its distance again.
-function CTLDFatCowManager:_refreshTakeOverMenus()
-    local done = {}
-    for _, cow in pairs(self._cows) do
-        if self:_isTakeable(cow) and not done[cow.coalitionId] then
-            done[cow.coalitionId] = true
-            self:_rebuildMenus(cow.coalitionId, true)
-        end
+        if p.coalition == coalitionId then pm:buildMenu(p) end
     end
 end
 
@@ -1588,26 +1568,29 @@ function CTLDFatCowManager:takeOverAICow(unitName, cowUnitName)
     self:_rebuildMenus(cow.coalitionId)
 end
 
---- The "Take over a Fat Cow" submenu: one entry per cow going home, nearest first, with its distance.
+--- The "Take over a Fat Cow" submenu: one entry per cow going home or released, in the order of their numbers.
+-- A label is an entry's identity (ADR 0027): it names the cow and its state and never carries a distance, which
+-- would change it at every refresh, and the order is the cow's number for the same reason. The distance is in
+-- the announcement the flight received and in the confirmation of the take-over.
 function CTLDFatCowManager:_addTakeOverCommands(playerObj, menu, path)
     if not self:_mayTakeOver(playerObj, playerObj.coalition) then return end
-    local cows = self:_takeableCows(playerObj.coalition, Unit.getByName(playerObj.unitName):getPoint())
+    local cows = self:_takeableCows(playerObj.coalition)
     if #cows == 0 then return end
     local sub = { path[1], path[2], ctld.tr("Take over a Fat Cow") }
     menu:addSubMenu(path, sub[3], { order = 10 })
     local mgr = CTLDFatCowManager.getInstance
-    for i, c in ipairs(cows) do
-        local km = math.floor(c.d / 1000 + 0.5)
+    for _, cow in ipairs(cows) do
+        local n = cow.ai.number
         local label
-        if c.cow.ai.released then
-            label = ctld.tr("Fat Cow %1 km away, waiting", km)
-        elseif c.cow.ai.homeName then
-            label = ctld.tr("Fat Cow %1 km away, going home to %2", km, c.cow.ai.homeName)
+        if cow.ai.released then
+            label = ctld.tr("Fat Cow #%1 — waiting", n)
+        elseif cow.ai.homeName then
+            label = ctld.tr("Fat Cow #%1 — going home to %2", n, cow.ai.homeName)
         else
-            label = ctld.tr("Fat Cow %1 km away, going home", km)
+            label = ctld.tr("Fat Cow #%1 — going home", n)
         end
         menu:addCommand(sub, label, function(arg) mgr():takeOverAICow(arg.unitName, arg.cow) end,
-            { unitName = playerObj.unitName, cow = c.cow.unitName }, { order = i })
+            { unitName = playerObj.unitName, cow = cow.unitName }, { order = n })
     end
 end
 

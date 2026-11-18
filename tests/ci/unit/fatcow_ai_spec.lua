@@ -508,18 +508,18 @@ describe("AI Fat Cow", function()
         assert.is_not_nil(text:find("Take over a Fat Cow", 1, true))
     end)
 
-    it("lists the cows going home to a helicopter flight without a cow, nearest first, with their distance", function()
+    it("lists the cows going home to a helicopter flight without a cow, in the order of their numbers, with no distance", function()
         local p = playerFlight("Viper", 8, 8000, 2000)
         local hornet = playerFlight("Hornet", 12, 8000, 2000, Unit.Category.AIRPLANE)
         assert.is_nil(aiMenuOf(p)["Take over a Fat Cow"])
-        local far  = orphanCow(60000)                                        -- 52 km from Viper-1
-        local near = orphanCow(20000)                                        -- 12 km
+        local far  = orphanCow(60000)                                        -- 52 km from Viper-1: cow 1
+        local near = orphanCow(20000)                                        -- 12 km: cow 2
         local set, takeOver = aiMenuOf(p)
         assert.is_true(set["Take over a Fat Cow"])
-        assert.equals(near.unitName, takeOver[1].cow)
-        assert.equals("Fat Cow 12 km away, going home to Akrotiri", takeOver[1].label)
-        assert.equals(far.unitName, takeOver[2].cow)
-        assert.equals("Fat Cow 52 km away, going home to Akrotiri", takeOver[2].label)
+        assert.equals(far.unitName, takeOver[far.ai.number].cow)             -- the order is the number, not the distance
+        assert.equals("Fat Cow #1 — going home to Akrotiri", takeOver[1].label)
+        assert.equals(near.unitName, takeOver[near.ai.number].cow)
+        assert.equals("Fat Cow #2 — going home to Akrotiri", takeOver[2].label)
         assert.is_nil(aiMenuOf(hornet)["Take over a Fat Cow"])
         local viperRebuilt = false
         for _, g in ipairs(rebuilt) do if g == "Viper" then viperRebuilt = true end end
@@ -536,7 +536,7 @@ describe("AI Fat Cow", function()
         w.liquids[0], w.items[HELLFIRE] = 0, 0                               -- emptied
         mgr:releaseAICow("Gunfighter-1")
         local _, takeOver = aiMenuOf(p)
-        assert.equals(cow.unitName, takeOver[1].cow)
+        assert.equals(cow.unitName, takeOver[cow.ai.number].cow)
         units[cow.unitName]._p = { x = 5000, y = 20, z = 2000 }
         rebuilt = {}
         mgr:onLand({ initiator = units[cow.unitName] })                     -- home
@@ -553,15 +553,21 @@ describe("AI Fat Cow", function()
         assert.equals("Viper", rebuilt[1])
     end)
 
-    it("updates the distances every so often, in the menus of who may take a cow over only", function()
-        playerFlight("Viper", 8, 8000, 2000)
-        playerFlight("Hornet", 12, 8000, 2000, Unit.Category.AIRPLANE)
-        mgr:_refreshTakeOverMenus()
-        assert.equals(0, #rebuilt)                                           -- no cow going home
-        orphanCow()
-        rebuilt = {}
-        mgr:_refreshTakeOverMenus()
-        assert.same({ "Viper" }, rebuilt)
+    -- FIX-FAT-COW-TAKEOVER-LABELS (issue #298): the list has no distance, so nothing rebuilds it on a timer.
+    it("does not rebuild the take-over menus on a timer", function()
+        local registered = {}
+        local savedRegister = ctld.scheduler.register
+        ctld.scheduler.register = function(name) registered[#registered + 1] = name end
+        mgr._started = false
+        local ok, err = pcall(function() mgr:start() end)
+        ctld.scheduler.register = savedRegister
+        assert.is_true(ok, tostring(err))
+        local resync = false
+        for _, name in ipairs(registered) do
+            assert.is_not.equals("fatCow_takeOverMenus", name)
+            if name == "fatCow_resync" then resync = true end
+        end
+        assert.is_true(resync)                                               -- the control: the other timer is still there
     end)
 
     it("joins the flight that takes it over, which then commands it as its own", function()
@@ -617,7 +623,7 @@ describe("AI Fat Cow", function()
         assert.is_not_nil(to[8]:find("was released", 1, true))
         assert.is_not_nil(to[8]:find("12.0 km", 1, true))
         local _, takeOver = aiMenuOf(p)
-        assert.equals("Fat Cow 12 km away, waiting", takeOver[1].label)
+        assert.equals("Fat Cow #" .. cow.ai.number .. " — waiting", takeOver[cow.ai.number].label)
         mgr:takeOverAICow("Viper-1", cow.unitName)
         assert.equals(CTLDFatCow.STATE_STOWED, cow.state)                   -- packed before it moves
         local t = lastTask(cow.ai.groupName)
@@ -734,6 +740,121 @@ describe("AI Fat Cow", function()
             runScheduled()
             local text = toViper()
             assert.is_not_nil(text:find("Fat Cow #" .. cow.ai.number .. " lost its flight and is going home: ", 1, true))
+        end)
+    end)
+
+    -- FIX-FAT-COW-TAKEOVER-LABELS (issue #298): the real F10 rendering against the missionCommands double that recycles
+    -- ids as DCS does (ADR 0027). A refresh that changes nothing for the pilot must create and remove nothing, and
+    -- an entry clicked from a screen left open must reach the cow it names.
+    describe("the Take over a Fat Cow list holds still", function()
+        local mc, viper
+        local LIST = { "CTLD", "Fat Cow", "Take over a Fat Cow" }
+        local VIPER_GID = 8
+
+        before_each(function()
+            ctld.MenuManager._instance = nil
+            mc = ctldMissionCommandsDouble.install()
+            viper = playerFlight("Viper", VIPER_GID, 8000, 2000)
+        end)
+
+        after_each(function()
+            mc:uninstall()
+            ctld.MenuManager._instance = nil
+        end)
+
+        -- What buildMenu does for the Fat Cow section, on the real menu, applied the way a refresh applies it.
+        local function render()
+            local mm   = ctld.MenuManager:getInstance()
+            local menu = mm:createMenuForGroup(VIPER_GID)
+            menu.children, menu._lookup, menu.nextItemId = {}, {}, 1
+            menu:addSubMenu({}, "CTLD", { order = 10 })
+            mgr:buildMenuSection(viper, menu)
+            mm:refreshMenuForGroup(VIPER_GID)
+        end
+
+        local function labels() return mc:labels(VIPER_GID, LIST) end
+
+        local function move(cow, x) units[cow.unitName]._p = { x = x, y = 20, z = 2000 } end
+
+        local function entryOf(cow)
+            for _, name in ipairs(labels()) do
+                if name:find("#" .. cow.ai.number .. " ", 1, true) then
+                    return mc:idOf(VIPER_GID, { LIST[1], LIST[2], LIST[3], name })
+                end
+            end
+        end
+
+        it("creates and removes nothing when a cow has come closer between two refreshes", function()
+            local cow = orphanCow(60000)                                     -- 52 km from Viper-1
+            render()
+            assert.equals(1, #labels())
+            mc:resetCalls()
+            move(cow, 20000)                                                 -- 12 km
+            render()
+            assert.equals(0, mc:callCount())
+        end)
+
+        it("gives two cows in the same state two distinct labels", function()
+            orphanCow(60000)
+            orphanCow(60000)                                                 -- the same distance
+            render()
+            local l = labels()
+            assert.equals(2, #l)
+            assert.is_not.equals(l[1], l[2])
+        end)
+
+        it("keeps the order of the numbers, whatever the distances", function()
+            local first  = orphanCow(60000)                                  -- cow 1, the farther
+            local second = orphanCow(20000)                                  -- cow 2, the nearer
+            render()
+            assert.same({ "Fat Cow #1 — going home to Akrotiri", "Fat Cow #2 — going home to Akrotiri" }, labels())
+            move(first, 12000); move(second, 70000)                          -- the distances invert
+            mc:resetCalls()
+            render()
+            assert.same({ "Fat Cow #1 — going home to Akrotiri", "Fat Cow #2 — going home to Akrotiri" }, labels())
+            assert.equals(0, mc:callCount())
+        end)
+
+        it("takes the cow the entry names, after the cows swapped their distance ranks", function()
+            local first  = orphanCow(60000)
+            local second = orphanCow(20000)
+            render()
+            local id = entryOf(first)                                        -- the screen the pilot is reading
+            move(first, 12000); move(second, 70000)
+            render()
+            mc:click(id)
+            assert.equals(first, mgr:aiCowOfFlight("Viper"))
+            assert.is_not.equals(second, mgr:aiCowOfFlight("Viper"))
+        end)
+
+        it("names the number and the state of each of the three kinds of cow", function()
+            -- 1: lost its flight and goes home to a base
+            local lost = orphanCow(60000)
+            -- 2: released where it stands
+            local leader, released = flightWithCow()
+            units[released.unitName]._p = { x = 20000, y = 20, z = 2000 }
+            mgr:onLand({ initiator = leader })
+            mgr:onLand({ initiator = units[released.unitName] })
+            runScheduled()
+            mgr:freeAICow("Gunfighter-1")
+            -- 3: a mission-placed cow that lost its flight (it has no base to name)
+            mgr._settings.fatCowAICows = { { group = "Cow A", escort = "Hammer" } }
+            newGroup("Cow A", 50, "CowA-1"); newUnit("CowA-1", "Cow A", 30000, 2000)
+            newGroup("Hammer", 11, "Hammer-1")
+            local hammer = newUnit("Hammer-1", "Hammer")
+            mgr:_activateMissionCows()
+            runScheduled()
+            groups["Hammer"].destroyed = true
+            mgr:onDead({ initiator = hammer })
+            runScheduled()
+            local placed
+            for _, c in pairs(mgr._cows) do if c.ai and c.ai.groupName == "Cow A" then placed = c end end
+            render()
+            assert.same({
+                "Fat Cow #" .. lost.ai.number .. " — going home to Akrotiri",
+                "Fat Cow #" .. released.ai.number .. " — waiting",
+                "Fat Cow #" .. placed.ai.number .. " — going home",
+            }, labels())
         end)
     end)
 
