@@ -436,7 +436,7 @@ vehicle spawner and the crate manager publish `OnGroundUnitSpawned`.
 - `OnGroundUnitSpawned`: `CTLDVehicleSpawner:_spawnGroundUnit()`, `CTLDCrateManager:_spawnUnpacked()`
 - `OnGroundUnitRemoved`: `CTLDVehicleSpawner:loadVehicle()`, `:onDead()`, `:packVehicle()`
 
-### Troop events (2)
+### Troop events (3)
 
 #### `OnTroopsDeployed`
 Troops are deployed by parachute.
@@ -465,6 +465,23 @@ failure is logged at `ERROR` level and the player is told the troops were lost.
 | `startAltitude` | number | |
 
 **Published by**: `CTLDTroopManager:parachuteTroops()` (landing callback)
+
+#### `OnTroopsUnloaded`
+A troop group is dropped: on the ground, by fast-rope, or into an extraction zone. Published at the end of a
+successful drop, once per group ("Unload All" publishes one per group), for player and AI transports alike.
+A refused drop (no troops on board, too high or too fast to fast-rope, the group could not be spawned)
+publishes nothing.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `troops` | CTLDTroopGroup | The group dropped |
+| `carrierUnitName` | string | |
+| `player` | string or nil | Slot unit name of a player transport; `nil` for an AI transport |
+| `method` | string | `"ground"` or `"fast_rope"` |
+| `destination` | table | `{ type="combat", troopZone=nil }`, or `{ type="extraction_zone", troopZone=<zone name> }` |
+| `timestamp` | number | |
+
+**Published by**: `CTLDTroopManager:disembark()` (also reached by `:disembarkIndex()` and `:disembarkAll()`)
 
 ### JTAC events (8)
 
