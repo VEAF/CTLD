@@ -78,7 +78,8 @@ One cow per flight.
 If the flight a cow serves is shot down, or its last player leaves, the cow packs its FARP and flies back to base.
 Every helicopter flight of its coalition with no cow of its own is told: where it is from them, where it goes and what it holds.
 
-As long as a cow is flying home, for that reason or after an **RTB**, empty or not, or has been released by its flight (**Release the Fat Cow**, which tells those flights too), they find it in **Fat Cow → Take over a Fat Cow**: one entry per cow, nearest first, with its distance from you (updated every 30 s).
+As long as a cow is flying home, for that reason or after an **RTB**, empty or not, or has been released by its flight (**Release the Fat Cow**, which tells those flights too), they find it in **Fat Cow → Take over a Fat Cow**: one entry per cow, in the order of the cows' numbers, named **Fat Cow #N** with what it is doing (*waiting*, *going home*, or *going home to* its base).
+The entry never shows a distance, so it never changes under your finger: the distance and bearing are in the message you received when that cow lost its flight or was released, which names the same **#N**, and the confirmation of the take-over gives its distance and the time it needs to join you.
 The cow you pick joins your flight and obeys its commands as if you had requested it.
 A cow released on the ground packs its FARP before joining you.
 An entry goes away once its cow is taken over, has landed at its base, or is shot down.

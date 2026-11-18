@@ -15,7 +15,7 @@ if not ctld then ctld = {} end
 if not ctld.i18n then ctld.i18n = {} end
 
 ctld.i18n["en"] = {}
-ctld.i18n["en"].translation_version = "1.38"
+ctld.i18n["en"].translation_version = "1.40"
 
 --- groups names
 ctld.i18n["en"]["Standard Group"] = "Standard Group"
@@ -709,15 +709,15 @@ ctld.i18n["en"]["Shturm"] = "Shturm"
 ctld.i18n["en"]["Vikhr"] = "Vikhr"
 
 --- Keys added by generate_i18n_dicts.ps1 on 2026-10-30
-ctld.i18n["en"]["A Fat Cow lost its flight and is going home to %1: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "A Fat Cow lost its flight and is going home to %1: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."
-ctld.i18n["en"]["A Fat Cow lost its flight and is going home: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "A Fat Cow lost its flight and is going home: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."
+-- STALE: ctld.i18n["en"]["A Fat Cow lost its flight and is going home to %1: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "A Fat Cow lost its flight and is going home to %1: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."
+-- STALE: ctld.i18n["en"]["A Fat Cow lost its flight and is going home: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "A Fat Cow lost its flight and is going home: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."
 ctld.i18n["en"]["Fat Cow joining your flight: %1 km, in about %2 min, with %3."] = "Fat Cow joining your flight: %1 km, in about %2 min, with %3."
 ctld.i18n["en"]["Take over a Fat Cow"] = "Take over a Fat Cow"
-ctld.i18n["en"]["Fat Cow %1 km away, going home"] = "Fat Cow %1 km away, going home"
-ctld.i18n["en"]["Fat Cow %1 km away, going home to %2"] = "Fat Cow %1 km away, going home to %2"
+-- STALE: ctld.i18n["en"]["Fat Cow %1 km away, going home"] = "Fat Cow %1 km away, going home"
+-- STALE: ctld.i18n["en"]["Fat Cow %1 km away, going home to %2"] = "Fat Cow %1 km away, going home to %2"
 ctld.i18n["en"]["This Fat Cow is no longer available."] = "This Fat Cow is no longer available."
-ctld.i18n["en"]["A Fat Cow was released and waits for a flight: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "A Fat Cow was released and waits for a flight: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."
-ctld.i18n["en"]["Fat Cow %1 km away, waiting"] = "Fat Cow %1 km away, waiting"
+-- STALE: ctld.i18n["en"]["A Fat Cow was released and waits for a flight: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "A Fat Cow was released and waits for a flight: %1 km at %2° from you, with %3. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."
+-- STALE: ctld.i18n["en"]["Fat Cow %1 km away, waiting"] = "Fat Cow %1 km away, waiting"
 ctld.i18n["en"]["Fat Cow released: it stays where it is, for another flight to take over."] = "Fat Cow released: it stays where it is, for another flight to take over."
 ctld.i18n["en"]["Release the Fat Cow"] = "Release the Fat Cow"
 
@@ -734,3 +734,13 @@ ctld.i18n["en"]["Hand the Fat Cow crates over to CTLD first: open the doors, the
 --- Keys added by generate_i18n_dicts.ps1 on 2026-11-18
 ctld.i18n["en"]["minimumDeployDistance is not read by CTLD 2 — set forbidUnpackInLogisticZone: true to refuse unpacking crates inside a logistic zone"] = "minimumDeployDistance is not read by CTLD 2 — set forbidUnpackInLogisticZone: true to refuse unpacking crates inside a logistic zone"
 ctld.i18n["en"]["You can't unpack that here! Take it to where it's needed!"] = "You can't unpack that here! Take it to where it's needed!"
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-18
+ctld.i18n["en"]["Fat Cow #%1 lost its flight and is going home to %2: %3 km at %4° from you, with %5. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Fat Cow #%1 lost its flight and is going home to %2: %3 km at %4° from you, with %5. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."
+ctld.i18n["en"]["Fat Cow #%1 lost its flight and is going home: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Fat Cow #%1 lost its flight and is going home: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."
+ctld.i18n["en"]["Fat Cow #%1 was released and waits for a flight: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."] = "Fat Cow #%1 was released and waits for a flight: %2 km at %3° from you, with %4. F10 CTLD > Fat Cow > Take over a Fat Cow makes it yours."
+
+--- Keys added by generate_i18n_dicts.ps1 on 2026-11-18
+ctld.i18n["en"]["Fat Cow #%1 — going home"] = "Fat Cow #%1 — going home"
+ctld.i18n["en"]["Fat Cow #%1 — going home to %2"] = "Fat Cow #%1 — going home to %2"
+ctld.i18n["en"]["Fat Cow #%1 — waiting"] = "Fat Cow #%1 — waiting"

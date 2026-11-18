@@ -8,6 +8,12 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — the "Take over a Fat Cow" list no longer changes under the pilot's finger (FIX-FAT-COW-TAKEOVER-LABELS, issue #298)
+
+- Each entry of *Fat Cow → Take over a Fat Cow* carried its cow's distance, rounded to the kilometre, in its label, and a timer rebuilt the list every 30 s. Since the stable F10 entries (ADR 0027) a label is an entry's identity, so an entry whose distance changed was recreated: a click from a screen left open fired nothing, without any message, and a cow flying home at 65 m/s changed its kilometre at almost every refresh. Two cows at the same kilometre also shared a label, and could swap places between two refreshes, so a click took the other one.
+  Every AI cow now has a number (the one already in the group name of a requested cow; a cow placed by the mission takes the next one). The entry reads "Fat Cow #3 — going home to Akrotiri", "Fat Cow #3 — going home" or "Fat Cow #3 — waiting", with no distance, in the order of the numbers, and nothing rebuilds the list on a timer any more: it changes only when a cow is released, taken over, arrives or is lost. The messages sent to the flights that could take a cow over name the same cow ("Fat Cow #3 lost its flight and is going home to Akrotiri: 12.4 km at 270° from you, …") and keep its distance and bearing, as does the confirmation of the take-over. "Nearest first" is gone, on purpose: an order that followed the distance would recreate the entries as the cows move.
+  The pilot guide (English and French) describes the new list.
+
 ### Fixed — the AI Fat Cow's clearing search no longer fails without a trace (FIX-FAT-COW-CLEARING-LOG, issue #299)
 
 - The AI cow lands in a clearing found with `Disposition.getSimpleZones`, an undocumented DCS function; when it could not be used the cow landed on the raw point 120 m to the left of its leader, the very case of the trees it struck on 2026-10-30, and nothing was written in the log. A DCS patch could have brought the defect back without a clue.
