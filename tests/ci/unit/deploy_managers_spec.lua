@@ -378,6 +378,64 @@ describe("CTLDCrateAssemblyManager assembly + repair", function()
 
     end)
 
+    -- ── FEAT-VMCT-V1-PARITY (issue #328): the events name the crates a system consumed ──
+    describe("names the consumed crates", function()
+
+        local function sorted(list)
+            local copy = {}
+            for i, v in ipairs(list) do copy[i] = v end
+            table.sort(copy)
+            return copy
+        end
+
+        it("OnAASystemDeployed carries the crates of the assembly and the group they became", function()
+            local _, launcher, radar = kubTemplate()
+            local crateLn, crateSr = aaCrate(launcher), aaCrate(radar)
+            local fired = capture("OnAASystemDeployed", function()
+                aam:tryUnpackOrRepair(heli(), crateLn, { kub_ln = crateLn, kub_sr = crateSr }, 500)
+            end)
+            assert.equals(1, #fired)
+            assert.same(sorted({ crateLn.crateName, crateSr.crateName }), sorted(fired[1].crateNames))
+            assert.is_not_nil(spawnedGroups[fired[1].groupName])
+        end)
+
+        it("OnAASystemDeployed of an AI delivery has no crate, and no crateNames", function()
+            local fired = capture("OnAASystemDeployed", function()
+                aam:spawnSystemAt("KUB AA System", { x = 0, y = 0, z = 0 }, coalition.side.BLUE, country.id.USA)
+            end)
+            assert.equals(1, #fired)
+            assert.is_nil(fired[1].crateNames)
+            assert.is_not_nil(fired[1].groupName)
+        end)
+
+        it("OnAASystemRearmed carries the launcher crate", function()
+            local _, launcher, radar = kubTemplate()
+            local crateLn = aaCrate(launcher)
+            aam:tryUnpackOrRepair(heli(), crateLn, { kub_ln = crateLn, kub_sr = aaCrate(radar) }, 500)
+            local launcherCrate = aaCrate(launcher)
+            local fired = capture("OnAASystemRearmed", function()
+                aam:tryUnpackOrRepair(heli(), launcherCrate, { launcherCrate }, 500)
+            end)
+            assert.equals(1, #fired)
+            assert.same({ launcherCrate.crateName }, fired[1].crateNames)
+            assert.is_not_nil(spawnedGroups[fired[1].groupName])
+        end)
+
+        it("OnAASystemRepaired carries the repair crate", function()
+            local _, launcher, radar = kubTemplate()
+            local crateLn = aaCrate(launcher)
+            aam:tryUnpackOrRepair(heli(), crateLn, { kub_ln = crateLn, kub_sr = aaCrate(radar) }, 500)
+            local repairCrate = aaCrate(nil, "KUB AA System")
+            local fired = capture("OnAASystemRepaired", function()
+                aam:tryUnpackOrRepair(heli(), repairCrate, {}, 500)
+            end)
+            assert.equals(1, #fired)
+            assert.same({ repairCrate.crateName }, fired[1].crateNames)
+            assert.is_not_nil(spawnedGroups[fired[1].groupName])
+        end)
+
+    end)
+
 end)
 
 -- ============================================================

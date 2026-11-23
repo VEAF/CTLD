@@ -8,6 +8,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — the events link a crate and the group it became (FEAT-VMCT-V1-PARITY, issue #328)
+
+- CTLD v1's callbacks gave both the crate and the spawned group for every unpack, rearm and repair. In CTLD 2, `OnCrateUnpacked` gave the crate without the group, and the AA system events the group without the crates, so a layer had to rebuild the link by proximity, and two simultaneous unpacks could be crossed (reported by VMCT).
+  `OnCrateUnpacked` now carries `groupName`, the DCS group the unpack created (a vehicle, a JTAC; one event per consumed crate, all with the same group; absent for a scene). `OnAASystemDeployed`, `OnAASystemRearmed` and `OnAASystemRepaired` carry `crateNames`, the list of the crates consumed; an AA system delivered by an AI has no crate and no `crateNames`. Nothing is renamed or removed. The event reference (English and French) describes both fields.
+
 ### Changed — the units of a gesture can be driven again, behind `spawnedUnitsPlayerCanDrive` (FEAT-VMCT-V1-PARITY, issue #327)
 
 - CTLD v1 created the units of a player gesture with `playerCanDrive = true`, so a Combined Arms player or a game master could take control of what the helicopters delivered. CTLD 2 created them non-drivable, with no setting to bring it back (reported by VMCT, which wrapped `ctld.utils.spawnAs` to restore it).

@@ -816,11 +816,11 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, noRefresh)
                     local spawnInfo = ctld.utils.getSpawnObjectPositions(t, 1, safeDist)
                     local spawnPos  = spawnInfo.positions[1]
                     local desc = arg.descriptor
-                    local spawned
+                    local spawned, groupName
                     if desc and desc.unit and spawnPos then
                         local coa = arg.coalition
                         local cId = ctld.utils.resolveCountryId(coa, t)
-                        spawned = mgr:_spawnUnpacked(desc, spawnPos, coa, cId, playerObj.unitName)
+                        spawned, groupName = mgr:_spawnUnpacked(desc, spawnPos, coa, cId, playerObj.unitName)
                     else
                         ctld.utils.log("WARNING", "Unpack Crate — nothing attempted for '%s' (unit=%s): no descriptor, unit type or spawn position",
                             tostring(arg.unitType), tostring(arg.unitName))
@@ -829,7 +829,7 @@ function CTLDCrateManager:refreshUnpackSection(playerObj, noRefresh)
                     -- the crates stay on the ground.
                     if spawned == true then
                         for _, c in ipairs(toUnpack) do
-                            mgr:unpackCrate(c.crateName, t)
+                            mgr:unpackCrate(c.crateName, t, groupName)
                         end
                         trigger.action.outTextForGroup(gid,
                             ctld.tr("%1 unpacked successfully!", arg.descriptor.desc), 10)
@@ -2386,7 +2386,8 @@ end
 -- Spawn logic is delegated to the relevant manager based on descriptor type.
 -- @param crateName string
 -- @param unpacker  Unit  player unit requesting unpack
-function CTLDCrateManager:unpackCrate(crateName, unpacker)
+-- @param groupName string|nil  the DCS group the unpack created, published as OnCrateUnpacked.groupName (issue #328)
+function CTLDCrateManager:unpackCrate(crateName, unpacker, groupName)
     local crate = self.crates[crateName]
     if not crate then return end
     if not crate:isOnGround() then
@@ -2398,6 +2399,7 @@ function CTLDCrateManager:unpackCrate(crateName, unpacker)
     self:_publish("OnCrateUnpacked", {
         crate           = crate,
         crateName       = crateName,
+        groupName       = groupName,
         descriptor      = crate.descriptor,
         position        = pos,
         coalition       = crate.coalition,
@@ -2570,6 +2572,7 @@ end
 -- @param playerName string   unit name of the player who unpacked (optional — triggers menu refresh)
 -- @return boolean|nil  true when the group was created, false when DCS refused it (the player's group is told),
 --                      nil when nothing was attempted (missing data, JTAC drop disabled, JTAC slot limit)
+-- @return string|nil   the name of the created group, with true
 function CTLDCrateManager:_spawnUnpacked(desc, pos, coa, cId, playerName)
     if not (desc and desc.unit and pos) then return end
 
@@ -2631,7 +2634,7 @@ function CTLDCrateManager:_spawnUnpacked(desc, pos, coa, cId, playerName)
         CTLDVehicleSpawner.getInstance():refreshLoadSectionForUnit(playerName)
         CTLDVehicleSpawner.getInstance():refreshPackSectionForUnit(playerName)
     end
-    return true
+    return true, gname
 end
 
 --- Activate post-spawn role behaviors for an unpacked crate.
@@ -2972,10 +2975,10 @@ function CTLDCrateManager:_checkAutoUnpack(landedCrate)
         -- (ADR 0028); a refusal leaves them on the ground.
         -- The dropper (nil for a DCS-native release) is the player _spawnUnpacked tells if the equipment
         -- cannot be created: the DCS refusal, the JTAC limit.
-        local spawned = self:_spawnUnpacked(desc, centroid, coa, cId, landedCrate.droppedBy)
+        local spawned, groupName = self:_spawnUnpacked(desc, centroid, coa, cId, landedCrate.droppedBy)
         if spawned == true then
             for _, c in ipairs(toUnpack) do
-                self:unpackCrate(c.crateName, nil)
+                self:unpackCrate(c.crateName, nil, groupName)
             end
             ctld.utils.log("INFO",
                 "CTLDCrateManager: auto-unpack (parachute) EQUIPMENT — type=%s required=%d centroid=(%.0f,%.0f,%.0f)",

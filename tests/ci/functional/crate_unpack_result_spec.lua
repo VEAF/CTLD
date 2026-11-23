@@ -205,6 +205,27 @@ describe("Unpack Crate announces only what was created", function()
             assert.is_true(crateStillThere())
         end)
 
+        -- FEAT-VMCT-V1-PARITY (issue #328): the unpack event names the group the crate became.
+        local function unpackedPayloads(gesture)
+            local created
+            ctld.utils.spawnFromDescriptor = function(_, _, unitDef) created = unitDef.name; return true end
+            local fired = {}
+            local ed = EventDispatcher.getInstance()
+            local cb = function(p) fired[#fired + 1] = p end
+            ed:subscribe("OnCrateUnpacked", cb)
+            gesture()
+            ed:unsubscribe("OnCrateUnpacked", cb)
+            return fired, created
+        end
+
+        it("names the created group in OnCrateUnpacked", function()
+            local fired, created = unpackedPayloads(function() unpack(false) end)
+            assert.equals(1, #fired)
+            assert.is_not_nil(created)
+            assert.equals(created, fired[1].groupName)
+            assert.equals("unp1", fired[1].crateName)
+        end)
+
         it("keeps the crate when no spawn position was found", function()
             noPosition = true
             unpack(false)
@@ -232,6 +253,14 @@ describe("Unpack Crate announces only what was created", function()
 
             it("consumes the crate when the equipment was created (control)", function()
                 assert.is_nil(landParachutedCrate())
+            end)
+
+            it("names the created group in OnCrateUnpacked (issue #328)", function()
+                local fired, created = unpackedPayloads(function() landParachutedCrate() end)
+                assert.equals(1, #fired)
+                assert.is_not_nil(created)
+                assert.equals(created, fired[1].groupName)
+                assert.equals("para1", fired[1].crateName)
             end)
 
             it("keeps the crate when DCS refuses the group", function()
