@@ -8,6 +8,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — five defects found by the VMCT review of `develop` (FIX-VMCT-REVIEW-FINDINGS, issues #322 to #326)
+
+- **Parachuted troops keep their template** (#322): every parachuted group landed as "Soldier AK", blue or red, whatever its roles (a Mortar Squad landed as riflemen), because the drop read a unit field the troop templates do not have. The drop now builds the group from the template's own units, with the types of the group's coalition and its `componentTypes`, exactly as the same group unloaded on the ground: same types, same order, mortar servants included. A JTAC behind a mortar still lases. "Soldier AK" remains only as a logged fallback for an unknown template.
+
 ### Fixed — the Fat Cow no longer takes a landed CH-47 for an airborne one (FIX-FAT-COW-GROUND-TEST, issue #295)
 
 - DCS's own `inAir()` can answer "in the air" for a high-chassis helicopter such as the CH-47, the cow of the whole feature, while it is landed and at rest. CTLD has `ctld.utils.inAir` for exactly that case, and the rest of the code uses it; the Fat Cow called the raw `inAir()` at three places. A landed cow was therefore refused by the FARP deployment as "airborne" (an AI cow's FARP never opened, and a piloted cow's pilot, on the ground with his crates in the hold, read "The Fat Cow FARP could not be deployed."), the "The Fat Cow is already on the ground." guard of **Land here** never fired, and **Release the Fat Cow** gave a landed cow an orbit task, so it lifted off from its open FARP and left it behind.
