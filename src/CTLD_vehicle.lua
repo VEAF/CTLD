@@ -274,7 +274,7 @@ function CTLDVehicleSpawner:spawnVehicleForTransport(vehicleType, spawner, logis
                 y              = spawnPos.z,   -- dynAdd: y == world Z
                 heading        = spawnHdg,
                 skill          = "Random",
-                playerCanDrive = false,
+                playerCanDrive = ctld.utils.spawnedUnitsPlayerCanDrive(),
             }
         },
     }
@@ -572,7 +572,7 @@ function CTLDVehicleSpawner:unloadVehicle(vehicle, transport, player, method, re
                     y              = spawnPos.z,
                     heading        = spawnHdg,
                     skill          = "Random",
-                    playerCanDrive = false,
+                    playerCanDrive = ctld.utils.spawnedUnitsPlayerCanDrive(),
                 }
             },
         }
@@ -1187,6 +1187,7 @@ function CTLDVehicleSpawner:_spawnGroundUnit(spawnData, position)
             x       = position.x,
             y       = position.z,
             heading = 0,
+            playerCanDrive = ctld.utils.spawnedUnitsPlayerCanDrive(),
         }},
     }
     local ok, err = ctld.utils.spawnFromDescriptor(nil, cId, unitDef)

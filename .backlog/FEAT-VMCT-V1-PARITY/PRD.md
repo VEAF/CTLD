@@ -1,6 +1,6 @@
 # FEAT-VMCT-V1-PARITY — v1 behaviours VMCT needs back: drivable spawned units, crate ↔ group link in events (issues #327, #328)
 
-**Status:** 🟡 ready — decisions taken by the control session on 2026-11-23 (below, each with its reason). They are defaults, not questions: apply them unless the code proves one wrong, and then say why in the PR.
+**Status:** ✅ done (PR #329, live check 15/15 on 2026-11-23) — decisions taken by the control session on 2026-11-23 (below, each with its reason). They are defaults, not questions: apply them unless the code proves one wrong, and then say why in the PR.
 
 GitHub issues #327 and #328, opened by VMCT on 2026-11-19 from a read of `develop` at `1dfea2c`, re-read in the code on 2026-11-23. VMCT works around both today (a wrapper on `ctld.utils.spawnAs`, a proximity heuristic) and will drop the workarounds once this ships. The sibling lot [`FIX-VMCT-REVIEW-FINDINGS`](../FIX-VMCT-REVIEW-FINDINGS/PRD.md) (#322-#326) runs in parallel and also touches `src/CTLD_aasystem.lua` and `src/CTLD_crate.lua` (other functions), `CHANGELOG.md` and `.backlog/README.md`: rebase on `develop` if it merges first.
 

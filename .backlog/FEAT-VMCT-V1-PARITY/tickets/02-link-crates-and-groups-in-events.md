@@ -1,6 +1,6 @@
 # 02 — Events link crates and groups (#328)
 
-**Status:** 🟡 ready · **Type:** AFK
+**Status:** ✅ done (PR #329) · **Type:** AFK
 
 ## Parent
 [PRD](../PRD.md), issue #328.

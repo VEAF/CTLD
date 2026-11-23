@@ -498,6 +498,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     -- each consumed crate and the F10 unpack menu refreshes for nearby pilots.
     local stacking = ctld.gs("AASystemCrateStacking")
     local cm = CTLDCrateManager.getInstance()
+    local crateNames = {}   -- every crate the assembly consumed, for OnAASystemDeployed (issue #328)
     for _, part in ipairs(template.parts) do
         local sp = systemParts[part.DCSTypename]
         if sp.NoCrate then
@@ -510,6 +511,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
             -- possible), it was already counted as consumed during collection above, so destroy
             -- every one of them here, not just some.
             for _, c in ipairs(sp.crates) do
+                crateNames[#crateNames + 1] = c.crateName
                 cm:destroyCrate(c.crateName)
             end
         else
@@ -520,6 +522,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
             local deleted   = 0
             for _, c in ipairs(sp.crates) do
                 if deleted >= toDelete then break end
+                crateNames[#crateNames + 1] = c.crateName
                 cm:destroyCrate(c.crateName)
                 deleted = deleted + 1
             end
@@ -534,6 +537,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     EventDispatcher.getInstance():publish("OnAASystemDeployed", {
         systemName  = template.name,
         groupName   = spawnedGroup:getName(),
+        crateNames  = crateNames,
         heli        = heli,
         coalition   = coalitionId,
         position    = origin,
@@ -612,6 +616,7 @@ function CTLDCrateAssemblyManager:_rearm(heli, crate, allCrates, template)
     EventDispatcher.getInstance():publish("OnAASystemRearmed", {
         systemName = template.name,
         groupName  = spawnedGroup:getName(),
+        crateNames = { crate.crateName },
         heli       = heli,
         coalition  = heli:getCoalition(),
         timestamp  = timer.getAbsTime(),
@@ -681,6 +686,7 @@ function CTLDCrateAssemblyManager:_repair(heli, crate, template)
     EventDispatcher.getInstance():publish("OnAASystemRepaired", {
         systemName = template.name,
         groupName  = spawnedGroup:getName(),
+        crateNames = { crate.crateName },
         heli       = heli,
         coalition  = heli:getCoalition(),
         timestamp  = timer.getAbsTime(),
@@ -861,7 +867,7 @@ function CTLDCrateAssemblyManager:_spawnGroup(positions, types, headings, countr
             y              = pos.z,   -- dynAdd convention: y == world Z
             heading        = hdg,
             skill          = "High",
-            playerCanDrive = false,
+            playerCanDrive = ctld.utils.spawnedUnitsPlayerCanDrive(),
         }
     end
 

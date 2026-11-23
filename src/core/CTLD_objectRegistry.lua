@@ -435,6 +435,9 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
                 uz = z + dx * sinH + dz * cosH
             end
 
+            -- A template's own playerCanDrive wins; otherwise spawnedUnitsPlayerCanDrive decides (issue #327).
+            local canDrive = uDesc.playerCanDrive
+            if canDrive == nil then canDrive = ctld.utils.spawnedUnitsPlayerCanDrive() end
             local unit = {
                 name           = uName,
                 type           = uType,
@@ -442,7 +445,7 @@ function CTLDObjectRegistry.spawnObject(objectKey, coalitionId, countryId, x, z,
                 y              = uz,  -- DCS ground unit uses y = world Z
                 heading        = headingRad + (uDesc.dh or 0),
                 skill          = "High",
-                playerCanDrive = uDesc.playerCanDrive or false,
+                playerCanDrive = canDrive,
                 transportable  = { randomTransportable = false },
                 unitId         = uid,
             }

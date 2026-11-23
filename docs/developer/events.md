@@ -257,6 +257,7 @@ A crate is successfully unpacked (assembled into equipment).
 | --- | --- | --- |
 | `crate` | CTLDCrate | |
 | `crateName` | string | |
+| `groupName` | string or nil | DCS group the unpack created (a vehicle, a JTAC). One event per consumed crate: the crates of one unpack carry the same `groupName`. `nil` when the unpack created no group of its own (a scene: FOB, FARP) |
 | `descriptor` | table | |
 | `position` | vec3 | Unpack location |
 | `coalition` | number | |
@@ -818,6 +819,7 @@ An AA system is fully assembled.
 | --- | --- | --- |
 | `systemName` | string | `"HAWK"`, `"PATRIOT"`, … |
 | `groupName` | string | DCS group name |
+| `crateNames` | string[] or nil | Names of the crates the assembly consumed. `nil` if AI-deployed (no crate) |
 | `heli` | Unit or nil | `nil` if AI-deployed |
 | `coalition` | number | |
 | `position` | vec3 | |
@@ -830,14 +832,15 @@ A launcher is added to an existing AA system.
 | Field | Type | Description |
 | --- | --- | --- |
 | `systemName` | string | |
-| `groupName` | string | |
+| `groupName` | string | The new group (the old one is destroyed) |
+| `crateNames` | string[] | Names of the crates consumed (the launcher crate) |
 | `heli` | Unit | |
 | `coalition` | number | |
 
 **Published by**: `CTLDCrateAssemblyManager:_rearm()`
 
 #### `OnAASystemRepaired`
-A full AA system is repaired and re-spawned. Same fields as `OnAASystemRearmed`.
+A full AA system is repaired and re-spawned. Same fields as `OnAASystemRearmed`; `crateNames` holds the repair crate.
 
 **Published by**: `CTLDCrateAssemblyManager:_repair()`
 

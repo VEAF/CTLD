@@ -1302,6 +1302,14 @@ function ctld.utils.resolveCountryId(coalitionId, unit)
 end
 
 --------------------------------------------------------------------------------------------------------
+--- playerCanDrive for a ground unit a CTLD gesture creates (troops, JTAC team, vehicle, unpacked crate, AA system):
+-- the spawnedUnitsPlayerCanDrive setting, true unless it is false — CTLD v1 created them drivable (issue #327).
+-- @return boolean
+function ctld.utils.spawnedUnitsPlayerCanDrive()
+    return ctld.gs("spawnedUnitsPlayerCanDrive") ~= false
+end
+
+--------------------------------------------------------------------------------------------------------
 --- Build a DCS group unitDef table ready for ctld.utils.spawnFromDescriptor.
 -- Handles GROUND and non-ground (AIRPLANE, HELICOPTER, SHIP, TRAIN) categories.
 -- STATIC objects use a different DCS schema and are not handled here.
@@ -1326,11 +1334,12 @@ function ctld.utils.buildGroupUnitDef(desc, pos, gname, gid, uid)
             name  = gname,
             task  = "Ground Nothing",
             units = { {
-                type    = desc.unit,
-                name    = gname,
-                x       = pos.x,
-                y       = pos.z,
-                heading = 0,
+                type           = desc.unit,
+                name           = gname,
+                x              = pos.x,
+                y              = pos.z,
+                heading        = 0,
+                playerCanDrive = ctld.utils.spawnedUnitsPlayerCanDrive(),
             } },
         }
     else
