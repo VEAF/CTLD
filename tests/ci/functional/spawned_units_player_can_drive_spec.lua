@@ -7,12 +7,28 @@
 -- (which would itself turn a missing field into true, so the field must be set before it).
 -- ============================================================
 
+-- Two test templates, registered for each case and removed after it: the registry is shared by every spec.
+local GROUND_KEY = "PCD_TEST_TROOPS"
+local LOCKED_KEY = "PCD_TEST_LOCKED"
+local function registerTemplates()
+    CTLDObjectRegistry.registerIfAbsent(GROUND_KEY, {
+        groupType = "GROUND", namePrefix = "PCD_Grp", category = Unit.Category.GROUND_UNIT,
+        units = { { namePrefix = "PCD_Soldier", unitType = "Soldier M4" },
+                  { namePrefix = "PCD_Soldier", unitType = "Soldier M4", dx = 2 } },
+    })
+    CTLDObjectRegistry.registerIfAbsent(LOCKED_KEY, {
+        groupType = "GROUND", namePrefix = "PCD_Locked", category = Unit.Category.GROUND_UNIT,
+        units = { { namePrefix = "PCD_Locked_Unit", unitType = "M978 HEMTT Tanker", playerCanDrive = false } },
+    })
+end
+
 local origAddGroup, origDynAdd, origGetByName, borrowed
 local added      -- unit tables handed to coalition.addGroup, in order
 local dynAdded   -- unit tables handed to ctld.utils.dynAdd, in order
 
 local function capture(setting)
     borrowed = ctldTestSettings.borrow({ spawnedUnitsPlayerCanDrive = setting })
+    registerTemplates()
     origAddGroup, origDynAdd, origGetByName = coalition.addGroup, ctld.utils.dynAdd, Group.getByName
     added, dynAdded = {}, {}
     coalition.addGroup = function(_, _, groupData)
@@ -46,6 +62,8 @@ end
 local function release()
     coalition.addGroup, ctld.utils.dynAdd, Group.getByName = origAddGroup, origDynAdd, origGetByName
     borrowed:restore()
+    CTLDObjectRegistry._db[GROUND_KEY] = nil
+    CTLDObjectRegistry._db[LOCKED_KEY] = nil
 end
 
 local function transport()
@@ -68,17 +86,6 @@ local function allDrivable(units, expected)
     for _, u in ipairs(units) do assert.equals(expected, u.playerCanDrive) end
 end
 
-local GROUND_KEY = "PCD_TEST_TROOPS"
-CTLDObjectRegistry.registerIfAbsent(GROUND_KEY, {
-    groupType = "GROUND", namePrefix = "PCD_Grp", category = Unit.Category.GROUND_UNIT,
-    units = { { namePrefix = "PCD_Soldier", unitType = "Soldier M4" },
-              { namePrefix = "PCD_Soldier", unitType = "Soldier M4", dx = 2 } },
-})
-local LOCKED_KEY = "PCD_TEST_LOCKED"
-CTLDObjectRegistry.registerIfAbsent(LOCKED_KEY, {
-    groupType = "GROUND", namePrefix = "PCD_Locked", category = Unit.Category.GROUND_UNIT,
-    units = { { namePrefix = "PCD_Locked_Unit", unitType = "M978 HEMTT Tanker", playerCanDrive = false } },
-})
 
 -- The gestures, each one creating its units the way CTLD does in game.
 local GESTURES = {

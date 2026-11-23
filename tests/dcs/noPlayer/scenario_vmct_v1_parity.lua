@@ -73,12 +73,11 @@ local mock = {
     end,
 }
 local origGetByName = Unit.getByName
-Unit.getByName = function(n) if n == MOCK then return mock end return origGetByName(n) end
 
 -- Record what CTLD hands to DCS: group name -> list of playerCanDrive values of its units.
 local handed = {}
 local origAddGroup = coalition.addGroup
-coalition.addGroup = function(cId, cat, data)
+local function recordingAddGroup(cId, cat, data)
     local v = {}
     for i, u in ipairs(data.units or {}) do v[i] = u.playerCanDrive end
     handed[data.name] = v
@@ -166,6 +165,8 @@ local function step(fn, delay)
 end
 
 local ok, err = pcall(function()
+    Unit.getByName = function(n) if n == MOCK then return mock end return origGetByName(n) end
+    coalition.addGroup = recordingAddGroup
     -- ── 1. Vehicle crate unpack (parachute auto-unpack) ──────────────────────
     local desc = cm:findDescriptorByUnitType(VEH_TYPE)
     local required = desc and desc.cratesRequired or 1
@@ -213,7 +214,7 @@ local ok, err = pcall(function()
         aam:tryUnpackOrRepair(mock, cl2, cm.crates, 500)
         local re = events.OnAASystemRearmed[1]
         check("3.1 OnAASystemRearmed names the launcher crate", re ~= nil and sameSet(re.crateNames, { cl2.crateName }),
-              "payload=" .. tostring(re and re.crateNames))
+              "crateNames=" .. (re and type(re.crateNames) == "table" and table.concat(re.crateNames, ",") or tostring(re and re.crateNames)))
         check("3.2 rearmed group exists in DCS", re ~= nil and Group.getByName(re.groupName) ~= nil, "no DCS group")
 
         step(function()
@@ -222,7 +223,7 @@ local ok, err = pcall(function()
             aam:tryUnpackOrRepair(mock, rc, cm.crates, 500)
             local rp = events.OnAASystemRepaired[1]
             check("4.1 OnAASystemRepaired names the repair crate", rp ~= nil and sameSet(rp.crateNames, { rc.crateName }),
-                  "payload=" .. tostring(rp and rp.crateNames))
+                  "crateNames=" .. (rp and type(rp.crateNames) == "table" and table.concat(rp.crateNames, ",") or tostring(rp and rp.crateNames)))
             check("4.2 repaired group exists in DCS", rp ~= nil and Group.getByName(rp.groupName) ~= nil, "no DCS group")
             step(finish)
         end)
