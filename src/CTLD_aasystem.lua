@@ -860,7 +860,7 @@ function CTLDCrateAssemblyManager:_spawnGroup(positions, types, headings, countr
             y              = pos.z,   -- dynAdd convention: y == world Z
             heading        = hdg,
             skill          = "High",
-            playerCanDrive = false,
+            playerCanDrive = ctld.utils.spawnedUnitsPlayerCanDrive(),
         }
     end
 
