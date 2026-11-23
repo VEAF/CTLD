@@ -717,3 +717,56 @@ describe("baked AA crate catalogue", function()
     end)
 
 end)
+
+-- ─────────────────────────────────────────────────────────────
+-- Issue #325: the group name was <type>_CTLD_AA_<second>; two systems of the same type spawned in the
+-- same second shared it, and DCS replaces a group spawned under an existing name.
+describe("CTLDCrateAssemblyManager:_spawnGroup — unique group name (#325)", function()
+
+    local _origDynAdd, _origGetAbsTime, _origGetByName
+    local added
+
+    before_each(function()
+        CTLDCrateAssemblyManager._instance = nil
+        added = {}
+        _origDynAdd, _origGetAbsTime, _origGetByName = ctld.utils.dynAdd, timer.getAbsTime, Group.getByName
+        ctld.utils.dynAdd = function(_, data)
+            added[#added + 1] = data
+            return { name = data.name }
+        end
+        timer.getAbsTime = function() return 43200.4 end
+        Group.getByName = function(name) return { getName = function() return name end } end
+    end)
+
+    after_each(function()
+        ctld.utils.dynAdd, timer.getAbsTime, Group.getByName = _origDynAdd, _origGetAbsTime, _origGetByName
+    end)
+
+    local function spawnHawk(m)
+        return m:_spawnGroup(
+            { { x = 0, y = 0, z = 0 }, { x = 10, y = 0, z = 0 } },
+            { "Hawk ln", "Hawk sr" },
+            { 0, 0 }, 2)
+    end
+
+    it("gives two systems of the same type spawned in the same second two different group names", function()
+        local m = CTLDCrateAssemblyManager.getInstance()
+        local g1, g2 = spawnHawk(m), spawnHawk(m)
+        assert.equals(2, #added)
+        assert.not_equal(added[1].name, added[2].name)
+        assert.not_equal(g1:getName(), g2:getName())
+    end)
+
+    it("keeps the type and the CTLD_AA marker in the group name", function()
+        spawnHawk(CTLDCrateAssemblyManager.getInstance())
+        assert.is_truthy(added[1].name:find("^Hawk ln_CTLD_AA_"))
+    end)
+
+    it("shares the uid between the group name and its unit names", function()
+        spawnHawk(CTLDCrateAssemblyManager.getInstance())
+        local uid = added[1].name:match("_(%d+)$")
+        assert.is_not_nil(uid)
+        assert.is_truthy(added[1].units[1].name:find("_" .. uid .. "$"))
+    end)
+
+end)
