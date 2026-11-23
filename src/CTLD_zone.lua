@@ -133,7 +133,7 @@ function CTLDTroopZone:init(data)
     self._aiVehicleStock = data._aiVehicleStock or nil
 
     self.smoke            = (data.smoke ~= nil) and data.smoke or -1
-    self.active           = (data.active ~= nil) and data.active or true
+    self.active           = data.active ~= false
     -- A DCS object the zone rides on (a ship, typically): its position is resolved on every
     -- getCenter(), never snapshotted. Same field and same role as CTLDLogisticZone.
     self._linkedUnit      = data.linkedUnit      or nil
@@ -405,7 +405,7 @@ function CTLDLogisticZone:init(data)
     self._linkedUnit      = data.linkedUnit      or nil
     self.dcsName          = data.dcsName         or nil
     self._anchorUnitName  = data.anchorUnitName  or nil
-    self.active           = (data.active ~= nil) and data.active or true
+    self.active           = data.active ~= false
     self.services      = data.services or {
         cratesPickup  = true,
         cratesDropoff = true,

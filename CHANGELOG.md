@@ -11,6 +11,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ### Fixed — five defects found by the VMCT review of `develop` (FIX-VMCT-REVIEW-FINDINGS, issues #322 to #326)
 
 - **Parachuted troops keep their template** (#322): every parachuted group landed as "Soldier AK", blue or red, whatever its roles (a Mortar Squad landed as riflemen), because the drop read a unit field the troop templates do not have. The drop now builds the group from the template's own units, with the types of the group's coalition and its `componentTypes`, exactly as the same group unloaded on the ground: same types, same order, mortar servants included. A JTAC behind a mortar still lases. "Soldier AK" remains only as a logged fallback for an unknown template.
+- **Inactive zones stay inactive** (#323): a `troopZones` or `wpZones` entry marked `"no"` was active from the start of the mission, because the zone's constructor turned `active = false` into `true`. It now loads inactive, as in v1, until `ctld.activatePickupZone` / `ctld.activateWaypointZone` (or `CTLDZoneManager:setTroopZoneActive`) opens it. The logistic zone's constructor had the same expression (no caller passed `false` yet) and is fixed too.
 
 ### Fixed — the Fat Cow no longer takes a landed CH-47 for an airborne one (FIX-FAT-COW-GROUND-TEST, issue #295)
 

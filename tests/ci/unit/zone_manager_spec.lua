@@ -796,3 +796,74 @@ describe("CTLDZoneManager _validateZoneNames startup report (STARTUP-REPORT-UNIF
     end)
 
 end)
+
+-- ─────────────────────────────────────────────────────────────
+-- Issue #323: `(data.active ~= nil) and data.active or true` never let `false` through.
+describe("zone active flag at load (#323)", function()
+
+    local _origGs, _origGetZone
+
+    local function loadLegacy(troopZones, wpZones)
+        local zm = setmetatable({ _troopZones = {}, _logisticZones = {} }, CTLDZoneManager)
+        ctld.gs = function(k)
+            if k == "troopZones"    then return troopZones end
+            if k == "wpZones"       then return wpZones end
+            if k == "logisticUnits" then return {} end
+            return _origGs(k)
+        end
+        zm:_loadLegacyZones()
+        return zm
+    end
+
+    before_each(function()
+        _origGs      = ctld.gs
+        _origGetZone = trigger.misc.getZone
+        trigger.misc.getZone = function(_)
+            return { point = { x = 0, y = 0, z = 0 }, radius = 100 }
+        end
+    end)
+
+    after_each(function()
+        ctld.gs              = _origGs
+        trigger.misc.getZone = _origGetZone
+    end)
+
+    it("a troopZones entry marked \"no\" loads inactive, and activate() opens it", function()
+        local zm = loadLegacy({ { "pickzone1", "blue", -1, "no", 2 } }, {})
+        local z = zm._troopZones["pickzone1"]
+        assert.is_false(z.active)
+        z:activate()
+        assert.is_true(z.active)
+    end)
+
+    it("a wpZones entry marked \"no\" loads inactive, and activate() opens it", function()
+        local zm = loadLegacy({}, { { "wpzone1", "none", "no", 2 } })
+        local z = zm._troopZones["wpzone1"]
+        assert.is_false(z.active)
+        z:activate()
+        assert.is_true(z.active)
+    end)
+
+    it("entries marked \"yes\" still load active", function()
+        local zm = loadLegacy({ { "pickzone2", "blue", -1, "yes", 2 } }, { { "wpzone2", "none", "yes", 2 } })
+        assert.is_true(zm._troopZones["pickzone2"].active)
+        assert.is_true(zm._troopZones["wpzone2"].active)
+    end)
+
+    it("a troop zone built without an active field is active", function()
+        local z = CTLDTroopZone:new({ dcsName = "Z", zoneName = "Z", coalition = 2,
+            center = { x = 0, y = 0, z = 0 }, radius = 10 })
+        assert.is_true(z.active)
+    end)
+
+    it("a logistic zone keeps active = false, and stays active when absent or true", function()
+        local base = { name = "L", coalition = 2, center = { x = 0, y = 0, z = 0 }, radius = 10 }
+        local off = CTLDLogisticZone:new({ name = "L0", coalition = 2, center = base.center, radius = 10, active = false })
+        local on  = CTLDLogisticZone:new({ name = "L1", coalition = 2, center = base.center, radius = 10, active = true })
+        local def = CTLDLogisticZone:new(base)
+        assert.is_false(off.active)
+        assert.is_true(on.active)
+        assert.is_true(def.active)
+    end)
+
+end)
