@@ -1,6 +1,6 @@
 # FIX-VMCT-REVIEW-FINDINGS — five defects found by the VMCT review of `develop` (issues #322 to #326)
 
-**Status:** 🟡 ready — decisions taken by the control session on 2026-11-23 (below, each with its reason). They are defaults, not questions: apply them unless the code proves one wrong, and then say why in the PR.
+**Status:** ✅ merged (PR #330), live check (ticket 06) pending — decisions taken by the control session on 2026-11-23 (below, each with its reason). They are defaults, not questions: apply them unless the code proves one wrong, and then say why in the PR.
 
 GitHub issues #322 to #326, opened by VMCT on 2026-11-19 from a read of `develop` at `1dfea2c`. Every finding was re-read in the code on 2026-11-23 and holds; the line numbers of the issues are right. The sibling lot [`FEAT-VMCT-V1-PARITY`](../FEAT-VMCT-V1-PARITY/PRD.md) (#327, #328) runs in parallel.
 

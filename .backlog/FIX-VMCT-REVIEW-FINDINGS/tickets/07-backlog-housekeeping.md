@@ -1,6 +1,6 @@
 # 07 — Backlog housekeeping
 
-**Status:** 🟡 ready · **Type:** AFK, no `src/` change
+**Status:** ✅ done (PR #330) · **Type:** AFK, no `src/` change
 
 ## Parent
 [PRD](../PRD.md).
@@ -10,4 +10,4 @@
 - In `CHANGELOG.md` `[Unreleased]`, FIX-CREATE-BEFORE-DESTROY, AA systems paragraph: drop "to be confirmed on the live check". That live check passed on 2026-11-09 (ticket 06 of that lot).
 
 ## Acceptance criteria
-- [ ] `Active lots` holds only the lots merged on or after 2026-11-20 and this pair; every archived lot has its file and its `Delivered` line; no link broken.
+- [x] `Active lots` holds only the lots merged on or after 2026-11-20 and this pair; every archived lot has its file and its `Delivered` line; no link broken.
