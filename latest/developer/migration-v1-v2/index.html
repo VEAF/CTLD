@@ -27,7 +27,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -1890,6 +1890,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Troops / transport — CTLDTroopManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#two-v1-settings-maximummovedistance-and-minimumdeploydistance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two v1 settings: maximumMoveDistance and minimumDeployDistance
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2143,6 +2160,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Troops / transport — CTLDTroopManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#two-v1-settings-maximummovedistance-and-minimumdeploydistance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two v1 settings: maximumMoveDistance and minimumDeployDistance
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2326,11 +2360,11 @@ different order.</p>
 <tbody>
 <tr>
 <td><code>ctld.spawnGroupAtTrigger(side, number, triggerName, searchRadius)</code></td>
-<td><code>CTLDTroopManager.getInstance():spawnGroupAtTrigger(side, number, triggerName, searchRadius)</code></td>
+<td><code>CTLDTroopManager.getInstance():spawnGroupAtTrigger(side, number, triggerName, radius, searchDistance)</code></td>
 </tr>
 <tr>
 <td><code>ctld.spawnGroupAtPoint(side, number, point, searchRadius)</code></td>
-<td><code>CTLDTroopManager.getInstance():spawnGroupAtPoint(side, number, point, searchRadius)</code></td>
+<td><code>CTLDTroopManager.getInstance():spawnGroupAtPoint(side, number, point, radius, searchDistance)</code></td>
 </tr>
 <tr>
 <td><code>ctld.preLoadTransport(unitName, number, troops)</code></td>
@@ -2350,6 +2384,28 @@ different order.</p>
 </tr>
 </tbody>
 </table>
+<p>In v1 the last argument of <code>ctld.spawnGroupAtTrigger</code> / <code>ctld.spawnGroupAtPoint</code> was the <strong>enemy search
+distance</strong> of the spawned group (a negative value counts as <code>0</code>), and the units were placed on a circle of
+30 m. The deprecated wrappers keep both meanings. The v2 methods take the placement circle as <code>radius</code> and the
+search distance as an optional last parameter (omitted: <code>maximumSearchDistance</code>; <code>0</code> looks for no enemy).</p>
+<h4 id="two-v1-settings-maximummovedistance-and-minimumdeploydistance">Two v1 settings: <code>maximumMoveDistance</code> and <code>minimumDeployDistance</code><a class="headerlink" href="#two-v1-settings-maximummovedistance-and-minimumdeploydistance" title="Permanent link">&para;</a></h4>
+<p>Neither had a key in CTLD 2.0 to 2.3 (a snapshot that carried them was silently ignored).</p>
+<p><strong><code>maximumMoveDistance</code> (v1, default 2000) is back.</strong> A <em>dropped group</em> (troops dropped by a pilot, by
+fast-rope, by parachute or by an AI transport, a whole vehicle unloaded from a transport, or a group spawned by
+<code>spawnGroupAtTrigger</code> / <code>spawnGroupAtPoint</code>) acts on its own, as in v1: it goes for the nearest enemy ground
+group within <code>maximumSearchDistance</code> (now <code>4000</code> again), otherwise it walks to a random point within
+<code>maximumMoveDistance</code> of where it was dropped. A waypoint zone, or a task declared by the troop template, keeps
+priority. A vehicle that comes out of an unpacked crate is not concerned. <strong>To get idle groups back (the 2.0 to 2.3
+behaviour), set both distances to <code>0</code>.</strong> VMCT-style missions that set <code>maximumMoveDistance</code> to <code>100</code> keep that value.</p>
+<p><strong><code>minimumDeployDistance</code> (v1, default 1000) became a switch, <code>forbidUnpackInLogisticZone</code> (default <code>false</code>).</strong>
+v1 refused any unpack when the helicopter was within that distance of a logistic zone or unit. CTLD 2 keeps its
+rule of no block by default; with <code>forbidUnpackInLogisticZone: true</code>, an ordinary crate is refused inside a
+friendly logistic zone ("You can't unpack that here! Take it to where it's needed!") and a parachuted equipment
+crate does not unpack by itself there. FOB and FARP crates keep their own rules. A snapshot that still carries
+<code>minimumDeployDistance</code> gets a startup notice naming the new setting:</p>
+<div class="highlight"><pre><span></span><code>[NOTICE] config: minimumDeployDistance is not read by CTLD 2 — set forbidUnpackInLogisticZone: true
+to refuse unpacking crates inside a logistic zone
+</code></pre></div>
 <h3 id="zones-ctldzonemanager">Zones — <code>CTLDZoneManager</code><a class="headerlink" href="#zones-ctldzonemanager" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2564,10 +2620,38 @@ catalogue and payload shapes.</p>
 
 <span class="nv">tm</span><span class="p">:</span><span class="nf">spawnGroupAtTrigger</span><span class="p">(</span><span class="nv">coalition</span><span class="p">.</span><span class="py">side</span><span class="p">.</span><span class="py">BLUE</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="s2">"LZ_NORTH"</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span>
 <span class="nv">jtac</span><span class="p">:</span><span class="nf">autoLase</span><span class="p">(</span><span class="s2">"ENEMY_ARMOUR"</span><span class="p">,</span><span class="w"> </span><span class="mi">1688</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
-<span class="nv">ed</span><span class="p">:</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">"OnTroopsDeployed"</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">evt</span><span class="p">)</span>
+<span class="nv">ed</span><span class="p">:</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">"OnTroopsUnloaded"</span><span class="p">,</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="nv">evt</span><span class="p">)</span>
 <span class="w">    </span><span class="nv">trigger</span><span class="p">.</span><span class="py">action</span><span class="p">.</span><span class="nf">outText</span><span class="p">(</span><span class="s2">"Troops landed!"</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span>
 <span class="kr">end</span><span class="p">)</span>
 </code></pre></div>
+<p><code>OnTroopsDeployed</code> covers the <strong>parachute</strong> drop only. A drop on the ground, by fast-rope or into an extraction
+zone is <code>OnTroopsUnloaded</code>. The four v1 troop callbacks map to these events:</p>
+<table>
+<thead>
+<tr>
+<th>v1 callback <code>action</code></th>
+<th>v2 event</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dropped_troops</code></td>
+<td><code>OnTroopsUnloaded</code> (and <code>OnTroopsDeployed</code> for a parachute drop)</td>
+</tr>
+<tr>
+<td><code>load_troops</code></td>
+<td><code>OnTroopsLoaded</code></td>
+</tr>
+<tr>
+<td><code>extract_troops</code></td>
+<td><code>OnTroopsExtracted</code></td>
+</tr>
+<tr>
+<td><code>unload_troops_zone</code></td>
+<td><code>OnTroopsReturned</code></td>
+</tr>
+</tbody>
+</table>
 <h2 id="which-aircraft-are-transports">Which aircraft are transports<a class="headerlink" href="#which-aircraft-are-transports" title="Permanent link">&para;</a></h2>
 <p>v2 decides from <code>capabilitiesByType</code> alone: an aircraft with an entry is a transport, one without
 keeps the CTLD menu but none of its carrying — see

@@ -27,7 +27,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -2177,6 +2177,7 @@ A CH-47 takes off from the friendly logistic zone nearest to you, and you are to
 </tbody>
 </table>
 <p>So you can lift off to hover-taxi onto its FARP, or reposition, without the cow leaving.</p>
+<p>A cow with nothing left opens no FARP: you are told when the delay runs out, with the advice to send it home with <strong>RTB</strong>.</p>
 <p><strong>Fat Cow status</strong> tells where your flight's cow is (phase, distance and bearing), when it should join, and what it still holds, before it has landed too.</p>
 <p><strong>Request a Fat Cow</strong> opens the list of loadouts, the same as a piloted cow's (Apache at the top, <strong>Russian</strong> and <strong>Mixed</strong> one level down): pick what your flight needs.
 It is always a CH-47, whatever you fly.
@@ -2184,7 +2185,8 @@ One cow per flight.</p>
 <h3 id="taking-over-a-free-cow">Taking over a free cow<a class="headerlink" href="#taking-over-a-free-cow" title="Permanent link">&para;</a></h3>
 <p>If the flight a cow serves is shot down, or its last player leaves, the cow packs its FARP and flies back to base.
 Every helicopter flight of its coalition with no cow of its own is told: where it is from them, where it goes and what it holds.</p>
-<p>As long as a cow is flying home, for that reason or after an <strong>RTB</strong>, empty or not, or has been released by its flight (<strong>Release the Fat Cow</strong>, which tells those flights too), they find it in <strong>Fat Cow → Take over a Fat Cow</strong>: one entry per cow, nearest first, with its distance from you (updated every 30 s).
+<p>As long as a cow is flying home, for that reason or after an <strong>RTB</strong>, empty or not, or has been released by its flight (<strong>Release the Fat Cow</strong>, which tells those flights too), they find it in <strong>Fat Cow → Take over a Fat Cow</strong>: one entry per cow, in the order of the cows' numbers, named <strong>Fat Cow #N</strong> with what it is doing (<em>waiting</em>, <em>going home</em>, or <em>going home to</em> its base).
+The entry never shows a distance, so it never changes under your finger: the distance and bearing are in the message you received when that cow lost its flight or was released, which names the same <strong>#N</strong>, and the confirmation of the take-over gives its distance and the time it needs to join you.
 The cow you pick joins your flight and obeys its commands as if you had requested it.
 A cow released on the ground packs its FARP before joining you.
 An entry goes away once its cow is taken over, has landed at its base, or is shot down.</p>

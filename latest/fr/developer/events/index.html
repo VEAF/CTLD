@@ -27,7 +27,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -2146,15 +2146,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#troop-events-2" class="md-nav__link">
+  <a href="#troop-events-6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Événements troop (2)
+        Événements troop (6)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Événements troop (2)">
+    <nav class="md-nav" aria-label="Événements troop (6)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2173,6 +2173,50 @@
     <span class="md-ellipsis">
       
         OnTroopsParachuteLanded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontroopsunloaded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnTroopsUnloaded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontroopsloaded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnTroopsLoaded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontroopsreturned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnTroopsReturned
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontroopsextracted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnTroopsExtracted
       
     </span>
   </a>
@@ -3159,15 +3203,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#troop-events-2" class="md-nav__link">
+  <a href="#troop-events-6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Événements troop (2)
+        Événements troop (6)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Événements troop (2)">
+    <nav class="md-nav" aria-label="Événements troop (6)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -3186,6 +3230,50 @@
     <span class="md-ellipsis">
       
         OnTroopsParachuteLanded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontroopsunloaded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnTroopsUnloaded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontroopsloaded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnTroopsLoaded
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontroopsreturned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnTroopsReturned
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontroopsextracted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OnTroopsExtracted
       
     </span>
   </a>
@@ -4113,6 +4201,11 @@ abonnez-vous à eux par leurs noms exacts.</p>
 <td></td>
 </tr>
 <tr>
+<td><code>groupName</code></td>
+<td>string ou nil</td>
+<td>Group DCS créé par l'unpack (un véhicule, un JTAC). Un événement par crate consommée : les crates d'un même unpack portent le même <code>groupName</code>. <code>nil</code> quand l'unpack ne crée pas de group à lui (une scène : FOB, FARP)</td>
+</tr>
+<tr>
 <td><code>descriptor</code></td>
 <td>table</td>
 <td></td>
@@ -4466,7 +4559,7 @@ qui s'y abonne sache que son handler ne se déclenchera pas ; rien dans le moteu
 <tr>
 <td><code>cratesSpawned</code></td>
 <td>number</td>
-<td>Nombre de crates spawnées</td>
+<td>Nombre de crates créées (l'événement n'est publié qu'une fois les crates créées : un pack refusé par DCS ne publie rien, ADR 0028)</td>
 </tr>
 </tbody>
 </table>
@@ -4642,7 +4735,7 @@ le vehicle spawner et le crate manager publient tous deux <code>OnGroundUnitSpaw
 <li><code>OnGroundUnitSpawned</code> : <code>CTLDVehicleSpawner:_spawnGroundUnit()</code>, <code>CTLDCrateManager:_spawnUnpacked()</code></li>
 <li><code>OnGroundUnitRemoved</code> : <code>CTLDVehicleSpawner:loadVehicle()</code>, <code>:onDead()</code>, <code>:packVehicle()</code></li>
 </ul>
-<h3 id="troop-events-2">Événements troop (2)<a class="headerlink" href="#troop-events-2" title="Permanent link">&para;</a></h3>
+<h3 id="troop-events-6">Événements troop (6)<a class="headerlink" href="#troop-events-6" title="Permanent link">&para;</a></h3>
 <h4 id="ontroopsdeployed"><code>OnTroopsDeployed</code><a class="headerlink" href="#ontroopsdeployed" title="Permanent link">&para;</a></h4>
 <p>Des troops sont déployées par parachute.</p>
 <table>
@@ -4707,7 +4800,7 @@ le vehicle spawner et le crate manager publient tous deux <code>OnGroundUnitSpaw
 <tr>
 <td><code>positions</code></td>
 <td>table</td>
-<td>Tableau de vec3, un par soldat</td>
+<td>Tableau de vec3, un par unité créée (un servant de mortier se pose à 1 m de son mortier)</td>
 </tr>
 <tr>
 <td><code>transport</code></td>
@@ -4727,6 +4820,170 @@ le vehicle spawner et le crate manager publient tous deux <code>OnGroundUnitSpaw
 </tbody>
 </table>
 <p><strong>Published by</strong> : <code>CTLDTroopManager:parachuteTroops()</code> (callback d'atterrissage)</p>
+<h4 id="ontroopsunloaded"><code>OnTroopsUnloaded</code><a class="headerlink" href="#ontroopsunloaded" title="Permanent link">&para;</a></h4>
+<p>Un groupe de troupes est déposé : au sol, en rappel (fast-rope) ou dans une zone d'extraction. Publié à la fin
+d'un dépôt réussi, une fois par groupe (« Unload All » en publie un par groupe), pour les transports joueurs
+comme IA. Un dépôt refusé (pas de troupes à bord, trop haut ou trop vite pour le rappel, groupe non spawné)
+ne publie rien.</p>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>troops</code></td>
+<td>CTLDTroopGroup</td>
+<td>Le groupe déposé</td>
+</tr>
+<tr>
+<td><code>carrierUnitName</code></td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td><code>player</code></td>
+<td>string ou nil</td>
+<td>Nom d'unité du slot d'un transport joueur ; <code>nil</code> pour un transport IA</td>
+</tr>
+<tr>
+<td><code>method</code></td>
+<td>string</td>
+<td><code>"ground"</code> ou <code>"fast_rope"</code></td>
+</tr>
+<tr>
+<td><code>destination</code></td>
+<td>table</td>
+<td><code>{ type="combat", troopZone=nil }</code>, ou <code>{ type="extraction_zone", troopZone=&lt;nom de la zone&gt; }</code></td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td>number</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Published by</strong> : <code>CTLDTroopManager:disembark()</code> (atteint aussi par <code>:disembarkIndex()</code> et <code>:disembarkAll()</code>)</p>
+<h4 id="ontroopsloaded"><code>OnTroopsLoaded</code><a class="headerlink" href="#ontroopsloaded" title="Permanent link">&para;</a></h4>
+<p>Des troupes sont chargées dans une zone de ramassage : par le menu du joueur, par un transport IA ou par
+<code>loadTransport</code> en script. Publié à la fin d'un chargement réussi. Un chargement refusé (zone indisponible pour
+la coalition, stock épuisé, groupe trop gros pour l'appareil) ne publie rien.</p>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>troops</code></td>
+<td>CTLDTroopGroup</td>
+<td>Le groupe chargé</td>
+</tr>
+<tr>
+<td><code>carrierUnitName</code></td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td><code>player</code></td>
+<td>string ou nil</td>
+<td>Nom d'unité du slot d'un transport joueur ; <code>nil</code> pour un transport IA</td>
+</tr>
+<tr>
+<td><code>zone</code></td>
+<td>string</td>
+<td>Nom de la zone de ramassage</td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td>number</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Published by</strong> : <code>CTLDTroopManager:embarkFromTroopZone()</code></p>
+<h4 id="ontroopsreturned"><code>OnTroopsReturned</code><a class="headerlink" href="#ontroopsreturned" title="Permanent link">&para;</a></h4>
+<p>Les troupes à bord sont rendues à la zone de ramassage (son stock est restauré). Un événement par groupe rendu.
+Rien n'est publié quand il n'y a pas de troupes à bord.</p>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>troops</code></td>
+<td>CTLDTroopGroup</td>
+<td>Un groupe rendu</td>
+</tr>
+<tr>
+<td><code>carrierUnitName</code></td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td><code>player</code></td>
+<td>string ou nil</td>
+<td>Nom d'unité du slot d'un transport joueur ; <code>nil</code> pour un transport IA</td>
+</tr>
+<tr>
+<td><code>zone</code></td>
+<td>string</td>
+<td>Nom de la zone de ramassage</td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td>number</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Published by</strong> : <code>CTLDTroopManager:returnToTroopZone()</code></p>
+<h4 id="ontroopsextracted"><code>OnTroopsExtracted</code><a class="headerlink" href="#ontroopsextracted" title="Permanent link">&para;</a></h4>
+<p>Un groupe de troupes déposé est récupéré sur le terrain (le plus proche, ou un groupe choisi). Publié à la fin
+d'une extraction réussie. Une extraction refusée (appareil en vol, aucun groupe à proximité, appareil plein) ne
+publie rien.</p>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>troops</code></td>
+<td>CTLDTroopGroup</td>
+<td>Le groupe extrait</td>
+</tr>
+<tr>
+<td><code>carrierUnitName</code></td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td><code>player</code></td>
+<td>string ou nil</td>
+<td>Nom d'unité du slot d'un transport joueur ; <code>nil</code> pour un transport IA</td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td>number</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Published by</strong> : <code>CTLDTroopManager:embarkFromField()</code> (atteint aussi par <code>:embarkFromFieldByGroup()</code>)</p>
 <h3 id="jtac-events-8">Événements JTAC (8)<a class="headerlink" href="#jtac-events-8" title="Permanent link">&para;</a></h3>
 <h4 id="onjtacspawned"><code>OnJTACSpawned</code><a class="headerlink" href="#onjtacspawned" title="Permanent link">&para;</a></h4>
 <p>Un JTAC est spawné — véhicule, drone, ou soldat d'infanterie au sein d'un troop group.</p>
@@ -5681,6 +5938,11 @@ véhicule JTAC est ré-embarqué.</p>
 <td>Nom de group DCS</td>
 </tr>
 <tr>
+<td><code>crateNames</code></td>
+<td>string[] ou nil</td>
+<td>Noms des crates consommées par l'assemblage. <code>nil</code> si déployé par l'IA (aucune crate)</td>
+</tr>
+<tr>
 <td><code>heli</code></td>
 <td>Unit ou nil</td>
 <td><code>nil</code> si déployé par l'IA</td>
@@ -5717,7 +5979,12 @@ véhicule JTAC est ré-embarqué.</p>
 <tr>
 <td><code>groupName</code></td>
 <td>string</td>
-<td></td>
+<td>Le nouveau group (l'ancien est détruit)</td>
+</tr>
+<tr>
+<td><code>crateNames</code></td>
+<td>string[]</td>
+<td>Noms des crates consommées (la crate du lanceur)</td>
 </tr>
 <tr>
 <td><code>heli</code></td>
@@ -5733,7 +6000,7 @@ véhicule JTAC est ré-embarqué.</p>
 </table>
 <p><strong>Published by</strong> : <code>CTLDCrateAssemblyManager:_rearm()</code></p>
 <h4 id="onaasystemrepaired"><code>OnAASystemRepaired</code><a class="headerlink" href="#onaasystemrepaired" title="Permanent link">&para;</a></h4>
-<p>Un système AA complet est réparé et re-spawné. Mêmes champs que <code>OnAASystemRearmed</code>.</p>
+<p>Un système AA complet est réparé et re-spawné. Mêmes champs que <code>OnAASystemRearmed</code> ; <code>crateNames</code> contient la crate de réparation.</p>
 <p><strong>Published by</strong> : <code>CTLDCrateAssemblyManager:_repair()</code></p>
 <h3 id="zone-events-3">Événements zone (3)<a class="headerlink" href="#zone-events-3" title="Permanent link">&para;</a></h3>
 <p>Chaque entrée de zone de ces payloads identifie la zone par <code>name</code>, sa <strong>clé de registre de zone</strong> : le

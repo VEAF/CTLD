@@ -27,7 +27,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -2690,6 +2690,11 @@ snapshot produced by the tool is always complete.</p>
 <td><code>true</code></td>
 <td>Enable the "Drop Smoke" F10 entry</td>
 </tr>
+<tr>
+<td><code>forbidUnpackInLogisticZone</code></td>
+<td><code>false</code></td>
+<td>When <code>true</code>, an ordinary crate (a vehicle, an AA system) cannot be unpacked inside a friendly logistic zone (the pilot is told "You can't unpack that here!"), and a parachuted equipment crate that lands there is not unpacked by itself. FOB and FARP crates keep their own rules. Replaces the v1 <code>minimumDeployDistance</code></td>
+</tr>
 </tbody>
 </table>
 <h3 id="distances-metres">Distances (metres)<a class="headerlink" href="#distances-metres" title="Permanent link">&para;</a></h3>
@@ -2714,8 +2719,13 @@ snapshot produced by the tool is always complete.</p>
 </tr>
 <tr>
 <td><code>maximumSearchDistance</code></td>
-<td><code>3000</code></td>
-<td>Max distance for deployed AI troops to search for enemies</td>
+<td><code>4000</code></td>
+<td>Max distance within which a dropped group (troops, or a vehicle unloaded from a transport) looks for the nearest enemy to go for. <code>0</code> looks for none</td>
+</tr>
+<tr>
+<td><code>maximumMoveDistance</code></td>
+<td><code>2000</code></td>
+<td>With no enemy in range, a dropped group walks to a random point within this distance of where it was dropped. With both this and <code>maximumSearchDistance</code> at <code>0</code>, a dropped group stays where it was dropped</td>
 </tr>
 <tr>
 <td><code>maximumDistancePackableUnitsSearch</code></td>
@@ -2912,6 +2922,11 @@ the FOB scene model (<code>cratesRequired</code>, default 3), collected within 7
 <td><code>enablePackingVehicles</code></td>
 <td><code>true</code></td>
 <td>Allow vehicles to be packed back into crates</td>
+</tr>
+<tr>
+<td><code>spawnedUnitsPlayerCanDrive</code></td>
+<td><code>true</code></td>
+<td>When <code>true</code>, the ground units a gesture creates (dropped or parachuted troops, JTAC team, vehicle transported, unloaded or unpacked from a crate, AA system) can be driven by a Combined Arms player or a game master, as in CTLD v1. <code>false</code> creates them non-drivable. A FARP's own support vehicles and guards stay non-drivable either way</td>
 </tr>
 <tr>
 <td><code>groundVehicleWeights</code></td>
