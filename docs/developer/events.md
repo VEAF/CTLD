@@ -459,7 +459,7 @@ failure is logged at `ERROR` level and the player is told the troops were lost.
 | --- | --- | --- |
 | `troops` | CTLDTroopGroup | |
 | `spawnedGroup` | Group | DCS group spawned on the ground |
-| `positions` | table | Array of vec3, one per soldier |
+| `positions` | table | Array of vec3, one per spawned unit (a mortar servant lands 1 m beside its mortar) |
 | `transport` | string | |
 | `player` | string | |
 | `startAltitude` | number | |

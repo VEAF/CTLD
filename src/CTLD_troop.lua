@@ -1785,7 +1785,7 @@ end
 --- Parachute troops currently loaded on a transport.
 -- Altitude AGL is checked at call time. If below parachuteMinAltitudeTroops,
 -- a message is sent to the group and nothing happens.
--- Each unit in the group gets its own independent landing position.
+-- Each unit gets its own independent landing position; a mortar servant lands 1 m beside its mortar.
 -- The DCS ground group is spawned with all unit positions after descentTime.
 -- Publishes OnTroopsDeployed (trigger="parachute") immediately,
 -- and OnTroopsParachuteLanded after descentTime.

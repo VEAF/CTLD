@@ -541,8 +541,10 @@ describe("parachuteTroops — unique group/unit names (FIX-PARACHUTE-GROUP-NAME-
             end
 
             tm._inTransit["UH-1H-1"] = { loadedGroup(tmpl, 2, jtacSlots) }
-            tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+            local ok, err = pcall(tm.parachuteTroops, tm, mockTransport,
+                { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
             jm.startLaseTroopUnit = _origLase
+            assert.is_true(ok, tostring(err))
 
             local g = spawnedGroups[spawnedNames()[1]]
             assert.equals(3, #g.units)                     -- mortar, servant, JTAC
