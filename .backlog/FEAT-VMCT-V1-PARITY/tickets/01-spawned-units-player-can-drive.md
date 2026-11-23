@@ -1,6 +1,6 @@
 # 01 — Spawned units can be driven, behind a setting (#327)
 
-**Status:** 🟡 ready · **Type:** AFK
+**Status:** ✅ done (PR #329) · **Type:** AFK
 
 ## Parent
 [PRD](../PRD.md), issue #327.
