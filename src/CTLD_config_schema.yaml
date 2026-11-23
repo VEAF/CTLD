@@ -90,6 +90,13 @@ radioSoundFC3OriginalName:
   description:
     en: File name the custom silent FC3 sound had when it was chosen — shown in the tool, ignored by CTLD
     fr: Nom du fichier son FC3 silencieux personnalisé au moment de sa sélection — affiché dans l'outil, ignoré par CTLD
+spawnedUnitsPlayerCanDrive:
+  group: general
+  standard: true
+  label: {en: Players can drive spawned units, fr: Les joueurs peuvent conduire les unités créées}
+  description:
+    en: When true, the ground units a gesture creates (dropped troops, JTAC team, transported or unpacked vehicle, AA system) can be driven by a Combined Arms player or a game master, as in CTLD v1. A FARP's own vehicles and guards stay non-drivable
+    fr: Si true, les unités au sol créées par un geste (troupes déposées, équipe JTAC, véhicule transporté ou déballé, système AA) peuvent être conduites par un joueur Combined Arms ou un game master, comme dans CTLD v1. Les véhicules et gardes d'une FARP restent non conduisibles
 addPlayerAircraftByType:
   group: general
   label: {en: Detect player units by type, fr: Détecter les unités joueur par type}

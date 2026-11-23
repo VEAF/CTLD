@@ -1838,6 +1838,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
             x       = landPos.x,
             y       = landPos.z,   -- DCS ground group: position.y = world Z axis
             heading = math.random(0, 360) * math.pi / 180,
+            playerCanDrive = ctld.utils.spawnedUnitsPlayerCanDrive(),
         }
         if i == 1 then firstDescentTime = descentTime end
     end

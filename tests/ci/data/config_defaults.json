@@ -296,7 +296,7 @@
       "useNativeDcsCargoSystem": false
     }
   },
-  "configVersion": "2.4.0",
+  "configVersion": "2.5.0",
   "crateDropExtraDistance": 2,
   "crateSpacing": 5,
   "crateSpawnGap": 0.5,
@@ -1266,6 +1266,7 @@
       "type": "container_cargo"
     }
   },
+  "spawnedUnitsPlayerCanDrive": true,
   "transportPilotNames": [
     "helicargo1",
     "helicargo2",

@@ -116,6 +116,11 @@ describe("CTLDConfig", function()
             assert.equals(2000, cfg:getSetting("maximumMoveDistance"))
         end)
 
+        -- Issue #327: CTLD v1 created the units of a gesture drivable by a Combined Arms player.
+        it("spawnedUnitsPlayerCanDrive defaults to true (the v1 behaviour)", function()
+            assert.is_true(cfg:getSetting("spawnedUnitsPlayerCanDrive"))
+        end)
+
         it("JTAC_maxDistance defaults to 10000", function()
             assert.equals(10000, cfg:getSetting("JTAC_maxDistance"))
         end)
