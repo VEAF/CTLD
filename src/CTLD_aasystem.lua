@@ -543,7 +543,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     trigger.action.outTextForCoalition(
         coalitionId,
         ctld.tr("%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4",
-            heli:getName(), template.name, allowed, active + 1),
+            ctld.utils.getPlayerNameOrType(heli), template.name, allowed, active + 1),
         10)
 
     ctld.utils.log("INFO", string.format(
@@ -620,7 +620,7 @@ function CTLDCrateAssemblyManager:_rearm(heli, crate, allCrates, template)
     trigger.action.outTextForCoalition(
         heli:getCoalition(),
         ctld.tr("%1 successfully rearmed a full %2 in the field",
-            heli:getName(),
+            ctld.utils.getPlayerNameOrType(heli),
             template.name),
         20)
 
@@ -689,7 +689,7 @@ function CTLDCrateAssemblyManager:_repair(heli, crate, template)
     trigger.action.outTextForCoalition(
         heli:getCoalition(),
         ctld.tr("%1 successfully repaired a full %2 in the field.",
-            heli:getName(),
+            ctld.utils.getPlayerNameOrType(heli),
             template.name),
         10)
 

@@ -423,6 +423,8 @@ describe("CTLDCrateAssemblyManager _assemble publishes OnCrateCleared per consum
             getCoalition = function() return coalition.side.BLUE end,
             getCountry   = function() return country.id.USA end,
             getName      = function() return "test_heli" end,
+            getPlayerName = function() return nil end,
+            getTypeName  = function() return "UH-1H" end,
             getGroup     = function() return { getID = function() return 1 end } end,
         }
     end
@@ -514,6 +516,8 @@ describe("CTLDCrateAssemblyManager _assemble destroys real crates found for NoCr
             getCoalition = function() return coalition.side.BLUE end,
             getCountry   = function() return country.id.USA end,
             getName      = function() return "test_heli" end,
+            getPlayerName = function() return nil end,
+            getTypeName  = function() return "UH-1H" end,
             getGroup     = function() return { getID = function() return 1 end } end,
         }
     end

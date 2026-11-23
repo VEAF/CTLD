@@ -2187,6 +2187,18 @@ function ctld.utils.getGroupId(unit)
     return grp and grp:getID() or -1
 end
 
+--- Name to show players for the unit behind an action: the player's name, else the unit's type name
+-- (an AI unit has no player). v1's ctld.getPlayerNameOrType, same rule (issue #326).
+-- @param unit DCSUnit
+-- @return string
+function ctld.utils.getPlayerNameOrType(unit)
+    local playerName = unit:getPlayerName()
+    if playerName == nil then
+        return unit:getTypeName()
+    end
+    return playerName
+end
+
 --- Name of an on-board cargo object, or nil when the object cannot be read (a stale or invalid
 -- handle). The native scans run in periodic timers that DCS stops for good once they raise, so a
 -- bad entry is skipped instead of stopping the scan.

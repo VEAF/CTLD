@@ -189,7 +189,7 @@ end
 -- sceneName identifies the exact FOB variant (e.g. "FOB", "FOB Heavy") so
 -- cratesRequired and crate collection are always consistent with the scene model.
 -- @param transport DCS Unit
--- @param player    string  player name (display only)
+-- @param player    string  unit name of the transport (scene and OnFOBDeployed payload)
 -- @param sceneName string  registered scene model name (from model.name)
 function CTLDFOBManager:unpackFOBCrates(transport, player, sceneName)
     if not ctld.gs("enabledFOBBuilding") then return end
@@ -253,7 +253,7 @@ function CTLDFOBManager:unpackFOBCrates(transport, player, sceneName)
     -- Visual feedback — scene duration defines the 120 s build time
     trigger.action.outTextForCoalition(coalitionId,
         ctld.tr("%1 started building a FOB (%2 crate(s)). Construction in progress.",
-            player, #cratesUsed), 10)
+            ctld.utils.getPlayerNameOrType(transport), #cratesUsed), 10)
 
     -- Start scene immediately.
     -- All post-scene registration (LGZ, beacon, event) is handled by fobScene's last step.
