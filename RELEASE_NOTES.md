@@ -1,4 +1,4 @@
-# CTLD 2.0.0
+# CTLD 2.1.0
 
 ## Installation
 
@@ -9,44 +9,49 @@
 **Windows blocks it on the first run?** The tool is not code-signed, so SmartScreen stops it: click **More info** → **Run anyway**.
 If the file came through a browser you may also need right-click → **Properties** → tick **Unblock** → **OK**.
 
-Prefer doing it by hand? The files are attached to this release too — see the [documentation](https://veaf.github.io/CTLD/2.0.0/mission-maker/).
+Prefer doing it by hand? The files are attached to this release too — see the [documentation](https://veaf.github.io/CTLD/2.1.0/mission-maker/).
 
 ---
 
-The first stable release of the new CTLD: the logistics pilots know, on an engine rewritten from the ground up, with a tool that installs it into a mission in one click.
-It succeeds the legacy CTLD (1.x).
+CTLD 2.1.0 brings back several CTLD 1.x behaviours that 2.0.0 had lost, and makes pack and unpack safe when DCS refuses to create something.
+A mission configuration written for 2.0.0 keeps working: open it in `ctld-tools` and the new settings get their defaults.
 
-**Since 2.0.0-rc17, nothing has changed**: 2.0.0 is the rc17 code, flown on the VEAF Open Trainings and checked in game, published as stable.
+## Read this before you update
 
-## Coming from CTLD 1.x
+Three defaults change, to match CTLD 1.x again:
 
-- **A mission that calls CTLD from a DO SCRIPT keeps working.** Every v1 `ctld.*` function survives and forwards to the new engine, with a deprecation warning in the log — see the [v1 → v2 migration page](https://veaf.github.io/CTLD/2.0.0/developer/migration-v1-v2/).
-- **The configuration is no longer edited in the Lua file.** `ctld-tools` edits it and writes it into the mission; a configuration written for an older CTLD gets the defaults of what was added since.
-- **Each aircraft type declares what it can do** in one table (`capabilitiesByType`): crates, troops, parachute, slingload, whole vehicles, DCS native cargo, and its limits.
-- "Repack" is now **pack**, in the menus and in the configuration.
+- **Dropped groups act on their own.** Troops and vehicles dropped by a pilot, by parachute or by an AI transport go for the nearest enemy within `maximumSearchDistance` (now 4000 m, as in 1.x), otherwise walk to a random point within the new `maximumMoveDistance` (2000 m). To keep them where they are dropped, set both distances to `0`.
+- **Players can drive what CTLD creates.** Dropped troops, unloaded vehicles, unpacked crates and SAM systems are created drivable again, for Combined Arms players and game masters. The new setting `spawnedUnitsPlayerCanDrive: false` gives back the 2.0.0 behaviour.
+- **Inactive zones stay inactive.** A `troopZones` or `wpZones` entry marked `no` was active from the start; it now waits for its activation, as in 1.x. Only `yes` (or `1`) opens a zone at load.
 
-## What 2.0.0 brings
+A SAM system's group is now named `<type>_CTLD_AA_<id>`: a mission script that looked for the old `<type>_CTLD_AA_<second>` name must be adapted.
 
-- **`ctld-tools.exe`**: opens a `.miz`, edits the configuration it carries, reads the mission's zones back, and installs CTLD, its sounds and its configuration in one click. It carries its own CTLD and needs no network.
-- **Fat Cow**: a CH-47 that lands in the field and becomes a forward refuel and rearm point for helicopters, flown by a player or requested as an AI cow that follows the flight.
-- **Whole vehicles**: the C-130J-30 takes one through the DCS loadmaster tablet, and the helicopters that can (CH-47F, Mi-8MT) carry one through the CTLD menu.
-  Requested crates appear within reach of the aircraft's DCS cargo interface.
-- **Virtual slingload and parachute** for crates, troops and vehicles, without the DCS sling physics.
-- **Scenes built from crates**: FARPs, FOB, minefield — and a FARP or a vehicle packed back into crates to move it elsewhere.
-- **Zones by naming convention** (`LGZ_`, `TRZ_`, `WPZ_`, `EXZ_`, `EXTR_`) on a trigger zone, a unit, a static or a ship; a zone tied to a unit moves with it and disappears with it.
-- **AI transport zones** (`aiZones`), with troop and vehicle stocks per template.
-- **JTAC auto-lase** with a laser-code pool, imposed codes and radio, and a log of the code and the spot it lases.
-- **Radio beacons** on VHF, UHF and FM, with sounds a Mission Maker can choose.
-- **Every pilot gets what concerns them**: recon, smoke, the beacon list and the JTAC status are open to fighter pilots too; the transport menus stay with transport aircraft.
-- **Four languages** in game: English, French, Spanish, Korean.
+## What changes in game
 
-## Known limits
+- **Nothing is lost when DCS refuses.** Pack a vehicle, a FARP or a Fat Cow FARP, unpack crates, assemble, rearm or repair a SAM: the new object is created first, and the old one goes only once the new one exists. If DCS refuses, you keep what you had and you get a message.
+- **Parachuted troops keep their weapons.** Every parachuted group used to land as AK riflemen; a Mortar Squad now lands with its mortar, blue troops with blue weapons.
+- **SAM repair crates** (HAWK, NASAMS, BUK, KUB, Patriot, S-300) can be requested from **Request Equipment** again.
+- **Two SAM systems of the same type** built in the same second no longer replace each other.
+- **Coalition messages name the pilot** ("Viper started building a FOB"), not the slot.
+- **Fat Cow**: a landed CH-47 is no longer taken for an airborne one (its FARP opens, and **Release** no longer makes it take off); an AI cow that cannot open its FARP tells the flight why; the **Take over a Fat Cow** list numbers the cows and no longer changes under your finger; an empty `fatCowAIType` removes only **Request a Fat Cow**, not the whole menu.
+- **A parachuted equipment crate** that cannot be unpacked on landing tells the pilot who dropped it why.
+- **A FARP packed while it lays itself out** no longer leaves orphan objects behind.
 
-- The Russian weapon names in the Fat Cow warehouse come from the DCS data, not yet from a flight: a weapon the ground crew reports as out of stock is a name to fix.
+## For mission makers
 
-See the [documentation](https://veaf.github.io/CTLD/2.0.0/) for pilots and Mission Makers.
+- New option `forbidUnpackInLogisticZone` (off by default): when on, ordinary crates cannot be unpacked in a friendly logistic zone, as with `minimumDeployDistance` in 1.x.
+- The labels of the configuration (crate and group names) follow the configuration's own `i18n_lang`.
+- The scripted troop drops `ctld.unloadTransport` and `ctld.unloadInProximityToEnemy` work again.
+
+## For script and layer authors
+
+- Four new events: `OnTroopsLoaded`, `OnTroopsUnloaded`, `OnTroopsExtracted`, `OnTroopsReturned` (the v1 troop callbacks map to them, see the [migration page](https://veaf.github.io/CTLD/2.1.0/developer/migration-v1-v2/)).
+- `OnCrateUnpacked` now gives the `groupName` it created, and the SAM events give the `crateNames` they consumed.
+- No field was renamed or removed.
+
+See the [documentation](https://veaf.github.io/CTLD/2.1.0/) for pilots and Mission Makers, and `CHANGELOG.md` for the full list.
 
 ---
 
-CTLD 2.0.0 is the work of FullGas and Zip, of the VEAF.
-Thanks to the VEAF pilots who flew every release candidate on the Open Trainings and checked each change in game.
+CTLD 2.1.0 is the work of FullGas and Zip, of the VEAF.
+Thanks to the VEAF pilots who fly CTLD on the Open Trainings and report what goes wrong.
