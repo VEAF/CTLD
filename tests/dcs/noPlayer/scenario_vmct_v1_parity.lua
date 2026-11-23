@@ -63,6 +63,7 @@ local mock = {
     getCoalition = function() return BLUE end,
     getCountry   = function() return country.id.USA end,
     getTypeName  = function() return "UH-1H" end,
+    getPlayerName = function() return nil end,   -- an AI transport: messages name its type
     getPoint     = function() return pt end,
     getVelocity  = function() return { x = 0, y = 0, z = 0 } end,
     getGroup     = function() return { getID = function() return GROUP_ID end, getName = function() return "VPY_mock_group" end } end,
