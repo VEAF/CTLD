@@ -550,6 +550,28 @@ describe("parachuteTroops — unique group/unit names (FIX-PARACHUTE-GROUP-NAME-
             assert.equals("Soldier M4 GRG", g.units[3].type)
         end)
 
+        -- A field pickup recognises a servant by its "SVNT" prefix and a JTAC by its "JTAC" prefix
+        -- (_isServantUnitName, BUG-03/05): the parachuted units must carry them like the landed ones.
+        it("names a servant SVNT… and a JTAC JTAC…, and keeps every unit name unique", function()
+            local tmpl = registerTemplate({ name = "P322 Names", inf = 1, mortar = 1, jtac = 1 })
+            tm._inTransit["UH-1H-1"] = { loadedGroup(tmpl, 2), loadedGroup(tmpl, 2) }
+            tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+            tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+            local seen = {}
+            for _, g in pairs(spawnedGroups) do
+                local u = g.units                          -- inf, mortar, servant, JTAC
+                assert.equals(4, #u)
+                assert.is_nil(u[1].name:match("^SVNT") or u[1].name:match("^JTAC"))
+                assert.is_nil(u[2].name:match("^SVNT") or u[2].name:match("^JTAC"))
+                assert.is_not_nil(u[3].name:match("^SVNT"))
+                assert.is_not_nil(u[4].name:match("^JTAC"))
+                for _, unit in ipairs(u) do
+                    assert.is_nil(seen[unit.name])
+                    seen[unit.name] = true
+                end
+            end
+        end)
+
     end)
 
     describe("spawn failure (coalition.addGroup raises)", function()

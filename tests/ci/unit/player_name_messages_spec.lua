@@ -31,6 +31,10 @@ describe("ctld.utils.getPlayerNameOrType (#326)", function()
         assert.equals("UH-1H", ctld.utils.getPlayerNameOrType(makeHeli(nil)))
     end)
 
+    it("returns the type name when DCS gives an empty player name", function()
+        assert.equals("UH-1H", ctld.utils.getPlayerNameOrType(makeHeli("")))
+    end)
+
 end)
 
 describe("coalition messages name the player (#326)", function()

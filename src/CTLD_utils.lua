@@ -2188,12 +2188,13 @@ function ctld.utils.getGroupId(unit)
 end
 
 --- Name to show players for the unit behind an action: the player's name, else the unit's type name
--- (an AI unit has no player). v1's ctld.getPlayerNameOrType, same rule (issue #326).
+-- (an AI unit has no player). v1's ctld.getPlayerNameOrType (issue #326); an empty name also counts as no
+-- player, as CTLDTroopManager:_callsign already does, so a message never names "".
 -- @param unit DCSUnit
 -- @return string
 function ctld.utils.getPlayerNameOrType(unit)
     local playerName = unit:getPlayerName()
-    if playerName == nil then
+    if playerName == nil or playerName == "" then
         return unit:getTypeName()
     end
     return playerName

@@ -1842,7 +1842,8 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
                         tostring(troopGroup.templateName), tostring(coalitionId))
                     uType = "Soldier AK"
                 end
-                table.insert(unitSpecs, { type = uType, svnt = uDesc.svntOf and true or false })
+                table.insert(unitSpecs, { type = uType, svnt = uDesc.svntOf and true or false,
+                                          jtac = uDesc.namePrefix == "JTAC" })
             end
         end
     else
@@ -1854,7 +1855,8 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     -- Unique DCS group name: two groups loaded from the same template must not collide
     -- (coalition.addGroup destroys/replaces an existing group spawned under the same
     -- name) — FIX-PARACHUTE-GROUP-NAME-COLLISION. Units are named after the resolved
-    -- group name, matching standard DCS Mission Editor naming (GroupName-N).
+    -- group name, matching standard DCS Mission Editor naming (GroupName-N). A servant and a JTAC keep
+    -- the "SVNT" / "JTAC" prefix a field pickup recognises them by (_isServantUnitName, BUG-03/05).
     local groupName = troopGroup.templateName .. "-" .. ctld.utils.getNextUniqId()
 
     -- Compute one landing position per unit; a servant lands 1 m beside its mortar, as on the ground.
@@ -1873,9 +1875,10 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
             slotToPos[#slotToPos + 1] = i
         end
         table.insert(landPositions, landPos)
+        local prefix = spec.svnt and "SVNT-" or (spec.jtac and "JTAC-" or "")
         unitDefs[i] = {
             type    = spec.type,
-            name    = groupName .. "-" .. i,
+            name    = prefix .. groupName .. "-" .. i,
             x       = landPos.x,
             y       = landPos.z,   -- DCS ground group: position.y = world Z axis
             heading = math.random(0, 360) * math.pi / 180,
