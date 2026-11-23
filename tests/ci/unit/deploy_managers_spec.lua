@@ -57,6 +57,8 @@ describe("CTLDCrateAssemblyManager assembly + repair", function()
             getCoalition = function() return coa or coalition.side.BLUE end,
             getCountry   = function() return country.id.USA end,
             getName      = function() return "heli_aa" end,
+            getPlayerName = function() return nil end,
+            getTypeName  = function() return "UH-1H" end,
             getGroup     = function() return { getID = function() return 1 end } end,
         }
     end

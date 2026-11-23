@@ -462,7 +462,7 @@ Des troops parachutées atterrissent (asynchrone, après le timer de descente). 
 | --- | --- | --- |
 | `troops` | CTLDTroopGroup | |
 | `spawnedGroup` | Group | Group DCS spawné au sol |
-| `positions` | table | Tableau de vec3, un par soldat |
+| `positions` | table | Tableau de vec3, un par unité créée (un servant de mortier se pose à 1 m de son mortier) |
 | `transport` | string | |
 | `player` | string | |
 | `startAltitude` | number | |

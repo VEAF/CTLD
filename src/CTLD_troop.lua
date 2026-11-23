@@ -1785,7 +1785,7 @@ end
 --- Parachute troops currently loaded on a transport.
 -- Altitude AGL is checked at call time. If below parachuteMinAltitudeTroops,
 -- a message is sent to the group and nothing happens.
--- Each unit in the group gets its own independent landing position.
+-- Each unit gets its own independent landing position; a mortar servant lands 1 m beside its mortar.
 -- The DCS ground group is spawned with all unit positions after descentTime.
 -- Publishes OnTroopsDeployed (trigger="parachute") immediately,
 -- and OnTroopsParachuteLanded after descentTime.
@@ -1815,32 +1815,76 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     local unitDefs    = {}
     local landPositions = {}
 
-    -- Resolve unit type from template registry (fallback to generic infantry)
+    -- Unit list from the template registry, resolved for the group's coalition as the landed
+    -- unload does (CTLDObjectRegistry.spawnObject) — issue #322. Mortar servants (svntOf) are
+    -- included, like on the ground, but do not count toward unitTotal. Generic infantry is the
+    -- last fallback when the template or a unit type cannot be resolved.
     local template    = troopGroup.templateKey and CTLDObjectRegistry._db[troopGroup.templateKey]
     local unitCount   = troopGroup.unitTotal or 1
-    local unitType    = (template and template.units and template.units[1] and template.units[1].type)
-                        or "Soldier AK"
+    local coalitionId = troopGroup.coalitionId or playerObj.coalition or 2
+    local unitSpecs   = {}   -- { type, svnt }
+    if template and template.units then
+        local logical, keepServant = 0, false
+        for _, uDesc in ipairs(template.units) do
+            local include
+            if uDesc.svntOf then
+                include = keepServant
+            else
+                logical     = logical + 1
+                include     = logical <= unitCount
+                keepServant = include
+            end
+            if include then
+                local uType = uDesc.unitType
+                if type(uType) == "function" then uType = uType(coalitionId) end
+                if type(uType) ~= "string" then
+                    ctld.utils.log("WARN", "parachuteTroops: no unit type for '%s' (coalition %s), using 'Soldier AK'",
+                        tostring(troopGroup.templateName), tostring(coalitionId))
+                    uType = "Soldier AK"
+                end
+                table.insert(unitSpecs, { type = uType, svnt = uDesc.svntOf and true or false,
+                                          jtac = uDesc.namePrefix == "JTAC" })
+            end
+        end
+    else
+        ctld.utils.log("WARN", "parachuteTroops: template '%s' not found, landing %d 'Soldier AK'",
+            tostring(troopGroup.templateKey), unitCount)
+        for _ = 1, unitCount do table.insert(unitSpecs, { type = "Soldier AK", svnt = false }) end
+    end
 
     -- Unique DCS group name: two groups loaded from the same template must not collide
     -- (coalition.addGroup destroys/replaces an existing group spawned under the same
     -- name) — FIX-PARACHUTE-GROUP-NAME-COLLISION. Units are named after the resolved
-    -- group name, matching standard DCS Mission Editor naming (GroupName-N).
+    -- group name, matching standard DCS Mission Editor naming (GroupName-N). A servant and a JTAC keep
+    -- the "SVNT" / "JTAC" prefix a field pickup recognises them by (_isServantUnitName, BUG-03/05).
     local groupName = troopGroup.templateName .. "-" .. ctld.utils.getNextUniqId()
 
-    -- Compute one landing position per unit
+    -- Compute one landing position per unit; a servant lands 1 m beside its mortar, as on the ground.
+    -- slotToPos maps the logical slot (servants not counted, as in the _jtacUnits "_u<idx>" names)
+    -- to the unit's position in the spawned group.
     local firstDescentTime = nil
-    for i = 1, unitCount do
-        local landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
+    local slotToPos = {}
+    local lastLand = nil
+    for i, spec in ipairs(unitSpecs) do
+        local landPos, descentTime
+        if spec.svnt and lastLand then
+            landPos = { x = lastLand.x + 1, y = lastLand.y, z = lastLand.z }
+        else
+            landPos, descentTime = ctld.utils.calcDropPosition(transport, descentRate)
+            lastLand = landPos
+            slotToPos[#slotToPos + 1] = i
+        end
         table.insert(landPositions, landPos)
+        local prefix = spec.svnt and "SVNT-" or (spec.jtac and "JTAC-" or "")
         unitDefs[i] = {
-            type    = unitType,
-            name    = groupName .. "-" .. i,
+            type    = spec.type,
+            name    = prefix .. groupName .. "-" .. i,
             x       = landPos.x,
             y       = landPos.z,   -- DCS ground group: position.y = world Z axis
             heading = math.random(0, 360) * math.pi / 180,
             playerCanDrive = ctld.utils.spawnedUnitsPlayerCanDrive(),
         }
-        if i == 1 then firstDescentTime = descentTime end
+        if not firstDescentTime then firstDescentTime = descentTime end
     end
 
     local descentTime = firstDescentTime or
@@ -1885,6 +1929,7 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
     local _groupName     = groupName
     local _unitDefs      = unitDefs
     local _landPositions = landPositions
+    local _slotToPos     = slotToPos
     local _dropData      = dropData
     local _coalition     = playerObj.coalition or 2
     local _countryId     = troopGroup.countryId  -- captured here: the country the troops were loaded under
@@ -1919,12 +1964,13 @@ function CTLDTroopManager:parachuteTroops(transport, playerObj)
                 specificParams = _troopGroup.specificParams,
             }
             -- Register any JTAC units with CTLDJTACManager.
-            -- _jtacUnits slot names end with "_u<idx>" — map to spawned unit by position.
+            -- _jtacUnits slot names end with "_u<idx>" — map to spawned unit by position
+            -- (slotToPos skips the mortar servants, which the slot numbering does not count).
             if _troopGroup:hasAliveJtac() then
                 local jtacSlots = {}
                 for slotName, _ in pairs(_troopGroup._jtacUnits) do
                     local idx = tonumber(slotName:match("_u(%d+)$"))
-                    if idx then jtacSlots[idx] = true end
+                    if idx and _slotToPos[idx] then jtacSlots[_slotToPos[idx]] = true end
                 end
                 local jm = CTLDJTACManager.getInstance()
                 local spawnedUnits = grp:getUnits()

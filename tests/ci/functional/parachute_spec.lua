@@ -440,6 +440,142 @@ describe("parachuteTroops — unique group/unit names (FIX-PARACHUTE-GROUP-NAME-
         end
     end)
 
+    -- Issue #322: a parachuted group lands with its template's unit types, resolved for its
+    -- coalition, exactly as the same group unloaded on the ground (CTLDObjectRegistry.spawnObject).
+    describe("template unit types (#322)", function()
+
+        local function registerTemplate(tmpl)
+            tm:_registerOneTemplate(tmpl)
+            return tmpl
+        end
+
+        local function loadedGroup(tmpl, coalitionId, jtacSlots)
+            return CTLDTroopGroup:new({
+                templateName = tmpl.name,
+                templateKey  = tmpl._dbKey,
+                unitTotal    = tmpl.total,
+                weight       = 100 * tmpl.total,
+                coalitionId  = coalitionId,
+                countryId    = coalitionId == 1 and 0 or 2,
+                _jtacUnits   = jtacSlots or {},
+            })
+        end
+
+        local function onlySpawnedTypes()
+            local name = spawnedNames()[1]
+            local types = {}
+            for _, u in ipairs(spawnedGroups[name].units) do table.insert(types, u.type) end
+            return types
+        end
+
+        local function landedTypes(tmpl, coalitionId)
+            spawnedGroups = {}
+            CTLDObjectRegistry.spawnObject(tmpl._dbKey, coalitionId, 2, 0, 0, 0, { circleRadius = 5 })
+            return onlySpawnedTypes()
+        end
+
+        local function parachutedTypes(tmpl, coalitionId)
+            spawnedGroups = {}
+            tm._inTransit["UH-1H-1"] = { loadedGroup(tmpl, coalitionId) }
+            tm:parachuteTroops(mockTransport,
+                { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=coalitionId })
+            return onlySpawnedTypes()
+        end
+
+        it("a blue group lands with the same types, in the same order, as unloaded on the ground", function()
+            local tmpl = registerTemplate({ name = "P322 Blue Mix", inf = 2, mg = 1, at = 1, aa = 1 })
+            local expected = landedTypes(tmpl, 2)
+            assert.same(expected, parachutedTypes(tmpl, 2))
+            assert.equals("Soldier stinger", expected[1])
+        end)
+
+        it("a red group resolves the red types", function()
+            local tmpl = registerTemplate({ name = "P322 Red Mix", inf = 1, mg = 1 })
+            assert.same({ "Infantry AK", "Paratrooper AKS-74" }, parachutedTypes(tmpl, 1))
+        end)
+
+        it("a mortar squad lands as mortars with their servants, not as riflemen", function()
+            local tmpl = registerTemplate({ name = "P322 Mortar", mortar = 2 })
+            local expected = landedTypes(tmpl, 2)
+            assert.same(expected, parachutedTypes(tmpl, 2))
+            assert.equals("2B11 mortar", expected[1])
+        end)
+
+        it("a componentTypes override is honoured", function()
+            local tmpl = registerTemplate({ name = "P322 Custom", inf = 1,
+                componentTypes = { inf = { [1] = "Infantry AK Ins", [2] = "Soldier M4" } } })
+            assert.same({ "Soldier M4" }, parachutedTypes(tmpl, 2))
+        end)
+
+        it("still lands generic infantry when the template is unknown", function()
+            tm._inTransit["UH-1H-1"] = { makeGroup("Unknown Template") }
+            tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+            assert.same({ "Soldier AK", "Soldier AK" }, onlySpawnedTypes())
+        end)
+
+        it("lases with the JTAC unit even when mortar servants come before it", function()
+            local tmpl = registerTemplate({ name = "P322 Mortar JTAC", mortar = 1, jtac = 1 })
+            -- slots as embarkFromTroopZone numbers them: mortar = _u1, jtac = _u2 (servants not counted)
+            local jtacSlots = { [tmpl.name .. "_u2"] = true }
+            local lased = {}
+            local jm = CTLDJTACManager.getInstance()
+            local _origLase = jm.startLaseTroopUnit
+            jm.startLaseTroopUnit = function(_, unitName) table.insert(lased, unitName) end
+            Group.getByName = function(name)
+                local g = spawnedGroups[name]
+                if not g then return nil end
+                local units = {}
+                for _, u in ipairs(g.units) do
+                    local uName, uType = u.name, u.type
+                    table.insert(units, {
+                        getName     = function() return uName end,
+                        getTypeName = function() return uType end,
+                        isExist     = function() return true end,
+                    })
+                end
+                return {
+                    getName  = function() return g.name end,
+                    isExist  = function() return true end,
+                    getUnits = function() return units end,
+                }
+            end
+
+            tm._inTransit["UH-1H-1"] = { loadedGroup(tmpl, 2, jtacSlots) }
+            local ok, err = pcall(tm.parachuteTroops, tm, mockTransport,
+                { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+            jm.startLaseTroopUnit = _origLase
+            assert.is_true(ok, tostring(err))
+
+            local g = spawnedGroups[spawnedNames()[1]]
+            assert.equals(3, #g.units)                     -- mortar, servant, JTAC
+            assert.same({ g.units[3].name }, lased)
+            assert.equals("Soldier M4 GRG", g.units[3].type)
+        end)
+
+        -- A field pickup recognises a servant by its "SVNT" prefix and a JTAC by its "JTAC" prefix
+        -- (_isServantUnitName, BUG-03/05): the parachuted units must carry them like the landed ones.
+        it("names a servant SVNT… and a JTAC JTAC…, and keeps every unit name unique", function()
+            local tmpl = registerTemplate({ name = "P322 Names", inf = 1, mortar = 1, jtac = 1 })
+            tm._inTransit["UH-1H-1"] = { loadedGroup(tmpl, 2), loadedGroup(tmpl, 2) }
+            tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+            tm:parachuteTroops(mockTransport, { unitName="UH-1H-1", groupId=9901, groupName="G", coalition=2 })
+            local seen = {}
+            for _, g in pairs(spawnedGroups) do
+                local u = g.units                          -- inf, mortar, servant, JTAC
+                assert.equals(4, #u)
+                assert.is_nil(u[1].name:match("^SVNT") or u[1].name:match("^JTAC"))
+                assert.is_nil(u[2].name:match("^SVNT") or u[2].name:match("^JTAC"))
+                assert.is_not_nil(u[3].name:match("^SVNT"))
+                assert.is_not_nil(u[4].name:match("^JTAC"))
+                for _, unit in ipairs(u) do
+                    assert.is_nil(seen[unit.name])
+                    seen[unit.name] = true
+                end
+            end
+        end)
+
+    end)
+
     describe("spawn failure (coalition.addGroup raises)", function()
 
         local _origOutText, _origLog

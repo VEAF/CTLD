@@ -547,7 +547,7 @@ function CTLDCrateAssemblyManager:_assemble(heli, crate, allCrates, template, ra
     trigger.action.outTextForCoalition(
         coalitionId,
         ctld.tr("%1 successfully deployed a full %2 in the field.\n\nAA Active System limit: %3\nActive: %4",
-            heli:getName(), template.name, allowed, active + 1),
+            ctld.utils.getPlayerNameOrType(heli), template.name, allowed, active + 1),
         10)
 
     ctld.utils.log("INFO", string.format(
@@ -625,7 +625,7 @@ function CTLDCrateAssemblyManager:_rearm(heli, crate, allCrates, template)
     trigger.action.outTextForCoalition(
         heli:getCoalition(),
         ctld.tr("%1 successfully rearmed a full %2 in the field",
-            heli:getName(),
+            ctld.utils.getPlayerNameOrType(heli),
             template.name),
         20)
 
@@ -695,7 +695,7 @@ function CTLDCrateAssemblyManager:_repair(heli, crate, template)
     trigger.action.outTextForCoalition(
         heli:getCoalition(),
         ctld.tr("%1 successfully repaired a full %2 in the field.",
-            heli:getName(),
+            ctld.utils.getPlayerNameOrType(heli),
             template.name),
         10)
 
@@ -843,7 +843,11 @@ end
 function CTLDCrateAssemblyManager:_spawnGroup(positions, types, headings, countryId)
     if #positions == 0 then return nil end
 
-    local baseName  = types[1] .. "_CTLD_AA_" .. tostring(math.floor(timer.getAbsTime()))
+    -- A rearm or a repair spawns the new group while the old one still stands (ADR 0028), and two systems
+    -- of the same type can be spawned in the same second: the group name and its unit names carry a uid of
+    -- their own, since DCS replaces a group spawned under an existing name (#325).
+    local groupUid  = ctld.utils.getNextUniqId()
+    local baseName  = types[1] .. "_CTLD_AA_" .. groupUid
     local groupData = {
         visible  = false,
         hidden   = false,
@@ -854,9 +858,6 @@ function CTLDCrateAssemblyManager:_spawnGroup(positions, types, headings, countr
         units    = {},
     }
 
-    -- A rearm or a repair spawns the new group while the old one still stands (ADR 0028): its unit names
-    -- must differ from the old group's, so each group gets its own suffix.
-    local groupUid = ctld.utils.getNextUniqId()
     for i, pos in ipairs(positions) do
         local hdg = headings[i] or 0
         groupData.units[i] = {

@@ -3097,7 +3097,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
         -- A request that produces nothing must say so and leave a trace: it used to do nothing at all.
         local function failed(reason)
             ctld.utils.log("ERROR", "Request Equipment: nothing brought out for '%s' (unit=%s zone=%s): %s",
-                tostring(arg.unit or "crate set"), tostring(arg.unitName), tostring(arg.zoneName), reason)
+                tostring(arg.desc or arg.unit or "crate set"), tostring(arg.unitName), tostring(arg.zoneName), reason)
             trigger.action.outTextForGroup(gid,
                 ctld.tr("Request failed: the equipment could not be brought out."), 10)
         end
@@ -3131,7 +3131,8 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
             end
         else
             local mKey      = mgr:_crateModelKey(t)
-            local descriptor = mgr:findDescriptorByTypeName(arg.unit)
+            -- By weight, the key of every catalogue entry, as the sets do: a "… Repair" crate has no unit (#324).
+            local descriptor = mgr:findDescriptorByWeight(arg.weight)
             if not descriptor then
                 failed("no crate descriptor for this item")
             else
@@ -3181,7 +3182,7 @@ function CTLDCrateManager:refreshRequestEquipmentSection(playerObj)
                     crateOrder = crateOrder + 1
                     menu:addCommand({ root, spawnSub, lgzName, category }, sc.desc,
                         spawnFn,
-                        { unit = sc.unit, desc = sc.desc, zoneName = lgzName,
+                        { unit = sc.unit, weight = sc.weight, desc = sc.desc, zoneName = lgzName,
                           unitName = playerObj.unitName, coalition = playerObj.coalition,
                           spawnAsVehicle = spawnAsVehicle },
                         { order = crateOrder })
