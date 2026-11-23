@@ -8,7 +8,7 @@
 -- Embedded in missions/Test_FatCow_Spike.miz (mission start trigger), or injected
 -- over dcs-bridge in any mission with a player helicopter.
 --
--- Questions (see .backlog/FEAT-FAT-COW/tickets/01-spike-runtime-farp.md):
+-- Questions (see .backlog/archive/FEAT-FAT-COW.md, ticket 01-spike-runtime-farp):
 --   (a) does a FARP spawned mid-mission refuel/rearm a player already in game?
 --   (b) is a finite warehouse stock respected, and seen identically by the server
 --       and by a client (rearm window)?
