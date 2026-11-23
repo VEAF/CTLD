@@ -173,7 +173,7 @@ describe("Request Equipment reports a request that produced nothing", function()
         end)
 
         it("whose descriptor cannot be found tells the pilot and logs an ERROR", function()
-            CTLDCrateManager.getInstance().findDescriptorByTypeName = function() return nil end
+            CTLDCrateManager.getInstance().findDescriptorByWeight = function() return nil end
             click(isSingle)
             assert.is_true(said(tr(FAILURE)))
             assert.is_true(logged("ERROR", "descriptor"))
