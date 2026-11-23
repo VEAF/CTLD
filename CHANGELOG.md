@@ -8,6 +8,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [2.1.0] — 2026-11-23
+
 ### Fixed — five defects found by the VMCT review of `develop` (FIX-VMCT-REVIEW-FINDINGS, issues #322 to #326)
 
 - **Parachuted troops keep their template** (#322): every parachuted group landed as "Soldier AK", blue or red, whatever its roles (a Mortar Squad landed as riflemen), because the drop read a unit field the troop templates do not have. The drop now builds the group from the template's own units, with the types of the group's coalition and its `componentTypes`, as the same group unloaded on the ground: same types, same order, mortar servants included. A group re-embarked from the field after losses lands its first surviving-count slots of the template, not the survivors' own types. A servant and a JTAC carry the `SVNT` / `JTAC` name prefix of the landed ones, so a field pickup does not count the servants as troops and still recognises the JTAC; a JTAC behind a mortar still lases. "Soldier AK" remains only as a logged fallback for an unknown template.
