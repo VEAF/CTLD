@@ -197,6 +197,7 @@ randomised 90–120 % of `SOLDIER_WEIGHT`, plus kit and role-specific gear.
 | Parameter | Default | Description |
 |---|---|---|
 | `enablePackingVehicles` | `true` | Allow vehicles to be packed back into crates |
+| `spawnedUnitsPlayerCanDrive` | `true` | When `true`, the ground units a gesture creates (dropped or parachuted troops, JTAC team, vehicle transported, unloaded or unpacked from a crate, AA system) can be driven by a Combined Arms player or a game master, as in CTLD v1. `false` creates them non-drivable. A FARP's own support vehicles and guards stay non-drivable either way |
 | `groundVehicleWeights` | `{...}` | Weight (kg) per vehicle DCS type, checked against each aircraft's `maxVehicleWeight` for whole-vehicle transport (Lua table) |
 | `capabilitiesByType` | `{...}` | Unified per-aircraft capability table — see [Per-aircraft capabilities](#per-aircraft-capabilities) below |
 

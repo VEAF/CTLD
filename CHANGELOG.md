@@ -8,6 +8,12 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — the units of a gesture can be driven again, behind `spawnedUnitsPlayerCanDrive` (FEAT-VMCT-V1-PARITY, issue #327)
+
+- CTLD v1 created the units of a player gesture with `playerCanDrive = true`, so a Combined Arms player or a game master could take control of what the helicopters delivered. CTLD 2 created them non-drivable, with no setting to bring it back (reported by VMCT, which wrapped `ctld.utils.spawnAs` to restore it).
+  The new setting `spawnedUnitsPlayerCanDrive` (default `true`, the v1 behaviour) is read by every ground spawn of a gesture: troops dropped from a template (JTAC team included) or by parachute, the vehicle spawned for a transport and unloaded from it, a vehicle landed by parachute or delivered by an AI transport, the unpacked crate and the AA system (assembled, rearmed, repaired or delivered by an AI). `false` creates them non-drivable, as CTLD 2.0.0 did. The support trucks and guards of a FARP scene keep their own `playerCanDrive = false`: a template that sets the field keeps it over the setting. The radio beacon stays drivable.
+  The catalogue is now 2.5.0 (shape and oracle recorded); a configuration written for 2.4.0 gets `true`. ctld-tools and the mission maker's settings table (English and French) describe the setting.
+
 ### Fixed — the Fat Cow no longer takes a landed CH-47 for an airborne one (FIX-FAT-COW-GROUND-TEST, issue #295)
 
 - DCS's own `inAir()` can answer "in the air" for a high-chassis helicopter such as the CH-47, the cow of the whole feature, while it is landed and at rest. CTLD has `ctld.utils.inAir` for exactly that case, and the rest of the code uses it; the Fat Cow called the raw `inAir()` at three places. A landed cow was therefore refused by the FARP deployment as "airborne" (an AI cow's FARP never opened, and a piloted cow's pilot, on the ground with his crates in the hold, read "The Fat Cow FARP could not be deployed."), the "The Fat Cow is already on the ground." guard of **Land here** never fired, and **Release the Fat Cow** gave a landed cow an orbit task, so it lifted off from its open FARP and left it behind.

@@ -203,6 +203,7 @@ aléatoire de 90–120 % de `SOLDIER_WEIGHT`, plus l'équipement et le matériel
 | Paramètre | Défaut | Description |
 |---|---|---|
 | `enablePackingVehicles` | `true` | Autorise le pack des véhicules de nouveau en crate |
+| `spawnedUnitsPlayerCanDrive` | `true` | Si `true`, les unités au sol créées par un geste (troops déposées ou parachutées, équipe JTAC, véhicule transporté, déchargé ou déballé d'une crate, système AA) peuvent être conduites par un joueur Combined Arms ou un game master, comme dans CTLD v1. `false` les crée non conduisibles. Les véhicules de soutien et les gardes d'une FARP restent non conduisibles dans les deux cas |
 | `groundVehicleWeights` | `{...}` | Poids (kg) par type DCS de véhicule, comparé au `maxVehicleWeight` de chaque appareil pour le transport de véhicule entier (table Lua) |
 | `capabilitiesByType` | `{...}` | Table unifiée des capacités par appareil — voir [Capacités par appareil](#per-aircraft-capabilities) ci-dessous |
 
