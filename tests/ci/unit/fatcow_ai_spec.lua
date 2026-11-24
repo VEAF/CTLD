@@ -1449,4 +1449,64 @@ describe("AI Fat Cow", function()
             assert.equals(0, #lines(cow, "phase"))
         end)
     end)
+
+    -- FIX-FAT-COW-STRANDED 02: the orphan check ran once, 2 s after the event, a race against DCS removing the unit.
+    describe("sends home a cow whose flight is gone, also from the 10 s loop", function()
+        local logs, savedLog
+
+        before_each(function()
+            logs, savedLog = {}, ctld.utils.log
+            ctld.utils.log = function(level, fmt, ...)
+                local ok, text = pcall(string.format, fmt, ...)
+                logs[#logs + 1] = { level = level, text = ok and text or fmt }
+            end
+        end)
+        after_each(function() ctld.utils.log = savedLog end)
+
+        local function offers()
+            local n = 0
+            for _, l in ipairs(logs) do if l.text:find("offered for take-over", 1, true) then n = n + 1 end end
+            return n
+        end
+
+        it("catches a flight still there at the 2 s check and gone at the next tick, once", function()
+            local _, cow = flightWithCow(true)
+            mgr:onPlayerLeave({})                                  -- the player left; the group still answers
+            runScheduled()                                         -- the 2 s check finds it there
+            assert.equals(CTLDFatCowManager.PHASE_FOLLOWING, cow.ai.phase)
+            groups["Gunfighter"].destroyed = true                  -- DCS removes the client group a moment later
+            mgr:_resyncFarps()                                     -- the 10 s loop
+            assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
+            assert.is_nil(mgr:aiCowOfFlight("Gunfighter"))
+            assert.equals(1, offers())
+            mgr:_resyncFarps()
+            mgr:_resyncFarps()
+            assert.equals(1, offers())
+        end)
+
+        it("catches a flight whose first unit is gone while the group still exists", function()
+            local _, cow = flightWithCow(true)
+            units["Gunfighter-1"] = nil
+            mgr:_resyncFarps()
+            assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
+            assert.equals(1, offers())
+        end)
+
+        it("leaves a cow already returning alone", function()
+            local _, cow = flightWithCow(true)
+            mgr:releaseAICow("Gunfighter-1")                       -- RTB: no longer the flight's cow
+            groups["Gunfighter"].destroyed = true
+            logs = {}
+            mgr:_resyncFarps()
+            assert.equals(0, offers())
+            assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
+        end)
+
+        it("leaves a cow whose flight is still there alone", function()
+            local _, cow = flightWithCow(true)
+            mgr:_resyncFarps()
+            assert.equals(CTLDFatCowManager.PHASE_FOLLOWING, cow.ai.phase)
+            assert.equals(0, offers())
+        end)
+    end)
 end)

@@ -361,6 +361,7 @@ local RESYNC_PERIOD_S = 10
 -- emptied (it stays in the world, and a refill would make it serve next to another cow's depot).
 function CTLDFatCowManager:_resyncFarps()
     self:_forgetVanishedCows()
+    self:_sendHomeOrphans()
     local open = {}
     for _, cow in pairs(self._cows) do
         if cow.state == CTLDFatCow.STATE_DEPLOYED then
@@ -825,7 +826,8 @@ function CTLDFatCowManager:_checkFlightsLater()
     ctld.scheduler.schedule(function() mgr:_sendHomeOrphans() end, nil, timer.getTime() + 2)
 end
 
---- An AI cow whose flight is no longer in the world packs and goes home.
+--- An AI cow whose flight is no longer in the world packs and goes home. Run 2 s after a death or a player leaving, and
+-- by the 10 s loop: that one check is a race against DCS removing the client unit (FIX-FAT-COW-STRANDED, 2026-11-22).
 function CTLDFatCowManager:_sendHomeOrphans()
     for flight, cow in pairs(self._aiByFlight or {}) do
         local g = Group.getByName(flight)
