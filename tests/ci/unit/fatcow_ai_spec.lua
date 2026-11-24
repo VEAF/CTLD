@@ -1357,4 +1357,96 @@ describe("AI Fat Cow", function()
         mgr:freeAICow("Gunfighter-1")
         assert.is_not_nil(messages[#messages].text:find("no Fat Cow", 1, true))
     end)
+
+    -- FIX-FAT-COW-STRANDED 01: a cow that hovered for 5 h left no line in the log (Campagne, 2026-11-22).
+    describe("logs every order and phase change of the cow", function()
+        local logs, savedLog
+
+        before_each(function()
+            logs, savedLog = {}, ctld.utils.log
+            ctld.utils.log = function(level, fmt, ...)
+                local ok, text = pcall(string.format, fmt, ...)
+                logs[#logs + 1] = { level = level, text = ok and text or fmt }
+            end
+        end)
+        after_each(function() ctld.utils.log = savedLog end)
+
+        -- The INFO lines that name `cow` and contain every needle.
+        local function lines(cow, ...)
+            local needles, out = { ... }, {}
+            for _, l in ipairs(logs) do
+                local all = l.level == "INFO" and l.text:find(cow.unitName, 1, true) ~= nil
+                for _, n in ipairs(needles) do all = all and l.text:find(n, 1, true) ~= nil end
+                if all then out[#out + 1] = l.text end
+            end
+            return out
+        end
+
+        it("writes one order line naming the cow and the requester, and one phase line, for Take off", function()
+            local _, cow = flightWithCow(true)
+            logs = {}
+            mgr:orderTakeOff("Gunfighter-1")
+            local order = lines(cow, "order", "Take off", "Gunfighter-1")
+            assert.equals(1, #order)
+            local phase = lines(cow, "phase following -> holding")
+            assert.equals(1, #phase)
+        end)
+
+        it("logs Hold here, Join us and Land here with the unit that gave them", function()
+            local _, cow = flightWithCow(true)
+            units[cow.unitName].airborne = true
+            logs = {}
+            mgr:orderHoldHere("Gunfighter-1")
+            assert.equals(1, #lines(cow, "order", "Hold here", "Gunfighter-1"))
+            mgr:orderJoin("Gunfighter-1")
+            assert.equals(1, #lines(cow, "order", "Join us", "Gunfighter-1"))
+            assert.equals(1, #lines(cow, "phase holding -> following"))
+            mgr:orderLandHere("Gunfighter-1")
+            assert.equals(1, #lines(cow, "order", "Land here", "Gunfighter-1"))
+            assert.equals(1, #lines(cow, "phase following -> landing"))
+        end)
+
+        it("logs RTB, Release and Take over", function()
+            local _, cow = flightWithCow(true)
+            units[cow.unitName].airborne = true
+            logs = {}
+            mgr:freeAICow("Gunfighter-1")
+            assert.equals(1, #lines(cow, "order", "Release", "Gunfighter-1"))
+            newGroup("Viper", 8, "Viper-1")
+            newUnit("Viper-1", "Viper")
+            mgr:takeOverAICow("Viper-1", cow.unitName)
+            assert.equals(1, #lines(cow, "order", "Take over", "Viper-1"))
+            logs = {}
+            mgr:releaseAICow("Viper-1")
+            assert.equals(1, #lines(cow, "order", "RTB", "Viper-1"))
+            assert.equals(1, #lines(cow, "phase following -> returning"))
+        end)
+
+        it("logs the landing and the end of the landing as phase changes", function()
+            local leader, cow = flightWithCow()
+            logs = {}
+            mgr:onLand({ initiator = leader })
+            assert.equals(1, #lines(cow, "phase following -> landing"))
+            mgr:onLand({ initiator = units[cow.unitName] })
+            assert.equals(1, #lines(cow, "phase landing -> landed"))
+        end)
+
+        it("writes nothing more while nothing changes, loop ticks included", function()
+            local _, cow = flightWithCow(true)
+            mgr:orderHoldHere("Gunfighter-1")
+            logs = {}
+            mgr:_resyncFarps()
+            mgr:_resyncFarps()
+            assert.equals(0, #lines(cow))
+        end)
+
+        it("writes no phase line when an order leaves the phase as it was", function()
+            local _, cow = flightWithCow(true)
+            mgr:orderHoldHere("Gunfighter-1")
+            logs = {}
+            mgr:orderHoldHere("Gunfighter-1")
+            assert.equals(1, #lines(cow, "order", "Hold here"))
+            assert.equals(0, #lines(cow, "phase"))
+        end)
+    end)
 end)
