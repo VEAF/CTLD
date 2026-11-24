@@ -33,7 +33,7 @@ if not S then
         if e.id ~= world.event.S_EVENT_PLAYER_LEAVE_UNIT or S.t0 then return end
         S.t0 = timer.getTime()
         S.state = "sampling"
-        local function sample()
+        local function sample0()
             local t = timer.getTime() - S.t0
             local g = Group.getByName(S.flight)
             local gx = g and g:isExist()
@@ -46,7 +46,12 @@ if not S then
             if t < 30 then return timer.getTime() + 0.5 end
             S.state = "done"
         end
-        timer.scheduleFunction(sample, nil, timer.getTime())
+        local function sample()
+            local ok, nxt = pcall(sample0)
+            if not ok then S.err = tostring(nxt); S.state = "done"; return nil end
+            return nxt
+        end
+        timer.scheduleFunction(sample, nil, timer.getTime() + 0.1)
     end }
     world.addEventHandler(S.handler)
     return done("STARTED: cow requested for flight '" .. S.flight .. "'. Zip: leave the slot now (wait for the cow message first).")
@@ -71,5 +76,6 @@ world.removeEventHandler(S.handler)
 local verdict = string.format("MEASURED | 2 s: %s | 5 s: %s | 10 s: %s | getUnit(1) first nil at %s s | cow first RETURNING at %s s",
     at(2), at(5), at(10), firstGone and string.format("%.1f", firstGone) or "never (30 s)",
     firstHome and string.format("%.1f", firstHome) or "never (30 s)")
+if S.err then verdict = verdict .. " | sampler error: " .. S.err end
 _SCN_FATCOW_PLAYER_LEAVE = nil
 return done(verdict)
