@@ -69,6 +69,8 @@ Vous pouvez donc redécoller pour vous déplacer en stationnaire jusqu'à sa FAR
 
 Une cow qui n'a plus rien n'ouvre pas de FARP : vous le lisez quand le délai s'écoule, avec le conseil de la renvoyer avec **Rentre à la base**.
 
+Une cow en l'air qui a moins d'un quart de son carburant rentre toute seule à la base, quel que soit l'ordre reçu (en attente, en suivi ou libérée), et votre patrouille lit « La Fat Cow n'a presque plus de carburant et rentre à la base. »
+
 **Statut Fat Cow** dit où est la cow de votre patrouille (phase, distance et relèvement), quand elle devrait vous rejoindre, et ce qu'elle contient encore, y compris avant qu'elle se soit posée.
 
 **Demander une Fat Cow** ouvre la liste des lots, les mêmes que ceux d'une cow pilotée (Apache en tête, **Russes** et **Mixtes** un niveau plus bas) : choisissez ce dont votre patrouille a besoin.

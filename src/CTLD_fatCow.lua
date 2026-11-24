@@ -362,6 +362,7 @@ local RESYNC_PERIOD_S = 10
 function CTLDFatCowManager:_resyncFarps()
     self:_forgetVanishedCows()
     self:_sendHomeOrphans()
+    self:_sendHomeLowFuel()
     local open = {}
     for _, cow in pairs(self._cows) do
         if cow.state == CTLDFatCow.STATE_DEPLOYED then
@@ -1171,7 +1172,7 @@ function CTLDFatCowManager:_returnHome(cow, orphaned)
     local ctrl = controllerOf(cow.ai.groupName)
     if ctrl and cow.ai.home then ctrl:setTask(landMission(cow.ai.home)) end
     self:_setPhase(cow, CTLDFatCowManager.PHASE_RETURNING)
-    if self._aiByFlight then self._aiByFlight[cow.ai.flightGroup] = nil end
+    if self._aiByFlight and self._aiByFlight[cow.ai.flightGroup] == cow then self._aiByFlight[cow.ai.flightGroup] = nil end
     if orphaned then self:_announceOrphan(cow) end
     self:_rebuildMenus(cow.coalitionId)
 end
@@ -1224,6 +1225,37 @@ function CTLDFatCowManager:_reportRefusedDeploy(cow, why)
     ctld.utils.log("WARN", "CTLDFatCowManager: cow '%s' did not deploy after the delay: %s", cow.unitName, tostring(why))
     self:_notify(cow, why == "empty" and ctld.tr("The Fat Cow is empty: send it home with RTB.")
         or ctld.tr("The Fat Cow FARP could not be deployed."))
+end
+
+-- Below this fraction of its internal fuel (Unit.getFuel), an AI cow in the air goes home whatever it was told: a
+-- holding or following cow waits for the next order forever, and one ran dry after 5 h (FIX-FAT-COW-STRANDED,
+-- 2026-11-22). A quarter of a CH-47's tanks crosses a map.
+local BINGO_FUEL = 0.25
+
+--- An AI cow in the air with less than BINGO_FUEL left packs nothing (it is not deployed in the air), goes home and
+-- tells its flight, one that holds, follows or was released alike. One that is landing lands, a returning one is
+-- already on its way. Run by the 10 s loop, so once per cow: it is returning afterwards.
+function CTLDFatCowManager:_sendHomeLowFuel()
+    local low = {}
+    for name, cow in pairs(self._cows) do
+        local phase = cow.ai and cow.ai.phase
+        if phase and phase ~= CTLDFatCowManager.PHASE_RETURNING and phase ~= CTLDFatCowManager.PHASE_LANDING then
+            local u = Unit.getByName(name)
+            if u and u:isExist() and ctld.utils.inAir(u) then
+                local ok, fuel = pcall(function() return u:getFuel() end)
+                if ok and type(fuel) == "number" and fuel < BINGO_FUEL then low[#low + 1] = { cow = cow, fuel = fuel } end
+            end
+        end
+    end
+    for _, l in ipairs(low) do
+        local cow = l.cow
+        ctld.utils.log("WARN", "CTLDFatCowManager: cow '%s' is low on fuel (%.2f of its tanks, phase %s): sent home",
+            cow.unitName, l.fuel, tostring(cow.ai.phase))
+        local gid = flightGroupId(cow)
+        if gid then trigger.action.outTextForGroup(gid, ctld.tr("The Fat Cow is low on fuel and returns home."), 15) end
+        cow.ai.released = nil
+        self:_returnHome(cow)
+    end
 end
 
 --- S_EVENT_LAND: the cow lands → it deploys after fatCowDeployDelay, or despawns when it was going home;
