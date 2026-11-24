@@ -1357,4 +1357,285 @@ describe("AI Fat Cow", function()
         mgr:freeAICow("Gunfighter-1")
         assert.is_not_nil(messages[#messages].text:find("no Fat Cow", 1, true))
     end)
+
+    -- FIX-FAT-COW-STRANDED 01: a cow that hovered for 5 h left no line in the log (Campagne, 2026-11-22).
+    describe("logs every order and phase change of the cow", function()
+        local logs, savedLog
+
+        before_each(function()
+            logs, savedLog = {}, ctld.utils.log
+            ctld.utils.log = function(level, fmt, ...)
+                local ok, text = pcall(string.format, fmt, ...)
+                logs[#logs + 1] = { level = level, text = ok and text or fmt }
+            end
+        end)
+        after_each(function() ctld.utils.log = savedLog end)
+
+        -- The INFO lines that name `cow` and contain every needle.
+        local function lines(cow, ...)
+            local needles, out = { ... }, {}
+            for _, l in ipairs(logs) do
+                local all = l.level == "INFO" and l.text:find(cow.unitName, 1, true) ~= nil
+                for _, n in ipairs(needles) do all = all and l.text:find(n, 1, true) ~= nil end
+                if all then out[#out + 1] = l.text end
+            end
+            return out
+        end
+
+        it("writes one order line naming the cow and the requester, and one phase line, for Take off", function()
+            local _, cow = flightWithCow(true)
+            logs = {}
+            mgr:orderTakeOff("Gunfighter-1")
+            local order = lines(cow, "order", "Take off", "Gunfighter-1")
+            assert.equals(1, #order)
+            local phase = lines(cow, "phase following -> holding")
+            assert.equals(1, #phase)
+        end)
+
+        it("logs Hold here, Join us and Land here with the unit that gave them", function()
+            local _, cow = flightWithCow(true)
+            units[cow.unitName].airborne = true
+            logs = {}
+            mgr:orderHoldHere("Gunfighter-1")
+            assert.equals(1, #lines(cow, "order", "Hold here", "Gunfighter-1"))
+            mgr:orderJoin("Gunfighter-1")
+            assert.equals(1, #lines(cow, "order", "Join us", "Gunfighter-1"))
+            assert.equals(1, #lines(cow, "phase holding -> following"))
+            mgr:orderLandHere("Gunfighter-1")
+            assert.equals(1, #lines(cow, "order", "Land here", "Gunfighter-1"))
+            assert.equals(1, #lines(cow, "phase following -> landing"))
+        end)
+
+        it("logs RTB, Release and Take over", function()
+            local _, cow = flightWithCow(true)
+            units[cow.unitName].airborne = true
+            logs = {}
+            mgr:freeAICow("Gunfighter-1")
+            assert.equals(1, #lines(cow, "order", "Release", "Gunfighter-1"))
+            newGroup("Viper", 8, "Viper-1")
+            newUnit("Viper-1", "Viper")
+            mgr:takeOverAICow("Viper-1", cow.unitName)
+            assert.equals(1, #lines(cow, "order", "Take over", "Viper-1"))
+            logs = {}
+            mgr:releaseAICow("Viper-1")
+            assert.equals(1, #lines(cow, "order", "RTB", "Viper-1"))
+            assert.equals(1, #lines(cow, "phase following -> returning"))
+        end)
+
+        it("logs the landing and the end of the landing as phase changes", function()
+            local leader, cow = flightWithCow()
+            logs = {}
+            mgr:onLand({ initiator = leader })
+            assert.equals(1, #lines(cow, "phase following -> landing"))
+            mgr:onLand({ initiator = units[cow.unitName] })
+            assert.equals(1, #lines(cow, "phase landing -> landed"))
+        end)
+
+        it("writes nothing more while nothing changes, loop ticks included", function()
+            local _, cow = flightWithCow(true)
+            mgr:orderHoldHere("Gunfighter-1")
+            logs = {}
+            mgr:_resyncFarps()
+            mgr:_resyncFarps()
+            assert.equals(0, #lines(cow))
+        end)
+
+        it("writes no phase line when an order leaves the phase as it was", function()
+            local _, cow = flightWithCow(true)
+            mgr:orderHoldHere("Gunfighter-1")
+            logs = {}
+            mgr:orderHoldHere("Gunfighter-1")
+            assert.equals(1, #lines(cow, "order", "Hold here"))
+            assert.equals(0, #lines(cow, "phase"))
+        end)
+    end)
+
+    -- FIX-FAT-COW-STRANDED 02: the orphan check ran once, 2 s after the event, a race against DCS removing the unit.
+    describe("sends home a cow whose flight is gone, also from the 10 s loop", function()
+        local logs, savedLog
+
+        before_each(function()
+            logs, savedLog = {}, ctld.utils.log
+            ctld.utils.log = function(level, fmt, ...)
+                local ok, text = pcall(string.format, fmt, ...)
+                logs[#logs + 1] = { level = level, text = ok and text or fmt }
+            end
+        end)
+        after_each(function() ctld.utils.log = savedLog end)
+
+        local function offers()
+            local n = 0
+            for _, l in ipairs(logs) do if l.text:find("offered for take-over", 1, true) then n = n + 1 end end
+            return n
+        end
+
+        it("catches a flight still there at the 2 s check and gone at the next tick, once", function()
+            local _, cow = flightWithCow(true)
+            mgr:onPlayerLeave({})                                  -- the player left; the group still answers
+            runScheduled()                                         -- the 2 s check finds it there
+            assert.equals(CTLDFatCowManager.PHASE_FOLLOWING, cow.ai.phase)
+            groups["Gunfighter"].destroyed = true                  -- DCS removes the client group a moment later
+            mgr:_resyncFarps()                                     -- the 10 s loop
+            assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
+            assert.is_nil(mgr:aiCowOfFlight("Gunfighter"))
+            assert.equals(1, offers())
+            mgr:_resyncFarps()
+            mgr:_resyncFarps()
+            assert.equals(1, offers())
+        end)
+
+        it("catches a flight whose first unit is gone while the group still exists", function()
+            local _, cow = flightWithCow(true)
+            units["Gunfighter-1"] = nil
+            mgr:_resyncFarps()
+            assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
+            assert.equals(1, offers())
+        end)
+
+        it("leaves a cow already returning alone", function()
+            local _, cow = flightWithCow(true)
+            mgr:releaseAICow("Gunfighter-1")                       -- RTB: no longer the flight's cow
+            groups["Gunfighter"].destroyed = true
+            logs = {}
+            mgr:_resyncFarps()
+            assert.equals(0, offers())
+            assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
+        end)
+
+        it("leaves a cow whose flight is still there alone", function()
+            local _, cow = flightWithCow(true)
+            mgr:_resyncFarps()
+            assert.equals(CTLDFatCowManager.PHASE_FOLLOWING, cow.ai.phase)
+            assert.equals(0, offers())
+        end)
+    end)
+
+    -- FIX-FAT-COW-STRANDED 03: a cow in the air must never fall out of the sky, whatever it was last told.
+    describe("goes home when low on fuel", function()
+        local logs, savedLog
+        local LOW = "The Fat Cow is low on fuel and returns home."
+
+        before_each(function()
+            logs, savedLog = {}, ctld.utils.log
+            ctld.utils.log = function(level, fmt, ...)
+                local ok, text = pcall(string.format, fmt, ...)
+                logs[#logs + 1] = { level = level, text = ok and text or fmt }
+            end
+        end)
+        after_each(function() ctld.utils.log = savedLog end)
+
+        local function said()
+            local n = 0
+            for _, m in ipairs(messages) do if m.text == LOW then n = n + 1 end end
+            return n
+        end
+
+        local function warned(needle)
+            local n = 0
+            for _, l in ipairs(logs) do
+                if l.level == "WARN" and l.text:find(needle, 1, true) then n = n + 1 end
+            end
+            return n
+        end
+
+        -- A player flight's cow, in the air with `fuel` (a fraction of the internal tanks).
+        local function airborneCow(fuel, order)
+            local _, cow = flightWithCow(true)
+            local u = units[cow.unitName]
+            u.airborne = true
+            u.fuel = fuel
+            function u:getFuel() return self.fuel end
+            if order then mgr[order](mgr, "Gunfighter-1") end
+            messages, logs = {}, {}
+            return cow, u
+        end
+
+        it("sends a holding cow home, tells its flight and logs the fuel, once", function()
+            local cow = airborneCow(0.2, "orderHoldHere")
+            mgr:_resyncFarps()
+            assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
+            assert.equals("Mission", lastTask(cow.ai.groupName).id)
+            assert.equals(1, said())
+            assert.equals(7, messages[1].gid)
+            assert.equals(1, warned(cow.unitName))
+            assert.equals(1, warned("0.20"))
+            mgr:_resyncFarps()
+            mgr:_resyncFarps()
+            assert.equals(1, said())
+            assert.equals(1, warned(cow.unitName))
+        end)
+
+        it("sends a following cow home, and frees its flight to ask for another", function()
+            local cow = airborneCow(0.1)
+            mgr:_resyncFarps()
+            assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
+            assert.is_nil(mgr:aiCowOfFlight("Gunfighter"))
+            assert.equals(1, said())
+        end)
+
+        it("sends home a released cow in the air, and offers it as going home, not waiting", function()
+            local cow = airborneCow(0.2)
+            mgr:freeAICow("Gunfighter-1")
+            messages, logs = {}, {}
+            mgr:_resyncFarps()
+            assert.equals(CTLDFatCowManager.PHASE_RETURNING, cow.ai.phase)
+            assert.is_nil(cow.ai.released)
+            assert.equals(1, said())
+            assert.equals(1, warned(cow.unitName))
+        end)
+
+        it("keeps the cow a flight asked for after it released the low one", function()
+            local old = airborneCow(0.2)
+            mgr:freeAICow("Gunfighter-1")
+            mgr:requestAICow("Gunfighter-1", 1)
+            runScheduled()
+            local new = mgr:aiCowOfFlight("Gunfighter")
+            assert.is_not_nil(new)
+            assert.is_false(new == old)
+            mgr:_resyncFarps()
+            assert.equals(CTLDFatCowManager.PHASE_RETURNING, old.ai.phase)
+            assert.equals(new, mgr:aiCowOfFlight("Gunfighter"))
+        end)
+
+        it("does nothing at 25 % or more", function()
+            local cow = airborneCow(0.25, "orderHoldHere")
+            mgr:_resyncFarps()
+            assert.equals(CTLDFatCowManager.PHASE_HOLDING, cow.ai.phase)
+            assert.equals(0, said())
+        end)
+
+        it("does nothing for a cow on the ground", function()
+            local cow, u = airborneCow(0.1)
+            u.airborne = false
+            mgr:_resyncFarps()
+            assert.equals(CTLDFatCowManager.PHASE_FOLLOWING, cow.ai.phase)
+            assert.equals(0, said())
+        end)
+
+        it("does nothing for a cow already going home", function()
+            local cow = airborneCow(0.1)
+            mgr:releaseAICow("Gunfighter-1")
+            messages, logs = {}, {}
+            mgr:_resyncFarps()
+            assert.equals(0, said())
+            assert.equals(0, warned(cow.unitName))
+        end)
+
+        it("lets a cow that is landing land", function()
+            local cow = airborneCow(0.1)
+            mgr:orderLandHere("Gunfighter-1")
+            messages, logs = {}, {}
+            mgr:_resyncFarps()
+            assert.equals(CTLDFatCowManager.PHASE_LANDING, cow.ai.phase)
+            assert.equals(0, said())
+        end)
+
+        it("does nothing when DCS gives no fuel reading", function()
+            local cow, u = airborneCow(0.1)
+            u.getFuel = nil
+            mgr:_resyncFarps()
+            assert.equals(CTLDFatCowManager.PHASE_FOLLOWING, cow.ai.phase)
+            assert.equals(0, said())
+        end)
+    end)
 end)

@@ -69,6 +69,8 @@ So you can lift off to hover-taxi onto its FARP, or reposition, without the cow 
 
 A cow with nothing left opens no FARP: you are told when the delay runs out, with the advice to send it home with **RTB**.
 
+A cow in the air with less than a quarter of its fuel left goes home by itself, whatever it was told (holding, following or released), and your flight reads "The Fat Cow is low on fuel and returns home."
+
 **Fat Cow status** tells where your flight's cow is (phase, distance and bearing), when it should join, and what it still holds, before it has landed too.
 
 **Request a Fat Cow** opens the list of loadouts, the same as a piloted cow's (Apache at the top, **Russian** and **Mixed** one level down): pick what your flight needs.

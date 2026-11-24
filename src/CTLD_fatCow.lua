@@ -361,6 +361,8 @@ local RESYNC_PERIOD_S = 10
 -- emptied (it stays in the world, and a refill would make it serve next to another cow's depot).
 function CTLDFatCowManager:_resyncFarps()
     self:_forgetVanishedCows()
+    self:_sendHomeOrphans()
+    self:_sendHomeLowFuel()
     local open = {}
     for _, cow in pairs(self._cows) do
         if cow.state == CTLDFatCow.STATE_DEPLOYED then
@@ -825,7 +827,8 @@ function CTLDFatCowManager:_checkFlightsLater()
     ctld.scheduler.schedule(function() mgr:_sendHomeOrphans() end, nil, timer.getTime() + 2)
 end
 
---- An AI cow whose flight is no longer in the world packs and goes home.
+--- An AI cow whose flight is no longer in the world packs and goes home. Run 2 s after a death or a player leaving, and
+-- by the 10 s loop: that one check is a race against DCS removing the client unit (FIX-FAT-COW-STRANDED, 2026-11-22).
 function CTLDFatCowManager:_sendHomeOrphans()
     for flight, cow in pairs(self._aiByFlight or {}) do
         local g = Group.getByName(flight)
@@ -1041,12 +1044,26 @@ function CTLDFatCowManager:aiCowOfFlight(flightGroup)
     return self._aiByFlight and self._aiByFlight[flightGroup] or nil
 end
 
+--- Sets the phase of an AI cow and logs the change; nothing is written when the phase does not change
+-- (FIX-FAT-COW-STRANDED: a cow that hovered for 5 h left no trace of what had sent it there).
+function CTLDFatCowManager:_setPhase(cow, phase)
+    local old = cow.ai.phase
+    if old == phase then return end
+    cow.ai.phase = phase
+    ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' phase %s -> %s", cow.unitName, tostring(old), tostring(phase))
+end
+
+--- Logs an order given to an AI cow, with the unit that gave it.
+function CTLDFatCowManager:_logOrder(cow, order, fromUnit)
+    ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' order '%s' from '%s'", cow.unitName, order, tostring(fromUnit))
+end
+
 function CTLDFatCowManager:_follow(cow)
     local flight = Group.getByName(cow.ai.flightGroup)
     local ctrl   = controllerOf(cow.ai.groupName)
     if not (flight and flight:isExist() and ctrl) then return false end
     ctrl:setTask({ id = "Follow", params = { groupId = flight:getID(), pos = FOLLOW_OFFSET, lastWptIndexFlag = false } })
-    cow.ai.phase = CTLDFatCowManager.PHASE_FOLLOWING
+    self:_setPhase(cow, CTLDFatCowManager.PHASE_FOLLOWING)
     return true
 end
 
@@ -1145,7 +1162,7 @@ function CTLDFatCowManager:_landNextTo(cow, leader)
             LZ_SEARCH_M, cow.unitName)
     end
     ctrl:setTask(landMission(point))
-    cow.ai.phase = CTLDFatCowManager.PHASE_LANDING
+    self:_setPhase(cow, CTLDFatCowManager.PHASE_LANDING)
 end
 
 -- @param orphaned boolean  its flight is lost: the flights that could take it over are told
@@ -1154,8 +1171,8 @@ function CTLDFatCowManager:_returnHome(cow, orphaned)
     if cow.state ~= CTLDFatCow.STATE_STOWED then self:pack(cow.unitName) end
     local ctrl = controllerOf(cow.ai.groupName)
     if ctrl and cow.ai.home then ctrl:setTask(landMission(cow.ai.home)) end
-    cow.ai.phase = CTLDFatCowManager.PHASE_RETURNING
-    if self._aiByFlight then self._aiByFlight[cow.ai.flightGroup] = nil end
+    self:_setPhase(cow, CTLDFatCowManager.PHASE_RETURNING)
+    if self._aiByFlight and self._aiByFlight[cow.ai.flightGroup] == cow then self._aiByFlight[cow.ai.flightGroup] = nil end
     if orphaned then self:_announceOrphan(cow) end
     self:_rebuildMenus(cow.coalitionId)
 end
@@ -1210,6 +1227,37 @@ function CTLDFatCowManager:_reportRefusedDeploy(cow, why)
         or ctld.tr("The Fat Cow FARP could not be deployed."))
 end
 
+-- Below this fraction of its internal fuel (Unit.getFuel), an AI cow in the air goes home whatever it was told: a
+-- holding or following cow waits for the next order forever, and one ran dry after 5 h (FIX-FAT-COW-STRANDED,
+-- 2026-11-22). A quarter of a CH-47's tanks crosses a map.
+local BINGO_FUEL = 0.25
+
+--- An AI cow in the air with less than BINGO_FUEL left packs nothing (it is not deployed in the air), goes home and
+-- tells its flight, one that holds, follows or was released alike. One that is landing lands, a returning one is
+-- already on its way. Run by the 10 s loop, so once per cow: it is returning afterwards.
+function CTLDFatCowManager:_sendHomeLowFuel()
+    local low = {}
+    for name, cow in pairs(self._cows) do
+        local phase = cow.ai and cow.ai.phase
+        if phase and phase ~= CTLDFatCowManager.PHASE_RETURNING and phase ~= CTLDFatCowManager.PHASE_LANDING then
+            local u = Unit.getByName(name)
+            if u and u:isExist() and ctld.utils.inAir(u) then
+                local ok, fuel = pcall(function() return u:getFuel() end)
+                if ok and type(fuel) == "number" and fuel < BINGO_FUEL then low[#low + 1] = { cow = cow, fuel = fuel } end
+            end
+        end
+    end
+    for _, l in ipairs(low) do
+        local cow = l.cow
+        ctld.utils.log("WARN", "CTLDFatCowManager: cow '%s' is low on fuel (%.2f of its tanks, phase %s): sent home",
+            cow.unitName, l.fuel, tostring(cow.ai.phase))
+        local gid = flightGroupId(cow)
+        if gid then trigger.action.outTextForGroup(gid, ctld.tr("The Fat Cow is low on fuel and returns home."), 15) end
+        cow.ai.released = nil
+        self:_returnHome(cow)
+    end
+end
+
 --- S_EVENT_LAND: the cow lands → it deploys after fatCowDeployDelay, or despawns when it was going home;
 -- an AI flight's leader lands → its cow lands next to it (a player flight uses "Land here").
 function CTLDFatCowManager:onLand(event)
@@ -1234,7 +1282,7 @@ function CTLDFatCowManager:onLand(event)
             if g and g:isExist() then g:destroy() end
             self:_rebuildMenus(cow.coalitionId)
         elseif cow.ai.phase == CTLDFatCowManager.PHASE_LANDING then
-            cow.ai.phase = CTLDFatCowManager.PHASE_LANDED
+            self:_setPhase(cow, CTLDFatCowManager.PHASE_LANDED)
             local mgr = self
             cow.ai.deployTimer = ctld.scheduler.schedule(function()
                 cow.ai.deployTimer = nil
@@ -1288,7 +1336,7 @@ function CTLDFatCowManager:_orbit(cow, point)
     if not ctrl then return end
     ctrl:setTask({ id = "Orbit", params = { pattern = "Circle", point = { x = point.x, y = point.z },
         altitude = land.getHeight({ x = point.x, y = point.z }) + CRUISE_ALT_M, speed = ORBIT_SPEED_MPS } })
-    cow.ai.phase = CTLDFatCowManager.PHASE_HOLDING
+    self:_setPhase(cow, CTLDFatCowManager.PHASE_HOLDING)
 end
 
 --- The cow of the requester's flight, or nil after telling the requester there is none.
@@ -1306,6 +1354,7 @@ function CTLDFatCowManager:orderLandHere(unitName)
     if not (t and t:isExist()) then return end
     local cow, u = self:_flightCowFor(t)
     if not cow then return end
+    self:_logOrder(cow, "Land here", unitName)
     if not ctld.utils.inAir(u) then
         trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("The Fat Cow is already on the ground."), 10)
         return
@@ -1321,6 +1370,7 @@ function CTLDFatCowManager:orderTakeOff(unitName)
     if not (t and t:isExist()) then return end
     local cow, u = self:_flightCowFor(t)
     if not cow then return end
+    self:_logOrder(cow, "Take off", unitName)
     self:_readyToMove(cow)
     self:_orbit(cow, u:getPoint())
     trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Fat Cow taking off: it orbits where it stands."), 10)
@@ -1332,6 +1382,7 @@ function CTLDFatCowManager:orderHoldHere(unitName)
     if not (t and t:isExist()) then return end
     local cow = self:_flightCowFor(t)
     if not cow then return end
+    self:_logOrder(cow, "Hold here", unitName)
     self:_readyToMove(cow)
     self:_orbit(cow, t:getPoint())
     trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Fat Cow holding over your position."), 10)
@@ -1343,6 +1394,7 @@ function CTLDFatCowManager:orderJoin(unitName)
     if not (t and t:isExist()) then return end
     local cow = self:_flightCowFor(t)
     if not cow then return end
+    self:_logOrder(cow, "Join us", unitName)
     self:_readyToMove(cow)
     self:_follow(cow)
     trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Fat Cow joining your flight."), 10)
@@ -1450,6 +1502,7 @@ function CTLDFatCowManager:releaseAICow(unitName)
         trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Your flight has no Fat Cow."), 10)
         return
     end
+    self:_logOrder(cow, "RTB", unitName)
     self:_returnHome(cow)
     trigger.action.outTextForGroup(ctld.utils.getGroupId(t), ctld.tr("Fat Cow RTB."), 10)
 end
@@ -1462,6 +1515,7 @@ function CTLDFatCowManager:freeAICow(unitName)
     local gid = ctld.utils.getGroupId(t)
     local cow, u = self:_flightCowFor(t)
     if not cow then return end
+    self:_logOrder(cow, "Release", unitName)
     self._aiByFlight[cow.ai.flightGroup] = nil
     cow.ai.released = true
     if ctld.utils.inAir(u) and cow.ai.phase ~= CTLDFatCowManager.PHASE_LANDING then self:_orbit(cow, u:getPoint()) end
@@ -1572,6 +1626,7 @@ function CTLDFatCowManager:takeOverAICow(unitName, cowUnitName)
     local d = ctld.utils.getDistance("CTLDFatCowManager", t:getPoint(), u:getPoint())
     ctld.utils.log("INFO", "CTLDFatCowManager: cow '%s' taken over by flight '%s' (was '%s')",
         cow.unitName, flight, cow.ai.flightGroup)
+    self:_logOrder(cow, "Take over", unitName)
     cow.ai.flightGroup = flight
     cow.ai.released    = nil
     self._aiByFlight = self._aiByFlight or {}

@@ -8,6 +8,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — an AI Fat Cow no longer hovers until it runs dry (FIX-FAT-COW-STRANDED)
+
+- Campagne server, 2026-11-22: an AI cow packed its FARP on an F10 order, then flew on for 5 h 20 min until it ran out of fuel and vanished, and the log had no line in between. Three changes:
+  **Bingo fuel**: an AI cow in the air with less than 25 % of its internal fuel (`Unit.getFuel`) goes home whatever it was told (holding, following or released; one that is landing lands), and its flight reads "The Fat Cow is low on fuel and returns home." (new text, four dictionaries). Logged as a `WARN` with the fuel fraction. The pilot guide says so, in English and French.
+  **Orphan check in the loop**: a cow whose flight is gone was sent home by a single check 2 s after the event, a race against DCS removing the client unit. The 10 s loop now runs the same check, so the cow goes home even when the one-shot ran too early.
+  **A readable log**: every F10 order given to an AI cow (Land here, Take off, Hold here, Join us, RTB, Release, Take over: cow, order, requesting unit) and every change of its phase writes one `INFO` line, none per loop tick.
+
 ---
 
 ## [2.1.0] — 2026-11-23
