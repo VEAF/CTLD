@@ -8,6 +8,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [2.1.1] — 2026-11-24
+
 ### Fixed — an AI Fat Cow no longer hovers until it runs dry (FIX-FAT-COW-STRANDED)
 
 - Campagne server, 2026-11-22: an AI cow packed its FARP on an F10 order, then flew on for 5 h 20 min until it ran out of fuel and vanished, and the log had no line in between. Three changes:
